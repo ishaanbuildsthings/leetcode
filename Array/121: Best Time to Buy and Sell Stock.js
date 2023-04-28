@@ -1,5 +1,6 @@
 // https://leetcode.com/problems/best-time-to-buy-and-sell-stock/
 // Difficulty: Easy
+// tags: Two Pointers, Sliding Window
 
 // Solution
 // O(n) time and O(1) space.
