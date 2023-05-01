@@ -2,7 +2,7 @@
 // Difficulty: Easy
 
 // Solution 1
-// O(n) time and space. Maps numbers in a dictionary and iterates.
+// O(n) time and space. Map numbers in a dictionary and iterate over list to look for target.
 
 const twoSum = function (nums, target) {
   const dict = {}; // maps numbers to their indices
