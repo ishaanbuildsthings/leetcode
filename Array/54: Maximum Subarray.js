@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/maximum-subarray/
 // Difficulty: Medium
-// tags: sliding window
+// tags: kadane's, dynamic programming, prefix
 
 // question: why is adding each subarray manually n^3 time? that would be adding n subarrays with left pointers and right pointers
 

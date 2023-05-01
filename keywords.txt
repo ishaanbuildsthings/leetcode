@@ -1,0 +1,10 @@
+learning purposes = review a concept or walkthrough a problems
+difficulty = leetcode problem difficulty
+
+tags:
+kadane's
+prefix
+postfix
+dynamic programming
+two pointers
+sliding window
