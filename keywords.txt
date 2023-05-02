@@ -3,6 +3,7 @@ difficulty = leetcode problem difficulty
 modfications = slightly different ways to think about or implement a solution
 
 tags:
+binary search
 kadane's
 prefix
 postfix
