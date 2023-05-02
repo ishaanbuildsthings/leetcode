@@ -13,3 +13,6 @@ const containsDuplicate = function (nums) {
   }
   return false;
 };
+
+// Solution 2
+// O(n^2) time and O(1) space, checks all pairs of numbers.
