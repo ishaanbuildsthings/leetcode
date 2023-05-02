@@ -4,7 +4,7 @@
 
 // Solution
 // bucket sort
-// O(n) time and O(n) space. Iterate over the elements and maintain a count for the buckets. Iterate over the array again and rewrite the elements in order.
+// O(n) time and O(1) space. Constant space because the buckets are bounded to 3. Iterate over the elements and maintain a count for the buckets. Iterate over the array again and rewrite the elements in order.
 
 const sortColors = function (nums) {
   const buckets = {

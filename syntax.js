@@ -27,3 +27,10 @@ set.add(1);
 set.has(3);
 
 
+// reduce
+const arr = [1, 2, 3, 4, 5];
+const sum = arr.reduce((acc, value) => acc + value, 0); // 15
+
+// absolute value
+Math.abs(...)
+
