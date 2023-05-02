@@ -1,5 +1,6 @@
 learning purposes = review a concept or walkthrough a problems
 difficulty = leetcode problem difficulty
+modfications = slightly different ways to think about or implement a solution
 
 tags:
 kadane's

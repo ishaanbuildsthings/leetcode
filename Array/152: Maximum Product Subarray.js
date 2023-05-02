@@ -5,7 +5,7 @@
 // Solution 1
 // O(n) time and O(1) space
 
-// notes:
+// MODIFICATIONS:
 // You could also do this slightly more concisely, by not using the current>0 or current<0 checks. Instead, just set dpMin and dpMax to be the Math.max or Math.min of three values.
 
 // This solution tracks the minimum and maximum possible values that can be reached at a given index. Since we only need to know the previous index's values, we can use constant storage and storage these values in `dpMin` and `dpMax`. We don't need to reset dpMin and dpMax because we can ignore them later, for instance: [-2, 3]. When we are solving for 3, our max is either -2*3, or just the current index, which "clears" out the previous values / doesn't consider them.
