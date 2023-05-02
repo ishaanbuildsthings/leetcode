@@ -2,6 +2,7 @@
 // https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/description/
 // Difficulty: Medium
 // tags: two pointers
+// helper: helps 15: 3sum
 
 // Solution
 // O(n) time and O(1) space
