@@ -5,6 +5,7 @@ helper = shows if this problem helps explain another problem, or uses a helper p
 
 tags:
 binary search
+bubble sort
 kadane's
 prefix
 postfix
@@ -12,4 +13,6 @@ dynamic programming
 two pointers
 sliding window
 
-misc (in file name) means not from blind 75
+misc (in file name) means not from blind 75, but from grind ~150, or a helper
+
+randoms (in file name) means a completely random problem
