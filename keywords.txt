@@ -6,6 +6,7 @@ helper = shows if this problem helps explain another problem, or uses a helper p
 tags:
 binary search
 bubble sort
+bucket sort
 kadane's
 prefix
 postfix
