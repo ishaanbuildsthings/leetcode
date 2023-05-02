@@ -10,3 +10,5 @@ postfix
 dynamic programming
 two pointers
 sliding window
+
+misc (in file name) means not from blind 75

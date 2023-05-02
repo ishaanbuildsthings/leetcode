@@ -1,5 +1,6 @@
 // https://leetcode.com/problems/two-sum/
 // Difficulty: Easy
+// tags: none
 
 // Solution 1
 // O(n) time and space. Map numbers in a dictionary and iterate over list to look for target.

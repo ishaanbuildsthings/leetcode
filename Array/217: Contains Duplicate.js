@@ -1,5 +1,6 @@
 // https://leetcode.com/problems/contains-duplicate/
 // Difficulty: Easy
+// tags: none
 
 // Solution
 // O(n) time and space, iterate over list, add elements to a hash set, and use set to detect if there is a duplicate.
