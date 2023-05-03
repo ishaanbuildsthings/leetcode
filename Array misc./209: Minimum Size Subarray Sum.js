@@ -27,3 +27,29 @@ const minSubArrayLen = function (target, nums) {
   }
   return minLength === Number.POSITIVE_INFINITY ? 0 : minLength;
 };
+
+// If we are trying to solve the same problem except we are looking for subarrays that specifically equal k (not >=), and our numbers are all positive, we can still do O(n) time and O(1) space.
+
+// The differences are that now when we see our subarray is >= the target, we then check if it precisely equals the target. If so we increment l as usual. However, if l ever passes r, such as [0,0,0], we break out of the loop. We also cannot just check (prefixSum === target) in the first while loop, consider: [1, 5, 2] and target is 7, we need to decrement 1 but we can't since our sum doesn't equal 7, it equals 8.
+
+const minSubArrayLen2 = function (target, nums) {
+  let l = 0;
+  let r = 0;
+  let minLength = Number.POSITIVE_INFINITY;
+  let prefixSum = 0;
+
+  while (r < nums.length) {
+    prefixSum += nums[r];
+    while (prefixSum >= target) {
+      if (prefixSum === target) {
+        minLength = Math.min(minLength, r - l + 1);
+      }
+
+      prefixSum -= nums[l];
+      l++;
+      if (l >= r) break;
+    }
+    r++;
+  }
+  return minLength === Number.POSITIVE_INFINITY ? 0 : minLength;
+};
