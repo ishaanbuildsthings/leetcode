@@ -2,7 +2,7 @@
 // Difficulty: Medium
 // tags: kadane's, dynamic programming, prefix
 
-// question: why is adding each subarray manually n^3 time? that would be adding n subarrays with left pointers and right pointers
+// todo question: why is adding each subarray manually n^3 time? that would be adding n subarrays with left pointers and right pointers
 
 // Solution 1
 // O(n) time and O(1) space

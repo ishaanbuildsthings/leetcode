@@ -7,12 +7,13 @@ tags:
 binary search
 bubble sort
 bucket sort
+dynamic programming
+greedy
 kadane's
 prefix
 postfix
-dynamic programming
-two pointers
 sliding window
+two pointers
 
 misc (in file name) means not from blind 75, but from grind ~150, or a helper
 
