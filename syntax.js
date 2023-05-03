@@ -8,6 +8,7 @@ const [second, third, fourth] = arr.slice(2, 5); // gets the 2nd to 4th, not inc
 const [second, third, fourth] = arr.slice(2);
 
 
+
 // modifying an array in place
 const arr = [1, 2, 3, 4, 5];
 
@@ -36,3 +37,6 @@ const sum = arr.reduce((acc, value) => acc + value, 0); // 15
 // absolute value
 Math.abs(...)
 
+// infinity
+const x = Number.POSITIVE_INFINITY;
+const y = Number.NEGATIVE_INFINITY;
