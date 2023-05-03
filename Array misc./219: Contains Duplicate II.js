@@ -3,12 +3,12 @@
 // tags: sliding window fixed
 
 // Solution
-// O(n) time and O(n) space. Create a mapping that maps if a number is currently in the fixed sliding window. We don't need to worry about quantity, since if we ever reach quantity two, we could just immediately return true. Iterate over the array with a fixed window and update the mapping.
+// O(n) time and O(k) space, as we at most track the number of elements in the window. Create a set that tracks if a number is currently in the fixed sliding window. We don't need to worry about quantity, since if we ever reach a duplicate, we can immediately return true. Iterate over the array with a fixed window and update the set.
 
-var containsNearbyDuplicate = function (nums, k) {
+const containsNearbyDuplicate = function (nums, k) {
   const windowWidth = k + 1; // fix weird indexing
   const windowWidthFinal = Math.min(windowWidth, nums.length); // reduce window if it is bigger than the array
-  const mapping = {}; // maps numbers to if they're currently in the window
+  const elementsInWindow = new Set(); // tracks numbers currently in the window
   let l = 0;
   let r = windowWidthFinal - 1;
 
@@ -16,22 +16,22 @@ var containsNearbyDuplicate = function (nums, k) {
     // if this is our first iteration, populate the mapping
     if (l === 0) {
       for (let i = 0; i < windowWidthFinal; i++) {
-        if (mapping[nums[i]]) {
+        if (elementsInWindow.has(nums[i])) {
           return true;
         } else {
-          mapping[nums[i]] = true;
+          elementsInWindow.add(nums[i]);
         }
       }
     }
     // we increment the left pointer, removing its value
-    mapping[nums[l]] = false;
+    elementsInWindow.delete(nums[l]);
     l++;
     // we increment the right pointer, adding its value and seeing if it is in the window
     r++;
-    if (mapping[nums[r]]) {
+    if (elementsInWindow.has(nums[r])) {
       return true;
     } else {
-      mapping[nums[r]] = true;
+      elementsInWindow.add(nums[r]);
     }
   }
   return false;

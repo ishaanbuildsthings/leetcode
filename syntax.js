@@ -26,6 +26,7 @@ const arr = new Array(5).fill(3); // creates an array of length 5 filled with 3s
 const set = new Set();
 set.add(1);
 set.has(3);
+set.delete(3);
 const arr = [1, 2, 3];
 const set = new Set(arr); // creates a set from an array
 
