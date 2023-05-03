@@ -13,7 +13,7 @@ greedy
 kadane's
 prefix
 postfix
-sliding window
+sliding window (fixed), fixed is an optional keyword
 two pointers
 
 misc (in file name) means not from blind 75, but from grind ~150, or a helper
