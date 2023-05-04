@@ -8,10 +8,7 @@
 const isPalindrome = function (s) {
   // lettersSet contains all lowercase letters
   const ALPHANUMERIC = "abcdefghijklmnopqrstuvwxyz0123456789";
-  const alphanumericSet = new Set();
-  for (const char of ALPHANUMERIC) {
-    alphanumericSet.add(char);
-  }
+  const alphanumericSet = new Set(ALPHANUMERIC);
 
   let l = 0;
   let r = s.length - 1;

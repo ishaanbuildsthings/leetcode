@@ -37,6 +37,11 @@ const set = new Set(arr); // creates a set from an array
 const arr = [1, 2, 3, 4, 5];
 const sum = arr.reduce((acc, value) => acc + value, 0); // 15
 
+// strings
+const str = 'hello';
+str.slice(1, 3); // 'el', incudes index but not suffix
+str.slice(1); // 'ello', goes until end
+
 // absolute value
 Math.abs(...)
 
