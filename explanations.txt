@@ -1,0 +1,4 @@
+kadane's - kadane's is very specifically a 'sliding window' technique where we iterate over an iterable and maintain a dp. If the dp doesn't meet some condition, we reset it in a way, effectively "moving" what would be our left pointer. Kadane's movement follows an inchworm, because when we don't meet a condition we reset the dp to some defined place.
+
+sliding window variable - these are more flexible, in that that the left pointer moves over by some other amount, depending on the problem. For instance finding the minimum size subarray that equals a certain sum (problem 209) consider [1, 3, 5] and our target is at least 6, once we hit [1,3,5] we keep decrementing from the left until we cannot any more. in sliding window we keep expanding until a condition is met (subarry has >= k sum) or broken (we have a repeating character), and then we shrink as much as needed (subarray too small) or (repeating character is gone)
+

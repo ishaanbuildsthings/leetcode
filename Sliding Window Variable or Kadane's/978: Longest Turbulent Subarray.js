@@ -1,6 +1,7 @@
 // https://leetcode.com/problems/longest-turbulent-subarray/description/
 // Difficulty: Medium
-// tags: dynamic programming, prefix, kadane's
+// tags: sliding window variable, kadane's (sort of)
+
 // Solution
 // O(n) time and O(1) space
 // Iterate over the array, maintaining a prefix for the previous sign. For instance [6, 8, 7], at 7 our prefix sign was '>', and our current sign is '<'. Based on those two signs, update the dpSize

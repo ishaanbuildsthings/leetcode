@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/minimum-size-subarray-sum/description/
 // Difficulty: Medium
-// tags: sliding window
+// tags: sliding window variable
 
 // Solution
 

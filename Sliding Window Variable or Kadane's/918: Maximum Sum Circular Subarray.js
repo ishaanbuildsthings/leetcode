@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/maximum-sum-circular-subarray/description/
 // Difficulty: Medium
-// tags: kadane's, dynamic programming, prefix, circular
+// tags: kadane's, circular
 
 // todo: continue trying 2 pointer / dp solution
 

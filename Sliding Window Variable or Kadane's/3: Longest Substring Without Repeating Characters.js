@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/longest-substring-without-repeating-characters/description/
 // Difficulty: Medium
-// tags: sliding window
+// tags: sliding window variable
 
 // Solution
 // O(n) time and O(1) space. The space is constant since it holds at most one instance of any possible english character.  We create a set that will track the current characters in the window, and two pointers starting at the beginning. As soon as we reach a new character, check if it is in the set. If it isn't, get a new size and increment r. If it is, we need to start decrementing from the left until we remove that characters. For instance "abcsdefsg". When we hit the second s, we need to decrement from the left until the left reaches right past the initial s. As we decrement, remove those characters from the set. We only need to remove it once since the window cannot contain two of the same character (otherwise we would've moved the window).
