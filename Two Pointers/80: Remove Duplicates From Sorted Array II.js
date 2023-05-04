@@ -4,6 +4,7 @@
 
 // Solution
 // O(n) time and O(1) space. Initialize two pointers at the beginning, a read and a write. Keep a memo for the last element the read pointer has seen, to know if we are seeing a new element or not. If the read pointer sees a new element, write writes, and both increment. If it sees an old element, we check how many times write has seen that and act accordingly.
+// You could also use nested while loops, where the write pointer increments until it finds a valid location to write a new number to, and the read pointer increments until it finds a new number to read.
 
 const removeDuplicates = function (nums) {
   let read = 0;
