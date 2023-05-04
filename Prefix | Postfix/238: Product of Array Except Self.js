@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/product-of-array-except-self/description/
 // Difficulty: Medium
-// tags: prefix / postfix, dynamic programming
+// tags: prefix / postfix
 
 // Solution 1
 // O(n) time and O(1) auxillary space, uses a dpPrefix and dpPostfix and iterates over the numbers in two directions, storing the multiplied results in the output array.

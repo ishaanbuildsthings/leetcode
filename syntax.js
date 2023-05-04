@@ -38,9 +38,10 @@ const arr = [1, 2, 3, 4, 5];
 const sum = arr.reduce((acc, value) => acc + value, 0); // 15
 
 // strings
-const str = 'hello';
+let str = 'hello';
 str.slice(1, 3); // 'el', incudes index but not suffix
 str.slice(1); // 'ello', goes until end
+str[5] = 'x';
 
 // absolute value
 Math.abs(...)
