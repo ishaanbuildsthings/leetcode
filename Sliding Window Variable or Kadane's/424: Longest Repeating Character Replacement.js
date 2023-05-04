@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/longest-repeating-character-replacement/description/
 // Difficulty: Medium
-
 // tags: sliding window variable
 
 // Solution
