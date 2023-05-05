@@ -22,7 +22,7 @@ const threeSum = function (numbers) {
       if (target + numbers[l] + numbers[r] === 0) {
         solutions.push([target, numbers[l], numbers[r]]);
         l++;
-        while (numbers[l] === numbers[l - 1] && l < r) {
+        while (numbers[l] === numbers[l - 1]) {
           l++;
         }
       } else if (target + numbers[l] + numbers[r] > 0) {

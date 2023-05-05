@@ -5,7 +5,7 @@
 // todo question: why is adding each subarray manually n^3 time? that would be adding n subarrays with left pointers and right pointers
 
 // NOTES
-// If we used a two pointer sliding window, we couldn't simply increment l++ when our subarray becomes negative, consider: [1, 5, 2, -9]
+// If we used a two pointer sliding window variant of kadane's, we simply incrementing l++ when our subarray becomes negative would be inefficient, consider: [1, 5, 2, -9]
 // when we reach -9, our overall sum is -1, so why do we reset the left pointer all the way to the number after -9, as opposed to just incrementing it once? Say we did do l++, dropping a 1. Obviously we do not want to drop a 1, that's bad, but it might be favorable if we dropped a negative number instead. However, if that number were negative, we would have already dropped it at [1] if the 1 were negative. What about [6, 1, 5]? (pretend the 1 is negative) Then we would be including the 6 in our current array as well, and not want to drop that.
 
 // Solution 1

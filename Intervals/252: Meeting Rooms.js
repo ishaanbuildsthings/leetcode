@@ -1,5 +1,6 @@
 // https://leetcode.com/problems/meeting-rooms/
 // Difficulty: Easy
+// tags: intervals
 
 // Solution
 // O(nlogn) time and O(1) space. Sort the intervals by start time and check if any end time is greater than the next start time.

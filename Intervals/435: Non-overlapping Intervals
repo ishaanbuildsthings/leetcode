@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/non-overlapping-intervals/description/
 // Difficulty: Medium
-// tags: greedy, prefix
+// tags: prefix, intervals
 
 // Solution
 // O(nlogn) time and O(1) or O(n) space depending on your sort alg.
