@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/longest-turbulent-subarray/description/
 // Difficulty: Medium
-// tags: sliding window variable, kadane's (sort of)
+// tags: kadane's
 
 // Solution
 // O(n) time and O(1) space

@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/maximum-product-subarray/
 // Difficulty: Medium
-// tags: kadane's
+// tags: prefix
 
 // Solution 1
 // O(n) time and O(1) space

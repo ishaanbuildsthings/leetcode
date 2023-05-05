@@ -18,8 +18,18 @@ arr.splice(2, 2); // removes 3 and 4
 
 
 // creating an array
-const arr = new Array(5); // creates an array of length 5 filled with undefined
+const arr = new Array(5); // creates a sparse array of length 5
 const arr = new Array(5).fill(3); // creates an array of length 5 filled with 3s
+const arr = new Array(5).fill(); // fills it with undefined
+
+DO NOT FILL AN ARRAY WITH[] or { } because it will fill it with references to the same object
+
+instead you could do:
+
+  const arr = new Array(5).fill().map(() => []); // creates an array of length 5 filled with empty arrays
+
+  this incurs a memory performance overhead, since .map creates a copy,
+
 const str = 'how are you?';
 const arr = str.split(' '); // ['how', 'are', 'you?']
 
@@ -48,6 +58,10 @@ const str = arr.join(''); // 'abc'
 
 // absolute value
 Math.abs(...)
+
+// floor / ceiling
+Math.floor(number)
+Math.ceil(number)
 
 // infinity
 const x = Number.POSITIVE_INFINITY;
