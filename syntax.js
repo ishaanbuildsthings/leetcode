@@ -20,7 +20,8 @@ arr.splice(2, 2); // removes 3 and 4
 // creating an array
 const arr = new Array(5); // creates an array of length 5 filled with undefined
 const arr = new Array(5).fill(3); // creates an array of length 5 filled with 3s
-const arr = Array.from(string);
+const str = 'how are you?';
+const arr = str.split(' '); // ['how', 'are', 'you?']
 
 
 // hash sets
@@ -42,6 +43,8 @@ let str = 'hello';
 str.slice(1, 3); // 'el', incudes index but not suffix
 str.slice(1); // 'ello', goes until end
 str[5] = 'x';
+const arr = ['a', 'b', 'c'];
+const str = arr.join(''); // 'abc'
 
 // absolute value
 Math.abs(...)
