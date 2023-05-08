@@ -31,6 +31,8 @@ function moveZeroes(nums) {
   }
 }
 
+// solution 2
+
 const moveZeroes = function (nums) {
   let firstZeroPointer = 0;
   while (nums[firstZeroPointer] !== 0 && firstZeroPointer < nums.length) {

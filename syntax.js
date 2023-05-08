@@ -12,7 +12,7 @@ const [second, third, fourth] = arr.slice(2);
 // modifying an array in place
 const arr = [1, 2, 3, 4, 5];
 
-arr.splice(index, how many elements):
+arr.splice(index, how many elements to remove including that index):
 
 arr.splice(2, 2); // removes 3 and 4
 
@@ -52,9 +52,13 @@ const sum = arr.reduce((acc, value) => acc + value, 0); // 15
 let str = 'hello';
 str.slice(1, 3); // 'el', incudes index but not suffix
 str.slice(1); // 'ello', goes until end
-str[5] = 'x';
+str[5] = 'x'; but cannot be reassigned in place in the string
 const arr = ['a', 'b', 'c'];
 const str = arr.join(''); // 'abc'
+const str2 = arr.join(' '); // 'a b c'
+
+// types
+typeof 1; // 'number'
 
 // absolute value
 Math.abs(...)
@@ -66,3 +70,32 @@ Math.ceil(number)
 // infinity
 const x = Number.POSITIVE_INFINITY;
 const y = Number.NEGATIVE_INFINITY;
+
+// map
+const a = b.map((element, index) => ...);
+// handling matrices
+trying to iterate over a matrix and process columns, use a .map:
+for (let colNumber = 0; colNumber < matrix[0].length; colNumber++) {
+  const column = matrix.map(row => row[colNumber]);
+  // process the column
+}
+
+// you can also make sure the matrix isnt rotated like this:
+
+const matrix = [
+  [1, 2, 3],
+  [4, 5, 6],
+  [7, 8, 9]
+];
+
+const numRows = matrix.length;
+const numCols = matrix[0].length;
+const resultMatrix = new Array(numRows).fill(0).map(() => new Array(numCols).fill(0));
+
+for (let colNumber = 0; colNumber < numCols; colNumber++) {
+  const column = matrix.map(row => row[colNumber] * 2); // extract the data and process the column
+
+  for (let rowNumber = 0; rowNumber < numRows; rowNumber++) {
+    resultMatrix[rowNumber][colNumber] = column[rowNumber];
+  }
+}
