@@ -1,6 +1,6 @@
 //https://leetcode.com/problems/linked-list-cycle/description/
 // Difficulty: Easy
-// tags: linked list, two pointers
+// tags: linked list, slow nd fast pointers
 
 // Problem
 /*
