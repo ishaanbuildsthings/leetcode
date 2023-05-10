@@ -3,6 +3,7 @@
 
 // Problem
 // Design an algorithm to encode a list of strings to a string. The encoded string is then sent over the network and is decoded back to the original list of strings.
+// Other solutions include using a non-ascii delimit which has better time complexity, or converting the length of the string to binary and then padding it (you can not convert it too).
 
 // Solution
 // O(n) time and O(1) space. Iterate over the array, for each word, determine the length, construct the prefix, and add it out our result string.
@@ -16,7 +17,7 @@ var encode = function (strs) {
   return result;
 };
 
-// O(n*k) time and O(1) space. Iterate over the string, and accumulate the prefix-number. Once we have that, run an inner for loop to gather the word. Add the word to our result array. Move the outer loop to the end of that word and continue. The inner for loop has amortized time complexity. We need additional time to parse the extra numbers. Imagine we had 100 really long words, such that their prefixes were each 1000 characters each. Then for each word, we would need to do another 1000 iterations, so it would be n*k time where k is the average length of the word.
+// O(n) time and O(1) space. Iterate over the string, and accumulate the prefix-number. Once we have that, run an inner for loop to gather the word. Add the word to our result array. Move the outer loop to the end of that word and continue. The inner for loop can only run up to 4 times per word, since the prefix is at most 4 digits long (length of words are capped at 200).
 var decode = function (s) {
   const words = [];
   let number = "";
