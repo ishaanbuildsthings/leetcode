@@ -8,6 +8,7 @@ Given a positive integer n, generate an n x n matrix filled with elements from 1
 
 // Solution
 // O(n^2) time and O(1) space. Create the empty matrix to start with. Start iterating to the right until we hit a boundary or an already filled value, then start going down, etc.
+// You can also do a 4 pointer solution like neetcode which fills out one ring at a time
 
 const generateMatrix = function (n) {
   const TOTAL_CELLS = n * n;
