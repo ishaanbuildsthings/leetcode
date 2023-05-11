@@ -81,6 +81,7 @@ var maxSlidingWindow = function (nums, k) {
   // initialize the deque with the initial sliding window
   const deque = new Deque();
 
+  // populate the deque
   for (let i = 0; i < k; i++) {
     const num = nums[i];
 
@@ -107,6 +108,7 @@ var maxSlidingWindow = function (nums, k) {
   let r = k - 1;
 
   while (r < nums.length) {
+    // * update result
     // for every window, we add the current biggest element in the window
     result.push(deque.peekLeft());
 
@@ -114,9 +116,11 @@ var maxSlidingWindow = function (nums, k) {
     if (deque.peekLeft() === nums[l]) {
       deque.dequeueLeft();
     }
+    // * update pointer
     l++;
     r++;
 
+    // * update data (and also a few lines earlier, when we decremented from the left)
     // bring in the new number and determine what to do with it
     const newNum = nums[r];
 
