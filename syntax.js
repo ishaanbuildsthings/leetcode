@@ -99,3 +99,7 @@ for (let colNumber = 0; colNumber < numCols; colNumber++) {
     resultMatrix[rowNumber][colNumber] = column[rowNumber];
   }
 }
+
+// deleting a key
+delete obj.key;
+delete obj[variableName];

@@ -19,6 +19,7 @@ for (...) {
     min = ...
   }
 }
+76: Minimum Window Substring has a good writeup on managing desirability and undesirability of variable sliding windows
 
 
 // SLIDING WINDOW / KADANES / PREFIX STUFF
