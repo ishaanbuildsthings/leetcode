@@ -129,6 +129,7 @@ var maxSlidingWindow = function (nums, k) {
       deque.enqueueRight(newNum);
     }
     // otherwise, dequeue from the right as long as the deck's right number is smaller and there are still numbers, then add it, to make it monotonically decreasing
+    // at most we dequeue n times, so this is still O(n)
     else if (newNum > deque.peekRight()) {
       while (deque.size() > 0 && newNum > deque.peekRight()) {
         deque.dequeueRight();
