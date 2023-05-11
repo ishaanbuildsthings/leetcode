@@ -2,8 +2,11 @@
 // Difficulty: Medium
 
 // Problem
-// Design an algorithm to encode a list of strings to a string. The encoded string is then sent over the network and is decoded back to the original list of strings.
-// Other solutions include using a non-ascii delimit which has better time complexity, or converting the length of the string to binary and then padding it (you can not convert it too).
+/*
+Design an algorithm to encode a list of strings to a string. The encoded string is then sent over the network and is decoded back to the original list of strings.
+*/
+
+// Other solutions include using a non-ascii delimiter which has better time complexity, or converting the length of the string to binary and then padding it (you can not convert it too). We can also use a function that accepts the prefix amount and that many following characters, parses out the next string with .slice, then returns the next index to start from, which is a bit simpler to follow than using the for in my solution.
 
 // Solution
 // O(n) time and O(1) space. Iterate over the array, for each word, determine the length, construct the prefix, and add it out our result string.
