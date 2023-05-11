@@ -23,3 +23,15 @@ var compose = function (functions) {
     (x) => x
   );
 };
+
+// Solution 2
+// return a function that takes in x, and applies all the functions in a backwards order to x
+var compose = function (functions) {
+  return function (x) {
+    for (let i = functions.length - 1; i >= 0; i--) {
+      const fn = functions[i];
+      x = fn(x);
+    }
+    return x;
+  };
+};

@@ -2,6 +2,13 @@
 // Difficulty: Medium
 // tags: sliding window fixed
 
+// Problem
+/*
+Simplified: return the number of subarrays of a fixed window size that have an average >= to a threshold
+
+Given an array of integers arr and two integers k and threshold, return the number of sub-arrays of size k and average greater than or equal to threshold.
+*/
+
 // Solution
 // O(n) time and O(1) space. Create a dpSum which tracks the current sum of the fixed sliding window, slide over the window, update the sum, and check if we pass the threshold.
 
