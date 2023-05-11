@@ -43,5 +43,17 @@ but also if our prefix should include the current cell, we might have a pattern 
 2- we reach a new cell and update the prefix or information based on that cell
 3- we process something with that info such as the min length of the subarray
 
+Linked Lists:
+to iterate over a linked list:
+while (head) {
+  head = head.next;
+}
+This works because as long as we have a valid element, then the .next will at worst be null. The problem is after this loop ends, we lose the tail. We can either grab the tail inside the the while loop, or use:
+while (head && head.next) {
+  head = head.next;
+}
+now, the loop fails when our next element is null. We need the head to be checked too, in case our head is null to begin with, to short circuit null.next
+
 
 TODO: is min size subarray sum>=k doable with a mapping, for negative numbers? what about the number of subarrays?
+TODO: question on discord where someone gave an alg

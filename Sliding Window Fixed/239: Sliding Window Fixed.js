@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/sliding-window-maximum/description/
 // Difficulty: Hard
-// tags: sliding window fixed
+// tags: sliding window fixed, monotonic queue, deque
 
 // Problem
 /*

@@ -8,9 +8,11 @@ binary search
 bubble sort
 bucket sort
 circular
+deque
 dynamic programming
 greedy
 kadane's
+monotonic queue
 prefix
 postfix
 recursion
