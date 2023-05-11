@@ -10,7 +10,7 @@ Given the heads of two singly linked-lists headA and headB, return the node at w
 // Solution
 // O(n + m) time to iterate over both linked lists. O(1) space. Iterate over the linked lists and figure out their lengths. Whichever one is longer, say 7 vs 4, increment it until the pointers are positioned at the same area. Then, increment both pointers by 1 until they are equal. Return the node or null if they are never equal.
 // We could also overwrite nodes to have negative values, since that wasn't allowed in the constraints, and then as soon as we see a -1 we return that node.
-
+// We could also increment each pointer through their entire linked list, then start over at the beginning of the other linked list. For instance with lengths 5 and 6, each would do 11 total, and intersect at null. But then they would also intersect at all the shared parts, including the head of the intersection
 var getIntersectionNode = function (headA, headB) {
   let lengthA = 0;
   // new pointer used to count
