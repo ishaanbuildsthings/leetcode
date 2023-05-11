@@ -26,7 +26,7 @@ const findDifference = function (nums1, nums2) {
 };
 
 // Solution 2
-// O(n log m + m log n) time and O(1) space. Sort both arrays and use binary search to find the unique elements.
+// O(n log m + m log n) time and O(1) space, or more space if we consider .sort to use space, but it depends on the implementation. Sort both arrays and use binary search to find the unique elements.
 const findDifference2 = function (nums1, nums2) {
   nums1.sort((a, b) => a - b);
   nums2.sort((a, b) => a - b);
