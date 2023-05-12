@@ -15,6 +15,8 @@ const arr = [1, 2, 3, 4, 5];
 arr.splice(index, how many elements to remove including that index):
 
 arr.splice(2, 2); // removes 3 and 4
+arr.splice(2, 1, 5); // removes 3 and adds 5
+arr.splice(2, 0, 5); // adds the 5 so its now index 2
 
 
 // creating an array
