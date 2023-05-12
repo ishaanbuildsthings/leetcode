@@ -15,7 +15,7 @@ counting sort / bucket sort strategy - good for things that are bounded by what 
 18: 4sum.js has a good writeup on using `continue` / while loops
 54: Maximum Subarray.js explains why we can reset the left wall of kadane's fully, instead of just doing l++
 209: Minimum Size Subarray.js showcases how we decrement from l as much as possible until our constraint fails
-907: Sum of Subarray Minimums. There are n^2 subarrays, we can compute all their minimums while still in n^2, because we can do something like the following, where we memoize the minimum value for that subarray.
+907: Sum of Subarray Minimums. There are n^2 subarrays, we can compute all their minimums while still in n^2, because we can do something like the following, where we memoize the minimum value for that subarray. BUT there is a linear method.
 for (...) {
   let min = Infinity
   for (...) {
