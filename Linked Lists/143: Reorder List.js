@@ -18,6 +18,8 @@ L0 → Ln → L1 → Ln - 1 → L2 → Ln - 2 → …
 // Solution
 // O(n) time and O(1) space. Iterate over the linked list, creating previous pointers to make it a doubly linked list. We do this so we can iterate backwards. Create a head and tail pointer. Create a dummy pointer which we will add nodes to to form the turbulent linked list. Toggle back and forth between adding the head and tail pointer to the list, until head meets tail. Then add the final pointer, and sever the ending connection.
 
+// * Another solution would be to reverse the second half of the list, then merge that with the first half
+
 var reorderList = function (head) {
   let headReverser = head;
   headReverser.prev = null;
