@@ -54,6 +54,12 @@ while (head && head.next) {
 }
 now, the loop fails when our next element is null. We need the head to be checked too, in case our head is null to begin with, to short circuit null.next
 
+To merge two lists, we can either:
+1) Figure out where the head pointer should start at, either l1 or l2. Say head starts at l1. Then we should increment l1 to begin with. We run a comparison between l1 and l2, and add the appropriate .next for the head. Say we do head.next = l2. Now we increment the l2 pointer. At the exact moment we add something to the head, we are creating a really long linked list yes, since it connects all the way to the back, but as we string through them, the end result will be the merged list.
+2) Create a dummy node, and use that as the head instead, now l1 and l2 both start at their appropriate starting locations.
+Either way, you will need a tail pointer trailing off of the dummy to know where to append to
+
 
 TODO: is min size subarray sum>=k doable with a mapping, for negative numbers? what about the number of subarrays?
 TODO: question on discord where someone gave an alg
+recursive linked list
