@@ -18,6 +18,9 @@ You must write a solution in O(log(m * n)) time complexity.
 /*
   Do a binary search to find the row number, the correct row number will be the highest possible row whose starting number is still less than our target, due to the nature of the problem. There are a few pitfalls though. The first is that binary search is good at finding the exact value, as we end at only one possible remaining result. We can check if that result is valid. In this case, we are looking for a number smaller than our target, not our target, since if we are searching for a 10, a row starting with a 5 may be acceptable. After we filter down to only one remaining row, there are a few outcomes. The first is the starting value of that row is our exact target, which is good. It often will not be though, which means the row is too large. We decrement one to the left. We may be out of bounds though, what if every row was too large? Then we return false immediately. There is also the case where every row is too small, in which case our final row will be the largest one, which is still acceptable.
 */
+// ****** a better solution for finding a row would be to compare the element we are looking for with the largest element of the row we are in ******
+
+// * Solution 2, you could also flatten out the array and just do one binary search! Or you can do it in constant space by iterating over all possible elements (n*m), but within the loop query the matrix accordingly.
 
 var searchMatrix = function (matrix, target) {
   if (matrix[0][0] > target) return false;
