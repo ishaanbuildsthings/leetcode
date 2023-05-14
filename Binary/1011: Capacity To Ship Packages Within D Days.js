@@ -12,6 +12,7 @@ Return the least weight capacity of the ship that will result in all the package
 */
 
 // Solution
+// Time O(n log k), where k is the search space for the binary, and n is the number of weights. Space: O(1)
 /*
 Assign an upper and lower boundary for the number of days. We know we must at least fit the biggest size package, so our lower boundary is that. Our lower boundary could also be the minimum capacity we would need to fit totalWeight/num days, but the largest weight is a better lower bound, since it's almost always bigger than the average weight. For the upper bound, what is the worst case? It is if we can only ship one package a day, and we need the max capacity to ship it, so it would be the max capacity * number of days we need. For instance 10 packages of weight 10, and only 5 days to ship them, we would need to do 2 a day, so 20.
 
