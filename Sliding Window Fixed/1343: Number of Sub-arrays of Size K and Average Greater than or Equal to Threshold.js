@@ -10,27 +10,27 @@ Given an array of integers arr and two integers k and threshold, return the numb
 */
 
 // Solution
-// O(n) time and O(1) space. Create a dpSum which tracks the current sum of the fixed sliding window, slide over the window, update the sum, and check if we pass the threshold.
+// O(n) time and O(1) space. Create a currentSum which tracks the current sum of the fixed sliding window, slide over the window, update the sum, and check if we pass the threshold.
 
 const numOfSubarrays = function (arr, k, threshold) {
   let l = 0;
   let r = k - 1;
   let numberOfValidArrays = 0;
   // initialize dpSum
-  let dpSum = 0;
+  let currentSum = 0;
   for (let i = 0; i < k; i++) {
-    dpSum += arr[i];
+    currentSum += arr[i];
   }
 
   while (r < arr.length) {
-    if (dpSum / k >= threshold) {
+    if (currentSum / k >= threshold) {
       numberOfValidArrays++;
     }
     // move the right pointer over and add number
     r++;
-    dpSum += arr[r];
+    currentSum += arr[r];
     // remove number from left and move pointer
-    dpSum -= arr[l];
+    currentSum -= arr[l];
     l++;
   }
 
