@@ -20,7 +20,3 @@ quicksort
 sliding window (fixed/variable)
 slow and fast pointers
 two pointers
-
-misc (in file name) means not from blind 75, but from grind ~150, or a helper
-
-randoms (in file name) means a completely random problem
