@@ -73,6 +73,8 @@ max sum of any subarray (any numbers) - we can use kadane's prefix sums
 209: minimum size of subarray of sum >=k (positive numbers) - we can use sliding variable window, decrement from left pointer as much as possible when >=k, since we increment r immediately as well. We can't allow negative numbers since then we aren't sure if incrementing the left pointer of the window would cause our sum to increase.
 ___
 not a LC question: number of subarrays / minimum size subarray for sum=k or sum>=k (positive nums), same as above, we can use a sliding window! once we are greater than or equal to the sum, we keep decrementing and adding to our count as long as we still fit the constraint
+___
+560: Subarray sum equals k, we need to calcuate # of subarrays that = k (any number). We can't use a sliding window due to negatives, but we can maintain a prefix mapping of prefixes we could chop off at any given point.
 
 
 152: max product of array (any numbers) - we can use a minPrefix and maxPrefix sum
@@ -125,6 +127,4 @@ TODO: is min size subarray sum>=k doable with a mapping, for negative numbers? w
 TODO: question on discord where someone gave an alg
 recursive linked list
 2244: minimum rounds to complete all tasks, use a better solution
-
-
-
+is there an algorithm to find the NUMBER of contiguous subarrays that have sum => k, in linear time? I can't think of one, for instance: this is potivies only
