@@ -62,6 +62,7 @@ To merge two lists, we can either:
 2) Create a dummy node, and use that as the head instead, now l1 and l2 both start at their appropriate starting locations.
 Either way, you will need a tail pointer trailing off of the dummy to know where to append to
 
+math: to find the distance between two points on a line, we can just do abs(p1 - p2)
 
 TODO: is min size subarray sum>=k doable with a mapping, for negative numbers? what about the number of subarrays?
 TODO: question on discord where someone gave an alg
