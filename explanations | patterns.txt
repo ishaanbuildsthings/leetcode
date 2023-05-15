@@ -124,6 +124,7 @@ math: to find the distance between two points on a line, we can just do abs(p1 -
 TODO: is min size subarray sum>=k doable with a mapping, for negative numbers? what about the number of subarrays?
 TODO: question on discord where someone gave an alg
 recursive linked list
+2244: minimum rounds to complete all tasks, use a better solution
 
 
 
