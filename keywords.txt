@@ -4,6 +4,7 @@ modfications = slightly different ways to think about or implement a solution
 helper = shows if this problem helps explain another problem, or uses a helper problem
 
 tags:
+arrays (sometimes used when we don't put a problem in the array category but it still has a lot of array/hashing work)
 binary search
 bubble sort
 bucket sort
