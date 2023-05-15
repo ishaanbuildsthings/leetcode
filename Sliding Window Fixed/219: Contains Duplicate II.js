@@ -27,7 +27,7 @@ var containsNearbyDuplicate = function (nums, k) {
     }
   }
 
-  while (r < nums.length) {
+  while (r < nums.length - 1) {
     // we increment the left pointer, removing its value
     elementsInWindow.delete(nums[l]);
     l++;
