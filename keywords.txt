@@ -13,6 +13,7 @@ deque
 dynamic programming
 greedy
 kadane's
+math
 monotonic queue
 prefix
 postfix

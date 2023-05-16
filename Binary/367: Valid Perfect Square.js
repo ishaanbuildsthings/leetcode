@@ -1,5 +1,6 @@
 // https://leetcode.com/problems/valid-perfect-square/
 // Difficulty: Easy
+// tags: binary search, math
 
 // Problem
 /*
