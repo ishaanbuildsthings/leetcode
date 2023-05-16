@@ -20,7 +20,7 @@ String decode(String shortUrl) Returns the original long URL for the given short
 // Solution
 // O(1) time to encode and O(1) time to encode, O(n) space for the mapping. Technically the time can deteriorate once there are too many collisions, but this is unlikely as there are too many possible combinations.
 /*
-For the encoding, generate a random alphanumeric 8 digit url, storage the mapping of the tinyurl to the long url. For the decode, lookup the tinyurl in the mapping and return the long url.
+For the encoding, generate a random alphanumeric 8 digit url, storage the mapping of the tinyurl to the long url. For the decode, lookup the tinyurl in the mapping and return the long url. If we don't want to re-encode common URLs, we could create an encoded->decoded mapping as well, and do lookups in there.
 */
 
 // maps tinyurls to their long versions

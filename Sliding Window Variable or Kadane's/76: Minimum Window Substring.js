@@ -4,9 +4,7 @@
 
 // Problem
 /*
-Given two strings s and t of lengths m and n respectively, return the minimum window
-substring
- of s such that every character in t (including duplicates) is included in the window. If there is no such substring, return the empty string "".
+Given two strings s and t of lengths m and n respectively, return the minimum window substring of s such that every character in t (including duplicates) is included in the window. If there is no such substring, return the empty string "".
 
 The testcases will be generated such that the answer is unique.
 */
@@ -45,7 +43,7 @@ var minWindow = function (string, target) {
     const char = string[r];
     windowMapping[char]++;
 
-    // skip characters that won't make our window desirable because we have enough of those
+    // skip characters that won't make our window desirable (we already have them) because we have enough of those already
     if (windowMapping[char] > targetMapping[char]) {
       r++;
       continue;
