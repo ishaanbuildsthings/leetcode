@@ -116,6 +116,9 @@ counting sort / bucket sort strategy - good for things that are bounded by what 
 
 math: to find the distance between two points on a line, we can just do abs(p1 - p2)
 
+to get the last digit of a number, do % 10, to remove the last digit, do floor div by 10
+to get the first digit of a number, we can keep floor dividing until the number is less than 10. We could speed up the floor div process by using logs to figure out how many digits are in a number, and then floor dividing by a bigger number based on that
+
 2241: Design an ATM Machine and 2244: Minimum Rounds to Complete All Tasks show how we can use math to simplify operations. In design an ATM machine, we need to withdraw the largest bill repeatedly until it would put us over our withdrawn amount, then repeat. Instead of withdrawing one at a time, comparing our remaining amount, and loop (total time complexity = # of bills in the machine, since we could draw each bill one by one), we can calculate with math exactly how many we could withdraw, and the time complexity becomes bound by the # of bill types.
 
 
@@ -128,3 +131,4 @@ TODO: question on discord where someone gave an alg
 recursive linked list
 2244: minimum rounds to complete all tasks, use a better solution
 is there an algorithm to find the NUMBER of contiguous subarrays that have sum => k, in linear time? I can't think of one, for instance: this is potivies only
+add how design hashmap and insert delete getrandom are good sections

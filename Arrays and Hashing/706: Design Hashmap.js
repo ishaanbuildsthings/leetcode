@@ -15,7 +15,7 @@ void remove(key) removes the key and its corresponding value if the map contains
 
 // Solution
 /*
-To implement a hash-map, we can use linear probing (ideally with tombstones and increased step sizes), or separate chaining. For this problem, separate chaining is easier to implement. We intialize some storage and constants that indicate when to double or halve our underlying array size. Since our array is dynamic, we just treat the hash function to only hash within some predefined size (the length of the storage). To add a location, we hash the key with a modulo, check the hashed position, and add the element / push it to the bucket. To retrieve it, we do the same thing, iterating over the buckets and comparing the keys.
+To implement a hash-map, we can use linear probing (ideally with tombstones and increased step sizes), or separate chaining. For this problem, separate chaining is easier to implement. We intialize some storage and constants that indicate when to double or halve our underlying array size. Since our array is dynamic, we just treat the hash function to only hash within some predefined size (the length of the storage). To add a location, we hash the key with a modulo, check the hashed position, and add the element / push it to the bucket. To retrieve it, we do the same thing, iterating over the buckets and comparing the keys. We could also not store tuples inside the buckets and instead just push the values directly as we know every odd value is a key.
 */
 
 const DOUBLE_FACTOR = 0.75;

@@ -1,0 +1,71 @@
+// takeaways from a linear probing attempt
+/*
+1) tombstones are useful, for instance say we insert a 7: [7] and then a -7, which gets linearly probed by 1 index: [7, -7], then we remove the 7: [undefined, -7], when we search for -7 we will see that we don't have it, so we would need to use a tombstone.
+
+2) get random doesn't work well without explicitly tracking the inserted data in a compressed array, because we have lots of empty values it's hard to find a random value (since we have to keep generating random indices and checking them). We also can't generate a random index then iterate, consider: [1, undefined, undefined, 2], 3/4 of the indices generated will lead to 2
+
+3) When we resize, we need to rehash all the elements, otherwise when we remove or insert an element, our index will be computed off of the new array length, yielding corrupt results. We can also remove the tombstones when we resize, since we will be rehashing everything anyways.
+
+4) When we probe, we can do so quadratically or exponentially to reduce clustering, since we would have many smaller clusters, as opposed to one large cluster, which would in turn grow even larger as elements are sucked into that clustery
+
+5) Instead of making the array start with some amount of filled elements, we can just maintain a size variable and resize when we hit a certain threshold (by just changing the size variable), since the arrays are dynamic anyway and will resize automatically
+
+
+Overall, the below implementation doesn't really work, due to the get random (everything else works). I also made the array 220k by default as I was debugging and didn't want to deal with array resizing, but it is completely doable as shown by question 706: Design HashMap.
+*/
+
+var RandomizedSet = function () {
+  this.maxIndex = 220000;
+  this.storage = new Array(220000).fill(undefined);
+  this.numsInserted = 0;
+};
+
+RandomizedSet.prototype.insert = function (val) {
+  let insertLocation = Math.abs(val % this.storage.length);
+  //console.log(`about to insert: ${val} at storage location: ${insertLocation}`);
+  while (this.storage[insertLocation] !== undefined) {
+    if (this.storage[insertLocation] === val) {
+      //console.log(`insertion failed`);
+      return false;
+    }
+    insertLocation++;
+    if (insertLocation >= this.storage.length) {
+      insertLocation = 0;
+    }
+  }
+  // console.log(`inserted at location: ${insertLocation}`)
+  this.storage[insertLocation] = val;
+  this.numsInserted++;
+  //console.log(`successfully inserted, new storage: ${JSON.stringify(this.storage)}`);
+  return true;
+};
+
+RandomizedSet.prototype.remove = function (val) {
+  let removalLocation = Math.abs(val % this.storage.length);
+  //console.log(`about to remove ${val} at index ${removalLocation}`);
+
+  while (this.storage[removalLocation] !== undefined) {
+    if (this.storage[removalLocation] === val) {
+      this.storage[removalLocation] = "t";
+      //console.log(`deletion successful: ${JSON.stringify(this.storage)}`);
+      this.numsInserted--;
+      return true;
+    }
+    removalLocation = (removalLocation + 1) % this.storage.length;
+  }
+  //console.log(`deletion failed`);
+  return false;
+};
+
+RandomizedSet.prototype.getRandom = function () {
+  //console.log(`about to get a random number from: ${JSON.stringify(this.storage)}`);
+  if (this.numsInserted === 0) {
+    return null;
+  }
+  let rand;
+  do {
+    rand = Math.floor(Math.random() * this.storage.length);
+  } while (this.storage[rand] === undefined || this.storage[rand] === "t");
+  //console.log(`random number found: ${this.storage[rand]}`);
+  return this.storage[rand];
+};
