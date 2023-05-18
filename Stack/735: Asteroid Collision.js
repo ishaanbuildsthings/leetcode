@@ -4,10 +4,24 @@
 
 // Problem
 /*
+Simplified:
+Input: asteroids = [10,2,-5]
+Output: [10]
+Explanation: The 2 and -5 collide resulting in -5. The 10 and -5 collide resulting in 10.
+
+Detailed:
+We are given an array asteroids of integers representing asteroids in a row.
+
+For each asteroid, the absolute value represents its size, and the sign represents its direction (positive meaning right, negative meaning left). Each asteroid moves at the same speed.
+
+Find out the state of the asteroids after all collisions. If two asteroids meet, the smaller one will explode. If both are the same size, both will explode. Two asteroids moving in the same direction will never meet.
+
+
  */
 
 // Solution: O(n) time (at most every asteroid can be added and destroyed once) and O(n) space
 /*
+Iterate over each asteroid, as long as it is facing left and the asteroid on its left isn't facing right, we don't have a collision. We can also add asteroids facing right whenever. If we add an asteroid facing left, and we already had an asteroid facing right, pop while there are collisions, handling the cases as needed. The code could be simplified a bit but this is very explicit / clear.
  */
 
 var asteroidCollision = function (asteroids) {
