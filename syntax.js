@@ -58,6 +58,10 @@ str[5] = 'x'; but cannot be reassigned in place in the string
 const arr = ['a', 'b', 'c'];
 const str = arr.join(''); // 'abc'
 const str2 = arr.join(' '); // 'a b c'
+'hi'.repeat(5) // 'hihihihihi'
+// checking if a string is a valid number
+isNaN('hi'); // true
+isNaN('1'); // false
 
 // types
 typeof 1; // 'number'
