@@ -62,6 +62,7 @@ for (...) {
 76: Minimum Window Substring has a good writeup on managing desirability and undesirability of variable sliding windows
 240: Search a 2D Matrix II (in binary) has a good writeup on thinking about pivot points and recognizing that you should use pivots in things with sorted properties
 380: Insert Delete GetRandomO(1) and 706: Design Hashmap have good writeups on using hash tables, linear probing, etc.
+234: Palindrome Linked List has a good writeup on reversing a portion of a linked list and not severing a connection
 
 
 
@@ -103,6 +104,13 @@ To merge two lists, we can either:
 2) Create a dummy node, and use that as the head instead, now l1 and l2 both start at their appropriate starting locations.
 Either way, you will need a tail pointer trailing off of the dummy to know where to append to
 
+When reversing part of a linked list, think about the full set of pointers, for instance:
+1->2->3->
+we reverse starting from 2, making:
+<-2<-3
+but 1 still points to 2, so we have:
+1->2<-3
+   V
 
 
 
@@ -132,3 +140,4 @@ TODO: question on discord where someone gave an alg
 recursive linked list
 2244: minimum rounds to complete all tasks, use a better solution
 is there an algorithm to find the NUMBER of contiguous subarrays that have sum => k, in linear time? I can't think of one, for instance: this is potivies only
+do recursion attempt for 206
