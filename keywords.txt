@@ -12,7 +12,7 @@ bucket sort
 circular
 deque
 dynamic programming
-greedy
+greedy - not really used for problems that aren't explicitly tagged greedy, since lots of problems use greedy methods but the focus is on another part of the problem
 kadane's
 math
 monotonic queue
