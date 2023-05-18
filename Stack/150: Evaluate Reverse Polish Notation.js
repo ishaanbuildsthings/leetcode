@@ -25,7 +25,7 @@ The answer and all the intermediate calculations can be represented in a 32-bit 
 
 // Solution: O(n) time and O(1) space
 /*
-Iterate through the tokens, whenever we get a number, push it to a stack. Whenever we get an operator, compute a result for the two most recent numbers, and edit the stack.
+Iterate through the tokens, whenever we get a number, push it to a stack. Whenever we get an operator, compute a result for the two most recent numbers, and edit the stack. Division should round towards 0, so -1/10 should use a ceiling, but 1/10 should use a floor.
 */
 
 var evalRPN = function (tokens) {
