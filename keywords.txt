@@ -5,6 +5,7 @@ helper = shows if this problem helps explain another problem, or uses a helper p
 
 tags:
 arrays (sometimes used when we don't put a problem in the array category but it still has a lot of array/hashing work)
+backtracking
 binary search
 bubble sort
 bucket sort
@@ -15,10 +16,12 @@ greedy
 kadane's
 math
 monotonic queue
+monotonic stack
 prefix
 postfix
 recursion
 quicksort
+queue
 sliding window (fixed/variable)
 slow and fast pointers
 stack
