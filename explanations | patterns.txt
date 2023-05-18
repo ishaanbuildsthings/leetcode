@@ -61,6 +61,7 @@ for (...) {
 }
 76: Minimum Window Substring has a good writeup on managing desirability and undesirability of variable sliding windows
 240: Search a 2D Matrix II (in binary) has a good writeup on thinking about pivot points and recognizing that you should use pivots in things with sorted properties
+380: Insert Delete GetRandomO(1) and 706: Design Hashmap have good writeups on using hash tables, linear probing, etc.
 
 
 
@@ -131,4 +132,3 @@ TODO: question on discord where someone gave an alg
 recursive linked list
 2244: minimum rounds to complete all tasks, use a better solution
 is there an algorithm to find the NUMBER of contiguous subarrays that have sum => k, in linear time? I can't think of one, for instance: this is potivies only
-add how design hashmap and insert delete getrandom are good sections

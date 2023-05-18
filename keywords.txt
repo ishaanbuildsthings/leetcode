@@ -21,4 +21,5 @@ recursion
 quicksort
 sliding window (fixed/variable)
 slow and fast pointers
+stack
 two pointers

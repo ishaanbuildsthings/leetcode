@@ -1,5 +1,6 @@
 // https://leetcode.com/problems/valid-parentheses/
 // Difficulty: Easy
+// tags: stack
 
 // Problem
 /*
