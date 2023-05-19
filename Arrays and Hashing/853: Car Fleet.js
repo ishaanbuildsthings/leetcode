@@ -7,6 +7,7 @@ First, sort the positions and speeds by position, as we can't really do anything
 
 The tricky case is what if we have one car moving at 5, another at 20, and one at 10. The 10 car might seemingly never be able to catch up to the 20, but it might if the 5 bottlenecks the 20. What we should do is start with the car closest to the finish line, and determine how long it will take to get to the finish line. Then, go to the next car. If the next car could theoretically reach the line first, it would actually join the fleet in front of it. So the 20 would join the 5, and the bottleneck time would not change. But if we have a new slower car, say speed 3, it would form a new bottleneck time.
 */
+// We could also use a stack, and whenever a car would reach the car in front of it on the stack, we move on, but if it can't catch up, add it to the stack as the bottlneck, and then count how many bottlenecks we have at the end.
 
 var carFleet = function (target, position, speed) {
   const tuples = position.map((position, index) => [position, speed[index]]);
