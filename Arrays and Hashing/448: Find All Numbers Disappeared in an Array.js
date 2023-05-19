@@ -8,7 +8,7 @@ Input: nums = [4,3,2,7,8,2,3,1]
 Output: [5,6]
 */
 
-// Solution 1, O(n) time and space
+// Solution 1, O(n) time and space. Add all the numbers to a set, then iterate through the range [1, n] and add the numbers that aren't in the set to the result array.
 
 var findDisappearedNumbers = function (nums) {
   const set = new Set();

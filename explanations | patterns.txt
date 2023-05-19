@@ -41,7 +41,7 @@ some misceallenous binary notes on a working and not working strategy, due to th
 // if 3 < our target, l = m + 1
 // if 3 >= our target, r = m
 
-
+If we are using the floor, we can never set l=m, because that won't compress a window of 2. We must use a ceiling. If we are using a ceiling, we can never set r=m, as it won't compress, we must use r=m-1. 23: Find First and Last Position of Element in Sorted array showcases using both. It also sometimes may be easier to use 3 cases, nums[m]<target, equals, and greater than, and set the windows accordingly.
 
 
 
