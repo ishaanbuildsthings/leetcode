@@ -112,6 +112,7 @@ but 1 still points to 2, so we have:
 1->2<-3
    V
 
+Good naming conventions are old, slow, fast, current, etc. and if we need multiple iterations, at the beginning we can do let current = head, do our iteration, then reset current to be head again for the next iteration
 
 
 ********** SORTING **********

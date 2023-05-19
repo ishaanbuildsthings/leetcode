@@ -119,3 +119,8 @@ delete obj[variableName];
 // sorting
 arr.sort((a, b) => a - b);
 if < 0, a goes before b, if 0, order perserved, if > 0, b goes before a
+
+// maps, useful for using objects as keys
+const myMap = new Map();
+myMap.set(key, value);
+myMap.get(key);
