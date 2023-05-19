@@ -25,7 +25,7 @@ Iterate over each asteroid, as long as it is facing left and the asteroid on its
  */
 
 var asteroidCollision = function (asteroids) {
-  // initialize it with the first asteroid to avoid handling the edge case later of trying to add the first asteroid to the stack and having no prior asteroids to compare it to
+  // initialize it with the first asteroid to avoid handling the edge case later of trying to add the first asteroid to the stack and having no prior asteroids to compare it to, not actually needed since we can check the stack length though
   const stack = [asteroids[0]];
   for (let i = 1; i < asteroids.length; i++) {
     // if the asteroids are moving the same direction, we can add the new asteroid and continue
