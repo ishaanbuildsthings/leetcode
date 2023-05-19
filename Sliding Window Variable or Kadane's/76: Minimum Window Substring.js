@@ -91,8 +91,9 @@ var minWindow = function (string, target) {
 // Solution 2
 // Same as solution 3, but using pointers instead of lots of .slice. Also added a condition to skip characters that aren't in the target at all. They can be ignored, because they would never make the window desirable. It doesn't matter if we decrement those from the windowMapping when we delete them from the left (they would become negative since we never added them) since we never use those values anyway. Also added an optimization that when we decrement from the left, we only check if decrementing that character made our window undesirable, since we were desirable before.
 
-const LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const template = {};
+// commented out to prevent coding error for making 2 variables with the same name
+//const LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+//const template = {};
 for (const letter of LETTERS) {
   template[letter] = 0;
 }
@@ -173,8 +174,9 @@ A strange case may be: AEECEEBCA and our target is ABC
 Our first desirable window is A...BC. When we decrement from the left, we drop the A, which makes our window undesirable. But we can keep decrementing technically, since removing extra characters like the C, or unrelated characters like the E won't add further issues to our window. But we don't need to do this. This is because the next time our window is desirable, on the last A, we will decrement from the left continuously until it isn't, and we would drop those extra characters then. If the last character of the window specifically makes it desirable, then when we decrement from the left and make it undesirable, we don't care about decrementing more letters like the E or first C, because we would have no more characters to make the window desirable again anyway.
 */
 
-const LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const template = {};
+// commented out to prevent coding error for making 2 variables with the same name
+//const LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+//const template = {};
 for (const letter of LETTERS) {
   template[letter] = 0;
 }

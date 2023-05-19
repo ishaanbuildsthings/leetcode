@@ -32,81 +32,12 @@ var removeKdigits = function (num, k) {
         stack.pop();
         counter--;
       }
-      stack.push(num[i]);
     }
-    // if we have no changes left or our new number is bigger, just add it
-    else {
-      stack.push(num[i]);
+    // if our new number was a 0 and our stack is empty, don't add it
+    if (stack.length === 0 && num[i] === "0") {
+      continue;
     }
-  }
-
-  // if we have leftover removals, pop from the back, since our stack is monotonically increasing, 1234 optimal is always to remove from the right since we don't want to remove our smaller prefixes compared to the larger ending
-  while (counter > 0) {
-    stack.pop();
-    counter--;
-  }
-
-  // whenever we reached a 0, we might have made our prefix a 0, for instance 100, k=1, we would be left with 00, so remove all the starting digits, to do so, iterate until we find a non-0, like 00100, or until we iterate across the whole string, like 000
-  let i;
-  for (i = 0; i < stack.length; i++) {
-    if (stack[i] !== "0") {
-      break; // i is now a non-0
-    }
-  }
-
-  // if i reached the length of the number, the entire string was zeroes, and we can return a single '0'
-  if (i === stack.length) {
-    return "0";
-  }
-  402;
-  // i is at the first non-zero (which might be index 0 if we don't have any leading zeroes), prune those 0s
-  const stackPruned = stack.slice(i);
-
-  return stackPruned.join("");
-};
-
-// 123451
-// 12341
-
-// 1 4
-// 1 4 3 -> 1 3
-// 1 3 2 -> 1 2
-// 1 2 2
-// 1 2 2 1 -> 1 2 1
-// 1 2 1 9
-
-// SOLUTION 2
-// FEWER CYCLES SOLUTION, don't add 0s to the beginning, so we don't need to prune them off
-var removeKdigits = function (num, k) {
-  let counter = k; // indicates how many more removals we have left
-
-  // if we can remove every digit, like '10' k=2, return '0' as opposed to a blank string
-  if (k === num.length) {
-    return "0";
-  }
-
-  const stack = [num[0]]; // prevent edge case where we don't have a prior number to compare to
-  for (let i = 1; i < num.length; i++) {
-    // if our new number is smaller, and we have changes left, we can bump out the old bigger prefix for the new one
-    if (num[i] < stack[stack.length - 1] && counter > 0) {
-      while (stack[stack.length - 1] > num[i] && counter > 0) {
-        stack.pop();
-        counter--;
-      }
-      // if our new number was a 0 and our stack is empty, don't add it
-      if (stack.length === 0 && num[i] === "0") {
-        continue;
-      }
-      stack.push(num[i]);
-    }
-    // if we have no changes left or our new number is bigger, just add it
-    else {
-      // if our new number was a 0 and our stack is empty, don't add it
-      if (stack.length === 0 && num[i] === "0") {
-        continue;
-      }
-      stack.push(num[i]);
-    }
+    stack.push(num[i]);
   }
 
   // if we have leftover removals, pop from the back, since our stack is monotonically increasing, 1234 optimal is always to remove from the right since we don't want to remove our smaller prefixes compared to the larger ending
