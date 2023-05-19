@@ -118,7 +118,12 @@ but 1 still points to 2, so we have:
 
 counting sort / bucket sort strategy - good for things that are bounded by what can be included, for instance sorting a word of only letters
 
-
+two sort two arrays based on one of them, for instance sort both position = [10,8,0,5,3], speed = [2,4,1,1,3], based on position
+we can create an array of tuples of the position and speed pairs:
+const tuples = position.map((val, index) => [val, speed[index]]);
+then sort tuples based on the values
+tuples.sort((a, b) => a[0] - b[0]);
+then split them back up
 
 
 ********** MATH **********

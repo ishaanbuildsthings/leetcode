@@ -45,6 +45,12 @@ set.size; // returns length
 const arr = [1, 2, 3];
 const set = new Set(arr); // creates a set from an array
 
+// map
+const arr2 = arr.map((value, index) => ...); // we can access index as well, useful for things like sorting two arrays based on one
+const positions = [1, 5, 3, 2];
+const speeds = [9, 2, 4, 6];
+const tuples = positions.map((pos, i) => [pos, speeds[i]]); // [[1, 9], [5, 2], [3, 4], [2, 6]]
+
 
 // reduce
 const arr = [1, 2, 3, 4, 5];
@@ -109,3 +115,7 @@ for (let colNumber = 0; colNumber < numCols; colNumber++) {
 // deleting a key
 delete obj.key;
 delete obj[variableName];
+
+// sorting
+arr.sort((a, b) => a - b);
+if < 0, a goes before b, if 0, order perserved, if > 0, b goes before a
