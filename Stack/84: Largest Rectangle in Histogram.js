@@ -9,7 +9,12 @@ Given an array of integers heights representing the histogram's bar height where
 
 // Solution 1, O(n) time and O(n) space.
 /*
+Iterate over the heights. Maintain a monotonically increasing stack. Our goal is to determine the height of n rectangles, where each rectangle takes on the height of one specific height. For instance: [1, 5, 8, 4, 3], we should see how big the rectangle at height 1 is, 4, 7, 3, and 2. It doesn't make sense to check shorter ones, like height 2, because they will be subsets of potentially larger ones. If we checked height 3, it would line up with another constraint already (the height 3 at the end). If we see a smaller rectangle, for instance the 4, it should pop until we are increasing again, tracking how many it popped, so we know how many bigger ones are to its left. When we pop off an element, compute its area. For instance the 5 has height 5, width (0 + 1 + 1), as it had popped off 0 elements to its left, has width of 1 itself, and the 4 had popped off 1 element to its right. At the end we have a monotonically increasing stack so we need to compute that.
  */
+// Solution 2, slightly easier to implement:
+/*
+Maintain a stack of [index, height]. [2, 1, 5, 6, 2, 3]. We add 2 that started at index 0. We add a 1, that is at index 1. But it can extend left, all the way to where the 2 started. So we can add [index=0, height=1] for the height of 1. Then we add [index=2,height=5], [index=3,height=6]. Then at 2, we pop the 6, calculate the 6 area. We pop the 5, calculate the area by using our current index for the 2 (index 4) and the index of the 5 (2). We can't pop anymore so we update that our new 2 ends at index 2 which is where the 5 ended. At the end we have a monotonically increasing stack so we need to compute that.
+*/
 
 var largestRectangleArea = function (heights) {
   let maxArea = -Infinity;

@@ -1,6 +1,9 @@
 // https://leetcode.com/problems/valid-anagram/description/
 // Difficulty: Easy
 
+// Problem
+// Given two strings s and t, return true if t is an anagram of s, and false otherwise.
+
 // Solution
 // O(n) time and O(1) space, since a mapping of letters to ints is constant. Iterate over the first list and increment the mapping, iterate over the second and decrement it. if we ever drop below 0, return false, we don't have to worry about having extra letters from s because we checked the lengths of the arrays are the same already.
 

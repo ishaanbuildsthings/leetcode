@@ -2,6 +2,8 @@
 // Difficulty: Easy
 // tags: two pointers
 
+// Problem: Given an integer array nums, move all the even integers at the beginning of the array followed by all the odd integers.
+
 // Solution
 // O(n) time and O(1) space. Create two pointers at the left and right, iterate over the array and swap the even numbers to the left and the odd numbers to the right.
 // This works because we don't need to preserve relative order, if we needed to preserve relative order, like 283: Move Zeroes, we would need to start both pointers at the left
