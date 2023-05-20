@@ -14,18 +14,18 @@ The next greater number of a number x is the first greater number to its travers
 */
 
 // Solution, O(n) time and O(n) space
-// Solution walkthrough below the code. Short version is iterate through the array, maintaining a stack of elements and their indices. The stack is monotonically decreasing. When we find a bigger number, keep popping from the stack and updating a mapping. Then, iterate over it again. We don't need to worry about double-updating the indices in the mapping, since every time we store an index in the mapping we pop from the stack and cannot handle that index again.
-
+// Solution walkthrough below the code. Short version is iterate through the array, maintaining a stack of elements and their indices. The stack is monotonically decreasing. When we find a bigger number, keep popping from the stack and updating the result array. Then, iterate over it again. We don't need to worry about double-updating the indices in the result, since every time we store an index in the result we pop from the stack and cannot handle that index again. We also can just store the indices in the stack, and whenever we need to check the number, we can look up the index in the input array, which saves some space.
+// *
 var nextGreaterElements = function (nums) {
   const stack = []; // contains tuples
-  const mapping = {}; // maps the index of a number to the next greater element, we have to use the index since there can be duplicates
+  const result = new Array(nums.length).fill(-1);
 
   for (let i = 0; i < nums.length; i++) {
     // pop while our number is bigger
     while (stack.length > 0 && nums[i] > stack[stack.length - 1][0]) {
       const beatenTuple = stack[stack.length - 1];
       const index = beatenTuple[1];
-      mapping[index] = nums[i];
+      result[index] = nums[i];
       stack.pop();
     }
     // push the tuple
@@ -36,19 +36,15 @@ var nextGreaterElements = function (nums) {
     while (nums[i] > stack[stack.length - 1][0]) {
       const beatenTuple = stack[stack.length - 1];
       const index = beatenTuple[1];
-      mapping[index] = nums[i];
+      result[index] = nums[i];
       stack.pop();
     }
   }
 
-  const result = new Array(nums.length).fill(-1);
-
-  for (const key in mapping) {
-    result[key] = mapping[key];
-  }
-
   return result;
 };
+
+// Instead of the below solution using a mapping, we can directly insert into the result array
 
 // 5 6 4
 

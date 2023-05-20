@@ -124,3 +124,10 @@ if < 0, a goes before b, if 0, order perserved, if > 0, b goes before a
 const myMap = new Map();
 myMap.set(key, value);
 myMap.get(key);
+
+
+// get order for elements
+'a'.charCodeAt(0); // 97, we can call it on a string and the index is the character of the string
+
+letter.charCodeAt(0) - 96; // hashes a-z to 1-26
+letter.charCodeAt(0) % 26; // also does this but the order is different
