@@ -10,7 +10,7 @@ return: 2->1->4->3->5->
 Given a linked list, reverse the nodes of a linked list k at a time and return its modified list. If there are fewer than k elements in a group, leave them.
 */
 
-// Solution, O(n) time and O(n) space, due to the recursive call stack
+// Solution, O(n) time and O(n/k) space, due to the recursive call stack
 
 /*
 Consider this list: 1->2->3->4->5->
