@@ -10,6 +10,50 @@ return: 2->1->4->3->5->
 Given a linked list, reverse the nodes of a linked list k at a time and return its modified list. If there are fewer than k elements in a group, leave them.
 */
 
+// Solution 1, O(n) time and O(1) space, using an iterative solution
+/*
+Create a dummy pointing to the head, so at the end we can return dummy.next. Find a group head, validate its long enough, reverse the group, rewiring things as needed (see solution 2 for more details on the rewiring), then update the group head.
+*/
+var reverseKGroup = function (head, k) {
+  let groupHead = head;
+  const dummy = new ListNode();
+  dummy.next = head;
+  let prev = dummy;
+
+  while (groupHead) {
+    let savePrev = prev; // we need to rewire the previous into the start of the newly reversed list, so D->1->2 becomes D<-1<-2, then rewire so D points to to
+
+    // validate length
+    let steps = 0;
+    let groupTail = groupHead;
+    while (groupTail && steps < k) {
+      groupTail = groupTail.next;
+      steps++;
+    }
+    if (steps < k) {
+      break;
+    }
+
+    // reverse the group
+    let reversalSteps = 0;
+    while (groupHead && reversalSteps < k) {
+      const temp = groupHead.next;
+      groupHead.next = prev;
+      prev = groupHead;
+      groupHead = temp;
+      reversalSteps++;
+    }
+    // now, previous is the head of our reversed list, groupHead is the head of the next list to be reversed
+
+    const tailOfReversed = savePrev.next;
+    savePrev.next = prev; // rewire D into new head
+    tailOfReversed.next = groupHead;
+    prev = tailOfReversed; // set up the new previous one for next loop
+  }
+
+  return dummy.next;
+};
+
 // Solution, O(n) time and O(n/k) space, due to the recursive call stack
 
 /*
