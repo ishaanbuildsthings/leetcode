@@ -116,6 +116,9 @@ To move things around to the left, maintain two pointers. Iterate over, and when
 Problem: 146
 To have O(1) deletion from anywhere, O(1) insert to the head or tail, and O(1) update to any value, we need a doubly linked list + cache. The cache maintains a map of keys to nodes, and nodes contain keys and values. This doesn't support random access though, if we tried to maintain an index:node mapping and we delete elements, we would need to update all the indicies. If we want random access, we need a deque, but then we lose O(1) deletion from the center.
 
+Problem: 30
+Finding a duplicate number (one or more times) in an array of n+1 numbers where each number is from [1, n] can be done with a cycle approach, since we are sure there is a head of a cycle that gets pointed to twice, since no number can be 0 we definitely have an outside part of the cycle. Even if there are multiple duplicates at least one can be found. We can also do it while mutating the array by setting numbers to negative (if outside the range) and when we set a number that is already negative we know we have seen it twice.
+
 
 ********** ANAGRAMS **********
 
@@ -152,7 +155,7 @@ but 1 still points to 2, so we have:
 
 Good naming conventions are old, slow, fast, current, etc. and if we need multiple iterations, at the beginning we can do let current = head, do our iteration, then reset current to be head again for the next iteration
 
-
+Don't forget in linked lists we can always reverse part of a list in constant storage, so that we can traverse across one half backwards.
 ********** SORTING **********
 
 counting sort / bucket sort strategy - good for things that are bounded by what can be included, for instance sorting a word of only letters
