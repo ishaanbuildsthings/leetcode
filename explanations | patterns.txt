@@ -87,14 +87,13 @@ ___
 
 152: max product of array (any numbers) - we can use a minPrefix and maxPrefix sum
 
-347: top k frequent elements (any nums) - map out occurences : lists of numbers that had that many occurences, iterate backwards
 
 ********** TRICKY ARRAY TECHNIQUES **********
 
 We have an array of length n-1, containing all digits from 1 to n, except 1. Such as [3, 2, 1, 5], n=5. To find the missing number in constant space, do sum subtract or bit manipulation. If there are two numbers missing, TODO: bili solution
 
 Problem: 448
-We have an array of length n, containing all digits from 1 to n, but some are missing and replaced with duplicates. For example: [4, 3, 2, 7, 8, 2, 3, 1], n=8, but the 2 and 3 are repeated, and in exchange we are missing 5 and 6. An O(n) solution is to iterate through, populate a set, and find what is missing. A constant solution could be to set the numbers to something out of their range, like negatives or big numbers, by using the indices to store info. So when we see a 4, make the 4th element negative. Iterate through the array, and any element not negative was never visited.
+We have an array of length n, containing all digits from 1 to n, but some are missing and replaced with duplicates, we need to find the missing ones. For example: [4, 3, 2, 7, 8, 2, 3, 1], n=8, but the 2 and 3 are repeated, and in exchange we are missing 5 and 6. An O(n) solution is to iterate through, populate a set, and find what is missing. A constant solution could be to set the numbers to something out of their range, like negatives or big numbers, by using the indices to store info. So when we see a 4, make the 4th element negative. Iterate through the array, and any element not negative was never visited.
 Follow up: What if our array is shorter, and we need to find the numbers missing under n. Say: [4, 3, 2, 7], n=8. We cannot use indicies since the array is too small, I'm not sure if an O(1) space solution exists (that is n time).
 Similarly, to find a duplicate, like in 287 (but with modifying the array), we can see a number: [1, 3, 4, 2, 2] say 1. And flip the 1st index element to negative: [1, -3, 4, 2, 2] if negative was out of bounds. We repeat until we try to do a flip and the number was already negative.
 
@@ -114,10 +113,14 @@ Problem: 283 / 905
 To move things around to the left, maintain two pointers. Iterate over, and whenever we find something that needs to be on the left half, swap it to the left, then increment the left pointer. This guarantees that all elements will be as left as possible at the end.
 
 Problem: 146
-To have O(1) deletion from anywhere, O(1) insert to the head or tail, and O(1) update to any value, we need a doubly linked list + cache. The cache maintains a map of keys to nodes, and nodes contain keys and values. This doesn't support random access though, if we tried to maintain an index:node mapping and we delete elements, we would need to update all the indicies. If we want random access, we need a deque, but then we lose O(1) deletion from the center.
+To have O(1) deletion from anywhere, O(1) insert to the head or tail, and O(1) update to any value, we need a doubly linked list + cache. The cache maintains a map of keys to nodes, and nodes contain keys and values. This doesn't support random access though, if we tried to maintain an index:node mapping and we delete elements, we would need to update all the indicies. If we want random access in a deque, we lose O(1) deletion from the center.
 
 Problem: 30
 Finding a duplicate number (one or more times) in an array of n+1 numbers where each number is from [1, n] can be done with a cycle approach, since we are sure there is a head of a cycle that gets pointed to twice, since no number can be 0 we definitely have an outside part of the cycle. Even if there are multiple duplicates at least one can be found. We can also do it while mutating the array by setting numbers to negative (if outside the range) and when we set a number that is already negative we know we have seen it twice.
+
+Problem: 347
+top k frequent elements (any nums) - map out occurences : lists of numbers that had that many occurences, iterate backwards
+
 
 
 ********** ANAGRAMS **********
@@ -156,6 +159,8 @@ but 1 still points to 2, so we have:
 Good naming conventions are old, slow, fast, current, etc. and if we need multiple iterations, at the beginning we can do let current = head, do our iteration, then reset current to be head again for the next iteration
 
 Don't forget in linked lists we can always reverse part of a list in constant storage, so that we can traverse across one half backwards.
+
+206: Reverse Linked List has a good way to write out recursive stacks.
 ********** SORTING **********
 
 counting sort / bucket sort strategy - good for things that are bounded by what can be included, for instance sorting a word of only letters
@@ -202,3 +207,4 @@ recursive linked list
 2244: minimum rounds to complete all tasks, use a better solution
 is there an algorithm to find the NUMBER of contiguous subarrays that have sum => k, in linear time? I can't think of one, for instance: this is potivies only
 do recursion attempt for 206
+we had a clever array strategy where we map things to indicies and then indices to all the things that fit that or something like this
