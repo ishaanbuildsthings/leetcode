@@ -10,7 +10,7 @@
 Make a recurse function (not needed, see second solution where the function itself is the recursive call). It compares a node from p with a node from q. If they are both null, it returns true, as there is a match. If one is null, it returns false as there is a mismatch. If both are nodes, it checks the values, and returns false if there is a mismatch. Then, if they're both nodes, it recurses on their left children, then their right children, and based on those results can return false if they're false. Only if neither was false does it mean we have a full tree match and can return true.
 */
 
-// version with unnecessary closure
+// version with unnecessary closure, see version 2 for the slicker version
 var isSameTree = function (p, q) {
   function recurse(nodeP, nodeQ) {
     // if only one node is null, return false
@@ -64,16 +64,7 @@ var isSameTree = function (nodeP, nodeQ) {
     return false;
   }
 
-  // check the left children
-  if (isSameTree(nodeP.left, nodeQ.left) === false) {
-    return false;
-  }
-
-  // check the right children
-  if (isSameTree(nodeP.right, nodeQ.right) === false) {
-    return false;
-  }
-
-  // if all passes succeed, return true
-  return true;
+  return (
+    isSameTree(nodeP.left, nodeQ.left) && isSameTree(nodeP.right, nodeQ.right)
+  );
 };
