@@ -121,7 +121,8 @@ Finding a duplicate number (one or more times) in an array of n+1 numbers where 
 Problem: 347
 top k frequent elements (any nums) - map out occurences : lists of numbers that had that many occurences, iterate backwards
 
-
+Problem: 50
+To find the first missing positive number in an array, see problem 41: First Missing Positive
 
 ********** ANAGRAMS **********
 
