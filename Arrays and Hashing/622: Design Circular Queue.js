@@ -20,6 +20,7 @@ You must solve the problem without using the built-in queue data structure in yo
 */
 
 // Solution: O(n) space, where n is the size allocated for the queue, if that is not considered, then O(1) space. O(1) time to enqueue, dequeue, peek front, or peek back
+// * Solution 2, we could also use a linked list which is nice since we only need as much space as is actively taken up. We can maintain a front and rear pointer. Whenever we add a value if size permits, add to the rear. Whenever we dequeue, pop the left. Maintain a size variable as well. This may technically be O(n) space as we maintain n pointers whereas in the array implementation, the array itself is the data structure.
 
 /*
 Think of a circular array of size 3, first initialize: [_, _, _]
