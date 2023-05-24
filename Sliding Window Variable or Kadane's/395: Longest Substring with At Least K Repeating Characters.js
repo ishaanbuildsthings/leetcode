@@ -5,7 +5,17 @@
 // Problem
 /*
 Given a string s and an integer k, return the length of the longest substring of s such that the frequency of each character in this substring is greater than or equal to k.
+Input: s = "ababbc", k = 2
+Output: 5
+Explanation: The longest substring is "ababb", as 'a' is repeated 2 times and 'b' is repeated 3 times.
 */
+
+// Solution, O(n) time and O(1) space, since our mapping is bound by 26 letters
+/*
+First, count the number of unique letters in s, for instance ababbc has 3. We will try allowing for only 1 unique letter, then 2, then 3. The upper bound is 26, so 26n.
+Create a sliding window that only allows one unique letter, iterate, maintain a have and need count, as well as how many unique letters our window currently has. When we exceed the # unique allowed, start decrementing. If our have count equals need count, update max length.
+*/
+// * Solution 2, I also tried a divide and conquer approach which is normally nlogn average and n^2 worst case (think quick sort), I'm still not fully convinced those restrictions apply to this problem since I couldn't think of worst case scenarios.
 
 var longestSubstring = function (s, k) {
   // determine number of unique letters
