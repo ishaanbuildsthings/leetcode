@@ -22,6 +22,7 @@ monotonic stack
 prefix
 postfix
 recursion
+rolling hash
 quicksort
 queue
 sliding window (fixed/variable)

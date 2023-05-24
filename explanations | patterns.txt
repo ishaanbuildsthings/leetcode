@@ -219,3 +219,4 @@ TODO: question on discord where someone gave an alg
 2244: minimum rounds to complete all tasks, use a better solution
 redo largest histogram recntalge no stack
 // TODO: find sum of all subarrays also for any array
+187 redo with rolling hash

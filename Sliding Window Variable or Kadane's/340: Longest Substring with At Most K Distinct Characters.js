@@ -11,6 +11,9 @@ Explanation: The substring is "ece" with length 3.
 */
 
 // Solution, O(n) time and O(1) space, since our mapping holds at most all valid character types
+/*
+Create a sliding window, when we encounter a new character, increase the size (haveCount) of our mapping. If the size is too large, start decrementing. Then update max length. Even after we decremenet (implying the size is no longer too large), we still verify that the size is not too large, in case k=0 and we aren't allowed any characters at all.
+*/
 
 var lengthOfLongestSubstringKDistinct = function (s, k) {
   let l = 0;
