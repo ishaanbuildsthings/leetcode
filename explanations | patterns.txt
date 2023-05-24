@@ -124,6 +124,9 @@ top k frequent elements (any nums) - map out occurences : lists of numbers that 
 Problem: 50
 To find the first missing positive number in an array, see problem 41: First Missing Positive
 
+Problem: 907
+To find the sum of all the minimums of every subarray, we can maintain a monotonic increasing stack to determine ranges for which a given element is the minimum, then compute how many subarrays it is a part of, and add those together.
+
 ********** ANAGRAMS **********
 
 Problem: 483 / 567

@@ -71,33 +71,37 @@ var sumSubarrayMins = function (arr) {
   return totalSum % MOD;
 };
 
+// Solution 2, brute force with memoized sums (n^2 time and space). Can also just use 2 nested for loops and maintain a dpMin which is n^2 time and n space.
+
 // n^2
-// var sumSubarrayMins = function(arr) {
-//     // create an nxn table with null values, where table[i][j] represents the minimum for the subarray from i to j
-//     const table = new Array(arr.length).fill().map(() => new Array(arr.length).fill(null));
+var sumSubarrayMins = function (arr) {
+  // create an nxn table with null values, where table[i][j] represents the minimum for the subarray from i to j
+  const table = new Array(arr.length)
+    .fill()
+    .map(() => new Array(arr.length).fill(null));
 
-//     // populate the known minimums for subarrays of length 1
-//     for (let i = 0; i < arr.length; i++) {
-//         table[i][i] = arr[i];
-//     }
+  // populate the known minimums for subarrays of length 1
+  for (let i = 0; i < arr.length; i++) {
+    table[i][i] = arr[i];
+  }
 
-//     console.log(table);
+  console.log(table);
 
-//     // iterate over all possible subarrays
-//     for (let i = 0; i < arr.length; i++) {
-//         for (let j = i; j < arr.length; j++) {
-//             if (i !== j) table[i][j] = Math.min(table[i][j-1], arr[j]);
-//         }
-//     }
+  // iterate over all possible subarrays
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = i; j < arr.length; j++) {
+      if (i !== j) table[i][j] = Math.min(table[i][j - 1], arr[j]);
+    }
+  }
 
-//     let totalSum = 0;
+  let totalSum = 0;
 
-//     for (let i = 0; i < arr.length; i++) {
-//         for (let j = i; j < arr.length; j++) {
-//             totalSum += table[i][j];
-//             totalSum = totalSum % (10**9 + 7);
-//         }
-//     }
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = i; j < arr.length; j++) {
+      totalSum += table[i][j];
+      totalSum = totalSum % (10 ** 9 + 7);
+    }
+  }
 
-//     return totalSum % (Math.pow(10, 9) + 7);
-// };
+  return totalSum % (Math.pow(10, 9) + 7);
+};
