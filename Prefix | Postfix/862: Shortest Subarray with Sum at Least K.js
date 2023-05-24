@@ -1,62 +1,8 @@
-// implementation with real deque, O(n) time and O(n) space
+// https://leetcode.com/problems/shortest-subarray-with-sum-at-least-k/description/
+// Difficulty: Hard
+// tags: monotonic deque, prefix sums
 
-class Deque {
-  constructor() {
-    // when the head is bigger than the tail, they are crossed, and the deque is empty, otherwise the head and tail point to the head and tail elements
-    this.headPosition = 0;
-    this.tailPosition = -1;
-    this.storage = {};
-  }
-
-  push(val) {
-    this.tailPosition++;
-    this.storage[this.tailPosition] = val;
-  }
-
-  pop() {
-    // trying to dequeue from an empty queue
-    if (this.tailPosition < this.headPosition) {
-      return null;
-    }
-
-    const value = this.storage[this.tailPosition];
-    delete this.storage[this.tailPosition];
-    this.tailPosition--;
-    return value;
-  }
-
-  shift() {
-    // trying to dequeue from an empty queue
-    if (this.tailPosition < this.headPosition) {
-      return null;
-    }
-
-    const value = this.storage[this.headPosition];
-    delete this.storage[this.headPosition];
-    this.headPosition++;
-    return value;
-  }
-
-  right() {
-    // trying to peek from an empty queue
-    if (this.tailPosition < this.headPosition) {
-      return null;
-    }
-    return this.storage[this.tailPosition];
-  }
-
-  left() {
-    // trying to peek from an empty queue
-    if (this.tailPosition < this.headPosition) {
-      return null;
-    }
-    return this.storage[this.headPosition];
-  }
-
-  size() {
-    return this.tailPosition - this.headPosition + 1;
-  }
-}
+// Solution O(n) time and O(n) space. Uses a monotonic deque, see comments for details. Essentially tracks prefix sums, and whenever we find a smaller prefix sum later, we pop from the deque. Whenever we find something that meets the threshold, we dequeue. We do not need to store tuples, just the indices, since we can look up the values based on the indices.
 
 var shortestSubarray = function (nums, k) {
   /*
@@ -114,20 +60,20 @@ var shortestSubarray = function (nums, k) {
 
     */
 
-  const deque = new Deque(); // contains tuples of [index, prefix sum]
+  const queue = []; // contains tuples of [index, prefix sum]
   let minLength = Infinity;
 
   for (let i = 0; i < nums.length; i++) {
     // maintain increasing monoqueue for sums, in numbers 10 20 -5, prefixes 10 30 25, why would we ever chop off 20 elements and lose 30 in the sum when we could chop off 3 and lose 25? we still need to maintain the possibility of chopping off just one number and losing 10 though, for example
-    while (deque.size() > 0 && prefixSums[i] < deque.right()[1]) {
-      deque.pop();
+    while (queue.length > 0 && prefixSums[i] < queue[queue.length - 1][1]) {
+      queue.pop();
     }
 
     // while we can chop from the left bigger and bigger prefixes and still be over k, do it
-    while (deque.size() > 0 && prefixSums[i] - deque.left()[1] >= k) {
-      const length = i - deque.left()[0];
+    while (queue.length > 0 && prefixSums[i] - queue[0][1] >= k) {
+      const length = i - queue[0][0];
       minLength = Math.min(minLength, length);
-      deque.shift();
+      queue.shift(); // pretend O(1)
     }
 
     // we can always chop off 0 elements too
@@ -136,7 +82,7 @@ var shortestSubarray = function (nums, k) {
       minLength = Math.min(minLength, length);
     }
 
-    deque.push([i, prefixSums[i]]);
+    queue.push([i, prefixSums[i]]);
   }
   // [ [0,17] [1,102] [2,195]
 

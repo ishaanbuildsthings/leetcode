@@ -38,7 +38,7 @@ It looks like the complexity is bad, but at most, cells will only be looked at o
 
 // Solution 2: O(n) time and O(n) space
 /*
-Maintain a monotonic stack. As long as temperatures are decreasing, add a new temperature along with its index to the stack. When we find a higher temerpature, pop until the montonic property is preserved. As we pop, compute the number of days by comparing the indices and fill out the result array.
+Maintain a monotonic stack. As long as temperatures are decreasing, add a new temperature along with its index to the stack. When we find a higher temerpature, pop until the montonic property is preserved. As we pop, compute the number of days by comparing the indices and fill out the result array. We also don't need to use tuples, we can just use the indices and look up the temperatures.
 */
 
 var dailyTemperatures = function (temperatures) {

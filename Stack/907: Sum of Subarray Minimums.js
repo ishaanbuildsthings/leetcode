@@ -17,7 +17,7 @@ The 6 is smaller than the 9, so we know the 9 has met its bottleneck on the righ
 
 [[0,1], [1,4], [2,9], [3,6]
 
-So here, the number 9 gets stopped at index 3, and index 1 from the left. This makes the range for which it is the minimum to be [2,2]. We can then calculate how many subarrays it is a part of, based on the index and the indices in the range. The number of subarrays is the number of left starts (from the left part of the range to the index itself, inclusive) times the number of right ends. We add this to our total sum. In the actual code below I created a mapping but it isn't needed for this. We pop from the stack and keep going. If there are leftover monotonically increasing elements in the stack, we handle those as well.
+So here, the number 9 gets stopped at index 3, and index 1 from the left. This makes the range for which it is the minimum to be [2,2]. We can then calculate how many subarrays it is a part of, based on the index and the indices in the range. The number of subarrays is the number of left starts (from the left part of the range to the index itself, inclusive) times the number of right ends. We add this to our total sum. In the actual code below I created a mapping but it isn't needed for this since we can compute the result immediately. We pop from the stack and keep going. If there are leftover monotonically increasing elements in the stack, we handle those as well. We also don't need to contain tuples, we just need the indicies, and in the loop we look up the associated number.
 */
 
 var sumSubarrayMins = function (arr) {

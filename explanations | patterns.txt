@@ -78,7 +78,7 @@ for (...) {
 // SLIDING WINDOW / KADANES / PREFIX STUFF
 max sum of any subarray (any numbers) - we can use kadane's prefix sums
 
-209: minimum size of subarray of sum >=k (positive numbers) - we can use sliding variable window, decrement from left pointer as much as possible when >=k, since we increment r immediately as well. We can't allow negative numbers since then we aren't sure if incrementing the left pointer of the window would cause our sum to increase.
+209: minimum size of subarray of sum >=k (positive numbers) - we can use sliding variable window, decrement from left pointer as much as possible when >=k, since we increment r immediately as well. We can't allow negative numbers since then we aren't sure if incrementing the left pointer of the window would cause our sum to increase. If we want negative numbers, see 862 which uses a monotonic deque and prefix sums. 209 also has a good writeup on why naive strategies wouldn't work for negative numbers.
 ___
 not a LC question: number of subarrays / minimum size subarray for sum=k or sum>=k (positive nums), same as above, we can use a sliding window! once we are greater than or equal to the sum, we keep decrementing and adding to our count as long as we still fit the constraint
 ___
@@ -125,7 +125,11 @@ Problem: 50
 To find the first missing positive number in an array, see problem 41: First Missing Positive
 
 Problem: 907
-To find the sum of all the minimums of every subarray, we can maintain a monotonic increasing stack to determine ranges for which a given element is the minimum, then compute how many subarrays it is a part of, and add those together.
+To find the sum of all the minimums of every subarray, we can maintain a monotonic increasing stack of indices (where we then look up the numbers) to determine ranges for which a given element is the minimum, then compute how many subarrays it is a part of, and add those together.
+
+********** MONOTONIC THINGS **********
+
+After we create a monotonic structure, we often have to clear up the remaining portion that is leftover. This may be able to done within the original for loop, by iterating to one index higher than needed, and adding a condition in the while loop that checks if we are at the last index. See problem 2104 for an example. We often do not need tuples for many problems because of this.
 
 ********** ANAGRAMS **********
 
@@ -209,10 +213,8 @@ What we should do is subtract the outgoing characters contribution to the hash (
 
 ********** TODOS **********
 
-TODO: is min size subarray sum>=k doable with a mapping, for negative numbers? what about the number of subarrays?
+TODO: is min size subarray sum=k doable? what about the number of subarrays? what about number of => k?
 TODO: question on discord where someone gave an alg
-recursive linked list
 2244: minimum rounds to complete all tasks, use a better solution
-is there an algorithm to find the NUMBER of contiguous subarrays that have sum => k, in linear time? I can't think of one, for instance: this is potivies only
-do recursion attempt for 206
-we had a clever array strategy where we map things to indicies and then indices to all the things that fit that or something like this
+redo largest histogram recntalge no stack
+// TODO: find sum of all subarrays also for any array
