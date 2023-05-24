@@ -7,7 +7,6 @@ sliding window variable - these are more flexible, in that that the left pointer
 sliding window fixed - intialize some data for the starting window, for instance in 219: Contains Duplicate II, we fill out a set, in 1343: Number of Sub-arrays of Size K and Average..., we calculate a DP sum, and in 239: Sliding Wndow Maximum, we create the queue.
 Then, to solve it:
 For 219, we do increment pointers, update data, update result. We don't need to compute the very first result because we did it in the setup.
-
 In 1334, we update result, increment pointers, update dpsum. Either works.
 If you increment immediately you need to check the initial window in the setup. If you increment at the end, you need to update the relevant data such as the dpsum as well. We can't increment at the end but update the dp sum immediately, because then our first window would be wrong as we double count a value.
 We may need to take caution if we update the pointers before the data/result, because if we are at the last r position and update the pointer inside the loop, we will go out of bounds, so we may want to iterate while r < arr.length - 1. If we update the result first, then our pointers will still go out of bounds after (causing the data to be corrupt) but this doesn't matter since this was the last time the result would be updated. Sometimes this is annoying though if our data gets updated in a way that throws an error, for instance in 28, where we used a rolling hash, we can't get the charcode for undefined. We could also check the result immediately, then increment, but increment to length-1 so we don't get a corrupt charcode at the end, and then check the result at the end. Or just put a condition inside the while loop in case we are at the end, which may honestly be easier to implement, such as problem 28.
@@ -28,24 +27,6 @@ but also if our prefix should include the current cell, we might have a pattern 
 
 binary search - create two pointers, l and r. Create a middle pointer, I used to initialize it to be the actual value immediately, in case we never enter the while loop, but I couldn't actually find where this was needed. Say we use the floor so it errs left. Our loop will be while (l < r), because once l===r, we only have one possible number left. Immediately upon entering our loop, recalculate m. Since we err left by default, it means our middle value will always be on the left side. If our middle value is the target value, we would need to look left as well, since we chose to err left. For instance [1, 2] and m is pointing at 1, which is our target. We need to search the left side of the array when our target === nums[m], so keep this in mind when changing the way the l and r are set. To know how to set l and r, just think that the binary search is eliminating numbers. Consider [1, 2, 3] with l, m, and r set accordingly. If our middle pointer is too big, or equal to the target, we need to search left. But since it could equal the target, we should consider m still, so r=m. If our middle pointer is strictly too small, we can search all values on the right of it, so l = m + 1. It's also important to note binary search isn't for finding the middle of things, it's for finding something specific inside a range, for instance a number, or the minimum eating speed koko can use to eat bananas (problem 875). It works because we can assess a value and prune half of the tree.
 some misceallenous binary notes on a working and not working strategy, due to the err direction being different from how we handle our pointer changes
-// [1, 2, 3, 4, 5, 6]
-
-// l = 0
-// r = 4
-// m = 2 // pushes left
-
-// if 3 <= our target, we need to search right, so l = m
-
-// if 3 > our target, r = m - 1
-
-// [1, 2]
-// l = 0
-// r = 1
-// m = 0
-
-// // working strat
-// if 3 < our target, l = m + 1
-// if 3 >= our target, r = m
 
 If we are using the floor, we can never set l=m, because that won't compress a window of 2. We must use a ceiling. If we are using a ceiling, we can never set r=m, as it won't compress, we must use r=m-1. 23: Find First and Last Position of Element in Sorted array showcases using both. It also sometimes may be easier to use 3 cases, nums[m]<target, equals, and greater than, and set the windows accordingly.
 
@@ -130,7 +111,7 @@ To find the sum of all the minimums of every subarray, we can maintain a monoton
 
 ********** MONOTONIC THINGS **********
 
-After we create a monotonic structure, we often have to clear up the remaining portion that is leftover. This may be able to done within the original for loop, by iterating to one index higher than needed, and adding a condition in the while loop that checks if we are at the last index. See problem 2104 for an example. We often do not need tuples for many problems because of this.
+After we create a monotonic structure, we often have to clear up the remaining portion that is leftover. This may be able to done within the original for loop, by iterating to one index higher than needed, and adding a condition in the while loop that checks if we are at the last index. See problem 2104 for an example. We often do not need tuples for many problems because of this. We could also add a dummy value to the end that pops everything off. Similarly we can add a dummy value to the beginning like a -1 so we always have something our values can never be less than.
 
 ********** ANAGRAMS **********
 
@@ -195,28 +176,52 @@ to get the first digit of a number, we can keep floor dividing until the number 
 
 2241: Design an ATM Machine and 2244: Minimum Rounds to Complete All Tasks show how we can use math to simplify operations. In design an ATM machine, we need to withdraw the largest bill repeatedly until it would put us over our withdrawn amount, then repeat. Instead of withdrawing one at a time, comparing our remaining amount, and loop (total time complexity = # of bills in the machine, since we could draw each bill one by one), we can calculate with math exactly how many we could withdraw, and the time complexity becomes bound by the # of bill types.
 
+(A + B) % C = (A%C + B%C) % C
+think of a=15, b=17, and c=10, a passes c by 5, by passes c by 7, but their passes add up to 12, which effectively passes c by 2
+similarly, (A + B + C) % D = (A%D + B%D + C%D) % D (this time the sums might exceed even 2x of D, like 19+19+19 % 10 we get 27 % 10)
+
+(A * B) % C also works, consider:
+Suppose we have:
+- a cylinder, which we can just barely wrap a rope of length C around
+- a rope, that we have marked every A units
+
+Suppose our rope has B markings from its start. (The rope has length A * B)
+
+We nail the rope to our cylinder and we wrap it clockwise around our cylinder.
+
+(A * B) mod C tells us: how much rope to we need to go clockwise from the nail to reach the end of the rope (we don't care about the length of rope that completely wraps around the cylinder)
+
+It is equivalent to the expression:
+(A mod C * B mod C) mod C
+
+A mod C tells us:
+How much further (clockwise) a segment of length A will be from the previous segment after wrapping it around the cylinder.
+
+We use B mod C, because if we wrap C segments of length A around the cylinder, the length (A * C) will be evenly divisible by C and we would be just back at the nail i.e. B mod C is the number of segments that actually contribute to the end of the rope being further away from the nail
+
+
 ********** ROLLING HASH **********
-Say we want to use base 10 for our numbers and hash all strings into a number between 1-10000. We set a MOD=10000.
-To hash 'aj', a=1*10^0, j=10*10^1, which is 1+100, 101
-when we drop the a, we drop a 1, leaving us with 100. We then divide by 10 to downshift everything, leaving us with 'j' hashes to, which is right.
-We could have weird collisions, consider 'sa', s hashes to 19, a hashes to 1*10^1, which is 10. Our sum is 29. When we drop s, we drop 19, leaving us with 10, and when we divide we get 1, it still works. This works because when we drop s, we drop everything responsible for the ones digit (so our division will work), and we drop any extra factors that could affect the tens digit.
-But, what if we have a really long alphabet, say # is a letter, and it's value is 105. Then #a equals 105 + 10, 115. When we drop #, we are still left with 10, so it doesn't matter how long our alphabet is. Because whenever we drop the left letter, we're dropping everything that could be more precise/granular than any digit on the right (the ones digit), as well as any other info that would pollute the result afterwards.
-We can adjust the base of our hashing function (the power to which we raise digits). Bigger numbers can provide fewer collisions, for instance in base 10, 'aa' and 'k' both hash to 11. But in base 26, 'aa' hashes to 27, there is no single letter that could hash to it. And since each letter would be responsible for a very specific range (1-26^1, 26-26^2) etc, we actually have a perfect hashing function (but it will stop working once we overflow). For instance if we want to hash the strings '1', '2', ... '9', we can make the first digit a singles digit, the second a tens, and so on. So 129 would hash to 921. There is no other way to get 921, because the only way to get a certain hundreds value is to use a specific third value in the original 129, We cannot add up smaller counts, because 9+90 is less than 100. But because we haven't uniquely hashed anything, we aren't benefited, we don't want a 1:1 mapping, which is why we use mod. We also are uniquely hashing because the number of strings is under the base. If we wanted to hash every letter, 'a', 'b', ..., then if we use base 10, k (which is 11) has a collision with aa, because the single digit j was able to intrude on the start of the second digit, a_ which is 10
-We should also use mods that are primes, as they generally give a better distribution.
-One problem that can occur is if we overflow, for instance consider we hash something, 'abc', 1*1 + 2*10 + 3*100 = 321. But say 321 overflowed our max int size, and resulted in a 5, and not a 321. We would expect when we drop the a, we drop a 1, and get 320, so that we can divide by 10 without concern, but since we overflowed, we actually get 5-1=4, and 4/10 gives us a floating point and messes things up. If 321 overflowed, but say 310 didn't, we could mod each number first, so 1, 20, and 300 all get modded down. But if the 300 itself will overflow to a 1, we will still end up with floating point division.
-Also, we could have this issue: abc = 1 + 20 + 300 = 321, and our mod is 100, so we get 21.
-bcd 2 + 30 + 400, after our mod we get 32
-we shift bcd to cde, we drop a 2, getting 30, so _cd hashes to 30
-then we divide by 10, to shift all the digits, so we get a 3 for 'cd'
-then we add e, which is 500, and after the mod we get 3 for 'cde', which is wrong.
-The issue that stems is that, because we haven taken the mod of things, each character's individual contribution or "power" is lost, so when we divide the hash by the base, we aren't shifting the "place values" correctly, which leads to the wrong hash value for the new window.
-What we should do is subtract the outgoing characters contribution to the hash (which in this case is still 2). Now we have 30.
+The objective of the rolling hash is to hash a number in constant time and only if the hash collides with our substring hash, we compare them. If we have 0 hash collisions, that means we were able to represent all possible substrings within our space, and our time complexity becomes (n-k) + k, since we did k operations to hash our pattern, and n-k sliding hashes. Each time we got a matching hash number we knew that it would be our precise pattern. Say we have 50% hash collisions, that means 50% of the time, we have to do a k-complex check, so our time complexity is (n-k)*0.5k. As our hashing function drops in # of collisions, we approach some linear scale of complexity relative to n, since even if k were really big the tiny number we multiply it by often bounds it. This is just expected runtime though, not true worst case.
+
+To hash, say letters, we can assign each letter a value, a=1, ..., z=26. We could then hash it like: h(abc) = 1*10^3 + 2*10^2 + 3*10^1 = 123. Here, our total possible hash range for length 3 is zzz, which would be 26*10^3 + 26*10^2 + 26 = 2886. But there are 26^3=17576 possible 3 letter strings, so we have collisions. For instance k=11 also collides with aa=11. If we want to maintain the pure no collision strategy, we need to use the 26th power as our base, so we would have 26*26^3 + 26*26^2 + 26*26^1 = 475228, but not all possible values are obtainable, for instance we could never have a value of 1, our smallest value would be 26 with the letter 'a'. Since we take steps of 26, we have 475228/26 = 18278 actual substrings (17576 of which are 3 letters). By using a higher base, we prevent collisions, but now we might introduce int overflow, so we start using mods. Prime mods give better distributions.
+
+Say our alphabet is just a-k and we hash using powers of 10.
+h(abcd) = 1234 % 113 = 104, and now we want to slide to bcde.
+1234 % C is the same as (1000%C + 200%C + 30%C + 4%C) % C. This means that if we want to remove 1000, and determine what our hash is, all we have to do is subtract its contribuation. 1000%113 = 96, so our old hash, 104, minus 96, gives us our new hash, 8. Now we want to scale up the original number, 234->2340, and then mod it. Well (234*10) % C equals (234%C % 10%C) % C. We already have 234%C, which is 8. 10%C will always just be 10 since our scaling power will essentially always be under the mod. So really 2340%C is just (8*10) % C, which is 80! Finally, we add the new digit, 8, and mod again if needed.
+But what if when we subtracted the contribution of 1000, it became negative? For instance say 1000%113 was 105, now when we remove it from 1234%C (104), we get -1. But 234%113 is not -1, it should be 112 (in this case). But lets try with the -1 as our new hash for 234 anyway. The next step is to multiply by 10, and we get -10. Since we might have made it too big, we mod again, and -10%113 is 103, so it fixes itself. It would have been the same result had we used 112. Since a negative number modded gives a positive (not in JS though). finally we add the new digit, then mod again.
+
+But what if 10^3 or 10^2 is too large anyway? We can simplify it, since 10^2 % C is just (10%C * 10%C) % C
+
+So the pattern is:
+1) subtract contribution of old number
+2) we may have a negative now, in JS, add mod
+3) multiply by 10, then mod
+4) add last digit, then mod
 
 ********** TODOS **********
 
 TODO: is min size subarray sum=k doable? what about the number of subarrays? what about number of => k?
 TODO: question on discord where someone gave an alg
 2244: minimum rounds to complete all tasks, use a better solution
-redo largest histogram recntalge no stack
 // TODO: find sum of all subarrays also for any array
-187 redo with rolling hash
+add explanation for problem w95
