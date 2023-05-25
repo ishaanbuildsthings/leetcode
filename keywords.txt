@@ -6,6 +6,7 @@ helper = shows if this problem helps explain another problem, or uses a helper p
 tags:
 arrays (sometimes used when we don't put a problem in the array category but it still has a lot of array/hashing work)
 backtracking
+beats 100%
 binary search
 bubble sort
 bucket sort
