@@ -218,6 +218,8 @@ So the pattern is:
 3) multiply by 10, then mod
 4) add last digit, then mod
 
+Also we call the has degree 'base' because we're basically converting an arbitrary amount of glyphs into some base number system so we can do math in that base number system. If we only had the letters a...j we can fit the math into base 10. So now we can do math operations like 123*10=1230. But if we want to include k, we should use base 11. So 123 in base 11 is 102, and when we multiply that 123*11 (1353) and convert to base 11, we get 1020. If we have 11 possible characters, of course we should use a base 11 system where each character has a weight by 11 to the power of something. The math properties are preserved so we can do rolling hashes still.
+
 ********** TODOS **********
 
 TODO: is min size subarray sum=k doable? what about the number of subarrays? what about number of => k?
