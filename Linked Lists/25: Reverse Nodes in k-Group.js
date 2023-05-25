@@ -128,7 +128,7 @@ then, run the function again at 3
 
 */
 
-// Solution 2, same thing but no dummy node
+// * Solution 2, same thing but no dummy node
 
 var reverseKGroup = function (head, k) {
   let finalHead;
