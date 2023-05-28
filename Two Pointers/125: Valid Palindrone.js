@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/valid-palindrome/description/
 // Difficulty: Easy
-// tags: two pointers
+// tags: two pointers, palindrome
 
 // Solution
 // O(n) time and O(1) space. Use two pointers to iterate over the string from the left and right. Parse out non-alphanumeric characters. Then, if the characters are the same, increment/decrement the pointers. If they are different, return false.
