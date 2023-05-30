@@ -26,6 +26,7 @@ Return a string representing the final state.
 */
 
 // Solution, O(n) time and O(n) space. Iterate from left to right, whenever we see an L, we update distance from closest L to be 0. Whenever we see a ., we write the closest L. Whenever we see an R, distance from closest L becomes infinity since an R will always stop any number of Ls. Do the same thing in reverse for the closest R, then iterate again and update the result based on which is closer.
+// * Another solution that is O(n) is to iterate through, tracking a symbol. As soon as we encounter a . or a series of .s, we know how to assign all of them based on the number of .s and the symbol on the right of the . chain.
 
 var pushDominoes = function (dominoes) {
   const leftDistances = new Array(dominoes.length).fill(null);

@@ -1,6 +1,7 @@
 // https://leetcode.com/problems/palindrome-linked-list/description/
 // Difficulty: Easy
 // slow and fast pointers
+// tags: palindrome
 
 // Problem
 /*

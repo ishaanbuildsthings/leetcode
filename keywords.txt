@@ -20,6 +20,7 @@ math
 monotonic deque
 monotonic queue
 monotonic stack
+palindrome
 prefix
 postfix
 recursion

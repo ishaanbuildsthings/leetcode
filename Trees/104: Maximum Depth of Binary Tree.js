@@ -8,7 +8,7 @@ Simplified: Find the maximum depth of a binary tree
 */
 
 // Solution, O(n) time as we iterate through every node, and O(n) space as we can have a callstack that is the depth of the tree, which is worst case all nodes. Create a max depth variable, DFS down the tree, and update the variable.
-// * Solution 2 has the slicker version that avoids the recurse function, since we don't need the max depth variable anymore as we embed the number directly in the return statement. (technically we never needed the maxDepth variable in the closure as it could go outside the function as well but that wouldn't be good practice)
+// * Solution 2 has the slicker version that avoids the recurse sub-function, since we don't need the max depth variable anymore as we embed the number directly in the return statement. (technically we never needed the maxDepth variable in the closure as it could go outside the function as well but that wouldn't be good practice)
 // * Solution 3, iterative BFS
 
 var maxDepth = function (root) {

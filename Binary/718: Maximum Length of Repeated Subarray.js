@@ -36,7 +36,7 @@ var findLength = function (nums1, nums2) {
   return r;
 };
 
-// returns 101^e % MOD
+// returns 101^e % MOD, better would be to cache everything
 const cache = {};
 function modPow(e, base = 101) {
   // fails if we try multiple bases
@@ -49,8 +49,8 @@ function modPow(e, base = 101) {
     // (a * 10) % c = ((a % c) * 10) % c
     const left = current % MOD;
     current = (left * base) % MOD;
+    cache[i] = current;
   }
-  cache[e] = current;
   return current;
 }
 
