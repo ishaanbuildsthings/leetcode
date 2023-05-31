@@ -97,3 +97,13 @@ var maxDepth = function (root) {
   }
   return maxDepth;
 };
+
+// Solution 5, recursive DFS with size as parameter
+var maxDepth = function (root, size = 0) {
+  if (!root) return size;
+
+  return Math.max(
+    maxDepth(root.left, size + 1),
+    maxDepth(root.right, size + 1)
+  );
+};
