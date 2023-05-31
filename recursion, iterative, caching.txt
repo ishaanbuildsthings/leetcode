@@ -1,0 +1,128 @@
+********** SINGLE BRANCH RECURSION + ITERATIVE SOLUTIONS **********
+
+Say we are trying to solve power(number, exponent), (exponent>=0)
+
+One way is to recurse like this:
+
+function power(number, exponent) {
+  // base cases
+  if (exponent === 1) return number;
+  if (exponent === 0) return 1;
+
+  return number * power(number, exponent - 1);
+}
+
+This maintains a callstack and iterates down until we hit a base case. Then bubbles everything up. The time and space are O(n) since it follows a stick graph. Another example of this is the recursive solution for reversing a linked list, where we iterate down, grab the last element, bubble that up as the new head, and reverse connections on the way.
+
+Note it doesn't make sense to cache any results, because it is a stick graph, there is no repeated work (except for future calls to the same function with similar arguments, but that would not improve the complexity)
+
+ANY recursive algorithm can be written iteratively, and vice versa. A way to implement this iteratively would be:
+
+function power(number, exponent) {
+  let result = 1;
+  let exponentsRemaining = exponent;
+  while (exponentsRemaining > 0) {
+    result = result * number;
+    exponentsRemaining--;
+  }
+  return result;
+}
+
+The iterative solution is still O(n) time, but it is now O(1) space, since we started from the simplest case and went up. Similarly in the iterative solution for reversing a linked list, we start at the simplest case (reversing null or reversing a linked list of size 1) and then keep looping.
+
+********** MULTI BRANCH RECURSION (with caching) + ITERATIVE SOLUTIONS **********
+
+Say we are trying to compute the nth fibonacci number, F(n). We know F(n) = F(n-1) + F(n-2), and our base cases are F(0) and F(1).
+
+A basic recursion algorithm would follow:
+
+         F(4)
+     /          \
+  F(2)     +    F(3)
+ /  \           /  \
+F(0)+F(1)   F(1) +  F(2)
+                   /   \
+                  F(0)+F(1)
+
+The complexity scales with 2^n, as our depth is n calls and our branching factor is 2.
+
+Recursive: Time O(2^n), space O(n) as worst case we are holding the entire depth in memory.
+
+code:
+
+const fib = function(n) {
+    // base cases
+    if (n === 0) return 0;
+    if (n === 1) return 1;
+
+    // recurse
+    return (fib(n-1) + fib(n-2));
+};
+
+
+However, there is repeated work. For instance F(2) is computed twice. We could instead cache results:
+
+const cache = {}; // maps n to it's resulting fib number
+var fib = function(n) {
+    // base cases
+    if (n === 0) return 0;
+    if (n === 1) return 1;
+
+    // cache
+    if (n in cache) return cache[n];
+
+    // recurse
+    const result = fib(n-1) + fib(n-2);
+    cache[n] = result;
+    return result;
+};
+
+Then, in the worst case, we are newly solving for each fibonacci number. For instance F(4) is newly solved, F(3), F(2), all the way down to our base case. Any branches that come out of these cases are solved via the cache. The result would look like:
+
+           F(4)
+          /    \
+        F(2) + F(3)
+      cache   /  \
+             /    \
+            F(1) + F(2)
+                   /  \
+                F(0)+F(1)
+
+Basically, we recurse down to the base case, and as we start bubbling up values we cache them. Then any higher up callstack calls that required a new computation use that cache. As a result:
+
+recursive with caching: time O(n), space O(n)
+
+Again, we can do it iteratively, starting from the simplest case and going up.
+
+var fib = function(n) {
+    if (n === 0) return 0;
+    if (n === 1) return 1;
+
+    let left = 0;
+    let right = 1;
+    let count = 1; // `right` is the count-th fib number
+    while (count < n) {
+        const newNumber = left + right;
+        left = right;
+        right = newNumber;
+        count++;
+    }
+
+    return right;
+};
+
+Iterative: time O(n), space O(1)
+
+
+
+
+
+// TODO:
+pow new code
+pow other solutions
+fix pow time complexity and caching
+fib all
+two tree questions
+dfs bfs iterative and recursive sectios
+exponentiation by squaring
+add tags for more specific things like recursive multi branch with caching

@@ -13,6 +13,7 @@ The problem with trying to do 2^1000 is we do a lot of operations, 2*2*2...*2. W
 
 const cache = {};
 
+// helper function, computes x**n where n is >= 1
 function power(x, n) {
   const key = JSON.stringify([x, n]);
   if (key in cache) {
@@ -37,6 +38,7 @@ function power(x, n) {
   }
 }
 
+// main function, handles negative powers
 var myPow = function (x, n) {
   if (n === 0) {
     return 1;

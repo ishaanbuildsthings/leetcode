@@ -20,6 +20,7 @@ math
 monotonic deque
 monotonic queue
 monotonic stack
+multibranch (recursive or iterative)
 palindrome
 prefix
 postfix
@@ -27,6 +28,7 @@ recursion
 rolling hash
 quicksort
 queue
+single branch (recursive or iterative)
 sliding window (fixed/variable)
 slow and fast pointers
 stack

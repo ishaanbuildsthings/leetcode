@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/reverse-linked-list/description/
 // Difficulty: Easy
-// tags: linked list
+// tags: linked list, single branch (recursive or iterative)
 /*
 Given the head of a singly linked list, reverse the list, and return the reversed list.
 */
@@ -44,7 +44,7 @@ var reverseList2 = function (node) {
   return node;
 };
 
-// Solution 3, another form of recursion
+// Solution 3, another variant of recursion
 /*
 Do the same thing as solution 2, but grab the tail in a separate variable, and rewire the tail to point to null at the end. Use a closure as well.
 */

@@ -152,7 +152,7 @@ Good naming conventions are old, slow, fast, current, etc. and if we need multip
 
 Don't forget in linked lists we can always reverse part of a list in constant storage, so that we can traverse across one half backwards.
 
-206: Reverse Linked List has a good way to write out recursive stacks.
+206: Reverse Linked List has a good way to write out recursive call stacks.
 
 ********** TREES **********
 104: Maximum Depth of Binary Tree has good writeups on using different searches in very elegant ways.
