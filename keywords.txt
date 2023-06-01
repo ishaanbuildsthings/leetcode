@@ -8,6 +8,7 @@ arrays (sometimes used when we don't put a problem in the array category but it 
 backtracking
 beats 100%
 binary search
+bit manipulation
 bubble sort
 bucket sort
 circular
