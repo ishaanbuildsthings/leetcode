@@ -28,7 +28,8 @@ function power(number, exponent) {
   return result;
 }
 
-The iterative solution is still O(n) time, but it is now O(1) space, since we started from the simplest case and went up. Similarly in the iterative solution for reversing a linked list, we start at the simplest case (reversing null or reversing a linked list of size 1) and then keep looping.
+The iterative solution is still O(n) time, but it is now O(1) space. Often iterative solutions will either start from the base case (this problem, or reversing a linked list), and build up. But sometimes they can start from the top, like writing a funciton for Pow(base, e).
+
 
 ********** MULTI BRANCH RECURSION (with caching) + ITERATIVE SOLUTIONS **********
 
@@ -62,6 +63,8 @@ const fib = function(n) {
 
 However, there is repeated work. For instance F(2) is computed twice. We could instead cache results:
 
+recursive with caching: time O(n), space O(n)
+
 const cache = {}; // maps n to it's resulting fib number
 var fib = function(n) {
     // base cases
@@ -88,9 +91,18 @@ Then, in the worst case, we are newly solving for each fibonacci number. For ins
                    /  \
                 F(0)+F(1)
 
-Basically, we recurse down to the base case, and as we start bubbling up values we cache them. Then any higher up callstack calls that required a new computation use that cache. As a result:
+Basically, we recurse down to the base case, and as we start bubbling up values we cache them. Then any higher up callstack calls that required a new computation use that cache.
 
-recursive with caching: time O(n), space O(n)
+Note that we don't necessarily need to cache the values outside in an object. For instance when creating a function for Pow(base, e) and using exponent squaring, we can do:
+2^50 = 2^25 * 2^25
+as
+const subProblem = ...;
+const result = subProblem * subProblem;
+
+This prevents a cache being formed for future calls to the function unnecessarily, especially given the wide argument space (a base AND an exponent, which is less likely to be useful on future calls).
+
+
+
 
 Again, we can do it iteratively, starting from the simplest case and going up.
 
@@ -113,16 +125,10 @@ var fib = function(n) {
 
 Iterative: time O(n), space O(1)
 
-
+Note that the iterative solution might still need base cases, for instance if n=0 (we want the first fib number) even if we returned `second` immediately it would still be wrong, as second defaults to the second fib number.
 
 
 
 // TODO:
-pow new code
-pow other solutions
-fix pow time complexity and caching
-fib all
 two tree questions
 dfs bfs iterative and recursive sectios
-exponentiation by squaring
-add tags for more specific things like recursive multi branch with caching

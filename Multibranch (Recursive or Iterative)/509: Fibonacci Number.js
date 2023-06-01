@@ -13,6 +13,8 @@ Given n, calculate F(n).
 
 // Solution 1, basic recursion
 // Time: O(2^n) space: O(n)
+// * Solution 2/3 are better
+
 var fib = function (n) {
   if (n === 0) return 0;
   if (n === 1) return 1;

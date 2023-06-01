@@ -4,10 +4,14 @@
 
 // Problem
 /*
+You are climbing a staircase. It takes n steps to reach the top.
+
+Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?
  */
 
 // Solution 1, recursive with caching
 // Time: O(n) and space: O(n)
+// * Solution 2 is iterative and better memory
 
 // For any number, compute the prior two numbers. Cache results as needed.
 
@@ -48,3 +52,5 @@ var climbStairs = function (n) {
 
   return second;
 };
+
+// Solution 3, you can use matrix multiplication or math to get even faster answers
