@@ -8,7 +8,9 @@ arrays (sometimes used when we don't put a problem in the array category but it 
 backtracking
 beats 100%
 binary search
+binary tree
 bit manipulation
+bottom up recursion
 bubble sort
 bucket sort
 circular
@@ -33,4 +35,5 @@ single branch (recursive or iterative)
 sliding window (fixed/variable)
 slow and fast pointers
 stack
+top down recursion
 two pointers

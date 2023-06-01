@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/same-tree/editorial/
 // Difficulty: Easy
-// tags: recursion
+// tags: binary tree, recursion
 
 // Problem
 // Check if two trees are structurally the same (.left and .right match up, values match up)

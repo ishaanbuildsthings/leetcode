@@ -1,5 +1,6 @@
 // https://leetcode.com/problems/subtree-of-another-tree/description/
 // Difficulty: Easy
+// tags: binary tree
 
 // Problem
 /*

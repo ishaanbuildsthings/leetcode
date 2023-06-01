@@ -1,5 +1,6 @@
 // https://leetcode.com/problems/invert-binary-tree/description/
 // Difficulty: Easy
+// tags: binary tree
 
 // Problem
 /*

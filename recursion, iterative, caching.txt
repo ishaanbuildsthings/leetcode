@@ -1,3 +1,8 @@
+********** WRITEUPS **********
+
+Problem 110: Balanced Binary Tree has a good writeup on top-down and bottom-up recursion.
+
+
 ********** SINGLE BRANCH RECURSION + ITERATIVE SOLUTIONS **********
 
 Say we are trying to solve power(number, exponent), (exponent>=0)

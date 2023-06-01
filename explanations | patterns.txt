@@ -236,4 +236,5 @@ TODO: is min size subarray sum=k doable? what about the number of subarrays? wha
 TODO: question on discord where someone gave an alg
 2244: minimum rounds to complete all tasks, use a better solution
 // TODO: find sum of all subarrays also for any array
-add explanation for problem w95 substring 26n
+add explanation for problem w95 substring 26nle
+leetcode add solutions for contest problems, and one c++ submission i accidentally sent i need to do, same with trapping rainwater2

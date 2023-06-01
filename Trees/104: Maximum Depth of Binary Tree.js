@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/maximum-depth-of-binary-tree/description/
 // Difficulty: Easy
-// tags: recursion, dfs
+// tags: binary tree, recursion, dfs
 
 // Problem
 /*
