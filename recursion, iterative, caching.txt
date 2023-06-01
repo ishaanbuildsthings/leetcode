@@ -98,17 +98,17 @@ var fib = function(n) {
     if (n === 0) return 0;
     if (n === 1) return 1;
 
-    let left = 0;
-    let right = 1;
-    let count = 1; // `right` is the count-th fib number
+    let first = 0;
+    let second = 1;
+    let count = 1; // `second` is the count-th fib number
     while (count < n) {
-        const newNumber = left + right;
-        left = right;
-        right = newNumber;
+        const third = first + second;
+        first = second;
+        second = third;
         count++;
     }
 
-    return right;
+    return second;
 };
 
 Iterative: time O(n), space O(1)

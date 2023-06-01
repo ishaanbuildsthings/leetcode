@@ -201,6 +201,8 @@ How much further (clockwise) a segment of length A will be from the previous seg
 
 We use B mod C, because if we wrap C segments of length A around the cylinder, the length (A * C) will be evenly divisible by C and we would be just back at the nail i.e. B mod C is the number of segments that actually contribute to the end of the rope being further away from the nail
 
+We can consider sqrt(n) to be O(1) if given normal int and precision bounds, or log n for truly arbitrary operations. Same with multiplication (string multiplication with karatsuba)
+
 
 ********** ROLLING HASH **********
 The objective of the rolling hash is to hash a number in constant time and only if the hash collides with our substring hash, we compare them. If we have 0 hash collisions, that means we were able to represent all possible substrings within our space, and our time complexity becomes (n-k) + k, since we did k operations to hash our pattern, and n-k sliding hashes. Each time we got a matching hash number we knew that it would be our precise pattern. Say we have 50% hash collisions, that means 50% of the time, we have to do a k-complex check, so our time complexity is (n-k)*0.5k. As our hashing function drops in # of collisions, we approach some linear scale of complexity relative to n, since even if k were really big the tiny number we multiply it by often bounds it. This is just expected runtime though, not true worst case.
