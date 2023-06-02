@@ -32,7 +32,7 @@ Instead of storing all the values in an array then validating it after, we can j
 var isValidBST = function (root) {
   let currentNum = -Infinity;
 
-  // objective is to do an inorder traversal, comparing values
+  // objective is to determine if a subproblem is a valid bst
   function dfs(node) {
     // if we are null, return true, since that is valid
     if (!node) return true;
@@ -56,4 +56,38 @@ var isValidBST = function (root) {
   }
 
   return dfs(root);
+};
+
+// Solution 3, DFS with ranges, O(n) time and O(n) space
+/*
+We cannot naively compare a node to its parent, because
+   5
+    \
+     6
+    /
+   3
+
+  Is not valid, as all numbers to the right of 5 need to be bigger than 5.
+
+  Because of this, we keep a range of the bounds, and change the range based on which direction we are moving.
+
+*/
+var isValidBST = function (root) {
+  function dfs(node, lowerBound, upperBound) {
+    if (!node) return true;
+
+    // if we are outside the range, return false
+    if (!(node.val > lowerBound) || !(node.val < upperBound)) {
+      return false;
+    }
+
+    // check the left subtree, creating a new upperbound
+    const leftResult = dfs(node.left, lowerBound, node.val);
+    // check the right
+    const rightResult = dfs(node.right, node.val, upperBound);
+
+    return leftResult && rightResult;
+  }
+
+  return dfs(root, -Infinity, Infinity);
 };

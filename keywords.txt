@@ -7,6 +7,7 @@ tags:
 arrays (sometimes used when we don't put a problem in the array category but it still has a lot of array/hashing work)
 backtracking
 beats 100%
+bfs
 binary search
 binary tree
 bit manipulation
@@ -16,7 +17,7 @@ bubble sort
 bucket sort
 circular
 deque
-cfs
+dfs
 dynamic programming
 greedy - not really used for problems that aren't explicitly tagged greedy, since lots of problems use greedy methods but the focus is on another part of the problem
 inorder traversal
