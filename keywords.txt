@@ -11,6 +11,7 @@ binary search
 binary tree
 bit manipulation
 bottom up recursion
+bst [binary search tree]
 bubble sort
 bucket sort
 circular
@@ -27,7 +28,9 @@ monotonic stack
 multibranch (recursive or iterative)
 palindrome
 prefix
+preorder traversal
 postfix
+postorder traversal
 recursion
 rolling hash
 quicksort
