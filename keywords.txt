@@ -18,6 +18,7 @@ deque
 cfs
 dynamic programming
 greedy - not really used for problems that aren't explicitly tagged greedy, since lots of problems use greedy methods but the focus is on another part of the problem
+inorder traversal
 kadane's
 math
 monotonic deque
@@ -35,5 +36,5 @@ single branch (recursive or iterative)
 sliding window (fixed/variable)
 slow and fast pointers
 stack
-top down recursion
+top down recursion [this is just memoization]
 two pointers

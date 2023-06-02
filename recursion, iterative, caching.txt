@@ -2,6 +2,16 @@
 
 Problem 110: Balanced Binary Tree has a good writeup on top-down and bottom-up recursion.
 
+********** MEMOIZATION TOP DOWN / BOTTOM UP **********
+
+In top down recursion, we start from the top, assume we can solve a sub problem (either fresh or look it up in a cache), and repeat. So if we want to solve a root problem, we look at its children, solve those, etc, until a base case, caching results. Any repeated work gets looked up in the cache.
+
+In bottom up, we start from the bottom, bubbling up results until we compute the top.
+
+These are NOT the same as normal tree traversal, where all nodes are different. For instance if we are just DFSing a tree, there isn't any repeated work. It only becomes the case such as things like fibonacci where we can cache results or tabulate. Or something like where we have to recompute values for each node in a tree, such as determining the max diameter (problem 543).
+
+Top down doesn't always need an exactly the same sub problem. Consider trying to solve the maximum diameter of a binary tree. One way is to have a diameter function, which runs a maxDepth on the left and right children, computes the diameter, and updates a max diameter if needed. Then, it recurses on its children, solving their diameters. This is more like, we are solving for the max diameter of a binary tree ASSUMING it needs to pass through the root. So the subproblem for 'max diameter at this root' is not 'max diameter found on left side' compared with 'max diameter found on right side' compared with 'depth of left and right'. It's just simply checking the depths and updating the max diameter, and doing it for all nodes.
+
 
 ********** SINGLE BRANCH RECURSION + ITERATIVE SOLUTIONS **********
 
@@ -133,7 +143,305 @@ Iterative: time O(n), space O(1)
 Note that the iterative solution might still need base cases, for instance if n=0 (we want the first fib number) even if we returned `second` immediately it would still be wrong, as second defaults to the second fib number.
 
 
+********** CHATGPT TOP DOWN BOTTOM UP **********
 
-// TODO:
-two tree questions
-dfs bfs iterative and recursive sectios
+You're correct in your observation. Both methods essentially solve the subproblems from the smallest to the largest, hence the confusion. However, what differentiates the top-down approach (memoization) from the bottom-up approach (tabulation) is mainly how and when they solve these subproblems:
+
+Top-down (Memoization): Here, you start solving the main problem first, which then gets broken down into subproblems due to recursion. When you encounter a subproblem for the second time, you fetch its answer from the memoization table instead of solving it again. It's called "top-down" because you start from the top (the main problem), and go down to the subproblems as needed.
+
+Bottom-up (Tabulation): In this approach, you iteratively solve all the subproblems first, then use their solutions to build up to the solution of the main problem. It's called "bottom-up" because you start from the bottom (smallest subproblems) and work your way up to the top (the main problem).
+
+The key distinction between them lies in the order of execution and how the subproblems are stored and reused. For Fibonacci specifically, the distinction may seem less clear due to the simplicity of the problem, but for more complex problems, the differences in the two approaches can become more pronounced.
+
+
+
+
+I see where your confusion is coming from. It's indeed a bit tricky when applying the terms "top-down" and "bottom-up" to recursive tree traversals.
+
+In the context of tree problems, "top-down" typically means that we start from the root node and make our way towards the leaf nodes, making decisions or computations along the way based on what we've seen so far. A "bottom-up" approach, conversely, implies that we start from the leaf nodes and make our way towards the root, using information gathered from the leaves and their parents to make computations.
+
+This confusion arises because regardless of whether it's a top-down or bottom-up approach, you always technically start the recursive call from the root node.
+
+In the solution you provided, you're actually using a bottom-up approach. Here's why:
+
+The dfs function is post-order traversal (left, right, root), which means it first goes all the way down to the leaves (smallest subproblems) before coming back up and computing the diameter and the maxDiameter. The value you're interested in (the diameter) is computed using results from the lower levels of the tree - that's why it's a bottom-up approach.
+
+The depth of a node (and subsequently the diameter) can't be determined until we've explored its children. Thus, we're building the solution from the bottom (leaves) up (towards the root).
+
+The difference between "top-down" and "bottom-up" can be subtle and somewhat confusing when it comes to recursive problems. It helps to focus on where the problem's solution is primarily constructed - if it's built as we go down the recursion (from base case towards the original problem), it's typically top-down. If it's built as we come back up (from smallest subproblem towards the original problem), it's typically bottom-up.
+
+
+
+
+Sure, let's break it down a bit further with a simplified example.
+
+Imagine we have a binary tree like this:
+
+mathematica
+Copy code
+     A
+   /   \
+  B     C
+ / \   / \
+D   E F   G
+Let's illustrate how the top-down and bottom-up approaches would solve a problem on this tree. For simplicity, let's imagine our task is to label each node with the count of its descendants.
+
+Top-Down Approach
+
+In a top-down approach, we would start at the root (A), and immediately try to solve the problem there. To label A with the count of its descendants, we need to count the descendants of B and C. So, we recursively solve the problem for B and C.
+
+mathematica
+Copy code
+     A (6)
+   /   \
+  B (?) C (?)
+ / \   / \
+D   E F   G
+When we get to B, we again need to solve the problem for D and E, and so on. The process repeats until we reach the leaves, where the answer is always 0 (since a leaf has no descendants).
+
+scss
+Copy code
+     A (6)
+   /   \
+  B (2) C (2)
+ / \   / \
+D(0)E(0)F(0)G(0)
+This is a "top-down" approach because we started by trying to solve the problem at the root, and recursively broke it down into subproblems.
+
+Bottom-Up Approach
+
+In a bottom-up approach, we start at the bottom, at the leaves, and work our way up. In this case, we would do a post-order traversal: left, right, root. We start with the leaves (D, E, F, G), where the answer is 0.
+
+scss
+Copy code
+     A (?)
+   /   \
+  B (?) C (?)
+ / \   / \
+D(0)E(0)F(0)G(0)
+Then, we return to their parents (B and C), calculate the number of descendants (just the sum of the counts of D and E for B, and F and G for C, plus 1 for the direct child itself).
+
+scss
+Copy code
+     A (?)
+   /   \
+  B (2) C (2)
+ / \   / \
+D(0)E(0)F(0)G(0)
+Finally, we return to the root (A), and calculate the number of descendants by summing up the counts of B and C, plus 1 for each direct child.
+
+scss
+Copy code
+     A (6)
+   /   \
+  B (2) C (2)
+ / \   / \
+D(0)E(0)F(0)G(0)
+This is a "bottom-up" approach because we started by solving the problem at the leaves, and built up to a solution at the root.
+
+So, you're correct in noticing that both approaches involve solving subproblems to solve the problem at the root. The key difference is the order in which these subproblems are solved: top-down goes from the root to the leaves, while bottom-up goes from the leaves to the root.
+
+
+
+
+Top down max diameter code:
+
+
+var diameterOfBinaryTree = function(root) {
+    let maxDiameter = 0;
+
+    // Function to compute the depth of a tree.
+    function depth(node) {
+        if (node == null) {
+            return 0;
+        } else {
+            return Math.max(depth(node.left), depth(node.right)) + 1;
+        }
+    }
+
+    // Recursive function to find the diameter of a tree.
+    function diameter(node) {
+        if (node != null) {
+            const leftDepth = depth(node.left);
+            const rightDepth = depth(node.right);
+
+            // Update maxDiameter if diameter of current node is larger.
+            maxDiameter = Math.max(maxDiameter, leftDepth + rightDepth);
+
+            // Recurse on left and right subtrees.
+            diameter(node.left);
+            diameter(node.right);
+        }
+    }
+
+    diameter(root);
+
+    return maxDiameter;
+};
+
+
+response:
+
+The previous code (the one without memoization) seemed weird. Because when we solve for diameter(root), we arent really solving for a good sub problem. To me, the sub problem would be that, the max diameter at root, would be the maximum of: 1) the max diameter at the left child 2) the max diameter at the right child 3) the depth of the left and right paths added together
+
+isnt this the right subproblem? it seems like your code is just iterating across every node, computing the diameter only if it passes through that node. this feels more iterative and less recursive / solving subproblems
+
+
+result:
+
+Yes, you can do it that way. The code ended up being more complex.
+
+
+
+
+how would you write top down code that solved for the max diameter of a binary tree? it doesnt necessarily need memoization, keep it simple
+ChatGPT
+A top-down approach to find the maximum diameter of a binary tree would require a separate calculation of the depth for left and right subtrees for each node. Here is an implementation without memoization:
+
+javascript
+Copy code
+var diameterOfBinaryTree = function(root) {
+    let maxDiameter = 0;
+
+    // Function to compute the depth of a tree.
+    function depth(node) {
+        if (node == null) {
+            return 0;
+        } else {
+            return Math.max(depth(node.left), depth(node.right)) + 1;
+        }
+    }
+
+    // Recursive function to find the diameter of a tree.
+    function diameter(node) {
+        if (node != null) {
+            const leftDepth = depth(node.left);
+            const rightDepth = depth(node.right);
+
+            // Update maxDiameter if diameter of current node is larger.
+            maxDiameter = Math.max(maxDiameter, leftDepth + rightDepth);
+
+            // Recurse on left and right subtrees.
+            diameter(node.left);
+            diameter(node.right);
+        }
+    }
+
+    diameter(root);
+
+    return maxDiameter;
+};
+In this code:
+
+The depth function computes the depth of a subtree rooted at a given node. It traverses all the way down to the leaf nodes and then bubbles up the depth values.
+The diameter function is where we apply the top-down approach. For each node, it calculates the diameter via the depth function and updates maxDiameter if the diameter at the current node is larger. It then recurses on the left and right child nodes.
+This approach works and it follows a top-down approach. However, as mentioned earlier, it isn't as efficient as the bottom-up solution because it performs redundant depth computations. For each node, it separately computes the depth of its left and right subtrees which results in some nodes being visited multiple times. The time complexity of this approach is approximately O(n^2), where n is the number of nodes in the tree.
+
+
+
+
+how would you add memoization
+ChatGPT
+To add memoization to this problem, we would cache the results of the depth function in a data structure (such as a Map), so that the next time we need to calculate the depth of the same node, we can just retrieve the stored result instead of performing the calculation again.
+
+Here's how you might implement this:
+
+javascript
+Copy code
+var diameterOfBinaryTree = function(root) {
+    let maxDiameter = 0;
+    let depthCache = new Map();
+
+    // Function to compute the depth of a tree.
+    function depth(node) {
+        if (node == null) {
+            return 0;
+        } else if (depthCache.has(node)) {
+            // Retrieve the result from cache if available
+            return depthCache.get(node);
+        } else {
+            // Calculate the depth and store it in the cache
+            let nodeDepth = Math.max(depth(node.left), depth(node.right)) + 1;
+            depthCache.set(node, nodeDepth);
+            return nodeDepth;
+        }
+    }
+
+    // Recursive function to find the diameter of a tree.
+    function diameter(node) {
+        if (node != null) {
+            const leftDepth = depth(node.left);
+            const rightDepth = depth(node.right);
+
+            // Update maxDiameter if diameter of current node is larger.
+            maxDiameter = Math.max(maxDiameter, leftDepth + rightDepth);
+
+            // Recurse on left and right subtrees.
+            diameter(node.left);
+            diameter(node.right);
+        }
+    }
+
+    diameter(root);
+
+    return maxDiameter;
+};
+With this memoization, we only calculate the depth of each node once and store it. Whenever we need it again, we fetch it from the cache. This brings the time complexity down to O(n), where n is the number of nodes in the tree, because we're now visiting each node exactly once.
+
+********** TOP DOWN AND BOTTOM UP FIBONACCI **********
+
+Sure, I can provide you with both top-down (memoization) and bottom-up (tabulation) approaches to solve the nth Fibonacci number problem.
+
+First, let's start with the top-down approach using recursion and memoization:
+
+javascript
+Copy code
+function fibonacciTopDown(n) {
+    // Creating memoization array.
+    let memo = new Array(n + 1);
+
+    function fib(n) {
+        // Base cases.
+        if (n <= 0) {
+            return 0;
+        } else if (n === 1) {
+            return 1;
+        } else if (memo[n]) {
+            // If the value has already been solved, return it.
+            return memo[n];
+        } else {
+            // Otherwise, compute it and save it in memo.
+            memo[n] = fib(n - 1) + fib(n - 2);
+            return memo[n];
+        }
+    }
+
+    return fib(n);
+}
+Next, let's implement the bottom-up approach using tabulation:
+
+javascript
+Copy code
+function fibonacciBottomUp(n) {
+    // If n is 0 or 1, return n.
+    if (n <= 1) {
+        return n;
+    }
+
+    // Initialize base cases.
+    let fibMinusTwo = 0;
+    let fibMinusOne = 1;
+    let fibN = 0;
+
+    // Build up to our solution iteratively.
+    for (let i = 2; i <= n; i++) {
+        // Compute current Fibonacci number.
+        fibN = fibMinusOne + fibMinusTwo;
+
+        // Update previous two Fibonacci numbers.
+        fibMinusTwo = fibMinusOne;
+        fibMinusOne = fibN;
+    }
+
+    return fibN;
+}
