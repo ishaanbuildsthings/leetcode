@@ -168,6 +168,9 @@ then sort tuples based on the values
 tuples.sort((a, b) => a[0] - b[0]);
 then split them back up
 
+Insertion sort -
+
+
 
 ********** MATH **********
 

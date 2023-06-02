@@ -21,6 +21,7 @@ dfs
 dynamic programming
 greedy - not really used for problems that aren't explicitly tagged greedy, since lots of problems use greedy methods but the focus is on another part of the problem
 inorder traversal
+insertion sort
 kadane's
 math
 monotonic deque
