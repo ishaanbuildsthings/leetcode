@@ -2,29 +2,7 @@
 // Difficulty: Medium
 // tags: bst, inorder traversal
 
-// Solution 1, O(n) time and O(n) space, inorder traversal
-/*
-An inorder traversal of a valid BST yields a strictly increasing sequence. Iterate in in-order and validate the pattern.
-*/
-
-var isValidBST = function (root) {
-  let currentNum = -Infinity;
-
-  function dfs(node) {
-    if (!node) return true;
-
-    dfs(node.left);
-    if (node.val <= currentNum) {
-      return false;
-    }
-    currentNum = node.val;
-    dfs(node.right);
-  }
-
-  return dfs(root);
-};
-
-// Solution 2, O(n) time and O(n) space, inorder traversal without array
+// Solution 1, O(n) time and O(n) space, inorder traversal without array
 /*
 Instead of storing all the values in an array then validating it after, we can just track the current number and compare our new node with that. Writing the solution was a bit tricky, it's easier to think about our objective of iterating as much left as possible, after we hit null we validate the current number, then we travel right. We use the callstacks to bubble back up. Again, I think of inorder traversal as one node pointing into two nulls, rather than a node pointing to two other nodes.
 */
@@ -58,7 +36,7 @@ var isValidBST = function (root) {
   return dfs(root);
 };
 
-// Solution 3, DFS with ranges, O(n) time and O(n) space
+// Solution 2, DFS with ranges, O(n) time and O(n) space
 /*
 We cannot naively compare a node to its parent, because
    5
