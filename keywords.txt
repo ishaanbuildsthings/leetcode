@@ -42,4 +42,5 @@ sliding window (fixed/variable)
 slow and fast pointers
 stack
 top down recursion [this is just memoization]
+trie
 two pointers
