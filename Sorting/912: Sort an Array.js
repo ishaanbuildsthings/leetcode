@@ -3,6 +3,7 @@
 // tags: insertion sort
 
 // Solution 1, merge sort, O(n log n) time and O(n) space
+// * Solution 2 is the same as solution 1 but uses less malloc since we use a pointer system
 // Scroll down to see callstack / recursive steps
 
 /*
@@ -123,6 +124,97 @@ function merge(arr1, arr2) {
   return mergedArr;
 }
 
+// Solution 2, same as solution 1 but less total malloc, instead of creating new left and right arrays we use pointers to indicate a region, and only for the base case or the sorted arrays do we allocate memory
+
+var sortArray = function (nums, l = 0, r = nums.length - 1) {
+  // base case, a single element is already sorted
+  if (l === r) {
+    return [nums[l]];
+  }
+
+  // 5, 2, 3, 1
+
+  // otherwise we have multiple elements, split them up
+  const m = Math.floor((r + l) / 2);
+  const leftCoords = [l, m];
+  const rightCoords = [m + 1, r];
+
+  const leftArraySorted = sortArray(nums, ...leftCoords);
+  const rightArraySorted = sortArray(nums, ...rightCoords);
+
+  const mergedArray = merge(leftArraySorted, rightArraySorted); // array, [l, r], [l, r]
+
+  return mergedArray;
+};
+
+/*
+ 5, 2, 3, 1 tries to be sorted
+ left array: [5, 2]   right array: [3, 1]
+ 3) left array sorted resolved to [2, 5]
+ right array of [3, 1] tries to be sorted
+ 5) now [1, 3] is returned
+ we merge [2, 5] and [1, 3], producing [1, 2, 3, 5], and return that
+
+left array: [5, 2] tries to be sorted
+left array: [5]   right array: [2]
+1) left array sorted resolves to [5]
+2) right array sorted resolves to [2]
+merged array is called on [5] and [2], producing [2, 5]
+we return [2, 5], terminating the context
+
+
+left array: [5] tries to be sorted, it already is so it returns [5]
+
+[3, 1] tries to be sorted, so we split it into left: [3] and right: [1]
+4) now [3] and [1] are sorted, their merged array becomes [1, 3]
+we return [1, 3] up, terminating the context
+
+[3] is sorted, returns [3]
+
+[1] is sorted, returns [1]
+
+
+*/
+// takes in two arrays, returns a sorted array
+function merge(arr1, arr2) {
+  const mergedArr = [];
+
+  let p1 = 0;
+  let p2 = 0;
+
+  /*
+     v          v
+    [2, 6, 7]  [3, 9, 12]
+
+    */
+
+  // merge
+  while (p1 < arr1.length && p2 < arr2.length) {
+    if (arr1[p1] <= arr2[p2]) {
+      mergedArr.push(arr1[p1]);
+      p1++;
+    } else {
+      mergedArr.push(arr2[p2]);
+      p2++;
+    }
+
+    // once one lists runs out, add the other
+    if (p1 === arr1.length) {
+      while (p2 < arr2.length) {
+        mergedArr.push(arr2[p2]);
+        p2++;
+      }
+    } else if (p2 === arr2.length) {
+      while (p1 < arr1.length) {
+        mergedArr.push(arr1[p1]);
+        p1++;
+      }
+    }
+  }
+
+  return mergedArr;
+}
+
 // Solution X-1, insertion sort, O(n^2) time and O(1) space
 
 /*
@@ -169,3 +261,34 @@ var sortArray = function (nums) {
   }
   return nums;
 };
+
+// takes in an array and coordinates for the left and right sections, merges them into a new array
+function merge(nums, leftCoords, rightCoords) {
+  const mergedArr = [];
+
+  let lPointer = leftCoords[0];
+  let rPointer = rightCoords[0];
+  let lEnd = leftCoords[1];
+  let rEnd = rightCoords[1];
+
+  while (lPointer < lEnd && rPointer < rEnd) {
+    if (nums[lPointer] <= nums[rPointer]) {
+      mergedArr.push(nums[lPointer]);
+      lPointer++;
+    } else {
+      mergedArr.push(nums[rPointer]);
+      rPointer++;
+    }
+  }
+
+  while (lPointer < lEnd) {
+    mergedArr.push(nums[lPointer]);
+    lPointer++;
+  }
+  while (rPointer < rEnd) {
+    mergedArr.push(nums[rPointer]);
+    rPointer++;
+  }
+
+  return mergedArr;
+}

@@ -19,6 +19,8 @@ Now we merge those two lists, getting [[1, 1, 3, 4, 4, 5, 2, 6]].
 If there are k lists, we need to split log k times. Each layer we do a split, we end up doing n total merges as we look at each element. We use auxillary space / memory allocation during the merging. Less space could be used, or even maybe in-place, but this is the simplest starting solution.
 */
 
+// * Solution 2 of mergesort could also be done iteratively. The easiest solution is to iterate through our list of linkedlists, merge each pair into a new list, and then assign that new list to be the list we iterate on again.
+
 var mergeKLists = function (lists) {
   if (lists.length === 0) return null;
 
