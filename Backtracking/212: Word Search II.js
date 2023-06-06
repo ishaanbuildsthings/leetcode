@@ -23,7 +23,7 @@ Some notes and optimizations:
 
 2) It is better to enter the bad node and terminate, than to peek ahead to see if it is valid, and if it is, call that node. Since if it is valid we end up doing string addition twice.
 
-3) We can backtrack within the trie nodes as well to prevent O(n) searchPrefix lookups.
+3) We can backtrack within the trie nodes as well to prevent O(n) searchPrefix lookups. We can do this by making our DFS function take in the trienode as well, and then instead of O(n) lookups in the trie, we just check if the current cell exists as a child of the node we received.
 
 4) We can also prune from the tree as we find words, so we stop iterating out as not needed.
 */
