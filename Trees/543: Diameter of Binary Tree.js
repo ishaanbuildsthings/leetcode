@@ -2,6 +2,15 @@
 // Difficulty: Easy
 // tags: binary tree, recursion, top down recursion, bottom up recursion
 
+// Problem
+/*
+Given the root of a binary tree, return the length of the diameter of the tree.
+
+The diameter of a binary tree is the length of the longest path between any two nodes in a tree. This path may or may not pass through the root.
+
+The length of a path between two nodes is represented by the number of edges between them.
+*/
+
 // Solution 1, bottom up recursion, O(n) time and O(n) memory
 /*
 Have a dfs function return the max depth it can reach. Start at the bottom, bubbling up the max depths. For any node, see the max depths of its children, and update the diameter if needed. Then, return a max depth based on its children.

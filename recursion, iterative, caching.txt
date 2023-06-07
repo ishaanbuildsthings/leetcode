@@ -12,6 +12,14 @@ These are NOT the same as normal tree traversal, where all nodes are different. 
 
 Top down doesn't always need an exactly the same sub problem. Consider trying to solve the maximum diameter of a binary tree. One way is to have a diameter function, which runs a maxDepth on the left and right children, computes the diameter, and updates a max diameter if needed. Then, it recurses on its children, solving their diameters. This is more like, we are solving for the max diameter of a binary tree ASSUMING it needs to pass through the root. So the subproblem for 'max diameter at this root' is not 'max diameter found on left side' compared with 'max diameter found on right side' compared with 'depth of left and right'. It's just simply checking the depths and updating the max diameter, and doing it for all nodes.
 
+I think a good way to think about bottom up, is we ask a top level question which is the result of some amount of child statements. So we recurse on those children, which recurse on others, until they hit a base case. But, while we recurse on the children, we also solve some problem, such as 543: Diameter of Binary Tree. For instance if we wanted to solve the maximum number of `1` in a fibonacci number, where the number is less than 101, we could do:
+
+1) compute F(100), check how many 1s it has. compute F(99), and so on. This is highly complex because we recalculate numbers many times.
+
+2) Memoize results, so compute all values of F(1) to F(100) in a memoized table. Now traverse through F(100)->F(1) (or here just iterate through), and check the cached results.
+
+3) Compute F(100), and we know that will always ask the direct subproblems F(99) and F(98). As we recurse, we also check and update a result (this is bottom up).
+
 
 ********** SINGLE BRANCH RECURSION + ITERATIVE SOLUTIONS **********
 
@@ -445,3 +453,20 @@ function fibonacciBottomUp(n) {
 
     return fibN;
 }
+
+
+
+Ishaan: we could also do nth fibonacci with bottom up recursion:
+
+chatgpt:
+
+function fib(n, memo = [0, 1, 1]) {
+  if (n < memo.length) {
+    return memo[n];  // Return the nth Fibonacci number if it's already in the memo.
+  } else {
+    memo[n] = fib(n - 1, memo) + fib(n - 2, memo);  // Compute and store the nth Fibonacci number.
+    return memo[n];
+  }
+}
+
+console.log(fib(10));  // Outputs: 55

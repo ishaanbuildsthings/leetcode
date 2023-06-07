@@ -154,8 +154,27 @@ Don't forget in linked lists we can always reverse part of a list in constant st
 
 206: Reverse Linked List has a good way to write out recursive call stacks.
 
-********** TREES **********
+********** TREES / BST **********
 104: Maximum Depth of Binary Tree has good writeups on using different searches in very elegant ways.
+
+Inorder traversal will print out a BST in ascending order. We can use this to find the kth largest element or kth smallest element (problem 230)
+
+Inorder, Preorder, Postorder iterative traversals should be reviewed
+
+To construct a tree from the pre and inorder traversals, assuming values are unique, use recursion. The first element of preorder will determine the root, and the inorder array will determine how many elements go into the left child, and how many into the right.
+
+TODO: delete a node in BST
+
+To check if a tree contains another subtree, we can serialize them and use string matching. Or we can do a full subtree check on each treenode.
+
+********** TRIE **********
+
+To prevent doing many prefix lookups, we can pass the trienode into our dfs function (like in 212: word search II), and just check that node's childrens to validate our prefix.
+
+********** BACKTRACKING **********
+
+One useful thing is to maintain a seen array of n x m, and update those cells, then un-update them at the end of the execution context. This seems faster than maintaining a set of visited cells, though I don't see why it is necessarily.
+
 
 ********** SORTING **********
 
@@ -168,7 +187,11 @@ then sort tuples based on the values
 tuples.sort((a, b) => a[0] - b[0]);
 then split them back up
 
-Insertion sort -
+Lots of sorting algorithms are listed under problem 912: Sort an Array. Quick TLDR here:
+
+Insertion Sort: for each element, find where it goes
+Merge sort: recurse down to base cases, merge lists, and bubble up merged lists. Can use pointers to make slightly more efficient. Can also use for merging sorted linked lists or sorted lists.
+Quick sort: pick a pivot, partition based on that pivot.
 
 
 
