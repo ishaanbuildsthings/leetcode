@@ -241,3 +241,4 @@ TODO: question on discord where someone gave an alg
 // TODO: find sum of all subarrays also for any array
 add explanation for problem w95 substring 26nle
 leetcode add solutions for contest problems, and one c++ submission i accidentally sent i need to do, same with trapping rainwater2
+delete node in bst by reference not by overwriting value
