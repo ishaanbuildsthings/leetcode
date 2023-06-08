@@ -167,6 +167,24 @@ TODO: delete a node in BST
 
 To check if a tree contains another subtree, we can serialize them and use string matching. Or we can do a full subtree check on each treenode.
 
+A preorder traversal with null nodes always uniquely serializes a tree. Postorder should as well. Proof: https://cs.stackexchange.com/questions/116655/which-tree-traversal-string-is-unique
+
+Inorder does not:
+
+    0
+   /
+  0
+
+  and
+
+  0
+   \
+    0
+
+  Both serialize to null, 0, null, 0, null, when using inorder.
+
+
+
 ********** TRIE **********
 
 To prevent doing many prefix lookups, we can pass the trienode into our dfs function (like in 212: word search II), and just check that node's childrens to validate our prefix.
