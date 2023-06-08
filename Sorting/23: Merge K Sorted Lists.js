@@ -2,7 +2,7 @@
 // Difficulty: Hard
 // tags: merge sort, linked list
 
-// Solution 1, merge sort, O(n log k) time and O(n) space. N is the total number of nodes, k is the number of linked lists.
+// Solution 1, merge sort, O(n log k) time and O(n) space. N is the total number of nodes, k is the number of linked lists. Technically you could argue it is O(k) space as we exceed the result memory by k extra allocated memory addresses.
 
 /*
 To merge multiple linked lists, we can divide the problem. Consider:
@@ -19,7 +19,7 @@ Now we merge those two lists, getting [[1, 1, 3, 4, 4, 5, 2, 6]].
 If there are k lists, we need to split log k times. Each layer we do a split, we end up doing n total merges as we look at each element. We use auxillary space / memory allocation during the merging. Less space could be used, or even maybe in-place, but this is the simplest starting solution.
 */
 
-// * Solution 2 of mergesort could also be done iteratively. The easiest solution is to iterate through our list of linkedlists, merge each pair into a new list, and then assign that new list to be the list we iterate on again.
+// * Solution 2 of mergesort could also be done iteratively. The easiest solution is to iterate through our list of linkedlists, merge each pair into a new list, and then assign that new list to be the list we iterate on again. We could also use a deque, pop from the left twice, merge them, push to the left, and repeat until we have one list left. We would maintain a point telling us how far we have gone through as well as we iterate through the list.
 
 var mergeKLists = function (lists) {
   if (lists.length === 0) return null;
