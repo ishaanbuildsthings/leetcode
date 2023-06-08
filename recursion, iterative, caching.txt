@@ -2,6 +2,7 @@
 
 Problem 110: Balanced Binary Tree has a good writeup on top-down and bottom-up recursion.
 
+
 ********** MEMOIZATION TOP DOWN / BOTTOM UP **********
 
 In top down recursion, we start from the top, assume we can solve a sub problem (either fresh or look it up in a cache), and repeat. So if we want to solve a root problem, we look at its children, solve those, etc, until a base case, caching results. Any repeated work gets looked up in the cache.
@@ -19,6 +20,7 @@ I think a good way to think about bottom up, is we ask a top level question whic
 2) Memoize results, so compute all values of F(1) to F(100) in a memoized table. Now traverse through F(100)->F(1) (or here just iterate through), and check the cached results.
 
 3) Compute F(100), and we know that will always ask the direct subproblems F(99) and F(98). As we recurse, we also check and update a result (this is bottom up).
+
 
 
 ********** SINGLE BRANCH RECURSION + ITERATIVE SOLUTIONS **********

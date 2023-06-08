@@ -183,6 +183,10 @@ Inorder does not:
 
   Both serialize to null, 0, null, 0, null, when using inorder.
 
+Often in trees, we have some recursive function like trimBST, that returns a trimmed version or some modified version of a tree. We can use this itself as the recursive function, and assign our left and right pointers to be the modified versions too, like in problem 669: Trim a Binary Search Tree.
+
+
+
 
 
 ********** TRIE **********

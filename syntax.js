@@ -35,6 +35,8 @@ instead you could do:
 const str = 'how are you?';
 const arr = str.split(' '); // ['how', 'are', 'you?']
 
+// you CANNOT make an array from an object, it wouldn't make sense
+
 
 // hash sets
 const set = new Set();
@@ -45,7 +47,7 @@ set.size; // returns length
 const arr = [1, 2, 3];
 const set = new Set(arr); // creates a set from an array
 
-// map
+// .map
 const arr2 = arr.map((value, index) => ...); // we can access index as well, useful for things like sorting two arrays based on one
 const positions = [1, 5, 3, 2];
 const speeds = [9, 2, 4, 6];
@@ -131,3 +133,6 @@ myMap.get(key);
 
 letter.charCodeAt(0) - 96; // hashes a-z to 1-26
 letter.charCodeAt(0) % 26; // also does this but the order is different
+
+ // get size of an object
+  Object.keys(obj).length;
