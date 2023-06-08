@@ -16,8 +16,10 @@ I found the max depth of the tree, then did a BFS. If we are ever missing a chil
 */
 /*
  *
- Solution 2 is a bit easier to code and understanding, sol 1 is just what I wrote initially. The pseudocode for solution 2 is:
+ Solution 2 is a bit easier to code and understanding, sol 1 is just what I wrote initially. It is still n time and n space. The pseudocode for solution 2 is:
  * Do a BFS traversal, maintaining a track of the previous node. If the previous node was ever null, and we get a non-null, return false, because that implies a gap either in the level, or a level that ended with nulls and then a new level. For this bfs, we need to add the nulls to the deque so we can process them.
+
+ * We could even do a BFS and store things in an array, then check for gaps. The above is just the `more constant` space solution so to speak, as we memoize the prior value.
  */
 
 // Solution 1 code
@@ -49,7 +51,7 @@ var isCompleteTree = function (root) {
     let moreChildrenAllowedThisLevel = true;
 
     for (let i = 0; i < length; i++) {
-      const node = deque.shift();
+      const node = deque.shift(); // pretend O(1)
 
       // if we are missing a child, and are not on the last COMPLETE level, we cannot have a complete tree
       if ((!node.left || !node.right) && level !== maxDepth - 1) {
