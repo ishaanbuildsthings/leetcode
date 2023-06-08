@@ -46,3 +46,42 @@ var flipEquiv = function (root1, root2) {
 
   return true;
 };
+
+// Solution 2, the nicer pure recursive solution, still O(n + m) ttime and O(n + m) space, but now the space is the heights rather than all nodes (since previously we stored mappings for all nodes).
+
+/*
+To compare two trees, first evaluate the simple cases. If both nodes are null, we have valid trees. If just one is null, we do not. If we have two nodes, but their values are different, it is still invalid.
+
+If we have two nodes that have the same values, then we need to recurse down. We have two possible ways that make it valid. If tree1 left child is flip equivalent to tree2 left child, and tree1 right child is flip equivalent to tree2 right child, then tree1 is flip equivalent to tree2.
+
+But, we could also flip them, so we need to check the flipped orientation as well.
+*/
+
+var flipEquiv = function (root1, root2) {
+  function dfs(node1, node2) {
+    // two null nodes are the same
+    if ((node1 === null) & (node2 === null)) {
+      return true;
+    }
+
+    // if just one node is null, they are not the same
+    if (!node1 || !node2) {
+      return false;
+    }
+    /* here both nodes are not null */
+
+    // if the nodes share different values, we cannot have a flip equivlant tree
+    if (node1.val !== node2.val) {
+      return false;
+    }
+    /* here both nodes have the same value */
+
+    const notFlipped =
+      dfs(node1.left, node2.left) && dfs(node1.right, node2.right);
+    const flipped =
+      dfs(node1.left, node2.right) && dfs(node1.right, node2.left);
+    return notFlipped || flipped;
+  }
+
+  return dfs(root1, root2);
+};
