@@ -26,6 +26,8 @@ Some notes and optimizations:
 3) We can backtrack within the trie nodes as well to prevent O(n) searchPrefix lookups. We can do this by making our DFS function take in the trienode as well, and then instead of O(n) lookups in the trie, we just check if the current cell exists as a child of the node we received.
 
 4) We can also prune from the tree as we find words, so we stop iterating out as not needed.
+
+5) I think one efficiency might be that instead of adding strings each time we accrue a letter, we have our trienodes contain the word they end on. So if `oath` is a word, the h should say .word = 'oath'. Now as we traverse, we know we are valid if our node is a child. And if we reach a node that is a word, we can add that word to our result.
 */
 
 class TrieNode {

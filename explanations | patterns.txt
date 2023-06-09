@@ -198,6 +198,64 @@ One useful thing is to maintain a seen array of n x m, and update those cells, t
 
 In backtracking, we can decide to choose an option by recursing the function on that option. We can decide to skip an option by skipping it (usually by popping that option). Once we reach some terminal case, we can add the case to our result. See problem 78: Subsets for an example.
 
+Word Search II has a good writeup on entering bad nodes and terminating, and a few other things.
+
+*** In backtracking in a grid, there are some considerations: ***
+
+1) When we enter a cell in the call, mark it as visited:
+
+function backtrack(row, col) {
+  visited[row][col] = true;
+}
+
+Logically, when we enter a cell for the first time, all child descendants should know that cell was visited.
+
+One other option we might consider instead, is for each neighor we try to toggle the visited state:
+
+function backtrack(row, col) {
+  visited[row + 1][col] = true;
+  backtrack(row + 1, col);
+  visited[row + 1, col] = false;
+}
+
+The first is more intuitive and easier, and does not need repeat code for each adjacency.
+
+In the first case, after we are done recursing on all neighbors, we need to mark the cell as univisted, so that higher up calls may use that cell differently.
+
+function backtrack(row, col) {
+  visited[row][col] = true;
+  backtrack(row + 1, col);
+  visited[row][col] = false;
+}
+
+We can reuse our visited table for all root calls, as when one root call ends, everything will be univisited (see problem 79: Word Search).
+
+The backtrack itself should be allowed to enter bad nodes. Once we are in the bad node, we can terminate if needed. If we are in a good node, we can check if we have met a terminal condition, or recurse if needed.
+
+In non grid backtracking, we can do a similar thing. Consider problem 78: Subsets.
+
+function backtrack(currentNums, i) {
+  if (i === nums.length) {
+    result.push(JSON.parse(JSON.stringify(currentNums)));
+      return;
+  }
+  currentNums.push(nums[i]);
+  backtrack(currentNums, i + 1);
+  currentNums.pop();
+
+  bactrack(currentNums, i + 1);
+}
+
+Essentially what we are doing is we enter a bad state (i is too big). If so, we terminate, in this case we add a result though as we know we finished. In word search we either terminate if we have an invalid letter (no result), or we terminate if we find the word. Subsets is more like keeping going until we can't, and word search is more like go until we form something invalid, or we find our result.
+
+Then, we mark the current number as 'visited', by pushing it to the stack. We recurse on neighbors, and mark it unvisited. However, we also wwant to recurse while the current cell is 'unvisited'. It's a bit different than a grid, since a grid can go back and forth, whereas this is more like we skip an option or include an option. The overall structure shares themes though. If we have many options to skip or add, we can do it with a for loop like in problem 39: Combination Sum.
+
+Problem 46: Permutations, shows two ways to handle the tree backtrack problems. The first is we can add a neighbors number, recurse on it, then pop that number. This is nice because in a tree we don't worry about going back and forth to the same cells, unlike a grid. However, we could also take a more grid-like approach as we did in solution 2, where we add the current cell in the main execution context. Iterate on neighbors, then pop it. This requires the backtrack function to take in a parameter for the number itself. This is kind of like how in a grid, it takes a row and a column, part of which we use to deduce the number itself and add it to our accrual.
+
+
+
+In general, think of each call to a backtracking problem as being a node in the tree.
+
 
 ********** SORTING **********
 
