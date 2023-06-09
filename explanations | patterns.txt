@@ -196,6 +196,8 @@ To prevent doing many prefix lookups, we can pass the trienode into our dfs func
 
 One useful thing is to maintain a seen array of n x m, and update those cells, then un-update them at the end of the execution context. This seems faster than maintaining a set of visited cells, though I don't see why it is necessarily.
 
+In backtracking, we can decide to choose an option by recursing the function on that option. We can decide to skip an option by skipping it (usually by popping that option). Once we reach some terminal case, we can add the case to our result. See problem 78: Subsets for an example.
+
 
 ********** SORTING **********
 
