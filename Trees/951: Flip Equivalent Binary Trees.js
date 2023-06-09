@@ -76,6 +76,7 @@ var flipEquiv = function (root1, root2) {
     }
     /* here both nodes have the same value */
 
+    // technically a bit slower, whereas we could short circuit by directly putting in the return statement, just written for clarity
     const notFlipped =
       dfs(node1.left, node2.left) && dfs(node1.right, node2.right);
     const flipped =
