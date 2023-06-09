@@ -7,12 +7,9 @@
 // O(n) time and O(1) space. Constant space because the buckets are bounded to 3. Iterate over the elements and maintain a count for the buckets. Iterate over the array again and rewrite the elements in order.
 
 // More general bucket sort, no need to hardcode:
-const sortColors = function (nums) {
-  const buckets = {
-    0: 0,
-    1: 0,
-    2: 0,
-  };
+var sortColors = function (nums) {
+  const buckets = new Array(3).fill(0);
+
   for (let num of nums) {
     buckets[num]++;
   }

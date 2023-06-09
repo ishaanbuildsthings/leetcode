@@ -70,8 +70,9 @@ recurse(0)
 var deserialize = function (data) {
   const arr = JSON.parse(data);
 
+  // takes in an index, and returns the constructed tree starting from that index, along with the index it ends at
   function recurse(i) {
-    // if we are at anull, return null and `i`, as `i` is the default ending index
+    // if we are at a null, return null and `i`, as `i` is the default ending index
     if (arr[i] === null) {
       return [null, i];
     }
