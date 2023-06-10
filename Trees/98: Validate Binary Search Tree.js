@@ -5,6 +5,8 @@
 // Solution 1, O(n) time and O(n) space, inorder traversal without array
 /*
 Instead of storing all the values in an array then validating it after, we can just track the current number and compare our new node with that. Writing the solution was a bit tricky, it's easier to think about our objective of iterating as much left as possible, after we hit null we validate the current number, then we travel right. We use the callstacks to bubble back up. Again, I think of inorder traversal as one node pointing into two nulls, rather than a node pointing to two other nodes.
+
+An easy way to think about it is a binary tree is valid if the left subtree is valid, the middle node is inorder relative to the biggest element from the left subtree, and the right subtree is valid. This recurses down until the base case of null.
 */
 
 var isValidBST = function (root) {
