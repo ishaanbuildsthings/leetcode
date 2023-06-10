@@ -111,6 +111,9 @@ To find the first missing positive number in an array, see problem 41: First Mis
 Problem: 907
 To find the sum of all the minimums of every subarray, we can maintain a monotonic increasing stack of indices (where we then look up the numbers) to determine ranges for which a given element is the minimum, then compute how many subarrays it is a part of, and add those together.
 
+Problem 99: Recover Binary Search Tree. Here, we can see how to fix a sorted array which has two elements that are swapped.
+Consider [6, 3, 5, 2, 7, 10]. 2 and 6 are swapped. The first swapped element is the first element that is bigger than its right neighbor. The second swapped element is the last element that is smallest than its left neighbor. We phrase it like this because of causes like [3, 2, 1]. The 1 is the last one smaller, and 3 is the first one bigger. Simiarly: [3, 2] the rule holds.
+
 ********** MONOTONIC THINGS **********
 
 After we create a monotonic structure, we often have to clear up the remaining portion that is leftover. This may be able to done within the original for loop, by iterating to one index higher than needed, and adding a condition in the while loop that checks if we are at the last index. See problem 2104 for an example. We often do not need tuples for many problems because of this. We could also add a dummy value to the end that pops everything off. Similarly we can add a dummy value to the beginning like a -1 so we always have something our values can never be less than.
