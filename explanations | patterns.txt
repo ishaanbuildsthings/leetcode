@@ -109,7 +109,12 @@ Problem: 50
 To find the first missing positive number in an array, see problem 41: First Missing Positive
 
 Problem: 907
-To find the sum of all the minimums of every subarray, we can maintain a monotonic increasing stack of indices (where we then look up the numbers) to determine ranges for which a given element is the minimum, then compute how many subarrays it is a part of, and add those together.
+To find the sum of all the minimums of every subarray, we can maintain a monotonic increasing stack of indices (where we then look up the numbers) to determine ranges for which a given element is the minimum, then compute how many subarrays it is a part of that it is a minimum of, and add those together.
+
+Problem 2731, Movement of Robots
+if we have some array: [1, 7, 9, 2] and we want to find the sum of all differences of pairs. For instance [1, 7] => 6, [1, 9] => 8, and so on. We can check how many times a left index is subtracted, and how many times it is added, based on its position in the array.
+
+To find the sum of all subarrays in an array, we can know how many times a number is used in a subarray, based on its position in the array. For instance in [1, 2, 3]. 2 is used 2 times from the left, 2 times from the right, and therefore 4 times total. 1 is used 1 time from the left, and 3 from the right, so 3 times total.
 
 Problem 99: Recover Binary Search Tree. Here, we can see how to fix a sorted array which has two elements that are swapped.
 Consider [6, 3, 5, 2, 7, 10]. 2 and 6 are swapped. The first swapped element is the first element that is bigger than its right neighbor. The second swapped element is the last element that is smallest than its left neighbor. We phrase it like this because of causes like [3, 2, 1]. The 1 is the last one smaller, and 3 is the first one bigger. Simiarly: [3, 2] the rule holds.
@@ -117,6 +122,8 @@ Consider [6, 3, 5, 2, 7, 10]. 2 and 6 are swapped. The first swapped element is 
 ********** MONOTONIC THINGS **********
 
 After we create a monotonic structure, we often have to clear up the remaining portion that is leftover. This may be able to done within the original for loop, by iterating to one index higher than needed, and adding a condition in the while loop that checks if we are at the last index. See problem 2104 for an example. We often do not need tuples for many problems because of this. We could also add a dummy value to the end that pops everything off. Similarly we can add a dummy value to the beginning like a -1 so we always have something our values can never be less than.
+
+To know the smallest or largest number in some sliding window, we can use a monotonic deque like in problem 239.
 
 ********** ANAGRAMS **********
 
