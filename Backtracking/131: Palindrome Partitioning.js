@@ -4,14 +4,16 @@
 
 // Problem
 /*
-Given a string s, partition s such that every
-substring
- of the partition is a
-palindrome
-. Return all possible palindrome partitioning of s.
+Given a string s, partition s such that every substring of the partition is a palindrome. Return all possible palindrome partitioning of s.
 */
 
 // Solution
+// Depth of tree = # of letters in the string. We can either use that letter to end a palindrome, or keep incrementing, meaning 2 branches. Every time we get a solution, we take n time to serialize it. So time = n * 2^n. Space is O(n) due to the height of the callstack or the size of the array.
+/*
+Use backtracking. For each letter, we can either end there if it is a palindrome, or keep going. Backtrack on if we do use it as a palindrome, and if we don't. We maintain a total count for the number of letters we have used, so at the end if we skip the last letter we don't count it as a solution.
+
+Another way to implement this without the total letter count is to determine all possible palindromes starting at an index, then backtrack across all of them.
+*/
 
 function isPalindrome(str, l, r) {
   while (l < r) {

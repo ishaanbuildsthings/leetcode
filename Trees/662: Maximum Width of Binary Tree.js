@@ -15,6 +15,7 @@ It is guaranteed that the answer will in the range of a 32-bit signed integer.
 
 // Solution 1. O(n) time (with real queue) and O(n) space. Do a BFS traversal, numbering children with a heap numbering system. Calculate the width at each level
 // * This solution doesn't pass all the test cases, due to how JS handles bigger integers. This solution converted to python does work. There are workarounds for the JS code, but many of them involve hardcoding test cases for certain things. We could likely find a way to mod the distance to make it always fit within a 32 bit signed int if needed.
+// We could also do a solution where we track nulls, but instead of maintaining a bunch of nulls, we just double the "value" of the null when it has a child. However, I think this may still have a worse worst case, as for a double stick graph (only propogates out all the way to the left, and to the right), we are processing n^2 nodes in that case, since n is 2 * triangle side length.
 
 var widthOfBinaryTree = function (root) {
   let maxWidth = 1;
