@@ -16,6 +16,7 @@ A row and column pair is considered equal if they contain the same elements in t
 */
 
 // Solution, O(n*m) time and O(n*m) space. Serialize all rows and columns and crosscheck.
+// * Instead of storing the serialization, we could just hash it and store n+m hashes, and do cross checks then naive checks if the hashes collide. This should require n+m space.
 
 var equalPairs = function (grid) {
   const rows = {}; // maps serialized rows to the # of times they occured
