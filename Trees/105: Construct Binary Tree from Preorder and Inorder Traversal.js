@@ -25,7 +25,7 @@ preorder: [3, 9, 20, 15, 7]
               [9] = left subtree
                 [20, 15, 7] = right subtree
 
-So we recurse, by passing [9] as the preorder and [9] as the inorde. [20, 15, 17] as the preoder and [15, 20, 7] as the inorder.
+So we recurse, by passing [9] as the preorder and [9] as the inorder. [20, 15, 17] as the preorder and [15, 20, 7] as the inorder.
 
 For each node, we do a slice on a subarray which takes n time and space, in the worst case for a stick graph.
 */
