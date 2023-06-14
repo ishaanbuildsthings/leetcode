@@ -197,6 +197,14 @@ Often in trees, we have some recursive function like trimBST, that returns a tri
 
 To see a serialization and deserialization with just preorder traversal, see problem 297: Serialize and Deserialize Binary Tree.
 
+A preorder + postorder (without nulls) traversal does not uniquely serialize.
+For instance:  1       and          1
+                \                  /
+                 2                2
+
+Both have pre: 1, 2 and post: 2, 1 traversals.
+
+
 
 ********** TRIE **********
 

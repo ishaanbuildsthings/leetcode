@@ -97,5 +97,5 @@ var maxValue = function (n, index, maxSum) {
     }
   }
 
-  return l - 1;
+  return r; // can also return l - 1
 };
