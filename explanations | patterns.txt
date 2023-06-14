@@ -332,6 +332,37 @@ Exponential squaring:
 3^16 = (3^2)^8
 3^15 = 3*3^14
 
+********** HEAP **********
+
+A heap is implemented as an array. Each element in the heap is smaller than or equal to its children (for a min heap), or vice versa for a max heap. We usually keep the first element of the array as a dummy value to make counting easier, but there is a way to do it without that (2*i + 1 and 2*i + 2)
+
+A heap must be a complete tree or we lose the log n time benefit. When we add to the heap, push the element to the end of the array. Then percolate up as long as the element is bigger or smaller than its parent. When we remove from the heap, grab the first element from the heap. Take our last element and substitute it in, then percolate down. We cannot just percolate down our root element and then remove it, because we get a hole. If we try to fill this hole with our last element, the heap may no longer be valid.
+
+            7
+          /  \
+         6    4
+
+         consider this max heap. If we delete 7, then recursively try to fill the hole:
+
+
+          /\
+         6  4
+
+         4
+        /
+       6
+
+       Then replace the hole with our last heap element:
+
+       4
+        \
+         6
+
+        We don't have a valid heap anymore (this example is more clear in a bigger heap).
+
+
+      Instead, we should take the 4, make it the root, then percolate down.
+
 
 ********** ROLLING HASH **********
 The objective of the rolling hash is to hash a number in constant time and only if the hash collides with our substring hash, we compare them. If we have 0 hash collisions, that means we were able to represent all possible substrings within our space, and our time complexity becomes (n-k) + k, since we did k operations to hash our pattern, and n-k sliding hashes. Each time we got a matching hash number we knew that it would be our precise pattern. Say we have 50% hash collisions, that means 50% of the time, we have to do a k-complex check, so our time complexity is (n-k)*0.5k. As our hashing function drops in # of collisions, we approach some linear scale of complexity relative to n, since even if k were really big the tiny number we multiply it by often bounds it. This is just expected runtime though, not true worst case.
