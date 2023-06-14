@@ -61,8 +61,8 @@ var getMinimumDifference = function (root) {
     const diff2 = Math.abs(node.val - rightSmallest);
     minimumDifference = Math.min(minimumDifference, diff2);
 
-    const newLargest = Math.max(leftLargest, rightLargest, node.val);
-    const newSmallest = Math.min(leftSmallest, rightSmallest, node.val);
+    const newLargest = Math.max(rightLargest, node.val);
+    const newSmallest = Math.min(leftSmallest, node.val);
     return [newSmallest, newLargest];
   }
 

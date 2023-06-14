@@ -35,6 +35,8 @@ We also can do l<=r, like in problem 1898, to run the verification process on th
 
 Another thing we can do (such as neetcode did in problem 2300 spells and potions), is make a variable that captures a value on every iteration of the binary search. An idx variable, so we don't have to worry about handling l or r, we can just grab the relevant value whenever we find a success.
 
+When we do l<=r
+
 ********** PROBLEM WRITEUPS **********
 
 WRITEUPS:
@@ -182,6 +184,8 @@ This was really poorly designed for a couple reasons though! We're already getti
 I think we could have done it in one funciton too, instead of filling the cache with one function, then iterating through and updating the result with another. It ends up being more confusing and just a worse version of the bottom up recursion though, I feel.
 
 Problem 530 has a successful bottom up recursion (though inorder traversal solution is even nicer). The idea is for each node we need to know the smallest and largest value in its tree. Instead of trying to run two functions, we just track both within the same function, using a tuple. We recurse down to the bottom, the bubble up results.
+
+It is worth noting that recursion often has two effects. One is to recurse
 
 
 
