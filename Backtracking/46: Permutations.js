@@ -3,7 +3,7 @@
 // Solution 1, adding number of neighbor and popping it
 // time: O(n * n!), there are n! possible permutations and each one takes n time to serialize. Each one also takes n time to iterate possible continuations. Our space complexity is O(n) due to the recursive callstack. Complexities are listed assuming a set is used.
 /*
-Maintain a list of current numbers we have seen. Call all valid numbers. Do this by adding the number to the stack, calling it, then popping.
+Maintain a backtracking list. Call all numbers, filtering ones we already have. Do this by adding the number to the stack, calling it, then popping.
 
 Both solution 1 and solution 2 can be improved by using a set for lookup speed.
 */

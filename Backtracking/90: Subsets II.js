@@ -25,7 +25,7 @@ Then, start backtracking. We can either choose to keep a number, or skip it. If 
 
 If we ever reach out of bounds, we have considered all numbers, and can serialize our result (O(n) time) and add it.
 
-Since at the worsst case we have n candidates, we can make 2^n possible subsets, and we iterate through all of these cases.
+Since at the worst case we have n candidates, we can make 2^n possible subsets, and we iterate through all of these cases.
 */
 
 var subsetsWithDup = function (nums) {
