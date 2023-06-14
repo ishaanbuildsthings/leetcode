@@ -22,6 +22,20 @@ I think a good way to think about bottom up, is we ask a top level question whic
 3) Compute F(100), and we know that will always ask the direct subproblems F(99) and F(98). As we recurse, we also check and update a result (this is bottom up).
 
 
+Memoization doesn't always make things linear. If we do memoization for fibonacci, we get n time. This is because each fibonacci number is the sum of 2 children. So first we solve for the 100 fibonacci numbers, then in the other parts we are doing a fixed amount of lookups.
+
+            4
+           / \
+          3   2
+        /  \
+       2    1
+      /\
+     1  0
+
+     We will initially solve down the left side of the tree. Then we get to do lookups for the right. But for each number, we are doing a fixed amount of lookups (just one more lookup, because each number is the sum of the two preceding, and one of them was solved recursively).
+
+Whereas in something like 55: Jump Game, where we can jump an arbitrary distance, each node could have k branches, meaning we no longer have a fixed amount of lookups. It is still better than pure hardcoding though, which would be exponential.
+
 
 ********** SINGLE BRANCH RECURSION + ITERATIVE SOLUTIONS **********
 
