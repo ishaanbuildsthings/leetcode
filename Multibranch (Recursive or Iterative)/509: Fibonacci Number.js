@@ -12,7 +12,7 @@ Given n, calculate F(n).
  */
 
 // Solution 1, basic recursion
-// Time: O(2^n) space: O(n)
+// Time: O(2^n) space: O(n), technically time can be bounded to golden ratio ^ n.
 // * Solution 2/3 are better
 
 var fib = function (n) {

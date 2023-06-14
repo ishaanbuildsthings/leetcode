@@ -44,6 +44,29 @@ var maxDepth = function (root) {
   return Math.max(1 + maxDepth(root.left), 1 + maxDepth(root.right));
 };
 
+// Solution 2.5, updating an outside variable but without accumulating the depth
+
+var maxDepth = function (root) {
+  let maxDepth = 0;
+
+  function recurse(node) {
+    // edge case if the entire tree is null
+    if (!node) {
+      return 0;
+    }
+
+    const leftDepth = 1 + recurse(node.left);
+    const rightDepth = 1 + recurse(node.right);
+
+    maxDepth = Math.max(leftDepth, rightDepth);
+
+    return Math.max(leftDepth, rightDepth);
+  }
+
+  recurse(root);
+  return maxDepth;
+};
+
 // Solution 3, iterative BFS with a dequeue, time is still O(n), space is O(n) which is the max width of the tree, which can be n
 /*
 For a given level, iterate through the entire level, shifting the elements off the deque and adding their existing children. After all that is done, increment the depth, since the depth increases for every level.

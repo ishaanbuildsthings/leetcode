@@ -15,9 +15,9 @@ At the end of the game, there is at most one stone left.
 Return the weight of the last remaining stone. If there are no stones left, return 0.
 */
 
-// Solution, O(n log n) time as each insertion and removal takes log n time,
+// Solution, O(n log n) time as each insertion and removal takes log n time. O(n) space for the heap.
 /*
-Implement a max heap. The idea is we need to be able to grab the largest stones quickly. We smash them, produce a new stone, and add it to the heap. We can't do a linear solution, because when we smash the biggest stones, we need to insert the small stone back in, which takes O(n) time to add it to a sorted array, which would result in n^2 total time.
+Implement a max heap. The idea is we need to be able to grab the largest stones quickly. We smash them, produce a new stone, and add it to the heap. We can't do a linear solution, because when we smash the biggest stones, we need to insert the small stone back in, which takes O(n) time to add it to a sorted array, which would result in n^2 total time. Instead, we use a log n heap solution. Whenever we process two stones, we're guaranteed to be left with at most 1 stone, so we only need to do the log n operation up to n times.
 */
 
 class MaxHeap {

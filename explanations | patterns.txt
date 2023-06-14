@@ -167,6 +167,24 @@ Don't forget in linked lists we can always reverse part of a list in constant st
 ********** TREES / BST **********
 104: Maximum Depth of Binary Tree has good writeups on using different searches in very elegant ways.
 
+In problem 543: Diameter of Binary tree, there are a few ways to solve it.
+1) bottom up recursion (n), so go down to the bottom, then use the base case results to form something meaningful, update the result if needed, and return the diameter up one level.
+2) top down with no memoization (n^2). Iterate through the tree, for each node, solve it's diameter.
+3) top down with caching (n). Iterate through the tree, caching the max depth that node can reach. So at a root:
+    5
+   / \
+  1   3
+We solve for 5, meaning we recurse / solve for the depths of its children. When the children reach the base case, they terminate. Since we are no longer recursing down, we finally start to solve for the max depths based on the biggest of the children. We set this in the cache, then bubble back up the result.
+Then, we do a dfs through each node, checking the max depths of its children, and updating the result.
+
+This was really poorly designed for a couple reasons though! We're already getting the left and right depths at the nodes, we have basically already written the bottom up recursive function. We may as well just update the result there.
+
+I think we could have done it in one funciton too, instead of filling the cache with one function, then iterating through and updating the result with another. It ends up being more confusing and just a worse version of the bottom up recursion though, I feel.
+
+Problem 530 has a successful bottom up recursion (though inorder traversal solution is even nicer). The idea is for each node we need to know the smallest and largest value in its tree. Instead of trying to run two functions, we just track both within the same function, using a tuple. We recurse down to the bottom, the bubble up results.
+
+
+
 Inorder traversal will print out a BST in ascending order. We can use this to find the kth largest element or kth smallest element (problem 230)
 
 Inorder, Preorder, Postorder iterative traversals should be reviewed
@@ -205,6 +223,9 @@ For instance:  1       and          1
 Both have pre: 1, 2 and post: 2, 1 traversals.
 
 
+********** AVL TREE **********
+
+A self balancing binary tree works by doing rotations, where we rotate around x and y and rearrange subtrees. Sometimes a more complex rotation is needed as the basic rotation does not balance the tree.
 
 ********** TRIE **********
 
@@ -332,6 +353,8 @@ Exponential squaring:
 3^16 = (3^2)^8
 3^15 = 3*3^14
 
+The fibonacci sequence grows exponetially, at golden ratio ^ n. This can be proven by showing it is lower bounded by root(2)^n and upper bounded by 2^n. This also means that The recursive tree defined by the fibonacci sequence grows exponentially. We can show that T(n) = T(n-1) + T(n-2) + 1, where T(n) defines the number of nodes in the nth recursive tree for the fibonacci numbers. This mimics the fibonacci behavior and is lower bounded by it, therefore making the rate of growth of the recursive tree for calculating the nth fibonacci number, exponential.
+
 ********** HEAP **********
 
 A heap is implemented as an array. Each element in the heap is smaller than or equal to its children (for a min heap), or vice versa for a max heap. We usually keep the first element of the array as a dummy value to make counting easier, but there is a way to do it without that (2*i + 1 and 2*i + 2)
@@ -386,6 +409,10 @@ Also we call the has degree 'base' because we're basically converting an arbitra
 
 To see a really good implementation of a rolling hash, look at 718. It has a cached modpow function, a full implementation, and even an optimized implementation in terms of writing clean and concise code. We can do a fixed sliding window with just a single for loop vs. l and r pointers as well.
 
+The rolling hash doesn't technically make something linear time, it basically makes it 1/buckets * n * k time, and the assumption is k is smaller than the number of buckets we hash to.
+
+The rolling hash "shift" where we multiply everything by 10 or whatever the base is, is considered constant time, because we use MOD to keep it within a range. Since technically with an arbitrarily large number, multiplication becomes a function of n.
+
 ********** TODOS **********
 
 TODO: is min size subarray sum=k doable? what about the number of subarrays? what about number of => k?
@@ -395,3 +422,4 @@ TODO: question on discord where someone gave an alg
 add explanation for problem w95 substring 26nle
 leetcode add solutions for contest problems, and one c++ submission i accidentally sent i need to do, same with trapping rainwater2
 delete node in bst by reference not by overwriting value
+todo: eventually redo construct binary tree from preorder and postorder traversal
