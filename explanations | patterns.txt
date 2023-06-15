@@ -185,8 +185,6 @@ I think we could have done it in one funciton too, instead of filling the cache 
 
 Problem 530 has a successful bottom up recursion (though inorder traversal solution is even nicer). The idea is for each node we need to know the smallest and largest value in its tree. Instead of trying to run two functions, we just track both within the same function, using a tuple. We recurse down to the bottom, the bubble up results.
 
-It is worth noting that recursion often has two effects. One is to recurse
-
 
 
 Inorder traversal will print out a BST in ascending order. We can use this to find the kth largest element or kth smallest element (problem 230)
@@ -196,6 +194,21 @@ Inorder, Preorder, Postorder iterative traversals should be reviewed
 To construct a tree from the pre and inorder traversals, assuming values are unique, use recursion. The first element of preorder will determine the root, and the inorder array will determine how many elements go into the left child, and how many into the right.
 
 TODO: delete a node in BST
+
+In a BST, we can figure out the neighbors of a value, by looking at the largest values in the left subtree, and the smallest in the right. For instance:
+
+    15
+   /  \
+  12  20
+   \
+   14
+
+  To find the largest number smaller than 15, we look at the max in left subtree. To find smallest number that is larger than 20, we find the smallest number in the right subtree. The result would not be the parent of 10, because that is always smaller than elements in the left subtree. However, if the element doesn't have a left subtree, then the left neighbor would be its parent.
+
+  We could do this by iterating through the tree, tracking the largest smaller and smallest larger numbers, terminating when we finish the tree.
+
+  We can also do other valuable things that require a sorted structure, such as finding the minimum, maximum, and range queries (find all elements between x and y) in log n time (except for the range query, which is log n + k, and requires recursing down the bst and pruning).
+
 
 To check if a tree contains another subtree, we can serialize them and use string matching. Or we can do a full subtree check on each treenode.
 
@@ -230,6 +243,7 @@ Both have pre: 1, 2 and post: 2, 1 traversals.
 ********** AVL TREE **********
 
 A self balancing binary tree works by doing rotations, where we rotate around x and y and rearrange subtrees. Sometimes a more complex rotation is needed as the basic rotation does not balance the tree.
+
 
 ********** TRIE **********
 
