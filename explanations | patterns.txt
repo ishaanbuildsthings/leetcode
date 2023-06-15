@@ -444,3 +444,4 @@ add explanation for problem w95 substring 26nle
 leetcode add solutions for contest problems, and one c++ submission i accidentally sent i need to do, same with trapping rainwater2
 delete node in bst by reference not by overwriting value
 todo: eventually redo construct binary tree from preorder and postorder traversal
+// todo: add assesement questions and contest questions
