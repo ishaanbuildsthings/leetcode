@@ -35,7 +35,10 @@ We also can do l<=r, like in problem 1898, to run the verification process on th
 
 Another thing we can do (such as neetcode did in problem 2300 spells and potions), is make a variable that captures a value on every iteration of the binary search. An idx variable, so we don't have to worry about handling l or r, we can just grab the relevant value whenever we find a success.
 
-When we do l<=r
+When we do l<=r, r can end at relevant info. For instance in 1889, we use l<=r and we are looking for the biggest number smaller than a certain number. r would also be set to index -1 if there was no number that satisfied the condition. I think trying to assign cases to use l<r or l<=r or anything is not well designed, it's better to adapt on the fly based on the problem.
+
+
+
 
 ********** PROBLEM WRITEUPS **********
 

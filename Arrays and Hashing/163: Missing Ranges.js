@@ -25,3 +25,33 @@ Return the shortest sorted list of ranges that exactly covers all the missing nu
 */
 
 // Solution, O(n) time and O(1) space
+/*
+Iterate through the range. If we have a number and the next number isn't consecutive, insert a range. We also insert the first range which goes from lower to the first number - 1, and the ending range as well.
+*/
+var findMissingRanges = function (nums, lower, upper) {
+  // edge case
+  if (nums.length === 0) {
+    return [[lower, upper]];
+  }
+
+  const result = [];
+
+  // add the optional first tuple, which goes from the first element to lower
+  if (nums[0] > lower) {
+    result.push([lower, nums[0] - 1]);
+  }
+
+  for (let i = 0; i < nums.length - 1; i++) {
+    // if we don't have consecutive numbers
+    if (nums[i] + 1 !== nums[i + 1]) {
+      result.push([nums[i] + 1, nums[i + 1] - 1]);
+    }
+  }
+
+  // add the optional last tuple, which goes from the last element to upper
+  if (nums[nums.length - 1] < upper) {
+    result.push([nums[nums.length - 1] + 1, upper]);
+  }
+
+  return result;
+};
