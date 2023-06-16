@@ -4,4 +4,6 @@ After we create a monotonic structure, we often have to clear up the remaining p
 
 To know the smallest or largest number in some sliding window, we can use a monotonic deque like in problem 239.
 
+When doing problems you suspect use monotonic, it can be hard to intuit if it should be increasing or decreasing. Try both and see which makes sense, even if one seems right (132 stack I think I tried increasing, but you need decreasing).
+
 

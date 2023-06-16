@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/climbing-stairs/description/
 // Difficulty: Easy
-// tags: math, recursion, multibranch (recursive or iterative)
+// tags: math, recursion, multibranch (recursive or iterative), bottom up recursion, top down recursion
 
 // Problem
 /*
@@ -11,7 +11,7 @@ Each time you can either climb 1 or 2 steps. In how many distinct ways can you c
 
 // Solution 1, recursive with caching
 // Time: O(n) and space: O(n)
-// * Solution 2 is iterative and better memory
+// * Solution 2 is iterative and O(1) memory, done using tabulation!
 
 // For any number, compute the prior two numbers. Cache results as needed.
 
