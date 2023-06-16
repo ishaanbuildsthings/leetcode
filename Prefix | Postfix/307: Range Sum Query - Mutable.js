@@ -43,10 +43,10 @@ There are many ways to solve this problem.
 */
 
 // Solution, square root decomp
+/*
+This can be a bit more concise. For instance when summing, check if the starting block is the same as the ending block, if so iterate over the provided index range. Otherwise iterate from the starting index to the end of that block, the middle blocks, then 0 to the ending index of the ending block.
+*/
 
-/**
- * @param {number[]} nums
- */
 var NumArray = function (nums) {
   this.buckets = [];
   const bucketSize = Math.ceil(Math.sqrt(nums.length)); // 16->4, 22->5, etc

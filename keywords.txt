@@ -38,6 +38,7 @@ recursion
 rolling hash
 quicksort
 queue
+self balancing bst
 single branch (recursive or iterative)
 sliding window (fixed/variable)
 slow and fast pointers

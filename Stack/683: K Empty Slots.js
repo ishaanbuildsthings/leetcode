@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/k-empty-slots/description/
 // Difficulty: Hard
-// tags: bst (self balancing), monotonic deque
+// tags: self balancing bst, monotonic deque
 
 // Problem
 /*
