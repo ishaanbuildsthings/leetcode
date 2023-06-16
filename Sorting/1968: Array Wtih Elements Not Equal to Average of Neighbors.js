@@ -17,7 +17,7 @@ Return any rearrangement of nums that meets the requirements.
 // Solution 1, O(n log n) time to sort, and O(n) or O(1) memory depending on how much memory the sorting needs. But also since we return a new result array which is n concurrent memory, any extra memory during the sorting should be within that bound I believe.
 /*
 Sort the array, [0, 1, 2, 3, 4, 5]
-If we have numbers that form peaks and valleys, like 0 5 1 4 2 3, no number can ever be the average of its neighbors, because any given number is either bigger than both its neighbors or smaller. So after sorting the array just pull from the left and right in turn.
+If we have numbers that form peaks and valleys, like 0 5 1 4 2 3, no number can ever be the average of its neighbors, because any given number is either bigger than both its neighbors or smaller. So after sorting the array just pull from the left and right in turn. 0, 5, 1, 4, 2, 3.
 */
 // * Solution 2 is an O(n) solution
 

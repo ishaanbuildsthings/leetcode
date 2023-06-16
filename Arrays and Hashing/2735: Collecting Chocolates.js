@@ -21,7 +21,7 @@ Thus, the total cost will become (1 + 5 + 1 + 5 + 1) = 13. We can prove that thi
 
 // Solution 1, O(n^2) time (assuming a real deque) and O(1) space. My implementation used O(n) space for ease of coding, but it can easily be done without.
 // * Solution 2 is a simpler version of Slution 1. Instead of dealing with the monodeque, just track the smallest price viable starting from 0 rotations. Then when we check 1 rotation, compare the prior smallest price to the 1 slide away price, and so on.
-// * Solution 3 can be n log n time using binary search and given the unimodal distribution of the cost function.
+// * Solution 3 can be n log n time using binary search and given the unimodal distribution of the cost function, though I haven't fully looked into this.
 
 /*
 It is a brute force. First, we assess the cost if we are allowed to rotate 0 times. Then 1 time, and so on.

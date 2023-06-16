@@ -1,0 +1,41 @@
+
+
+********** MATH **********
+
+math: to find the distance between two points on a line, we can just do abs(p1 - p2)
+
+to get the last digit of a number, do % 10, to remove the last digit, do floor div by 10
+to get the first digit of a number, we can keep floor dividing until the number is less than 10. We could speed up the floor div process by using logs to figure out how many digits are in a number, and then floor dividing by a bigger number based on that
+
+2241: Design an ATM Machine and 2244: Minimum Rounds to Complete All Tasks show how we can use math to simplify operations. In design an ATM machine, we need to withdraw the largest bill repeatedly until it would put us over our withdrawn amount, then repeat. Instead of withdrawing one at a time, comparing our remaining amount, and loop (total time complexity = # of bills in the machine, since we could draw each bill one by one), we can calculate with math exactly how many we could withdraw, and the time complexity becomes bound by the # of bill types.
+
+(A + B) % C = (A%C + B%C) % C
+think of a=15, b=17, and c=10, a passes c by 5, by passes c by 7, but their passes add up to 12, which effectively passes c by 2
+similarly, (A + B + C) % D = (A%D + B%D + C%D) % D (this time the sums might exceed even 2x of D, like 19+19+19 % 10 we get 27 % 10)
+
+(A * B) % C also works, consider:
+Suppose we have:
+- a cylinder, which we can just barely wrap a rope of length C around
+- a rope, that we have marked every A units
+
+Suppose our rope has B markings from its start. (The rope has length A * B)
+
+We nail the rope to our cylinder and we wrap it clockwise around our cylinder.
+
+(A * B) mod C tells us: how much rope to we need to go clockwise from the nail to reach the end of the rope (we don't care about the length of rope that completely wraps around the cylinder)
+
+It is equivalent to the expression:
+(A mod C * B mod C) mod C
+
+A mod C tells us:
+How much further (clockwise) a segment of length A will be from the previous segment after wrapping it around the cylinder.
+
+We use B mod C, because if we wrap C segments of length A around the cylinder, the length (A * C) will be evenly divisible by C and we would be just back at the nail i.e. B mod C is the number of segments that actually contribute to the end of the rope being further away from the nail
+
+We can consider sqrt(n) to be O(1) if given normal int and precision bounds, or log n for truly arbitrary operations. Same with multiplication (string multiplication with karatsuba)
+
+Exponential squaring:
+3^16 = (3^2)^8
+3^15 = 3*3^14
+
+The fibonacci sequence grows exponetially, at golden ratio ^ n. This can be proven by showing it is lower bounded by root(2)^n and upper bounded by 2^n. This also means that The recursive tree defined by the fibonacci sequence grows exponentially. We can show that T(n) = T(n-1) + T(n-2) + 1, where T(n) defines the number of nodes in the nth recursive tree for the fibonacci numbers. This mimics the fibonacci behavior and is lower bounded by it, therefore making the rate of growth of the recursive tree for calculating the nth fibonacci number, exponential.

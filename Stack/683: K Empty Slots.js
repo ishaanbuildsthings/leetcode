@@ -41,6 +41,8 @@ Note: The code for solution 2 uses a copy pasted template for a self-balancing B
 Instead of considering which bulbs we turn on every unit of time, consder the bulbs in order. For instance we turn on bulb 1 on day 6. Then we turn on bulb 2 on day 9. If k=1, it's possible we could turn on bulb 3 before day 9, meaning we would be fulfilled. I haven't walked through the implementation but I think the key takeaway is that it is good to consider things from two perspectives, in this case, by bulb position as opposed to time.
 */
 
+// * Solution 4, O(n*k) time, O(n) space. Maintain an array of size n. Every time we turn on a bulb, scan up to k to the left and k to the right to see if we meet the condition.
+
 // Solution 1
 
 class TreeNode {

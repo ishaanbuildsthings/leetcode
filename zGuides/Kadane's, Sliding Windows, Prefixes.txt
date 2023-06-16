@@ -1,0 +1,46 @@
+**** KADANE'S ****
+kadane's is very specifically a 'sliding window' technique where we iterate over an iterable and maintain a dp. If the dp doesn't meet some condition, we reset it in a way, effectively "moving" what would be our left pointer. Kadane's movement follows an inchworm, because when we don't meet a condition we reset the dp to some defined place. It's often easier to update the dp with the current index value immedaitely, then do computations with that, similar to how prefix sums usually include the current number as part of the prefix.
+
+**** SLIDING WINDOW VARIABLE ****
+these are more flexible, in that that the left pointer moves over by some other amount, depending on the problem. For instance finding the minimum size subarray that equals a certain sum (problem 209) consider [1, 3, 5] and our target is at least 6, once we hit [1,3,5] we keep decrementing from the left until we cannot any more. in sliding window we keep expanding until a condition is met (subarry has >= k sum) or broken (we have a repeating character), and then we shrink as much as needed (subarray too small) or (repeating character is gone). We could also just decrement from the left one at a time, and not increment the right. Generally sliding window variable problems will end with an r++ inside the main while loop, and inside the while loop we will decrement from the left until  constraint is hit.
+
+**** SLIDING WINDOW FIXED ****
+intialize some data for the starting window, for instance in 219: Contains Duplicate II, we fill out a set, in 1343: Number of Sub-arrays of Size K and Average..., we calculate a DP sum, and in 239: Sliding Wndow Maximum, we create the queue.
+Then, to solve it:
+
+For 219, we do increment pointers, update data, update result. We don't need to compute the very first result because we did it in the setup.
+In 1334, we update result, increment pointers, update dpsum. Either works.
+If you increment immediately you need to check the initial window in the setup. If you increment at the end, you need to update the relevant data such as the dpsum as well. We can't increment at the end but update the dp sum immediately, because then our first window would be wrong as we double count a value.
+We may need to take caution if we update the pointers before the data/result, because if we are at the last r position and update the pointer inside the loop, we will go out of bounds, so we may want to iterate while r < arr.length - 1. If we update the result first, then our pointers will still go out of bounds after (causing the data to be corrupt) but this doesn't matter since this was the last time the result would be updated. Sometimes this is annoying though if our data gets updated in a way that throws an error, for instance in 28, where we used a rolling hash, we can't get the charcode for undefined. We could also check the result immediately, then increment, but increment to length-1 so we don't get a corrupt charcode at the end, and then check the result at the end. Or just put a condition inside the while loop in case we are at the end, which may honestly be easier to implement, such as problem 28.
+Also, don't be clever with trying to reuse variables when setting up windows. For instance setting up the initial fixed window, then re-using that variable, r, to iterate over the array. It's easier to just use new for loops with let i=0 and set up the windows nicely, as would make intuitive sense (i.e., iterate over the needle in problem 28 to compute the hash, then iterate over the haystack for the needles length to compute the initial window, then create l and r variables at the right spots)
+We can also do the fixed sliding window with just a for loop for the left boundary of the window, for instance in problem 718 where I did a rolling hash.
+
+
+**** PREFIXES / POSTFIXES ****
+similar to kadane's, but the difference is we aren't resetting our prefix, we're just establishing cumulative prefixes and postfixes. Prefixes usually include the current number in the prefix, but they don't always have to for instance 238: Product of Array Except Self. Also 435: Non-overlapping intervals, our prefix represents the furthest end time of the prior intervals, but we use that to assess if we need to merge the new interval or not.
+
+a common motif with prefixes or dps or something (think trapping rainwater II my failed attempt at trying to get the row and column constraints when I first tried the Min(rowConstraint, colConstraint) strategy) is:
+1- we know some information such as the max heights, this might happen immediately when we enter the loop because they are initialized before the loop starts
+2- we use those max heights or that information to compute something
+3- we update the new max
+but also if our prefix should include the current cell, we might have a pattern like:
+1- we dont yet know the information / we might have default values such as infinity or negative infinity
+2- we reach a new cell and update the prefix or information based on that cell
+3- we process something with that info such as the min length of the subarray
+
+
+
+
+********** CLARIFICATION FOR ARRAY PROBLEMS **********
+
+// SLIDING WINDOW / KADANES / PREFIX STUFF
+max sum of any subarray (any numbers) - we can use kadane's prefix sums
+
+209: minimum size of subarray of sum >=k (positive numbers) - we can use sliding variable window, decrement from left pointer as much as possible when >=k, since we increment r immediately as well. We can't allow negative numbers since then we aren't sure if incrementing the left pointer of the window would cause our sum to increase. If we want negative numbers, see 862 which uses a monotonic deque and prefix sums. 209 also has a good writeup on why naive strategies wouldn't work for negative numbers.
+___
+not a LC question: number of subarrays / minimum size subarray for sum=k or sum>=k (positive nums), same as above, we can use a sliding window! once we are greater than or equal to the sum, we keep decrementing and adding to our count as long as we still fit the constraint
+___
+560: Subarray sum equals k, we need to calcuate # of subarrays that = k (any number). We can't use a sliding window due to negatives, but we can maintain a prefix mapping of prefixes we could chop off at any given point.
+
+
+152: max product of array (any numbers) - we can use a minPrefix and maxPrefix sum

@@ -1,0 +1,31 @@
+********** LINKED LISTS **********
+
+Linked Lists:
+to iterate over a linked list:
+while (head) {
+  head = head.next;
+}
+This works because as long as we have a valid element, then the .next will at worst be null. The problem is after this loop ends, we lose the tail. We can either grab the tail inside the the while loop, or use:
+while (head && head.next) {
+  head = head.next;
+}
+now, the loop fails when our next element is null. We need the head to be checked too, in case our head is null to begin with, to short circuit null.next
+
+To merge two lists, we can either:
+1) Figure out where the head pointer should start at, either l1 or l2. Say head starts at l1. Then we should increment l1 to begin with. We run a comparison between l1 and l2, and add the appropriate .next for the head. Say we do head.next = l2. Now we increment the l2 pointer. At the exact moment we add something to the head, we are creating a really long linked list yes, since it connects all the way to the back, but as we string through them, the end result will be the merged list.
+2) Create a dummy node, and use that as the head instead, now l1 and l2 both start at their appropriate starting locations.
+Either way, you will need a tail pointer trailing off of the dummy to know where to append to
+
+When reversing part of a linked list, think about the full set of pointers, for instance:
+1->2->3->
+we reverse starting from 2, making:
+<-2<-3
+but 1 still points to 2, so we have:
+1->2<-3
+   V
+
+Good naming conventions are old, slow, fast, current, etc. and if we need multiple iterations, at the beginning we can do let current = head, do our iteration, then reset current to be head again for the next iteration
+
+Don't forget in linked lists we can always reverse part of a list in constant storage, so that we can traverse across one half backwards.
+
+206: Reverse Linked List has a good way to write out recursive call stacks.

@@ -1,0 +1,47 @@
+
+********** TRICKY ARRAY TECHNIQUES **********
+
+We have an array of length n-1, containing all digits from 1 to n, except 1. Such as [3, 2, 1, 5], n=5. To find the missing number in constant space, do sum subtract or bit manipulation. If there are two numbers missing, TODO: bili solution
+
+Problem: 448
+We have an array of length n, containing all digits from 1 to n, but some are missing and replaced with duplicates, we need to find the missing ones. For example: [4, 3, 2, 7, 8, 2, 3, 1], n=8, but the 2 and 3 are repeated, and in exchange we are missing 5 and 6. An O(n) solution is to iterate through, populate a set, and find what is missing. A constant solution could be to set the numbers to something out of their range, like negatives or big numbers, by using the indices to store info. So when we see a 4, make the 4th element negative. Iterate through the array, and any element not negative was never visited.
+Follow up: What if our array is shorter, and we need to find the numbers missing under n. Say: [4, 3, 2, 7], n=8. We cannot use indicies since the array is too small, I'm not sure if an O(1) space solution exists (that is n time).
+Similarly, to find a duplicate, like in 287 (but with modifying the array), we can see a number: [1, 3, 4, 2, 2] say 1. And flip the 1st index element to negative: [1, -3, 4, 2, 2] if negative was out of bounds. We repeat until we try to do a flip and the number was already negative.
+
+Problem: 27 / 380
+Getting rid of things from the middle of arrays in constant time. If the order doesn't matter, we can swap the element to the end and pop it. For instance: [0, 1, 2, 3, 5] we want to get rid of all 2s. Swap the 2 to the end and pop it. Then continue with processing the 5 (or even a newly swapped in 2).
+
+Problem: 48
+To rotate a matrix, we could rotate it in groups, or we could transpose and reflect it.
+
+Problem: 128
+To find the longest consecutive sequence of an unordered array of elements in n time, add the elements to a set, iterate through the elements, check if they were the beginning, and if they were, iterate through to see the length (gets amortized as each element can show up only once in inner loop).
+
+Problem: 169
+To find a majority element, we can use constant space, incrementing when we see the most common element, and decrementing otherwise.
+
+Problem: 283 / 905
+To move things around to the left, maintain two pointers. Iterate over, and whenever we find something that needs to be on the left half, swap it to the left, then increment the left pointer. This guarantees that all elements will be as left as possible at the end.
+
+Problem: 146
+To have O(1) deletion from anywhere, O(1) insert to the head or tail, and O(1) update to any value, we need a doubly linked list + cache. The cache maintains a map of keys to nodes, and nodes contain keys and values. The cache lets us instantly find a node when given a key, and we can delete it. This doesn't support random access by the number position in the deque though, if we tried to maintain an index:node mapping and we delete elements, we would need to update all the indicies. If we want random access by number position in a deque, we lose O(1) deletion from the center.
+
+Problem: 30
+Finding a duplicate number (one or more times) in an array of n+1 numbers where each number is from [1, n] can be done with a cycle approach, since we are sure there is a head of a cycle that gets pointed to twice, since no number can be 0 we definitely have an outside part of the cycle. Even if there are multiple duplicates at least one can be found. We can also do it while mutating the array by setting numbers to negative (if outside the range) and when we set a number that is already negative we know we have seen it twice.
+
+Problem: 347
+top k frequent elements (any nums) - map out occurences : lists of numbers that had that many occurences, iterate backwards starting from max occurences.
+
+Problem: 50
+To find the first missing positive number in an array with integers, see problem 41: First Missing Positive
+
+Problem: 907
+To find the sum of all the minimums of every subarray, we can maintain a monotonic increasing stack of indices (where we then look up the numbers) to determine ranges for which a given element is the minimum, then compute how many subarrays it is a part of that it is a minimum of, and add those together.
+
+Problem 2731, Movement of Robots
+if we have some array: [1, 7, 9, 2] and we want to find the sum of all differences of pairs. For instance [1, 7] => 6, [1, 9] => 8, and so on. We can check how many times a left index is subtracted, and how many times it is added, based on its position in the array.
+
+To find the sum of all subarrays in an array, we can know how many times a number is used in a subarray, based on its position in the array. For instance in [1, 2, 3]. 2 is used 2 times from the left, 2 times from the right, and therefore 4 times total. 1 is used 1 time from the left, and 3 from the right, so 3 times total.
+
+Problem 99: Recover Binary Search Tree. Here, we can see how to fix a sorted array which has two elements that are swapped.
+Consider [6, 3, 5, 2, 7, 10]. 2 and 6 are swapped. The first swapped element is the first element that is bigger than its right neighbor. The second swapped element is the last element that is smallest than its left neighbor. We phrase it like this because of causes like [3, 2, 1]. The 1 is the last one smaller, and 3 is the first one bigger. Simiarly: [3, 2] the rule holds.

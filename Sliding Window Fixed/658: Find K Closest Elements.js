@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/find-k-closest-elements/description/
 // Difficulty: Medium
-// Tags: sliding window fixed
+// Tags: sliding window fixed, binary search
 
 // Problem
 /*

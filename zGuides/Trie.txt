@@ -1,0 +1,3 @@
+********** TRIE **********
+
+To prevent doing many prefix lookups, we can pass the trienode into our dfs function (like in 212: word search II), and just check that node's childrens to validate our prefix.

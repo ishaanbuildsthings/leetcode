@@ -1,0 +1,7 @@
+********** MONOTONIC THINGS **********
+
+After we create a monotonic structure, we often have to clear up the remaining portion that is leftover. This may be able to done within the original for loop, by iterating to one index higher than needed, and adding a condition in the while loop that checks if we are at the last index. See problem 2104 for an example. We often do not need tuples for many problems because of this. We could also add a dummy value to the end that pops everything off. Similarly we can add a dummy value to the beginning like a -1 so we always have something our values can never be less than.
+
+To know the smallest or largest number in some sliding window, we can use a monotonic deque like in problem 239.
+
+
