@@ -103,6 +103,8 @@ For instance:  1       and          1
 
 Both have pre: 1, 2 and post: 2, 1 traversals.
 
+in a bst we could find the midpoint element in log n time if we knew the size of the left and right subtrees.
+
 
 ********** AVL TREE **********
 
