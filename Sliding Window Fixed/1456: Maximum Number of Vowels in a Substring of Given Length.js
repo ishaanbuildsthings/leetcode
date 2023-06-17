@@ -4,10 +4,18 @@
 
 // Problem
 /*
+Simplified:
+Input: s = "abciiidef", k = 3
+Output: 3
+Explanation: The substring "iii" contains 3 vowel letters.
+
+Detailed:
 Given a string s and an integer k, return the maximum number of vowel letters in any substring of s with length k.
 
 Vowel letters in English are 'a', 'e', 'i', 'o', and 'u'.
 */
+
+// Solution, O(n) time and O(1) space. Basic fixed sliding window, tracking the # of vowels in the window.
 
 const VOWELS = ["a", "e", "i", "o", "u"]; // Array.includes is faster due to cache locality
 
