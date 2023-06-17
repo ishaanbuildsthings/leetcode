@@ -24,19 +24,19 @@ In one operation, you can choose two indices 0 <= i < arr1.length and 0 <= j < a
 If there is no way to make arr1 strictly increasing, return -1.
 */
 
-// Solution
+// Solution, O(m log m + n^2*log m) time. Max(O(n), O(sort m)) space.
 /*
 Consider 1,5,3,6,7 and arr2 = 1,3,4
 
 Start at the first index. If we make 0 changes, the number to beat is 1 in the future. If we make 1 change, it is 3. { 0 : 1, 1 : 3 }
-At the 5, we can make 2 changes for the first time. If we do, we need to beat 4 now, because 4 is the smallest number larger than 3 from 1 change. We can also make 1 change by keeping the 5 as is, or by making a change on top of the previous 0 change, we pick the minimum. If we cannot validly make some amount of changes, we set it to -1. For instance in [1, 5] arr2 = 6, we cannot make 1 change at the bery beginning. But later we can make 1 change by overriding the 5. The code is somewhat messy, a slightly better implementation would have populated the pinitial dp map with -1 : 0, so our 0th number has to beat a 0.
+At the 5, we can make 2 changes for the first time. If we do, we need to beat 4 now, because 4 is the smallest number larger than 3 from 1 change. We can also make 1 change by keeping the 5 as is, or by making a change on top of the previous 0 change, we pick the minimum. If we cannot validly make some amount of changes, we set it to -1. For instance in [1, 5] arr2 = 6, we cannot make 1 change at the bery beginning. But later we can make 1 change by overriding the 5. The code is somewhat messy, a slightly better implementation would have populated the initial dp map with -1 : 0, so our 0th number has to beat a 0.
+
+We sort arr2, m log m time. Then we iterate over n, for each n, we iterate up to n prior change amounts, and do a log m binary search.
 */
 
 var makeArrayIncreasing = function (arr1, arr2) {
   // sort the options we can use so we can binary search them
   arr2.sort((a, b) => a - b);
-
-  // NOTES NOTES NOTES NOTES NOTES NOTES NOTES: try dp from both directions
 
   const mapping = { 0: arr1[0] }; // maps the number of changes to the best our previous number could be, holds up to n changes.
 

@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/132-pattern/description/
 // Difficulty: Medium
-// tags: stack, self balancing bst
+// tags: monotonic stack, self balancing bst
 
 // Problem
 /*
@@ -8,6 +8,91 @@ Given an array of n integers nums, a 132 pattern is a subsequence of three integ
 
 Return true if there is a 132 pattern in nums, otherwise, return false.
 */
+
+// Soltuion 1, O(n) time and O(1) space.
+/*
+Maintain a monotonic
+*/
+
+var find132pattern = function (nums) {
+  /*
+    monotonically decreasing stack
+
+    WHY WE NEED TO POP ELEMENTS:
+
+    say we start to add elements:
+    [20, 15, 10]
+
+    then we add one that is increasing
+    [20, 15, 10, 17]
+
+    now 17 knows 10 is the lowest element to the left
+
+    [20, 15, 10, 17_10]
+
+    add 19
+    [20, 15, 10, 17_10, 19_10]
+
+    add 5
+    [20, 15, 10, 17_10, 19_10, 5]
+
+    but now when we add 16, we have a 132, 10 19 16, but we cannot see that. so we do need to pop elements.
+
+    instead:
+
+    [20, 15, 10]
+
+    add one increasing: 17, and pop
+    [20, 17_10]
+
+    add 19
+
+    [20, 19_10]
+
+    add 5
+
+    [20, 19_10, 5]
+
+    store a number along with its range of lowest
+
+    */
+  const stack = [[nums[0], Infinity]]; // stores tuples of [num, lowest num on left]
+
+  for (let i = 1; i < nums.length; i++) {
+    let minOnLeft = stack[stack.length - 1][0];
+
+    let stackNum = stack[stack.length - 1][0];
+    let stackMinOnLeft = stack[stack.length - 1][1];
+
+    // pop elements as long as our new element is monotonically increasing
+    while (stack.length > 0 && stack[stack.length - 1][0] < nums[i]) {
+      stackNum = stack[stack.length - 1][0];
+      stackMinOnLeft = stack[stack.length - 1][1];
+      minOnLeft = Math.min(minOnLeft, stackNum, stackMinOnLeft);
+      stack.pop();
+    }
+
+    stack.push([nums[i], minOnLeft]);
+
+    if (stack.length > 1) {
+      stackNum = stack[stack.length - 2][0];
+      stackMinOnLeft = stack[stack.length - 2][1];
+    }
+
+    // if our new number is in the middle, it is possible we found a 132 sequence
+    if (
+      nums[i] < stackNum &&
+      nums[i] > stackMinOnLeft &&
+      stackMinOnLeft < stackNum
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+// Solution 2, O(n log n) time and O(n) space, using a self balancing bst.
 
 class TreeNode {
   constructor(value) {
