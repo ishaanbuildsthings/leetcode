@@ -11,8 +11,11 @@ Return true if there is a 132 pattern in nums, otherwise, return false.
 
 // Soltuion 1, O(n) time and O(1) space.
 /*
-Maintain a monotonic
+Maintain a monotonic decreasing stack. We will store tuples of [num, lowest num on left]. When we see a bigger number, like [20, 15, 10, 9, 17] we start popping. So we get [20, 17] where 17 has seen a 10 on the left. Basically we found the biggest number to the right of 10 at the current point, but we have to keep the 20 as well in case a 132 pattern is formed with the 20. We can't rule out the 20 in case for instance it had a 1 on the left and we see a 19 later. We would then need to pop the 17 and see the 20 forms a pattern.
+
+The code can be a bit simplified if we maintain a function global for the current minimum and just use that in the tuple, instead of the weird logic I used where we check the previous minimun. The top of the function I wrote out why we have to pop elements but the TLDR is so we can access potential elements further back left, like accessing the 20 with a 19.
 */
+// Solution 2 is n log n time with a self balancing bst, for each number we find the largest number smalelr than itself, on the right, and the smallest number on the left.
 
 var find132pattern = function (nums) {
   /*

@@ -1,1 +1,5 @@
 Try DP from both directions.
+
+In 2d dp, we sometimes don't need to allocate an entire matrix of memory. For instance in 62: Unique Paths, we start tabulating from the bottom right, moving left and up. Each dp cell is the sum of the one below it, and to the right. So we can just maintain a 1d array and overwrite within the same array as we tabulate.
+
+Instead of using memoization for a 2d cache, like JSON.stringify([row, col]), it's usually faster to allocate a matrix instead, as stringification and hashtable dereferencing are slow. We can initialize values in the matrix to be a certain type to indicate they haven't been solved.
