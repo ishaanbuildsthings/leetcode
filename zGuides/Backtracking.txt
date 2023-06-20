@@ -59,5 +59,14 @@ Then, we mark the current number as 'visited', by pushing it to the stack. We re
 Problem 46: Permutations, shows two ways to handle the tree backtrack problems. The first is we can add a neighbors number, recurse on it, then pop that number. This is nice because in a tree we don't worry about going back and forth to the same cells, unlike a grid. However, we could also take a more grid-like approach as we did in solution 2, where we add the current cell in the main execution context. Iterate on neighbors, then pop it. This requires the backtrack function to take in a parameter for the number itself. This is kind of like how in a grid, it takes a row and a column, part of which we use to deduce the number itself and add it to our accrual.
 
 
-
 In general, think of each call to a backtracking problem as being a node in the tree.
+
+
+There are often two base cases, one where we reach a desired output, and one where we reach an undesired one. For instance, in n-queens, we terminate if our row number reaches n, meaning we did place n queens (desired output). We can check this at the top of the backtrack function. We also have an undesired case, where we have a queen collision. In this case, it is easier to not call backtrack at all on invalid states, than to place the queen, then determine it is invalid.
+
+In n-queens, we claim an upper bound time complexity to be n!, because once we place a queen in the first row, in one of n possible columns, the second row has n-1 possibilities, and so on. Even though for a given node, we iterate through all columns, deciding if we should place a queen there, that does not make it n^n tiem complexity. Because the branches are pruned, i.e. we don't backtrack into that possible column where we already had a queen, that part of the tree gets cut off and cannot recurse further. In backtracking problems, it is easiest to draw a tree to determine complexity and solutions, always consider doing this.
+
+However in simpler cases, like 39: Combination Sum, a bad case is if our sum exceeds the target. Here, it felt more natural to just check it within the backtrack function itself, though we could easily have not backtracked to that state at all in the first place.
+
+
+
