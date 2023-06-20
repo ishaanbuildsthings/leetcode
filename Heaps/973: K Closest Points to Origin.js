@@ -53,8 +53,6 @@ class MaxHeapMap {
       return null;
     }
 
-    const result = this.heap[1]; // the biggest element in the heap
-
     // replace the beginning with the end
     this.heap[1] = this.heap[this.heap.length - 1];
     this.heap.pop();
