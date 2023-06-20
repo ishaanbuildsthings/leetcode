@@ -28,3 +28,6 @@ A heap must be a complete tree or we lose the log n time benefit. When we add to
 
 
       Instead, we should take the 4, make it the root, then percolate down.
+
+
+In problem 973, we have to track the K closest elements to the origin. Instead of maintaining a min heap which might intuitively sound right, we actuall need a max heap. This is because we will track the k smallest elements, but have quick access to the largest of those. Then, when we exceed the size and pop, we can remove the root/largest element.

@@ -18,7 +18,7 @@ You may return the answer in any order. The answer is guaranteed to be unique (e
 
 // Solution 1, O(n log k) time and O(n) space.
 /*
-Maintain a max heap of size k, meaning we track the k largest elements. For every element in n, add it to the heap. Then return what the heap contains. The heap also contains distances to the origin, so we know how to sort in the heap, but also the points themselves so we know what to return.
+Maintain a max heap of size k. We track the k smallest elements, and have quick access to the largest of those. For every element in n, add it to the heap. If we exceed the size ever, we pop the largest element out of the heap. Then return what the heap contains. The heap also contains distances to the origin, so we know how to sort in the heap, but also the points themselves so we know what to return.
 */
 // * Solution 2, O(n log n) time and O(sort) space. Just sort the array, then return the k closest.
 
