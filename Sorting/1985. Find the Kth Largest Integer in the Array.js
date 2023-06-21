@@ -20,7 +20,7 @@ Return the string that represents the kth largest integer in nums.
 Note: Duplicate numbers should be counted distinctly. For example, if nums is ["1","2","2"], "2" is the first largest integer, "2" is the second-largest integer, and "1" is the third-largest integer.
 */
 
-// Solution, O(n * m) time on average, where n is the number of strings and m is the length of the strings. O(n^2 * m) time in the worst case. O(1) space. Iterative quickselect! See 215: Kth Largest Element in Array for other solutions (heaps) and a recursive quickselect. This is a pretty straightforward one, we pick a random pivot, put that pivot at the end so it is easy to partition, then move smaller elements to the left. We use a custom comparator function to compare the strings.
+// Solution, O(n * m) time on average, where n is the number of strings and m is the length of the strings. O(n^2 * m) time in the worst case. O(1) space. Iterative quickselect! See 215: Kth Largest Element in an Array for other solutions (heaps) and a recursive quickselect. This is a pretty straightforward one, we pick a random pivot, put that pivot at the end so it is easy to partition, then move smaller elements to the left. We use a custom comparator function to compare the strings.
 
 var kthLargestNumber = function (nums, k) {
   const requiredIndex = nums.length - k;
