@@ -486,3 +486,31 @@ function fib(n, memo = [0, 1, 1]) {
 }
 
 console.log(fib(10));  // Outputs: 55
+
+
+Another way, basically just using recursion as a form of tabulation, and the base case is when we reach the nth number:
+
+function nthFibonacci(n) {
+    // Recursive function to compute Fibonacci numbers bottom-up
+    function fibRecursive(i, a, b) {
+        // Base case: when we reach the desired index, return the value
+        if (i === n) {
+            return b;
+        }
+
+        // Recursively build up the Fibonacci sequence
+        return fibRecursive(i + 1, b, a + b);
+    }
+
+    // Handle special cases for n = 0 and n = 1
+    if (n === 0) {
+        return 0;
+    }
+
+    // Start the recursive calls with the base cases
+    return fibRecursive(1, 0, 1);
+}
+
+// Example usage:
+const n = 10;
+console.log(`The ${n}-th Fibonacci number is: ${nthFibonacci(n)}`);
