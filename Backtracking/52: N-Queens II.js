@@ -15,10 +15,6 @@ Given an integer n, return the number of distinct solutions to the n-queens puzz
 Similar to 51, n-queens. See that solution writeup as it is nearly the exact same. The only difference is we just store visited cols/diags in this problem, as opposed to the actual board, we just store sets of what we have visited.
 */
 
-/**
- * @param {number} n
- * @return {number}
- */
 var totalNQueens = function (n) {
   let result = 0;
 

@@ -36,6 +36,7 @@ postfix
 postorder traversal
 recursion
 rolling hash
+quickselect
 quicksort
 queue
 self balancing bst

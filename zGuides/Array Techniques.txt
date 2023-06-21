@@ -45,3 +45,5 @@ To find the sum of all subarrays in an array, we can know how many times a numbe
 
 Problem 99: Recover Binary Search Tree. Here, we can see how to fix a sorted array which has two elements that are swapped.
 Consider [6, 3, 5, 2, 7, 10]. 2 and 6 are swapped. The first swapped element is the first element that is bigger than its right neighbor. The second swapped element is the last element that is smallest than its left neighbor. We phrase it like this because of causes like [3, 2, 1]. The 1 is the last one smaller, and 3 is the first one bigger. Simiarly: [3, 2] the rule holds.
+
+Problem 215: To find the kth largest element in an array in O(n) time average, we can use quick select. Iterative solution is also O(1) memory! And we can use a random pivot as well. If we don't want to change the array in place, it would take O(n) memory regardless of if we use a recursive or iterative solution, since we need to duplicate the array.

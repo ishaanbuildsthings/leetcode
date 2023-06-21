@@ -6,9 +6,11 @@ Insertion Sort: for each element, find where it goes relative to the current sor
 
 Merge sort: recurse down to base cases, merge lists, and bubble up merged lists. Can use pointers to make slightly more efficient. Can also use for merging sorted linked lists or sorted lists. Viewable in 912: Sort an Array. n log n time. Can be done in-place or with n space. Using pointers to determine the range we sort still is n space, but less total memory than re-allocating subarrays every time we divide. Both implementations are listed in 912: Sort an Array.
 
-Quick sort: pick a pivot, partition based on that pivot.
+Quick sort: pick a pivot, partition based on that pivot. Problem 215 uses a quickselect alg.
 
 Bubble sort: n^2, bubble bigger elements up to the top. 6, 0, 3, 5. Bubble up the biggest element. Compare 6 and 0, bubble 6 up by switching them. Then compare 6 and 3, and repeat. Then redo the process by finding the second biggest number and bubbling it up.
+
+Heap sort: Heapify an array in n time by using sift down, starting from the leaves. Then pop in log n time for n elements.
 
 to sort two arrays based on one of them, for instance sort both position = [10,8,0,5,3], speed = [2,4,1,1,3], based on position
 we can create an array of tuples of the position and speed pairs:
