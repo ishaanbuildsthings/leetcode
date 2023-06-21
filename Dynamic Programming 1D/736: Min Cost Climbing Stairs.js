@@ -20,6 +20,7 @@ Return the minimum cost to reach the top of the floor.
 */
 
 // Solution, O(n) time and O(1) space. Bottom up tabulation but we only need to store 2 prior values.
+// * Solution 2 - We could also start from the beginning, determining the the minimum cost to reach the next step. So we initially solve for step 3, by using the step1 and step2 memos. Then we solve for step4, etc, until the end.
 
 /*
 Start at the 3rd to last step. The minimum to reach the end is the cost of the 3rd to last step, plus the cost of either one step ahead of it, or two ahead. Repeat until the beginning. Since we can either start at step1 or step2, we take the minimum of those.

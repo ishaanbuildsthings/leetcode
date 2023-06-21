@@ -19,6 +19,8 @@ A falling path starts at any element in the first row and chooses the element in
 
 /*
 Create a dp array. Start at the 2nd to last row, determininig the minimum path we can take. Fill the dp. Keep iterating up, then return the smallest from the first row, since we could start at any index.
+
+Used a cool trick, instead of checking if things are out of bounds, just took the number directly below if, it out of bounds.
 */
 
 var minFallingPathSum = function (matrix) {
