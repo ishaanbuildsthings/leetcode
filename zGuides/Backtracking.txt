@@ -14,7 +14,7 @@ function backtrack(row, col) {
   visited[row][col] = true;
 }
 
-Logically, when we enter a cell for the first time, all child descendants should know that cell was visited.
+I did this in problem 980: Unique Paths III, where I mark the cell as visited when I enter it. But I only backtrack to adjacent cells that are valid.
 
 One other option we might consider instead, is for each neighor we try to toggle the visited state:
 
@@ -69,4 +69,9 @@ In n-queens, we claim an upper bound time complexity to be n!, because once we p
 However in simpler cases, like 39: Combination Sum, a bad case is if our sum exceeds the target. Here, it felt more natural to just check it within the backtrack function itself, though we could easily have not backtracked to that state at all in the first place.
 
 
+In backtracking, if we want to use the array or matrix we are given to track visited cells, we can do something like:
 
+const temp = grid[row][col];
+grid[row][col] = -1; // visited this
+
+grid[row][col] = temp; // at the end, unmark it as visited
