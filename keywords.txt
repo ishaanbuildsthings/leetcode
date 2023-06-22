@@ -44,6 +44,7 @@ single branch (recursive or iterative)
 sliding window (fixed/variable)
 slow and fast pointers
 stack
+state machine
 top down recursion [this is just memoization]
 trie
 two pointers
