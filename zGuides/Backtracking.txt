@@ -75,3 +75,20 @@ const temp = grid[row][col];
 grid[row][col] = -1; // visited this
 
 grid[row][col] = temp; // at the end, unmark it as visited
+
+
+
+Instead of checking all grid adjacenies one by one, we can do something like:
+
+const diffs = [ [1, 0], [-1, 0], [0, 1], [0, -1] ];
+
+        for (const [rowDiff, colDiff] of diffs) {
+            const newRow = row + rowDiff;
+            const newCol = col + colDiff;
+            // backtrack to adjacent cells that are in range, not visited, and not obstacles
+            if (newRow >= 0 && newRow < HEIGHT && newCol >= 0 && newCol < WIDTH && !visited[newRow][newCol] && grid[newRow][newCol] !== -1) {
+                backtrack(newRow, newCol, totalVisited + 1);
+            }
+        }
+
+
