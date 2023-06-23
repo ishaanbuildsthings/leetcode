@@ -1,5 +1,6 @@
 // https://leetcode.com/problems/palindrome-number/description/
 // Difficulty: Easy
+// tags: math, palindrome
 
 // Problem
 /*

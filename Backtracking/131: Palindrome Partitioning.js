@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/palindrome-partitioning/description/
 // Difficulty: Medium
-// tags: backtracking
+// tags: backtracking, palindrome
 
 // Problem
 /*
