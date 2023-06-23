@@ -133,7 +133,6 @@ https://cs.stackexchange.com/questions/10538/bit-what-is-the-intuition-behind-a-
 
 learn seg tree
 learn avl tree
-learn sqrt decomp
 
 
 mini processed:
@@ -141,3 +140,5 @@ binary search
 
 processed:
 sorting
+
+todo: make guide on state machine, can use for problem 309 buy and sell with cooldown, or buy and sell IV
