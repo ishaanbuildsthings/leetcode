@@ -13,7 +13,7 @@ Note: You may not engage in multiple transactions simultaneously (i.e., you must
 */
 
 // Solution, O(n^2) time and O(n) space, tabulation
-// * Solution 1 uses a state machine, and is O(n) time and O(1) space. The solution is in the editorial, and is one of the coolest solutions I have ever seen to a problem!
+// * TODO: Solution that uses a state machine, and is O(n) time and O(1) space. The solution is in the editorial, and is one of the coolest solutions I have ever seen to a problem!
 
 /*
 Consider the problem for trying to figure out how much we can profit from some given price array, say [1, 2, 3, 0, 2].

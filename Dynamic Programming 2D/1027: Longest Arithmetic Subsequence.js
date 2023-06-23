@@ -25,6 +25,8 @@ A sequence seq is arithmetic if seq[i + 1] - seq[i] are all the same value (for 
 /*
 Maintain a dp array of length n, where each element is a hash map. The hash map will map a diff to the length of the longest subsequence that ends at that index with that diff. For instance, if we have [9, 6, 3]. We start iterating from the 2nd to last element, backwards (last element is base case).
 
+* We could also iterate from the beginning, and check prior elements (either left to right, or right to left), but in my opinion doing it the other way around is a bit simpler.
+
 At 6, we start iterating for all future numbers. We see a 3, which makes a diff of -3. So we know the 6 has { -3 : 2 }, as in a sequence of length 2 can be made, starting at 6.
 
 At 9, we look at 6. The diff is -3. 6 already has a subsequence using that diff, of length 2, so we extend the length, meaning at 9 we have { -3 : 3 }.

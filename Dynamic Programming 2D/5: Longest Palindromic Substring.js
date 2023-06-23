@@ -6,7 +6,10 @@
 // Given a string s, return the longest palindromic substring in s.
 
 // Solution 1, O(n^2) time and O(1) space, expand our centers
-// * Solution 2, O(n^2) time and O(n^2) space, dynamic programming 2d. Allocate a dp matrix, which stores [startIndex][endIndex] to see if something is a palindrome. For each prior letter, iterate through n future letters, seeing if the outer letters match, and what is inbetween is a palindrome. Similar solution to problem 647: Palindromic Substrings.
+/*
+ * Solution 2, O(n^2) time and O(n^2) space, dynamic programming 2d. Allocate a dp matrix, which stores [startIndex][endIndex] to see if something is a palindrome. For each prior letter, iterate through n future letters, seeing if the outer letters match, and what is inbetween is a palindrome. Similar solution to problem 647: Palindromic Substrings.
+ * We could also start at the beginning, at iterate through n prior letters, either left to right or right to left.
+ */
 // * Solution 3, Manacher's algorithm can do this in linear time.
 /*
 For each index, start expanding around the centers, checking if the outer letters match, meaning we have a palindrome. Update the result of our longest palindrome (by indices, so we don't do String.slice() each time). Also do this for 2 letter starts, to handle even letter palindromes. Similar to problem 647: Palindromic Substrings.

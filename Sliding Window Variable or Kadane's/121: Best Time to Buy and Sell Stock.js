@@ -4,7 +4,7 @@
 
 // Solution
 // O(n) time and O(1) space. Assigns two pointers at index 0 and 1. Checks the current profit based on the pointers. If we can profit, compare it to the current max profit. Slide the right pointer over to check a new sell price. If we cannot profit, move the left pointer over to the cheaper price, increment right pointer.
-// A simplier solution might be just to maintain the current smallest price we have seen, iterate over, check potential profit, and update a result.
+// * Solution 2: just to maintain the current smallest price we have seen, iterate over, check potential profit, and update a result.
 
 const maxProfit = function (prices) {
   // edge case

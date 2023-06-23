@@ -4,4 +4,4 @@ In 2d dp, we sometimes don't need to allocate an entire matrix of memory. For in
 
 Instead of using memoization for a 2d cache, like JSON.stringify([row, col]), it's usually faster to allocate a matrix instead, as stringification and hashtable dereferencing are slow. We can initialize values in the matrix to be a certain type to indicate they haven't been solved.
 
-A common strategy in dp is to start iterating backwards, solving prior values based on future ones. For each prior value, we iterate through n future values. This is an n^2 solution but is used in many problems such as 1027: Longest Arithmetic Subsequence.
+A common strategy in dp is to start iterating backwards, solving prior values based on future ones. For each prior value, we iterate through n future values. This is an n^2 solution but is used in many problems such as 1027: Longest Arithmetic Subsequence. We can also usually solve it from the beginning, looking at n prior elements (either left to right or right to left), but usually I like to solve from the back first.

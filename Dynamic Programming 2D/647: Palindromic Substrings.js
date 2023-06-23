@@ -30,6 +30,8 @@ for instance in aba:
   look at b, iterate through all future letters. we see the next letter, a, since the letters are adjacent, they are only a palindrome if the letters are the same, in this case they are not, so `ba` which is [1][2] is not a palindrome
 
   look at the first a, iterate through the right, `ab` is not a palindrome. but when we get to `aba`, we look at the [1][1] case, and see it is a palindrome, so aba, or [0][2] is now a palindrome
+
+  * We could also start the beginning, and for each element scan the prior n elements (either left to right or right to left).
 */
 
 var countSubstrings = function (s) {

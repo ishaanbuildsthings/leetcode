@@ -16,6 +16,8 @@ subsequence.
 
 Relatively naive solution is to do tabulation starting from the end. We know 18 has a subsequence length of 1. We look at 101, and scan up to n elements to the right. We greedily select the longest continual subsequence, provided the number we look at is bigger than our current number. This results in n^2 time, and n memory for the tabulation.
 
+We could also do tabulation starting from the left, so for each element, we scan the prior n elements (either left to right, or right to left), and if those numbers are smaller we can make a longer subsequence.
+
 We can also go left to right, storing a subsequence in an array. If we find the biggest element, add it onto the end. If we don't, replace the bigger element in the array with that new element. We find that with binary search, so n log n time. This is basically like using the array itself as a cache sort of, making the elements we track as good as possible.
 
 We can also do the above using a self balancing BST.
