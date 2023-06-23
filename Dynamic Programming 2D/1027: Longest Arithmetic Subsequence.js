@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/longest-arithmetic-subsequence/description/
 // Difficulty: Medium
-// tags: dynamic programming 2d
+// tags: dynamic programming 2d, dynamic programming 1d, ubsequence
 
 // Problem
 /*
@@ -20,7 +20,7 @@ A subsequence is an array that can be derived from another array by deleting som
 A sequence seq is arithmetic if seq[i + 1] - seq[i] are all the same value (for 0 <= i < seq.length - 1).
 */
 
-// Solution, O(n^2) time and O(n^2) space
+// Solution, O(n^2) time and O(n^2) space as in the worst case every element could have a different diff from every other element, meaning the hashmaps are of size n
 
 /*
 Maintain a dp array of length n, where each element is a hash map. The hash map will map a diff to the length of the longest subsequence that ends at that index with that diff. For instance, if we have [9, 6, 3]. We start iterating from the 2nd to last element, backwards (last element is base case).

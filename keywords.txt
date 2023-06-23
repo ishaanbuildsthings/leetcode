@@ -45,6 +45,6 @@ sliding window (fixed/variable)
 slow and fast pointers
 stack
 state machine
-top down recursion [this is just memoization]
+top down recursion [with memoization]
 trie
 two pointers

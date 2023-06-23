@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/longest-increasing-subsequence/description/
 // Difficulty: Medium
-// tags: dynamic programming 1d, bottom up recursion, binary search, self balancing BST
+// tags: dynamic programming 1d, bottom up recursion, binary search, self balancing BST, subsequence
 
 // Problem
 /*

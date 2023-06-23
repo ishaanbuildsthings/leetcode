@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/longest-palindromic-substring/description/
 // Difficulty: Medium
-// tags: dynamic programming, 2d, palindrome
+// tags: dynamic programming 2d, palindrome, bottom up recursion, top down recursion
 
 // Problem
 // Given a string s, return the longest palindromic substring in s.

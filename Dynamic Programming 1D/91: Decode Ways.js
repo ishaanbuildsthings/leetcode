@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/decode-ways/description/
 // Difficulty: Medium
-// tags: dynamic programming 1d
+// tags: dynamic programming 1d, bottom up recursion, top down recursion
 
 // Problem
 /*
