@@ -11,7 +11,7 @@ Return the sum of all subarray ranges of nums.
 
 // Solution, O(n) time and O(n) space
 /*
-Maintain a montonic stack to determine the range an element is the minimum and maximum in. The sum of ranges is just the sum of the maxes minus the sum of the mins. Store indicies in the stack and lookup the numbers inside the loops, instead of storing tuples. Assign left and right to indicate where the popped element gets bottlenecked. Iterate one extra time to do a cleanup and add a condition in the while loop.
+Maintain a monotonic stack to determine the range an element is the minimum and maximum in. The sum of ranges is just the sum of the maxes minus the sum of the mins. Store indicies in the stack and lookup the numbers inside the loops, instead of storing tuples. Assign left and right to indicate where the popped element gets bottlenecked. Iterate one extra time to do a cleanup and add a condition in the while loop.
  */
 
 var subArrayRanges = function (nums) {

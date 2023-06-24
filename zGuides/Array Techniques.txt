@@ -26,13 +26,10 @@ To move things around to the left, maintain two pointers. Iterate over, and when
 Problem: 146
 To have O(1) deletion from anywhere, O(1) insert to the head or tail, and O(1) update to any value, we need a doubly linked list + cache. The cache maintains a map of keys to nodes, and nodes contain keys and values. The cache lets us instantly find a node when given a key, and we can delete it. This doesn't support random access by the number position in the deque though, if we tried to maintain an index:node mapping and we delete elements, we would need to update all the indicies. If we want random access by number position in a deque, we lose O(1) deletion from the center.
 
-Problem: 30
-Finding a duplicate number (one or more times) in an array of n+1 numbers where each number is from [1, n] can be done with a cycle approach, since we are sure there is a head of a cycle that gets pointed to twice, since no number can be 0 we definitely have an outside part of the cycle. Even if there are multiple duplicates at least one can be found. We can also do it while mutating the array by setting numbers to negative (if outside the range) and when we set a number that is already negative we know we have seen it twice.
-
 Problem: 347
 top k frequent elements (any nums) - map out occurences : lists of numbers that had that many occurences, iterate backwards starting from max occurences.
 
-Problem: 50
+Problem: 41
 To find the first missing positive number in an array with integers, see problem 41: First Missing Positive
 
 Problem: 907
@@ -47,3 +44,5 @@ Problem 99: Recover Binary Search Tree. Here, we can see how to fix a sorted arr
 Consider [6, 3, 5, 2, 7, 10]. 2 and 6 are swapped. The first swapped element is the first element that is bigger than its right neighbor. The second swapped element is the last element that is smallest than its left neighbor. We phrase it like this because of causes like [3, 2, 1]. The 1 is the last one smaller, and 3 is the first one bigger. Simiarly: [3, 2] the rule holds.
 
 Problem 215: To find the kth largest element in an array in O(n) time average, we can use quick select. Iterative solution is also O(1) memory! And we can use a random pivot as well. If we don't want to change the array in place, it would take O(n) memory regardless of if we use a recursive or iterative solution, since we need to duplicate the array.
+
+Problem 287: We have an array of the first n numbers, but one is repeated two or more times. Find the duplicate in O(n) time and O(1) space. We can use tortoise + hare and cycle detection. We start at the first number, and go to the number it is pointing to by index. We repeat this process. Only one number will be references twice by index, which would make it the head of a cycle in a linked list, so we detect that head. If we are allowed to modify the input array, we could try setting each value to something out of bounds (for instance negatives, if they weren't initially allowed), based on index. So if we see a 2, we set the number at index=-2 to be negative. Then at the end, we fix them all.
