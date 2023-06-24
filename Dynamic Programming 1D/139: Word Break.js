@@ -20,6 +20,7 @@ Note that the same word in the dictionary may be reused multiple times in the se
 
 // Solution, I think O(n^3 + m*k) For each letter, we check n previous letters, and do a .slice of time n. I do not think the .slices are amortized. Since for each prior dp, if it is true, we have to check the .slice. And maybe only on the last dp do we find a true solution. O(n + m*k) space for the dp, m*k space for the word set.
 // * Solution 2. instead, we could maintain the same dp array indicating if the word break is doable up to that point. For each word in the word dict, for each ending letter in the word, check if our word is part of the end of that substring, and the beginning is part of the dp.
+// * We can optimize the above with a trie, so insread of re-searching the entire word from the word-dict, we increment in the trie and see if there is a word there (I think this should work)
 /*
 To solve this, we start at a sub-problem, which is considering just the beginning letter. Say our word is 'abc' and our word dict is 'a', 'bc'.
 
