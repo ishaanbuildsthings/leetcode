@@ -22,6 +22,8 @@ Another thing we can do (such as neetcode did in problem 2300 spells and potions
 
 When we do l<=r, r can end at relevant info. For instance in 1889, we use l<=r and we are looking for the biggest number smaller than a certain number. r would also be set to index -1 if there was no number that satisfied the condition. I think trying to assign cases to use l<r or l<=r or anything is not well designed, it's better to adapt on the fly based on the problem.
 
+We can do binary search and compare adjacent elements too, to determine slope and find a global minimum. See problem 2448: Minimum Cost to Make Array Equal
+
 
 A way to do binary search for calculating a square is either:
 
