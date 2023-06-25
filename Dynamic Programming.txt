@@ -9,3 +9,5 @@ A common strategy in dp is to start iterating backwards, solving prior values ba
 If we are solving something like a 2d dp problem, we can allocate a larger array and store 0s or 1s or whatever we need on the edges, to prevent out of bounds cases. But sometimes it is easier to just check if we are out of bounds, because if we allocate a larger matrix the index conversion between the input grid and our larger allocation can be a bit confusing.
 
 State machines rely on updating values based on prior values. See the buy and sell stock problems (1-4, with transaction fee, with cooldown, for examples).
+
+DP is pretty flexible. For instance in 2745: Construct the Longest New String (we have AA, BB, and AB, need to make longest string with AAA or BBB), we can basically take a starting pair of letters, consider the ending letters of it, and use that to determine adjacent states, along with how many x, y, and z we have remaining.

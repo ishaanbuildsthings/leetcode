@@ -133,3 +133,47 @@ class SelfBalancingBST {
     return result;
   }
 }
+
+// Deque
+
+class Deque {
+  constructor() {
+    this.head = 0;
+    this.tail = -1;
+    this.storage = {};
+  }
+
+  push(val) {
+    this.tail++;
+    this.storage[this.tail] = val;
+  }
+
+  pop(val) {
+    if (!(this.tail in this.storage)) {
+      return null;
+    }
+
+    const popped = this.storage[this.tail];
+    this.tail--;
+    return popped;
+  }
+
+  shift() {
+    if (!(this.head in this.storage)) {
+      return null;
+    }
+
+    const popped = this.storage[this.head];
+    this.head++;
+    return popped;
+  }
+
+  unshift(val) {
+    this.head--;
+    this.storage[this.head] = val;
+  }
+
+  size() {
+    return this.tail - this.head + 1;
+  }
+}
