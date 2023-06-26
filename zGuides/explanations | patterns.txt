@@ -112,9 +112,19 @@ A self balancing binary tree works by doing rotations, where we rotate around x 
 
 
 
+********** SQUARE ROOT DECOMP **********
+If we don't have a perfect square number of elements, it is common to take the ceiling of the root for the chunk size, but both floor and ceiling work.
 
+307: Range Sum Query - Mutable shows how we can use square root decomp to mutate variables in an array and still have fast queries.
 
+Say we need to implement a big string class, for like 500k+ characters, and we want to support insert and remove at arbitrary indices. Naive would require shifting each character for each operation. What we could do is square root decomp, so we store root n deques, and now when we need to insert, we look up which deque to insert it in. Then we just do a root n time operation to insert it into the middle of the deque. Chatgpt: If a block's size exceeds 2√n after insertion, split it into two blocks each of size approximately √n. If a block's size drops below √n/2 after deletion, merge it with an adjacent block and then possibly split the merged block if its size exceeds 2√n.
+But why not just split it into n chunks? Because then each time we add something, we might overflow and need to create a new chunk or reallocate memory for a chunk. If we allocated n chunks, but extra memory in each chunk, that could work, but then when we fill up that memory we need to reallocate, so I'm not actually sure if that ends up being any better.
 
+********** AVL TREES VS HEAPS **********
+
+AVL trees support add (log n), remove (log n), and search (log n). We can also support min and max in constant time. Maintain a pointer to the smallest element, and each element maintains a pointer to the element just bigger than it. AVL trees can also tell you how many elements are bigger or smaller than a given number in log n time, it takes log n time to find that number (or if it isn't there, where it would be, I am assuming), then constant time to find how many are bigger or smaller than it, if we maintain additional bookkeeping.
+
+Heaps support add (log n), remove (log n), and min/max in constant time. However, heaps are faster under the hood, practically, because they use arrays. AVL trees cannot forcibly be complete (I think), whereas heaps are complete and therefore can use arrays.
 
 ********** TODOS **********
 
