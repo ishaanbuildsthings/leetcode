@@ -1,1 +1,1 @@
-*** when viewing a solution, make sure to see all solutions as they are not necessarily listed in optimal order ***
+*** when viewing a solution, make sure to see all solutions as they are not necessarily listed in optimal order. Also I don't always put all solutions at the header, sometimes you may need to scroll down to see if there are more ***

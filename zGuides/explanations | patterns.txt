@@ -140,5 +140,3 @@ binary search
 
 processed:
 sorting
-
-todo: make guide on state machine, can use for problem 309 buy and sell with cooldown, or buy and sell IV
