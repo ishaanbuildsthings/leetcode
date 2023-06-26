@@ -6,8 +6,6 @@ So if we have a list of numbers, and every number appears twice, except one numb
 
 Doing (num & 1) === 1 checks if the last bit is a 1, or a 0.
 
-num >>> 1 does an unsigned bit shift to the right (does not preserve negative sign), ovewriting the sign bit.
-
 When JS does bit math, it converts the operand to a 32 bit integer, with 1 sign bit and 31 normal bits.
 
 Negative's in bits are represented a bit differently. For instance 4 is 100, but -4 is 1 (for the sign bit), a bunch more 1s, then two 0s. The way to derive this is to start with 4: 100. Invert the bits: 11111...011. Then mathematically add 1 to the result, leading to 11111...100.
@@ -17,3 +15,7 @@ Chatgpt:
 The reason for this might seem unclear, but one of the major advantages of the two's complement representation is that addition and subtraction work the same way whether the numbers are positive or negative. For example, if you add 4 and -4 together in binary using two's complement, you'll get 0 (with a carry that is ignored because it goes beyond the bit limit), just like you'd expect.
 
 So when we do an unsigned bit shift on a number like 1111...100, we get 01111...10, which becomes a huge positive number. If we do a signed bit shift, we shift everything, then fix the sign if needed, so we get 11111...10.
+
+In JS, we use two's complement. So for instance 1101 is -8 + 4 + 1 = -2. When we shift bits, the bits still get shifted as normal. However, when the number is converted back in JS, it may be negative if the sign bit is a 1. This means that if we want to treat something as unsigned, we need to do >>> 0.
+
+When we use .toString(2), it just prints that number in base 2.
