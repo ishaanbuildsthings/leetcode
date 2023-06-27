@@ -20,6 +20,7 @@ Given an array nums containing n distinct numbers in the range [0, n], return th
 
 // Solution 1, O(n) time and O(1) space, one pass
 // * Solution 2 is the original two pass solution I thought of
+// * We can also do sum subtract to solve it
 /*
 Start with 0. XOR it with every number we are supposed to have, which we use the index for. Also XOR it with the number itself. This will reveal the missing number at the end.
 */
