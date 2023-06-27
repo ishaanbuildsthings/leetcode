@@ -19,3 +19,24 @@ So when we do an unsigned bit shift on a number like 1111...100, we get 01111...
 In JS, we use two's complement. So for instance 1101 is -8 + 4 + 1 = -2. When we shift bits, the bits still get shifted as normal. However, when the number is converted back in JS, it may be negative if the sign bit is a 1. This means that if we want to treat something as unsigned, we need to do >>> 0.
 
 When we use .toString(2), it just prints that number in base 2.
+
+To add two numbers, see 371: Sum of Two Integers. We can add the sum without carry, a ^ b, and add the carry, which is (a & b) << 1. We repeat this process until there is no carry left.
+
+rules of XOR:
+x^x = 0, always. Because 0^0 is 0, and 1^1 is 0.
+x^y = y^x. It should not matter the order we XOR in. 1^0 is the same as 0^1.
+x^0 = x. Since 1^0 is 1, and 0^0 is 0.
+(x^y)^z = x^(y^z), need truth tables to see this.
+
+So when we find the missing number in a range of [0, n], like in problem 268, we do the following:
+
+We know one number from [0, 1, 2, ... n] is missing.
+
+So we start with 0, and XOR every number from 0 to n (indices), and every number from 0 to n except the missing number (numbers).
+Say from 0 to 3, 2 is missing. We do:
+0 ^0^1^2^3 (indices) ^0^1^3 (numbers).
+
+Since we can rearrange things arbitrarily, this is also:
+0^ 0^0 ^ 1^1 ^ 3^3 ^ 2.
+Which gives 0 ^ 0 ^ 0 ^ 0 ^ 2
+Which gives 0 ^ 2, which gives 2.
