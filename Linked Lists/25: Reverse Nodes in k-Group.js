@@ -36,7 +36,7 @@ var reverseKGroup = function (head, k) {
 
     // reverse the group
     let reversalSteps = 0;
-    while (groupHead && reversalSteps < k) {
+    while (reversalSteps < k) {
       const temp = groupHead.next;
       groupHead.next = prev;
       prev = groupHead;

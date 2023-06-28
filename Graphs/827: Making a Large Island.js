@@ -18,6 +18,8 @@ First, find the size of all islands, and give a unique idx to each island. So ea
 Then, iterate through each water cell, seeing if we made it land, the total size of the island we would form, by checking the idx / sizes of adjacent islands.
 
 I think for a follow up question where we can flip k ocean tiles, we could maybe use a state machine solution in conjunction with this solution.
+
+In this problem, I also tried writing code so that we return 0 when we reach a border or water, as opposed to never iterating to those neighbors. Just for practice.
 */
 
 var largestIsland = function (grid) {
