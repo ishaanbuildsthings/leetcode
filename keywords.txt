@@ -19,7 +19,7 @@ circular
 deque
 dfs
 dynamic programming 1d
-graphs
+graph(s)
 greedy - not really used for problems that aren't explicitly tagged greedy, since lots of problems use greedy methods but the focus is on another part of the problem
 heap
 inorder traversal
