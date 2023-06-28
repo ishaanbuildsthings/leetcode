@@ -1,0 +1,26 @@
+Matrix DFS / BFS:
+
+Some pro tips, we can check in bounds like:
+
+for (const [rowDiff, colDiff] of diffs) {
+  const newRow = r + rowDiff;
+  const newCol = c + colDiff;
+  if (newRow < HEIGHT && newRow >= 0 && newCol < WIDTH && newCol >= 0 && !visited[newRow][newCol] && grid[newRow][newCol] === 1) {
+      total += sizeOfIsland(newRow, newCol);
+  }
+}
+
+If we don't want a huge matrix to store visited/unvisited cells, we could use a set and make keys by WIDTH*row + col. This isn't necessarily more efficient though, it depends how many keys we store. It is also slower to access. It's also harder to convert keys back and forth.
+
+In problem 417: Pacific Atlantic Water Flow, there were a few lessons.
+1) Consideer iterating from outside the cells (the edges) instead of inside.
+2) Assuming we can flow from equal height cells, we need a visited set. This prevents us from caching things well though, because in:
+5 5 5 5
+5 3 3 1
+5 5 5 5
+
+If we solve for the second 3, we might recurse to the first 3. And the first 3 cannot flow out, because the second 3 is marked as visited. But the first 3 can actually flow out. So here, we only end up really solving for the root, and anything along it's path to the edge.
+The problem itself has a good detailed explanation.
+
+I think that between pacific atlantic water flow, and trapping rainwater II, I've seen that if we need to flow out of a cell, we can only check root cells + cells along their flow path. And finding the bottleneck height seems very hard.
+

@@ -39,3 +39,12 @@ Exponential squaring:
 3^15 = 3*3^14
 
 The fibonacci sequence grows exponetially, at golden ratio ^ n. This can be proven by showing it is lower bounded by root(2)^n and upper bounded by 2^n. This also means that The recursive tree defined by the fibonacci sequence grows exponentially. We can show that T(n) = T(n-1) + T(n-2) + 1, where T(n) defines the number of nodes in the nth recursive tree for the fibonacci numbers. This mimics the fibonacci behavior and is lower bounded by it, therefore making the rate of growth of the recursive tree for calculating the nth fibonacci number, exponential.
+
+
+To find the number of subarrays as we are iterating, we can add the length.
+
+For instance: [1] has 1 subarray.
+[1, 2] = 1 + length (2) = 3 subarrays.
+[1, 2, 3] = 3 + length (3) = 6 subarrays.
+
+Because each nth add, we can make n new subarrays by extending to points to the left.

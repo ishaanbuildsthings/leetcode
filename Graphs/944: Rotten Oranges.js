@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/rotting-oranges/description/
 // Difficulty: Medium
-// tags: bfs
+// tags: matrix bfs, graphs
 
 // Problem
 /*
