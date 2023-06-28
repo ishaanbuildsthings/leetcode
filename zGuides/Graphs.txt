@@ -24,3 +24,5 @@ The problem itself has a good detailed explanation.
 
 I think that between pacific atlantic water flow, and trapping rainwater II, I've seen that if we need to flow out of a cell, we can only check root cells + cells along their flow path. And finding the bottleneck height seems very hard.
 
+In 695: Max Area of Island, we can either not recurse to invalid adjacent cells at all, or recurse to them, then return 0 if they are invalid. IMO the first is more intuitive, but many people do the second. It is similar to backtracking, just do whatever feels more natural.
+
