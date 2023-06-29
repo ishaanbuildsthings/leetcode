@@ -126,6 +126,11 @@ AVL trees support add (log n), remove (log n), and search (log n). We can also s
 
 Heaps support add (log n), remove (log n), and min/max in constant time. However, heaps are faster under the hood, practically, because they use arrays. AVL trees cannot forcibly be complete (I think), whereas heaps are complete and therefore can use arrays.
 
+
+********** GENERAL TIPS **********
+
+If your code isn't working at all (but your solution is close, just debugging), instead of walking through a complicated test case, if no easy ones are given, try manually using an easy test case.
+
 ********** TODOS **********
 
 TODO: is min size subarray sum=k doable? what about the number of subarrays? what about number of => k?
