@@ -20,6 +20,7 @@ deque
 dfs
 dynamic programming 1d
 graph(s)
+graphs with nodes (this means our graph takes the form of nodes and .neighbors, instead of for instance a matrix)
 greedy - not really used for problems that aren't explicitly tagged greedy, since lots of problems use greedy methods but the focus is on another part of the problem
 heap
 inorder traversal
@@ -51,3 +52,4 @@ state machine
 top down recursion [with memoization]
 trie
 two pointers
+undirected graphs

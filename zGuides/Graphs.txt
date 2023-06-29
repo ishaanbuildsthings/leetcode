@@ -29,3 +29,5 @@ In 695: Max Area of Island, we can either not recurse to invalid adjacent cells 
 In problem 695, we also don't need to set cells to be unvisited later. Since we're just trying to visit everything once, rather than find a path, we only need to set them to true.
 
 In 827, making a large island (we can flip one water tile, find largest island), I tried writing code where we could recurse to invalid neighbors, then terminate via base cases, just for practice. Actually I think it was a bit easier.
+
+In BFS, if we start from the top left of some island and are finding the area, or generally expanding out (for instance finding the shortest path from the top left cell to the bottom right, with walls), our queue size is limited to min(n,m), since in the worst case our queue expands as a diagonal (draw a picture of the bfs for a square matrix to see this). This can be seen in questions: 1091, shortest path in binary matrix, or 200: number of islands. I think most of these types of questions could use less space this way, since queue size is limited.

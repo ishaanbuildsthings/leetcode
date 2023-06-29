@@ -12,6 +12,7 @@ Return the maximum area of an island in grid. If there is no island, return 0.
 */
 
 // Solution, O(n*m) time and O(n*m) space
+// * Solution 2, I think O(min(n,m) space could be done if we mutated the input to mark things as visited, and used bfs / a queue)
 /*
 Maintain a visited matrix of cells. Iterate through all root cells, doing a dfs for the whole island, tracking the size. Update the result as needed. There are a few ways to handle the base cases.
 
