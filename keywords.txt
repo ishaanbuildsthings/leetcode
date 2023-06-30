@@ -25,6 +25,7 @@ greedy - not really used for problems that aren't explicitly tagged greedy, sinc
 heap
 inorder traversal
 insertion sort
+intervals
 kadane's
 math
 matrix bfs

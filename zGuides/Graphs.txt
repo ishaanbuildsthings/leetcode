@@ -13,7 +13,7 @@ for (const [rowDiff, colDiff] of diffs) {
 If we don't want a huge matrix to store visited/unvisited cells, we could use a set and make keys by WIDTH*row + col. This isn't necessarily more efficient though, it depends how many keys we store. It is also slower to access. It's also harder to convert keys back and forth.
 
 In problem 417: Pacific Atlantic Water Flow, there were a few lessons.
-1) Consideer iterating from outside the cells (the edges) instead of inside.
+1) Consideer iterating from outside the cells (the edges) instead of inside. This also occured in 130: Surrounding Regions (trap islands surrounded by water)
 2) Assuming we can flow from equal height cells, we need a visited set. This prevents us from caching things well though, because in:
 5 5 5 5
 5 3 3 1
