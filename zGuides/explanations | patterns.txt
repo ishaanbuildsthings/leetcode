@@ -105,6 +105,8 @@ Both have pre: 1, 2 and post: 2, 1 traversals.
 
 in a bst we could find the midpoint element in log n time if we knew the size of the left and right subtrees.
 
+Problem 98 and 783 show good ways to do inorder on BST and not need an array to track all the values (for finding if the BST is valid, minimum difference between nodes, etc).
+
 
 ********** AVL TREE **********
 

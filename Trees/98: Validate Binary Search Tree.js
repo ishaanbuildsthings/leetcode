@@ -3,6 +3,7 @@
 // tags: bst, inorder traversal
 
 // Solution 1, O(n) time and O(n) (height) space, inorder traversal without array
+// * Solution 2 has another intuitive way
 /*
 Instead of storing all the values in an array then validating it after, we can just track the current number and compare our new node with that. Writing the solution was a bit tricky, it's easier to think about our objective of iterating as much left as possible, after we hit null we validate the current number, then we travel right. We use the callstacks to bubble back up. Again, I think of inorder traversal as one node pointing into two nulls, rather than a node pointing to two other nodes.
 
@@ -38,7 +39,34 @@ var isValidBST = function (root) {
   return dfs(root);
 };
 
-// Solution 2, DFS with ranges, O(n) time and O(n) space
+// Solution 2, modifying 'global' variable, O(n) time and O(n) (height) space
+
+var isValidBST = function (root) {
+  let prevNode = null;
+  let mismatchFound = false;
+
+  // returns true if the inorder traversal is strictly increasing
+  function inorder(node) {
+    if (!node) {
+      return;
+    }
+
+    inorder(node.left);
+
+    if (prevNode && node.val <= prevNode.val) {
+      mismatchFound = true;
+    }
+
+    prevNode = node;
+
+    inorder(node.right);
+  }
+
+  inorder(root);
+  return !mismatchFound;
+};
+
+// Solution 3, DFS with ranges, O(n) time and O(n) space
 /*
 We cannot naively compare a node to its parent, because
    5
