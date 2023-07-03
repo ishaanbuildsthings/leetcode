@@ -1,7 +1,7 @@
 In 51, n queens, even if our result is multiple n^2 grids, our space complexity is still n^2, because when the result is finished, but not all states have been searched, we may still have n^2 extra memory allocated. So even if the result dominates the n^2 allocation, there is still n^2 auxillary memory.
 
 
-sieve for primes: n log (log n) time
+sieve for primes: O(n), but we have to skip solving for numbers that are already determined not prime, since they have a factor that would account for any of their multiples, we also should iterate from the inner loop number squared, so when we consider 3 as a factor, we start at 9, this is because any lower number, for instance 6 (3*2), would have been handled by when we considered the inner number of 2- i don't think this part changes the complexity though
 
 
 generally we can allocate around 20,000,000 things on leetcode, and based on test cases, 1,000,000 iterations
