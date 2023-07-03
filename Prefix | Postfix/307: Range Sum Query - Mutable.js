@@ -83,7 +83,6 @@ var NumArray = function (nums) {
 };
 
 NumArray.prototype.update = function (index, val) {
-  console.log(`update triggered!`);
   const bucketsBeaten = Math.floor(index / this.bucketSize);
   const bucketIndex = bucketsBeaten; // the bucket we will modify
   const bucketIndicesBeaten = bucketsBeaten * this.bucketSize; // total indices beaten from all buckets beaten
