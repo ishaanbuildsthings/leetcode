@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/strange-printer/description/
 // Difficulty: Hard
-// tags: dynamic programming 2d
+// tags: dynamic programming 2d, top down recursion
 
 // Problem
 /*
@@ -23,6 +23,8 @@ To solve the general problem of printing, we can break it down to a subproblem. 
 We need to consider all future a's, not just the first or last. We can see situations where we would want to print our `a` with the last `a`, such as `aba`. by printing 'with' something, it means when we print that sequence, the two characters do not get overwritten. in `zbabza`, when we try to print the a's together, optimally we should overwrite the first `a`, so they are printed separately. This counterexample was constructed by thinking of `baba`, then adding two letters to make printing the a's separately the uniquely optimal solution.
 
 So, for each letter, we look at all future letters that are the same, and use the intermediate dps. There are n^2 subarrays and each subarray takes n time to iterate and check, so n^3 time.
+
+To solve it with bottom up recursion, we need to solve all problems of length 1, then 2, etc. For each size, we choose a starting position, then iterate through the next `length` positions to see matching characters.
 */
 
 var strangePrinter = function (s) {
