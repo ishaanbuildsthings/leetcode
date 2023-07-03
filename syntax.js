@@ -12,7 +12,7 @@ const [second, third, fourth] = arr.slice(2);
 // modifying an array in place
 const arr = [1, 2, 3, 4, 5];
 
-arr.splice(index, how many elements to remove including that index):
+arr.splice(index, how many elements to remove including that index, element we add):
 
 arr.splice(2, 2); // removes 3 and 4
 arr.splice(2, 1, 5); // removes 3 and adds 5

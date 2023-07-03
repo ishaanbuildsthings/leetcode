@@ -1,0 +1,1 @@
+To remove the minimum number of intervals to prevent overlap, we can sort by starting position. Then, iterate through and when we see an interval overlap, greedily remove the one that ends later. Problem 435.

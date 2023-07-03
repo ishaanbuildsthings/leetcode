@@ -2,10 +2,12 @@
 // Difficulty: Medium
 // tags: intervals
 
+// Problem: Given an array of intervals intervals where intervals[i] = [starti, endi], return the minimum number of intervals you need to remove to make the rest of the intervals non-overlapping.
+
 // Solution
 // O(nlogn) time and O(sort) space
 /*
-Sort by starting time.
+Sort by starting time. Iterate through the intervals. The first interval we see is the earliest (or tied for). Once we reach another interval that overlaps, clearly we should be greedy and remove the one that ends later, since it has more potential to overlap with other intervals.
 */
 
 var eraseOverlapIntervals = function (intervals) {
