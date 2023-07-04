@@ -36,18 +36,11 @@ const memo = new Array(10 ** 5 + 1).fill(-1);
 // all of the squares are true
 for (let i = 0; i < allSquares.length; i++) {
   const square = allSquares[i];
-  // if (square > n) {
-  //     break;
-  // }
   memo[square] = true;
 }
 
 var winnerSquareGame = function (n) {
   function dp(stones) {
-    if (stones === 0) {
-      return true;
-    }
-
     // if we have already determined a result for alice for this amount, return that
     if (memo[stones] !== -1) {
       return memo[stones];
