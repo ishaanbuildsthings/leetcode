@@ -19,7 +19,13 @@ Clarification, on a player's turn, they MUST take all stones in the first X pile
 
 // Solution, O(n^3) time and O(n^2) space, top down recursion + memoization
 /*
+We can take from the first 2m piles, so we try taking from each pile, and see how many stones we can get.  If we take from some amount of piles, the amount of stones we get is the total amount of stones minus the amount of stones the opponent can get from the remaining subproblem.
 
+Since we always take from the left, our subproblem basically becomes [l, piles.length - 1], meaning we can start from l and go to the right. We also need a parameter, m, representing the current range.
+
+This creates n^2 things to fill, and for each dp section to fill, we need to iterate through up to all possible piles, so n^3 time.
+
+We could further optimize by adding immutable range query, but doesn't change the time complexity.
 */
 var stoneGameII = function (piles) {
   // memo[l][m] represents the solution to the problem for the maximum amount of stones anyone can get from the subarray starting at `l`, with a given `m`
