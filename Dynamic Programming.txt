@@ -21,3 +21,5 @@ Try deleting any possible block, of which there are at most n choices, then solv
 some types of recurrence relationships:
 1) If we can match the beginning to the end, do so, otherwise take some subproblem of l+1,r and l,r-1, such as longest palindromic subsequence.
 2) For each letter, iterate through the right letters, find a match. try those.
+
+The time complexity for a dp problem is the number of states we solve multiplied by the time each state takes. For instance in 1510: Stone Game IV (alice and bob take turns drawing a square root amount of stones). We solve for up to n states, and each state iterates through root n other dps, so n*root n time.

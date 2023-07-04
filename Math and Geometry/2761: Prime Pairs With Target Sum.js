@@ -18,6 +18,8 @@ Note: A prime number is a natural number greater than 1 with only two factors, i
 Create a sieve for primes of 10**6 size, as per the max size of n. It is O(n) time if we skip numbers that are not prime.
 
 For a given n, we can gather all primes within n. Do a 2-pointer two-sum style solution to find all pairs.
+
+The sieve is calculated once and reused.
 */
 
 // stores prime info for numbers [0, 1_000_000]
