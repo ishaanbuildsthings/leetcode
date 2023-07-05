@@ -180,7 +180,7 @@ class Deque {
 
 // minheap
 
-class minHeap {
+class MinHeap {
   constructor(k) {
     this.heap = [null];
     this.maxSize = k;
@@ -252,6 +252,81 @@ class minHeap {
   peek() {
     if (this.heap.length === 1) {
       return null;
+    }
+    return this.heap[1];
+  }
+}
+
+// _____________________________________________________MAX HEAP _____________________________________________________
+
+class MaxHeap {
+  constructor() {
+    this.heap = [null];
+  }
+
+  insert(val) {
+    this.heap.push(val);
+    let i = this.heap.length - 1; // tracks where our element is
+    // percolate up
+    while (i > 1) {
+      const parent = Math.floor(i / 2);
+      // if the parent is smaller, move up
+      if (this.heap[parent] < this.heap[i]) {
+        const temp = this.heap[parent];
+        this.heap[parent] = this.heap[i];
+        this.heap[i] = temp;
+        i = parent;
+      } else {
+        break;
+      }
+    }
+  }
+
+  remove() {
+    if (this.heap.length === 1) {
+      return undefined;
+    }
+
+    const result = this.heap[1];
+    // overwrite the first element with the last
+    this.heap[1] = this.heap[this.heap.length - 1];
+    this.heap.pop();
+
+    // percloate down
+    let i = 1; // tracks where our element is
+    let largest = i;
+    while (true) {
+      const left = largest * 2;
+      const right = largest * 2 + 1;
+
+      if (left < this.heap.length && this.heap[left] > this.heap[largest]) {
+        largest = left;
+      }
+
+      if (right < this.heap.length && this.heap[right] > this.heap[largest]) {
+        largest = right;
+      }
+
+      if (largest === i) {
+        break;
+      }
+
+      // swap the parent element with the new largest
+      [this.heap[i], this.heap[largest]] = [this.heap[largest], this.heap[i]];
+
+      i = largest;
+    }
+
+    return result;
+  }
+
+  size() {
+    return this.heap.length - 1;
+  }
+
+  peek() {
+    if (this.heap.length === 1) {
+      return undefined;
     }
     return this.heap[1];
   }

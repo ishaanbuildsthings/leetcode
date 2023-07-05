@@ -15,6 +15,12 @@ Write the code that will take a string and make this conversion given a number o
 string convert(string s, int numRows);
 */
 
+// Solution, O(n + k) time and O(n + k) space, n = length and k = number of rows
+// * Solution 2, there is probably a more math based on string enumeration solution
+/*
+First, allocate an array of size numRows, which takes k time. For every letter, add it to a bucket. Then, iterate through k buckets, adding the letters. However, the total time to iterate through the k buckets and add letters is amortized, since we have at most n letters, so we still get O(n + k) time. Storage is O(n + k) as well, as we allocate k arrays and we store n letters.
+*/
+
 var convert = function (s, numRows) {
   // edge case, since when we reverse directions with the buckets we would go to bucket -1
   if (numRows === 1) {
@@ -26,7 +32,6 @@ var convert = function (s, numRows) {
   const MAX_BUCKET = numRows - 1; // represents the index of the final bucket
   let direction = "down"; // which way we are moving
   for (let i = 0; i < s.length; i++) {
-    const char = s[i];
     buckets[currentBucket].push(s[i]);
     if (direction === "down") {
       // if we are at the bottom bucket, we need to move up
