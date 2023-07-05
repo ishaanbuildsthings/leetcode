@@ -100,3 +100,7 @@ We can either include, or not include. If we can have repeated values, once we d
 Combinations:
 k=2, n=3: [1, 2], [1, 3], [2, 3]
 We can take a state, add all possible numbers that are bigger than the biggest number we have current added. Easy to see when you draw a tree.
+
+Permutations:
+[1, 2] = [1, 2], [2, 1]
+For each space, we can add any number not currently included. n*n! time, as there are n! permutations and each takes n time to serialize.
