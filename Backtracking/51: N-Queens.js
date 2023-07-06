@@ -54,7 +54,7 @@ var solveNQueens = function (n) {
       result.push(newValidState);
       return;
     }
-    // for a given row, try placing a queen at every column
+    // for a given row, try placing a queen at every column, I think this could be made faster by tracking unvisited ones instead in some way
     for (let col = 0; col < n; col++) {
       // don't backtrack to spots where the queen is in an occupied column
       if (visitedCols.has(col)) {
