@@ -23,6 +23,8 @@ Return the total number of bad pairs in nums.
 
 /*
 Map the occurences of diffs to how many times they occur. A diff is the surplus of a number to its index. Iterate through numbers, finding good pairs, meaning pairs which have the same diff. a good pair is one where the difference in indices equals the difference in numbers. so imagine we had a 105 at index 100. we would need for instance a 155 at index 150. this also means that a good pair is one where the difference between a value and index is the same for each number. so we look through numbers, find their diff, and see how many of that diff remain, adding good pairs. Then we subtract good pairs from total pairs to get bad pairs.
+
+This could be done in one pass too, where we see how many of a certain diff we already had.
 */
 var countBadPairs = function (nums) {
   const diffs = {}; // maps a diff (the surplus of a number to its index), to how many times it occurs.

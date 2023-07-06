@@ -27,3 +27,5 @@ The time complexity for a dp problem is the number of states we solve multiplied
 Sometimes when considering adjacent states, we can optimize. In 691: Stickers to Spell Word, where we have to get letters from stickers to spell a target, we can just consider taking stickers that give us the first letter we are missing, as we weould eventually need that letter.
 
 We can serialize arrays or mappings for DP cache lookups like in 691: Stickers to Spell Word (we serialize a mapping of how many letters we have), or 1799: Maximize Score After N Operations (remove pairs and get GCD as score), serialize the actual array of what is left. But we can also do bitmasking for some of these. We can also, instead of serializing, just mutate the same array, call the neighbor then fix the mutation. Copying is usually much easier to implement though.
+
+A common dp pattern is taking the problem, solving something for the first character, and progressing the problem. In 97: Interleaving String (see if s3 can be formed by interleaving s1 and s2 somehow), we try solving for the first letter, and getting the remaining subproblem.
