@@ -48,3 +48,15 @@ For instance: [1] has 1 subarray.
 [1, 2, 3] = 3 + length (3) = 6 subarrays.
 
 Because each nth add, we can make n new subarrays by extending to points to the left.
+
+To find the GCD of two numbers:
+function gcd(a, b) {
+  while (b !== 0) {
+    [a, b] = [b, b % b];
+  }
+  return a;
+}
+
+The time is log(min(a, b))
+
+To see a proof, represent a, b, the remainder, and other numbers and solve a system of equations.
