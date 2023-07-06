@@ -23,7 +23,7 @@ Since the answer may be too large, return it modulo 10^9 + 7.
 
 // Solution, O(n) time and O(n) space.
 /*
-Allocate a 5*n
+Allocate a 5*n matrix where memo[len][vowelNum] indiciates the amount of valid permutations of length `len` that start with the appropriate vowel. There are 5n states, and each takes a constant amount of time to solve, so the total time is O(n). The recurrence function is given by the problem.
 */
 
 const VOWELS = {
