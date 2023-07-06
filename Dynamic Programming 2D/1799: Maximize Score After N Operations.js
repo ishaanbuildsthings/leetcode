@@ -30,6 +30,8 @@ The function gcd(x, y) is the greatest common divisor of x and y.
 Given the array is size <= 14, I expected an exponential solution. The best seemed to be 2^n states, where we memoize states based on what has occured. We have 2^n states because elements can either appear or not appear. For a given state, we iterate through n^2 pairs, and create a new state based on what we remove. Creating the new state takes n time, either to update the bitmask, or to create a new array with the stringified array solution. The bitmask has a 0 if an element hasn't been picked, and a 1 if it has. For each pair, we also find the GCD which is log(10**6) (max size for any number) time. So we get 2^n * n^3 * log A, where n is the length of the array.
 
 We also pass in the amount of removals we have made, which isn't technically necessary as we could deduce it each time, but makes the code cleaner and easier. We need it for the score of the pair we remove as well as determining when we are at the base case.
+
+For the stringified solution, instead of passing a copy of each array to the next recursive call, we can mutate the array. Each recursive call serializes the array to look it up, anyway. When we are done with the neighbor recursive call, we just repair the array.
 */
 
 function gcd(a, b) {
