@@ -31,3 +31,24 @@ In problem 695, we also don't need to set cells to be unvisited later. Since we'
 In 827, making a large island (we can flip one water tile, find largest island), I tried writing code where we could recurse to invalid neighbors, then terminate via base cases, just for practice. Actually I think it was a bit easier.
 
 In BFS, if we start from the top left of some island and are finding the area, or generally expanding out (for instance finding the shortest path from the top left cell to the bottom right, with walls), our queue size is limited to min(n,m), since in the worst case our queue expands as a diagonal (draw a picture of the bfs for a square matrix to see this). This can be seen in questions: 1091, shortest path in binary matrix, or 200: number of islands. I think most of these types of questions could use less space this way, since queue size is limited.
+
+
+Adjaceny List:
+
+Often instead we are given an adjacency list, which maps a node to a list of its neighhors:
+const adjList = { 'A' : [], 'B' : [] };
+
+Graphs:
+
+Similar to trees, if we want to dfs for something, we can just iterate and maintain a set of what we have visited, deleting from the set at the end of a node.
+
+Graphs are pretty much the same as trees and we can reuse a lot of concepts. For instance we can mark a node as visited as soon as we enter it, and univisted at the end of the dfs call, which is usually easier than calling it for each neighbor.
+
+Say we have some directed graph. At worst case, each node connects to every other node. That is sort of like the branching factor of the decision tree. Our path is at most n nodes. So we have n^n total paths. But I think in practice it might be more like a factorial since the decision tree drops as we visit more nodes.
+
+If we are trying to find the shortest path to a node in an adjacency list, we can do a BFS, and worst case is V+E time.
+
+Terminology:
+Connected: means the graph is one piece
+Undirected: means edges have no direction
+acyclic: means starting from any node, it is impossible to return to that node

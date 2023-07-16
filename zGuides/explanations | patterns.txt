@@ -165,3 +165,5 @@ sorting
 https://leetcode.com/problems/course-schedule/description/
 
 863: same
+802: same
+https://leetcode.com/problems/find-eventual-safe-states/description/
