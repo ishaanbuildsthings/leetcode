@@ -63,7 +63,7 @@ var maxScore = function (nums) {
     // iterate across all pairs of valid numbers to remove, as per the mask
     for (let i = 0; i < nums.length - 1; i++) {
       // check if we already used the ith (0-index) number, by seeing if the ith bit is a 1
-      if ((mask >> i) & (1 === 1)) {
+      if (((mask >> i) & 1) === 1) {
         continue;
       }
       for (let j = i + 1; j < nums.length; j++) {

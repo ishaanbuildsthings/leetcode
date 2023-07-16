@@ -63,7 +63,7 @@ var canPartition = function (nums) {
   return dp(0, 0);
 };
 
-// Solution 2, very similar but I used the differences in the partitions instead, trying to make that 0
+// Solution 2, very similar but I used the differences in the partitions instead, trying to make that 0. It's almost the exact same, instead of either adding a 3 or not (which gives sum of 3 or 0), I either gain 3 or lose 3, making a diff of +3 or -3. It might be less efficient from memoizing negative values though.
 
 var canPartition = function (nums) {
   // memo[i][diff] represents if a solution to make two partitions equal, is doable, for the subproblem [i, nums.length - 1], and a surplus of the left subarray of `diff`
