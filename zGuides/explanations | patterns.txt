@@ -157,3 +157,11 @@ binary search
 
 processed:
 sorting
+
+
+********** TODO PROBLEMS **********
+
+270: finished this but submit solution when done with graphs:
+https://leetcode.com/problems/course-schedule/description/
+
+863: same
