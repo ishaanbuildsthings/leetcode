@@ -19,10 +19,11 @@ You may assume that you have an infinite number of each kind of coin.
 */
 
 // Solution 1, tabulation, O(amount*coin types) time and O(amount) space for the dp.
+// * Solution 2, recursion with memoization
 /*
 To solve the the problem of the minimum amount of coins needed for amount 11, with coins of 1, 2, and 5, clearly the answer is either 1 coin + min needed for amount 10, 1 coin + min needed for amount 9, and 1 + min needed for amount of 6. We can use recursion + memoization until we get to a base case (an amount is doable in 1 coin, or no coins / is impossible). We can also use tabulation, first solving for amount 1, then 2, etc.
 
-Notably, we cannot do something like store a current dp min needed for a certain amount (without exhaustively calculating that amount), then iterate and use cached values. For instance to solve amount 11, say we descend down the tree, using a 1 coin each time. Now, to solve amount 6, we currently have 6 coins needed as our minimum. Then if we try using a 5 coin and get to 6, we would say we need the single 5 coin + 6 from before. Only later would we try a more efficient solution to solve amount 6 (a 5 + a 1), but it wouldn't have registered yet for the first time we tried using a 5 coin for amount 11. This is why we need to solve for the problems of amount 1 first, then 2, etc.
+Notably, we cannot do something like store a current dp min needed for a certain amount (without exhaustively calculating that amount), then iterate and use cached values. For instance to solve amount 11, say we descend down the tree, using a 1 coin each time. Now, to solve amount 6, we currently have 6 coins needed as our minimum. Then if we try using a 5 coin and get to 6, we would say we need the single 5 coin + 6 from before. Only later would we try a more efficient solution to solve amount 6 (a 5 + a 1), but it wouldn't have registered yet for the first time we tried using a 5 coin for amount 11. This is why we need to solve for the problems of amount 1 first, then 2, etc. However, if we try this with recursion + memoization, it works.
 */
 
 var coinChange = function (coins, amount) {
@@ -53,4 +54,35 @@ var coinChange = function (coins, amount) {
   }
 
   return dp[amount] === undefined ? -1 : dp[amount];
+};
+
+// Solution 2, recursion with memoization
+var coinChange = function (coins, amount) {
+  // memo[amount left] returns the minimum amount of coins we need for the amount left
+  const memo = new Array(amount + 1).fill(-1);
+
+  function dp(amountLeft) {
+    if (amountLeft === 0) {
+      return 0;
+    }
+
+    if (memo[amountLeft] !== -1) {
+      return memo[amountLeft];
+    }
+
+    let resultForThis = Infinity;
+
+    for (const coinType of coins) {
+      if (amountLeft - coinType >= 0) {
+        const ifTakeCoin = 1 + dp(amountLeft - coinType);
+        resultForThis = Math.min(resultForThis, ifTakeCoin);
+      }
+    }
+
+    memo[amountLeft] = resultForThis;
+    return resultForThis;
+  }
+
+  const result = dp(amount);
+  return result === Infinity ? -1 : result;
 };
