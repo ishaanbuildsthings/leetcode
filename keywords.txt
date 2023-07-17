@@ -17,6 +17,8 @@ bst [binary search tree]
 bubble sort
 bucket sort
 circular
+connected [for graphs]
+directed [for graphs]
 deque
 dfs
 dynamic programming 1d
@@ -54,4 +56,5 @@ state machine
 top down recursion [with memoization]
 trie
 two pointers
-undirected graphs
+unconnected [for graphs]
+undirected [for graphs]
