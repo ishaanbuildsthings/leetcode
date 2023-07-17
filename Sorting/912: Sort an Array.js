@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/sort-an-array/description/
 // Difficulty: Medium
-// tags: insertion sort
+// tags: insertion sort, merge sort, quick sort
 
 // Solution 1, merge sort, O(n log n) time and O(n) space
 // * Solution 2 is the same as solution 1 but uses less malloc since we use a pointer system
@@ -233,7 +233,7 @@ function sortArray(arr) {
   return arr;
 }
 
-// Solution X, my original insertion sort, O(n^2) time and O(1) space
+// * Solution X, my original insertion sort, O(n^2) time and O(1) space
 
 /*
 Iterate starting from the left. Whenever we find a smaller element, say 3 6 9 4 and we reach 4, start performing swaps. First swap 9 and 4: 3 6 4 9. Then swap 6 and 4: 3 4 6 9. Then return back to after 9 and keep going.
@@ -292,3 +292,49 @@ function merge(nums, leftCoords, rightCoords) {
 
   return mergedArr;
 }
+
+// * Solution 3, quick sort, O(n log n) time and O(n) space average, n^2 for both worst case
+// we could also easily sort this in place by maintaing pointers for the problems, and actually just sorting in place
+/*
+We split a problem into a sub problem log n times on average. I used a random pivot and randomness is the number is the same as the pivot. For each layer, we allocate memory based on the size of the subproblem. This means on average, we allocate n memory for the entire recursive stack (1/2 + 1/4 + ...). Worst case the pivot is unlucky and we have a height of n and an allocation of n, so n^2 time and space.
+*/
+
+var sortArray = function (nums) {
+  function quickSort(arr) {
+    // base case, nothing left to sort, technically not needed but prevents an extra recursive call
+    if (arr.length === 1) {
+      return [arr[0]];
+    }
+
+    if (arr.length === 0) {
+      return [];
+    }
+
+    const randomIndex = Math.floor(Math.random() * arr.length);
+    const pivot = arr[randomIndex];
+
+    const leftPortion = [];
+    const rightPortion = [];
+
+    for (let i = 0; i < arr.length; i++) {
+      if (i === randomIndex) {
+        continue;
+      }
+      const num = arr[i];
+      if (num < pivot) {
+        leftPortion.push(num);
+      } else if (num > pivot) {
+        rightPortion.push(num);
+      } else if (num === pivot) {
+        Math.random() > 0.5 ? leftPortion.push(num) : rightPortion.push(num); // keep it roughly equal if the number is the same, so arrays like 2,2,2,2,2,2 get sorted evenly
+      }
+    }
+
+    const leftSorted = quickSort(leftPortion);
+    const rightSorted = quickSort(rightPortion);
+
+    return [...leftSorted, pivot, ...rightSorted];
+  }
+
+  return quickSort(nums);
+};
