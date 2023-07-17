@@ -161,9 +161,7 @@ sorting
 
 ********** TODO PROBLEMS **********
 
-270: finished this but submit solution when done with graphs:
-https://leetcode.com/problems/course-schedule/description/
-
+finished this but submit solution when done with graphs:
 863: same
 802: same
 https://leetcode.com/problems/find-eventual-safe-states/description/
