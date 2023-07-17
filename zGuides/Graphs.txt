@@ -52,3 +52,6 @@ Terminology:
 Connected: means the graph is one piece
 Undirected: means edges have no direction
 acyclic: means starting from any node, it is impossible to return to that node
+
+To detect a cycle in a directed graph:
+We can iterate over each node. For each node, iterate over all paths, if we find a cycle we return that it has a cycle. If none of the nieghbors have a cycle, we return that there is no cycle. We also cache the results of safe nodes so we don't need to recompute them. The dfs occurs on each node once, and for each node, we consider all edges, so we get V+E time. Problem 207 course schedule has a good example.
