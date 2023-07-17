@@ -48,6 +48,33 @@ Say we have some directed graph. At worst case, each node connects to every othe
 
 If we are trying to find the shortest path to a node in an adjacency list, we can do a BFS, and worst case is V+E time.
 
+Say that we had a linked list of letters, and we wanted to find if a letter was in the linked list. One way could be:
+
+funtion hasLetter(node) {
+  if (hasLetter(node.next)) {
+    return true;
+  }
+  return node.val === letter;
+}
+
+Essentially, we dfs down to the end first. If anything down the chain has a letter, we bubble that result back up. Otherwise, we consider our own case.
+
+Similarly, in dfs for graphs, we often do a similar thing. In 261, Graph Valid Tree (determine if a graph is a valid tree), we dfs out from a node, seeing if we form a tree. If at some path we are able to form a cycle / collide with the path, we bubble up that we do not form a valid tree:
+
+for (const neighbor of neighbors) {
+  if (!dfs(neighbor, node)) {
+      return false;
+  }
+}
+
+Essentially, we consider all neighbors, and if any neighbor had a cycle, we bubble that up. It feels a bit odd at first since the function is both having a side effect (populating a set of seen nodes, in this case) (though a side effect isn't needed), and we use the result of the function. We both call the function and use its result to determine something.
+
+We do the same thing in 269, Alien Dictionary:
+
+if (dfs(neighbor) === null) {
+  return null;
+}
+
 Terminology:
 Connected: means the graph is one piece
 Undirected: means edges have no direction
