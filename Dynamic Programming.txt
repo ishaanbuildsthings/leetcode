@@ -31,3 +31,5 @@ We can serialize arrays or mappings for DP cache lookups like in 691: Stickers t
 A common dp pattern is taking the problem, solving something for the first character, and progressing the problem. In 97: Interleaving String (see if s3 can be formed by interleaving s1 and s2 somehow), we try solving for the first letter, and getting the remaining subproblem.
 
 If you want to not allocate a matrix, you can hash multiple parameters like const key=`${var1},${var2}` and store them in a hashmap. But I haven't yet seen a problem where this is good.
+
+In a problem like unbounded knapsack, we can either consider an item (ifTake vs ifSkip), or consider all possible items from our current index. I usually do the first since it is easier to understand. The second would be something like say we are at i=5, meaning we have [i:] elements left to consider. We could try every item, from i to the end, with the new appropriate dp (we can only take items from [i:]).
