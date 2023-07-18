@@ -33,3 +33,5 @@ A common dp pattern is taking the problem, solving something for the first chara
 If you want to not allocate a matrix, you can hash multiple parameters like const key=`${var1},${var2}` and store them in a hashmap. But I haven't yet seen a problem where this is good.
 
 In a problem like unbounded knapsack, we can either consider an item (ifTake vs ifSkip), or consider all possible items from our current index. I usually do the first since it is easier to understand. The second would be something like say we are at i=5, meaning we have [i:] elements left to consider. We could try every item, from i to the end, with the new appropriate dp (we can only take items from [i:]).
+
+The memo does NOT need to be the answer to the overarching problem. For instance in the number of palindromic substrings, we can store a memo if [l:r] is a palindrome. And as we solve, we iterate from our starting letter, looking at all future letters that match, seeing if the inside is a palindrome, adding one to our result.

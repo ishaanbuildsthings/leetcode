@@ -7,7 +7,7 @@
 
 // Solution 1, O(n^2) time and O(1) space, expand our centers
 /*
- * Solution 2, O(n^2) time and O(n^2) space, dynamic programming 2d. Allocate a dp matrix, which stores [startIndex][endIndex] to see if something is a palindrome. For each prior letter, iterate through n future letters, seeing if the outer letters match, and what is inbetween is a palindrome. Similar solution to problem 647: Palindromic Substrings.
+ * Solution 2, O(n^2) time and O(n^2) space, dynamic programming 2d. Allocate a dp matrix, which stores [startIndex][endIndex] to see if something is a palindrome. Start by filling out palindromes of length 1, then 2, then 3, etc. Similar solution to problem 647: Palindromic Substrings.
  * We could also start at the beginning, at iterate through n prior letters, either left to right or right to left.
  */
 // * Solution 3, Manacher's algorithm can do this in linear time.
