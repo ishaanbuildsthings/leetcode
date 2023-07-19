@@ -331,3 +331,198 @@ class MaxHeap {
     return this.heap[1];
   }
 }
+
+// _____________________________________________________AVL TREE, with insert(val), remove(val), findMax() O(1), search(val) returns true or false, and supports duplicate values _____________________________________________________
+
+class Node {
+  constructor(value) {
+    this.value = value;
+    this.height = 1; // height of node in tree
+    this.count = 1; // count of duplicates
+    this.left = null;
+    this.right = null;
+  }
+}
+
+class AVLTree {
+  constructor() {
+    this.root = null;
+  }
+
+  // Insert a value into the tree
+  insert(value) {
+    this.root = this._insert(this.root, value);
+  }
+
+  _insert(node, value) {
+    // Perform standard BST insert
+    if (node === null) {
+      return new Node(value);
+    }
+
+    if (value < node.value) {
+      node.left = this._insert(node.left, value);
+    } else if (value > node.value) {
+      node.right = this._insert(node.right, value);
+    } else {
+      // handle duplicate value
+      node.count++;
+      return node;
+    }
+
+    // Update height
+    node.height =
+      1 + Math.max(this._getHeight(node.left), this._getHeight(node.right));
+
+    // Rebalance tree
+    let balance = this._getBalance(node);
+    if (balance > 1 && value < node.left.value) {
+      return this._rotateRight(node);
+    }
+    if (balance < -1 && value > node.right.value) {
+      return this._rotateLeft(node);
+    }
+    if (balance > 1 && value > node.left.value) {
+      node.left = this._rotateLeft(node.left);
+      return this._rotateRight(node);
+    }
+    if (balance < -1 && value < node.right.value) {
+      node.right = this._rotateRight(node.right);
+      return this._rotateLeft(node);
+    }
+
+    return node;
+  }
+
+  // Remove a value from the tree
+  remove(value) {
+    this.root = this._remove(this.root, value);
+  }
+
+  // For simplicity, removal of duplicate values isn't fully handled here
+  _remove(node, value) {
+    // Standard BST removal
+    if (node === null) {
+      return node;
+    }
+
+    if (value < node.value) {
+      node.left = this._remove(node.left, value);
+    } else if (value > node.value) {
+      node.right = this._remove(node.right, value);
+    } else {
+      // handle removing duplicate or unique value
+      if (node.count > 1) {
+        node.count--;
+        return node;
+      } else if (!node.left) {
+        node = node.right;
+      } else if (!node.right) {
+        node = node.left;
+      } else {
+        let temp = this._minValueNode(node.right);
+        node.value = temp.value;
+        node.right = this._remove(node.right, temp.value);
+      }
+    }
+
+    if (node === null) return node;
+
+    // Update height
+    node.height =
+      1 + Math.max(this._getHeight(node.left), this._getHeight(node.right));
+
+    // Rebalance tree
+    let balance = this._getBalance(node);
+    if (balance > 1 && this._getBalance(node.left) >= 0) {
+      return this._rotateRight(node);
+    }
+    if (balance < -1 && this._getBalance(node.right) <= 0) {
+      return this._rotateLeft(node);
+    }
+    if (balance > 1 && this._getBalance(node.left) < 0) {
+      node.left = this._rotateLeft(node.left);
+      return this._rotateRight(node);
+    }
+    if (balance < -1 && this._getBalance(node.right) > 0) {
+      node.right = this._rotateRight(node.right);
+      return this._rotateLeft(node);
+    }
+
+    return node;
+  }
+
+  // Find max value
+  findMax() {
+    let node = this.root;
+    while (node.right) node = node.right;
+    return node.value;
+  }
+
+  // Rotate tree node with right child to balance the tree
+  _rotateLeft(z) {
+    let y = z.right;
+    let T2 = y.left;
+    y.left = z;
+    z.right = T2;
+    z.height = Math.max(this._getHeight(z.left), this._getHeight(z.right)) + 1;
+    y.height = Math.max(this._getHeight(y.left), this._getHeight(y.right)) + 1;
+    return y;
+  }
+
+  // Rotate tree node with left child to balance the tree
+  _rotateRight(y) {
+    let x = y.left;
+    let T2 = x.right;
+    x.right = y;
+    y.left = T2;
+    y.height = Math.max(this._getHeight(y.left), this._getHeight(y.right)) + 1;
+    x.height = Math.max(this._getHeight(x.left), this._getHeight(x.right)) + 1;
+    return x;
+  }
+
+  // Helper function to get height of a node
+  _getHeight(node) {
+    if (node === null) {
+      return 0;
+    }
+    return node.height;
+  }
+
+  // Get balance factor of a node
+  _getBalance(node) {
+    if (node === null) {
+      return 0;
+    }
+    return this._getHeight(node.left) - this._getHeight(node.right);
+  }
+
+  // Get node with min value (used for deletion)
+  _minValueNode(node) {
+    let current = node;
+    while (current.left !== null) {
+      current = current.left;
+    }
+    return current;
+  }
+
+  // Search for a value in the tree
+  search(value) {
+    return this._search(this.root, value);
+  }
+
+  _search(node, value) {
+    // If the node is null or the node's value matches the search value
+    if (node === null || node.value === value) {
+      return node !== null;
+    }
+
+    // If the search value is less than the node's value, search the left subtree
+    if (value < node.value) {
+      return this._search(node.left, value);
+    }
+
+    // If the search value is greater than the node's value, search the right subtree
+    return this._search(node.right, value);
+  }
+}

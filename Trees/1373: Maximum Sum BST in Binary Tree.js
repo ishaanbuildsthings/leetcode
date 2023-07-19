@@ -40,6 +40,8 @@ If we are a bst, we can bubble up both the current max sum of our bst where the 
     Here, the -10 is a valid bst, but we also need to send up a 17, the max bst sum we have ever seen.
 
   Anyway, I got stuck on a few test cases until I added extra parameters to track all this information. It was a process of failing test cases that illuminated things wrong in my initial solution. I don't think the above examples fully prove anything, but I am sure there is a way to construct an exhaustive proof that bubbling up both pieces of information is required, and always works.
+
+  I think there are easier to implement solutions where we modify a global variable wtih the max we have seen.
 */
 
 var maxSumBST = function (root) {
