@@ -133,6 +133,10 @@ Heaps support add (log n), remove (log n), and min/max in constant time. However
 
 If your code isn't working at all (but your solution is close, just debugging), instead of walking through a complicated test case, if no easy ones are given, try manually using an easy test case.
 
+********** MISC **********
+
+Hashing a string of length n is an O(n) operation, so doing a set lookup on a string depends on the length of that string.
+
 ********** TODOS **********
 
 TODO: is min size subarray sum=k doable? what about the number of subarrays? what about number of => k?
