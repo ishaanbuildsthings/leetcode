@@ -7,7 +7,7 @@
 Given the root of a binary tree, return the bottom-up level order traversal of its nodes' values. (i.e., from left to right, level by level from leaf to root).
 */
 
-// Solution, O(n) time (with a real queue), O(n) (width) space.
+// Solution, O(n) time (with a real queue), O(n) space for the since we do store the unreversed result, but also the result space is an upper bound for the temporary storage anyway, you could call it O(1) space.
 /*
 Store each row in a BFS, then reverse the order of the rows.
 */
