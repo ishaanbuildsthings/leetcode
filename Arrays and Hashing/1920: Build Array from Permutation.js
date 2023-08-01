@@ -1,0 +1,20 @@
+// https://leetcode.com/problems/build-array-from-permutation/description/
+// Difficulty: Easy
+
+// Problem
+/*
+Given a zero-based permutation nums (0-indexed), build an array ans of the same length where ans[i] = nums[nums[i]] for each 0 <= i < nums.length and return it.
+
+A zero-based permutation nums is an array of distinct integers from 0 to nums.length - 1 (inclusive).
+*/
+
+// Solution, O(n) time and O(1) space, self explanatory
+
+var buildArray = function (nums) {
+  const result = [];
+  for (let i = 0; i < nums.length; i++) {
+    const num = nums[i];
+    result.push(nums[num]);
+  }
+  return result;
+};
