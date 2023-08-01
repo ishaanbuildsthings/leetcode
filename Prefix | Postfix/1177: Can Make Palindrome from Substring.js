@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/can-make-palindrome-from-substring/description/
 // Difficulty: Medium
-// tags: prefix
+// tags: prefix, palindrome
 
 // Problem
 /*
