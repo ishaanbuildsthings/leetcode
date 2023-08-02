@@ -50,3 +50,7 @@ Problem 287: We have an array of the first n numbers, but one is repeated two or
 Insert Delete Get Random O(1): To delete an element from the middle of an array in O(1) time, we can swap it with the last value and pop. In this case, we have some data associated with the numbers and their positions, so we can update the position of the element that was swapped in.
 
 Remeber that row=col always is the same for a given top left to bottom right diagonal. This could be useful in something like n-queens when we check for diagonals, or 1329: Sort the Matrix Diagonally where we could use a hashmap of heaps and we want to access the same heap regardless of our coordinates, so we do row-col.
+
+In a problem, if you need two pick two numbers 0<=i<j<n, and assess something about their values, remember we can still sort the input array, assuming we don't need some contiguous properties.
+
+Problem 974: Subarray Sums Divisible by K. Here, we need to process information about subarrays in linear time, so we cannot check every subarray. A common way to do this is to iterate through, maintaining some mapping of data. Then, based on some value (in this case the running sum), we can do a hashmap lookup to determine the number of subarrays that adhere to a property.
