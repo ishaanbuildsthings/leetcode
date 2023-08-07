@@ -58,6 +58,6 @@ topological sort
 top down recursion [with memoization]
 trie
 two pointers
-unconnected [for graphs]
+unconnected [for graphs, means the graph can be unconnected]
 undirected [for graphs]
 union find
