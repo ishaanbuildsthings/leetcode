@@ -526,3 +526,50 @@ class AVLTree {
     return this._search(node.right, value);
   }
 }
+
+// union find by rank
+
+class UnionFind {
+  constructor() {
+    this.parents = {}; // maps a cell to its parent, we will use COLS * r + c
+    this.ranks = {}; // maps a representative cell to its island size
+  }
+
+  find(node) {
+    // node is COLS * r + c
+    let current = node;
+    while (this.parents[current] !== current) {
+      const tempParent = this.parents[current];
+      this.parents[current] = this.parents[tempParent];
+      current = tempParent;
+    }
+    return current;
+  }
+
+  union(node1, node2) {
+    const parent1 = this.find(node1);
+    const parent2 = this.find(node2);
+
+    const rank1 = this.ranks[parent1];
+    const rank2 = this.ranks[parent2];
+
+    // if they're already unioned, return false, the union was unsuccessful
+    if (parent1 === parent2) {
+      return false;
+    }
+
+    if (rank1 < rank2) {
+      this.parents[parent1] = parent2;
+      delete this.ranks[parent1];
+    } else if (rank1 > rank2) {
+      this.parents[parent2] = parent1;
+      delete this.ranks[parent2];
+    } else {
+      this.parents[parent2] = parent1;
+      delete this.ranks[parent2];
+      this.ranks[parent1]++; // if the trees have the same rank, the size must increase by 1
+    }
+
+    return true;
+  }
+}
