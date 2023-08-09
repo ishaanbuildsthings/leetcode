@@ -39,3 +39,5 @@ The memo does NOT need to be the answer to the overarching problem. For instance
 Remember that top down doesn't solve every subproblem, only needed ones, but true dp does. If for instance, we need to solve a problem that requires knowing if a substring is a palindrome (like 1745: palindrome partition IV, split into three palindromes), we can either precompute n^2 palindromes using true dp, or just make a helper function isPalindrome which accesses a cache or recursively calls itself if needed.
 
 In 656: Coin Path, where we need the path for the lowest price to reach the end, we also store the path inside the dp. It is worth noting we can store multiple things in the DP but only answer problems based on one value (the cost), and just use that extra information as per the return statement.
+
+We don't need to necessarily enumerate all ways to find the solution to 'how many ways can we do this'. This is especially obvious if it tells us to return the answer % MOD. In these cases, usually we generate a math based relationship instead of enumerating all the possibilities.
