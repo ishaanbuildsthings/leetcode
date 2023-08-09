@@ -108,6 +108,8 @@ in a bst we could find the midpoint element in log n time if we knew the size of
 Problem 98 and 783 show good ways to do inorder on BST and not need an array to track all the values (for finding if the BST is valid, minimum difference between nodes, etc).
 
 
+We can always maintain a global variable, such as 'prev', when doing something like an inorder traversal. For instance in 426: Convert BST to sorted doubly linked list, we just do an inorder traversal, but store what the previous node was.
+
 ********** AVL TREE **********
 
 A self balancing binary tree works by doing rotations, where we rotate around x and y and rearrange subtrees. Sometimes a more complex rotation is needed as the basic rotation does not balance the tree.
