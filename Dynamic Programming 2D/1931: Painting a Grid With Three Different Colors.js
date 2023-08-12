@@ -14,6 +14,8 @@ Return the number of ways to color the grid with no two adjacent cells having th
 Given the constraints on one dimension are small, first use backtracking to generate all possible vertical strips of colors. We will just say this is a constant time operation since it's bounded pretty tightly, but it is a function of the height of the matrix.
 
 Then, for each row, we can include future rows that don't collide with the previous one. We iterate through all possible vertical strip types (and their lengths which is up to 5), and test them all.
+
+This solution works well since we only have to consider the previous m cells rather than all cells or all diagonal cells or anything like that.
 */
 
 const MOD = 10 ** 9 + 7;
