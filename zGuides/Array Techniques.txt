@@ -54,3 +54,5 @@ Remeber that row=col always is the same for a given top left to bottom right dia
 In a problem, if you need two pick two numbers 0<=i<j<n, and assess something about their values, remember we can still sort the input array, assuming we don't need some contiguous properties.
 
 Problem 974: Subarray Sums Divisible by K. Here, we need to process information about subarrays in linear time, so we cannot check every subarray. A common way to do this is to iterate through, maintaining some mapping of data. Then, based on some value (in this case the running sum), we can do a hashmap lookup to determine the number of subarrays that adhere to a property.
+
+To set all numbers in an array equal to the same number, where we can move any number +1/-1 at a time, the minimum number of changes needed will always involve setting all numbers in the array to be one of the numbers in the array (problem 462).
