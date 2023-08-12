@@ -13,7 +13,7 @@ A substring is a contiguous sequence of characters within a string.
 
 // Solution, O(n) time and O(n) space
 /*
-Essentially, we need to know for each character, how many substrings can this character contribute to. First create a mapping for each char type and their positions. Then we can add the contributions. We can make each letter contribution to all subarrays starting from 0, up to that letter, and end at all subarrays up to the right where the next occurence of that letter is (to be honest just read the code). This is similar to the total strength of wizards question.
+Essentially, we need to know for each character, how many substrings can this character contribute to. First create a mapping for each char type and their positions. Then we can add the contributions. We can make each letter contribution to all subarrays starting from 0, up to that letter, and end at all subarrays up to the right right before where the next occurence of that letter is (to be honest just read the code). This is similar to the total strength of wizards question.
 */
 
 var appealSum = function (s) {
