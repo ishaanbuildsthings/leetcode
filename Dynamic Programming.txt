@@ -40,4 +40,4 @@ Remember that top down doesn't solve every subproblem, only needed ones, but tru
 
 In 656: Coin Path, where we need the path for the lowest price to reach the end, we also store the path inside the dp. It is worth noting we can store multiple things in the DP but only answer problems based on one value (the cost), and just use that extra information as per the return statement.
 
-We don't need to necessarily enumerate all ways to find the solution to 'how many ways can we do this'. This is especially obvious if it tells us to return the answer % MOD. In these cases, usually we generate a math based relationship instead of enumerating all the possibilities.
+We don't need to necessarily enumerate all ways to find the solution to 'how many ways can we do this'. This is especially obvious if it tells us to return the answer % MOD. In these cases, usually we generate a math based relationship instead of enumerating all the possibilities. And we do something like: "answer tto this subproblem is these two subproblems added or multiplied together"
