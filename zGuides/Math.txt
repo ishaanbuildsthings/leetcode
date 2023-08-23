@@ -60,3 +60,5 @@ function gcd(a, b) {
 The time is log(min(a, b))
 
 To see a proof, represent a, b, the remainder, and other numbers and solve a system of equations.
+
+Doing (A*B) % MOD, if MOD is 10^9 + 7, in JS, can still overflow. So we need to cast to bigint.
