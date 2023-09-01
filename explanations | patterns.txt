@@ -1,45 +1,3 @@
-********** GENERAL PATTERNS AND INFO ABOUT THEM **********
-
-kadane's - kadane's is very specifically a 'sliding window' technique where we iterate over an iterable and maintain a dp. If the dp doesn't meet some condition, we reset it in a way, effectively "moving" what would be our left pointer. Kadane's movement follows an inchworm, because when we don't meet a condition we reset the dp to some defined place. It's often easier to update the dp with the current index value immedaitely, then do computations with that, similar to how prefix sums usually include the current number as part of the prefix.
-
-sliding window variable - these are more flexible, in that that the left pointer moves over by some other amount, depending on the problem. For instance finding the minimum size subarray that equals a certain sum (problem 209) consider [1, 3, 5] and our target is at least 6, once we hit [1,3,5] we keep decrementing from the left until we cannot any more. in sliding window we keep expanding until a condition is met (subarry has >= k sum) or broken (we have a repeating character), and then we shrink as much as needed (subarray too small) or (repeating character is gone). We could also just decrement from the left one at a time, and not increment the right. Generally sliding window variable problems will end with an r++ inside the main while loop, and inside the while loop we will decrement from the left until  constraint is hit.
-
-sliding window fixed - intialize some data for the starting window, for instance in 219: Contains Duplicate II, we fill out a set, in 1343: Number of Sub-arrays of Size K and Average..., we calculate a DP sum, and in 239: Sliding Wndow Maximum, we create the queue.
-Then, to solve it:
-For 219, we do increment pointers, update data, update result. We don't need to compute the very first result because we did it in the setup.
-In 1334, we update result, increment pointers, update dpsum. Either works.
-If you increment immediately you need to check the initial window in the setup. If you increment at the end, you need to update the relevant data such as the dpsum as well. We can't increment at the end but update the dp sum immediately, because then our first window would be wrong as we double count a value.
-We may need to take caution if we update the pointers before the data/result, because if we are at the last r position and update the pointer inside the loop, we will go out of bounds, so we may want to iterate while r < arr.length - 1. If we update the result first, then our pointers will still go out of bounds after (causing the data to be corrupt) but this doesn't matter since this was the last time the result would be updated. Sometimes this is annoying though if our data gets updated in a way that throws an error, for instance in 28, where we used a rolling hash, we can't get the charcode for undefined. We could also check the result immediately, then increment, but increment to length-1 so we don't get a corrupt charcode at the end, and then check the result at the end. Or just put a condition inside the while loop in case we are at the end, which may honestly be easier to implement, such as problem 28.
-Also, don't be clever with trying to reuse variables when setting up windows. For instance setting up the initial fixed window, then re-using that variable, r, to iterate over the array. It's easier to just use new for loops with let i=0 and set up the windows nicely, as would make intuitive sense (i.e., iterate over the needle in problem 28 to compute the hash, then iterate over the haystack for the needles length to compute the initial window, then create l and r variables at the right spots)
-We can also do the fixed sliding window with just a for loop for the left boundary of the window, for instance in problem 718 where I did a rolling hash.
-
-two pointers - initialize two pointers that will be used to track or update things. Often, these are initialized at the left and right of the iterable, and move inwards, but this is not always the case, for instance: 26. Remove Duplicates from Sorted Array, initializes two pointers at the beginning, one to read and one to update. Two pointers is distinct from sliding window because we aren't considering all the values in the window, rather just the pointers. It is also different from binary since that is a more specific subset of two pointers. In general, two pointer problems will have have a forced increment at the beginning, and it is up to us to determine what to increment and when inside the loop. This is not always the case though, such as in the simple code for 283: Move Zeroes, where we start with two pointers from the beginning.
-
-prefix / postfixes - similar to kadane's, but the difference is we aren't resetting our prefix, we're just establishing cumulative prefixes and postfixes. Prefixes usually include the current number in the prefix, but they don't always have to for instance 238: Product of Array Except Self. Also 435: Non-overlapping intervals, our prefix represents the furthest end time of the prior intervals, but we use that to assess if we need to merge the new interval or not.
-
-a common motif with prefixes or dps or something (think trapping rainwater II my failed attempt at trying to get the row and column constraints when I first tried the Min(rowConstraint, colConstraint) strategy) is:
-1- we know some information such as the max heights, this might happen immediately when we enter the loop because they are initialized before the loop starts
-2- we use those max heights or that information to compute something
-3- we update the new max
-but also if our prefix should include the current cell, we might have a pattern like:
-1- we dont yet know the information / we might have default values such as infinity or negative infinity
-2- we reach a new cell and update the prefix or information based on that cell
-3- we process something with that info such as the min length of the subarray
-
-binary search - create two pointers, l and r. Create a middle pointer, I used to initialize it to be the actual value immediately, in case we never enter the while loop, but I couldn't actually find where this was needed. Say we use the floor so it errs left. Our loop will be while (l < r), because once l===r, we only have one possible number left. Immediately upon entering our loop, recalculate m. Since we err left by default, it means our middle value will always be on the left side. If our middle value is the target value, we would need to look left as well, since we chose to err left. For instance [1, 2] and m is pointing at 1, which is our target. We need to search the left side of the array when our target === nums[m], so keep this in mind when changing the way the l and r are set. To know how to set l and r, just think that the binary search is eliminating numbers. Consider [1, 2, 3] with l, m, and r set accordingly. If our middle pointer is too big, or equal to the target, we need to search left. But since it could equal the target, we should consider m still, so r=m. If our middle pointer is strictly too small, we can search all values on the right of it, so l = m + 1. It's also important to note binary search isn't for finding the middle of things, it's for finding something specific inside a range, for instance a number, or the minimum eating speed koko can use to eat bananas (problem 875). It works because we can assess a value and prune half of the tree.
-some misceallenous binary notes on a working and not working strategy, due to the err direction being different from how we handle our pointer changes
-
-If we are using the floor, we can never set l=m, because that won't compress a window of 2. We must use a ceiling. If we are using a ceiling, we can never set r=m, as it won't compress, we must use r=m-1. 23: Find First and Last Position of Element in Sorted array showcases using both. It also sometimes may be easier to use 3 cases, nums[m]<target, equals, and greater than, and set the windows accordingly.
-
-We also can do l<=r, like in problem 1898, to run the verification process on the final narrowed down value as well. But this only works because we can't end up in between two values, for instance if removables is [1, 3] we cannot end up between removing [1] and removing both [1,3]. We would either land on one of them, or get pushed out all the way to the left (-1). Whereas in a simple binary search (look for a number, return index or -1 if not found), it's possible to have: [3, 7, 10] target=5 and we end up with r pointing at 3 and l pointing to 7, but we didn't get pushed out the side of the search range to -1.
-
-Another thing we can do (such as neetcode did in problem 2300 spells and potions), is make a variable that captures a value on every iteration of the binary search. An idx variable, so we don't have to worry about handling l or r, we can just grab the relevant value whenever we find a success.
-
-When we do l<=r, r can end at relevant info. For instance in 1889, we use l<=r and we are looking for the biggest number smaller than a certain number. r would also be set to index -1 if there was no number that satisfied the condition. I think trying to assign cases to use l<r or l<=r or anything is not well designed, it's better to adapt on the fly based on the problem.
-
-
-
-
 ********** PROBLEM WRITEUPS **********
 
 WRITEUPS:
@@ -62,73 +20,6 @@ for (...) {
 
 
 
-********** CLARIFICATION FOR ARRAY PROBLEMS **********
-
-// SLIDING WINDOW / KADANES / PREFIX STUFF
-max sum of any subarray (any numbers) - we can use kadane's prefix sums
-
-209: minimum size of subarray of sum >=k (positive numbers) - we can use sliding variable window, decrement from left pointer as much as possible when >=k, since we increment r immediately as well. We can't allow negative numbers since then we aren't sure if incrementing the left pointer of the window would cause our sum to increase. If we want negative numbers, see 862 which uses a monotonic deque and prefix sums. 209 also has a good writeup on why naive strategies wouldn't work for negative numbers.
-___
-not a LC question: number of subarrays / minimum size subarray for sum=k or sum>=k (positive nums), same as above, we can use a sliding window! once we are greater than or equal to the sum, we keep decrementing and adding to our count as long as we still fit the constraint
-___
-560: Subarray sum equals k, we need to calcuate # of subarrays that = k (any number). We can't use a sliding window due to negatives, but we can maintain a prefix mapping of prefixes we could chop off at any given point.
-
-
-152: max product of array (any numbers) - we can use a minPrefix and maxPrefix sum
-
-
-********** TRICKY ARRAY TECHNIQUES **********
-
-We have an array of length n-1, containing all digits from 1 to n, except 1. Such as [3, 2, 1, 5], n=5. To find the missing number in constant space, do sum subtract or bit manipulation. If there are two numbers missing, TODO: bili solution
-
-Problem: 448
-We have an array of length n, containing all digits from 1 to n, but some are missing and replaced with duplicates, we need to find the missing ones. For example: [4, 3, 2, 7, 8, 2, 3, 1], n=8, but the 2 and 3 are repeated, and in exchange we are missing 5 and 6. An O(n) solution is to iterate through, populate a set, and find what is missing. A constant solution could be to set the numbers to something out of their range, like negatives or big numbers, by using the indices to store info. So when we see a 4, make the 4th element negative. Iterate through the array, and any element not negative was never visited.
-Follow up: What if our array is shorter, and we need to find the numbers missing under n. Say: [4, 3, 2, 7], n=8. We cannot use indicies since the array is too small, I'm not sure if an O(1) space solution exists (that is n time).
-Similarly, to find a duplicate, like in 287 (but with modifying the array), we can see a number: [1, 3, 4, 2, 2] say 1. And flip the 1st index element to negative: [1, -3, 4, 2, 2] if negative was out of bounds. We repeat until we try to do a flip and the number was already negative.
-
-Problem: 27 / 380
-Getting rid of things from the middle of arrays in constant time. If the order doesn't matter, we can swap the element to the end and pop it. For instance: [0, 1, 2, 3, 5] we want to get rid of all 2s. Swap the 2 to the end and pop it. Then continue with processing the 5 (or even a newly swapped in 2).
-
-Problem: 48
-To rotate a matrix, we could rotate it in groups, or we could transpose and reflect it.
-
-Problem: 128
-To find the longest consecutive sequence of an unordered array of elements in n time, add the elements to a set, iterate through the elements, check if they were the beginning, and if they were, iterate through to see the length (gets amortized as each element can show up only once in inner loop).
-
-Problem: 169
-To find a majority element, we can use constant space, incrementing when we see the most common element, and decrementing otherwise.
-
-Problem: 283 / 905
-To move things around to the left, maintain two pointers. Iterate over, and whenever we find something that needs to be on the left half, swap it to the left, then increment the left pointer. This guarantees that all elements will be as left as possible at the end.
-
-Problem: 146
-To have O(1) deletion from anywhere, O(1) insert to the head or tail, and O(1) update to any value, we need a doubly linked list + cache. The cache maintains a map of keys to nodes, and nodes contain keys and values. The cache lets us instantly find a node when given a key, and we can delete it. This doesn't support random access by the number position in the deque though, if we tried to maintain an index:node mapping and we delete elements, we would need to update all the indicies. If we want random access by number position in a deque, we lose O(1) deletion from the center.
-
-Problem: 30
-Finding a duplicate number (one or more times) in an array of n+1 numbers where each number is from [1, n] can be done with a cycle approach, since we are sure there is a head of a cycle that gets pointed to twice, since no number can be 0 we definitely have an outside part of the cycle. Even if there are multiple duplicates at least one can be found. We can also do it while mutating the array by setting numbers to negative (if outside the range) and when we set a number that is already negative we know we have seen it twice.
-
-Problem: 347
-top k frequent elements (any nums) - map out occurences : lists of numbers that had that many occurences, iterate backwards starting from max occurences.
-
-Problem: 50
-To find the first missing positive number in an array, see problem 41: First Missing Positive
-
-Problem: 907
-To find the sum of all the minimums of every subarray, we can maintain a monotonic increasing stack of indices (where we then look up the numbers) to determine ranges for which a given element is the minimum, then compute how many subarrays it is a part of that it is a minimum of, and add those together.
-
-Problem 2731, Movement of Robots
-if we have some array: [1, 7, 9, 2] and we want to find the sum of all differences of pairs. For instance [1, 7] => 6, [1, 9] => 8, and so on. We can check how many times a left index is subtracted, and how many times it is added, based on its position in the array.
-
-To find the sum of all subarrays in an array, we can know how many times a number is used in a subarray, based on its position in the array. For instance in [1, 2, 3]. 2 is used 2 times from the left, 2 times from the right, and therefore 4 times total. 1 is used 1 time from the left, and 3 from the right, so 3 times total.
-
-Problem 99: Recover Binary Search Tree. Here, we can see how to fix a sorted array which has two elements that are swapped.
-Consider [6, 3, 5, 2, 7, 10]. 2 and 6 are swapped. The first swapped element is the first element that is bigger than its right neighbor. The second swapped element is the last element that is smallest than its left neighbor. We phrase it like this because of causes like [3, 2, 1]. The 1 is the last one smaller, and 3 is the first one bigger. Simiarly: [3, 2] the rule holds.
-
-********** MONOTONIC THINGS **********
-
-After we create a monotonic structure, we often have to clear up the remaining portion that is leftover. This may be able to done within the original for loop, by iterating to one index higher than needed, and adding a condition in the while loop that checks if we are at the last index. See problem 2104 for an example. We often do not need tuples for many problems because of this. We could also add a dummy value to the end that pops everything off. Similarly we can add a dummy value to the beginning like a -1 so we always have something our values can never be less than.
-
-To know the smallest or largest number in some sliding window, we can use a monotonic deque like in problem 239.
 
 ********** ANAGRAMS **********
 
@@ -137,37 +28,7 @@ Matching character frequencies, we can use a have and a need counter and increme
 
 
 
-********** LINKED LISTS **********
 
-Linked Lists:
-to iterate over a linked list:
-while (head) {
-  head = head.next;
-}
-This works because as long as we have a valid element, then the .next will at worst be null. The problem is after this loop ends, we lose the tail. We can either grab the tail inside the the while loop, or use:
-while (head && head.next) {
-  head = head.next;
-}
-now, the loop fails when our next element is null. We need the head to be checked too, in case our head is null to begin with, to short circuit null.next
-
-To merge two lists, we can either:
-1) Figure out where the head pointer should start at, either l1 or l2. Say head starts at l1. Then we should increment l1 to begin with. We run a comparison between l1 and l2, and add the appropriate .next for the head. Say we do head.next = l2. Now we increment the l2 pointer. At the exact moment we add something to the head, we are creating a really long linked list yes, since it connects all the way to the back, but as we string through them, the end result will be the merged list.
-2) Create a dummy node, and use that as the head instead, now l1 and l2 both start at their appropriate starting locations.
-Either way, you will need a tail pointer trailing off of the dummy to know where to append to
-
-When reversing part of a linked list, think about the full set of pointers, for instance:
-1->2->3->
-we reverse starting from 2, making:
-<-2<-3
-but 1 still points to 2, so we have:
-1->2<-3
-   V
-
-Good naming conventions are old, slow, fast, current, etc. and if we need multiple iterations, at the beginning we can do let current = head, do our iteration, then reset current to be head again for the next iteration
-
-Don't forget in linked lists we can always reverse part of a list in constant storage, so that we can traverse across one half backwards.
-
-206: Reverse Linked List has a good way to write out recursive call stacks.
 
 ********** TREES / BST **********
 104: Maximum Depth of Binary Tree has good writeups on using different searches in very elegant ways.
@@ -210,7 +71,7 @@ In a BST, we can figure out the neighbors of a value, by looking at the largest 
 
   We could do this by iterating through the tree, tracking the largest smaller and smallest larger numbers, terminating when we finish the tree.
 
-  We can also do other valuable things that require a sorted structure, such as finding the minimum, maximum, and range queries (find all elements between x and y) in log n time (except for the range query, which is log n + k, and requires recursing down the bst and pruning).
+  We can also do other valuable things that require a sorted structure, such as finding the minimum, maximum, and range queries (find all elements between x and y) in log n time (except for the range query, which is log n + k, and requires recursing down the bst and pruning). We can also find the largest number that is smaller than n, by traversing the tree. I think it is useful to just think of it as similar to a sorted list, except insertion and deletion are faster, and we don't have O(1) to the nth biggest number. We can find the nth biggest number in O(log n) if each node contains info for the number of nodes in its subtree, including itself.
 
 
 To check if a tree contains another subtree, we can serialize them and use string matching. Or we can do a full subtree check on each treenode.
@@ -242,197 +103,41 @@ For instance:  1       and          1
 
 Both have pre: 1, 2 and post: 2, 1 traversals.
 
+in a bst we could find the midpoint element in log n time if we knew the size of the left and right subtrees.
+
+Problem 98 and 783 show good ways to do inorder on BST and not need an array to track all the values (for finding if the BST is valid, minimum difference between nodes, etc).
+
+
+We can always maintain a global variable, such as 'prev', when doing something like an inorder traversal. For instance in 426: Convert BST to sorted doubly linked list, we just do an inorder traversal, but store what the previous node was.
 
 ********** AVL TREE **********
 
 A self balancing binary tree works by doing rotations, where we rotate around x and y and rearrange subtrees. Sometimes a more complex rotation is needed as the basic rotation does not balance the tree.
 
 
-********** TRIE **********
 
-To prevent doing many prefix lookups, we can pass the trienode into our dfs function (like in 212: word search II), and just check that node's childrens to validate our prefix.
+********** SQUARE ROOT DECOMP **********
+If we don't have a perfect square number of elements, it is common to take the ceiling of the root for the chunk size, but both floor and ceiling work.
 
-********** BACKTRACKING **********
+307: Range Sum Query - Mutable shows how we can use square root decomp to mutate variables in an array and still have fast queries.
 
-One useful thing is to maintain a seen array of n x m, and update those cells, then un-update them at the end of the execution context. This seems faster than maintaining a set of visited cells, though I don't see why it is necessarily.
+Say we need to implement a big string class, for like 500k+ characters, and we want to support insert and remove at arbitrary indices. Naive would require shifting each character for each operation. What we could do is square root decomp, so we store root n deques, and now when we need to insert, we look up which deque to insert it in. Then we just do a root n time operation to insert it into the middle of the deque. Chatgpt: If a block's size exceeds 2√n after insertion, split it into two blocks each of size approximately √n. If a block's size drops below √n/2 after deletion, merge it with an adjacent block and then possibly split the merged block if its size exceeds 2√n.
+But why not just split it into n chunks? Because then each time we add something, we might overflow and need to create a new chunk or reallocate memory for a chunk. If we allocated n chunks, but extra memory in each chunk, that could work, but then when we fill up that memory we need to reallocate, so I'm not actually sure if that ends up being any better.
 
-In backtracking, we can decide to choose an option by recursing the function on that option. We can decide to skip an option by skipping it (usually by popping that option). Once we reach some terminal case, we can add the case to our result. See problem 78: Subsets for an example.
+********** AVL TREES VS HEAPS **********
 
-Word Search II has a good writeup on entering bad nodes and terminating, and a few other things.
+AVL trees support add (log n), remove (log n), and search (log n). We can also support min and max in constant time. Maintain a pointer to the smallest element, and each element maintains a pointer to the element just bigger than it. AVL trees can also tell you how many elements are bigger or smaller than a given number in log n time, it takes log n time to find that number (or if it isn't there, where it would be, I am assuming), then constant time to find how many are bigger or smaller than it, if we maintain additional bookkeeping.
 
-*** In backtracking in a grid, there are some considerations: ***
+Heaps support add (log n), remove (log n), and min/max in constant time. However, heaps are faster under the hood, practically, because they use arrays. AVL trees cannot forcibly be complete (I think), whereas heaps are complete and therefore can use arrays.
 
-1) When we enter a cell in the call, mark it as visited:
 
-function backtrack(row, col) {
-  visited[row][col] = true;
-}
+********** GENERAL TIPS **********
 
-Logically, when we enter a cell for the first time, all child descendants should know that cell was visited.
+If your code isn't working at all (but your solution is close, just debugging), instead of walking through a complicated test case, if no easy ones are given, try manually using an easy test case.
 
-One other option we might consider instead, is for each neighor we try to toggle the visited state:
+********** MISC **********
 
-function backtrack(row, col) {
-  visited[row + 1][col] = true;
-  backtrack(row + 1, col);
-  visited[row + 1, col] = false;
-}
-
-The first is more intuitive and easier, and does not need repeat code for each adjacency.
-
-In the first case, after we are done recursing on all neighbors, we need to mark the cell as univisted, so that higher up calls may use that cell differently.
-
-function backtrack(row, col) {
-  visited[row][col] = true;
-  backtrack(row + 1, col);
-  visited[row][col] = false;
-}
-
-We can reuse our visited table for all root calls, as when one root call ends, everything will be univisited (see problem 79: Word Search).
-
-The backtrack itself should be allowed to enter bad nodes. Once we are in the bad node, we can terminate if needed. If we are in a good node, we can check if we have met a terminal condition, or recurse if needed.
-
-In non grid backtracking, we can do a similar thing. Consider problem 78: Subsets.
-
-function backtrack(currentNums, i) {
-  if (i === nums.length) {
-    result.push(JSON.parse(JSON.stringify(currentNums)));
-      return;
-  }
-  currentNums.push(nums[i]);
-  backtrack(currentNums, i + 1);
-  currentNums.pop();
-
-  bactrack(currentNums, i + 1);
-}
-
-Essentially what we are doing is we enter a bad state (i is too big). If so, we terminate, in this case we add a result though as we know we finished. In word search we either terminate if we have an invalid letter (no result), or we terminate if we find the word. Subsets is more like keeping going until we can't, and word search is more like go until we form something invalid, or we find our result.
-
-Then, we mark the current number as 'visited', by pushing it to the stack. We recurse on neighbors, and mark it unvisited. However, we also wwant to recurse while the current cell is 'unvisited'. It's a bit different than a grid, since a grid can go back and forth, whereas this is more like we skip an option or include an option. The overall structure shares themes though. If we have many options to skip or add, we can do it with a for loop like in problem 39: Combination Sum.
-
-Problem 46: Permutations, shows two ways to handle the tree backtrack problems. The first is we can add a neighbors number, recurse on it, then pop that number. This is nice because in a tree we don't worry about going back and forth to the same cells, unlike a grid. However, we could also take a more grid-like approach as we did in solution 2, where we add the current cell in the main execution context. Iterate on neighbors, then pop it. This requires the backtrack function to take in a parameter for the number itself. This is kind of like how in a grid, it takes a row and a column, part of which we use to deduce the number itself and add it to our accrual.
-
-
-
-In general, think of each call to a backtracking problem as being a node in the tree.
-
-
-********** SORTING **********
-
-counting sort / bucket sort strategy - good for things that are bounded by what can be included, for instance sorting a word of only letters
-
-two sort two arrays based on one of them, for instance sort both position = [10,8,0,5,3], speed = [2,4,1,1,3], based on position
-we can create an array of tuples of the position and speed pairs:
-const tuples = position.map((val, index) => [val, speed[index]]);
-then sort tuples based on the values
-tuples.sort((a, b) => a[0] - b[0]);
-then split them back up
-
-Lots of sorting algorithms are listed under problem 912: Sort an Array. Quick TLDR here:
-
-Insertion Sort: for each element, find where it goes
-Merge sort: recurse down to base cases, merge lists, and bubble up merged lists. Can use pointers to make slightly more efficient. Can also use for merging sorted linked lists or sorted lists.
-Quick sort: pick a pivot, partition based on that pivot.
-
-
-
-********** MATH **********
-
-math: to find the distance between two points on a line, we can just do abs(p1 - p2)
-
-to get the last digit of a number, do % 10, to remove the last digit, do floor div by 10
-to get the first digit of a number, we can keep floor dividing until the number is less than 10. We could speed up the floor div process by using logs to figure out how many digits are in a number, and then floor dividing by a bigger number based on that
-
-2241: Design an ATM Machine and 2244: Minimum Rounds to Complete All Tasks show how we can use math to simplify operations. In design an ATM machine, we need to withdraw the largest bill repeatedly until it would put us over our withdrawn amount, then repeat. Instead of withdrawing one at a time, comparing our remaining amount, and loop (total time complexity = # of bills in the machine, since we could draw each bill one by one), we can calculate with math exactly how many we could withdraw, and the time complexity becomes bound by the # of bill types.
-
-(A + B) % C = (A%C + B%C) % C
-think of a=15, b=17, and c=10, a passes c by 5, by passes c by 7, but their passes add up to 12, which effectively passes c by 2
-similarly, (A + B + C) % D = (A%D + B%D + C%D) % D (this time the sums might exceed even 2x of D, like 19+19+19 % 10 we get 27 % 10)
-
-(A * B) % C also works, consider:
-Suppose we have:
-- a cylinder, which we can just barely wrap a rope of length C around
-- a rope, that we have marked every A units
-
-Suppose our rope has B markings from its start. (The rope has length A * B)
-
-We nail the rope to our cylinder and we wrap it clockwise around our cylinder.
-
-(A * B) mod C tells us: how much rope to we need to go clockwise from the nail to reach the end of the rope (we don't care about the length of rope that completely wraps around the cylinder)
-
-It is equivalent to the expression:
-(A mod C * B mod C) mod C
-
-A mod C tells us:
-How much further (clockwise) a segment of length A will be from the previous segment after wrapping it around the cylinder.
-
-We use B mod C, because if we wrap C segments of length A around the cylinder, the length (A * C) will be evenly divisible by C and we would be just back at the nail i.e. B mod C is the number of segments that actually contribute to the end of the rope being further away from the nail
-
-We can consider sqrt(n) to be O(1) if given normal int and precision bounds, or log n for truly arbitrary operations. Same with multiplication (string multiplication with karatsuba)
-
-Exponential squaring:
-3^16 = (3^2)^8
-3^15 = 3*3^14
-
-The fibonacci sequence grows exponetially, at golden ratio ^ n. This can be proven by showing it is lower bounded by root(2)^n and upper bounded by 2^n. This also means that The recursive tree defined by the fibonacci sequence grows exponentially. We can show that T(n) = T(n-1) + T(n-2) + 1, where T(n) defines the number of nodes in the nth recursive tree for the fibonacci numbers. This mimics the fibonacci behavior and is lower bounded by it, therefore making the rate of growth of the recursive tree for calculating the nth fibonacci number, exponential.
-
-********** HEAP **********
-
-A heap is implemented as an array. Each element in the heap is smaller than or equal to its children (for a min heap), or vice versa for a max heap. We usually keep the first element of the array as a dummy value to make counting easier, but there is a way to do it without that (2*i + 1 and 2*i + 2)
-
-A heap must be a complete tree or we lose the log n time benefit. When we add to the heap, push the element to the end of the array. Then percolate up as long as the element is bigger or smaller than its parent. When we remove from the heap, grab the first element from the heap. Take our last element and substitute it in, then percolate down. We cannot just percolate down our root element and then remove it, because we get a hole. If we try to fill this hole with our last element, the heap may no longer be valid.
-
-            7
-          /  \
-         6    4
-
-         consider this max heap. If we delete 7, then recursively try to fill the hole:
-
-
-          /\
-         6  4
-
-         4
-        /
-       6
-
-       Then replace the hole with our last heap element:
-
-       4
-        \
-         6
-
-        We don't have a valid heap anymore (this example is more clear in a bigger heap).
-
-
-      Instead, we should take the 4, make it the root, then percolate down.
-
-
-********** ROLLING HASH **********
-The objective of the rolling hash is to hash a number in constant time and only if the hash collides with our substring hash, we compare them. If we have 0 hash collisions, that means we were able to represent all possible substrings within our space, and our time complexity becomes (n-k) + k, since we did k operations to hash our pattern, and n-k sliding hashes. Each time we got a matching hash number we knew that it would be our precise pattern. Say we have 50% hash collisions, that means 50% of the time, we have to do a k-complex check, so our time complexity is (n-k)*0.5k. As our hashing function drops in # of collisions, we approach some linear scale of complexity relative to n, since even if k were really big the tiny number we multiply it by often bounds it. This is just expected runtime though, not true worst case.
-
-To hash, say letters, we can assign each letter a value, a=1, ..., z=26. We could then hash it like: h(abc) = 1*10^3 + 2*10^2 + 3*10^1 = 123. Here, our total possible hash range for length 3 is zzz, which would be 26*10^3 + 26*10^2 + 26 = 2886. But there are 26^3=17576 possible 3 letter strings, so we have collisions. For instance k=11 also collides with aa=11. If we want to maintain the pure no collision strategy, we need to use the 26th power as our base, so we would have 26*26^3 + 26*26^2 + 26*26^1 = 475228, but not all possible values are obtainable, for instance we could never have a value of 1, our smallest value would be 26 with the letter 'a'. Since we take steps of 26, we have 475228/26 = 18278 actual substrings (17576 of which are 3 letters). By using a higher base, we prevent collisions, but now we might introduce int overflow, so we start using mods. Prime mods give better distributions.
-
-Say our alphabet is just a-k and we hash using powers of 10.
-h(abcd) = 1234 % 113 = 104, and now we want to slide to bcde.
-1234 % C is the same as (1000%C + 200%C + 30%C + 4%C) % C. This means that if we want to remove 1000, and determine what our hash is, all we have to do is subtract its contribuation. 1000%113 = 96, so our old hash, 104, minus 96, gives us our new hash, 8. Now we want to scale up the original number, 234->2340, and then mod it. Well (234*10) % C equals (234%C % 10%C) % C. We already have 234%C, which is 8. 10%C will always just be 10 since our scaling power will essentially always be under the mod. So really 2340%C is just (8*10) % C, which is 80! Finally, we add the new digit, 8, and mod again if needed.
-But what if when we subtracted the contribution of 1000, it became negative? For instance say 1000%113 was 105, now when we remove it from 1234%C (104), we get -1. But 234%113 is not -1, it should be 112 (in this case). But lets try with the -1 as our new hash for 234 anyway. The next step is to multiply by 10, and we get -10. Since we might have made it too big if it were positive, we mod again, and -10%113 is 103, so it fixes itself. It would have been the same result had we used 112. Since a negative number modded gives a positive. In JS though, -10%113 gives a negative. So we need to add MOD. We can check if our result is <0 and then add MOD (or we can just always add MOD anyway).
-
-But what if 10^3 or 10^2 is too large anyway? We can simplify it, since 10^2 % C is just (10%C * 10%C) % C using a mod pow function.
-
-So the pattern is:
-1) subtract contribution of old number
-2) we may have a negative now, in JS, add mod
-3) multiply by 10, then mod
-4) add last digit, then mod
-
-Also we call the has degree 'base' because we're basically converting an arbitrary amount of glyphs into some base number system so we can do math in that base number system. If we only had the letters a...j we can fit the math into base 10. So now we can do math operations like 123*10=1230. But if we want to include k, we should use base 11. So 123 in base 11 is 102, and when we multiply that 123*11 (1353) and convert to base 11, we get 1020. If we have 11 possible characters, of course we should use a base 11 system where each character has a weight by 11 to the power of something. The math properties are preserved so we can do rolling hashes still. We can use a smaller base than the number of glyphs we have, it just results in more collisions. For instance in base10 BB->22 is the same as AL (10+12). Also two strings of the same length can have a hash collision, even if our base is the # of glyphs, if the size of the strings are big enough such that there is overflow.
-
-To see a really good implementation of a rolling hash, look at 718. It has a cached modpow function, a full implementation, and even an optimized implementation in terms of writing clean and concise code. We can do a fixed sliding window with just a single for loop vs. l and r pointers as well.
-
-The rolling hash doesn't technically make something linear time, it basically makes it 1/buckets * n * k time, and the assumption is k is smaller than the number of buckets we hash to.
-
-The rolling hash "shift" where we multiply everything by 10 or whatever the base is, is considered constant time, because we use MOD to keep it within a range. Since technically with an arbitrarily large number, multiplication becomes a function of n.
+Hashing a string of length n is an O(n) operation, so doing a set lookup on a string depends on the length of that string.
 
 ********** TODOS **********
 
@@ -445,3 +150,32 @@ leetcode add solutions for contest problems, and one c++ submission i accidental
 delete node in bst by reference not by overwriting value
 todo: eventually redo construct binary tree from preorder and postorder traversal
 // todo: add assesement questions and contest questions
+// update all guides to be simplfiied, readable anew, have example problems that illustrate things, do 1 a day maybe
+// learn bit
+https://cs.stackexchange.com/questions/10538/bit-what-is-the-intuition-behind-a-binary-indexed-tree-and-how-was-it-thought-a
+
+learn seg tree
+learn avl tree
+
+
+mini processed:
+binary search
+
+processed:
+sorting
+
+
+********** TODO PROBLEMS **********
+
+finished this but submit solution when done with graphs:
+863: same
+802: same
+https://leetcode.com/problems/find-eventual-safe-states/description/
+
+TODO PROPERLY:
+1489: https://leetcode.com/problems/find-critical-and-pseudo-critical-edges-in-minimum-spanning-tree/description/
+168: https://leetcode.com/problems/excel-sheet-column-title/description/
+1203: https://leetcode.com/problems/sort-items-by-groups-respecting-dependencies/
+1183: https://leetcode.com/problems/maximum-number-of-ones/description/
+145: https://leetcode.com/problems/binary-tree-postorder-traversal/description/
+using iterative

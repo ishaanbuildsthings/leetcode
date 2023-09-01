@@ -1,1 +1,0 @@
-In 51, n queens, even if our result is multiple n^2 grids, our space complexity is still n^2, because when the result is finished, but not all states have been searched, we may still have n^2 extra memory allocated. So even if the result dominates the n^2 allocation, there is still n^2 auxillary memory.
