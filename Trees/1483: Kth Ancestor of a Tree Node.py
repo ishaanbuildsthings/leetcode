@@ -14,6 +14,7 @@
 
 # Solution, O(n log n) time and space for initialization, O(log n) for query
 # We create the binary lift array, which takes n log n time and space. Then for each query, we binary jump up in log time.
+# We modified the normal binary lift template slightly. Since if the kth ancestor is too high, we should return -1. To handle this, when we jump and reach a -1, we stop immediately, otherwise we would check lift[-1] which in python goes to the end of the list.
 
 class TreeAncestor:
 
