@@ -141,8 +141,6 @@ Hashing a string of length n is an O(n) operation, so doing a set lookup on a st
 
 ********** TODOS **********
 
-TODO: is min size subarray sum=k doable? what about the number of subarrays? what about number of => k?
-TODO: question on discord where someone gave an alg
 2244: minimum rounds to complete all tasks, use a better solution
 // TODO: find sum of all subarrays also for any array
 add explanation for problem w95 substring 26nle
@@ -179,3 +177,5 @@ TODO PROPERLY:
 1183: https://leetcode.com/problems/maximum-number-of-ones/description/
 145: https://leetcode.com/problems/binary-tree-postorder-traversal/description/
 using iterative
+
+TODO:
