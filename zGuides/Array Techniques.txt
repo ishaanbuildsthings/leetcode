@@ -58,3 +58,5 @@ Problem 974: Subarray Sums Divisible by K. Here, we need to process information 
 To set all numbers in an array equal to the same number, where we can move any number +1/-1 at a time, the minimum number of changes needed will always involve setting all numbers in the array to be one of the numbers in the array (problem 462).
 
 To see how many times a number uniquely occurs across all substrings / subarrays, we can map out the positions of that number, and calculate its individual contribution. This is seen in problems like 828 (count unique characters of all substrings of a given string), 2262, or the total strength of wizards question. Basically it just finds out, for each index, what that index's contribution is to the total problem.
+
+Problem 370: Range Addition, shows how we can take range queries where we need to add to every number in that range, and do it in faster time. We simply add +diffs and -diffs at the beginning and end of the range.
