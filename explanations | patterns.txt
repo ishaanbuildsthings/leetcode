@@ -179,3 +179,4 @@ TODO PROPERLY:
 using iterative
 
 TODO:
+reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?
