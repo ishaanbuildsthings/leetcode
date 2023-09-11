@@ -19,6 +19,7 @@ bubble sort
 bucket sort
 circular
 connected [for graphs]
+digit dp
 directed [for graphs]
 deque
 dfs
