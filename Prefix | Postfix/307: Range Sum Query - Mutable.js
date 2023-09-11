@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/range-sum-query-mutable/description/
 // Difficulty: Medium
-// tags: square root decomposition, segment tre, binary indexed tree
+// tags: square root decomposition, segment tree, binary indexed tree
 
 // Problem
 /*

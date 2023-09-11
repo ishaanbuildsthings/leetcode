@@ -1,6 +1,5 @@
 //https://leetcode.com/problems/continuous-subarray-sum/description/
 // Difficulty: Medium
-// tags: prefix
 
 // Problem
 /*
