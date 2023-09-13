@@ -11,18 +11,18 @@
 
 # Note that digit_sum(x) denotes the sum of the digits of x.
 
-# Solution, O(log(n) * 2 * 2 * 200) space, 2 times that for time. Could be sped up a bit with some pruning.
-# We need i, nonZeroTaken though maybe we could just subtract one from the result, tight, the current sum of digits.
+# Solution, O(log(n) * 2 * 200) space, 2 times that for time. Could be sped up a bit with some pruning.
+# We need i, tight, the current sum of digits.
 
 class Solution:
     def count(self, num1: str, num2: str, min_sum: int, max_sum: int) -> int:
         MOD = (10**9) + 7
-        # memo[i][nonZeroTaken][isTight][prevSum]
+        # memo[i][isTight][prevSum]
         @cache
-        def dp(i, nonZeroTaken, isTight, prevSum, strNum):
+        def dp(i, isTight, prevSum, strNum):
             # base case
             if i == len(strNum):
-                if nonZeroTaken and prevSum >= min_sum:
+                if prevSum >= min_sum:
                     return 1
                 return 0
 
@@ -34,9 +34,8 @@ class Solution:
                     continue
                 newTight = isTight and digit == upperBoundary
                 newSum = prevSum + digit
-                newNonZeroTaken = nonZeroTaken or (digit != 0)
-                resForThis += dp(i + 1, newNonZeroTaken, newTight, newSum, strNum)
+                resForThis += dp(i + 1, newTight, newSum, strNum)
 
             return resForThis
 
-        return (dp(0, True, True, 0, num2) - dp(0, True, True, 0, str(int(num1) - 1))) % MOD
+        return (dp(0, True, 0, num2) - dp(0, True, 0, str(int(num1) - 1))) % MOD
