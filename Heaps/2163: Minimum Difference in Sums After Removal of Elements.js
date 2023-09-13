@@ -259,7 +259,7 @@ class MaxHeap {
     this.heap[1] = this.heap[this.heap.length - 1];
     this.heap.pop();
 
-    // percloate down
+    // percolate down
     let i = 1; // tracks where our element is
     let largest = i;
     while (true) {

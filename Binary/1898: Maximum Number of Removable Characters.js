@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/maximum-number-of-removable-characters/description/
 // Difficulty: Medium
-// tags: binary search
+// tags: binary search, subsequence
 
 // Problem
 /*

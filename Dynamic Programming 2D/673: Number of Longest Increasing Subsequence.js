@@ -22,7 +22,7 @@ var findNumberOfLIS = function (nums) {
   let result = 0;
   let longestLengthEver = 0;
 
-  // memo[i] gives us a tuple of [longest increasing subsequence wher ethe last number is the ith number, # of increasing subsequences that can be made this way]
+  // memo[i] gives us a tuple of [longest increasing subsequence where the last number is the ith number, # of increasing subsequences that can be made this way]
   const memo = new Array(nums.length).fill(-1);
 
   for (let i = 0; i < nums.length; i++) {

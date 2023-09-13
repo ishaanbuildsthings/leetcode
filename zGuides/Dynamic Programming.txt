@@ -41,3 +41,17 @@ Remember that top down doesn't solve every subproblem, only needed ones, but tru
 In 656: Coin Path, where we need the path for the lowest price to reach the end, we also store the path inside the dp. It is worth noting we can store multiple things in the DP but only answer problems based on one value (the cost), and just use that extra information as per the return statement.
 
 We don't need to necessarily enumerate all ways to find the solution to 'how many ways can we do this'. This is especially obvious if it tells us to return the answer % MOD. In these cases, usually we generate a math based relationship instead of enumerating all the possibilities. And we do something like: "answer tto this subproblem is these two subproblems added or multiplied together"
+
+
+******** DIGIT DP ********
+
+Digit DP is useful when we need to generate an amount of numbers under a high barrier that fit some property with its digits. Say we have to check all numbers from [1, n] for some property. If n is of length 3, we can generate all numbers with 3 digits. To generate single digit and double digit numbers, we would use leading zeroes.
+
+Digit DP often takes many params such as:
+tight - tells us if we are bound on the current digit. Say n is 123. We are initially tight. Therefore, for the first digit we can only choose 0 or 1. If we choose 0, we are smaller than n for sure, and we become unbound on any future digit, no longer tight. If we choose 1, we are still tight, and still bound on the future digit. So generally our newTight is `if tight and digit == upperBoundary`.
+
+nonZeroTaken - We want to know if we have taken a non-zero yet, or we are still leading zeroes. This helps us ensure we don't count the 000 case as a number (though we could just subtract 1 from our result), as well as can be useful for other things. For instance if we haven't taken a nonZero yet, we may have free reign of our digit, but once we have, we may be constrained.
+
+i - this tells us where in the number we are inserting the digit, so we know when we are at the length of n.
+
+If we are to solve for [low, high] instead of [1, n], we can just do [1, high] - [1, low - 1]. We could also use a lower tight bound and pad the low with 0s to make it the same length as high.
