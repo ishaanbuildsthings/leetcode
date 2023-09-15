@@ -1,6 +1,6 @@
 # https://leetcode.com/problems/escape-the-spreading-fire/description/
 # Difficulty: Hard
-# tags: matrix bfs
+# tags: matrix bfs, binary search
 
 # Problem
 # You are given a 0-indexed 2D integer array grid of size m x n which represents a field. Each cell has one of three values:
