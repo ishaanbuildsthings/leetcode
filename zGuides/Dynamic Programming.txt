@@ -55,3 +55,5 @@ nonZeroTaken - We want to know if we have taken a non-zero yet, or we are still 
 i - this tells us where in the number we are inserting the digit, so we know when we are at the length of n.
 
 If we are to solve for [low, high] instead of [1, n], we can just do [1, high] - [1, low - 1]. We could also use a lower tight bound and pad the low with 0s to make it the same length as high.
+
+Sometimes instead of leadingzero / nonzerotaken you can just use previous digit = -1 if you are storing that.
