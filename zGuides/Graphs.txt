@@ -31,7 +31,7 @@ In problem 695, we also don't need to set cells to be unvisited later. Since we'
 In 827, making a large island (we can flip one water tile, find largest island), I tried writing code where we could recurse to invalid neighbors, then terminate via base cases, just for practice. Actually I think it was a bit easier.
 
 In BFS, if we start from the top left of some island and are finding the area, or generally expanding out (for instance finding the shortest path from the top left cell to the bottom right, with walls), our queue size is limited to min(n,m), since in the worst case our queue expands as a diagonal (draw a picture of the bfs for a square matrix to see this). This can be seen in questions: 1091, shortest path in binary matrix, or 200: number of islands. I think most of these types of questions could use less space this way, since queue size is limited.
-
+Even if we start in the middle of the grid, our BFS queue size is limited to the permiter of what we have explored, but our seen set might still be n*m space.
 
 When we do a BFS, say to find the shortest path from one cell to another, the complexity is capped at # of cells that are within range L, where L is the distance between the two cells (this is due to the visited matrix). Whereas in DFS, we don't have certainty that we reached a cell in the shortest possible path. However, in a grid where we can only move right/down, and we want to get to the bottom right cell, DFS/BFS are the same, assuming the cost of a move is always 1. It's true that in some matrices with walls, the DFS and BFS solutions have the same cost, but in general BFS will have a lower cap than DFS (still unsure about the true DFS TC).
 
