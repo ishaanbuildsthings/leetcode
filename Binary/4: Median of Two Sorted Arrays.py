@@ -3,7 +3,13 @@
 # Tags: binary search
 
 # Problem
+# Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays.
 
+# The overall run time complexity should be O(log (m+n)).
+
+# Solution
+# O(log(min(n,m))) time (if we binary search on the shorter array), O(1) space
+# We can binary search on one array for the amount of elements to include in the left. We compute the amount of elements to include for the second array as a result. We check if the ends of the left regions are smaller than the beginnings of the right regions, otherwise we adjust.
 
 class Solution:
     def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:
