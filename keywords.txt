@@ -32,6 +32,7 @@ inorder traversal
 insertion sort
 intervals
 kadane's
+lop off (this is for problems where we need to count pairs or subarrays and we use some prefix value and see how many / earliest one we can cut off, often the remainder questions)
 math
 matrix bfs
 matrix dfs
