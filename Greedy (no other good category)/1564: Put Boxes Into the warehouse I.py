@@ -14,3 +14,23 @@
 # Return the maximum number of boxes you can put into the warehouse.
 
 # Solution, O(n log n) time, O(sort) space
+# sort the boxes, biggest first. Iterate over each warehouse. Store the biggest box we can, which is one that fits in the warehouse, and is <= the smallest seen warehouse thus far.
+
+class Solution:
+    def maxBoxesInWarehouse(self, boxes: List[int], warehouse: List[int]) -> int:
+        boxes.sort(reverse=True)
+        shortestWarehouseSeen = float('inf')
+        i = 0 # box pointer
+        res = 0
+
+        # for each warehouse, we will select the largest box that can fit (that is <= shortest warehouse seen)
+        for j in range(len(warehouse)):
+            shortestWarehouseSeen = min(shortestWarehouseSeen, warehouse[j])
+            # increment the box until we're within the height
+            while i < len(boxes) and boxes[i] > shortestWarehouseSeen:
+                i += 1
+            if i == len(boxes):
+                return res
+            res += 1
+            i += 1
+        return res
