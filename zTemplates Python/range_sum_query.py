@@ -14,7 +14,6 @@ prefixSums.append(runningSum)
 def sumQuery(l, r):
     return prefixSums[r + 1] - prefixSums[l]
 
-
 # ______________________________________________________________________
 # IMMUTABLE RANGE SUM 2D QUERY TEMPLATE
 # Gets the sum for a rectange range query in O(1), after O(n*m) preprocessing

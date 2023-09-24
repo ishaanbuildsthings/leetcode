@@ -14,25 +14,25 @@ Given an integer array flowerbed containing 0's and 1's, where 0 means empty and
 var canPlaceFlowers = function (flowerbed, n) {
   // edge case, wouldn't be handled inside the loop
   if (n === 0) {
-    return true;
+    return true
   }
 
-  let totalPlaced = 0;
+  let totalPlaced = 0
   for (let i = 0; i < flowerbed.length; i++) {
     if (flowerbed[i] === 1) {
-      continue;
+      continue
     }
     // we are at a 0, if the previous is a 0 or we are at the beginning, and the next is a 0 or we are at the end, we can place
     if (
       (flowerbed[i - 1] === 0 || i === 0) &&
       (flowerbed[i + 1] === 0 || i === flowerbed.length - 1)
     ) {
-      flowerbed[i] = 1;
-      totalPlaced++;
+      flowerbed[i] = 1
+      totalPlaced++
       if (totalPlaced === n) {
-        return true;
+        return true
       }
     }
   }
-  return false;
-};
+  return false
+}
