@@ -37,8 +37,6 @@ class Solution:
             excessUpRight = max((totalFromUpRight - 1), 0) / 2
             newCupTotal = excessUpLeft + excessUpRight
             return newCupTotal
-            volInCup = 0.5 * excessFromUpLeft + 0.5 * excessFromUpRight
-            return max(volInCup - 1, 0)
 
         total = recurse(query_row, query_glass)
         return total if total <= 1 else 1
