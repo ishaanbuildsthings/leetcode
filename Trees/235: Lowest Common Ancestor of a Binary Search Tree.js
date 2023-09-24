@@ -1,6 +1,6 @@
 // https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/description/
 // Difficulty: Medium
-// tags: bst, single branch (recursive or iterative)
+// tags: bst, single branch (recursive or iterative), lca
 
 // Problem
 /*
