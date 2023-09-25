@@ -7,6 +7,7 @@
 
 # Return the minimum cost to fly every person to a city such that exactly n people arrive in each city.
 
+# Solution, O(n^2) time and space though there is a better greedy solution
 # For each person, we either fly them to A or B, and we track a surplus of flying them to A. So our dp state is n*surplus which is n^2 time and space. I also early pruned if the surplus got too big or small.
 
 class Solution:
