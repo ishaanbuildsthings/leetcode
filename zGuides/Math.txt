@@ -52,7 +52,7 @@ Because each nth add, we can make n new subarrays by extending to points to the 
 To find the GCD of two numbers:
 function gcd(a, b) {
   while (b !== 0) {
-    [a, b] = [b, b % b];
+    [a, b] = [b, a % b];
   }
   return a;
 }
