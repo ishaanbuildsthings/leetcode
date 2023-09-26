@@ -58,6 +58,7 @@ sliding window (fixed/variable)
 slow and fast pointers
 stack
 state machine
+sweep line
 topological sort
 top down recursion [with memoization]
 trie
