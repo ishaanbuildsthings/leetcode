@@ -4,6 +4,7 @@ modfications = slightly different ways to think about or implement a solution
 helper = shows if this problem helps explain another problem, or uses a helper problem
 
 tags:
+acyclic
 arrays (sometimes used when we don't put a problem in the array category but it still has a lot of array/hashing work)
 avl tree
 backtracking
@@ -19,6 +20,7 @@ bubble sort
 bucket sort
 circular
 connected [for graphs]
+cyclic
 digit dp
 directed [for graphs]
 deque
