@@ -65,3 +65,6 @@ Doing (A*B) % MOD, if MOD is 10^9 + 7, in JS, can still overflow. So we need to 
 
 
 Say we have an array of numbers. Any number that dives everything in that array (goes into each number evenly), also goes into the GCD of all of those numbers evenly.
+
+
+log base x of y is log(y) / log(x)
