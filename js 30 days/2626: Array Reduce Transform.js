@@ -1,5 +1,5 @@
 // https://leetcode.com/problems/array-reduce-transformation/
-// Difficulty: Medium
+// Difficulty: Easy
 
 // Problem
 /*
