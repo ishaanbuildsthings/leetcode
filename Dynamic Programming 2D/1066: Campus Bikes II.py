@@ -11,7 +11,7 @@
 
 # The Manhattan distance between two points p1 and p2 is Manhattan(p1, p2) = |p1.x - p2.x| + |p1.y - p2.y|.
 
-# Solution
+# Solution, O(2^bikes * people * bikes * bikes) time, O(people * bikes) space
 # Just try, for each person, using every bike. DP bitmask to indicate which bikes are taken, and iterate over the person we are on.
 
 class Solution:
