@@ -13,7 +13,7 @@
 
 # Return the kth string of this list or return an empty string if there are less than k happy strings of length n.
 
-# Solution, 3^n log (3^n) + n^2 time, sort(3^n log 3^n) + n^2 space
+# Solution, 3^n log (3^n) + n^2 time, sort(3^n log 3^n) + n^2 space + 3^n
 # We track accumulated letters, store all possibilities, sort, then check. Our stack depth is at most n, each one takes n time and space for string handling. We get at most 3^n states which are sorted.
 
 class Solution:
