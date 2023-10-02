@@ -1,7 +1,7 @@
 // https://leetcode.com/problems/maximum-good-people-based-on-statements/description/
 // Difficulty: Hard
 // Tags: backtracking, bitmasking
-
+dp bitmask
 // Problem
 /*
 There are two types of persons:
