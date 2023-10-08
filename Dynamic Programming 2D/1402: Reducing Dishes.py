@@ -12,6 +12,7 @@
 # Dishes can be prepared in any order and the chef can discard some dishes to get this maximum value.
 
 # Solution, sort the best dishes to go last as they get more value. Then dp where we can cook or not cook a dish.
+# O(n^2) time and space
 
 class Solution:
     def maxSatisfaction(self, satisfaction: List[int]) -> int:
