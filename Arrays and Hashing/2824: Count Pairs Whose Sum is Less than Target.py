@@ -4,7 +4,7 @@
 # Problem
 # Given a 0-indexed integer array nums of length n and an integer target, return the number of pairs (i, j) where 0 <= i < j < n and nums[i] + nums[j] < target.
 
-# Solution, I just brute forced n^2
+# Solution, I just brute forced n^2 time, O(1) space
 # We could sort and use two pointers for n log n.
 # We could use a set and iterate values, but t's the same complexity as brute force due to the constraints.
 
