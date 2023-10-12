@@ -40,6 +40,7 @@ lop off (this is for problems where we need to count pairs or subarrays and we u
 math
 matrix bfs
 matrix dfs
+minimum spanning tree
 monotonic deque
 monotonic queue
 monotonic stack
