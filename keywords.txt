@@ -25,6 +25,7 @@ digit dp
 directed [for graphs]
 deque
 dfs
+djikstra
 dynamic programming 1d
 graph(s)
 graphs with nodes (this means our graph takes the form of nodes and .neighbors, instead of for instance a matrix)

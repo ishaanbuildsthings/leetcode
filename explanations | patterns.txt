@@ -176,6 +176,7 @@ TODO PROPERLY:
 1203: https://leetcode.com/problems/sort-items-by-groups-respecting-dependencies/
 1183: https://leetcode.com/problems/maximum-number-of-ones/description/
 145: https://leetcode.com/problems/binary-tree-postorder-traversal/description/
+2009: https://leetcode.com/problems/minimum-number-of-operations-to-make-array-continuous/description/?envType=daily-question&envId=2023-10-10
 using iterative
 
 TODO:
