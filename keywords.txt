@@ -65,6 +65,7 @@ state machine
 sweep line
 topological sort
 top down recursion [with memoization]
+tree(s)
 trie
 two pointers
 unconnected [for graphs, means the graph can be unconnected]
