@@ -60,6 +60,7 @@ self balancing bst
 single branch (recursive or iterative)
 sliding window (fixed/variable)
 slow and fast pointers
+SQL
 stack
 state machine
 sweep line
