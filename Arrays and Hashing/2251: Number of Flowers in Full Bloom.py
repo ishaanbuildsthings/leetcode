@@ -9,6 +9,7 @@
 
 # Solution, O(n log n) time, O(n) space
 # The range where flowers can exist is too wide to create a true sweep line. Instead, we just make a sweep line representing the critical moments where the number of flowers change. Then, we can create a prefix sweep to tell us the number of flowers in some range. Then we binary search on that prefix sweep to answer a query.
+# I think this can be done with a single sweep line. Just iterate over the ranges, and construct the prefix sweep in one go.
 
 class Solution:
     def fullBloomFlowers(self, flowers: List[List[int]], people: List[int]) -> List[int]:

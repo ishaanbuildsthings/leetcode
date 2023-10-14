@@ -91,5 +91,6 @@ When constructing a directed graph, make sure to think about which way you want 
 
 Union find:
 Without path compression or union by rank, each find and union might take O(n) time in a linked list.
-With one or the other, they are both log n.
+With just union by rank, we have log find and union operations.
+With just path compression, I think it depends on the amount of queries
 With both, we get the inverse ackermann, which becomes O(1)
