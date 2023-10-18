@@ -5,7 +5,7 @@
 # Problem
 # Given an array nums of integers, return how many of them contain an even number of digits.
 
-# Solution, O(n log number) time, O(1) space
+# Solution, O(n log number) time, O(log number) space
 # For each number, do a log operation on it to get the number of digits
 
 class Solution:
