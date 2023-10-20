@@ -24,7 +24,6 @@ HEIGHT = len(MATRIX)
 WIDTH = len(MATRIX[0])
 # each cell should store the sum for the square from 0,0 to that cell
 prefix_sums = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
-print(prefix_sums)
 for r in range(HEIGHT):
     for c in range(WIDTH):
         # the sum is the left prefix plus the top prefix plus the number, minus the up left prefix
