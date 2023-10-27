@@ -57,11 +57,3 @@ class Solution:
             resArr.append('</b>')
 
         return ''.join(resArr)
-
-
-
-
-
-
-
-`
