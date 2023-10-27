@@ -171,6 +171,7 @@ finished this but submit solution when done with graphs:
 https://leetcode.com/problems/find-eventual-safe-states/description/
 
 TODO PROPERLY:
+65: learn DFA solution, I solved normally already: https://leetcode.com/problems/valid-number/
 1489: https://leetcode.com/problems/find-critical-and-pseudo-critical-edges-in-minimum-spanning-tree/description/
 168: https://leetcode.com/problems/excel-sheet-column-title/description/
 1203: https://leetcode.com/problems/sort-items-by-groups-respecting-dependencies/

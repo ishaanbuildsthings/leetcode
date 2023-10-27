@@ -24,6 +24,7 @@ cyclic
 digit dp
 directed [for graphs]
 deque
+dfa (deterministc finite automaton)
 dfs
 djikstra
 dynamic programming 1d
