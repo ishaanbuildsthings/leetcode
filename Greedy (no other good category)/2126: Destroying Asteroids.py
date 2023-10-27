@@ -15,7 +15,6 @@
 class Solution:
     def asteroidsDestroyed(self, mass: int, asteroids: List[int]) -> bool:
         asteroids.sort()
-        currentSize = mass
         for asteroid in asteroids:
             if mass >= asteroid:
                 mass += asteroid
