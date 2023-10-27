@@ -179,6 +179,14 @@ TODO PROPERLY:
 145: https://leetcode.com/problems/binary-tree-postorder-traversal/description/
 2009: https://leetcode.com/problems/minimum-number-of-operations-to-make-array-continuous/description/?envType=daily-question&envId=2023-10-10
 using iterative
+1063: https://leetcode.com/problems/number-of-valid-subarrays/description/
+redo stack solution
+847: https://leetcode.com/problems/shortest-path-visiting-all-nodes/?envType=daily-question&envId=2023-09-17
+learn the infinity cache trick PROPERLY
+880: https://leetcode.com/problems/decoded-string-at-index/description/
+930: https://leetcode.com/problems/binary-subarrays-with-sum/description/
+229: https://leetcode.com/problems/majority-element-ii/description/
+1048: https://leetcode.com/problems/longest-string-chain/
 
 TODO:
 reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?
