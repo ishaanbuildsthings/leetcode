@@ -183,6 +183,7 @@ using iterative
 redo stack solution
 847: https://leetcode.com/problems/shortest-path-visiting-all-nodes/?envType=daily-question&envId=2023-09-17
 learn the infinity cache trick PROPERLY
+I think this can also use the infinity cache trick: https://leetcode.com/problems/minimum-cost-to-buy-apples/
 880: https://leetcode.com/problems/decoded-string-at-index/description/
 930: https://leetcode.com/problems/binary-subarrays-with-sum/description/
 229: https://leetcode.com/problems/majority-element-ii/description/
@@ -193,6 +194,10 @@ learn the infinity cache trick PROPERLY
 1361: https://leetcode.com/problems/validate-binary-tree-nodes/
 382: https://leetcode.com/problems/linked-list-random-node/
 learn reservoir smapling
+2050: https://leetcode.com/problems/parallel-courses-iii/description/
+1425: https://leetcode.com/problems/constrained-subsequence-sum/description/
+779: https://leetcode.com/problems/k-th-symbol-in-grammar/description/
+823: https://leetcode.com/problems/binary-trees-with-factors/description/
 
 TODO:
 reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?
