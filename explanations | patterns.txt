@@ -187,6 +187,7 @@ learn the infinity cache trick PROPERLY
 930: https://leetcode.com/problems/binary-subarrays-with-sum/description/
 229: https://leetcode.com/problems/majority-element-ii/description/
 1048: https://leetcode.com/problems/longest-string-chain/
+2355: https://leetcode.com/problems/maximum-number-of-books-you-can-take/
 
 TODO:
 reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?
