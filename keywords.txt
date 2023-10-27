@@ -6,6 +6,7 @@ helper = shows if this problem helps explain another problem, or uses a helper p
 tags:
 acyclic
 arrays (sometimes used when we don't put a problem in the array category but it still has a lot of array/hashing work)
+anagram (good tag for yeetcode but haven't used thus far)
 avl tree
 backtracking
 beats 100%
@@ -61,6 +62,7 @@ queue
 self balancing bst
 single branch (recursive or iterative)
 sliding window (fixed/variable)
+simulation
 slow and fast pointers
 SQL
 stack
