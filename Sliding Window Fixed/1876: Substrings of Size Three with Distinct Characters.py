@@ -1,5 +1,6 @@
 # https://leetcode.com/problems/substrings-of-size-three-with-distinct-characters/description/
 # difficulty: easy
+# tags: sliding window fixed
 
 # Problem
 # A string is good if there are no repeated characters.
