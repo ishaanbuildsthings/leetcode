@@ -16,6 +16,7 @@ binary tree
 bit manipulation
 bit mask
 bottom up recursion
+boyer-moore (new tag)
 bst [binary search tree]
 bubble sort
 bucket sort
