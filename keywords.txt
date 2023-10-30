@@ -65,6 +65,7 @@ sliding window (fixed/variable)
 simulation
 slow and fast pointers
 SQL
+square root decomp
 stack
 state machine
 sweep line
