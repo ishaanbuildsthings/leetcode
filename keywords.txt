@@ -3,6 +3,8 @@ difficulty = leetcode problem difficulty
 modfications = slightly different ways to think about or implement a solution
 helper = shows if this problem helps explain another problem, or uses a helper problem
 
+Sometimes problems may be in their folders but not have the relevant tag.
+
 tags:
 acyclic
 arrays (sometimes used when we don't put a problem in the array category but it still has a lot of array/hashing work)
