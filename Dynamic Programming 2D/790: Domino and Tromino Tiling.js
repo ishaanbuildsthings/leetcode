@@ -15,6 +15,8 @@ In a tiling, every square must be covered by a tile. Two tilings are different i
 // Solution, O(n) time, O(n) space
 /*
 For each width in n, we have 3 possible states, no filled, the top is filled, or the bottom. Just standard dp.
+
+We can count top filled and bottom filled as the same due to symmetry, meaning 2 states.
 */
 
 const MOD = 10 ** 9 + 7;
