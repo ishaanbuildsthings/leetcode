@@ -3,6 +3,7 @@
 
 // Solution
 // O(n) time and O(1) space. Create two pointers, iterate over the string and reverse each character of the string.
+// note from futre ishaan: this is wrong since it is immutable lol
 
 const reverseString = function (s) {
   let l = 0;

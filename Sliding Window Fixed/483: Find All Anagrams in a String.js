@@ -14,7 +14,7 @@ Given two strings s and p, return an array of all the start indices of p's anagr
 An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
 */
 
-// Solution: Time: O(n), Space: O(n)
+// Solution: Time: O(n), Space: O(1)
 /*
 First, creating a mapping of letters for p to how many times they occur. Then set up the initial fixed window and create an s mapping. Every time we reach the right amount of letters in p for the first time, update our have count, indicating we have that many letters. Enter a while loop where we iterate over s. When we get a new letter, see if it puts us at exactly our have count. When we lose a letter, see if it dropped us from our have count. If we process letters that weren't in p at all (rather than just skipping them, which is a minor optimization), make sure our map is set up to handle that, since the key for that letter might not exist. It doesn't matter if we exceed the frequency needed for a given letter, because it's impossible to get a full string match while a frequency is exceeded, given our fixed window is the same length as p. We can also use an O(n) solution where we stringify the maps on both iterations, since the map contains 26 k:v pairs, but that is still worse.
 */

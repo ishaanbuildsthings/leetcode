@@ -9,7 +9,7 @@ Detailed:
 Given n pairs of parentheses, write a function to generate all combinations of well-formed parentheses.
 */
 
-// Solution: Time: O(2^2n) upper bound as we have at most 2 choices per position, and there is at most depth 2n chains. Memory is O(n) as the depth of the callstack is 2n, and the stck is also 2n.
+// Solution: Time: O(n* 2^2n) upper bound as we have at most 2 choices per position, and there is at most depth 2n chains. Memory is O(n) as the depth of the callstack is 2n, and the stck is also 2n. We serialize 2^n options also.
 /*
 We use a backtracking solution to simulate all possible valid arrangements of parentheses, and when we reach our base case we add it to the results. We use a stack to add and remove parentheses from. We could also makae the recurse function accept a string parameter and modify the string, but this creates a lot of string duplication under the hood, since the strings are immutable.
 
