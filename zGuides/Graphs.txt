@@ -125,3 +125,6 @@ Worst case we decrement down manually. Same thing, once we decrease too far belo
 
 I think we could just use DP too and once we drop below Y we have a base case which is only increments.
 
+
+0-1 Djikstra's:
+Intstead of using a heap, we can just prepend things that have a weight of 0. It can be done in this question: https://leetcode.com/problems/minimum-obstacle-removal-to-reach-corner/description/
