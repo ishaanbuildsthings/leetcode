@@ -94,3 +94,34 @@ Without path compression or union by rank, each find and union might take O(n) t
 With just union by rank, we have log find and union operations.
 With just path compression, I think it depends on the amount of queries
 With both, we get the inverse ackermann, which becomes O(1)
+
+Advanced BFS/DP stuff:
+It can perform one of the four operations at once:
+1. If X is a multiple of 11, divide X by 11
+2. If X is a multiple of 5, divide X by 5
+3. Decrement X by 1
+4. Increment X by 1
+Your task is to find the minimum number of operations it will take to reduce the X to a value Y.
+Constraints
+1<=X<=10000
+1<=Y<=10000
+Y<=X
+We can treat this as options on Y:
+y++
+y--
+y * 11
+y * 5
+
+Worst case, we just increment to X. Worst case is we do X-Y ops.
+So we can BFS, but any time we exceed X by the worst case, we prune, since the only way to decrease is by y--.
+
+We could also say ops are:
+x--
+x++
+x/5
+x/11
+
+Worst case we decrement down manually. Same thing, once we decrease too far below y, we know we can prune since theres only one way to increase X.
+
+I think we could just use DP too and once we drop below Y we have a base case which is only increments.
+

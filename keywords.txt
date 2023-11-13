@@ -80,4 +80,5 @@ two pointers
 unconnected [for graphs, means the graph can be unconnected]
 undirected [for graphs]
 union find
+weighted (for graphs)
 work backwards (new tag)
