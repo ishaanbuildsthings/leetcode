@@ -22,10 +22,8 @@ class Solution:
         def dp(i, prevFinishedJobs, prevMax):
             if prevFinishedJobs > d:
                 return float('inf') # pruning
-            # print(f'dp called on i={i}, prevFinishedJobs={prevFinishedJobs}, prevMax={prevMax}')
             # base case
             if i == len(jobDifficulty):
-                # print(f"base case, ret: {0 if prevFinishedJobs == d else float('inf')}")
                 if prevFinishedJobs == d and prevMax == -1: # we have to do the -1 to prevent unfinished jobs existing at the end
                     return 0
                 return float('inf') # if we didn't do the right amount of jobs we will say this is impossible
@@ -39,7 +37,6 @@ class Solution:
             # if we make a split here, meaning we use our current element in the left region, then end it
             ifSplitHere = newMax + dp(i + 1, prevFinishedJobs + 1, -1)
 
-            # print(f'res for i={i}, prevFinishedJobs={prevFinishedJobs}, prevMax={prevMax} is: {min(ifAddToPool, ifSplitHere)}')
             return min(ifAddToPool, ifSplitHere)
 
         res = dp(0, 0, -1)
