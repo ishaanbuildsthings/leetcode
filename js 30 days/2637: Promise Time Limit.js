@@ -12,6 +12,8 @@
 // Solution
 // We need to way to early reject if time runs out. We can just set a timeout to reject after that much time, but if the function itself finishes we take what that gives us.
 
+// What is happening here is are taking the promise from our async fn function, and saying if/when it resolves, run this callback, which just resolves the outer promise. Since the callback itself gets called with the resolved value of the fn promise we can either use `res` or val=>res(val).
+
 var timeLimit = function (fn, t) {
   return function (...args) {
     return new Promise((res, rej) => {
