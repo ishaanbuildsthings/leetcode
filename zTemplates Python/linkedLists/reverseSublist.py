@@ -1,7 +1,8 @@
 # ______________________________________________________________________
-# REVERSE PORTION OF LINKED LIST TEMPLATE
+# TEMPLATE
+# REVERSE PORTION OF LINKED LIST
 # Given a linked list, and a portion l, r, returns the linked list with [l:r] reversed.
-def reverse_sublist(head, l, r):
+def reverseSublist(head, l, r):
         # find the node before left
         prev = None
         pointer = head
@@ -9,20 +10,20 @@ def reverse_sublist(head, l, r):
             prev = pointer
             pointer = pointer.next
 
-        def reverse_list_and_get_next(linked_list, reverse_size):
-            new_tail = linked_list
-            pointer = linked_list
+        def reverseListAndGetNext(linkedList, reverseSize):
+            newTail = linkedList
+            pointer = linkedList
             prev = None
-            for i in range(reverse_size):
+            for i in range(reverseSize):
                 next_node = pointer.next
                 pointer.next = prev
                 prev = pointer
                 pointer = next_node
-            new_tail.next = pointer
+            newTail.next = pointer
             return prev
 
-        rev_list_head = reverse_list_and_get_next(pointer, r - l + 1)
+        revListHead = reverseListAndGetNext(pointer, r - l + 1)
         if prev:
-            prev.next = rev_list_head
+            prev.next = revListHead
             return head
-        return rev_list_head
+        return revListHead

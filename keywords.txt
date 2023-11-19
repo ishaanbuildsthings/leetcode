@@ -24,6 +24,7 @@ bubble sort
 bucket sort
 circular
 connected [for graphs]
+contest (done in contest)
 cyclic
 digit dp
 directed [for graphs]

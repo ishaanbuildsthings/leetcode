@@ -1,5 +1,5 @@
 
-# RETURNS A LIST OF OF FROM [0, n-1] OF IF A NUMBER IS PRIME OR NOT
+# returns a list from [0, n-1] of if that number is prime or not
 def countPrimes(n: int) -> int:
     if n == 0:
         return 0

@@ -1,10 +1,20 @@
 ITERABLE = 'abc'
+
 # _______________________________________
-# PREPROCESSED PALINDROME FOR ALL SUBSTRINGS/SUBARRAYS
-# Variables:
+# TEMPLATE - palindromic substring/subarrays
+
+# FUNCTIONS
+# isPal[l][r] tells us if [l:r] is a palindrome O(1)
+
+# General reqs:
+# A string or an array.
+
+# Time Complexity:
+# Preprocess - O(n^2)
+
+# VARIABLE REQUIREMENTS:
 # ITERABLE - replace with a string or array
-# isPal[l][r] tells us if [l:r] is a palindrome
-# Preprocess - O(n^2), isPal[l][r] query - O(1)
+
 isPal = [[False for _ in ITERABLE] for _ in ITERABLE]
 # 1 letter pals
 for i in range(len(ITERABLE)):
