@@ -2,6 +2,8 @@
 # difficulty: medium
 # tags: bit manipulation, greedy, contest
 
+# Solution, done in contest so may be messy, just greedily selected each bit
+
 class Solution:
     def maximumXorProduct(self, a: int, b: int, n: int) -> int:
         def num(binaryArr):

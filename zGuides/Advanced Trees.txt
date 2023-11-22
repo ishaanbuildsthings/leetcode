@@ -1,0 +1,72 @@
+SEGMENT TREES:
+
+
+What CAN BE DONE:
+
+May not support adding or removing elements (I think this may be doable, but I don't know it yet, I saw some related CF article)
+Can support assignments in the form of a[i] = y
+Can support range updates (lazy propogation)
+
+WHAT IS NEEDED / WHAT CANNOT BE DONE:
+I think for a ST to work (at least for basic use cases), if our ST node is fully contained, we should be able to return immediately. For instance if we want the sum of elements from [1:7], and we have a ST node of [4:6], that should return immediately with its stored value. Whereas something like # of elements below `num`, the answer to [4:6] may not be stored, and require recursing down (this is essentially literally just aggregating every leaf node, no different than a linear for loop). This applies if we did NOT preprocess answers for `num`. Like say we want to know how many elements from [3:16] are < 10, unless we preprocessed all info specifically for 10, we cannot solve this (you need something like a BIT).
+
+SOME USECASES:
+Sum from [l:r]
+Max element and # of times it appears from [l:r]
+Nunber of 0s in [l:r]
+Earliest index of a number >= `num` in [l:r]
+
+ADVANCED USECASES:
+Finding an element that occurs more than `threshold` times in [l:r]
+We can use some adapted boyer-moore + binary search + ST algorithm: https://leetcode.com/problems/online-majority-element-in-subarray/solutions/360493/python-segment-tree-merge-in-o-1-query-o-log-n/
+I don't fully understand the intuition, but the basic idea is each ST node stores its dominant element, and how much "extra count" it has over other elements in that range. We can combine these / aggregate up, and compute a candidate for a given range. Then we can use binary search on the indices of that candidate to determine if it actually appears `threshold` times or not. I also messaged someone on linkedin about this.
+
+ITERATIVE VS RECURSIVE SEGMENT TREES:
+Iterative ones seemed faster and had shorter setup code, but could be less intuitive maybe. Recursive segment trees always construct an answer in order, meaning commutative operations can be handled. For instance the answer to [1:7] might be [1:4] + [5:5] + [6:7], but the merging is done in order, as opposed to [5:5] + [1:4] + [6:7], for instance. Iterative ones can do this, but I think it is more complicated. I also think iterative trees have more complicated lazy propogation. Overall, I will currently opt for recursive solutions as I can more easily edit them, but I may make iterative templates that are optimized for speed, but I cannot necessarily modify them on the fly.
+
+See the non-commutative combiner functions for iterative ST section: https://codeforces.com/blog/entry/18051
+As well as other things on that entry for more general info.
+
+ZERO INDEXING VS ONE INDEXING:
+0-indexing makes children 2i + 1 and 2i + 2. 1-indexing makes children 2i and 2i+1. 1-indexing also allows layer to be determined by max set bit, and siblings to be i^1 (Steven Hao told me these). The difference is when you call build and update, you need to start it from the right indexing.
+
+MEMORY:
+The basic implementation uses 4-n memory. A perfect binary tree needs 2n memory, but if we are 1 more than a power of 2, for instance we have 5 nodes, we might still need to allocate 16 cells of memory, which is where the 4-n behavior comes from. The perfect trees are actually the best case in terms of memory usage, not the worst. I think some of my implementions work just fine with 2n memory. I also feel that in theory we can use the exact amount of memory we need, but I am not sure how.
+
+
+THE HELPER COMBINE FUNCTION:
+I use a helper combine function to abstract my ST code and make it easier to change segment trees on the fly. Fundamentally, the combine function can take two computed values, and aggregate them. This is useful if we want to for instance build our tree, which we do from the bottom up, starting with base cases and aggregating. Similarly, when we update our tree. But what about when we query the tree? It seems a little weird since if I have some root query which uses partial results from the left and right, how do we know the aggregate function still works? Well we can think of it like this:
+
+Say my root query is for [5:10]
+
+My left child is 1:7 and right child is 8:15
+So we get a 5:7 partial from the left and an 8:10 partial from the right.
+We keep recursing until eventually we use the IDENTITY, so maybe the answer to 5:6 subproblem is an actual 5:6 ST node + some identity. We have now computed the actual tree answer for 5:6.
+Ultimately, the combine function can just take these truly computed values and combine them. Combining ST nodes of 1:20 and 21:40 is no different than computing live-computed partials of 6:9 and 10:13. It's just that we compute it as we iterate through the tree, rather than using the already precomputed values at the ST nodes.
+I'm not sure entirely how it works, but I think we can also show that the partials get computed commutatively, i.e. we preserve a left to right order.
+The takeaway is basically that the combine can just take known/computed values about ranges and combine them (providing the ranges are connected / adjacent).
+
+
+
+
+misc notes:
+l and r conditions vs tl and tr
+_____
+When we descend in a basic ST we usually have tl, tr, l, and r. And we restrict l and r to be within tl and tr. In theory, l and r can just be the same for each call, it is just that modifying l and r as we descend can make it a bit easier in terms of cleaner code, I think likely relating to the fail condition of l>r.
+
+I showcased this theory in the basic mutable sum range query problem, by instead of using if l>r: return 0, and modifying l and r as I recurse down, just doing:
+
+
+# if we are contained
+if tl >= l and tr <= r:
+    return self.tree[i]
+
+# if we have no intersection
+if tr < l or tl > r:
+    return 0
+
+This was easier for me to reason with. We can even avoid recursive calls by checking the condition (similar to not recursing out of bounds in matrix questions or something like that)
+
+why do we need counts stored when we query # of times max occurs
+_____
+Say we want to query the # of times a max occurs in [l:r]. We necessarily need to store counts in the ST nodes, because during the query, for a range, if one of the child ranges has a bigger max than the other, we need to get the new count. Whereas something like # of numbers <= `num` in a range, it's just the sum of the children. We aren't worried about the fact that one node could override the other, for instance say our left node had a max of 10 which happened 3 times, and the right node had a max of 15 which happened 5 times, obviously for the parent the new max is 15, but we aren't worried about missing a 15 from the left, because otherwise the max from the left would be 15, not 10.
