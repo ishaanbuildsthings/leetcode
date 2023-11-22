@@ -13,6 +13,7 @@
 
 # Solution, O(n) time and O(n) space
 # We can just test taking 0-n cards from the left, and the remaining from the right. We use a range query to get our score in O(1).
+# Solution 2, we can minimize a fixed sliding window of size len(cardPoints) - k, which would be an O(1) space solution
 
 class Solution:
     def maxScore(self, cardPoints: List[int], k: int) -> int:
