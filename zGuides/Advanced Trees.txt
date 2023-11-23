@@ -2,7 +2,6 @@ SEGMENT TREES:
 
 
 What CAN BE DONE:
-
 May not support adding or removing elements (I think this may be doable, but I don't know it yet, I saw some related CF article)
 Can support assignments in the form of a[i] = y
 Can support range updates (lazy propogation)
@@ -10,11 +9,32 @@ Can support range updates (lazy propogation)
 WHAT IS NEEDED / WHAT CANNOT BE DONE:
 I think for a ST to work (at least for basic use cases), if our ST node is fully contained, we should be able to return immediately. For instance if we want the sum of elements from [1:7], and we have a ST node of [4:6], that should return immediately with its stored value. Whereas something like # of elements below `num`, the answer to [4:6] may not be stored, and require recursing down (this is essentially literally just aggregating every leaf node, no different than a linear for loop). This applies if we did NOT preprocess answers for `num`. Like say we want to know how many elements from [3:16] are < 10, unless we preprocessed all info specifically for 10, we cannot solve this (you need something like a BIT).
 
-SOME USECASES:
-Sum from [l:r]
-Max element and # of times it appears from [l:r]
-Nunber of 0s in [l:r]
-Earliest index of a number >= `num` in [l:r]
+
+
+WHAT CAN A SEGMENT TREE DO:
+BASIC:
+all with assignments, may with range assignments, I don't know them yet:
+
+sum, max, min, max + counts, min + counts, number of occurences of a specific (preprocessed) element
+Earliest index of a number >= or <= `num` (this is done by using the max or min for a region)
+GCD/LCM for a range (see the GCD LCM segment tree for complexities, it is more complicated)
+
+ADVANCED:
+# of elements <k or >k or between two numbers, merge sort tree - each ST node stores a list of the elements in that range, sorted. This takes n log n total memory. Now when we query, we descend the nodes, and at precomputed nodes we do a binary search to find the number of its elements. If we want to allow assignments, I think each node can store an AVL/SortedList, and when we reassign a number, we remove one occurence of the old number and add one occurence of the new number. I also think instead of storing each number we can store a mapping of the numbers and the frequencies at which they occur, but this may interfere with the binary search, though maybe the mappings can store the # of elements to the left and right so we can still binary search.
+
+Find the smallest number >= some threshold, or <= some threshold, we also need a merge sort tree. It isn't enough to just store the min and max like we do for finding earliest number >= or <= a threshold.
+
+Query the # of times an element appears in a range. There are a few ways to do this:
+The naive way is to have each ST node store a dictionary of elements and how many times they occur. Now when we update, we can just recurse down the tree in logN time, updating the hashmaps. When we query, we should be able to easily just add the number of times that element occured in different ranges. I initially built this ST for https://leetcode.com/problems/range-frequency-queries/, but I think my approach was flawed, as my combiner function combines the entire dictionaries each time.
+
+TODO: check if the query is amoritzed, as the not every node has n elements.
+
+The _combine function can't just reaggregate the children, that's too slow, we can just do one removal and add. If we tried to reaggregate, then clearly the root node would itself take n time to reaggregate.
+TODO: the update function might not take log n time for each node, maybe it is amortized since we add to at most some amount of elements.
+
+
+
+
 
 ADVANCED USECASES:
 Finding an element that occurs more than `threshold` times in [l:r]
@@ -70,3 +90,5 @@ This was easier for me to reason with. We can even avoid recursive calls by chec
 why do we need counts stored when we query # of times max occurs
 _____
 Say we want to query the # of times a max occurs in [l:r]. We necessarily need to store counts in the ST nodes, because during the query, for a range, if one of the child ranges has a bigger max than the other, we need to get the new count. Whereas something like # of numbers <= `num` in a range, it's just the sum of the children. We aren't worried about the fact that one node could override the other, for instance say our left node had a max of 10 which happened 3 times, and the right node had a max of 15 which happened 5 times, obviously for the parent the new max is 15, but we aren't worried about missing a 15 from the left, because otherwise the max from the left would be 15, not 10.
+_____
+I feel like recursion for segment trees is inefficient. If I want to descend down to update something, then bubble back up, why not just start at the bottom and traverse up (via pointers, which implicitly exist due to the array representation). Thought I guess this is just top down vs. bottom up type thinking.

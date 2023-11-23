@@ -3,8 +3,8 @@
 
 # FUNCTIONS:
 # Query GCD of range O(log(max number) * logN)
-# Query LCM of range O(log(max number) * logN)
-# Update value O(log(max number) * logN)
+# Query LCM of range O(log(some n) * logN), some n is the biggest value that can get passed to _gcd, but I think it can exceed the max number in our array, since we pass lcms to _gcd. I think in theory this "some n" can be as big as all numbers in our array multiplied together, for at least one of the runs of the combine function, but I'm not sure, it probably isn't nearly that bad in practice anyway. I tried running tests and the numbers being passed to _gcd were very large (hundreds of digits).
+# Update - takes the LCM query time as we have to recompute the LCM which is the bottleneck, if we only had GCDs in our tree it would take GCD query time
 
 # General reqs:
 # An array of integers, can be positive or negative (or 0)
@@ -13,7 +13,7 @@
 # I define GCD(0, a) to be a, which is how math.gcd works. If we get GCD(0, 0), the LCM equation would error (divide by 0), so I define the LCM(0, 0) to be 0, which can be edited in the _lcmRange function.
 
 # Complexities:
-# Build: O(n)
+# Build: O(n * time to run the LCM alg), since the LCM alg runs with a log factor of some other number as well (which can be bigger than the max number in our data), if we just had GCDs, build would be O(n * log(max number)) time
 # Space: O(n)
 
 class GcdLcmSegmentTree:

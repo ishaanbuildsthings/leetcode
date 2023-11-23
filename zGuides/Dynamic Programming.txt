@@ -57,3 +57,8 @@ i - this tells us where in the number we are inserting the digit, so we know whe
 If we are to solve for [low, high] instead of [1, n], we can just do [1, high] - [1, low - 1]. We could also use a lower tight bound and pad the low with 0s to make it the same length as high.
 
 Sometimes instead of leadingzero / nonzerotaken you can just use previous digit = -1 if you are storing that.
+
+
+*** TOP DOWN VS BOTTOM UP ***
+
+Similar to segment trees, I feel like the idea of recursing down then bubbling back up can be inefficient. I guess this is the nature of recursion. It feels like we do 2x the operations to needlessly descend down to the base case first, but I don't know the exact implementations of recursion or how this really works, so I hesitate to say further. In a segment tree, we also descend down to a leaf node when we need to update, then bubble back up, re-aggregating, whereas I feel we could just start at the leaf and climb up (we have implicit parent pointers due to the array representation of the ST).

@@ -2,9 +2,9 @@ import random
 import math
 import collections
 
-from MaxAndAppearancesSegmentTree import MaxAndAppearancesSegmentTree
+# from MaxAndAppearancesSegmentTree import MaxAndAppearancesSegmentTree
 from MaxSegmentTree import MaxSegmentTree
-from MinAndAppearancesSegmentTree import MinAndAppearancesSegmentTree
+# from MinAndAppearancesSegmentTree import MinAndAppearancesSegmentTree
 from MinSegmentTree import MinSegmentTree
 from GcdLcmSegmentTree import GcdLcmSegmentTree
 from CountAndKthIndexSegmentTree import CountAndKthIndexSegmentTree
@@ -12,7 +12,7 @@ from CountAndKthIndexSegmentTree import CountAndKthIndexSegmentTree
 # TODO, replace recursive traversals with iterative ones?
 
 N = 50000
-TEST_CASES = 1000
+TEST_CASES = 4000
 LOWER_RANDOM_RANGE = -1000
 UPPER_RANDOM_RANGE = 1000
 CHANCE_OF_UPDATE_BETWEEN_TESTS = 0.5
@@ -119,6 +119,5 @@ def testXorSegmentTree():
 # testMaxSegmentTree()
 # testMinAndAppearancesSegmentTree()
 # testMinSegmentTree()
-# testGcdSegmentTree()
+testGcdSegmentTree()
 # testLcmSegmentTree()
-testXorSegmentTree()
