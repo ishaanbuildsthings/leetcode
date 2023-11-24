@@ -7,6 +7,7 @@
 
 # Solution, O(log(n) * 2 * 2 * amount of digit) space, 10 times that for time.
 # We need the index we insert at, if we are tight, and if we have taken a non zero. This is useful if the digit we are searching is 0, since we only count it once we have not taken a non zero. We also need the total amount of digits. To go from [low, high] instead of [1, n] we can just range query.
+# can compress the for loop as non-event digits can be treated similarly
 
 class Solution:
     def digitsCount(self, d: int, low: int, high: int) -> int:

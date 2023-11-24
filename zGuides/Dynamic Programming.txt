@@ -62,3 +62,6 @@ Sometimes instead of leadingzero / nonzerotaken you can just use previous digit 
 *** TOP DOWN VS BOTTOM UP ***
 
 Similar to segment trees, I feel like the idea of recursing down then bubbling back up can be inefficient. I guess this is the nature of recursion. It feels like we do 2x the operations to needlessly descend down to the base case first, but I don't know the exact implementations of recursion or how this really works, so I hesitate to say further. In a segment tree, we also descend down to a leaf node when we need to update, then bubble back up, re-aggregating, whereas I feel we could just start at the leaf and climb up (we have implicit parent pointers due to the array representation of the ST).
+
+*** DIGIT DP ***
+Instead of iterating on every digit, if some digits are the same (like in the problem where we count the # of one digits, a 4 and a 5 may be the same if the upper boundary is 7, for example), we can compress these instead of iterating one digit at a time.

@@ -1,4 +1,6 @@
 SEGMENT TREES:
+NOTE:
+SortedList = balanced tree, sorted list just means a list that is sorted
 
 
 What CAN BE DONE:
@@ -9,30 +11,101 @@ Can support range updates (lazy propogation)
 WHAT IS NEEDED / WHAT CANNOT BE DONE:
 I think for a ST to work (at least for basic use cases), if our ST node is fully contained, we should be able to return immediately. For instance if we want the sum of elements from [1:7], and we have a ST node of [4:6], that should return immediately with its stored value. Whereas something like # of elements below `num`, the answer to [4:6] may not be stored, and require recursing down (this is essentially literally just aggregating every leaf node, no different than a linear for loop). This applies if we did NOT preprocess answers for `num`. Like say we want to know how many elements from [3:16] are < 10, unless we preprocessed all info specifically for 10, we cannot solve this (you need something like a BIT).
 
+A SIMPLE WAY TO THINK ABOUT SEGMENT TREES:
+This is for deducing some complexities, understanding operations, etc. It is the result of several days of thinking and writing about segment trees.
+
+1)
+First, we accept that in a segment tree we can construct a union of disjoin partitions that represent our query range, in at most logN partitions.
+
+This is shown because we know we touch at most 4*logN nodes (via inductive reasoning). We can also construct cases for instance array is [0:100] and we query [1:99] and show how many subregions we create. I think this test case doesn't formally show how logN is the upper bound (though it shows logN partitions must be needed, at least), but if I thought about it more I could probably reason how this or a certain test case showcases the worst case in terms of splitting / creating a disjoint set.
+
+2)
+The answer to our problem is some combined info from these unioned disjoint ranges. Remember while we do have these disjoint partitions, we also touched other nodes, particularly their parents (which were not fully within the query range, so we kept recursing). For instance we have a ST node from [1:5] and we query from 2:6, now we recurse to the left [1:3] and the right [4:5]. [4:5] is captured in the query and is part of our final partition, but we also touched the parent [1:5] and the left child which recurses further. The point is, when we visualize the flow of aggregation of our partitioned ranges to form our final query answer, we might get confused and not be able to see it. But by knowing parents and siblings are touched (even in the worst case we enter siblings where there is no range intersection between the ST node and the query, and return immediately, if we use that style of code which is clean and simple), it's easier to visualize the flow. I have drawn this out before.
+
+The point is, we have all these disjoint regions, and as we combine info up, the combining is also done within our log operations. I mean obviously it is, we're calculating the result in that time anyway. It's kind of like if I want some answer from [1:99] and my root is [0:100], I recurse to the left which is [0:50], but by the time I get an answer at the 0:50 node, I'm really sending up an answer for [1:50] to the parent, to combine that.
+
+3)
+So clearly, if we touch logN nodes, and we can combine results in some amount of time, our overall time seems to be the time the combining takes times the nodes touches. KEEP IN MIND COMBINING ALSO FACTORS IN HOW LONG IT TAKES TO FIND THAT DATA. A simple case is when combining is O(1), and we touch logN nodes, making a query logN. But if a combining takes logN time, because we have to binary search in the children, then we get log2^n time.
 
 
 WHAT CAN A SEGMENT TREE DO:
 BASIC:
-all with assignments, may with range assignments, I don't know them yet:
+these are all with assignments, may with range assignments, I don't know them yet:
 
+1)
 sum, max, min, max + counts, min + counts, number of occurences of a specific (preprocessed) element
+2)
 Earliest index of a number >= or <= `num` (this is done by using the max or min for a region)
+3)
 GCD/LCM for a range (see the GCD LCM segment tree for complexities, it is more complicated)
 
 ADVANCED:
-# of elements <k or >k or between two numbers, merge sort tree - each ST node stores a list of the elements in that range, sorted. This takes n log n total memory. Now when we query, we descend the nodes, and at precomputed nodes we do a binary search to find the number of its elements. If we want to allow assignments, I think each node can store an AVL/SortedList, and when we reassign a number, we remove one occurence of the old number and add one occurence of the new number. I also think instead of storing each number we can store a mapping of the numbers and the frequencies at which they occur, but this may interfere with the binary search, though maybe the mappings can store the # of elements to the left and right so we can still binary search.
+For the below query type, here's an example of my implementation that passed: https://leetcode.com/problems/reverse-pairs/submissions/1105107449/
+1)
+number of elements <k or >k or between two numbers, merge sort tree - each ST node stores a list of the elements in that range, sorted. This takes n log n total memory. Now when we query, we descend the nodes, and at precomputed nodes we do a binary search to find the number of its elements. If we want to allow assignments, I think each node can store an AVL/SortedList, and when we reassign a number, we remove one occurence of the old number and add one occurence of the new number. I also think instead of storing each number we can maybe store a mapping of the numbers and the frequencies at which they occur, but this may interfere with the binary search, though maybe the mappings can store the # of elements to the left and right so we can still binary search.
+For the time complexity with the sorted lists, we do a binary search on each node. The list sizes go from N, to N/2, and so on, logN times. Say n=64 (2^6). The first binary search takes 6 time, the second 5, and so on until 1. That is 6+5+...+1 which is a function of 6^2, it would be log^2n total time. logN nodes and we still take logN time per node. This is a naive analysis, since we haven't shown we do binary search on ALL of these nodes, after all we may only binary search on the union of some amount of disjoint partitions. But somewhere below, I proved that doing binary searches on that still results in log2^n complexity.
+If we wanted to use SortedList at each node instead of sorted lists (arrays), we have other snags when we merge. For instance if we naively try to merge each child element into a parent SortedList (consider the root ST node), we would do n adds to the parent SortedList, I'm not sure if each takes logN time since at first the list is smaller (like the first element we add to the parent SortedList, n was 0 so it takes little time to add), it is kind of like how heapify takes n time. But SortedList is a bit different, adding the first element is log1, second is log2, ... logN. So this is log1 + log2 + ... logN which is log(n!) which is a function of nlogn (according to chatgpt). I don't know if there is some way to construct a parent SortedList faster / in linear time.
+Also we need to analyze the layers. The root ST node, when built, takes n log n as per the prior analysis, but is this true for every one of the logN layers? For the second layer, we would have 2*(log1 + log2 + log3 + ... logn/2). According to chatgpt this is still n log n lol. So each of the logN layers take n log n time, so nlog^2n time to construct.
+Overall math is:
+logn + log(n/2) + log(n/4) + ... (n times) is like 6+5+4+...1 where logn = 6, which is log^2n.
+But logn + log(n-1) + ... log(1) is n log n (according to gpt). Also I think the integral of logn is n log n (minus some smaller factors) which may relate.
+If we store a SortedList at each node, we could merge two SortedLists faster, according to cp-algorithms:
+"The construction of such a Segment Tree is done in pretty much the same way as in the previous problem, only now we need to combine  
+$\text{multiset}$ s and not sorted lists. This leads to a construction time of  
+$O(n \log^2 n)$  (in general merging two red-black trees can be done in linear time, but the C++ STL doesn't guarantee this time complexity)."
 
-Find the smallest number >= some threshold, or <= some threshold, we also need a merge sort tree. It isn't enough to just store the min and max like we do for finding earliest number >= or <= a threshold.
+And also this post on stack overflow shows it could be even faster than m+n??: https://stackoverflow.com/questions/43697546/best-way-to-join-two-red-black-trees
+"4
 
+Regardless, if we wanted to update something for example (maybe an assignment, which is log operation on each ST SortedList node), we would do a logN + log(N/2) + ... which is log^2n anyway, so likely in the problem the queries may bottleneck us rather than the construction. Similarly, querying (for instance with binary search) might be logN + log(N/2) + ... for up to logN ST nodes (we always partition into at most logN nodes). Since we visit logN nodes we can't partition into more than logN. Though I don't have a proof that this is a tight boundary, for instance something might amortize for the query and maybe we don't need logN + log(N/2) + ...
+Some math analysis of this is:
+In general, doing a binary search on two halves is slower than doing it on a whole. 2*(log(n/2)) is bigger than logn (for n>4). this is because log(n^2/4) compared to log(n), we just compare n^2/4 to n. So it seems we favor to do binary searches on larger ranges all at once. I mean this is obvious because doing a binary search on an array of n is just one more operation than doing it on n/2, whereas doing two binary searches on log(n/2) is well, log n more operations than doing it on logn.
+Consider we partition into our entire query into logn segments (we know the worst case is upper bounded by logn, as we visit logn nodes), then if we process our query, say: (each partition is exactly size n/logn, idk if this is possible though), we would do a binary search on each partition of size n/logn, there are logn partitions, and the binary search is log(n/logn), totalling to logn*log(n/logn), which is logn * (logn - log(logn)) which becomes log^2n, so thats the upper bound of our time if we did a binary search on each partition. I don't know if that's the tight bound though, maybe the partitions are sized different. Like if our partitions were one big one of n/2, and the rest were each of a small size (can't be 1, since we have at most logn partitions), that is more efficient than evenly sized ones I think. not 100% sure about this, but for instance log99 + log1 is less than (and therefore fewer ops / more efficient) 2*log50 (an even split). But later I show it is a tight bound via a test case.
+If we did want lots of partitions, consider a root ST node of 0-100 and we query 1-99. Basically we DO have 4 nodes for almost every layer! The inner nodes are fully contained and the outer nodes cut in half in size each layer we descend. This means the contained nodes are of sizes:
+n/4 + n/4 + n/8 + n/8 + .... And we could have 2*logN contained nodes.
+If we do a binary search on each node, this is basically 2 * ( log(n/4) + log(n/8) + ... log n times), which we know is on the order of log2^n time.
+IMPORTANT:
+Since we can come up with a case where the query is log2^n time, we therefore know the tight bound is log2^n, for if we do a binary search on ST nodes!!!
+
+You can merge two red-black trees in time O(m log(n/m + 1)) where n and m are the input sizes and, WLOG, m ≤ n. Notice that this bound is tighter than O(m+n). Here's some intuition:
+
+When the two trees are similar in size (m ≈ n), the bound is approximately O(m) = O(n) = O(n + m).
+When one tree is significantly larger than the other (m ≪ n), the bound is approximately O(log n).
+You can find a brief description of the algorithm here. A more in-depth description which generalizes to other balancing schemes (AVL, BB[α], Treap, ...) can be found in a recent paper."
+
+The intuition for how it could be faster than m+n is adding a single element to a red-black tree is logarithimic, which is less than m (1 single cell) + n (the current red-black tree). I haven't investigated this though. But I think that this is for merging two trees without preserving the old trees. We need to preserve the old trees since the children should have their own red-black trees that don't change when we make the parent. If a linear merge is doable (as described by cp-algorithms), then construction for the entire ST could be n log n. Updating would still be log^2n though, as we do a log operation on logN ST nodes, each one halving in size. So logn + log(n/2) + ... n times, which is log^2n.
+
+
+You could also make a segment tree on the values of the elements (can use coordinate compression too), then say we want # of elements < k, we can do a query search for [0:k-1] on the segment tree, and each ST node holds the a list that is sorted of the indices for the elements in that range, and I could binary search on each ST node and add up results for the query. I actually tried this for the k-big indices question: https://pastebin.com/qkXTtGwj
+
+Also, say the values were <10^9 but we have <10^5 numbers, we can coordinate compress so we are bound by the amount of numbers we have in our data set (worst case each number is different). I didn't implement that in my pastebin since the values themselves were also bound by 10^5, but it is doable.
+Also the k big indices is more easily done with 2 plain SortedList but my solution handles online queries.
+_____
+2)
+Find the smallest number >= some threshold, or <= some threshold, we also need a merge sort tree. It isn't enough to just store the min and max like we do for finding earliest number >= or <= a threshold. It might be doable with a ST on the values instead of on the indices, I haven't thought about it yet though.
+
+One simple way to do this is have a merge sort tree on indices, we partition into at most logN segments (this is according to cp-algorithms):
+"Now consider the answer to the query. We will go down the tree, like in the regular Segment Tree, breaking our segment  
+$a[l \dots r]$  into several subsegments (into at most  
+$O(\log n)$  pieces)"
+I believe we can show this because we visit at most logN segments anyway since its 4 per each of the logN layers, so naturally our partition is at most logN segments (I think in practice this may be 2logN completely contained partitions, 2 for each layer), since the partition is just the terminal cases for our entire of the at most 4*logN visits. But I don't know if this means when we query, and say we do a binary search on each node, I don't know if it guarantees we need logN + log(N/2) + ... time complexity (which is log^2n). I just know logN is the upper bound on our partition.
+
+*after writing more and thinking, and following my simple logic framework*
+I realize I can deconstruct this problem to:
+-we spend logn time finding a union of disjoint partitions to form our query range
+-for each of those ranges we spend logX (X is the size of that range) time finding the smallest number >= our target
+-we aggregate those and get the smallest
+-and I know step 2 reduces to log^2n time due to some math somewhere on this page. I think I showed a test case where it must take that long.
+
+ALSO FRACTIONAL CASCADING CAN SPEED THIS UP: if we need to binary search on a sorted list in each node, we can use fractional cascading as described in cp-algorithms. For each element in our tree, we can store the earliest index in the left child which has a number >= that value, and the earliest index in the right child too. Now we do just one binary search on the root (logN), and we get information about the children and can do logN time lookups on those, this SAVES A LOG FACTOR, THE QUERY TIME BECOMES logN! We can also support assignments, but now we need SortedLists and iterators (don't fully understand this), CP algorithms seems to suggest this is quite difficult though.
+The way it works is we look at the smallest number >= our threshold on the root. Say threshold is 5 and in our root we get a 10, so there are no numbers from 5-9. Now we have pointers to the children, which show the smallest number >= 10, which is the same as the smallest number >= 5 since we don't have a 5-9 (described in cp algorithms). So we can visit those children as well but find the result in O(1). The process is able to recurse and we can keep using the newly found value for a new O(1) on the new children (I think, haven't coded this). It does take 3x as much memory though.
+3)
 Query the # of times an element appears in a range. There are a few ways to do this:
-The naive way is to have each ST node store a dictionary of elements and how many times they occur. Now when we update, we can just recurse down the tree in logN time, updating the hashmaps. When we query, we should be able to easily just add the number of times that element occured in different ranges. I initially built this ST for https://leetcode.com/problems/range-frequency-queries/, but I think my approach was flawed, as my combiner function combines the entire dictionaries each time.
-
-TODO: check if the query is amoritzed, as the not every node has n elements.
+The naive way is to have each ST node store a dictionary of elements and how many times they occur. Now when we update, we can just recurse down the tree in logN time, updating the hashmaps. When we query, we should be able to easily just add the number of times that element occured in different ranges. I initially built this ST for https://leetcode.com/problems/range-frequency-queries/, but I think my approach is not generalizable in terms of the nice _combine functions, as my combiner function combines the entire dictionaries each time (this is fine for construction, and takes n log n time total, but for updating is bad). See the TEMPLATES section for numb3r5's advice, why my templates aren't generalizable. Plus, this isn't even good. We can just have a dictionary that maps a number to a sorted list of it's indices, and binary search. Replacing is still O(log n) and querying as well. There might be a way to merge dictionaries differently, there is some paper https://arxiv.org/pdf/1901.00718.pdf but I have no idea if it is related to this task
 
 The _combine function can't just reaggregate the children, that's too slow, we can just do one removal and add. If we tried to reaggregate, then clearly the root node would itself take n time to reaggregate.
-TODO: the update function might not take log n time for each node, maybe it is amortized since we add to at most some amount of elements.
 
-
+TODO: prove seg walk is log N, the bubble proof may be incomplete
 
 
 
@@ -40,6 +113,43 @@ ADVANCED USECASES:
 Finding an element that occurs more than `threshold` times in [l:r]
 We can use some adapted boyer-moore + binary search + ST algorithm: https://leetcode.com/problems/online-majority-element-in-subarray/solutions/360493/python-segment-tree-merge-in-o-1-query-o-log-n/
 I don't fully understand the intuition, but the basic idea is each ST node stores its dominant element, and how much "extra count" it has over other elements in that range. We can combine these / aggregate up, and compute a candidate for a given range. Then we can use binary search on the indices of that candidate to determine if it actually appears `threshold` times or not. I also messaged someone on linkedin about this.
+
+Finding the number of times an element occurs in a certain range. The non seg-tree (and simplest way) is to map each number type to a sorted list of its indices, and binary search. This also supports assignments since we can remove from one sorted list and add to another, while all other indices stay fixed. But with a seg tree, we can store sorted lists at each node and binary search, where each ST node holds an index range as normal. We could even have ST nodes hold frequency mappings though this is usually bad I think, though updating is logN because mutating a dictionary/frequency mapping can be O(1) (this also breaks our vague _combine and _basefn template style idea, since when we update a dictionary we don't want to re-aggregate based on children, rather mutate the dictionary at the ST node, directly).
+
+Finding the earliest (or latest) element with a value >= or <= a threshold, or even between thresholds. We can build an ST which stores a max or min value (based on >= or <=).
+Say our array is 100 elements long. And we are looking for a building of height 10, that is later than index 40.
+
+Our root ST node is 0-100
+
+We may see that our left ST child, for range 0-50, has a max height of 15. We can descend here, but it's possible the building is before index 40, so we also need to query the right child. Once we query the right it is fully contained, and a fully contained child can only descend to other fully contained children, and we would only ever descend to one fully contained child, which is always the left (for finding the earliest index) if the max in the left is big enough, else right. So basically we split, if neither node is fully contained we can split again, reaching 4 nodes, but I think now nodes must be fully contained, I believe it actually becomes 2*logN complexity, not even 4n? This is also different since fully contained nodes don't return immediately unlike other things in seg tree queries, but they don't recurse to multiple children.
+
+USESCASES ON VALUES:
+We can also use segment trees on our values instead, for instance: https://leetcode.com/problems/find-building-where-alice-and-bob-can-meet/
+In that question, we want to find the earliest index, above some index `i`, that is at least of value `val`. We can do a segment tree on the indices as normal, and store the max value, and do a tree walk. I think we can also do a segment tree on the heights of the buildings, then each ST node stores the earliest index it occurs at (I believe this is what numb3r5 did on the alice and bob question). So say we want a building of at least height 5, and the max height is 10^9 (constraint), we can query the range [5:10^9]
+for the earliest index. Of course this needs coordinate compression on the heights, the range of heights os 10^9 which is too slow, but there are at most 10^5 unique heights due to the width of the array.
+
+TEMPLATING:
+Trying to use the _combine and IDENTITY things are good, but seem less good for more complex segment trees. As numb3r5 said:
+"ok
+segtree where you store a colleciton at every node
+is very rare"
+
+"so u can probably just code it manually at those points
+and keep ur generic segtree for 99% of problems"
+
+"it's not necessarily bad to focus on one topic
+like trying many segtree problems is fine
+but u shouldn't be concerned with how to templatize segtree
+but rather the process of getting to a segtree
+i.e. how good are u at recognising"
+
+Spend less time on templates, more on being good
+
+The reason _combine doesn't seem to work with more complex things is it is undergeneralized. Consider a seg tree where each node stores a dictionary that stores the amount of occurences of each element. To build, we do combine the dictionaries one key at a time, which takes n log n time (as combining is linear with respect to # of elements in that range, and our seg tree contains n log n total "ranges"), but to update, we can just mutate the actual dictionary in O(1).
+
+
+Querying with the merge sort tree can take "extra" params than usual (and it seems so whenever we store a collection at a ST node). For instance, if we want to query the number of vals lowBound<=val<=upperBound in [l:r], our query can take: def _queryRecurse(self, i, tl, tr, l, r, lowBound, upperBound). So just be adaptable and don't follow the basic template idea.
+
 
 ITERATIVE VS RECURSIVE SEGMENT TREES:
 Iterative ones seemed faster and had shorter setup code, but could be less intuitive maybe. Recursive segment trees always construct an answer in order, meaning commutative operations can be handled. For instance the answer to [1:7] might be [1:4] + [5:5] + [6:7], but the merging is done in order, as opposed to [5:5] + [1:4] + [6:7], for instance. Iterative ones can do this, but I think it is more complicated. I also think iterative trees have more complicated lazy propogation. Overall, I will currently opt for recursive solutions as I can more easily edit them, but I may make iterative templates that are optimized for speed, but I cannot necessarily modify them on the fly.
@@ -52,6 +162,9 @@ ZERO INDEXING VS ONE INDEXING:
 
 MEMORY:
 The basic implementation uses 4-n memory. A perfect binary tree needs 2n memory, but if we are 1 more than a power of 2, for instance we have 5 nodes, we might still need to allocate 16 cells of memory, which is where the 4-n behavior comes from. The perfect trees are actually the best case in terms of memory usage, not the worst. I think some of my implementions work just fine with 2n memory. I also feel that in theory we can use the exact amount of memory we need, but I am not sure how.
+
+TIME:
+Segment trees take logN time to query (basic ones). As we descend, we query a contiguous subarray. Say we query 1:9, our left node is 0:5 and right node is 6:10. Once we split to 0:5, right node of 3:5 is completely covered and immediately returns. At 6:10, left node of 6:8 is completely covered and immediately returns. Basically if we have 3 or 4 nodes, the middle one(s) are covered and return. I don't know how to visualize seeing 4 nodes appear in multiple layers, but I think the general idea is the middles get shut out and the left and right can keep splitting. Like as we descend, its possible our leftmost and rightmost ST nodes keep splitting, but when they split one node returns immediately.
 
 
 THE HELPER COMBINE FUNCTION:

@@ -13,7 +13,7 @@
 # Return true if such pair exists or false otherwise.
 
 # Solution, O(n log n) time, O(n) space
-# Use a sorted list. For each number, find the closest numbers next to it.
+# Use a SortedList. For each number, find the closest numbers next to it.
 
 from sortedcontainers import SortedList
 

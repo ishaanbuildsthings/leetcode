@@ -16,7 +16,7 @@
 
 class Solution:
     def countRectangles(self, rectangles: List[List[int]], points: List[List[int]]) -> List[int]:
-        byHeight = defaultdict(list) # byHeight[height] gives us a sorted list of rectnagles that have width, height
+        byHeight = defaultdict(list) # byHeight[height] gives us a sorted list of rectangles that have width, height
         for width, height in rectangles:
             byHeight[height].append(width)
         for height in byHeight:

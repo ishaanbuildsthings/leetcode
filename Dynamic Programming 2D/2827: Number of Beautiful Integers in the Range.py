@@ -13,6 +13,7 @@
 
 # Solution, O(log(n) * 2 * 2 * log(n) * log(n) * k) space, 10 times that for time.
 # We need the typical index of insertion, is tight, and non zero taken (we only count 0s as an even once we have taken a non zero). We also track the odd count and even count. There is pruning that can be done if we have too much a surplus of one. We could also just use a surplus parameter. We also need the remainder. Every time we take a digit, say in _ _ _ we take a 1, we are really adding 100, and if k is 3 we are adding a remainder of 1, so that is how we maintain the remainder parameter.
+# can maybe compress the for loop, didn't read problem but lots of digit DP can be compressed
 
 class Solution:
     def numberOfBeautifulIntegers(self, low: int, high: int, k: int) -> int:

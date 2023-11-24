@@ -9,6 +9,7 @@
 
 # Solution, log(n) * 2 * 2 space, 10 times that for time.
 # We need the typical index and tight. We also need to know if we are leading zeroes / if a non zero is taken. We can always add a 0 as a digit if we haven't used a non zero yet, this lets us access numbers shorter than n.
+# can probably compress the for loop in some way
 
 class Solution:
     def atMostNGivenDigitSet(self, digits: List[str], n: int) -> int:

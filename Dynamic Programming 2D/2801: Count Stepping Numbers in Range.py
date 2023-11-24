@@ -16,6 +16,7 @@
 # Solution, O(2 * 2 * log(high) * 10) space, and 10 times that for time complexity.
 
 # We need to know the last digit that was taken, so we know what current digit we can take. We need to know if we have taken a non zero, to know if we can only take a 1 (our last digit was 0) or if we can take any number. We need to know the index we are inserting at to know if we are done, and we need tight to know if we are bounded.
+# can maybe compress the for loop, didn't read problem but lots of digit DP can be compressed
 
 class Solution:
     def countSteppingNumbers(self, low: str, high: str) -> int:

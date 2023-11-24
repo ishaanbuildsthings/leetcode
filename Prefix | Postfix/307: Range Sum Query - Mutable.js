@@ -39,7 +39,7 @@ There are many ways to solve this problem.
 
 3) square root decomp. Split the array into ~root n blocks. So for 10 elements, we have 3 blocks of 3, and 1 ending block of 1. we also store root n mappings of a block to its sum. when we update an index, we update the block and the sum for that block in O(1). when we sum a range, we sum the left partial block (up to root n elements), root n filled blocks, and the right partial block (up to root n elements), so O(root n).
 
-4) segment tree / bit: TODO
+4) segment tree
 */
 
 // Solution, square root decomp

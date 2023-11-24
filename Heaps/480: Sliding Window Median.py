@@ -11,7 +11,7 @@
 
 # Return the median array for each window in the original array. Answers within 10-5 of the actual value will be accepted.
 
-# Solution, O(n log n) time, O(k) space, just use a sorted list, but we could do a 2-heap solution as well
+# Solution, O(n log n) time, O(k) space, just use a SortedList, but we could do a 2-heap solution as well
 
 from sortedcontainers import SortedList
 

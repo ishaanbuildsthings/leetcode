@@ -1,6 +1,6 @@
 # https://leetcode.com/problems/count-the-number-of-k-big-indices/description/
 # difficulty: hard
-# tags: avl tree
+# tags: avl tree, segment tree
 
 # Problem
 # You are given a 0-indexed integer array nums and a positive integer k.
@@ -12,7 +12,8 @@
 # Return the number of k-big indices.
 
 # Solution, O(n log n) time, O(n) space
-# Maintain two sorted lists, range query as needed on them
+# Maintain two SortedLists, range query as needed on them
+# SOLUTION 2, we can also use a segment tree on the values, I have code in my segment tree templates folder for this problem
 
 from sortedcontainers import SortedList
 

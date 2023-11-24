@@ -2,8 +2,6 @@
 // Difficulty: Medium
 // tags: kadane's, circular
 
-// todo: continue trying 2 pointer / dp solution
-
 // Solution
 // O(n) time and O(1) space. Get the maximum contiguous and minimum continguous subarrays SUMS. There are two options, our max sum is circular or not circular. If it is circular, it is the value of the entire array minus the smallest contiguous subarray.
 

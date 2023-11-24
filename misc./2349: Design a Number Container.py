@@ -21,7 +21,7 @@ from sortedcontainers import SortedList
 class NumberContainers:
 
     def __init__(self):
-        self.mapping = defaultdict(lambda: SortedList()) # each number contains a sorted list of its indices
+        self.mapping = defaultdict(lambda: SortedList()) # each number contains a sortedList of its indices
         self.indicesMapping = {} # maps an index to a number
 
     def change(self, index: int, number: int) -> None:

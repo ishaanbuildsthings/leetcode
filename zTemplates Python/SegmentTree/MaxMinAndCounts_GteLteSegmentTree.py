@@ -1,6 +1,6 @@
 # ______________________________________________________________________
 # TEMPLATE - can give max, min, counts, earliest and latest indices for a number >= or <= some threshold
-# TODO: test, validate if pruning helps
+# TODO: test, validate if pruning helps, not sure my gte or lte index things are logN complexity
 
 # FUNCTIONS:
 # Query max of range O(logN)

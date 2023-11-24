@@ -7,6 +7,7 @@
 
 # Solution, O(log(n) * 2 * 2 * 2^log(n) * 2) space, 10 times that for time.
 # We need the index we are inserting the number at, if we have taken a non zero yet (we need this to know if taking a 0 should count as a repeat, since leading 0s should not), a bitmask of which digits have been taken, and if we have repeated a digit yet.
+# can maybe compress the for loop in some way
 
 class Solution:
     def numDupDigitsAtMostN(self, n: int) -> int:

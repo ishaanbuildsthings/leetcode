@@ -9,6 +9,7 @@
 
 # Solution, O(5 * 5 * n) time, O(5 * n) space
 # Standard digit DP style solution
+# can probably save on some iterations in the for loop, maybe start from the prev, reading this problem back later so not 100% sure but seems like it
 
 class Solution:
     def countVowelStrings(self, n: int) -> int:

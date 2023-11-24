@@ -9,6 +9,7 @@
 
 # Solution, O(log n * 2 * 2^(log n)) space, 10 times that for time.
 # We need the typical index and tight for digit dp. We also need a mask of which numbers we have taken, we can only take numbers we have not. Which numbers we have taken also informs us if we have taken a non zero which lets us know if we can take a leading 0 or not.
+# can maybe compress the for loop, didn't read problem but lots of digit DP can be compressed
 
 class Solution:
     def countSpecialNumbers(self, n: int) -> int:

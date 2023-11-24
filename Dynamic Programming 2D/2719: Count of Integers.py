@@ -13,6 +13,7 @@
 
 # Solution, O(log(n) * 2 * 200) space, 2 times that for time. Could be sped up a bit with some pruning.
 # We need i, tight, the current sum of digits.
+# can maybe compress the for loop, didn't read problem but lots of digit DP can be compressed
 
 class Solution:
     def count(self, num1: str, num2: str, min_sum: int, max_sum: int) -> int:

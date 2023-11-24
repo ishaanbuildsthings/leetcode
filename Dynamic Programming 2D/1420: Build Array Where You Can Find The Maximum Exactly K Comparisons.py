@@ -15,6 +15,7 @@
 
 # Solution, O(n * k * m^2) time, O(n*k*m) space
 # Standard digit dp style solution, add digits based on valid ranges and add to the result if we have a valid base case
+# can compress the for loop it seems, just reading this back later
 
 MOD = 10**9 + 7
 

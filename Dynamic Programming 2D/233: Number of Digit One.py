@@ -7,6 +7,7 @@
 
 # Solution, O(log(n) * log(n) * 2) space, 10 times that for time.
 # We need the index, the total number of ones, and tight.
+# can compress the time for the non-op digits
 
 class Solution:
     def countDigitOne(self, n: int) -> int:

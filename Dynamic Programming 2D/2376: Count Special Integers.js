@@ -13,6 +13,7 @@
 // Establish a dp state of length(n) * 2 (if tight or not) * bitmask (which numbers we have taken). This is 20*1024. Each state considers up to 10 digits.
 
 // For each state, we check which digits we can take. If we are still tight, we can only take up to the ith digit of the original number. We also cannot take duplicate numbers so we check our mask. We can always take a 0 if we are leading, but once we aren't leading anymore, we can only take a 0 once, and we start marking the mask.
+// can maybe compress the for loop, didn't read problem but lots of digit DP can be compressed
 
 /**
  * @param {number} n
