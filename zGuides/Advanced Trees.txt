@@ -239,3 +239,29 @@ Also, if we are descending, and reach a node that has no intersection with our q
 Then as we go back up, we do it as normal. Keep in mind once we are fully contained, we return our normal value. This makes sense. Imagine if we just reached a fully contained node, we push down the lazy and apply to our current ST node, it's no problem to immediately clear the current ST node. After all, we updated it, which we needed to, because we have no lazy anymore indicating an update is needed.
 
 For updating a range, we do the same thing, pushing lazys as we go down. Similarly, once we reach a node that is fully contained and needs updating, we update it with our lazy (and push down the update to the children)! This is a bit different than a normal segment tree where we update just the value in the single ST node of size 1, then pull back up the updated data. Instead, we update any ST node fully contained within our entire query range, and pull back up the data. Like if I have data from [0:9] and make a range update on [0:4] (root's left child), I query down left, apply the update, push the update down to children if they exist, then pull back up to the root. It doesn't matter if we just pushed a different update to the same region before, we would overwrite it, and the children too.
+
+
+COORDINATE COMPRESSION:
+We can compress coordinates to only things that matter. Consider falling squares:
+https://leetcode.com/problems/falling-squares/description/
+
+The useful coordinates are left and right points on the squares.
+
+We need to:
+1) be able to query the max height for the entire region
+2) be able to query the max height for some subregion
+
+Notably, we only ever need to query from one notable x-coordinate to another. Simiarly for when we assign range-addition updates.
+
+If we compress the coordinates, then clearly we can just query in the compressed coordinates. And squares fall in compressed coordinates. etc.
+
+It is as easy as mapping values to compressed coordinates intially, then converting them as needed. The segment tree can remain unaware of the non-compressed data.
+
+I think part of the confusion is it feels like it doesn't work, but it does, consider these coordinates:
+
+|  |                 |
+
+Then we care about things that happen from 0 to 1, 0 to 2, and 1 to 2. Say we drop a square from 0 to 2, then when we query the max height from 0 to 1, of course it gets updated, it's no different than if we had:
+
+|  |  |
+
