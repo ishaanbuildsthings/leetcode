@@ -230,12 +230,12 @@ I feel like recursion for segment trees is inefficient. If I want to descend dow
 
 
 LAZY PROPAGATION:
-Whenever we reach a node during the descent of update or query, if it has a pending update, we apply it and clear the update, but then we need to push down, because the more granular segments might not have updated themselves. Like if I add 3 to every element in [0:3], and I reach the [0:3] node, I can add 3 to the minimum (what we store at the ST node), but we need to push down to its children [0:1] and [2:3] still.
+In lazy propagation, we can do certain range things, like adding to range, range assignments, etc. What we store at the nodes doesn't matter, as long as based on our action, we can modify what we store. This is usually pretty easy for simple things though (max, min, sum, etc).
 
-Once we get fully contained in a segment, we update our stored value. I mean if we add 10 from [0:5] and we reach a [0:3] segment, obviously the minimum in [0:3] goes up by 10.
+In a lazy tree, as we descend in a query, if we ever reach a ST node that has a pending lazy update, we apply it to our node and clear the lazy. We then push down the lazy, if we aren't at a leaf. Obviously whenever we apply a lazy we should push down.
 
-Then, at the children of the contained segment, we add pending lazy updates to those children. So the children of [0:3] each go up by 10. We don't need the granularity yet, but we store it if we need it later / need to access it while descending (during which we would start applying and clearing the update).
+Also, if we are descending, and reach a node that has no intersection with our query (which normally returns immediately with an identity value), we don't have to push the lazy. We could, but it doesn't affect our code, because we return the identity value.
 
-Remember, in a normal assignment
+Then as we go back up, we do it as normal. Keep in mind once we are fully contained, we return our normal value. This makes sense. Imagine if we just reached a fully contained node, we push down the lazy and apply to our current ST node, it's no problem to immediately clear the current ST node. After all, we updated it, which we needed to, because we have no lazy anymore indicating an update is needed.
 
-question: if i reach a node with no intersection during my descent, do i still update its value? or can i just leave it
+For updating a range, we do the same thing, pushing lazys as we go down. Similarly, once we reach a node that is fully contained and needs updating, we update it with our lazy (and push down the update to the children)! This is a bit different than a normal segment tree where we update just the value in the single ST node of size 1, then pull back up the updated data. Instead, we update any ST node fully contained within our entire query range, and pull back up the data. Like if I have data from [0:9] and make a range update on [0:4] (root's left child), I query down left, apply the update, push the update down to children if they exist, then pull back up to the root. It doesn't matter if we just pushed a different update to the same region before, we would overwrite it, and the children too.
