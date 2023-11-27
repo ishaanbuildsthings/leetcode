@@ -48,6 +48,7 @@ lop off (this is for problems where we need to count pairs or subarrays and we u
 math (I tag a lot of problems in the math folder with this but not sure I did all)
 matrix bfs
 matrix dfs
+merge sort tree
 minimum spanning tree
 monotonic deque
 monotonic queue
@@ -63,6 +64,7 @@ rolling hash
 quickselect
 quicksort
 queue
+segment tree
 self balancing bst
 single branch (recursive or iterative)
 sliding window (fixed/variable)

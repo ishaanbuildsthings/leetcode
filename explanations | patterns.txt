@@ -205,3 +205,4 @@ learn reservoir smapling
 
 TODO:
 reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?
+get space efficient segment tree understanding

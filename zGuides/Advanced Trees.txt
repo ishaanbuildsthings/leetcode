@@ -11,11 +11,26 @@ Can support range updates (lazy propogation)
 WHAT IS NEEDED / WHAT CANNOT BE DONE:
 I think for a ST to work (at least for basic use cases), if our ST node is fully contained, we should be able to return immediately. For instance if we want the sum of elements from [1:7], and we have a ST node of [4:6], that should return immediately with its stored value. Whereas something like # of elements below `num`, the answer to [4:6] may not be stored, and require recursing down (this is essentially literally just aggregating every leaf node, no different than a linear for loop). This applies if we did NOT preprocess answers for `num`. Like say we want to know how many elements from [3:16] are < 10, unless we preprocessed all info specifically for 10, we cannot solve this (you need something like a BIT).
 
+IMPORTANT OBSERVATION:
+When we build our tree, we often use a _combine function to compute the answer to a parent node. This is kind of like saying, we know the answer to the parent node when we run this function on the children. Everything perfectly fits in, so a root ST node of [0:100] is the _combine of [0:50] and [51:100].
+
+But once we have some unioned disjoint set of intervals, and we want our answer to something, it seems like the logic for using _combine stays the same, it's just that the regions we union aren't perfectly fit into ST nodes, they're just computed values when we run our query.
+
+Like if we want the sum of elements from [1:99], there aren't 1 or 2 perfect seg tree nodes that create this region, we need more, so we might get the results for 1:50 and 51:99 which themselves are not perfect nodes and themselves are the results of recursive calls. We have these two computed values for those two ranges, and we get still use our _combine to get the answer for our query. After all, the two regions are processed in the same order (left to right) and are connected and on the same data. The reason I thought of this whole idea was the cp-algorithms section on finding the maximum sum subarray in a given range. The idea is at a node we can store:
+sum, max prefix, max suffix, max segment in this region
+
+To combine, we can get the new sum easily. Max prefix and max suffix are either the prior ones or the sum + max prefix or suffix. And that gives us the new max subarray in this region as well. So now our tree is built.
+
+Now when we query some range, we can reuse this _combine function to actually solve the query as well.
+
 A SIMPLE WAY TO THINK ABOUT SEGMENT TREES:
 This is for deducing some complexities, understanding operations, etc. It is the result of several days of thinking and writing about segment trees.
 
+Also, I think a good way to think if we can use a segment tree is to simply state:
+Can I know the answer to our root node say [0:100] based off of two children nodes? Can I aggregate that info somehow? Don't worry about the fact our query may not fit perfectly, that's more like the beauty of how the segment tree works. Remember, if we are at a ST node that isn't fully contained in our query, what we end up returning is the result with only the intersected region of our query, it just means we have to recurse more. But remmeber the operation must be associative, though it doesn't have to be commutative (since we can force the query to be answered left to right in terms of the partitioned region)
+
 1)
-First, we accept that in a segment tree we can construct a union of disjoin partitions that represent our query range, in at most logN partitions.
+First, we accept that in a segment tree we can construct a union of disjoin partitions that represent our query range, in at most logN partitions. According to this paper, we need at most 2*logN fully contained segments: https://maratona.ic.unicamp.br/MaratonaVerao2016/material/segment_tree_lecture.pdf
 
 This is shown because we know we touch at most 4*logN nodes (via inductive reasoning). We can also construct cases for instance array is [0:100] and we query [1:99] and show how many subregions we create. I think this test case doesn't formally show how logN is the upper bound (though it shows logN partitions must be needed, at least), but if I thought about it more I could probably reason how this or a certain test case showcases the worst case in terms of splitting / creating a disjoint set.
 
@@ -38,6 +53,9 @@ sum, max, min, max + counts, min + counts, number of occurences of a specific (p
 Earliest index of a number >= or <= `num` (this is done by using the max or min for a region)
 3)
 GCD/LCM for a range (see the GCD LCM segment tree for complexities, it is more complicated)
+4)
+Find the kth zero in a subregion.
+We can just store the number of 0s in each region, start at the root, and descend to wherever the kth 0 is lol. So sometimes we can solve things without needing _combine functions or anything like that - IMPORTANT!!!
 
 ADVANCED:
 For the below query type, here's an example of my implementation that passed: https://leetcode.com/problems/reverse-pairs/submissions/1105107449/
@@ -60,7 +78,7 @@ And also this post on stack overflow shows it could be even faster than m+n??: h
 Regardless, if we wanted to update something for example (maybe an assignment, which is log operation on each ST SortedList node), we would do a logN + log(N/2) + ... which is log^2n anyway, so likely in the problem the queries may bottleneck us rather than the construction. Similarly, querying (for instance with binary search) might be logN + log(N/2) + ... for up to logN ST nodes (we always partition into at most logN nodes). Since we visit logN nodes we can't partition into more than logN. Though I don't have a proof that this is a tight boundary, for instance something might amortize for the query and maybe we don't need logN + log(N/2) + ...
 Some math analysis of this is:
 In general, doing a binary search on two halves is slower than doing it on a whole. 2*(log(n/2)) is bigger than logn (for n>4). this is because log(n^2/4) compared to log(n), we just compare n^2/4 to n. So it seems we favor to do binary searches on larger ranges all at once. I mean this is obvious because doing a binary search on an array of n is just one more operation than doing it on n/2, whereas doing two binary searches on log(n/2) is well, log n more operations than doing it on logn.
-Consider we partition into our entire query into logn segments (we know the worst case is upper bounded by logn, as we visit logn nodes), then if we process our query, say: (each partition is exactly size n/logn, idk if this is possible though), we would do a binary search on each partition of size n/logn, there are logn partitions, and the binary search is log(n/logn), totalling to logn*log(n/logn), which is logn * (logn - log(logn)) which becomes log^2n, so thats the upper bound of our time if we did a binary search on each partition. I don't know if that's the tight bound though, maybe the partitions are sized different. Like if our partitions were one big one of n/2, and the rest were each of a small size (can't be 1, since we have at most logn partitions), that is more efficient than evenly sized ones I think. not 100% sure about this, but for instance log99 + log1 is less than (and therefore fewer ops / more efficient) 2*log50 (an even split). But later I show it is a tight bound via a test case.
+Consider we partition into our entire query into logn segments (we know the worst case is upper bounded by logn, as we visit logn nodes), then if we process our query, say: (each partition is exactly size n/logn, idk if this is possible though), we would do a binary search on each partition of size n/logn, there are logn partitions, and the binary search is log(n/logn), totalling to logn*log(n/logn), which is logn * (logn - log(logn)) which becomes log^2n, so thats the upper bound of our time if we did a binary search on each partition. I don't know if that's the tight bound though, maybe the partitions are sized different. Like if our partitions were one big one of n/2, and the rest were each of a small size (can't be 1, since we have at most logn partitions), that is more efficient than evenly sized ones I think. not 100% sure about this, but for instance log99 + log1 is less than (and therefore fewer ops / more efficient) 2*log50 (an even split). But later I show it is a tight bound via a test case. But even then, it's not possible to partition this way. We get at most 2 fully contained segments per layer and each layer halves in size for its segments. And I think we can show once we get a layer where we touch 2 nodes and neither is fully contained, we must get 2 nodes on the next level that are. Basically I think there are only ever ways to partition our query segment in ways where for instance doing a log operation on each segment results in log^2n time overall. The "worst" case is when we don't get a fully contained segment because then the unioned segments become smaller on average but I'm pretty sure it's still log^2n anyway. At the end of the day if we have at most 2 partitions per layer (or 0 or 1), and we use segments from multiple layers, it means there is some sort of doubling going on. I think the key is no matter how we select segments (0, 1, or 2 from every layer) it's always log^2n relative to the entire array in the worst case. Again some queries might not be but we think about time complexity in the worst case.
 If we did want lots of partitions, consider a root ST node of 0-100 and we query 1-99. Basically we DO have 4 nodes for almost every layer! The inner nodes are fully contained and the outer nodes cut in half in size each layer we descend. This means the contained nodes are of sizes:
 n/4 + n/4 + n/8 + n/8 + .... And we could have 2*logN contained nodes.
 If we do a binary search on each node, this is basically 2 * ( log(n/4) + log(n/8) + ... log n times), which we know is on the order of log2^n time.
@@ -84,11 +102,11 @@ _____
 2)
 Find the smallest number >= some threshold, or <= some threshold, we also need a merge sort tree. It isn't enough to just store the min and max like we do for finding earliest number >= or <= a threshold. It might be doable with a ST on the values instead of on the indices, I haven't thought about it yet though.
 
-One simple way to do this is have a merge sort tree on indices, we partition into at most logN segments (this is according to cp-algorithms):
+One simple way to do this is have a merge sort tree on indices, we partition into at most logN segments (2logN really, we gain at most 2 per layer):
 "Now consider the answer to the query. We will go down the tree, like in the regular Segment Tree, breaking our segment  
 $a[l \dots r]$  into several subsegments (into at most  
 $O(\log n)$  pieces)"
-I believe we can show this because we visit at most logN segments anyway since its 4 per each of the logN layers, so naturally our partition is at most logN segments (I think in practice this may be 2logN completely contained partitions, 2 for each layer), since the partition is just the terminal cases for our entire of the at most 4*logN visits. But I don't know if this means when we query, and say we do a binary search on each node, I don't know if it guarantees we need logN + log(N/2) + ... time complexity (which is log^2n). I just know logN is the upper bound on our partition.
+I believe we can show this because we visit at most logN segments anyway since its 4 per each of the logN layers, so naturally our partition is at most logN segments (This is 2logN disjoint segments in practice, since we can gain at most 2 contained segments per logN layers), since the partition is just the terminal cases for our entire of the at most 4*logN visits. But I don't know if this means when we query, and say we do a binary search on each node, I don't know if it guarantees we need logN + log(N/2) + ... time complexity (which is log^2n). I just know logN is the upper bound on our partition.
 
 *after writing more and thinking, and following my simple logic framework*
 I realize I can deconstruct this problem to:
@@ -106,6 +124,9 @@ The naive way is to have each ST node store a dictionary of elements and how man
 The _combine function can't just reaggregate the children, that's too slow, we can just do one removal and add. If we tried to reaggregate, then clearly the root node would itself take n time to reaggregate.
 
 TODO: prove seg walk is log N, the bubble proof may be incomplete
+TODO: i dont even get why we need 4n memory
+TODO: investigate why lazy prop seg tree you cant do _push when we meet a ST node with no overlap
+TODO: add coordinate compression and segment tree tag for flowers in bloom, and lazy propagation, also I think coordinate compression + sqrt decomp works im guessing, think about it
 
 
 
@@ -205,3 +226,16 @@ _____
 Say we want to query the # of times a max occurs in [l:r]. We necessarily need to store counts in the ST nodes, because during the query, for a range, if one of the child ranges has a bigger max than the other, we need to get the new count. Whereas something like # of numbers <= `num` in a range, it's just the sum of the children. We aren't worried about the fact that one node could override the other, for instance say our left node had a max of 10 which happened 3 times, and the right node had a max of 15 which happened 5 times, obviously for the parent the new max is 15, but we aren't worried about missing a 15 from the left, because otherwise the max from the left would be 15, not 10.
 _____
 I feel like recursion for segment trees is inefficient. If I want to descend down to update something, then bubble back up, why not just start at the bottom and traverse up (via pointers, which implicitly exist due to the array representation). Thought I guess this is just top down vs. bottom up type thinking.
+
+
+
+LAZY PROPAGATION:
+Whenever we reach a node during the descent of update or query, if it has a pending update, we apply it and clear the update, but then we need to push down, because the more granular segments might not have updated themselves. Like if I add 3 to every element in [0:3], and I reach the [0:3] node, I can add 3 to the minimum (what we store at the ST node), but we need to push down to its children [0:1] and [2:3] still.
+
+Once we get fully contained in a segment, we update our stored value. I mean if we add 10 from [0:5] and we reach a [0:3] segment, obviously the minimum in [0:3] goes up by 10.
+
+Then, at the children of the contained segment, we add pending lazy updates to those children. So the children of [0:3] each go up by 10. We don't need the granularity yet, but we store it if we need it later / need to access it while descending (during which we would start applying and clearing the update).
+
+Remember, in a normal assignment
+
+question: if i reach a node with no intersection during my descent, do i still update its value? or can i just leave it
