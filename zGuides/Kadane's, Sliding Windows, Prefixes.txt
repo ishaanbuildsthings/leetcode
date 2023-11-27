@@ -17,6 +17,8 @@ We can also do the fixed sliding window with just a for loop for the left bounda
 
 
 **** PREFIXES / POSTFIXES ****
+Often we can do an O(1) space by computing the sum, then iterating linearly, tracking the prefix sum and subtracting from the sum for the postfix sum.
+
 similar to kadane's, but the difference is we aren't resetting our prefix, we're just establishing cumulative prefixes and postfixes. Prefixes usually include the current number in the prefix, but they don't always have to for instance 238: Product of Array Except Self. Also 435: Non-overlapping intervals, our prefix represents the furthest end time of the prior intervals, but we use that to assess if we need to merge the new interval or not.
 
 a common motif with prefixes or dps or something (think trapping rainwater II my failed attempt at trying to get the row and column constraints when I first tried the Min(rowConstraint, colConstraint) strategy) is:

@@ -15,7 +15,7 @@
 
 # Solution 1
 # I coordinate compressed the notable regions (left and right x-coordinates for each square) then used a lazy propagation segment tree. I think we could also just do normal coordinate compression but brute force loop each query. Basically we query among all the compressed coordinates each time for a max or the current max to add our new square too. And when we update we do it for n cells.
-# We could also coordinate compress, then square root decomp on the compressed coordinates, so if we get 100 compressed coordinates we split it into blocks of 10. I haven't walked through the full logic but I think each cell should store the max height in it, and if we need more granular we read each of the cells inside the block itself. Whenever we update a range we update the max for the relevant blocks and when we query we can do so with granularity of cells if needed as well.
+# We could also coordinate compress, then square root decomp on the compressed coordinates, so if we get 100 compressed coordinates we split it into blocks of 10. I haven't walked through the full logic but I think each cell should store the max height in it, and if we need more granular we read each of the cells inside the block itself. Whenever we update a range we update the max for the relevant blocks and when we query we can do so with granularity of cells if needed as well. This is no different than how a segment tree stores data for every cell, but then also segments store data.
 
 class SegTree:
     def __init__(self, n):

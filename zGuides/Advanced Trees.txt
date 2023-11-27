@@ -57,6 +57,20 @@ GCD/LCM for a range (see the GCD LCM segment tree for complexities, it is more c
 Find the kth zero in a subregion.
 We can just store the number of 0s in each region, start at the root, and descend to wherever the kth 0 is lol. So sometimes we can solve things without needing _combine functions or anything like that - IMPORTANT!!!
 
+ADVANCED - WALKTHROUGH ON QUESTION:
+# Problem
+# Given an integer array nums, return an integer array counts where counts[i] is the number of smaller elements to the right of nums[i].
+
+# Solution
+# There are many ways to solve this:
+# 1 - a merge sort tree. We build a segment tree on indices, each ST node holds a sorted list of elements. We can do binary search operations on each ST node to find the number of elements in a certain range that are smaller than a certain number. Normally, each query takes log^2 n time (and overall build is n log n), but with fractional cascading, we could make queries take log n time. I have implemented the non fractional cascading below.
+# 2 - a segment tree built on values. The range of values is small (even if they were big we could coordinate compress), we can build a segment tree on values, and each ST holds a sorted list of indices, then we can query the values and search for appropriate indices. We have at most 2*10^4 values (call this m, less than n), so we do n queries but now each query takes log^2m time. I think again with fractional cascading we can reach n*logM time.
+# 3 - A segment tree built on values with coordinate compression. In the worst case, we have m unique values, but if there are overlaps, we can use coordinate compression, making our segment tree even smaller.
+# 4 - A clever segment tree where we intialize everything to 0, do a point update, then do a range sum update. This is n log n, so technically the n log M fractional cascading method could be faster.
+# 5 - A clever segment tree built on values, where we do a point update for a value, then a query for the value range, this is n log M time and is simple.
+# 6 - The easiest way to do it, just use a rolling sorted list from the right (can do left also, but worse), which is n log n.
+
+
 ADVANCED:
 For the below query type, here's an example of my implementation that passed: https://leetcode.com/problems/reverse-pairs/submissions/1105107449/
 1)
@@ -239,6 +253,8 @@ Also, if we are descending, and reach a node that has no intersection with our q
 Then as we go back up, we do it as normal. Keep in mind once we are fully contained, we return our normal value. This makes sense. Imagine if we just reached a fully contained node, we push down the lazy and apply to our current ST node, it's no problem to immediately clear the current ST node. After all, we updated it, which we needed to, because we have no lazy anymore indicating an update is needed.
 
 For updating a range, we do the same thing, pushing lazys as we go down. Similarly, once we reach a node that is fully contained and needs updating, we update it with our lazy (and push down the update to the children)! This is a bit different than a normal segment tree where we update just the value in the single ST node of size 1, then pull back up the updated data. Instead, we update any ST node fully contained within our entire query range, and pull back up the data. Like if I have data from [0:9] and make a range update on [0:4] (root's left child), I query down left, apply the update, push the update down to children if they exist, then pull back up to the root. It doesn't matter if we just pushed a different update to the same region before, we would overwrite it, and the children too.
+
+Similar to how in basic segment trees we could modularize some things with _combine, we can do so in lazy ones. We need the ability to add an old lazy operation onto a new one: _compose(oldPendingLazy, newPendingLazy), as well as zero-out a lazy operation to the actual values, _applyRange. See a comment in this thread for more info: https://codeforces.com/blog/entry/44478
 
 
 COORDINATE COMPRESSION:
