@@ -265,3 +265,9 @@ Then we care about things that happen from 0 to 1, 0 to 2, and 1 to 2. Say we dr
 
 |  |  |
 
+
+
+DYNAMICALLY SIZED SEGMENT TREE:
+Consider a problem where we need to query the # of times an element appears from [l:r]
+The actual good one is to create a sorted list for every number type (it stores indices) which takes O(n) time and space, then binary search on it. We can use SortedList if we want to support replacement of a number. I think to entirely remove a number we could maybe replace it with a dummy value and dummy sorted list but I haven't really thought about it, I think this goes into more dynamically sized stuff.
+^ these are just various thoughts about removing or inserting elements rather than replacing them, which is more difficult due to indices moving around. I haven't thought about this more.

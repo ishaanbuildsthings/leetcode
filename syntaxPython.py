@@ -17,3 +17,7 @@ for i, num in enumerate(nums):
 x = 15
 x //= 10 # floor divide by 10, so we get 1
 rounded_up = math.ceil(1.5) # rounds up to 2, may be included by default, or maybe need to import math, not sure, it works on leetcode
+
+# prefix sum
+import itertools
+prefixSum = list(itertools.accumulate(nums, initial=0))
