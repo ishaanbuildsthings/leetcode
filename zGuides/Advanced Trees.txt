@@ -58,8 +58,11 @@ Find the kth zero in a subregion.
 We can just store the number of 0s in each region, start at the root, and descend to wherever the kth 0 is lol. So sometimes we can solve things without needing _combine functions or anything like that - IMPORTANT!!!
 
 ADVANCED - WALKTHROUGH ON QUESTION:
+This is a good one because it shows how we can even skip complicated things like merge sort trees or fractional cascading but still get fast segment tree solutions using clever methods like #5.
+
 # Problem
 # Given an integer array nums, return an integer array counts where counts[i] is the number of smaller elements to the right of nums[i].
+(Note that since there's low constraints on what nums[i] can be, compared to the size of the array, we can do some tricks to get nlogM time complexity rather than n log n, like coordinate compression + fractioncal cascading and whatnot, or doing the editorial solution which was point updates and range sums).
 
 # Solution
 # There are many ways to solve this:
@@ -67,7 +70,7 @@ ADVANCED - WALKTHROUGH ON QUESTION:
 # 2 - a segment tree built on values. The range of values is small (even if they were big we could coordinate compress), we can build a segment tree on values, and each ST holds a sorted list of indices, then we can query the values and search for appropriate indices. We have at most 2*10^4 values (call this m, less than n), so we do n queries but now each query takes log^2m time. I think again with fractional cascading we can reach n*logM time.
 # 3 - A segment tree built on values with coordinate compression. In the worst case, we have m unique values, but if there are overlaps, we can use coordinate compression, making our segment tree even smaller.
 # 4 - A clever segment tree where we intialize everything to 0, do a point update, then do a range sum update. This is n log n, so technically the n log M fractional cascading method could be faster.
-# 5 - A clever segment tree built on values, where we do a point update for a value, then a query for the value range, this is n log M time and is simple.
+# 5 - A clever segment tree built on values, where we do a point update for # of times a value appears, then a query for the range "from this to this value", this is n log M time and is simple.
 # 6 - The easiest way to do it, just use a rolling sorted list from the right (can do left also, but worse), which is n log n.
 
 
@@ -141,11 +144,20 @@ TODO: prove seg walk is log N, the bubble proof may be incomplete
 TODO: i dont even get why we need 4n memory
 TODO: investigate why lazy prop seg tree you cant do _push when we meet a ST node with no overlap
 TODO: add coordinate compression and segment tree tag for flowers in bloom, and lazy propagation, also I think coordinate compression + sqrt decomp works im guessing, think about it
+TODO: in falling squares, why do i need to apply the tree when im fully contained:
+TODO: in fancy sequence my non leaf nodes store meaningless info, i could make them store max maybe
+TODO: dont forget hwo segment trees work, your idnexing was wrong, you did a level order index
+
+        # fully contained
+        if tl >= l and tr <= r:
+            self.tree[i] = newVal # upda
+
+    in my update recurse. its not like im accessing it.
 
 
 
 ADVANCED USECASES:
-Finding an element that occurs more than `threshold` times in [l:r]
+Finding an element that occurs more than `threshold` times in [l:r] (not sure how this algorithm works if there can be multiple, maybe there is no guarantee which it selects): https://leetcode.com/problems/online-majority-element-in-subarray/description/
 We can use some adapted boyer-moore + binary search + ST algorithm: https://leetcode.com/problems/online-majority-element-in-subarray/solutions/360493/python-segment-tree-merge-in-o-1-query-o-log-n/
 I don't fully understand the intuition, but the basic idea is each ST node stores its dominant element, and how much "extra count" it has over other elements in that range. We can combine these / aggregate up, and compute a candidate for a given range. Then we can use binary search on the indices of that candidate to determine if it actually appears `threshold` times or not. I also messaged someone on linkedin about this.
 
@@ -197,6 +209,10 @@ ZERO INDEXING VS ONE INDEXING:
 
 MEMORY:
 The basic implementation uses 4-n memory. A perfect binary tree needs 2n memory, but if we are 1 more than a power of 2, for instance we have 5 nodes, we might still need to allocate 16 cells of memory, which is where the 4-n behavior comes from. The perfect trees are actually the best case in terms of memory usage, not the worst. I think some of my implementions work just fine with 2n memory. I also feel that in theory we can use the exact amount of memory we need, but I am not sure how.
+
+Okay, after a bit of work (writing this ~1 week after starting STs), I see how we need 4n memory, it's because non-perfect trees skip some cells in the ST. I actually made a mistake because I was trying to draw my ST and I did a level-order numbering on my nodes, but I needed to adhere to the 2*i and 2*i + 1 numbering, I then realized I wasn't numbering my nodes right, and I saw how nodes were skipped. I don't yet know how many nodes can be skipped at most, because we can't have a super imbalanced segment tree, since segment tree nodes approximately halve in size each descent, but anyway I don't think it is worth reasoning about.
+
+I think for more space efficient segment trees (2*n memory), we can use the methodology on cp-algorithms, or a link steven hao sent (he said something about just renumbering leaves then building naturally), I don't know if these are the same.
 
 TIME:
 Segment trees take logN time to query (basic ones). As we descend, we query a contiguous subarray. Say we query 1:9, our left node is 0:5 and right node is 6:10. Once we split to 0:5, right node of 3:5 is completely covered and immediately returns. At 6:10, left node of 6:8 is completely covered and immediately returns. Basically if we have 3 or 4 nodes, the middle one(s) are covered and return. I don't know how to visualize seeing 4 nodes appear in multiple layers, but I think the general idea is the middles get shut out and the left and right can keep splitting. Like as we descend, its possible our leftmost and rightmost ST nodes keep splitting, but when they split one node returns immediately.

@@ -11,6 +11,7 @@
 
 # Solution, O(max depth * n) time, O(max depth) space
 # Each iteration, iterate to the bottom, get the leaves, parse them out, add to result, and repeat. I believe a faster solution may exist where we create parent points and start at the bottom, moving up and determining what is a leaf. I can also see something about assigning nodes to different buckets as we ascend  based on how far that node is from being a leaf, which might be O(n) time and space, or even a recursive solution that is O(n) time and O(height) space
+# Solution 2, I think we could have parent pointers and make it fast, use a seen set and just move up
 
 # Definition for a binary tree node.
 # class TreeNode:

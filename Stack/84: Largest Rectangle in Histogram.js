@@ -15,6 +15,7 @@ Iterate over the heights. Maintain a strictly increasing stack. Our goal is to d
 /*
 Maintain a stack of [index, height]. [2, 1, 5, 6, 2, 3]. We add 2 that started at index 0. We add a 1, that is at index 1. But it can extend left, all the way to where the 2 started. So we can add [index=0, height=1] for the height of 1. Then we add [index=2,height=5], [index=3,height=6]. Then at 2, we pop the 6, calculate the 6 area. We pop the 5, calculate the area by using our current index for the 2 (index 4) and the index of the 5 (2). We can't pop anymore so we update that our new 2 ends at index 2 which is where the 5 ended. At the end we have a monotonically increasing stack so we need to compute that.
 */
+// Solution 3, I rewrote this later in python, we don't need the "kill" counter. Instead, when an element on the right is small and pops us, we know our right cutoff. The left cutoff is always just the element directly to the left. For instance: 1 5 10 3. The 3 pops the 10. When the 3 pops the 5, the 5 knows it can go up to (but not including) the 3, we don't track the "kills". I store just indices in the stack. Also I added a 0 at the end of the heights to clean up the remaining stack at the end. I prepended a -1 to the stack which helps calculate the left boundary in the chance we don't have an element on the left normally. Code is at the bottom.
 
 var largestRectangleArea = function (heights) {
   let maxArea = -Infinity;
@@ -107,3 +108,18 @@ heightConstraint still 1, width=3, area=3, maxarea=3
 heightConstraint=1, width=1, area=1, maxarea=6(from before)
 
 */
+
+// Solution 3
+// class Solution:
+//     def largestRectangleArea(self, heights: List[int]) -> int:
+//         heights.append(0)
+//         stack = [-1]
+//         ans = 0
+//         for i in range(len(heights)):
+//             while heights[i] < heights[stack[-1]]:
+//                 h = heights[stack.pop()]
+//                 w = i - 1 - stack[-1]
+//                 ans = max(ans, h * w)
+//             stack.append(i)
+//         heights.pop() # clear out the 0, we could have just used a copied array too if we wanted
+//         return ans

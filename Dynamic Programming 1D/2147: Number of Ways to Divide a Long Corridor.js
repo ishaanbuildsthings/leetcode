@@ -19,6 +19,8 @@ For each problem, we can add a divider anywhere after 2 seats, but before a 3rd.
 
 It's not entirely clear to me what the time complexity of this problem is. We have n states, and for each state we check up to n future cells, but I also feel like there is some amortization going on, because if we check up to n future cells it implies there aren't seats there meaning fewer subproblems.
 */
+// SOLUTION 2, I did a python one since now my JS TLEs, I did it for a daily problem, scroll below
+// SOLUTION 3, I redid my JS solution in python, looking back I'm not sure I did the JS one right (didn't read code in depth), but it also looks verbose (the prune is necessary but can be modified to not be needed). I'm also pretty sure an O(1) solution with a for loop works, should be pretty clean too
 
 const MOD = 10 ** 9 + 7;
 
@@ -96,3 +98,68 @@ var numberOfWays = function (corridor) {
 
   return dp(0);
 };
+
+// SOLUTION 2, python
+// MOD = 10**9 + 7
+
+// class Solution:
+//     def numberOfWays(self, corridor: str) -> int:
+//         memo = [[-1 for _ in range(3)] for _ in range(len(corridor))]
+
+//         def dp(i, prevChairs):
+//             # base case
+//             if i == len(corridor):
+//                 return 1 if prevChairs == 2 else 0
+
+//             if memo[i][prevChairs] != -1:
+//                 return memo[i][prevChairs]
+
+//             newChairs = prevChairs + (corridor[i] == 'S')
+
+//             res = 0
+//             # can only divide if we have 2 prev chairs
+//             if prevChairs == 2:
+//                 res += dp(i + 1, 1 if corridor[i] == 'S' else 0) # divider next
+
+//             if newChairs < 3:
+//                 res += dp(i + 1, newChairs) # no divider next
+
+//             memo[i][prevChairs] = res % MOD
+//             return res % MOD
+
+//         return dp(0, 0)
+
+// SOLUTION 3, python
+// MOD = 10**9 + 7
+
+// class Solution:
+//     def numberOfWays(self, corridor: str) -> int:
+//         # fast prune
+//         if corridor.count('S') % 2 == 1:
+//             return 0
+//         if corridor.count('S') == 0:
+//             return 0
+
+//         @cache
+//         def dp(i):
+//             # base case
+//             if i == len(corridor):
+//                 return 1
+
+//             # first move the cursor until we find two seats, or we reach the end
+//             cursor = i + 1
+//             while cursor < len(corridor) and corridor[cursor] != 'S':
+//                 cursor += 1
+
+//             # we are now at the second seat, count the number of dividers
+//             dividers = 1
+//             cursor += 1
+//             while cursor < len(corridor) and corridor[cursor] != 'S':
+//                 dividers += 1
+//                 cursor += 1
+//             # no extra seats, we were in the last area
+//             if cursor == len(corridor):
+//                 return 1
+//             return (dividers * dp(cursor)) % MOD
+
+//         return dp(corridor.index('S'))
