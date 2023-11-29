@@ -7,7 +7,7 @@
 
 # Return the area of the largest submatrix within matrix where every element of the submatrix is 1 after reordering the columns optimally.
 
-# Solution
+# Solution, O(n*m*log m) time, O(n*m) space, can use O(m) space by copying and sorting each row, or O(1) by just breaking the input matrix
 # We can make a matrix where each cell is the contiguous amount of 1s above it. Now, for each row, we sort that row and scan over finding the largest rectangle, assuming we have a base at the row we scan from.
 
 class Solution:
