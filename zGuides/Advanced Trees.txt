@@ -141,18 +141,8 @@ The naive way is to have each ST node store a dictionary of elements and how man
 The _combine function can't just reaggregate the children, that's too slow, we can just do one removal and add. If we tried to reaggregate, then clearly the root node would itself take n time to reaggregate.
 
 TODO: prove seg walk is log N, the bubble proof may be incomplete
-TODO: i dont even get why we need 4n memory
-TODO: investigate why lazy prop seg tree you cant do _push when we meet a ST node with no overlap
-TODO: add coordinate compression and segment tree tag for flowers in bloom, and lazy propagation, also I think coordinate compression + sqrt decomp works im guessing, think about it
-TODO: in falling squares, why do i need to apply the tree when im fully contained:
 TODO: in fancy sequence my non leaf nodes store meaningless info, i could make them store max maybe
 TODO: dont forget hwo segment trees work, your idnexing was wrong, you did a level order index
-
-        # fully contained
-        if tl >= l and tr <= r:
-            self.tree[i] = newVal # upda
-
-    in my update recurse. its not like im accessing it.
 
 
 
@@ -260,15 +250,19 @@ I feel like recursion for segment trees is inefficient. If I want to descend dow
 
 
 LAZY PROPAGATION:
+(Writing this later)
+
 In lazy propagation, we can do certain range things, like adding to range, range assignments, etc. What we store at the nodes doesn't matter, as long as based on our action, we can modify what we store. This is usually pretty easy for simple things though (max, min, sum, etc).
 
-In a lazy tree, as we descend in a query, if we ever reach a ST node that has a pending lazy update, we apply it to our node and clear the lazy. We then push down the lazy, if we aren't at a leaf. Obviously whenever we apply a lazy we should push down.
+In a lazy tree, as we descend in a query, if we ever reach a ST node that has a pending lazy update, we apply it to our node and clear the lazy. We then push down the lazy, if we aren't at a leaf. Obviously whenever we apply a lazy we should push down. And of course we need to apply the update in case we need information for the nodes below us.
 
 Also, if we are descending, and reach a node that has no intersection with our query (which normally returns immediately with an identity value), we don't have to push the lazy. We could, but it doesn't affect our code, because we return the identity value.
 
 Then as we go back up, we do it as normal. Keep in mind once we are fully contained, we return our normal value. This makes sense. Imagine if we just reached a fully contained node, we push down the lazy and apply to our current ST node, it's no problem to immediately clear the current ST node. After all, we updated it, which we needed to, because we have no lazy anymore indicating an update is needed.
 
 For updating a range, we do the same thing, pushing lazys as we go down. Similarly, once we reach a node that is fully contained and needs updating, we update it with our lazy (and push down the update to the children)! This is a bit different than a normal segment tree where we update just the value in the single ST node of size 1, then pull back up the updated data. Instead, we update any ST node fully contained within our entire query range, and pull back up the data. Like if I have data from [0:9] and make a range update on [0:4] (root's left child), I query down left, apply the update, push the update down to children if they exist, then pull back up to the root. It doesn't matter if we just pushed a different update to the same region before, we would overwrite it, and the children too.
+Once we reach a node fully within range, we update our lazy with our new information. We could update first then push down, or just push down then update, I don't think it makes a difference.
+Though to speed things up, we can terminate on the no intersection cases first to prevent extra work.
 
 Similar to how in basic segment trees we could modularize some things with _combine, we can do so in lazy ones. We need the ability to add an old lazy operation onto a new one: _compose(oldPendingLazy, newPendingLazy), as well as zero-out a lazy operation to the actual values, _applyRange. See a comment in this thread for more info: https://codeforces.com/blog/entry/44478
 

@@ -152,7 +152,6 @@ todo: eventually redo construct binary tree from preorder and postorder traversa
 // learn bit
 https://cs.stackexchange.com/questions/10538/bit-what-is-the-intuition-behind-a-binary-indexed-tree-and-how-was-it-thought-a
 
-learn seg tree
 learn avl tree
 
 

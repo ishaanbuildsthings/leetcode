@@ -38,15 +38,6 @@ class SegTree:
     def _queryMaxRecurse(self, i, tl, tr, l, r):
         # no intersection
         if tl > r or tr < l:
-            if self.lazy[i] != 0:
-                self.tree[i] = self.lazy[i]
-                # push down if needed
-                if tl != tr:
-                    self.lazy[2*i] = self.lazy[i]
-                    self.lazy[2*i + 1] = self.lazy[i]
-                # clear the lazy
-                self.lazy[i] = 0
-
             return float('-inf') # identity
 
         if self.lazy[i] != 0:
@@ -70,6 +61,10 @@ class SegTree:
         return max(leftRes, rightRes)
 
     def _updateRangeRecurse(self, i, tl, tr, l, r, newVal):
+        # no intersection, this can go below too
+        if l > tr or r < tl:
+            return
+
         # if we are lazy, update our current value and push
         if self.lazy[i]:
             self.tree[i] = self.lazy[i]
@@ -80,10 +75,6 @@ class SegTree:
 
             self.lazy[i] = 0 # clear the lazy
 
-
-        # no intersection
-        if l > tr or r < tl:
-            return
 
         # fully contained
         if tl >= l and tr <= r:

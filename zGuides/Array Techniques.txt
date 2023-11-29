@@ -1,7 +1,9 @@
 
 ********** TRICKY ARRAY TECHNIQUES **********
 
-We have an array of length n-1, containing all digits from 1 to n, except 1. Such as [3, 2, 1, 5], n=5. To find the missing number in constant space, do sum subtract or bit manipulation. If there are two numbers missing, TODO: bili solution
+We have an array of length n-1, containing all digits from 1 to n, except 1. Such as [3, 2, 1, 5], n=5. To find the missing number in constant space, do sum subtract or bit manipulation.
+
+If two numbers are missing, we XOR 1-n with all array numbers, yielding the XOR of the two missing numbers. We find a set bit for that XOR, there must be at least one since the numbers are different. We then scan over the array again, tracking an XOR1 and an XOR2, depending on if that number has the bit or not. XOR1 and XOR2 will then be the two numbers.
 
 Problem: 448
 We have an array of length n, containing all digits from 1 to n, but some are missing and replaced with duplicates, we need to find the missing ones. For example: [4, 3, 2, 7, 8, 2, 3, 1], n=8, but the 2 and 3 are repeated, and in exchange we are missing 5 and 6. An O(n) solution is to iterate through, populate a set, and find what is missing. A constant solution could be to set the numbers to something out of their range, like negatives or big numbers, by using the indices to store info. So when we see a 4, make the 4th element negative. Iterate through the array, and any element not negative was never visited.
