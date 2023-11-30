@@ -4,6 +4,7 @@
 
 # Problem
 # Given a binary array nums, return the maximum number of consecutive 1's in the array if you can flip at most one 0.
+# We can speed it up to a one pass by storing the index of the 0, to "teleport" the left pointer instead of incrementing it one by one
 
 # Solution, normal sliding window, O(n) time O(1) space, I solved this in like 20 seconds!
 
