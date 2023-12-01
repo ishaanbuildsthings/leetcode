@@ -1,1 +1,3 @@
 We can always assign parent pointers (or use a hashmap to not mutate the structure) if we need some sort of reverse accessibility. Same with linked lists. For instance in problem 863: All Nodes Distance K in Binary Tree. We can add parents, then recurse out from the main node, a distance of k.
+
+If we serialize a tree and a subtree (tree has subtree w/ string matching problem), we can show the subtree string appears contiguously in the larger one. I mean once we enter the subtree to serialize we won't exit until we finish that tree.
