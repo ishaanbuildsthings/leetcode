@@ -123,7 +123,7 @@ One simple way to do this is have a merge sort tree on indices, we partition int
 "Now consider the answer to the query. We will go down the tree, like in the regular Segment Tree, breaking our segment  
 $a[l \dots r]$  into several subsegments (into at most  
 $O(\log n)$  pieces)"
-I believe we can show this because we visit at most logN segments anyway since its 4 per each of the logN layers, so naturally our partition is at most logN segments (This is 2logN disjoint segments in practice, since we can gain at most 2 contained segments per logN layers), since the partition is just the terminal cases for our entire of the at most 4*logN visits. But I don't know if this means when we query, and say we do a binary search on each node, I don't know if it guarantees we need logN + log(N/2) + ... time complexity (which is log^2n). I just know logN is the upper bound on our partition.
+I believe we can show this because we visit at most logN segments anyway since its 4 per each of the logN layers, so naturally our partition is at most logN segments (This is 2logN disjoint segments in practice, since we can gain at most 2 contained segments per logN layers), since the partition is just the terminal cases for our entire of the at most 4*logN visits. I think this means we do a binarys earch on up to 2*logN nodes which decomposes to log^2n time complexity.
 
 *after writing more and thinking, and following my simple logic framework*
 I realize I can deconstruct this problem to:
@@ -147,6 +147,8 @@ TODO: dont forget hwo segment trees work, your idnexing was wrong, you did a lev
 
 
 ADVANCED USECASES:
+In general when I use 'threshold' it means the threshold can change among queries, otherwise we can just build our ST off of that threshold.
+
 Finding an element that occurs more than `threshold` times in [l:r] (not sure how this algorithm works if there can be multiple, maybe there is no guarantee which it selects): https://leetcode.com/problems/online-majority-element-in-subarray/description/
 We can use some adapted boyer-moore + binary search + ST algorithm: https://leetcode.com/problems/online-majority-element-in-subarray/solutions/360493/python-segment-tree-merge-in-o-1-query-o-log-n/
 I don't fully understand the intuition, but the basic idea is each ST node stores its dominant element, and how much "extra count" it has over other elements in that range. We can combine these / aggregate up, and compute a candidate for a given range. Then we can use binary search on the indices of that candidate to determine if it actually appears `threshold` times or not. I also messaged someone on linkedin about this.
@@ -162,7 +164,7 @@ We may see that our left ST child, for range 0-50, has a max height of 15. We ca
 
 USESCASES ON VALUES:
 We can also use segment trees on our values instead, for instance: https://leetcode.com/problems/find-building-where-alice-and-bob-can-meet/
-In that question, we want to find the earliest index, above some index `i`, that is at least of value `val`. We can do a segment tree on the indices as normal, and store the max value, and do a tree walk. I think we can also do a segment tree on the heights of the buildings, then each ST node stores the earliest index it occurs at (I believe this is what numb3r5 did on the alice and bob question). So say we want a building of at least height 5, and the max height is 10^9 (constraint), we can query the range [5:10^9]
+In that question, we want to find the earliest index, above some index `i`, that is at least of value `val`. We can do a segment tree on the indices as normal, and store the max value, and do a tree walk. I think we can also do a segment tree on the heights of the buildings, then each ST node stores the earliest index it occurs at (this is what numb3r5 did on the alice and bob question). So say we want a building of at least height 5, and the max height is 10^9 (constraint), we can query the range [5:10^9]
 for the earliest index. Of course this needs coordinate compression on the heights, the range of heights os 10^9 which is too slow, but there are at most 10^5 unique heights due to the width of the array.
 
 TEMPLATING:
