@@ -8,7 +8,7 @@
 # A string is represented by an array if the array elements concatenated in order forms the string.
 
 # Solution
-# Standard two pointers, O(total chars) time, O(1) space. I think we could technically say the time is chars + words because we do an extra pointer iteration for each word.
+# Standard two pointers, O(total chars) time, O(1) space. I think we could technically say the time is chars + words because we do an extra pointer iteration for each word. Like each character triggers a character pointer increase (or a reset to 0), but each word triggers a word pointer increase.
 
 class Solution:
     def arrayStringsAreEqual(self, word1: List[str], word2: List[str]) -> bool:
