@@ -9,6 +9,7 @@
 
 # Solution, O(n + log m) time, O(1) space
 # We keep a variable which indicates we can make everything from 0:acc. When we iterate, say we have [1,1,1] and we are trying to make a 4, we cannot (say acc=3 here), we choose to add a 4 coin, because we can also make 5, 6, and 7, since we just add a 4 to the construction of 1, 2, or 3.
+# Note if they were unsorted we could solve it in linear time based on constraints as we only care about coins of at most 10^5
 
 class Solution:
     def minPatches(self, nums: List[int], n: int) -> int:

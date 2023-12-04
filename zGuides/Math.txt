@@ -1,4 +1,12 @@
 
+********** MOD INVERSE **********
+I think this is right:
+If B and C are coprime, then 1/B % C exists.
+
+To solve (A/B) % C, we can do:
+((A%C) * (1/B % C)) % C
+
+To get an inverse mod: TODO
 
 ********** MATH **********
 

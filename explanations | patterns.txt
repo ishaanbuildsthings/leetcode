@@ -201,6 +201,7 @@ learn reservoir smapling
 458: https://leetcode.com/problems/poor-pigs/description/
 1535: https://leetcode.com/problems/find-the-winner-of-an-array-game/
 2642: https://leetcode.com/problems/design-graph-with-shortest-path-calculator/description/
+1611: https://leetcode.com/problems/minimum-one-bit-operations-to-make-integers-zero/description/
 
 TODO:
 reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?

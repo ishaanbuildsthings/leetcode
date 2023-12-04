@@ -14,7 +14,7 @@
 # You have to visit the points in the same order as they appear in the array.
 # You are allowed to pass through points that appear later in the order, but these do not count as visits.
 
-# Solution, O(points) time, O(1) space, we can easily deduce the time for any two points
+# Solution, O(points) time, O(1) space, we can easily deduce the time for any two points, I solved this on my phone lol
 
 class Solution:
     def minTimeToVisitAllPoints(self, points: List[List[int]]) -> int:
