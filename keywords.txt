@@ -53,6 +53,7 @@ matrix bfs
 matrix dfs
 merge sort tree
 minimum spanning tree
+mod inverse
 monotonic deque
 monotonic queue
 monotonic stack
@@ -86,5 +87,6 @@ two pointers
 unconnected [for graphs, means the graph can be unconnected]
 undirected [for graphs]
 union find
+vienna technique
 weighted (for graphs)
 work backwards (new tag)

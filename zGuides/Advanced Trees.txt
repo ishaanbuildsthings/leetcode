@@ -226,6 +226,9 @@ The takeaway is basically that the combine can just take known/computed values a
 
 
 misc notes:
+I had a weird segment tree in 1622: Fancy Sequence where I only cared about leaf values, so the non leaf ST nodes didn't have meaningful data. Not sure if this implies anything, maybe there is a simplfication somewhere, just thought it was notable.
+
+
 l and r conditions vs tl and tr
 _____
 When we descend in a basic ST we usually have tl, tr, l, and r. And we restrict l and r to be within tl and tr. In theory, l and r can just be the same for each call, it is just that modifying l and r as we descend can make it a bit easier in terms of cleaner code, I think likely relating to the fail condition of l>r.
