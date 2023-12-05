@@ -81,6 +81,7 @@ SQL
 square root decomp
 stack
 state machine
+subsequence (made this tag late)
 sweep line
 topological sort
 top down recursion [with memoization]
