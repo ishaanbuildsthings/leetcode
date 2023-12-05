@@ -1,0 +1,5 @@
+We can clear the @cache after the dp is done with dp.cache_clear()
+
+This can free up memory. We can also use manual memo allocation with an array, but it is possible this is worse, if the @cache ends up storing a lot less data, for instance in https://leetcode.com/problems/maximize-palindrome-length-from-subsequences/description/
+
+my manual one was worse, I guess because I allocated spots for when l>r but in the @cache this can never happen

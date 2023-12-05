@@ -1,4 +1,5 @@
 # given a list of adjacenies for a tree, this constructs a tree in the form of `children` in O(n) time and space
+# in theory we don't need a seen set, we can just pass the parent to the child each call
 
 edgeMap = defaultdict(list)
 for a, b in edges:

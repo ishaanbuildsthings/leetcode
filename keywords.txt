@@ -9,7 +9,7 @@ tags:
 acyclic
 arrays (sometimes used when we don't put a problem in the array category but it still has a lot of array/hashing work)
 anagram (good tag for yeetcode but haven't used thus far)
-avl tree
+avl (tree)
 backtracking
 beats 100%
 bfs
@@ -65,6 +65,7 @@ prefix
 preorder traversal
 postfix
 postorder traversal
+range query (made this tag late, for things like sum query)
 recursion
 rolling hash
 quickselect
