@@ -58,6 +58,8 @@ monotonic deque
 monotonic queue
 monotonic stack
 multibranch (recursive or iterative)
+offline
+online
 palindrome
 prefix
 preorder traversal

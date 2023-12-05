@@ -9,6 +9,8 @@ parents = { 0 : 0, 1 : 0, 2 : 1 }
 # FUNCTIONS:
 # Query LCA: O(logN)
 # Query kth ancestor of a node: O(logN)
+# Query distance between two nodes: O(logN)
+# Get a list of all nodes on the path between two nodes: O(path)
 
 # General reqs:
 # An arbitrarily rooted tree or a directed graph works.
@@ -61,3 +63,41 @@ def getLca(u, v):
 
     return parents[u]
 
+# gets a list of all nodes on the path from start to end
+def allOnPath(start, end):
+    lca = getLca(start, end)
+    path = []
+    # edge cases
+    if lca == start:
+        p = end
+        while p != lca:
+            path.append(p)
+            p = parents[p]
+        path.append(lca)
+    elif lca == end:
+        p = start
+        while p != lca:
+            path.append(p)
+            p = parents[p]
+        path.append(lca)
+    else:
+        p1 = start
+        while p1 != lca:
+            path.append(p1)
+            p1 = parents[p1]
+        p2 = end
+        while p2 != lca:
+            path.append(p2)
+            p2 = parents[p2]
+        path.append(lca)
+    return path
+
+# gets the distance between two nodes
+def getDistance(node1, node2):
+    lca = getLca(node1, node2)
+    lcaHeight = depths[lca]
+    node1Height = depths[node1]
+    node2Height = depths[node2]
+    dist1 = node1Height - lcaHeight
+    dist2 = node2Height - lcaHeight
+    return dist1 + dist2
