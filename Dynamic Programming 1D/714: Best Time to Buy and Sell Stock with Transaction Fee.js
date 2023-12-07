@@ -25,6 +25,7 @@ Note: You may not engage in multiple transactions simultaneously (i.e., you must
 
 // Solution 1, O(n) time and O(1) space, state machine
 // * Solution 2 is an n^2 dp
+// * We can also just dp a dp of (i, holding) and do something or do nothing
 
 /*
 We maintain two states, looking to buy a stock, and holding a stock. We can update looking to buy a stock by compare the old value of it with if we sell our previously held stock for todays price (minus the fee).

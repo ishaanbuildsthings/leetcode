@@ -8,3 +8,16 @@ generally we can allocate around 20,000,000 things on leetcode, and based on tes
 
 time complexity needed based on input size
 https://leetcode.com/explore/interview/card/cheatsheets/720/resources/4725/
+
+Say we have code like this:
+for _ in range(n):
+  # some normal code here
+
+and we call this O(n)
+
+Then we do:
+for _ in range(n):
+  arr = [0] * 26
+  # some normal code here
+
+We can call this 26n, but it doesn't mean it's 26x as slow. We didn't count the "normal code" as part of the constant factor initially. So really that normal code might have been intensive or slow already. Time complexity is just a rough ballpark, machine cycles are actually relevant when analyzing runtime.
