@@ -80,6 +80,7 @@ slow and fast pointers
 SQL
 square root decomp
 stack
+stars and bars
 state machine
 subsequence (made this tag late)
 sweep line
