@@ -1,7 +1,6 @@
 # https://leetcode.com/problems/count-ways-to-build-rooms-in-an-ant-colony/description/
 # difficulty: hard
-# tags: math, tree, stars and bars
-
+# tags: math, tree, combinatorics
 # Problem
 # You are an ant tasked with adding n new rooms numbered 0 to n-1 to your colony. You are given the expansion plan as a 0-indexed integer array of length n, prevRoom, where prevRoom[i] indicates that you must build room prevRoom[i] before building room i, and these two rooms must be connected directly. Room 0 is already built, so prevRoom[0] = -1. The expansion plan is given such that once all the rooms are built, every room will be reachable from room 0.
 

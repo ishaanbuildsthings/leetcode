@@ -23,6 +23,7 @@ bst [binary search tree]
 bubble sort
 bucket sort
 circular
+combinatorics
 connected [for graphs]
 contest (done in contest)
 coordinate compression
@@ -80,7 +81,6 @@ slow and fast pointers
 SQL
 square root decomp
 stack
-stars and bars
 state machine
 subsequence (made this tag late)
 sweep line
