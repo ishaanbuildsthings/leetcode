@@ -42,3 +42,6 @@ Which gives 0 ^ 0 ^ 0 ^ 0 ^ 2
 Which gives 0 ^ 2, which gives 2.
 
 Under tight memory constraints, we can store multiple numbers in one number, by dividing up the available bits, for different numbers.
+
+BITMASK:
+fullMask = (1 << n) - 1

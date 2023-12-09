@@ -125,6 +125,41 @@ Worst case we decrement down manually. Same thing, once we decrease too far belo
 
 I think we could just use DP too and once we drop below Y we have a base case which is only increments.
 
+BFS can take multiple params for each element in the queue, for instance: https://leetcode.com/problems/shortest-path-visiting-all-nodes/description/
+We store (currNode, bitmask) in the queue, AND each element can spend N time checking all edges too. The queue has at most currNode * bitmask elements, and each takes N time to pop, so n^2 * 2^n.
 
 0-1 Djikstra's:
 Intstead of using a heap, we can just prepend things that have a weight of 0. It can be done in this question: https://leetcode.com/problems/minimum-obstacle-removal-to-reach-corner/description/
+
+DFS VS BFS TIME:
+Say we are trying to go from (0, 0) to (height - 1, width - 1) in the shortest way possible, we can move any direction, and there are walls. One way to solve this is DFS, with a path variable to prevent cycles. The issue is when we reach the end node, we don't know if we got there the fastest way. We just know we got there. We don't have a decision framework for choosing where to go, for instance:
+0 0 0 0
+0 0 0 0
+0 0 1 0
+1 1 1 0
+
+We could go all right then all down, or we could follow down, hit a wall, go back up, etc. We don't choose which we do first, so if we do the non-shortest one first (which will probably happen), we still need to try other paths. I don't think this is a really tight bound, but a loose upper bound could be 4^(m*n), since we visit at most m*n cells and each cell has 4 options, but in practice, the options get reduced as the path gets built.
+
+With BFS, when each cell gets visited, we know its the earliest possible, so we only consider each cell once, which is m*n time.
+
+For instance on an infinite grid, we would never finish with DFS, but with BFS we are bounded by the true distance from the target.
+
+Keep in mind when we can only move down or right, we can use DFS or BFS, since any path that reaches a cell is the shortest path.
+
+This can be expanded to more complex problems, for instance: https://leetcode.com/problems/shortest-path-visiting-all-nodes/description/
+
+Here, we have cells of (currNode, visitedBitmask), this is really no different than cells of (r, c). And just like in a grid, we can have undirected edges, so we can move back and forth. The difference is in this problem we might have up to a function of n edges for some nodes, for instance each node with mostly every node visited might be able to reach all other nodes with those same mostly every nodes visited, only difference being the current node.
+
+So we can solve this with DFS, but like in the grid problem, it is slow, because now we consider EVERY path to go from the start to ALL (i think) nodes with a full mask. And we do this for every root node call too. My guess is because there are n*2^n nodes and each node might have up to n edges, we have n^(n*2^n) complexity, I'm not sure about this though, it blows up really fast, but maybe in practice a lot of edges don't have n nodes. I think the point is I see why it's slow, because we consider everything. Whereas in BFS, we can cache states guaranteed the first time we see them.
+
+To do the dfs, it's no different than normal with a path:
+def dfs(currNode, mask):
+  # add to path here
+  # recurse
+  # remove from path and return
+
+Really, this is just BACKTRACKING, as we are trying everything. The whole concept of this is backtracking, like getting every path with dfs.
+
+Also, we can add a state "depth" which helps us terminate to otherwise forever recursive calls, but this only works if n is small, and makes the whole thing way worse as we can add a lot of total DP states. There were some solutions for shortest path visting all nodes that did this.
+
+
