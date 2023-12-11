@@ -163,3 +163,22 @@ Really, this is just BACKTRACKING, as we are trying everything. The whole concep
 Also, we can add a state "depth" which helps us terminate to otherwise forever recursive calls, but this only works if n is small, and makes the whole thing way worse as we can add a lot of total DP states. There were some solutions for shortest path visting all nodes that did this.
 
 
+Say we have a DAG, and we want to answer if b is a child of a. We can do a search from a, trying to see every node. One way to think of this is at worst we consider V nodes and E edges, and there are at most V^2 edges, so it's V+V^2 = V^2 time. Or we can think of it as there are V nodes, we visit each node, each node can have V edges, so V*V = V^2. Remember we DON'T check all paths, since we just care if it is reachable. It can be used for: https://leetcode.com/problems/course-schedule-iv/
+If we wanted to know it for all queries, we can use floyd warshall and make edges weight 0, otherwise infinity, I think. Or we can make edges weight 1 and also find the cheapest number of visits we need to get there! (I think, newish to floyd warshall)
+
+Lee's code is quite strong:
+class Solution:
+    def checkIfPrerequisite(self, n, prerequisites, queries):
+        connected = [[False] * n for i in xrange(n)]
+
+        for i, j in prerequisites:
+            connected[i][j] = True
+
+        for k in range(n):
+            for i in range(n):
+                for j in range(n):
+                    connected[i][j] = connected[i][j] or (connected[i][k] and connected[k][j])
+
+        return [connected[i][j] for i, j in queries]
+
+Instead of creating an edgemap and whatnot, he just compressed everything to connected.

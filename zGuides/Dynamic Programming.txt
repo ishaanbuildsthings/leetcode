@@ -65,3 +65,36 @@ Similar to segment trees, I feel like the idea of recursing down then bubbling b
 
 *** DIGIT DP ***
 Instead of iterating on every digit, if some digits are the same (like in the problem where we count the # of one digits, a 4 and a 5 may be the same if the upper boundary is 7, for example), we can compress these instead of iterating one digit at a time.
+
+** DP DOING MULTIPLE THINGS **
+You can have your dp do multiple things, for instance in https://leetcode.com/problems/optimal-division/
+I misunderstood and first thought you have to compute the minimum value result (rather than construct the division string), I wrote:
+
+class Solution:
+    def optimalDivision(self, nums: List[int]) -> str:
+        # returns [min, max] for a given subregion
+        @cache
+        def dp(l, r):
+            # base case
+            if l == r:
+                return [nums[l], nums[r]]
+            if l + 1 == r:
+                return [div:= nums[l] / nums[r], div]
+
+            minThis = float('inf')
+            maxThis = float('-inf')
+
+            for allLeft in range(l, r):
+                dpLeft = dp(l, allLeft)
+                dpRight = dp(allLeft + 1, r)
+                minLeft, maxLeft = dpLeft
+                minRight, maxRight = dpRight
+                minThis = min(minThis, minLeft / maxRight)
+                maxThis = max(maxThis, maxLeft / minRight)
+
+            return [minThis, maxThis]
+
+        return dp(0, len(nums) - 1)[1]
+
+
+Notice the DP returns two things, and we can use both. Though we could have a separate dpMin and dpMax function that reference each other and themselves, that's not different from having a function self reference.

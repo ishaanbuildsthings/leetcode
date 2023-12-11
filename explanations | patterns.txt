@@ -206,3 +206,11 @@ learn reservoir smapling
 TODO:
 reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?
 get space efficient segment tree understanding
+
+TODO:
+djikstras time, FW time, normal bfs and dfs, read dfs time from editorial: https://leetcode.com/problems/network-delay-time/description/ and djikstra time
+also get more FW experience, understand which conditions it can be used, look at more patterns like the trick lee did to reuse array, etc
+TODO: find shortest from one node to all others, djikstra, bfs? repeat that subroutine for all nodes instead of using FW for contest problem
+todo: add larry bitmask trick for 1 << n iterate subsets
+TODO: numb3r5 method for intervals from left to right, and his interval merging alg
+todo: rjmc comment about djikstras
