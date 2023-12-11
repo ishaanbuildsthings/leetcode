@@ -5,7 +5,7 @@
 # Problem
 # Given an integer array sorted in non-decreasing order, there is exactly one integer in the array that occurs more than 25% of the time, return that integer.
 
-# Solution, O(n) time and O(1) space, sliding window. We can also just check for every index if the 25%th to the right is the same number.
+# Solution, O(n) time and O(1) space, sliding window. We can also just check for every index if the 25%th to the right is the same number. Can also do it in logN supposedly with binary search, need to think
 
 class Solution:
     def findSpecialInteger(self, arr: List[int]) -> int:

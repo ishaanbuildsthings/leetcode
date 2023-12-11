@@ -1,0 +1,115 @@
+understanding quick select:
+
+pick a random number, we can partition elements <= to the left, and > to the right. say we want the kth largest, we know if it is in the right or the left, and we recurse. but sometimes we don't divide to a subproblem, i.e. if the pivot was the max, all elements go to the left. we can ensure the pivot always gets excised, reducing by 1. below shows code to do this (not good complexity, it's just instructive to show how we need to make sure we can reduce)
+
+import random
+
+class Solution:
+    def findKthLargest(self, nums: List[int], k: int) -> int:
+        l = 0
+        r = len(nums) - 1
+
+        def quickSelect(arr, k):
+
+            randomIndex = random.randint(0, len(arr) - 1)
+            randPivot = arr[randomIndex]
+
+            left = [num for num in arr if num <= randPivot]
+
+            # remove one pivot from the left if it is there
+            for i, num in enumerate(left):
+                if num == randPivot:
+                    left.pop(i)
+                    break
+
+            # midCount = arr.count(randPivot)
+            right = [num for num in arr if num > randPivot]
+
+
+            if len(right) >= k:
+                return quickSelect(right, k)
+            elif len(right) + 1 == k:
+                return randPivot
+            # elif len(right) + midCount >= k:
+            #     return randPivot
+            return quickSelect(left, k - len(right) - 1)
+
+        return quickSelect(nums, k)
+
+        # 1 2 3 4 5 5 5 | 6 7 8 9
+
+
+
+but if we want a proper quick select, we can just count the middles and get a better reduction, otherwise if all numbers are the same, we degrade to n^2 already, but if we excise all copies of the pivot, we do better (still n^2 worst)
+
+note this is n average runtime, n average memory (each layer stores n, n/2, n/4, ...), worst case n^2. to get memory to be logN average we can do in-place move-zeroes technique and now we just have a callstack, to get O(1) memory we can do iterative in place. worst case is n^2 for all unless we do median of medians (not sure what this is yet)
+
+import random
+
+class Solution:
+    def findKthLargest(self, nums: List[int], k: int) -> int:
+        l = 0
+        r = len(nums) - 1
+
+        def quickSelect(arr, k):
+
+            randomIndex = random.randint(0, len(arr) - 1)
+            randPivot = arr[randomIndex]
+
+            left = [num for num in arr if num < randPivot]
+            mid = [num for num in arr if num == randPivot]
+            right = [num for num in arr if num > randPivot]
+
+
+            if len(right) >= k:
+                return quickSelect(right, k)
+            elif len(right) + len(mid) >= k:
+                return randPivot
+            return quickSelect(left, k - len(right) - len(mid))
+
+        return quickSelect(nums, k)
+
+        # 1 2 3 4 5 5 5 | 6 7 8 9
+
+
+UNTESTED general purpose quick select, find the kthHighesst:
+
+        def kthHighest(arr, k, comp=lambda a, b: a > b):
+            pivot = arr[random.randint(0, len(arr) - 1)]
+            left = []
+            midCount = 0
+            right = []
+            for item in arr:
+                # if item is higher, put it in the right
+                if comp(item, pivot):
+                    right.append(item)
+                elif comp(pivot, item):
+                    left.append(item)
+                else:
+                    midCount += 1
+
+            if k <= len(right):
+                return kthHighest(right, k, comp)
+            elif k <= len(right) + midCount:
+                return pivot
+            return kthHighest(left, k - len(right) - midCount, comp)
+
+we can also find ALL k highest elements by concatenating arrays, see GPT (this is for kth lowest):
+
+def quickSelect(arr, k):
+    if len(arr) <= k:
+        return arr
+
+    pivot = arr[random.randint(0, len(arr) - 1)]
+    left = [x for x in arr if x > pivot]
+    mid = [x for x in arr if x == pivot]
+    right = [x for x in arr if x < pivot]
+
+    if len(left) >= k:
+        return quickSelect(left, k)
+    elif len(left) + len(mid) >= k:
+        return left + mid[:k - len(left)]
+    else:
+        return left + mid + quickSelect(right, k - len(left) - len(mid))
+
+didn't analyze complexity yet, kind of reminds me of partitioning like a segment tree. Someone said you have to use the median of medians method for O(n) k largest, but I'm not sure.
