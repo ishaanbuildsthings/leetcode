@@ -1,6 +1,6 @@
 # https://leetcode.com/problems/next-greater-node-in-linked-list/description/
 # difficulty: medium
-# tags: stack, linked list, great question
+# tags: stack, linked list, multiconcept
 
 # Problem
 # You are given the head of a linked list with n nodes.
