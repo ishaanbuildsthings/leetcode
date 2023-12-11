@@ -36,6 +36,7 @@ dfs
 djikstra
 dynamic programming 1d
 fractional cascading
+functional (functional pgraomming)
 graph(s)
 graphs with nodes (this means our graph takes the form of nodes and .neighbors, instead of for instance a matrix)
 greedy - not really used for problems that aren't explicitly tagged greedy, since lots of problems use greedy methods but the focus is on another part of the problem
