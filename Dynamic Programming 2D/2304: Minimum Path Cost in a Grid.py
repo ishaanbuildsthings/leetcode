@@ -1,6 +1,6 @@
 # https://leetcode.com/problems/minimum-path-cost-in-a-grid/description/
 # difficulty: medium
-# tags: dynamic programming 2d
+# tags: dynamic programming 2d, functional
 
 # Problem
 # You are given a 0-indexed m x n integer matrix grid consisting of distinct integers from 0 to m * n - 1. You can move in this matrix from a cell to any other cell in the next row. That is, if you are in cell (x, y) such that x < m - 1, you can move to any of the cells (x + 1, 0), (x + 1, 1), ..., (x + 1, n - 1). Note that it is not possible to move from cells in the last row.
