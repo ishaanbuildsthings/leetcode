@@ -1,6 +1,6 @@
 # https://leetcode.com/problems/count-of-range-sum/
 # difficulty: hard
-# tags: avl tree, binary search, segment tree, lop off
+# tags: avl tree, binary search, segment tree, lop off, merge sort
 
 # Problem
 # Given an integer array nums and two integers lower and upper, return the number of range sums that lie in [lower, upper] inclusive.
