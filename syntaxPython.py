@@ -21,3 +21,6 @@ rounded_up = math.ceil(1.5) # rounds up to 2, may be included by default, or may
 # prefix sum
 import itertools
 prefixSum = list(itertools.accumulate(nums, initial=0))
+
+# get key for something with a max value in a hashmap:
+max_key = max(hashmap, key=hashmap.get)
