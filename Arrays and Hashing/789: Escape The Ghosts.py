@@ -11,6 +11,7 @@
 # Return true if it is possible to escape regardless of how the ghosts move, otherwise return false.
 
 # Solution, O(ghosts) time, O(1) space, check every ghost
+
 class Solution:
     def escapeGhosts(self, ghosts: List[List[int]], target: List[int]) -> bool:
         return all(
