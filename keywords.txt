@@ -49,6 +49,7 @@ lazy heap
 lazy propagation
 lca
 lcs (dp question, new tag I'm adding late)
+liked question (just questions I like)
 lop off (this is for problems where we need to count pairs or subarrays and we use some prefix value and see how many / earliest one we can cut off, often the remainder questions)
 math (I tag a lot of problems in the math folder with this but not sure I did all)
 matrix bfs

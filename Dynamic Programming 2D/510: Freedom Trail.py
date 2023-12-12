@@ -1,6 +1,6 @@
 # https://leetcode.com/problems/freedom-trail/description/
 # difficulty: hard
-# tags: dynamic programming 2d
+# tags: dynamic programming 2d, liked question
 
 # Problem
 # In the video game Fallout 4, the quest "Road to Freedom" requires players to reach a metal dial called the "Freedom Trail Ring" and use the dial to spell a specific keyword to open the door.
