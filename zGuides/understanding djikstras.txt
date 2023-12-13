@@ -1,0 +1,52 @@
+Djikstra's can be used to find the shortest path from a node to all other nodes.
+
+We can use a heap to store [dist, node]. Djikstra's is greedy, and the greedy nature prevents us from traversing all possible paths. For each edge, we can add a node, for instance:
+
+0-----1------2
+|            |
+|____________|
+
+Say we start at 0 and add 1 and 2 to the heap to begin with. After we pop, get 1, we add 2 again, now our heap contains 2 twice. It is not possible to avoid this.
+
+Since the heap can contain at most E elements, and we pop / add to it, we get E log E time, but E is at most V^2, so we can also say it is V^2 * log V^2 = V^2 * log V time. Though I personally think E log E is more accurate since what if we had a graph with a lot of nodes but no edges, though most people present it as v^2 * log v. I see some people write it as (V+E) log V or V + logE. I think the latter is if they intialize a distance array of size V, and the former I am not sure about.
+
+I think when we pop a node from the heap, if the distance isn't as good as what we have seen, we must skip it. If we don't, we consider an edge multiple times, I believe the time complexity degrades. When we pop a node from the heap for the first time, that is the shortest time we can ever reach that node.
+
+If we use an avl, we can now patch elements in the structure in log time. Our avl will then be at most size V (we don't add duplicate nodes). Each edge can apply a patch so we get E log V => V^2 log V again.
+
+If we use a fibonacci heap which has O(1) patch but O(log) extract min, we get E + (V log V time), since the E patches all run in O(1), and V extract mins all take logV time. Though this has a higher constant factor.
+
+according to wikipedia:
+
+When using binary heaps, the average case time complexity is lower than the worst-case: assuming edge costs are drawn independently from a common probability distribution, the expected number of decrease-key operations is bounded by (insert picture here of some complex complexity)
+
+Also I saw somewhere on quora of another highly obscure alg that seemed better (but worse in practice).
+
+
+Hashset implementation (lenny on discord):
+
+while hs is not empty {
+  u = element of hs with smallest distance; do a linear search; O(V)
+  remove u from the hs
+
+  for neighbors v of u {
+    see if distance is better, and update distances in hs
+  }
+}
+
+now, this might look like a horrible complexity
+first of all the outer while loop triggeres V times, because each time a node is removed from the hs
+the linear search takes O(v)
+so far, we are up to O(v^2)
+but what about the for loop inside?
+well, you can actually factor that part out
+as you will visit each edge at most once
+
+So it seems like we do V^2 + E time, which could be better on a dense graph. Since E log V could become V^2 log V on a dense graph, for the heap solution.
+
+It seems like the hashmap can work because it has some O(1) properties (I didn't think about this, too tired, but just guessing)
+
+
+I think a normal BFS might not really work, what is a normal BFS after all? Like if we don't factor in edge weight, does that reduce to just trying all paths? similar to how dfs is trying all paths but bfs isn't, for unweighted graphs. Or if we do factor in edge weight, I think it just reduces to djikstra's / djikstra's is always better.
+
+TODO: path reconstruction and shortest instead of seen
