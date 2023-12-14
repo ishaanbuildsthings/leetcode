@@ -9,6 +9,7 @@
 
 # Solution
 # DFS, assigning nodes to their columns and depths, then sort each column. There's worst case n columns and log n nodes per column but it is amortized in a way
+#* SOLUTION 2, I think we can do BFS with no sorting.
 
 # Definition for a binary tree node.
 # class TreeNode:

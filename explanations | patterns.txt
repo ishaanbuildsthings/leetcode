@@ -139,6 +139,8 @@ If your code isn't working at all (but your solution is close, just debugging), 
 
 Hashing a string of length n is an O(n) operation, so doing a set lookup on a string depends on the length of that string.
 
+We can use a stopFlag for trees/graphs/recursion/backtracking to stop all instances of a function with a global variable, if we hit some condition. See 1559. Detect Cycles in 2D Grid. It also has comments to show how instead of using a global variable stopFlag we can easily make the function itself hasCycle and return as needed.
+
 ********** TODOS **********
 
 2244: minimum rounds to complete all tasks, use a better solution
