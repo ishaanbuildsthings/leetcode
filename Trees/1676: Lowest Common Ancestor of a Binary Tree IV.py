@@ -9,7 +9,7 @@
 
 # Solution
 # My solution used a seen count which is O(n) time and O(height + nodeSet) space. I used a global variable and early terminate but we could make the function itself return the lca when found.
-# * Solution 2, there is a really brilliant solution. If we hit a node in the nodeset, we return that. If both left and right are needed, we return ourself. If only left or right is needed, we return that.
+# * Solution 2, there is a REALLY brilliant solution. If we hit a node in the nodeset, we return that. If both left and right are needed, we return ourself. If only left or right is needed, we return that.
 
 # Definition for a binary tree node.
 # class TreeNode:

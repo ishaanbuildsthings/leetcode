@@ -10,3 +10,7 @@ VS
 if node.left: dfs(node.left)
 
 the tradeoff is no functional overhead, but we also check the if condition every iteration now
+
+LCA:
+
+there is a REALLY brilliant solution for LCA of a binary tree (see lca of binary tree IV for more info, and some solutions in the solutions page). If we hit a node in the nodeset, we return that. If both left and right are needed, we return ourself. If only left or right is needed, we return that.
