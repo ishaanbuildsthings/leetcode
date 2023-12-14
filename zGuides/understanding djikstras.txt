@@ -10,7 +10,7 @@ Say we start at 0 and add 1 and 2 to the heap to begin with. After we pop, get 1
 
 Since the heap can contain at most E elements, and we pop / add to it, we get E log E time, but E is at most V^2, so we can also say it is V^2 * log V^2 = V^2 * log V time. Though I personally think E log E is more accurate since what if we had a graph with a lot of nodes but no edges, though most people present it as v^2 * log v. I see some people write it as (V+E) log V or V + logE. I think the latter is if they intialize a distance array of size V, and the former I am not sure about.
 
-I think when we pop a node from the heap, if the distance isn't as good as what we have seen, we must skip it. If we don't, we consider an edge multiple times, I believe the time complexity degrades. When we pop a node from the heap for the first time, that is the shortest time we can ever reach that node.
+I think when we pop a node from the heap, if the distance isn't as good as what we have seen, we must skip it. If we don't, we consider an edge multiple times, I believe the time complexity degrades. When we pop a node from the heap for the first time, that is the shortest time we can ever reach that node. But I think when we consider edges for a node, if the adj we are going to add would be a bigger weight that what we have seen before, we don't NEED to skip it, because worst case we add a node for each edge. We can prune this though (this is for the heap djikstra).
 
 If we use an avl, we can now patch elements in the structure in log time. Our avl will then be at most size V (we don't add duplicate nodes). Each edge can apply a patch so we get E log V => V^2 log V again.
 

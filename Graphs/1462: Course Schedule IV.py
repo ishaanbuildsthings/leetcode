@@ -32,7 +32,7 @@ class Solution:
 
 
 # * Solution 2
-# BFS on each query, see if we reach the target. For a single query, we might iterate through all nodes and edges, so V+E. I think time complexity would then be queries * (V + E). And edges can be up to V^2 so maybe q*V^2. We can also do DFS, it's the same complexity, but BFS is bounded by the actual distance to the target node.
+# BFS on each query, see if we reach the target. For a single query, we might iterate through all nodes and edges, so V+E. I think time complexity would then be queries * (V + E). And edges can be up to V^2 so maybe q*V^2. We can also do DFS, it's the same complexity, but BFS is bounded by the actual distance to the target node. We might be able to do some caching stuff with DFS too.
 
 class Solution:
     def checkIfPrerequisite(self, n: int, prerequisites: List[List[int]], queries: List[List[int]]) -> List[bool]:

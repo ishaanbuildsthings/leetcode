@@ -95,7 +95,7 @@ With just union by rank, we have log find and union operations.
 With just path compression, I think it depends on the amount of queries
 With both, we get the inverse ackermann, which becomes O(1)
 
-I think to path compress we can compress everything on the path, not just one at a time? I have to research it more though. Like we recurse all the way down, but as we bubble up we path compress all of them.
+I think to path compress we can compress everything on the path, not just one at a time? I have to research it more though. Like we recurse all the way down, but as we bubble up we path compress all of them. After talking to people on discord, it seems like the way of compressing everything at once is preferred, which is also what feels easier to me.
 
 Advanced BFS/DP stuff:
 It can perform one of the four operations at once:
