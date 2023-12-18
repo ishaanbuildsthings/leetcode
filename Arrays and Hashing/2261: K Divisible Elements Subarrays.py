@@ -12,7 +12,7 @@
 # A subarray is defined as a non-empty contiguous sequence of elements in an array.
 
 # Solution
-# Check all subarrays and use prefix query + rolling hash. We can / should cap the hash with MOD and use naive checks.
+# Check all subarrays and use prefix query + rolling hash. We can / should cap the hash with MOD and use naive checks. Can also use two hashes instead for higher accuracy.
 
 class Solution:
     def countDistinct(self, nums: List[int], k: int, p: int) -> int:
