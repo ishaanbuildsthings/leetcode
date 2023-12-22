@@ -13,7 +13,7 @@
 
 # Return the minimum possible penalty after performing the operations.
 
-# Solution, O(n * log*max(nums)) time and O(1) space, binary search on the penalty and see if it is doable
+# Solution, O(n * log*max(nums)) time and O(1) space, binary search on the penalty and see if it is doable, to split a bag into multiple under a certain size, there's no efficiency by splitting in half over and over, or anything like that
 
 class Solution:
     def minimumSize(self, nums: List[int], maxOperations: int) -> int:
