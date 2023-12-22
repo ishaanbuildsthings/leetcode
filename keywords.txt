@@ -61,7 +61,7 @@ monotonic deque
 monotonic queue
 monotonic stack
 multibranch (recursive or iterative)
-multiconcept (good questions I liked that combined multiple concepts)
+multiconcept (good questions I liked that combined multiple concepts, or for some just good questions)
 offline
 online
 palindrome
