@@ -1,5 +1,6 @@
 # https://leetcode.com/problems/apply-operations-to-an-array/description/
 # difficulty: easy
+# tags: multiconcept
 
 # Problem
 # You are given a 0-indexed array nums of size n consisting of non-negative integers.
