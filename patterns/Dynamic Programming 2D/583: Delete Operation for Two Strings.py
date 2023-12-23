@@ -1,26 +1,13 @@
-from typing import List, Dict, Tuple, Set, Optional, Union, Any
-import math
-import bisect
-import collections
-from collections import defaultdict, Counter
-import sortedcontainers
-import heapq
-from heapq import nlargest, nsmallest
-from functools import cache
+# https://leetcode.com/problems/delete-operation-for-two-strings/description/
+# difficulty: medium
+# tags: dynamic programming 2d
 
+# Problem
+# Given two strings word1 and word2, return the minimum number of steps required to make word1 and word2 the same.
 
-# PREPROCESSING OR TEMPLATES GO HERE
+# In one step, you can delete exactly one character in either string.
 
-
-
-testcases = [
-'Input: word1 = "sea", word2 = "eat"'
-]
-
-expectedResults = [
-2,
-]
-
+# Solution O(n*m) time and space, standard lcs style dp
 class Solution:
     def minDistance(self, word1: str, word2: str) -> int:
         @cache

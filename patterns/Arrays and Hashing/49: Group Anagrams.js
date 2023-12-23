@@ -10,6 +10,7 @@ An Anagram is a word or phrase formed by rearranging the letters of a different 
 
 // Solution
 // O(n * mlogm) with a normal sort, or O(n*m) time with a bucket/counting sort. and O(n*m) space, since for each word we may need to store the entire word in memory, and the word is m letters
+// edit: looking back I think bucket sort is linear
 // Create a mapping that maps a sorted word to a list of indices that word can come from: { 'ate' : [0, 1, 3], ... }. Iterate over the mapping and push the words into the output array
 
 const groupAnagrams = function (strs) {
