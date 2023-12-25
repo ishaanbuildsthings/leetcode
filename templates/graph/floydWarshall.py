@@ -1,26 +1,37 @@
-# variables
-# replace ITERABLE_EDGES with an array of [from, to, weight]
-# set n to be the number of nodes, numbered from 0 to n-1
+# notes:
+# say our nodes are strings instead of numbers, we can map the words to 0 to n-1 numbers. I think even easier is to put the words into an array then use the words directly and iterate over that array.
 
-# access
-# we can access the distance between two nodes with dist[i][j]
+from collections import defaultdict
 
-# n^3 time and space
+# template by: https://github.com/agrawalishaan/leetcode
+# if nodes are not 0 to n-1, provide a list of every node
+# nodes^3 time and space
+class FloydWarshall:
+    def __init__(self, edgeList, n, allNodesList=None):
+        self.n = n
+        self.allNodesList = allNodesList if allNodesList != None else range(n)
+        self.edgeMap = self._buildEdgeMap(edgeList)
 
-edgeMap = defaultdict(lambda: defaultdict(lambda: float('inf')))
-for a, b, w in ITERTABLE_EDGES:
-    edgeMap[a][b] = w
-    edgeMap[b][a] = w
+    def _buildEdgeMap(self, edgeList):
+        edgeMap = defaultdict(lambda: defaultdict(lambda: float('inf')))
+        # initialize nodes to themselves
+        for node in self.allNodesList:
+            edgeMap[node][node] = 0
 
-dist = [[float('inf')] * n for _ in range(n)] # dist from i to j
-for i in range(n):
-    for j in range(n):
-        if i == j:
-            dist[i][j] = 0
-            continue
-        dist[i][j] = edgeMap[i][j] # add edges if they exist
+        # fill initial edge weights from the provided edge list
+        for node1, node2, weight in edgeList:
+            edgeMap[node1][node2] = min(edgeMap[node1][node2], weight)
+            # if directed graph, comment the following line:
+            # edgeMap[node2][node1] = min(edgeMap[node2][node1], weight)
 
-for k in range(n):
-    for i in range(n):
-        for j in range(n):
-            dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
+        # fill minimum between any two edges
+        for k in self.allNodesList:
+            for fromNode in self.allNodesList:
+                for toNode in self.allNodesList:
+                    if edgeMap[fromNode][k] + edgeMap[k][toNode] < edgeMap[fromNode][toNode]:
+                        edgeMap[fromNode][toNode] = edgeMap[fromNode][k] + edgeMap[k][toNode]
+
+        return edgeMap
+
+    def getDist(self, node1, node2):
+        return self.edgeMap[node1][node2]

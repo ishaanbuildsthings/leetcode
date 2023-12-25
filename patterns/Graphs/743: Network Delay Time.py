@@ -29,7 +29,7 @@ class Solution:
             for adj in edgeMap[node]:
                 newTime = time + edgeMap[node][adj]
                 # pruning
-                if shortest[adj] < newTime:
+                if shortest[adj] <= newTime:
                     continue
 
                 heapq.heappush(heap, [newTime, adj])

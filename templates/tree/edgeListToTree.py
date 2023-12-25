@@ -1,21 +1,18 @@
-# given a list of adjacenies for a tree, this constructs a tree in the form of `children` in O(n) time and space
-# in theory we don't need a seen set, we can just pass the parent to the child each call
+# takes nodes from 0 to n-1 and constructs a children map rooted at 0
+from collections import defaultdict
+def edgeListToTree(edgeList):
+    edgeMap = defaultdict(list)
+    for a, b in edgeList:
+        edgeMap[a].append(b)
+        edgeMap[b].append(a)
 
-edgeMap = defaultdict(list)
-for a, b in edges:
-    edgeMap[a].append(b)
-    edgeMap[b].append(a)
+    children = defaultdict(list) # maps a node to its children
 
-children = defaultdict(list) # maps a node to its children
-seen = set()
-
-def buildTree(node):
-    seen.add(node)
-
-    for adj in edgeMap[node]:
-        # skip nodes we have already seen to prevent back and forth
-        if adj in seen:
-            continue
-        children[node].append(adj)
-        buildTree(adj)
-buildTree(0) # arbitrary root at 0
+    def buildTree(node, parent):
+        for adj in edgeMap[node]:
+            if adj == parent:
+                continue
+            children[node].append(adj)
+            buildTree(adj)
+    buildTree(0, -1) # root at 0
+    return children
