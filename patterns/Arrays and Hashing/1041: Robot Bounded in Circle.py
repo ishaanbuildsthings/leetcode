@@ -18,6 +18,7 @@
 # Return true if and only if there exists a circle in the plane such that the robot never leaves the circle.
 
 # Solution, O(n) time O(1) space, check 4 cycles
+# edit, I think you can do it in O(1*n) by checking the direction offset
 DIFFS = {
     'n': [-1, 0],
     's': [1, 0],
@@ -30,7 +31,7 @@ def turnLeft(dir):
         'n': 'w',
         'w': 's',
         's': 'e',
-        'e': 'n'
+        'e': '3n'
     }
     return leftTurns[dir]
 
