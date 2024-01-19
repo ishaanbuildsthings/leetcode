@@ -13,10 +13,6 @@ import itertools
 # """Input: s = "1001", k = 3
 # Output: 4"""
 testcases = [
-    """Input: s = "abcabc", queries = [[1,1,3,5],[0,2,5,5]]
-Output: [True,True]""",
-    """Input: s = "abbcdecbba", queries = [[0,2,7,9]]
-Output: [False]""",
-"""Input: s = "acbcab", queries = [[1,2,4,5]]
-Output: [True]"""
+
 ]
+
