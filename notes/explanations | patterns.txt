@@ -209,6 +209,7 @@ learn reservoir smapling
 232: https://leetcode.com/problems/implement-queue-using-stacks/description/
 645: https://leetcode.com/problems/set-mismatch/description/
 https://leetcode.com/problems/largest-divisible-subset/description/
+2709:https://leetcode.com/problems/greatest-common-divisor-traversal/ my code is the right complexity but isn't working
 
 
 TODO:

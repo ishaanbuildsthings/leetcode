@@ -13,7 +13,7 @@
 # Solution
 # I did some recursive solution, and write rolling hash can get us linear.
 # Looking back, I recursed on each node, and if we fully exhausted something we have a basecase. If we haven't yet started the matching process we recurse to a child, otherwise we start the process now.
-# A rolling hash could involve serializing the linked list, descending down the tree maintaing a hash for our current descent, and matching it.
+# A rolling hash could involve serializing the linked list, descending down the tree maintaing a hash for our current descent, and matching it. Actually I have to think more about this since the hash for the tree doesn't start at the root.
 
 # Definition for singly-linked list.
 # class ListNode:
