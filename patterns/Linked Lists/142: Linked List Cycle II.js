@@ -13,7 +13,7 @@ There is a cycle in a linked list if there is some node in the list that can be 
 // O(n) time and O(1) space. Use a slow and fast pointer until they collide. Then, create another slow pointer at the beginning. Increment that, and the collided slow pointer until they meet.
 
 /* proof:
- let p = distance from beginning the the head of the cycle
+ let p = distance from beginning to the head of the cycle
  let c = distance from the head of the cycle to the collision point
  let loop = length of the cycle
  therefore, loop - c = distance from the collision point to the head of the cycle
