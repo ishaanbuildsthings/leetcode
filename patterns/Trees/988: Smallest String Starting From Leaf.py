@@ -2,7 +2,7 @@
 # difficulty: medium
 # tags: tree
 
-# Solution, bad n^2 solution, but I don't think n is doable anyway. This is height^2 space though but you could do height space
+# Solution, bad n^2 solution, but I don't think n is doable anyway. This is height^2 space though but you could do height space with a low level language
 
 # Definition for a binary tree node.
 # class TreeNode:
