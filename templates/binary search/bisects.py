@@ -1,5 +1,7 @@
 import bisect
 
+# FOR INCREASING ARRAYS
+
 # -1 if no number is < threshold
 def firstIndexLT(arr, threshold):
     index = bisect.bisect_left(arr, threshold)
@@ -39,3 +41,18 @@ def firstIndexGTE(arr, threshold):
 def lastIndexGTE(arr, threshold):
     index = bisect.bisect_right(arr, threshold - 1)
     return index if index < len(arr) else len(arr)
+
+
+# FOR DECREASING ARRAYS
+
+# len(arr) if no number is >= threshold
+def lastIndexGTE(arr, threshold):
+    l = 0
+    r = len(arr) - 1
+    while l <= r:
+        m = (r + l) // 2
+        if arr[m] >= threshold:
+            l = m + 1
+        else:
+            r = m - 1
+    return l - 1

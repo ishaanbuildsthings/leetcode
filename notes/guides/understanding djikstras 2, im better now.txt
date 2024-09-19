@@ -1,0 +1,19 @@
+djikstra's can be expanded to more complicated things.
+
+we can for instance have djikstra's on a graph where each node is a tuple, see this problem:
+
+https://leetcode.com/problems/minimum-cost-to-reach-city-with-discounts/description/?envType=weekly-question&envId=2024-07-22
+
+instead of having just nodes we reach, think of the graph as (node, discountsUsedToReachHere)
+
+so we have n*d nodes now! We do standard djikstra's on tuples (cost, node, discountsUsed)
+
+I think we can even improve the minCosts hashmap because if say we reach node 5 with 3 discounts at a cost of 7, but previously we had node 5 with 1 discount at a cost of 10, we might be able to do some range update or query to invalidate more than just a single (node 5, discounts 3) key in the minCosts hashmap.
+
+But actually, there is a concept I see from someone else's solution. Whenever we pop from the heap, we know that is the lowest cost ever. Both out of everything, but also for that node. For starters, we can just return as soon as we pop the target node, instead of going through the whole heap.
+
+Also, someone had minDiscounts[node] instead of minCosts. The idea is every time we pop from the heap, it is the cheapest path. So if earlier we reached a node with 5 discounts in X cost, then later we reach the node with 6 discounts, in necessarily >= cost, we don't need to continue. Otherwise we update the min discounts and add to the heap. This is a clever way of allowing for multiple amounts of discounts to be considered. Basically the notion if cost isn't tracked in the hashmap, it is just rolled up into the logic / pricing when we pop nodes.
+
+I also think there might be a way to replace the minCosts hashmap with a seen set instead, but I'm not sure.
+
+____________

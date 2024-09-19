@@ -49,3 +49,7 @@ class DSU:
 
     def areUnioned(self, a, b):
         return self._find(a) == self._find(b)
+
+    # todo: test
+    def uniqueComponents(self):
+        return len(self.depths)

@@ -24,3 +24,4 @@ class RangeSumQuery2d:
         if row1 > 0:
             sumForRegion -= self.prefixSums[row1 - 1][col2]
         return sumForRegion
+

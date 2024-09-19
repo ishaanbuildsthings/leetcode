@@ -21,3 +21,4 @@ class Solution:
         if r + 1 == len(arr):
             return -1
         return r + 1 if arr[r + 1] == r + 1 else -1
+

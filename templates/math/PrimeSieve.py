@@ -16,3 +16,4 @@ class PrimeSieve:
 
     def getPrimeList(self):
         return self.primeList
+

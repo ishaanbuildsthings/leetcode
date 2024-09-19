@@ -201,7 +201,6 @@ learn reservoir smapling
 823: https://leetcode.com/problems/binary-trees-with-factors/description/
 1660: https://leetcode.com/problems/correct-a-binary-tree/description/
 458: https://leetcode.com/problems/poor-pigs/description/
-1535: https://leetcode.com/problems/find-the-winner-of-an-array-game/
 2642: https://leetcode.com/problems/design-graph-with-shortest-path-calculator/description/
 1611: https://leetcode.com/problems/minimum-one-bit-operations-to-make-integers-zero/description/
 446: https://leetcode.com/problems/arithmetic-slices-ii-subsequence/description/
@@ -222,6 +221,49 @@ https://leetcode.com/problems/largest-divisible-subset/description/
 950
 310
 2802 (just review)
+2505
+1915
+834
+1885
+2487 review recursion
+2473
+857
+1863
+3068
+979
+2061
+861
+1608
+291
+1442
+937
+824
+3037
+2035 (my right complexity TLEs)
+1580
+1438
+1579
+1823
+1190
+1717
+726
+1605
+2392
+2045
+1105
+2134
+273
+885
+360 i did by accident in O(n log n) but review O(n) two pointers casework
+719
+3189
+1937
+564
+592
+2699
+2326
+179
+241
 
 TODO:
 reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?
@@ -234,3 +276,4 @@ TODO: find shortest from one node to all others, djikstra, bfs? repeat that subr
 todo: add larry bitmask trick for 1 << n iterate subsets
 TODO: numb3r5 method for intervals from left to right, and his interval merging alg
 todo: rjmc comment about djikstras
+

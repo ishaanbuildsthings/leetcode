@@ -12,6 +12,9 @@ Since the heap can contain at most E elements, and we pop / add to it, we get E 
 
 I think when we pop a node from the heap, if the distance isn't as good as what we have seen, we must skip it. If we don't, we consider an edge multiple times, I believe the time complexity degrades. When we pop a node from the heap for the first time, that is the shortest time we can ever reach that node. But I think when we consider edges for a node, if the adj we are going to add would be a bigger weight that what we have seen before, we don't NEED to skip it, because worst case we add a node for each edge. We can prune this though (this is for the heap djikstra).
 
+but actually in later testing (9/14/2024), I tried a problem https://leetcode.com/problems/find-a-safe-walk-through-a-grid/ where I tried not skipping adding a node even if the cost is bad, I got TLE, but not sure if I was making another mistake, honestly just do both prunes anyway to be safe.
+update (9/14/2024), I think when you add a cell, it needs to be a minimum for that location, otherwise you'll just add cells back and forth forever. but when you pop, you don't need to prune if its not the minimum, because you would've tried that same cell before with a lower cost, and the new iteration would fail adding adjacent edges since they'd all be more expensive
+
 If we use an avl, we can now patch elements in the structure in log time. Our avl will then be at most size V (we don't add duplicate nodes). Each edge can apply a patch so we get E log V => V^2 log V again.
 
 If we use a fibonacci heap which has O(1) patch but O(log) extract min, we get E + (V log V time), since the E patches all run in O(1), and V extract mins all take logV time. Though this has a higher constant factor.

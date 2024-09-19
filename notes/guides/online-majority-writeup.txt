@@ -1,0 +1,32 @@
+1157. Online Majority Element In Subarray
+
+There's many approaches:
+
+1) First, to know how many times a specific element appears in [l:r] we can...
+
+a) store indices of every element in a list, then use binary search
+b) use a segment tree on a dictionary counter (I think), but you can't use the segment tree template, since the combine function gets used during a query, and the combineFn takes n time
+
+Note that in any region [l:r] we can take a boyer vote. The result is either the majority, or fake:
+
+[1, 1, 1, 3] = boyer value is 1, surplus is 2
+[1, 1, 2, 3, 4] = boyer value is 4, surplus is 1, but this is not a majority
+
+so if we use a segment tree to find the boyer value, we can at least have a candidate for what could be the majority, and then check if it actually occurs >= threshold times
+
+2) sqrt decomp
+
+I think this works. Try to get sqrt sized buckets that store boyer values, and aggregate them during a query. Then use binary search (or even another sqrt decomp) to find # of times it occurs
+
+3) random pick
+
+Since the queried element must be a majority, just randomly pick a number, say 30 times, and check if it is the majority using binary search
+
+4) bit manipulation
+
+If there is a true majority in [left:right], then each bit of that majority element must also be a majority
+
+We can calculate the most common bit (0 or 1) in a range with a prefix sum, for each bit
+
+construct the answer, then validate if its actually the majority or not with binary search
+

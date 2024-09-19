@@ -17,7 +17,7 @@ For example, if words = ["ab","cd","ef"], then "abcdef", "abefcd", "cdabef", "cd
 Return the starting indices of all the concatenated substrings in s. You can return the answer in any order.
 */
 
-// Solution 1, O(n*k (setting indicies) + n*k/n (k loops of length n/k)), which is O(n*k) time, where n is the string length and k is the length of a word, and O(n*k (mapping) + m (number of dinstinct words for windowWords)) space. The comoplexity could even be reduce to O(n*max(k, m)) by implementing one of two solutions based on which is larger
+// Solution 1, O(n*k (setting indicies) + n*k/n (k loops of length n/k)), which is O(n*k) time, where n is the string length and k is the length of a word, and O(n*k (mapping) + m (number of dinstinct words for windowWords)) space. The complexity could even be reduce to O(n*max(k, m)) by implementing one of two solutions based on which is larger
 
 /*
 Iterate over each index of the string, populating a hashmap that maps indices to the substrings they create. For instance in 'abcdef', where we have words of length 2, we create a map: {0:'ab', 1:'bc', ...}. This is n*k time but since k is bounded it is linear time.

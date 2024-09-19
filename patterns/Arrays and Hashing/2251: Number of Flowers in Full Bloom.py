@@ -12,6 +12,7 @@
 # EDIT NODE: Later (after learning lazy segment trees), I realize this was coordinate compression. I came up with it before realizing it existed!
 # I think this can be done with a single sweep line. Just iterate over the ranges, and construct the prefix sweep in one go.
 # SOLUTION 2: We can also use a segment tree for the coordinates flowers appear. We add to segments with lazy propagation, and query individual indices. We use coordinate compression since the range flowers can be in is wide. (Scroll down to see the code, below the first solution)
+# Note 8/22/2024 - There's a lot of solutions I think. For instance process the earliest people first and use a pointer on the flowers with a heap for endings of previous flower segments. I think my original solution can remove a sort too.
 
 class Solution:
     def fullBloomFlowers(self, flowers: List[List[int]], people: List[int]) -> List[int]:
@@ -40,7 +41,7 @@ class Solution:
 
         res = []
         for personPosition in people:
-            index = bisect.bisect_right(positions, personPosition) # index where we would inser to maintain sorted
+            index = bisect.bisect_right(positions, personPosition) # index where we would insert to maintain sorted
             lastSmallerPosition = index - 1
             flowerAmount = prefix[lastSmallerPosition][1]
             res.append(flowerAmount)

@@ -17,3 +17,5 @@ class Solution:
             curr += nums[i]
             res.append(curr)
         return res
+
+x =

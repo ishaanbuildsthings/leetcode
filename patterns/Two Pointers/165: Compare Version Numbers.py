@@ -17,7 +17,7 @@
 # Otherwise, return 0.
 
 # Solution
-# Check each in-between part, can do in O(1) space iwth pointers
+# Check each in-between part, can do in O(1) space with pointers
 
 class Solution:
     def compareVersion(self, version1: str, version2: str) -> int:

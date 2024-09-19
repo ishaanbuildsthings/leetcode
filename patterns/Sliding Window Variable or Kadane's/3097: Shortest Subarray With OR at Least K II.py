@@ -4,6 +4,8 @@
 
 # Solution, O(n log max(nums)) time O(log max(nums)) space
 
+# can also do the cool DP solution from https://leetcode.com/problems/bitwise-ors-of-subarrays/description/
+
 class Solution:
     def minimumSubarrayLength(self, nums: List[int], k: int) -> int:
 

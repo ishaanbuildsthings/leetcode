@@ -13,6 +13,6 @@ def edgeListToTree(edgeList):
             if adj == parent:
                 continue
             children[node].append(adj)
-            buildTree(adj)
+            buildTree(adj, node)
     buildTree(0, -1) # root at 0
     return children

@@ -21,7 +21,7 @@
 # Return the k highest-ranked items within the price range sorted by their rank (highest to lowest). If there are fewer than k reachable items within the price range, return all of them.
 
 # Solution
-# First do a BFS which at worst case is m*n time. Add each ellement to a considered pile. Then I sorted and got the k elements, we could use a heap too. Maybe we could greedily expand our BFS (though this may need a heap), or insert considered into a heap directly. A heap does improve complexity. Not sure if we can use median of medians quickselect to get linear time. Also we use BFS not DFS so we know when we get to a cell it is the shortest path.
+# First do a BFS which at worst case is m*n time. Add each element to a considered pile. Then I sorted and got the k elements, we could use a heap too. Maybe we could greedily expand our BFS (though this may need a heap), or insert considered into a heap directly. A heap does improve complexity. Not sure if we can use median of medians quickselect to get linear time. Also we use BFS not DFS so we know when we get to a cell it is the shortest path.
 
 DIFFS = [ [1, 0], [-1, 0], [0, 1], [0, -1] ]
 class Solution:
