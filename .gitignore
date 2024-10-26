@@ -1,0 +1,7 @@
+# Virtual Environment
+.venv/
+leetcode_env/
+venv/
+
+# Python cache files
+__pycache__/

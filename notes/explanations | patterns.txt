@@ -238,7 +238,6 @@ https://leetcode.com/problems/largest-divisible-subset/description/
 1442
 937
 824
-3037
 2035 (my right complexity TLEs)
 1580
 1438
@@ -264,6 +263,20 @@ https://leetcode.com/problems/largest-divisible-subset/description/
 2326
 179
 241
+214
+386
+440
+913 - I solved but wasn't satisfied with my using `150` as the turn limit for the dp
+^also didn't prove the turn limit for cat and mouse 2
+432
+1590
+1813
+1963
+632
+1545
+1106
+2641
+1233
 
 TODO:
 reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?

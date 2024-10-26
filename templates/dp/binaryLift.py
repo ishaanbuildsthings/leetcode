@@ -101,3 +101,14 @@ def getDistance(node1, node2):
     dist1 = node1Height - lcaHeight
     dist2 = node2Height - lcaHeight
     return dist1 + dist2
+
+
+
+
+
+
+
+
+
+
+

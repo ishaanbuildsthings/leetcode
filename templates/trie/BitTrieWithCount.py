@@ -19,7 +19,8 @@ class BitTrie:
     def __str__(self):
         return self.root.__str__()
 
-    # Inserts a number into the Trie, O(BITS) time
+    # Inserts a number into the Trie
+    # O(BITS) time
     def insert(self, num):
         curr = self.root
         for bitOffset in range(self.BITS - 1, -1, -1):
@@ -31,7 +32,8 @@ class BitTrie:
         # add the count for the leaf node also
         curr.countOfNumbers += 1
 
-    # Tells us how many numbers in the Trie, when XORd with `valToBeXord` are <= threshold, where threshold >= 0. O(BITS) time
+    # Tells us how many numbers in the Trie, when XORd with `valToBeXord` are <= threshold, where threshold >= 0.
+    # O(BITS) time
     def countNumbersLTEVal(self, valToBeXord, threshold):
         if not self.root.children:
             return 0
