@@ -52,8 +52,8 @@ class PalindromeHashing:
     # Gets the hash of a reversed section of the string/array, uses the original string/array indices
     # O(1) time
     def getHashForReversedSubstring(self, originalStringLeft: int, originalStringRight: int) -> int:
-        left = self.currentLength - originalStringRight - 1
-        right = self.currentLength - originalStringLeft
+        left = len(self.window) - originalStringRight - 1
+        right = len(self.window) - originalStringLeft
         return (self.reversePrefixHashes[right] - self.reversePrefixHashes[left] * self.basePow[right - left]) % self.mod
 
     # O(1) time

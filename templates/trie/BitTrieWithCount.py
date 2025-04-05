@@ -1,4 +1,4 @@
-# A bit trie class with a node class. Can insert numbersi into the trie, and count how many numbers, when XORd with a given number, are <= a threshold. O(BITS) time for both operations. Could add a remove number function, max XOR against a value, or min XOR against a value, functions. I think could also add max XOR of any two values in trie, or min XOR (some really good ICPC youtube video).
+# A bit trie class with a node class. Can insert numbers into the trie, and count how many numbers, when XORd with a given number, are <= a threshold. O(BITS) time for both operations. Could add a remove number function, max XOR against a value, or min XOR against a value, functions. I think could also add max XOR of any two values in trie, or min XOR (some really good ICPC youtube video).
 
 class Node:
     def __init__(self):

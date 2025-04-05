@@ -1,12 +1,11 @@
 # TEMPLATE
-# n means we initialize an empty DSU with nodes [0:n-1]
 # unions by depth
 
 class DSU:
-    def __init__(self, n):
+    def __init__(self, nodes):
         self.parents = {} # maps a node to SOME parent, depends on the current amount of path compression, doesn't always map directly to the representative parent, may need to follow a chain
         self.depths = {} # maps the representative parent to its depth
-        for node in range(n):
+        for node in nodes:
             self.parents[node] = node
             self.depths[node] = 1
 
@@ -50,6 +49,10 @@ class DSU:
     def areUnioned(self, a, b):
         return self._find(a) == self._find(b)
 
-    # todo: test
     def uniqueComponents(self):
         return len(self.depths)
+
+
+
+
+

@@ -69,3 +69,15 @@ class CountAndKthIndexSegmentTree:
 
     def queryCount(self, l, r) -> int:
         return self._queryRecurse(0, 0, self.n - 1, l, r)
+
+
+"dbca"
+2
+"gggg"
+4
+"aann"
+2
+"gh"
+1
+"dah"
+3

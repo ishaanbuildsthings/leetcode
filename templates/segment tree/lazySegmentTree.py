@@ -97,8 +97,9 @@ class LazyPropagationSegmentTree:
     def query(self, l, r):
         return self._queryRecurse(1, 0, self.n - 1, l, r)
 
-    def getVal(self, i):
-        return self.arr[i]
+    # TODO: this is broken since the underlying array is not being mutated
+    # def getVal(self, i):
+    #     return self.arr[i]
 
     def __str__(self):
         result = []

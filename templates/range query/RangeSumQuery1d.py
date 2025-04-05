@@ -10,3 +10,8 @@ class RangeSumQuery1d:
         if l == 0:
             return self.prefixSums[r]
         return self.prefixSums[r] - self.prefixSums[l - 1]
+
+
+
+
+

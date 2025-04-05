@@ -95,10 +95,6 @@ class SegmentTree:
         # print(f'query result: {queryResult}')
         return queryResult
 
-    # Gets the value at an index in O(1)
-    def getVal(self, i):
-        return self.arr[i]
-
     def __str__(self):
         result = []
         def _printTree(i, tl, tr, indent):

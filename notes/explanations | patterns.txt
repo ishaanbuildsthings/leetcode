@@ -277,6 +277,26 @@ https://leetcode.com/problems/largest-divisible-subset/description/
 1106
 2641
 1233
+2458
+2463
+3315
+2371
+2577
+2097
+277
+1792
+2415
+2832
+2872
+3203
+2182
+2116
+1368
+2127
+1028
+2579
+1358
+3394
 
 TODO:
 reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?
@@ -290,3 +310,160 @@ todo: add larry bitmask trick for 1 << n iterate subsets
 TODO: numb3r5 method for intervals from left to right, and his interval merging alg
 todo: rjmc comment about djikstras
 
+
+
+
+
+
+
+
+
+
+
+
+ pos = defaultdict(list)
+        for i, val in enumerate(nums):
+            pos[val].append(i)
+
+        # print(pos)
+
+        # finds first index of target >= index
+        def leftmostGteIndexForTarget(sourceIndex, target):
+            bucket = pos[target]
+            # print(f'bucket: {bucket}')
+            left = 0
+            right = len(bucket) - 1
+            resHere = None
+            while left<=right:
+                m = (left+right)//2
+                index = bucket[m]
+                if index >= sourceIndex:
+                    resHere = m
+                    right = m - 1
+                else:
+                    left = m + 1
+            if resHere is not None:
+                return bucket[resHere]
+            return None
+
+        # finds the rightmost index <= index of target
+
+        def leftVersion(sourceIndex, target):
+            bucket = pos[target]
+            # print(f'bucket: {bucket}')
+            left = 0
+            right = len(bucket) - 1
+            resHere = None
+            while left<=right:
+                m = (left+right)//2
+                index = bucket[m]
+                if index <= sourceIndex:
+                    resHere = m
+                    left = m + 1
+                else:
+                    right = m - 1
+            if resHere is not None:
+                return bucket[resHere]
+            return None
+
+
+
+        res = 0
+
+        MOD = 10**9 + 7
+
+        # number of subsequences where we must take i, on the right, or skip to next similar
+        @cache
+        def dp(i):
+            # print(f'dp called on i={i}')
+            if i == len(nums):
+                # print(f'ret base case 1')
+                return 1
+            resHere = 1 # take ourself
+
+            nextUp = leftmostGteIndexForTarget(i, nums[i] + 1)
+            nextDown = leftmostGteIndexForTarget(i, nums[i] - 1)
+
+#             print(f'next up: {nextUp}')
+#             print(f'next down: {nextDown}')
+
+            if nextUp is not None:
+                resHere += dp(nextUp)
+            if nextDown is not None:
+                resHere += dp(nextDown)
+
+            # print(f'result for i={i} is: {resHere}')
+            return resHere % MOD
+
+        # number of subsequences where we must take i, on the left, so ...i
+        @cache
+        def dpLeft(i):
+            # print(f'dp left called on i={i}')
+            if i == -1:
+                return 1
+            resHere = 1 # take self
+
+            leftUp = leftVersion(i, nums[i] + 1)
+            leftDown = leftVersion(i, nums[i] - 1)
+            # print(f'left up: {leftUp}, leftdown: {leftDown}')
+            if leftUp is not None:
+                resHere += dpLeft(leftUp)
+            if leftDown is not None:
+                resHere += dpLeft(leftDown)
+
+            # print(f'ret: {resHere} for dpleft={i}')
+            return resHere % MOD
+
+        for middle in range(len(nums)):
+#             leftUp = leftVersion(middle, nums[middle] + 1)
+#             leftDown = leftVersion(middle, nums[middle] - 1) or 0
+#             if leftUp is not None:
+#                 leftWays = dpLeft(leftUp)
+#             else:
+#                 leftWays = 0
+#             if leftDown is not None:
+#                 leftWays += dpLeft(leftDown)
+
+
+#             rightUp = leftmostGteIndexForTarget(middle, nums[middle] + 1)
+#             rightDown = leftmostGteIndexForTarget(middle, nums[middle] - 1)
+#             if rightUp is not None:
+#                 rightWays = dp(rightUp)
+#             else:
+#                 rightWays = 0
+#             if rightDown is not None:
+#                 rightWays += dp(rightDown)
+
+#             # rightWays = rightUp + rightDown
+
+#             ways = leftWays + rightWays + 2
+
+
+            # res += ways * nums[middle]
+
+
+
+
+
+            leftWays = dpLeft(middle)
+            rightWays = dp(middle)
+            # print(f'middle: {middle}')
+            # print(f'left ways: {leftWays}')
+            # print(f'right ways: {rightWays}')
+            # print(f'ways: {leftWays + rightWays}')
+
+            cont = (leftWays * rightWays) * nums[middle]
+            # print(f'{cont=}')
+            res += cont
+
+        dp.cache_clear()
+        dpLeft.cache_clear()
+        return res % MOD
+
+
+#         for start in range(len(nums)):
+#             inclusions = dp(start)
+#             print(f'inclusions for start={start} is: {inclusions}')
+#             res += nums[start] * inclusions
+
+#         return res % MOD
