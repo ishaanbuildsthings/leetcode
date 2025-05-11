@@ -1,3 +1,4 @@
+# TEMPLATE BY github.com/ishaanbuildsthings PLEASE DO NOT USE
 # Works on strings and arrays
 class IncrementalHashing:
     # List of good prime numbers for hashing, will choose randomly if not provided
