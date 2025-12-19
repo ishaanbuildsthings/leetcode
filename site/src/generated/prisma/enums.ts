@@ -16,3 +16,12 @@ export const tag_role = {
 } as const
 
 export type tag_role = (typeof tag_role)[keyof typeof tag_role]
+
+
+export const programming_language = {
+  Python: 'Python',
+  Cpp: 'C++',
+  JavaScript: 'JavaScript'
+} as const
+
+export type programming_language = (typeof programming_language)[keyof typeof programming_language]

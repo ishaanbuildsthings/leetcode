@@ -27,9 +27,8 @@ export type AggregateSolutions = {
 export type SolutionsMinAggregateOutputType = {
   id: string | null
   problem_id: string | null
-  language: string | null
-  url: string | null
-  solution: string | null
+  language: $Enums.programming_language | null
+  submission_url: string | null
   github_url: string | null
   created_at: Date | null
   updated_at: Date | null
@@ -38,9 +37,8 @@ export type SolutionsMinAggregateOutputType = {
 export type SolutionsMaxAggregateOutputType = {
   id: string | null
   problem_id: string | null
-  language: string | null
-  url: string | null
-  solution: string | null
+  language: $Enums.programming_language | null
+  submission_url: string | null
   github_url: string | null
   created_at: Date | null
   updated_at: Date | null
@@ -50,8 +48,7 @@ export type SolutionsCountAggregateOutputType = {
   id: number
   problem_id: number
   language: number
-  url: number
-  solution: number
+  submission_url: number
   github_url: number
   created_at: number
   updated_at: number
@@ -63,8 +60,7 @@ export type SolutionsMinAggregateInputType = {
   id?: true
   problem_id?: true
   language?: true
-  url?: true
-  solution?: true
+  submission_url?: true
   github_url?: true
   created_at?: true
   updated_at?: true
@@ -74,8 +70,7 @@ export type SolutionsMaxAggregateInputType = {
   id?: true
   problem_id?: true
   language?: true
-  url?: true
-  solution?: true
+  submission_url?: true
   github_url?: true
   created_at?: true
   updated_at?: true
@@ -85,8 +80,7 @@ export type SolutionsCountAggregateInputType = {
   id?: true
   problem_id?: true
   language?: true
-  url?: true
-  solution?: true
+  submission_url?: true
   github_url?: true
   created_at?: true
   updated_at?: true
@@ -168,9 +162,8 @@ export type solutionsGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 export type SolutionsGroupByOutputType = {
   id: string
   problem_id: string
-  language: string | null
-  url: string
-  solution: string | null
+  language: $Enums.programming_language
+  submission_url: string | null
   github_url: string | null
   created_at: Date
   updated_at: Date
@@ -200,9 +193,8 @@ export type solutionsWhereInput = {
   NOT?: Prisma.solutionsWhereInput | Prisma.solutionsWhereInput[]
   id?: Prisma.UuidFilter<"solutions"> | string
   problem_id?: Prisma.UuidFilter<"solutions"> | string
-  language?: Prisma.StringNullableFilter<"solutions"> | string | null
-  url?: Prisma.StringFilter<"solutions"> | string
-  solution?: Prisma.StringNullableFilter<"solutions"> | string | null
+  language?: Prisma.Enumprogramming_languageFilter<"solutions"> | $Enums.programming_language
+  submission_url?: Prisma.StringNullableFilter<"solutions"> | string | null
   github_url?: Prisma.StringNullableFilter<"solutions"> | string | null
   created_at?: Prisma.DateTimeFilter<"solutions"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"solutions"> | Date | string
@@ -212,9 +204,8 @@ export type solutionsWhereInput = {
 export type solutionsOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   problem_id?: Prisma.SortOrder
-  language?: Prisma.SortOrderInput | Prisma.SortOrder
-  url?: Prisma.SortOrder
-  solution?: Prisma.SortOrderInput | Prisma.SortOrder
+  language?: Prisma.SortOrder
+  submission_url?: Prisma.SortOrderInput | Prisma.SortOrder
   github_url?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -227,9 +218,8 @@ export type solutionsWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.solutionsWhereInput[]
   NOT?: Prisma.solutionsWhereInput | Prisma.solutionsWhereInput[]
   problem_id?: Prisma.UuidFilter<"solutions"> | string
-  language?: Prisma.StringNullableFilter<"solutions"> | string | null
-  url?: Prisma.StringFilter<"solutions"> | string
-  solution?: Prisma.StringNullableFilter<"solutions"> | string | null
+  language?: Prisma.Enumprogramming_languageFilter<"solutions"> | $Enums.programming_language
+  submission_url?: Prisma.StringNullableFilter<"solutions"> | string | null
   github_url?: Prisma.StringNullableFilter<"solutions"> | string | null
   created_at?: Prisma.DateTimeFilter<"solutions"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"solutions"> | Date | string
@@ -239,9 +229,8 @@ export type solutionsWhereUniqueInput = Prisma.AtLeast<{
 export type solutionsOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   problem_id?: Prisma.SortOrder
-  language?: Prisma.SortOrderInput | Prisma.SortOrder
-  url?: Prisma.SortOrder
-  solution?: Prisma.SortOrderInput | Prisma.SortOrder
+  language?: Prisma.SortOrder
+  submission_url?: Prisma.SortOrderInput | Prisma.SortOrder
   github_url?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -256,9 +245,8 @@ export type solutionsScalarWhereWithAggregatesInput = {
   NOT?: Prisma.solutionsScalarWhereWithAggregatesInput | Prisma.solutionsScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"solutions"> | string
   problem_id?: Prisma.UuidWithAggregatesFilter<"solutions"> | string
-  language?: Prisma.StringNullableWithAggregatesFilter<"solutions"> | string | null
-  url?: Prisma.StringWithAggregatesFilter<"solutions"> | string
-  solution?: Prisma.StringNullableWithAggregatesFilter<"solutions"> | string | null
+  language?: Prisma.Enumprogramming_languageWithAggregatesFilter<"solutions"> | $Enums.programming_language
+  submission_url?: Prisma.StringNullableWithAggregatesFilter<"solutions"> | string | null
   github_url?: Prisma.StringNullableWithAggregatesFilter<"solutions"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"solutions"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"solutions"> | Date | string
@@ -266,9 +254,8 @@ export type solutionsScalarWhereWithAggregatesInput = {
 
 export type solutionsCreateInput = {
   id?: string
-  language?: string | null
-  url: string
-  solution?: string | null
+  language: $Enums.programming_language
+  submission_url?: string | null
   github_url?: string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -278,9 +265,8 @@ export type solutionsCreateInput = {
 export type solutionsUncheckedCreateInput = {
   id?: string
   problem_id: string
-  language?: string | null
-  url: string
-  solution?: string | null
+  language: $Enums.programming_language
+  submission_url?: string | null
   github_url?: string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -288,9 +274,8 @@ export type solutionsUncheckedCreateInput = {
 
 export type solutionsUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  language?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  solution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.Enumprogramming_languageFieldUpdateOperationsInput | $Enums.programming_language
+  submission_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   github_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -300,9 +285,8 @@ export type solutionsUpdateInput = {
 export type solutionsUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   problem_id?: Prisma.StringFieldUpdateOperationsInput | string
-  language?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  solution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.Enumprogramming_languageFieldUpdateOperationsInput | $Enums.programming_language
+  submission_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   github_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -311,9 +295,8 @@ export type solutionsUncheckedUpdateInput = {
 export type solutionsCreateManyInput = {
   id?: string
   problem_id: string
-  language?: string | null
-  url: string
-  solution?: string | null
+  language: $Enums.programming_language
+  submission_url?: string | null
   github_url?: string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -321,9 +304,8 @@ export type solutionsCreateManyInput = {
 
 export type solutionsUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  language?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  solution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.Enumprogramming_languageFieldUpdateOperationsInput | $Enums.programming_language
+  submission_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   github_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -332,9 +314,8 @@ export type solutionsUpdateManyMutationInput = {
 export type solutionsUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   problem_id?: Prisma.StringFieldUpdateOperationsInput | string
-  language?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  solution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.Enumprogramming_languageFieldUpdateOperationsInput | $Enums.programming_language
+  submission_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   github_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -354,8 +335,7 @@ export type solutionsCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   problem_id?: Prisma.SortOrder
   language?: Prisma.SortOrder
-  url?: Prisma.SortOrder
-  solution?: Prisma.SortOrder
+  submission_url?: Prisma.SortOrder
   github_url?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -365,8 +345,7 @@ export type solutionsMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   problem_id?: Prisma.SortOrder
   language?: Prisma.SortOrder
-  url?: Prisma.SortOrder
-  solution?: Prisma.SortOrder
+  submission_url?: Prisma.SortOrder
   github_url?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -376,8 +355,7 @@ export type solutionsMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   problem_id?: Prisma.SortOrder
   language?: Prisma.SortOrder
-  url?: Prisma.SortOrder
-  solution?: Prisma.SortOrder
+  submission_url?: Prisma.SortOrder
   github_url?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -425,11 +403,14 @@ export type solutionsUncheckedUpdateManyWithoutProblemsNestedInput = {
   deleteMany?: Prisma.solutionsScalarWhereInput | Prisma.solutionsScalarWhereInput[]
 }
 
+export type Enumprogramming_languageFieldUpdateOperationsInput = {
+  set?: $Enums.programming_language
+}
+
 export type solutionsCreateWithoutProblemsInput = {
   id?: string
-  language?: string | null
-  url: string
-  solution?: string | null
+  language: $Enums.programming_language
+  submission_url?: string | null
   github_url?: string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -437,9 +418,8 @@ export type solutionsCreateWithoutProblemsInput = {
 
 export type solutionsUncheckedCreateWithoutProblemsInput = {
   id?: string
-  language?: string | null
-  url: string
-  solution?: string | null
+  language: $Enums.programming_language
+  submission_url?: string | null
   github_url?: string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -477,9 +457,8 @@ export type solutionsScalarWhereInput = {
   NOT?: Prisma.solutionsScalarWhereInput | Prisma.solutionsScalarWhereInput[]
   id?: Prisma.UuidFilter<"solutions"> | string
   problem_id?: Prisma.UuidFilter<"solutions"> | string
-  language?: Prisma.StringNullableFilter<"solutions"> | string | null
-  url?: Prisma.StringFilter<"solutions"> | string
-  solution?: Prisma.StringNullableFilter<"solutions"> | string | null
+  language?: Prisma.Enumprogramming_languageFilter<"solutions"> | $Enums.programming_language
+  submission_url?: Prisma.StringNullableFilter<"solutions"> | string | null
   github_url?: Prisma.StringNullableFilter<"solutions"> | string | null
   created_at?: Prisma.DateTimeFilter<"solutions"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"solutions"> | Date | string
@@ -487,9 +466,8 @@ export type solutionsScalarWhereInput = {
 
 export type solutionsCreateManyProblemsInput = {
   id?: string
-  language?: string | null
-  url: string
-  solution?: string | null
+  language: $Enums.programming_language
+  submission_url?: string | null
   github_url?: string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -497,9 +475,8 @@ export type solutionsCreateManyProblemsInput = {
 
 export type solutionsUpdateWithoutProblemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  language?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  solution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.Enumprogramming_languageFieldUpdateOperationsInput | $Enums.programming_language
+  submission_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   github_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -507,9 +484,8 @@ export type solutionsUpdateWithoutProblemsInput = {
 
 export type solutionsUncheckedUpdateWithoutProblemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  language?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  solution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.Enumprogramming_languageFieldUpdateOperationsInput | $Enums.programming_language
+  submission_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   github_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -517,9 +493,8 @@ export type solutionsUncheckedUpdateWithoutProblemsInput = {
 
 export type solutionsUncheckedUpdateManyWithoutProblemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  language?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  solution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.Enumprogramming_languageFieldUpdateOperationsInput | $Enums.programming_language
+  submission_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   github_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -531,8 +506,7 @@ export type solutionsSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   id?: boolean
   problem_id?: boolean
   language?: boolean
-  url?: boolean
-  solution?: boolean
+  submission_url?: boolean
   github_url?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -543,8 +517,7 @@ export type solutionsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   problem_id?: boolean
   language?: boolean
-  url?: boolean
-  solution?: boolean
+  submission_url?: boolean
   github_url?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -555,8 +528,7 @@ export type solutionsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   problem_id?: boolean
   language?: boolean
-  url?: boolean
-  solution?: boolean
+  submission_url?: boolean
   github_url?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -567,14 +539,13 @@ export type solutionsSelectScalar = {
   id?: boolean
   problem_id?: boolean
   language?: boolean
-  url?: boolean
-  solution?: boolean
+  submission_url?: boolean
   github_url?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type solutionsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "problem_id" | "language" | "url" | "solution" | "github_url" | "created_at" | "updated_at", ExtArgs["result"]["solutions"]>
+export type solutionsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "problem_id" | "language" | "submission_url" | "github_url" | "created_at" | "updated_at", ExtArgs["result"]["solutions"]>
 export type solutionsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   problems?: boolean | Prisma.problemsDefaultArgs<ExtArgs>
 }
@@ -593,9 +564,8 @@ export type $solutionsPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     problem_id: string
-    language: string | null
-    url: string
-    solution: string | null
+    language: $Enums.programming_language
+    submission_url: string | null
     github_url: string | null
     created_at: Date
     updated_at: Date
@@ -1025,9 +995,8 @@ export interface Prisma__solutionsClient<T, Null = never, ExtArgs extends runtim
 export interface solutionsFieldRefs {
   readonly id: Prisma.FieldRef<"solutions", 'String'>
   readonly problem_id: Prisma.FieldRef<"solutions", 'String'>
-  readonly language: Prisma.FieldRef<"solutions", 'String'>
-  readonly url: Prisma.FieldRef<"solutions", 'String'>
-  readonly solution: Prisma.FieldRef<"solutions", 'String'>
+  readonly language: Prisma.FieldRef<"solutions", 'programming_language'>
+  readonly submission_url: Prisma.FieldRef<"solutions", 'String'>
   readonly github_url: Prisma.FieldRef<"solutions", 'String'>
   readonly created_at: Prisma.FieldRef<"solutions", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"solutions", 'DateTime'>

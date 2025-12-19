@@ -1,5 +1,5 @@
 import { prisma } from "../prisma";
-import { tag_role } from "../../src/generated/prisma/enums";
+import { tag_role, programming_language } from "../../src/generated/prisma/enums";
 
 export async function unsafe_createProblem(data: {
   platformId: string;
@@ -11,7 +11,7 @@ export async function unsafe_createProblem(data: {
   normalizedDifficulty?: number;
   notes?: string;
   tags?: Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>;
-  solutions?: Array<{ url: string; language?: string; solution?: string; githubUrl?: string }>;
+  solutions?: Array<{ submissionUrl?: string; language: programming_language; githubUrl?: string }>;
 }) {
   return prisma.problems.create({
     data: {
@@ -36,9 +36,8 @@ export async function unsafe_createProblem(data: {
       solutions: data.solutions
         ? {
             create: data.solutions.map((s) => ({
-              url: s.url,
+              submission_url: s.submissionUrl || undefined,
               language: s.language,
-              solution: s.solution,
               github_url: s.githubUrl,
             })),
           }

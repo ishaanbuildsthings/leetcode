@@ -25,8 +25,8 @@ export function transformSolution(solution: solutions): ISolution {
     id: solution.id,
     problemId: solution.problem_id,
     language: solution.language,
-    url: solution.url,
-    solution: solution.solution,
+    submissionUrl: solution.submission_url,
+    githubUrl: solution.github_url,
   };
 }
 

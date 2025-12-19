@@ -136,6 +136,23 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
     },
   });
 
+  const parseAtCoderUrl = (url: string) => {
+    const atcoderPattern = /^https?:\/\/atcoder\.jp\/contests\/([^\/]+)\/tasks\/([^\/\?#]+)/;
+    const match = url.match(atcoderPattern);
+    
+    if (match) {
+      const problemId = match[2];
+      const atcoderPlatform = platforms?.find(p => p.slug === 'atcoder' || p.name.toLowerCase() === 'atcoder');
+      
+      return {
+        platformId: atcoderPlatform?.id || null,
+        problemId: problemId,
+      };
+    }
+    
+    return null;
+  };
+
   const [formData, setFormData] = useState({
     platformId: "",
     title: "",
@@ -146,7 +163,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
     normalizedDifficulty: undefined as number | undefined,
     notes: "",
     selectedTags: [] as Array<{ tagId: string; role?: "core" | "secondary" | "mention"; tagDifficulty?: number; isInstructive?: boolean }>,
-    solutions: [] as Array<{ url: string; language?: string; solution?: string; githubUrl?: string }>,
+    solutions: [] as Array<{ submissionUrl?: string; language?: string; githubUrl?: string }>,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -161,6 +178,11 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
       normalizedDifficulty: formData.normalizedDifficulty,
       notes: formData.notes || undefined,
       tags: formData.selectedTags.length > 0 ? formData.selectedTags : undefined,
+      solutions: formData.solutions.length > 0 ? formData.solutions.map(s => ({
+        submissionUrl: s.submissionUrl || undefined,
+        language: s.language as "Python" | "Cpp" | "JavaScript",
+        githubUrl: s.githubUrl || undefined,
+      })) : undefined,
     });
   };
 
@@ -183,8 +205,22 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
           type="url"
           required
           value={formData.url}
-          onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+          onChange={(e) => {
+            const url = e.target.value;
+            setFormData({ ...formData, url });
+            
+            const parsed = parseAtCoderUrl(url);
+            if (parsed) {
+              setFormData(prev => ({
+                ...prev,
+                url,
+                platformId: parsed.platformId || prev.platformId,
+                platformProblemId: parsed.problemId,
+              }));
+            }
+          }}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          placeholder="https://atcoder.jp/contests/abc213/tasks/abc213_e"
         />
       </div>
 
@@ -360,6 +396,97 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
             );
           })}
         </div>
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <label className="block text-sm font-semibold text-gray-900">Solutions (optional)</label>
+          <button
+            type="button"
+            onClick={() => {
+              setFormData({
+                ...formData,
+                solutions: [...formData.solutions, { submissionUrl: "", language: "", githubUrl: "" }],
+              });
+            }}
+            className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            + Add Solution
+          </button>
+        </div>
+        {formData.solutions.length > 0 && (
+          <div className="space-y-4">
+            {formData.solutions.map((sol, index) => (
+              <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold text-gray-700">Solution {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        solutions: formData.solutions.filter((_, i) => i !== index),
+                      });
+                    }}
+                    className="text-xs text-red-600 hover:text-red-700 px-2 py-1 hover:bg-red-50 rounded"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Language *</label>
+                    <select
+                      required
+                      value={sol.language || ""}
+                      onChange={(e) => {
+                        const newSolutions = [...formData.solutions];
+                        newSolutions[index] = { ...newSolutions[index], language: e.target.value };
+                        setFormData({ ...formData, solutions: newSolutions });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    >
+                      <option value="">Select language</option>
+                      <option value="Python">Python</option>
+                      <option value="Cpp">C++</option>
+                      <option value="JavaScript">JavaScript</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">GitHub URL</label>
+                    <input
+                      type="url"
+                      value={sol.githubUrl || ""}
+                      onChange={(e) => {
+                        const newSolutions = [...formData.solutions];
+                        newSolutions[index] = { ...newSolutions[index], githubUrl: e.target.value };
+                        setFormData({ ...formData, solutions: newSolutions });
+                      }}
+                      placeholder="https://github.com/..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Submission URL</label>
+                  <input
+                    type="url"
+                    value={sol.submissionUrl || ""}
+                    onChange={(e) => {
+                      const newSolutions = [...formData.solutions];
+                      newSolutions[index] = { ...newSolutions[index], submissionUrl: e.target.value };
+                      setFormData({ ...formData, solutions: newSolutions });
+                    }}
+                    placeholder="https://atcoder.jp/contests/.../submissions/..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <button

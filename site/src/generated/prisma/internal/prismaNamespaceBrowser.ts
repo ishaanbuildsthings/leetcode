@@ -131,8 +131,7 @@ export const SolutionsScalarFieldEnum = {
   id: 'id',
   problem_id: 'problem_id',
   language: 'language',
-  url: 'url',
-  solution: 'solution',
+  submission_url: 'submission_url',
   github_url: 'github_url',
   created_at: 'created_at',
   updated_at: 'updated_at'

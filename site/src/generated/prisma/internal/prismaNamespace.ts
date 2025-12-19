@@ -1022,8 +1022,7 @@ export const SolutionsScalarFieldEnum = {
   id: 'id',
   problem_id: 'problem_id',
   language: 'language',
-  url: 'url',
-  solution: 'solution',
+  submission_url: 'submission_url',
   github_url: 'github_url',
   created_at: 'created_at',
   updated_at: 'updated_at'
@@ -1144,6 +1143,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'programming_language'
+ */
+export type Enumprogramming_languageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'programming_language'>
+    
+
+
+/**
+ * Reference to a field of type 'programming_language[]'
+ */
+export type ListEnumprogramming_languageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'programming_language[]'>
     
 
 

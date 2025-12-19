@@ -11,12 +11,14 @@ export interface IPlatform {
   slug: string;
 }
 
+export type ProgrammingLanguage = "Python" | "C++" | "JavaScript";
+
 export interface ISolution {
   id: string;
   problemId: string;
-  language: string | null;
-  url: string;
-  solution: string | null;
+  language: ProgrammingLanguage;
+  submissionUrl: string | null;
+  githubUrl: string | null;
 }
 
 export interface IProblem {

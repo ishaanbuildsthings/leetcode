@@ -36,10 +36,19 @@ export const problemRouter = router({
             })
           )
           .optional(),
+        solutions: z
+          .array(
+            z.object({
+              submissionUrl: z.string().url().optional().or(z.literal("")),
+              language: z.enum(["Python", "Cpp", "JavaScript"]),
+              githubUrl: z.string().url().optional().or(z.literal("")),
+            })
+          )
+          .optional(),
       })
     )
     .mutation(async ({ input }) => {
-      const problem = await problemService.unsafe_createProblem(input);
+      const problem = await problemService.unsafe_createProblem(input as any);
       return transformProblemWithRelations(problem);
     }),
 
