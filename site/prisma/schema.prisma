@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model users {
+  id         String   @id @db.Uuid
+  is_admin   Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model platforms {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  slug       String     @unique
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at DateTime   @default(now()) @db.Timestamptz(6)
+  problems   problems[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model problem_tags {
+  problem_id     String    @db.Uuid
+  tag_id         String    @db.Uuid
+  role           tag_role?
+  tag_difficulty Int?      @db.SmallInt
+  is_instructive Boolean?
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime  @default(now()) @db.Timestamptz(6)
+  problems       problems  @relation(fields: [problem_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tags           tags      @relation(fields: [tag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([problem_id, tag_id])
+  @@index([problem_id])
+  @@index([tag_id])
+  @@index([tag_id, role])
+}
+
+model problems {
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  platform_id          String         @db.Uuid
+  platform_problem_id  String?
+  title                String
+  url                  String
+  platform_difficulty  String?
+  normalized_difficulty Int?          @db.SmallInt
+  notes                String?
+  is_great_problem     Boolean        @default(false)
+  created_at           DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime       @default(now()) @db.Timestamptz(6)
+  problem_tags         problem_tags[]
+  platforms            platforms      @relation(fields: [platform_id], references: [id], onUpdate: NoAction)
+  solutions            solutions[]
+
+  @@index([platform_id])
+}
+
+model solutions {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  problem_id String   @db.Uuid
+  language   String?
+  url        String
+  solution   String?
+  github_url String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  problems   problems @relation(fields: [problem_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([problem_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model tag_parents {
+  child_tag_id                         String   @db.Uuid
+  parent_tag_id                        String   @db.Uuid
+  created_at                           DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                           DateTime @default(now()) @db.Timestamptz(6)
+  tags_tag_parents_child_tag_idTotags  tags     @relation("tag_parents_child_tag_idTotags", fields: [child_tag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tags_tag_parents_parent_tag_idTotags tags     @relation("tag_parents_parent_tag_idTotags", fields: [parent_tag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([child_tag_id, parent_tag_id])
+  @@index([child_tag_id], map: "tag_parents_child_idx")
+  @@index([parent_tag_id], map: "tag_parents_parent_idx")
+}
+
+model tags {
+  id                                          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                                        String
+  slug                                        String         @unique
+  description                                 String?
+  created_at                                  DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at                                  DateTime       @default(now()) @db.Timestamptz(6)
+  problem_tags                                problem_tags[]
+  tag_parents_tag_parents_child_tag_idTotags  tag_parents[]  @relation("tag_parents_child_tag_idTotags")
+  tag_parents_tag_parents_parent_tag_idTotags tag_parents[]  @relation("tag_parents_parent_tag_idTotags")
+}
+
+enum tag_role {
+  core
+  secondary
+  mention
+}
