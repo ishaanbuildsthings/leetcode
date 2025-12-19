@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { trpc } from "../providers";
+import { programming_language, tag_role } from "@/src/generated/prisma/enums";
 import ReactFlow, {
   Node,
   Edge,
@@ -104,6 +105,7 @@ export default function AdminPage() {
 
 function ProblemsTab() {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingProblem, setEditingProblem] = useState<string | null>(null);
 
   return (
     <div className="space-y-6">
@@ -118,8 +120,14 @@ function ProblemsTab() {
       </div>
 
       {showCreateForm && <CreateProblemForm onSuccess={() => setShowCreateForm(false)} />}
+      {editingProblem && (
+        <EditProblemForm
+          problemId={editingProblem}
+          onClose={() => setEditingProblem(null)}
+        />
+      )}
 
-      <ProblemsList />
+      <ProblemsList onEdit={setEditingProblem} />
     </div>
   );
 }
@@ -161,9 +169,10 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
     platformProblemId: "",
     platformDifficulty: "",
     normalizedDifficulty: undefined as number | undefined,
+    simplifiedStatement: "",
     notes: "",
-    selectedTags: [] as Array<{ tagId: string; role?: "core" | "secondary" | "mention"; tagDifficulty?: number; isInstructive?: boolean }>,
-    solutions: [] as Array<{ submissionUrl?: string; language?: string; githubUrl?: string }>,
+    selectedTags: [] as Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>,
+    solutions: [] as Array<{ submissionUrl?: string; language: programming_language | ""; githubUrl?: string }>,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -176,13 +185,18 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
       platformProblemId: formData.platformProblemId || undefined,
       platformDifficulty: formData.platformDifficulty || undefined,
       normalizedDifficulty: formData.normalizedDifficulty,
+      simplifiedStatement: formData.simplifiedStatement || undefined,
       notes: formData.notes || undefined,
       tags: formData.selectedTags.length > 0 ? formData.selectedTags : undefined,
-      solutions: formData.solutions.length > 0 ? formData.solutions.map(s => ({
-        submissionUrl: s.submissionUrl || undefined,
-        language: s.language as "Python" | "Cpp" | "JavaScript",
-        githubUrl: s.githubUrl || undefined,
-      })) : undefined,
+      solutions: formData.solutions.length > 0 
+        ? formData.solutions
+            .filter(s => s.language !== "")
+            .map(s => ({
+              submissionUrl: s.submissionUrl || undefined,
+              language: s.language as programming_language,
+              githubUrl: s.githubUrl || undefined,
+            }))
+        : undefined,
     });
   };
 
@@ -281,6 +295,17 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Simplified Problem Statement</label>
+        <textarea
+          value={formData.simplifiedStatement}
+          onChange={(e) => setFormData({ ...formData, simplifiedStatement: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          rows={3}
+          placeholder="A brief summary of the problem"
+        />
+      </div>
+
+      <div>
         <label className="block text-sm font-semibold text-gray-900 mb-2">Notes</label>
         <textarea
           value={formData.notes}
@@ -352,11 +377,11 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                 {selected && (
                   <div className="ml-7 flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <label className="text-xs font-medium text-gray-700">Difficulty (1-3 stars):</label>
+                      <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
                       <input
                         type="number"
                         min="1"
-                        max="3"
+                        max="10"
                         value={selected.tagDifficulty || ""}
                         onChange={(e) => {
                           const val = e.target.value ? parseInt(e.target.value) : undefined;
@@ -367,8 +392,8 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                             ),
                           });
                         }}
-                        placeholder="1-3"
-                        className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                        placeholder="1-10"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -442,7 +467,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                       value={sol.language || ""}
                       onChange={(e) => {
                         const newSolutions = [...formData.solutions];
-                        newSolutions[index] = { ...newSolutions[index], language: e.target.value };
+                        newSolutions[index] = { ...newSolutions[index], language: e.target.value as programming_language | "" };
                         setFormData({ ...formData, solutions: newSolutions });
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -504,7 +529,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-function ProblemsList() {
+function ProblemsList({ onEdit }: { onEdit: (id: string) => void }) {
   const { data: problems, isLoading } = trpc.problem.list.useQuery();
   const deleteProblem = trpc.problem.delete.useMutation({
     onSuccess: () => {
@@ -551,8 +576,17 @@ function ProblemsList() {
               >
                 {problem.url}
               </a>
+              {problem.simplifiedStatement && (
+                <div className="mt-2">
+                  <span className="text-xs font-semibold text-gray-700">Summary: </span>
+                  <span className="text-sm text-gray-600">{problem.simplifiedStatement}</span>
+                </div>
+              )}
               {problem.notes && (
-                <p className="text-sm text-gray-500 mt-2">{problem.notes}</p>
+                <div className="mt-2">
+                  <span className="text-xs font-semibold text-gray-700">Notes: </span>
+                  <span className="text-sm text-gray-500">{problem.notes}</span>
+                </div>
               )}
               <div className="flex flex-wrap gap-1 mt-2">
                 {problem.tags.map((pt) => (
@@ -573,25 +607,493 @@ function ProblemsList() {
                     {pt.isInstructive === true && '📚 '}
                     {pt.tag.name}
                     {pt.role && ` (${pt.role})`}
-                    {pt.tagDifficulty && ` ${pt.tagDifficulty}★`}
+                    {pt.tagDifficulty && ` ${pt.tagDifficulty}/10`}
                   </span>
                 ))}
               </div>
+              {problem.solutions.length > 0 && (
+                <div className="mt-3 space-y-1">
+                  <h4 className="text-xs font-semibold text-gray-600">Solutions:</h4>
+                  {problem.solutions.map((solution: any) => (
+                    <div 
+                      key={solution.id} 
+                      className="flex items-center gap-2 text-xs bg-gray-50 rounded px-2 py-1"
+                    >
+                      <span className="font-medium text-gray-700">
+                        {solution.language === 'Cpp' ? 'C++' : solution.language}
+                      </span>
+                      <div className="flex gap-2">
+                        {solution.githubUrl && (
+                          <a
+                            href={solution.githubUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            GitHub →
+                          </a>
+                        )}
+                        {solution.submissionUrl && (
+                          <>
+                            {solution.githubUrl && <span className="text-gray-300">|</span>}
+                            <a
+                              href={solution.submissionUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              Submission →
+                            </a>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => {
-                if (confirm("Delete this problem?")) {
-                  deleteProblem.mutate({ id: problem.id });
-                }
-              }}
-              className="ml-4 px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded"
-            >
-              Delete
-            </button>
+            <div className="ml-4 flex gap-2">
+              <button
+                onClick={() => onEdit(problem.id)}
+                className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm("Delete this problem?")) {
+                    deleteProblem.mutate({ id: problem.id });
+                  }
+                }}
+                className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       ))}
     </div>
+  );
+}
+
+function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: () => void }) {
+  const utils = trpc.useUtils();
+  const { data: platforms } = trpc.platform.list.useQuery();
+  const { data: tags } = trpc.tag.list.useQuery();
+  const { data: problem, isLoading } = trpc.problem.getById.useQuery({ id: problemId });
+
+  const updateProblem = trpc.problem.update.useMutation({
+    onSuccess: () => {
+      utils.problem.list.invalidate();
+      onClose();
+    },
+    onError: (error) => {
+      console.error("Update failed:", error);
+      alert(`Failed to update problem: ${error.message}`);
+    },
+  });
+
+  const [formData, setFormData] = useState({
+    platformId: "",
+    title: "",
+    url: "",
+    isGreatProblem: false,
+    platformProblemId: "",
+    platformDifficulty: "",
+    normalizedDifficulty: undefined as number | undefined,
+    simplifiedStatement: "",
+    notes: "",
+    selectedTags: [] as Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>,
+    solutions: [] as Array<{ submissionUrl?: string; language: programming_language | ""; githubUrl?: string }>,
+  });
+
+  useEffect(() => {
+    if (problem) {
+      setFormData({
+        platformId: problem.platformId,
+        title: problem.title,
+        url: problem.url,
+        isGreatProblem: problem.isGreatProblem,
+        platformProblemId: problem.platformProblemId || "",
+        platformDifficulty: problem.platformDifficulty || "",
+        normalizedDifficulty: problem.normalizedDifficulty || undefined,
+        simplifiedStatement: problem.simplifiedStatement || "",
+        notes: problem.notes || "",
+        selectedTags: problem.tags.map(pt => ({
+          tagId: pt.tag.id,
+          role: pt.role || undefined,
+          tagDifficulty: pt.tagDifficulty || undefined,
+          isInstructive: pt.isInstructive ?? undefined,
+        })),
+        solutions: problem.solutions.map(s => ({
+          submissionUrl: s.submissionUrl || "",
+          language: s.language,
+          githubUrl: s.githubUrl || "",
+        })),
+      });
+    }
+  }, [problem]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProblem.mutate({
+      id: problemId,
+      platformId: formData.platformId,
+      title: formData.title,
+      url: formData.url,
+      isGreatProblem: formData.isGreatProblem,
+      platformProblemId: formData.platformProblemId || undefined,
+      platformDifficulty: formData.platformDifficulty || undefined,
+      normalizedDifficulty: formData.normalizedDifficulty,
+      simplifiedStatement: formData.simplifiedStatement || undefined,
+      notes: formData.notes || undefined,
+      tags: formData.selectedTags.length > 0 ? formData.selectedTags : undefined,
+      solutions: formData.solutions.length > 0 
+        ? formData.solutions
+            .filter(s => s.language !== "")
+            .map(s => ({
+              submissionUrl: s.submissionUrl || undefined,
+              language: s.language as programming_language,
+              githubUrl: s.githubUrl || undefined,
+            }))
+        : undefined,
+    });
+  };
+
+  if (isLoading) {
+    return <div className="bg-white p-6 rounded-lg shadow">Loading...</div>;
+  }
+
+  if (!problem) {
+    return <div className="bg-white p-6 rounded-lg shadow text-red-600">Problem not found</div>;
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold text-gray-900">Edit Problem</h3>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          ✕ Cancel
+        </button>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Title *</label>
+        <input
+          type="text"
+          required
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">URL *</label>
+        <input
+          type="url"
+          required
+          value={formData.url}
+          onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Platform *</label>
+        <select
+          required
+          value={formData.platformId}
+          onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+        >
+          <option value="">Select platform</option>
+          {platforms?.map((platform) => (
+            <option key={platform.id} value={platform.id}>
+              {platform.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Platform Problem ID</label>
+          <input
+            type="text"
+            value={formData.platformProblemId}
+            onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Platform Difficulty</label>
+          <input
+            type="text"
+            value={formData.platformDifficulty}
+            onChange={(e) => setFormData({ ...formData, platformDifficulty: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Normalized Difficulty (1-10)</label>
+        <input
+          type="number"
+          min="1"
+          max="10"
+          value={formData.normalizedDifficulty || ""}
+          onChange={(e) => setFormData({ ...formData, normalizedDifficulty: e.target.value ? parseInt(e.target.value) : undefined })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Simplified Problem Statement</label>
+        <textarea
+          value={formData.simplifiedStatement}
+          onChange={(e) => setFormData({ ...formData, simplifiedStatement: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          rows={3}
+          placeholder="A brief summary of the problem"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Notes</label>
+        <textarea
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          rows={3}
+        />
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={formData.isGreatProblem}
+            onChange={(e) => setFormData({ ...formData, isGreatProblem: e.target.checked })}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <span className="text-sm font-semibold text-gray-900">Great Problem</span>
+        </label>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Tags</label>
+        <div className="space-y-2">
+          {tags?.map((tag) => {
+            const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
+            return (
+              <div key={tag.id} className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={!!selected}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setFormData({
+                        ...formData,
+                        selectedTags: [...formData.selectedTags, { tagId: tag.id }],
+                      });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        selectedTags: formData.selectedTags.filter((t) => t.tagId !== tag.id),
+                      });
+                    }
+                  }}
+                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-gray-900">{tag.name}</label>
+                  {selected && (
+                    <div className="ml-7 flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={selected.tagDifficulty || ""}
+                          onChange={(e) => {
+                            const val = e.target.value ? parseInt(e.target.value) : undefined;
+                            setFormData({
+                              ...formData,
+                              selectedTags: formData.selectedTags.map((t) =>
+                                t.tagId === tag.id ? { ...t, tagDifficulty: val } : t
+                              ),
+                            });
+                          }}
+                          placeholder="1-10"
+                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-medium text-gray-700">Role:</label>
+                        <select
+                          value={selected.role || ""}
+                          onChange={(e) => {
+                            setFormData({
+                              ...formData,
+                              selectedTags: formData.selectedTags.map((t) =>
+                                t.tagId === tag.id ? { ...t, role: e.target.value as any } : t
+                              ),
+                            });
+                          }}
+                          className="px-2 py-1 border border-gray-300 rounded text-sm"
+                        >
+                          <option value="">None</option>
+                          <option value="core">Core</option>
+                          <option value="secondary">Secondary</option>
+                          <option value="mention">Mention</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-medium text-gray-700">Instructive:</label>
+                        <select
+                          value={selected.isInstructive === true ? "yes" : selected.isInstructive === false ? "no" : ""}
+                          onChange={(e) => {
+                            const val = e.target.value === "yes" ? true : e.target.value === "no" ? false : undefined;
+                            setFormData({
+                              ...formData,
+                              selectedTags: formData.selectedTags.map((t) =>
+                                t.tagId === tag.id ? { ...t, isInstructive: val } : t
+                              ),
+                            });
+                          }}
+                          className="px-2 py-1 border border-gray-300 rounded text-sm"
+                        >
+                          <option value="">Not set</option>
+                          <option value="yes">Yes</option>
+                          <option value="no">No</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <label className="block text-sm font-semibold text-gray-900">Solutions</label>
+          <button
+            type="button"
+            onClick={() => {
+              setFormData({
+                ...formData,
+                solutions: [...formData.solutions, { submissionUrl: "", language: "", githubUrl: "" }],
+              });
+            }}
+            className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            + Add Solution
+          </button>
+        </div>
+        {formData.solutions.length > 0 && (
+          <div className="space-y-3">
+            {formData.solutions.map((sol, index) => (
+              <div key={index} className="p-3 border border-gray-300 rounded space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700">Solution {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        solutions: formData.solutions.filter((_, i) => i !== index),
+                      });
+                    }}
+                    className="text-xs text-red-600 hover:text-red-800"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Language *</label>
+                    <select
+                      required
+                      value={sol.language || ""}
+                      onChange={(e) => {
+                        const newSolutions = [...formData.solutions];
+                        newSolutions[index] = { ...newSolutions[index], language: e.target.value as programming_language | "" };
+                        setFormData({ ...formData, solutions: newSolutions });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    >
+                      <option value="">Select language</option>
+                      <option value="Python">Python</option>
+                      <option value="Cpp">C++</option>
+                      <option value="JavaScript">JavaScript</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">GitHub URL</label>
+                    <input
+                      type="url"
+                      value={sol.githubUrl || ""}
+                      onChange={(e) => {
+                        const newSolutions = [...formData.solutions];
+                        newSolutions[index] = { ...newSolutions[index], githubUrl: e.target.value };
+                        setFormData({ ...formData, solutions: newSolutions });
+                      }}
+                      placeholder="https://github.com/..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Submission URL</label>
+                  <input
+                    type="url"
+                    value={sol.submissionUrl || ""}
+                    onChange={(e) => {
+                      const newSolutions = [...formData.solutions];
+                      newSolutions[index] = { ...newSolutions[index], submissionUrl: e.target.value };
+                      setFormData({ ...formData, solutions: newSolutions });
+                    }}
+                    placeholder="https://atcoder.jp/contests/.../submissions/..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-3">
+        <button
+          type="submit"
+          disabled={updateProblem.isPending}
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 font-medium"
+        >
+          {updateProblem.isPending ? "Updating..." : "Update Problem"}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-medium"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }
 

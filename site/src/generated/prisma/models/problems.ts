@@ -42,6 +42,7 @@ export type ProblemsMinAggregateOutputType = {
   url: string | null
   platform_difficulty: string | null
   normalized_difficulty: number | null
+  simplified_statement: string | null
   notes: string | null
   is_great_problem: boolean | null
   created_at: Date | null
@@ -56,6 +57,7 @@ export type ProblemsMaxAggregateOutputType = {
   url: string | null
   platform_difficulty: string | null
   normalized_difficulty: number | null
+  simplified_statement: string | null
   notes: string | null
   is_great_problem: boolean | null
   created_at: Date | null
@@ -70,6 +72,7 @@ export type ProblemsCountAggregateOutputType = {
   url: number
   platform_difficulty: number
   normalized_difficulty: number
+  simplified_statement: number
   notes: number
   is_great_problem: number
   created_at: number
@@ -94,6 +97,7 @@ export type ProblemsMinAggregateInputType = {
   url?: true
   platform_difficulty?: true
   normalized_difficulty?: true
+  simplified_statement?: true
   notes?: true
   is_great_problem?: true
   created_at?: true
@@ -108,6 +112,7 @@ export type ProblemsMaxAggregateInputType = {
   url?: true
   platform_difficulty?: true
   normalized_difficulty?: true
+  simplified_statement?: true
   notes?: true
   is_great_problem?: true
   created_at?: true
@@ -122,6 +127,7 @@ export type ProblemsCountAggregateInputType = {
   url?: true
   platform_difficulty?: true
   normalized_difficulty?: true
+  simplified_statement?: true
   notes?: true
   is_great_problem?: true
   created_at?: true
@@ -223,6 +229,7 @@ export type ProblemsGroupByOutputType = {
   url: string
   platform_difficulty: string | null
   normalized_difficulty: number | null
+  simplified_statement: string | null
   notes: string | null
   is_great_problem: boolean
   created_at: Date
@@ -260,6 +267,7 @@ export type problemsWhereInput = {
   url?: Prisma.StringFilter<"problems"> | string
   platform_difficulty?: Prisma.StringNullableFilter<"problems"> | string | null
   normalized_difficulty?: Prisma.IntNullableFilter<"problems"> | number | null
+  simplified_statement?: Prisma.StringNullableFilter<"problems"> | string | null
   notes?: Prisma.StringNullableFilter<"problems"> | string | null
   is_great_problem?: Prisma.BoolFilter<"problems"> | boolean
   created_at?: Prisma.DateTimeFilter<"problems"> | Date | string
@@ -277,6 +285,7 @@ export type problemsOrderByWithRelationInput = {
   url?: Prisma.SortOrder
   platform_difficulty?: Prisma.SortOrderInput | Prisma.SortOrder
   normalized_difficulty?: Prisma.SortOrderInput | Prisma.SortOrder
+  simplified_statement?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   is_great_problem?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -297,6 +306,7 @@ export type problemsWhereUniqueInput = Prisma.AtLeast<{
   url?: Prisma.StringFilter<"problems"> | string
   platform_difficulty?: Prisma.StringNullableFilter<"problems"> | string | null
   normalized_difficulty?: Prisma.IntNullableFilter<"problems"> | number | null
+  simplified_statement?: Prisma.StringNullableFilter<"problems"> | string | null
   notes?: Prisma.StringNullableFilter<"problems"> | string | null
   is_great_problem?: Prisma.BoolFilter<"problems"> | boolean
   created_at?: Prisma.DateTimeFilter<"problems"> | Date | string
@@ -314,6 +324,7 @@ export type problemsOrderByWithAggregationInput = {
   url?: Prisma.SortOrder
   platform_difficulty?: Prisma.SortOrderInput | Prisma.SortOrder
   normalized_difficulty?: Prisma.SortOrderInput | Prisma.SortOrder
+  simplified_statement?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   is_great_problem?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -336,6 +347,7 @@ export type problemsScalarWhereWithAggregatesInput = {
   url?: Prisma.StringWithAggregatesFilter<"problems"> | string
   platform_difficulty?: Prisma.StringNullableWithAggregatesFilter<"problems"> | string | null
   normalized_difficulty?: Prisma.IntNullableWithAggregatesFilter<"problems"> | number | null
+  simplified_statement?: Prisma.StringNullableWithAggregatesFilter<"problems"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"problems"> | string | null
   is_great_problem?: Prisma.BoolWithAggregatesFilter<"problems"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"problems"> | Date | string
@@ -349,6 +361,7 @@ export type problemsCreateInput = {
   url: string
   platform_difficulty?: string | null
   normalized_difficulty?: number | null
+  simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
   created_at?: Date | string
@@ -366,6 +379,7 @@ export type problemsUncheckedCreateInput = {
   url: string
   platform_difficulty?: string | null
   normalized_difficulty?: number | null
+  simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
   created_at?: Date | string
@@ -381,6 +395,7 @@ export type problemsUpdateInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -398,6 +413,7 @@ export type problemsUncheckedUpdateInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -414,6 +430,7 @@ export type problemsCreateManyInput = {
   url: string
   platform_difficulty?: string | null
   normalized_difficulty?: number | null
+  simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
   created_at?: Date | string
@@ -427,6 +444,7 @@ export type problemsUpdateManyMutationInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -441,6 +459,7 @@ export type problemsUncheckedUpdateManyInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -470,6 +489,7 @@ export type problemsCountOrderByAggregateInput = {
   url?: Prisma.SortOrder
   platform_difficulty?: Prisma.SortOrder
   normalized_difficulty?: Prisma.SortOrder
+  simplified_statement?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   is_great_problem?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -488,6 +508,7 @@ export type problemsMaxOrderByAggregateInput = {
   url?: Prisma.SortOrder
   platform_difficulty?: Prisma.SortOrder
   normalized_difficulty?: Prisma.SortOrder
+  simplified_statement?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   is_great_problem?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -502,6 +523,7 @@ export type problemsMinOrderByAggregateInput = {
   url?: Prisma.SortOrder
   platform_difficulty?: Prisma.SortOrder
   normalized_difficulty?: Prisma.SortOrder
+  simplified_statement?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   is_great_problem?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -593,6 +615,7 @@ export type problemsCreateWithoutPlatformsInput = {
   url: string
   platform_difficulty?: string | null
   normalized_difficulty?: number | null
+  simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
   created_at?: Date | string
@@ -608,6 +631,7 @@ export type problemsUncheckedCreateWithoutPlatformsInput = {
   url: string
   platform_difficulty?: string | null
   normalized_difficulty?: number | null
+  simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
   created_at?: Date | string
@@ -653,6 +677,7 @@ export type problemsScalarWhereInput = {
   url?: Prisma.StringFilter<"problems"> | string
   platform_difficulty?: Prisma.StringNullableFilter<"problems"> | string | null
   normalized_difficulty?: Prisma.IntNullableFilter<"problems"> | number | null
+  simplified_statement?: Prisma.StringNullableFilter<"problems"> | string | null
   notes?: Prisma.StringNullableFilter<"problems"> | string | null
   is_great_problem?: Prisma.BoolFilter<"problems"> | boolean
   created_at?: Prisma.DateTimeFilter<"problems"> | Date | string
@@ -666,6 +691,7 @@ export type problemsCreateWithoutProblem_tagsInput = {
   url: string
   platform_difficulty?: string | null
   normalized_difficulty?: number | null
+  simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
   created_at?: Date | string
@@ -682,6 +708,7 @@ export type problemsUncheckedCreateWithoutProblem_tagsInput = {
   url: string
   platform_difficulty?: string | null
   normalized_difficulty?: number | null
+  simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
   created_at?: Date | string
@@ -712,6 +739,7 @@ export type problemsUpdateWithoutProblem_tagsInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -728,6 +756,7 @@ export type problemsUncheckedUpdateWithoutProblem_tagsInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -742,6 +771,7 @@ export type problemsCreateWithoutSolutionsInput = {
   url: string
   platform_difficulty?: string | null
   normalized_difficulty?: number | null
+  simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
   created_at?: Date | string
@@ -758,6 +788,7 @@ export type problemsUncheckedCreateWithoutSolutionsInput = {
   url: string
   platform_difficulty?: string | null
   normalized_difficulty?: number | null
+  simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
   created_at?: Date | string
@@ -788,6 +819,7 @@ export type problemsUpdateWithoutSolutionsInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -804,6 +836,7 @@ export type problemsUncheckedUpdateWithoutSolutionsInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -818,6 +851,7 @@ export type problemsCreateManyPlatformsInput = {
   url: string
   platform_difficulty?: string | null
   normalized_difficulty?: number | null
+  simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
   created_at?: Date | string
@@ -831,6 +865,7 @@ export type problemsUpdateWithoutPlatformsInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -846,6 +881,7 @@ export type problemsUncheckedUpdateWithoutPlatformsInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -861,6 +897,7 @@ export type problemsUncheckedUpdateManyWithoutPlatformsInput = {
   url?: Prisma.StringFieldUpdateOperationsInput | string
   platform_difficulty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   normalized_difficulty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -915,6 +952,7 @@ export type problemsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   url?: boolean
   platform_difficulty?: boolean
   normalized_difficulty?: boolean
+  simplified_statement?: boolean
   notes?: boolean
   is_great_problem?: boolean
   created_at?: boolean
@@ -933,6 +971,7 @@ export type problemsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   url?: boolean
   platform_difficulty?: boolean
   normalized_difficulty?: boolean
+  simplified_statement?: boolean
   notes?: boolean
   is_great_problem?: boolean
   created_at?: boolean
@@ -948,6 +987,7 @@ export type problemsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   url?: boolean
   platform_difficulty?: boolean
   normalized_difficulty?: boolean
+  simplified_statement?: boolean
   notes?: boolean
   is_great_problem?: boolean
   created_at?: boolean
@@ -963,13 +1003,14 @@ export type problemsSelectScalar = {
   url?: boolean
   platform_difficulty?: boolean
   normalized_difficulty?: boolean
+  simplified_statement?: boolean
   notes?: boolean
   is_great_problem?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type problemsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "platform_id" | "platform_problem_id" | "title" | "url" | "platform_difficulty" | "normalized_difficulty" | "notes" | "is_great_problem" | "created_at" | "updated_at", ExtArgs["result"]["problems"]>
+export type problemsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "platform_id" | "platform_problem_id" | "title" | "url" | "platform_difficulty" | "normalized_difficulty" | "simplified_statement" | "notes" | "is_great_problem" | "created_at" | "updated_at", ExtArgs["result"]["problems"]>
 export type problemsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   problem_tags?: boolean | Prisma.problems$problem_tagsArgs<ExtArgs>
   platforms?: boolean | Prisma.platformsDefaultArgs<ExtArgs>
@@ -998,6 +1039,7 @@ export type $problemsPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     url: string
     platform_difficulty: string | null
     normalized_difficulty: number | null
+    simplified_statement: string | null
     notes: string | null
     is_great_problem: boolean
     created_at: Date
@@ -1435,6 +1477,7 @@ export interface problemsFieldRefs {
   readonly url: Prisma.FieldRef<"problems", 'String'>
   readonly platform_difficulty: Prisma.FieldRef<"problems", 'String'>
   readonly normalized_difficulty: Prisma.FieldRef<"problems", 'Int'>
+  readonly simplified_statement: Prisma.FieldRef<"problems", 'String'>
   readonly notes: Prisma.FieldRef<"problems", 'String'>
   readonly is_great_problem: Prisma.FieldRef<"problems", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"problems", 'DateTime'>

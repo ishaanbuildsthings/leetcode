@@ -11,7 +11,7 @@ export interface IPlatform {
   slug: string;
 }
 
-export type ProgrammingLanguage = "Python" | "C++" | "JavaScript";
+export type ProgrammingLanguage = "Python" | "Cpp" | "JavaScript";
 
 export interface ISolution {
   id: string;
@@ -29,6 +29,7 @@ export interface IProblem {
   url: string;
   platformDifficulty: string | null;
   normalizedDifficulty: number | null;
+  simplifiedStatement: string | null;
   notes: string | null;
   isGreatProblem: boolean;
 }

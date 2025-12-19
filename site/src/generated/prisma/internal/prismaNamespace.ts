@@ -1009,6 +1009,7 @@ export const ProblemsScalarFieldEnum = {
   url: 'url',
   platform_difficulty: 'platform_difficulty',
   normalized_difficulty: 'normalized_difficulty',
+  simplified_statement: 'simplified_statement',
   notes: 'notes',
   is_great_problem: 'is_great_problem',
   created_at: 'created_at',

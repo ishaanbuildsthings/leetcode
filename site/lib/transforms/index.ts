@@ -39,6 +39,7 @@ export function transformProblem(problem: problems): IProblem {
     url: problem.url,
     platformDifficulty: problem.platform_difficulty,
     normalizedDifficulty: problem.normalized_difficulty,
+    simplifiedStatement: problem.simplified_statement,
     notes: problem.notes,
     isGreatProblem: problem.is_great_problem,
   };

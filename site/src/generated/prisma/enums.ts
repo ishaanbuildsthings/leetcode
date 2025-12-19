@@ -20,7 +20,7 @@ export type tag_role = (typeof tag_role)[keyof typeof tag_role]
 
 export const programming_language = {
   Python: 'Python',
-  Cpp: 'C++',
+  Cpp: 'Cpp',
   JavaScript: 'JavaScript'
 } as const
 

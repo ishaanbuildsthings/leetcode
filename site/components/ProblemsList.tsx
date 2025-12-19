@@ -4,6 +4,10 @@ import Link from "next/link";
 import type { IProblemWithRelations } from "@/lib/transforms";
 import { useAuth } from "@/contexts/AuthContext";
 
+const displayLanguage = (lang: string) => {
+  return lang === "Cpp" ? "C++" : lang;
+};
+
 interface ProblemsListProps {
   problems: IProblemWithRelations[];
 }
@@ -99,14 +103,65 @@ export function ProblemsList({ problems }: ProblemsListProps) {
                             {pt.isInstructive === true && '📚 '}
                             {pt.tag.name}
                             {pt.role && ` (${pt.role})`}
-                            {pt.tagDifficulty && ` ${pt.tagDifficulty}★`}
+                            {pt.tagDifficulty && ` ${pt.tagDifficulty}/10`}
                           </span>
                         ))}
                       </div>
                     )}
 
+                    {problem.simplifiedStatement && (
+                      <div className="mb-3">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-1">Problem Summary:</h4>
+                        <p className="text-gray-600 text-sm">{problem.simplifiedStatement}</p>
+                      </div>
+                    )}
+
                     {problem.notes && (
-                      <p className="text-gray-600 text-sm mb-3">{problem.notes}</p>
+                      <div className="mb-3">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-1">Notes:</h4>
+                        <p className="text-gray-600 text-sm">{problem.notes}</p>
+                      </div>
+                    )}
+
+                    {problem.solutions.length > 0 && (
+                      <div className="mb-3 space-y-2">
+                        <h4 className="text-sm font-semibold text-gray-700">Solutions:</h4>
+                        {problem.solutions.map((solution) => (
+                          <div 
+                            key={solution.id} 
+                            className="flex items-center gap-3 text-sm bg-gray-50 rounded-md px-3 py-2"
+                          >
+                            <span className="font-medium text-gray-700">
+                              {displayLanguage(solution.language)}
+                            </span>
+                            <div className="flex gap-2">
+                              {solution.githubUrl && (
+                                <a
+                                  href={solution.githubUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-700 font-medium"
+                                >
+                                  GitHub →
+                                </a>
+                              )}
+                              {solution.submissionUrl && (
+                                <>
+                                  {solution.githubUrl && <span className="text-gray-300">|</span>}
+                                  <a
+                                    href={solution.submissionUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-green-600 hover:text-green-700 font-medium"
+                                  >
+                                    Submission →
+                                  </a>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
 
                     <div className="flex gap-3">
@@ -118,14 +173,6 @@ export function ProblemsList({ problems }: ProblemsListProps) {
                       >
                         View Problem →
                       </a>
-                      {problem.solutions.length > 0 && (
-                        <>
-                          <span className="text-gray-300">|</span>
-                          <span className="text-sm text-gray-600">
-                            {problem.solutions.length} solution{problem.solutions.length > 1 ? 's' : ''}
-                          </span>
-                        </>
-                      )}
                     </div>
                   </div>
                 </div>

@@ -49,6 +49,7 @@ model problems {
   url                  String
   platform_difficulty  String?
   normalized_difficulty Int?          @db.SmallInt
+  simplified_statement String?
   notes                String?
   is_great_problem     Boolean        @default(false)
   created_at           DateTime       @default(now()) @db.Timestamptz(6)
@@ -107,6 +108,6 @@ enum tag_role {
 
 enum programming_language {
   Python
-  Cpp @map("C++")
+  Cpp
   JavaScript
 }
