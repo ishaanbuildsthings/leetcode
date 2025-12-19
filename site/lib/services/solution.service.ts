@@ -1,17 +1,18 @@
 import { prisma } from "../prisma";
+import { programming_language } from "../../src/generated/prisma/enums";
 
 export async function unsafe_createSolution(data: {
   problemId: string;
-  language?: string;
-  url: string;
-  solution?: string;
+  language: programming_language;
+  submissionUrl?: string;
+  githubUrl?: string;
 }) {
   return prisma.solutions.create({
     data: {
       problem_id: data.problemId,
       language: data.language,
-      url: data.url,
-      solution: data.solution,
+      submission_url: data.submissionUrl,
+      github_url: data.githubUrl,
     },
   });
 }

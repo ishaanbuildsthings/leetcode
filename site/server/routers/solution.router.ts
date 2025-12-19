@@ -2,6 +2,7 @@ import { router, publicProcedure, adminProcedure } from "../trpc";
 import { z } from "zod";
 import * as solutionService from "../../lib/services/solution.service";
 import { transformSolution } from "../../lib/transforms";
+import { programming_language } from "../../src/generated/prisma/enums";
 
 export const solutionRouter = router({
   getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
@@ -14,9 +15,9 @@ export const solutionRouter = router({
     .input(
       z.object({
         problemId: z.string(),
-        language: z.string().optional(),
-        url: z.string().url(),
-        solution: z.string().optional(),
+        language: z.nativeEnum(programming_language),
+        submissionUrl: z.string().url().optional().or(z.literal("")),
+        githubUrl: z.string().url().optional().or(z.literal("")),
       })
     )
     .mutation(async ({ input }) => {

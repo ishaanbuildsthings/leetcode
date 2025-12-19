@@ -89,12 +89,17 @@ export function ProblemsList({ problems }: ProblemsListProps) {
                                 ? 'bg-purple-100 text-purple-700 border border-purple-300'
                                 : pt.role === 'core' 
                                 ? 'bg-blue-100 text-blue-700'
+                                : pt.role === 'secondary'
+                                ? 'bg-green-100 text-green-700'
+                                : pt.role === 'mention'
+                                ? 'bg-yellow-100 text-yellow-700'
                                 : 'bg-gray-100 text-gray-700'
                             }`}
                           >
                             {pt.isInstructive === true && '📚 '}
                             {pt.tag.name}
-                            {pt.tagDifficulty && ` (${pt.tagDifficulty}★)`}
+                            {pt.role && ` (${pt.role})`}
+                            {pt.tagDifficulty && ` ${pt.tagDifficulty}★`}
                           </span>
                         ))}
                       </div>

@@ -558,10 +558,22 @@ function ProblemsList() {
                 {problem.tags.map((pt) => (
                   <span
                     key={pt.tag.id}
-                    className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded"
+                    className={`px-2 py-0.5 text-xs rounded ${
+                      pt.isInstructive === true
+                        ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                        : pt.role === 'core'
+                        ? 'bg-blue-100 text-blue-800'
+                        : pt.role === 'secondary'
+                        ? 'bg-green-100 text-green-800'
+                        : pt.role === 'mention'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
                   >
+                    {pt.isInstructive === true && '📚 '}
                     {pt.tag.name}
                     {pt.role && ` (${pt.role})`}
+                    {pt.tagDifficulty && ` ${pt.tagDifficulty}★`}
                   </span>
                 ))}
               </div>
