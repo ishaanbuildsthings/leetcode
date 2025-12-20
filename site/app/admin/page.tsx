@@ -365,7 +365,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                           ),
                         });
                       }}
-                      className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white"
+                      className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
                     >
                       <option value="">No role</option>
                       <option value="core">Core</option>
@@ -393,7 +393,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                           });
                         }}
                         placeholder="1-10"
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 font-medium"
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -408,7 +408,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                             ),
                           });
                         }}
-                        className="px-2 py-1 border border-gray-300 rounded text-xs"
+                        className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 font-medium"
                       >
                         <option value="">Instructive: Not set</option>
                         <option value="true">Instructive: Yes</option>
@@ -1548,8 +1548,69 @@ function TagHierarchiesTab() {
           No hierarchies yet. Create relationships between tags above!
         </div>
       ) : (
-        <TagHierarchyFlow tags={tags || []} hierarchies={hierarchies} />
+        <>
+          <TagHierarchyFlow tags={tags || []} hierarchies={hierarchies} />
+          <TagHierarchyList tags={tags || []} hierarchies={hierarchies} />
+        </>
       )}
+    </div>
+  );
+}
+
+function TagHierarchyList({ tags, hierarchies }: { tags: any[]; hierarchies: any[] }) {
+  const utils = trpc.useUtils();
+  const deleteHierarchy = trpc.tagParent.delete.useMutation({
+    onSuccess: () => {
+      utils.tagParent.list.invalidate();
+    },
+  });
+
+  const handleDelete = (childTagId: string, parentTagId: string) => {
+    const childTag = tags.find(t => t.id === childTagId);
+    const parentTag = tags.find(t => t.id === parentTagId);
+    
+    if (childTag && parentTag && confirm(`Remove "${childTag.name}" as a child of "${parentTag.name}"?`)) {
+      deleteHierarchy.mutate({ childTagId, parentTagId });
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow mt-6">
+      <div className="p-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">All Connections</h3>
+        <p className="text-sm text-gray-600 mt-1">
+          {hierarchies.length} relationship{hierarchies.length !== 1 ? 's' : ''}
+        </p>
+      </div>
+      <div className="divide-y divide-gray-200">
+        {hierarchies.map((rel) => {
+          const parentTag = tags.find(t => t.id === rel.parent_tag_id);
+          const childTag = tags.find(t => t.id === rel.child_tag_id);
+          
+          if (!parentTag || !childTag) return null;
+          
+          return (
+            <div key={`${rel.parent_tag_id}-${rel.child_tag_id}`} className="p-4 flex items-center justify-between hover:bg-gray-50">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded">
+                  {parentTag.name}
+                </span>
+                <span className="text-gray-400">→</span>
+                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded">
+                  {childTag.name}
+                </span>
+              </div>
+              <button
+                onClick={() => handleDelete(rel.child_tag_id, rel.parent_tag_id)}
+                className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md font-medium transition-colors"
+                disabled={deleteHierarchy.isPending}
+              >
+                {deleteHierarchy.isPending ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1648,16 +1709,20 @@ function TagHierarchyFlow({ tags, hierarchies }: { tags: any[]; hierarchies: any
           type: MarkerType.ArrowClosed,
           color: '#3B82F6',
         },
-        label: '✕',
+        label: '✕ Delete',
         labelStyle: { 
           fill: '#DC2626', 
           fontWeight: 700,
+          fontSize: 14,
           cursor: 'pointer',
         },
         labelBgStyle: { 
           fill: '#FEE2E2',
-          fillOpacity: 0.9,
+          fillOpacity: 1,
+          rx: 4,
+          ry: 4,
         },
+        labelBgPadding: [8, 8] as [number, number],
         data: {
           onLabelClick: () => {
             if (childTag && parentTag && confirm(`Remove "${childTag.name}" as a child of "${parentTag.name}"?`)) {
@@ -1694,19 +1759,26 @@ function TagHierarchyFlow({ tags, hierarchies }: { tags: any[]; hierarchies: any
   }, []);
 
   return (
-    <div className="bg-white rounded-lg shadow" style={{ height: '600px' }}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onEdgeClick={onEdgeClick}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-      >
-        <Background />
-        <Controls />
-      </ReactFlow>
+    <div className="bg-white rounded-lg shadow p-4" style={{ height: '600px' }}>
+      <div className="mb-3">
+        <p className="text-sm text-gray-600">
+          Click the <span className="text-red-600 font-bold">✕</span> on any connection to remove it
+        </p>
+      </div>
+      <div style={{ height: 'calc(100% - 40px)' }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onEdgeClick={onEdgeClick}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
+        >
+          <Background />
+          <Controls />
+        </ReactFlow>
+      </div>
     </div>
   );
 }
