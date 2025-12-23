@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-const int MAXN = 100000;
+int MAXN = 100000;
 
 int n, m;
 vector<vector<int>> adj;
@@ -16,6 +16,8 @@ int dfs(int node) {
     return cnt;
 }
 
+// O(n^2 / W) complexity
+// Supposedly NTT can be n log^2 n but I don't understand it
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

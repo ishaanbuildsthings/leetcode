@@ -1,0 +1,1 @@
+{"name":"Local: Elevator_Rides","url":"/Users/ishaan/code/leetcode/problems/CSES/Elevator_Rides.py","tests":[{"id":1766471455876,"input":"4 10\n4 8 6 1","output":"2"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/problems/CSES/Elevator_Rides.py","group":"local","local":true}

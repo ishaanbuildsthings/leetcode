@@ -1,0 +1,1 @@
+{"name":"Local: Meet_in_the_Middle","url":"/Users/ishaan/code/leetcode/problems/CSES/Meet_in_the_Middle.cpp","tests":[{"id":1766511787326,"input":"4 5\n1 2 3 2","output":"3"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/problems/CSES/Meet_in_the_Middle.cpp","group":"local","local":true}
