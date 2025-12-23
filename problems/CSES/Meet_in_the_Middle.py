@@ -1,3 +1,4 @@
+# O(2^(n/2)) version, optimized subset sum generation technique that avoids an extra n loop
 import collections
 n, reqSum = map(int, input().split())
 arr = list(map(int, input().split()))
