@@ -1,0 +1,1 @@
+{"name":"Local: School_Excursion","url":"/Users/ishaan/code/leetcode/problems/CSES/School_Excursion.py","tests":[{"id":1766468695427,"input":"5 3\n1 2\n2 3\n1 5","output":"10011"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/problems/CSES/School_Excursion.py","group":"local","local":true}
