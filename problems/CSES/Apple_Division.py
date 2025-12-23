@@ -2,7 +2,7 @@ n = int(input())
 weights = list(map(int, input().split()))
 
 
-meet in the middle, split into two groups of (2^(n/2)) and run two pointers to get a groupA size as close to `half` as possible
+# meet in the middle, split into two groups of (2^(n/2)) and run two pointers to get a groupA size as close to `half` as possible
 left = weights[:n//2]
 right = weights[n//2:]
 tot = sum(weights)
