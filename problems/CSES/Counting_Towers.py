@@ -22,3 +22,31 @@ for _ in range(t):
     height = int(input())
     print(answers[height])
 
+
+# Matrix exponentiation version
+# import numpy as np
+
+# mod = 10**9 + 7
+
+# def matPow(mat, exp):
+#     res = np.array([[1, 0], [0, 1]], dtype=np.int64)
+#     while exp > 0:
+#         if exp & 1:
+#             res = (res @ mat) % mod
+#         mat = (mat @ mat) % mod
+#         exp >>= 1
+#     return res
+
+# def solveOne(n):
+#     if n == 1:
+#         return 2
+#     mat = np.array([[2, 1], [1, 4]], dtype=np.int64)
+#     powerMat = matPow(mat, n - 1)
+#     sameN = (powerMat[0, 0] + powerMat[0, 1]) % mod
+#     diffN = (powerMat[1, 0] + powerMat[1, 1]) % mod
+#     return (sameN + diffN) % mod
+
+# t = int(input())
+# for _ in range(t):
+#     n = int(input())
+#     print(solveOne(n))

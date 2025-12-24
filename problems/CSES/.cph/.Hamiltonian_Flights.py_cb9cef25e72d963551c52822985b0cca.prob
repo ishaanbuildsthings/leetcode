@@ -1,0 +1,1 @@
+{"name":"Local: Hamiltonian_Flights","url":"/Users/ishaan/code/leetcode/problems/CSES/Hamiltonian_Flights.py","tests":[{"id":1766531632152,"input":"4 6\n1 2\n1 3\n2 3\n3 2\n2 4\n3 4","output":"2"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/problems/CSES/Hamiltonian_Flights.py","group":"local","local":true}
