@@ -45,7 +45,6 @@ for c in componentSizes:
 bundles = [] # will hold (componentSize, numberOfMergesNeededForThis)
 for sz in range(1, n + 1):
     countThatSize = counts[sz] # we need to binary decomp this option
-    # print(f'sz is: {sz} count that size: {countThatSize}')
     power = 0
     curr = countThatSize
     while curr:
