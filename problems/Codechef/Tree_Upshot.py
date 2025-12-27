@@ -42,7 +42,7 @@ for _ in range(T):
     # find the closest size to half the sum
     
     bs = 1 # doable group 1 sizes
-    # I think this is n^2 / W but not sure how to prove it
+    # I think this is S * root n / W but not sure how to prove it, I see that it happens with rootN unique components of size 1 + 2 + 3 + ... + root N.
     for c in components:
         bs |= bs << c
     
