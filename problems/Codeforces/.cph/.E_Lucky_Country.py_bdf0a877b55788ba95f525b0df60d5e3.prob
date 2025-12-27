@@ -1,0 +1,1 @@
+{"name":"Local: E_Lucky_Country","url":"/Users/ishaan/code/leetcode/problems/Codeforces/E_Lucky_Country.py","tests":[{"id":1766798613133,"input":"4 3\n1 2\n2 3\n1 3","output":"1"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/problems/Codeforces/E_Lucky_Country.py","group":"local","local":true}

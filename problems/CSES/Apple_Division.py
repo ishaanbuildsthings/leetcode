@@ -34,6 +34,7 @@ print(res)
 
 
 # slower version that is 2^n, generate all subset sums (still use an optimization to get sums in 2^n, not n * 2^n)
+# We can also generate subset sums in 2^n time and know the sum for a given mask too, using DP.
 
 # sums = [0]
 # for v in weights:
@@ -44,3 +45,10 @@ print(res)
 #     diff = abs((tot - v) - v)
 #     res = min(res, diff)
 # print(res)
+
+# DP version
+# subsetSum = [0] * (1 << n)
+# for mask in range(1, 1 << n):
+#     lsb = mask & -mask
+#     i = (lsb.bit_length() - 1)
+#     subsetSum[mask] = subsetSum[mask ^ lsb] + a[i]

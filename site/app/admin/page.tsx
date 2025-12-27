@@ -360,7 +360,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                           ...formData,
                           selectedTags: formData.selectedTags.map((t) =>
                             t.tagId === tag.id
-                              ? { ...t, role: e.target.value as "core" | "secondary" | "mention" | undefined }
+                              ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" }
                               : t
                           ),
                         });
@@ -945,7 +945,7 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
                             setFormData({
                               ...formData,
                               selectedTags: formData.selectedTags.map((t) =>
-                                t.tagId === tag.id ? { ...t, role: e.target.value as any } : t
+                                t.tagId === tag.id ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" } : t
                               ),
                             });
                           }}
