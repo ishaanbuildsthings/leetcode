@@ -4,7 +4,7 @@ maxSum = 9 * len(strN)
 
 import functools
 
-# We can do this trick to increment remainder as we slide (or just precompue d * pow10):  (remSoFar * 10 + digit) % s
+# We can do this trick to increment remainder as we slide (or just precompute d * pow10):  (remSoFar * 10 + digit) % s
 
 res = 0
 for digitSum in range(1, maxSum + 1):
