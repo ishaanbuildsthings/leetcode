@@ -155,7 +155,6 @@ calc = ModCalc(10**6, MOD)
 T = int(input())
 for _ in range(T):
     arr = list(map(int, input().split()))
-    # print('=============')
     arr = [x for x in arr if x]
 
     # A B A C
@@ -164,12 +163,9 @@ for _ in range(T):
     # B A C A
     # C A B A
 
-    # print(f'{arr=}')
     tot = sum(arr)
-    # print(f'{tot=}')
     g1 = tot // 2
     g2 = tot - g1
-    # print(f'length: {tot} {g1=} {g2=}')
 
     # we need to see how many ways we can partition into g1
 
