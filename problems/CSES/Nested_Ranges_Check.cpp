@@ -38,8 +38,8 @@
 // Also check the edge case where R_2 = R, we can manually store the largest L for each R_2
 // Repeat process for second part of the question
 // O(n log n) time, TLE in python
-// #include <bits/stdc++.h>
-// using namespace std;
+#include <bits/stdc++.h>
+using namespace std;
 
 // TEMPLATE BY ISHAAN AGRAWAL: https://github.com/ishaanbuildsthings
 // O(n log n) time to build, O(combineFn) time to query, so & is O(1) since AND-ing two numbers is constant
