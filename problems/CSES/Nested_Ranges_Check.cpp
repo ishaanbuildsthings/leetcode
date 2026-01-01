@@ -229,207 +229,207 @@ int main() {
     return 0;
 }
 
-Approach 1, but in python (TLE)
-if True:
-    from io import BytesIO, IOBase
-    import math
+// Approach 1, but in python (TLE)
+// if True:
+//     from io import BytesIO, IOBase
+//     import math
 
-    import random
-    import sys
-    import os
+//     import random
+//     import sys
+//     import os
 
-    import bisect
-    import typing
-    from collections import Counter, defaultdict, deque
-    from copy import deepcopy
-    from functools import cmp_to_key, lru_cache, reduce
-    from heapq import heapify, heappop, heappush, heappushpop, nlargest, nsmallest
-    from itertools import accumulate, combinations, permutations, count
-    from operator import add, iand, ior, itemgetter, mul, xor
-    from string import ascii_lowercase, ascii_uppercase, ascii_letters
-    from typing import *
-    BUFSIZE = 4096
+//     import bisect
+//     import typing
+//     from collections import Counter, defaultdict, deque
+//     from copy import deepcopy
+//     from functools import cmp_to_key, lru_cache, reduce
+//     from heapq import heapify, heappop, heappush, heappushpop, nlargest, nsmallest
+//     from itertools import accumulate, combinations, permutations, count
+//     from operator import add, iand, ior, itemgetter, mul, xor
+//     from string import ascii_lowercase, ascii_uppercase, ascii_letters
+//     from typing import *
+//     BUFSIZE = 4096
 
-    class FastIO(IOBase):
-        newlines = 0
+//     class FastIO(IOBase):
+//         newlines = 0
 
-        def __init__(self, file):
-            self._fd = file.fileno()
-            self.buffer = BytesIO()
-            self.writable = "x" in file.mode or "r" not in file.mode
-            self.write = self.buffer.write if self.writable else None
+//         def __init__(self, file):
+//             self._fd = file.fileno()
+//             self.buffer = BytesIO()
+//             self.writable = "x" in file.mode or "r" not in file.mode
+//             self.write = self.buffer.write if self.writable else None
 
-        def read(self):
-            while True:
-                b = os.read(self._fd, max(os.fstat(self._fd).st_size, BUFSIZE))
-                if not b:
-                    break
-                ptr = self.buffer.tell()
-                self.buffer.seek(0, 2), self.buffer.write(b), self.buffer.seek(ptr)
-            self.newlines = 0
-            return self.buffer.read()
+//         def read(self):
+//             while True:
+//                 b = os.read(self._fd, max(os.fstat(self._fd).st_size, BUFSIZE))
+//                 if not b:
+//                     break
+//                 ptr = self.buffer.tell()
+//                 self.buffer.seek(0, 2), self.buffer.write(b), self.buffer.seek(ptr)
+//             self.newlines = 0
+//             return self.buffer.read()
 
-        def readline(self):
-            while self.newlines == 0:
-                b = os.read(self._fd, max(os.fstat(self._fd).st_size, BUFSIZE))
-                self.newlines = b.count(b"\n") + (not b)
-                ptr = self.buffer.tell()
-                self.buffer.seek(0, 2), self.buffer.write(b), self.buffer.seek(ptr)
-            self.newlines -= 1
-            return self.buffer.readline()
+//         def readline(self):
+//             while self.newlines == 0:
+//                 b = os.read(self._fd, max(os.fstat(self._fd).st_size, BUFSIZE))
+//                 self.newlines = b.count(b"\n") + (not b)
+//                 ptr = self.buffer.tell()
+//                 self.buffer.seek(0, 2), self.buffer.write(b), self.buffer.seek(ptr)
+//             self.newlines -= 1
+//             return self.buffer.readline()
 
-        def flush(self):
-            if self.writable:
-                os.write(self._fd, self.buffer.getvalue())
-                self.buffer.truncate(0), self.buffer.seek(0)
+//         def flush(self):
+//             if self.writable:
+//                 os.write(self._fd, self.buffer.getvalue())
+//                 self.buffer.truncate(0), self.buffer.seek(0)
 
-    class IOWrapper(IOBase):
-        def __init__(self, file):
-            self.buffer = FastIO(file)
-            self.flush = self.buffer.flush
-            self.writable = self.buffer.writable
-            self.write = lambda s: self.buffer.write(s.encode("ascii"))
-            self.read = lambda: self.buffer.read().decode("ascii")
-            self.readline = lambda: self.buffer.readline().decode("ascii")
+//     class IOWrapper(IOBase):
+//         def __init__(self, file):
+//             self.buffer = FastIO(file)
+//             self.flush = self.buffer.flush
+//             self.writable = self.buffer.writable
+//             self.write = lambda s: self.buffer.write(s.encode("ascii"))
+//             self.read = lambda: self.buffer.read().decode("ascii")
+//             self.readline = lambda: self.buffer.readline().decode("ascii")
 
-    sys.stdin = IOWrapper(sys.stdin)
-    sys.stdout = IOWrapper(sys.stdout)
-    input = lambda: sys.stdin.readline().rstrip("\r\n")
+//     sys.stdin = IOWrapper(sys.stdin)
+//     sys.stdout = IOWrapper(sys.stdout)
+//     input = lambda: sys.stdin.readline().rstrip("\r\n")
 
-    def I():
-        return input()
+//     def I():
+//         return input()
 
-    def II():
-        return int(input())
+//     def II():
+//         return int(input())
 
-    def MII():
-        return map(int, input().split())
+//     def MII():
+//         return map(int, input().split())
 
-    def LI():
-        return list(input().split())
+//     def LI():
+//         return list(input().split())
 
-    def LII():
-        return list(map(int, input().split()))
+//     def LII():
+//         return list(map(int, input().split()))
 
-    def GMI():
-        return map(lambda x: int(x) - 1, input().split())
+//     def GMI():
+//         return map(lambda x: int(x) - 1, input().split())
 
-    def LGMI():
-        return list(map(lambda x: int(x) - 1, input().split()))
+//     def LGMI():
+//         return list(map(lambda x: int(x) - 1, input().split()))
 
-    inf = float('inf')
+//     inf = float('inf')
     
-import bisect, collections
-import math
+// import bisect, collections
+// import math
 
-TEMPLATE BY ISHAAN AGRAWAL: https://github.com/ishaanbuildsthings
-O(n log n) time to build, O(combineFn) time to query, so & is O(1) since AND-ing two numbers is constant
+// TEMPLATE BY ISHAAN AGRAWAL: https://github.com/ishaanbuildsthings
+// O(n log n) time to build, O(combineFn) time to query, so & is O(1) since AND-ing two numbers is constant
 
-class SparseTable:
-    def __init__(self, nums, combineFn):
-        n = len(nums)
-        if n == 0:
-            self.sparse = []
-            self.combineFn = combineFn
-            return
+// class SparseTable:
+//     def __init__(self, nums, combineFn):
+//         n = len(nums)
+//         if n == 0:
+//             self.sparse = []
+//             self.combineFn = combineFn
+//             return
         
-        Calculate number of bits needed
-        BITS = 0
-        temp = n
-        while temp:
-            BITS += 1
-            temp >>= 1
-        BITS += 1
+//         Calculate number of bits needed
+//         BITS = 0
+//         temp = n
+//         while temp:
+//             BITS += 1
+//             temp >>= 1
+//         BITS += 1
 
-        Initialize the sparse table
-        sparse = [[0] * n for _ in range(BITS)]
-        for left in range(n):
-            sparse[0][left] = nums[left]
+//         Initialize the sparse table
+//         sparse = [[0] * n for _ in range(BITS)]
+//         for left in range(n):
+//             sparse[0][left] = nums[left]
 
-        Precompute powers of 2
-        pow2 = [1] * BITS
-        for log in range(1, BITS):
-            pow2[log] = pow2[log - 1] * 2
+//         Precompute powers of 2
+//         pow2 = [1] * BITS
+//         for log in range(1, BITS):
+//             pow2[log] = pow2[log - 1] * 2
 
-        for log in range(1, BITS):
-            step = pow2[log - 1]
-            for left in range(n - pow2[log] + 1):
-                sparse[log][left] = combineFn(sparse[log - 1][left], sparse[log - 1][left + step])
+//         for log in range(1, BITS):
+//             step = pow2[log - 1]
+//             for left in range(n - pow2[log] + 1):
+//                 sparse[log][left] = combineFn(sparse[log - 1][left], sparse[log - 1][left + step])
 
-        self.sparse = sparse
-        self.combineFn = combineFn
-        self.pow2 = pow2
+//         self.sparse = sparse
+//         self.combineFn = combineFn
+//         self.pow2 = pow2
 
-    def query(self, l, r):
-        width = r - l + 1
-        Find largest power of 2 <= width using bit operations
-        power = 0
-        temp = width
-        while temp > 1:
-            power += 1
-            temp >>= 1
-        windowWidth = self.pow2[power]
-        return self.combineFn(self.sparse[power][l], self.sparse[power][r - windowWidth + 1])
+//     def query(self, l, r):
+//         width = r - l + 1
+//         Find largest power of 2 <= width using bit operations
+//         power = 0
+//         temp = width
+//         while temp > 1:
+//             power += 1
+//             temp >>= 1
+//         windowWidth = self.pow2[power]
+//         return self.combineFn(self.sparse[power][l], self.sparse[power][r - windowWidth + 1])
 
-n = II()
-biggestLPerR = {}
-smallestLPerR = {}
-ranges = [] holds [L, R, i]
-for i in range(n):
-    l, r = MII()
-    ranges.append([l, r, i])
-    if r in biggestLPerR:
-        if l > biggestLPerR[r]:
-            biggestLPerR[r] = l
-    else:
-        biggestLPerR[r] = l
-    if r in smallestLPerR:
-        if l < smallestLPerR[r]:
-            smallestLPerR[r] = l
-    else:
-        smallestLPerR[r] = l
-ranges.sort()
+// n = II()
+// biggestLPerR = {}
+// smallestLPerR = {}
+// ranges = [] holds [L, R, i]
+// for i in range(n):
+//     l, r = MII()
+//     ranges.append([l, r, i])
+//     if r in biggestLPerR:
+//         if l > biggestLPerR[r]:
+//             biggestLPerR[r] = l
+//     else:
+//         biggestLPerR[r] = l
+//     if r in smallestLPerR:
+//         if l < smallestLPerR[r]:
+//             smallestLPerR[r] = l
+//     else:
+//         smallestLPerR[r] = l
+// ranges.sort()
 
-fmin = lambda x, y: x if x < y else y
-fmax = lambda x, y: x if x > y else y
-for each range, find the leftmost range with an L_j >= L_i and L_j < R_i
-Within that contiguous range, find the smallest R, if it is less than R_i we have a containing range
-Also check the largest L for a given R_i ending, to handle the edge case of a range sharing an end
-L_values = [r[0] for r in ranges]
-R_values = [r[1] for r in ranges]
-minSparse = SparseTable(R_values, fmin)
-maxSparse = SparseTable(R_values, fmax)
+// fmin = lambda x, y: x if x < y else y
+// fmax = lambda x, y: x if x > y else y
+// for each range, find the leftmost range with an L_j >= L_i and L_j < R_i
+// Within that contiguous range, find the smallest R, if it is less than R_i we have a containing range
+// Also check the largest L for a given R_i ending, to handle the edge case of a range sharing an end
+// L_values = [r[0] for r in ranges]
+// R_values = [r[1] for r in ranges]
+// minSparse = SparseTable(R_values, fmin)
+// maxSparse = SparseTable(R_values, fmax)
 
-resultsHasAnotherRangeInside = [False] * n
-resultIsInsideAnotherRange = [False] * n
+// resultsHasAnotherRangeInside = [False] * n
+// resultIsInsideAnotherRange = [False] * n
 
-for l, r, i in ranges:
-    for each range, find the leftmost range with an L_j >= L_i and L_j < R_i
-    Within that contiguous range, find the smallest R, if it is less than R_i we have a containing range
-    Also check the largest L for a given R_i ending, to handle the edge case of a range sharing an end
-    if biggestLPerR[r] > l:
-        resultsHasAnotherRangeInside[i] = True
-    else:
-        leftmostI = bisect.bisect_left(L_values, l)
-        rightmostI = bisect.bisect_left(L_values, r) - 1
-        small = minSparse.query(leftmostI, rightmostI)
-        if small < r:
-            resultsHasAnotherRangeInside[i] = True
+// for l, r, i in ranges:
+//     for each range, find the leftmost range with an L_j >= L_i and L_j < R_i
+//     Within that contiguous range, find the smallest R, if it is less than R_i we have a containing range
+//     Also check the largest L for a given R_i ending, to handle the edge case of a range sharing an end
+//     if biggestLPerR[r] > l:
+//         resultsHasAnotherRangeInside[i] = True
+//     else:
+//         leftmostI = bisect.bisect_left(L_values, l)
+//         rightmostI = bisect.bisect_left(L_values, r) - 1
+//         small = minSparse.query(leftmostI, rightmostI)
+//         if small < r:
+//             resultsHasAnotherRangeInside[i] = True
 
-    Now to find if another range contains us, we need to look at all ranges with an L_j <= L
-    For those, find the biggest R in that range, if it is > r that works
-    Also check the smallest L per R to handle the edge case
-    if smallestLPerR[r] < l:
-        resultIsInsideAnotherRange[i] = True
-    else:
-        Find rightmost index where L_j <= l
-        rightmostI = bisect.bisect_right(L_values, l) - 1
-        if rightmostI >= 0:
-            big = maxSparse.query(0, rightmostI)
-            if big > r:
-                resultIsInsideAnotherRange[i] = True
+//     Now to find if another range contains us, we need to look at all ranges with an L_j <= L
+//     For those, find the biggest R in that range, if it is > r that works
+//     Also check the smallest L per R to handle the edge case
+//     if smallestLPerR[r] < l:
+//         resultIsInsideAnotherRange[i] = True
+//     else:
+//         Find rightmost index where L_j <= l
+//         rightmostI = bisect.bisect_right(L_values, l) - 1
+//         if rightmostI >= 0:
+//             big = maxSparse.query(0, rightmostI)
+//             if big > r:
+//                 resultIsInsideAnotherRange[i] = True
 
-res1 = ' '.join(str(int(x)) for x in resultsHasAnotherRangeInside)
-res2 = ' '.join(str(int(x)) for x in resultIsInsideAnotherRange)
-print(res1)
-print(res2)
+// res1 = ' '.join(str(int(x)) for x in resultsHasAnotherRangeInside)
+// res2 = ' '.join(str(int(x)) for x in resultIsInsideAnotherRange)
+// print(res1)
+// print(res2)
