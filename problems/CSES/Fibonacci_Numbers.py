@@ -1,4 +1,5 @@
 n = int(input())
+MOD = 10**9 + 7
 
 if n <= 1:
     print(n)
@@ -25,7 +26,7 @@ def matMul(A, B):
             a = Ai[k]
             Bk = B[k]
             for j in range(n):
-                Ci[j] = Ci[j] + a * Bk[j]
+                Ci[j] = (Ci[j] + a * Bk[j]) % MOD
     return C
 
 def matVecMul(A, v):
@@ -35,7 +36,7 @@ def matVecMul(A, v):
         s = 0
         Ai = A[i]
         for k in range(n):
-            s = s + Ai[k] * v[k]
+            s = (s + Ai[k] * v[k]) % MOD
         out[i] = s
     return out
 
