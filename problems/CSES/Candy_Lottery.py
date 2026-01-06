@@ -25,12 +25,12 @@ print(res.quantize(Decimal("0.000001"), rounding=ROUND_HALF_EVEN))
 
 
 
-# # Solution 2
-# # Define indicators, I1 = chance max is >= 1, I2 = chance max is >= 2, etc
-# # Now when max is X, we score I1 + I2 + ... + IX
-# # So we need to compute the expected sum of the indicators
-# # Each indicator has a chance of occuring and we can use linearity of expectation to get their probabilities
-# # It just uses inverse probability to compute these
+# Solution 2
+# Define indicators, I1 = chance max is >= 1, I2 = chance max is >= 2, etc
+# Now when max is X, we score I1 + I2 + ... + IX
+# So we need to compute the expected sum of the indicators
+# Each indicator has a chance of occuring and we can use linearity of expectation to get their probabilities
+# It just uses inverse probability to compute these
 # from decimal import Decimal, getcontext, ROUND_HALF_EVEN
 
 # n, k = map(int, input().split())
