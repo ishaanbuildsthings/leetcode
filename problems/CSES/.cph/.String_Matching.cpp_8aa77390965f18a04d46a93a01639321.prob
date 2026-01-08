@@ -1,0 +1,1 @@
+{"name":"Local: String_Matching","url":"/Users/ishaan/code/leetcode/problems/CSES/String_Matching.cpp","tests":[{"id":1767840160723,"input":"saippuakauppias\npp","output":"2"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/problems/CSES/String_Matching.cpp","group":"local","local":true}
