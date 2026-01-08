@@ -1,0 +1,1 @@
+{"name":"Local: Finding_Borders","url":"/Users/ishaan/code/leetcode/Finding_Borders.cpp","tests":[{"id":1767860443384,"input":"abcababcab","output":"2 5"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/Finding_Borders.cpp","group":"local","local":true}

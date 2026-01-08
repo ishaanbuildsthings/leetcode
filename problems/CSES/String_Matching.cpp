@@ -94,6 +94,8 @@ index 17 cannot match index 4.
 
 Also the reason we do z[i] = min(r - i + 1, z[k]) is literally all we have is the guarantee the prefix equals the z-box.
 We don't know if any letters past match even if z[k] is really big because we don't know if our z-box right edge would keep matching the prefix.
+
+Note if we started our for i loop at 0, we would initialize the z-box to 0:n-1 z[i] to n. Then for all future i we are inside the z-box and set z[i] to be 0 initially (set equal to z[k], which is the same as z[i], ends up being 0). Now nxt and pref are messed up and we loop fully inside n again.
 */
 
 #include <bits/stdc++.h>
