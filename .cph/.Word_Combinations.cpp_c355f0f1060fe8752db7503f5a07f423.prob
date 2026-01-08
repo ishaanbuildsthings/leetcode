@@ -1,0 +1,1 @@
+{"name":"Local: Word_Combinations","url":"/Users/ishaan/code/leetcode/Word_Combinations.cpp","tests":[{"id":1767831498421,"input":"ababc\n4\nab\nabab\nc\ncb","output":"2"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/Word_Combinations.cpp","group":"local","local":true}
