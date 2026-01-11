@@ -20,6 +20,7 @@ struct SlidingMedianAndSum {
             totHigh += x;
             high.insert(x);
         }
+        rebalance();
     }
 
     void removeOne(int x) {
@@ -32,6 +33,31 @@ struct SlidingMedianAndSum {
             high.erase(highIt);
             totHigh -= x;
         }
+        rebalance();
+    }
+
+    void rebalance() {
+        // move high to low
+        while (high.size() > low.size()) {
+            auto it = high.begin();
+            int v = *it;
+            high.erase(it);
+            totHigh -= v;
+    
+            low.insert(v);
+            totLow += v;
+        }
+
+        // move low to high
+        while (low.size() > high.size() + 1) {
+            auto it = prev(low.end());
+            int v = *it;
+            low.erase(it);
+            totLow -= v;
+
+            high.insert(v);
+            totHigh += v;
+        }
     }
 
     int lowMax() const { return *prev(low.end()); }
@@ -43,12 +69,9 @@ struct SlidingMedianAndSum {
 
     long long costToMakeAllSame() {
         long long lowDesiredSize = lowMax() * low.size();
-        cerr << "cost 1" << endl;
         long long lowCost = lowDesiredSize - totLow;
-        long long highDesiredSize = highMin() * high.size();
-        cerr << "cost 2" << endl;
+        long long highDesiredSize = lowMax() * high.size();
         long long highCost = totHigh - highDesiredSize;
-        cerr << "returning" << endl;
         return lowCost + highCost;
     }
 
@@ -71,16 +94,10 @@ int main() {
     for (int i = 0; i < k; i++) {
         sm.add(A[i]);
     }
-    cerr << "made it after filling sm" << endl;
     cout << sm.costToMakeAllSame() << " ";
-    cerr << "first log" << endl;
     for (int r = k; r < n; r++) {
-        cerr << "r is: " << r << " ";
         sm.add(A[r]);
-        cerr << "added " << endl;
         sm.removeOne(A[r-k]);
-        cerr << "removed " << endl;
-        cerr << sm.costToMakeAllSame() << " ";
-        cerr << "logged" << endl;
+        cout << sm.costToMakeAllSame() << " ";
     }
 }
