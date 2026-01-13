@@ -1,0 +1,1 @@
+{"name":"Local: Minimal_Grid_Path","url":"/Users/ishaan/code/leetcode/Minimal_Grid_Path.py","tests":[{"id":1768289477496,"input":"4\nAACA\nBABC\nABDA\nAACA","output":"AAABACA"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/Minimal_Grid_Path.py","group":"local","local":true}
