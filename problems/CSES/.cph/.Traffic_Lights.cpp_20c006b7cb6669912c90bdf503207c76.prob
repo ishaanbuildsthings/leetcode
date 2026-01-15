@@ -1,0 +1,1 @@
+{"name":"Local: Traffic_Lights","url":"/Users/ishaan/code/leetcode/problems/CSES/Traffic_Lights.cpp","tests":[{"id":1768458751903,"input":"8 3\n3 6 2","output":"5 3 3"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/problems/CSES/Traffic_Lights.cpp","group":"local","local":true}
