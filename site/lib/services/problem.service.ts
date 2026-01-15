@@ -1,5 +1,5 @@
 import { prisma } from "../prisma";
-import { tag_role, programming_language } from "../../src/generated/prisma/enums";
+import { tag_role, programming_language, drill_type } from "../../src/generated/prisma/enums";
 
 export async function unsafe_createProblem(data: {
   platformId: string;
@@ -11,6 +11,8 @@ export async function unsafe_createProblem(data: {
   normalizedDifficulty?: number;
   simplifiedStatement?: string;
   notes?: string;
+  drillType?: drill_type | null;
+  drillNotes?: string;
   tags?: Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>;
   solutions?: Array<{ submissionUrl?: string; language: programming_language; githubUrl?: string }>;
 }) {
@@ -25,6 +27,8 @@ export async function unsafe_createProblem(data: {
       simplified_statement: data.simplifiedStatement,
       notes: data.notes,
       is_great_problem: data.isGreatProblem,
+      drill_type: data.drillType ?? null,
+      drill_notes: data.drillNotes,
       problem_tags: data.tags
         ? {
             create: data.tags.map((t) => ({
@@ -92,6 +96,8 @@ export async function unsafe_updateProblem(data: {
   normalizedDifficulty?: number;
   simplifiedStatement?: string;
   notes?: string;
+  drillType?: drill_type | null;
+  drillNotes?: string;
   tags?: Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>;
   solutions?: Array<{ submissionUrl?: string; language: programming_language; githubUrl?: string }>;
 }) {
@@ -113,6 +119,8 @@ export async function unsafe_updateProblem(data: {
     normalized_difficulty?: number;
     simplified_statement?: string | null;
     notes?: string | null;
+    drill_type?: drill_type | null;
+    drill_notes?: string | null;
     problem_tags?: {
       create: Array<{
         tag_id: string;
@@ -141,6 +149,8 @@ export async function unsafe_updateProblem(data: {
   if (data.normalizedDifficulty !== undefined) updateData.normalized_difficulty = data.normalizedDifficulty;
   if (data.simplifiedStatement !== undefined) updateData.simplified_statement = data.simplifiedStatement || null;
   if (data.notes !== undefined) updateData.notes = data.notes || null;
+  if (data.drillType !== undefined) updateData.drill_type = data.drillType ?? null;
+  if (data.drillNotes !== undefined) updateData.drill_notes = data.drillNotes || null;
 
   if (data.tags) {
     updateData.problem_tags = {

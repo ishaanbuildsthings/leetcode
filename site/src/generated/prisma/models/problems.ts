@@ -45,6 +45,8 @@ export type ProblemsMinAggregateOutputType = {
   simplified_statement: string | null
   notes: string | null
   is_great_problem: boolean | null
+  drill_type: $Enums.drill_type | null
+  drill_notes: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -60,6 +62,8 @@ export type ProblemsMaxAggregateOutputType = {
   simplified_statement: string | null
   notes: string | null
   is_great_problem: boolean | null
+  drill_type: $Enums.drill_type | null
+  drill_notes: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -75,6 +79,8 @@ export type ProblemsCountAggregateOutputType = {
   simplified_statement: number
   notes: number
   is_great_problem: number
+  drill_type: number
+  drill_notes: number
   created_at: number
   updated_at: number
   _all: number
@@ -100,6 +106,8 @@ export type ProblemsMinAggregateInputType = {
   simplified_statement?: true
   notes?: true
   is_great_problem?: true
+  drill_type?: true
+  drill_notes?: true
   created_at?: true
   updated_at?: true
 }
@@ -115,6 +123,8 @@ export type ProblemsMaxAggregateInputType = {
   simplified_statement?: true
   notes?: true
   is_great_problem?: true
+  drill_type?: true
+  drill_notes?: true
   created_at?: true
   updated_at?: true
 }
@@ -130,6 +140,8 @@ export type ProblemsCountAggregateInputType = {
   simplified_statement?: true
   notes?: true
   is_great_problem?: true
+  drill_type?: true
+  drill_notes?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -232,6 +244,8 @@ export type ProblemsGroupByOutputType = {
   simplified_statement: string | null
   notes: string | null
   is_great_problem: boolean
+  drill_type: $Enums.drill_type | null
+  drill_notes: string | null
   created_at: Date
   updated_at: Date
   _count: ProblemsCountAggregateOutputType | null
@@ -270,6 +284,8 @@ export type problemsWhereInput = {
   simplified_statement?: Prisma.StringNullableFilter<"problems"> | string | null
   notes?: Prisma.StringNullableFilter<"problems"> | string | null
   is_great_problem?: Prisma.BoolFilter<"problems"> | boolean
+  drill_type?: Prisma.Enumdrill_typeNullableFilter<"problems"> | $Enums.drill_type | null
+  drill_notes?: Prisma.StringNullableFilter<"problems"> | string | null
   created_at?: Prisma.DateTimeFilter<"problems"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"problems"> | Date | string
   problem_tags?: Prisma.Problem_tagsListRelationFilter
@@ -288,6 +304,8 @@ export type problemsOrderByWithRelationInput = {
   simplified_statement?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   is_great_problem?: Prisma.SortOrder
+  drill_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  drill_notes?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   problem_tags?: Prisma.problem_tagsOrderByRelationAggregateInput
@@ -309,6 +327,8 @@ export type problemsWhereUniqueInput = Prisma.AtLeast<{
   simplified_statement?: Prisma.StringNullableFilter<"problems"> | string | null
   notes?: Prisma.StringNullableFilter<"problems"> | string | null
   is_great_problem?: Prisma.BoolFilter<"problems"> | boolean
+  drill_type?: Prisma.Enumdrill_typeNullableFilter<"problems"> | $Enums.drill_type | null
+  drill_notes?: Prisma.StringNullableFilter<"problems"> | string | null
   created_at?: Prisma.DateTimeFilter<"problems"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"problems"> | Date | string
   problem_tags?: Prisma.Problem_tagsListRelationFilter
@@ -327,6 +347,8 @@ export type problemsOrderByWithAggregationInput = {
   simplified_statement?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   is_great_problem?: Prisma.SortOrder
+  drill_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  drill_notes?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.problemsCountOrderByAggregateInput
@@ -350,6 +372,8 @@ export type problemsScalarWhereWithAggregatesInput = {
   simplified_statement?: Prisma.StringNullableWithAggregatesFilter<"problems"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"problems"> | string | null
   is_great_problem?: Prisma.BoolWithAggregatesFilter<"problems"> | boolean
+  drill_type?: Prisma.Enumdrill_typeNullableWithAggregatesFilter<"problems"> | $Enums.drill_type | null
+  drill_notes?: Prisma.StringNullableWithAggregatesFilter<"problems"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"problems"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"problems"> | Date | string
 }
@@ -364,6 +388,8 @@ export type problemsCreateInput = {
   simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
+  drill_type?: $Enums.drill_type | null
+  drill_notes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   problem_tags?: Prisma.problem_tagsCreateNestedManyWithoutProblemsInput
@@ -382,6 +408,8 @@ export type problemsUncheckedCreateInput = {
   simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
+  drill_type?: $Enums.drill_type | null
+  drill_notes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   problem_tags?: Prisma.problem_tagsUncheckedCreateNestedManyWithoutProblemsInput
@@ -398,6 +426,8 @@ export type problemsUpdateInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   problem_tags?: Prisma.problem_tagsUpdateManyWithoutProblemsNestedInput
@@ -416,6 +446,8 @@ export type problemsUncheckedUpdateInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   problem_tags?: Prisma.problem_tagsUncheckedUpdateManyWithoutProblemsNestedInput
@@ -433,6 +465,8 @@ export type problemsCreateManyInput = {
   simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
+  drill_type?: $Enums.drill_type | null
+  drill_notes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -447,6 +481,8 @@ export type problemsUpdateManyMutationInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -462,6 +498,8 @@ export type problemsUncheckedUpdateManyInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -492,6 +530,8 @@ export type problemsCountOrderByAggregateInput = {
   simplified_statement?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   is_great_problem?: Prisma.SortOrder
+  drill_type?: Prisma.SortOrder
+  drill_notes?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -511,6 +551,8 @@ export type problemsMaxOrderByAggregateInput = {
   simplified_statement?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   is_great_problem?: Prisma.SortOrder
+  drill_type?: Prisma.SortOrder
+  drill_notes?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -526,6 +568,8 @@ export type problemsMinOrderByAggregateInput = {
   simplified_statement?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   is_great_problem?: Prisma.SortOrder
+  drill_type?: Prisma.SortOrder
+  drill_notes?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -594,6 +638,10 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type NullableEnumdrill_typeFieldUpdateOperationsInput = {
+  set?: $Enums.drill_type | null
+}
+
 export type problemsCreateNestedOneWithoutSolutionsInput = {
   create?: Prisma.XOR<Prisma.problemsCreateWithoutSolutionsInput, Prisma.problemsUncheckedCreateWithoutSolutionsInput>
   connectOrCreate?: Prisma.problemsCreateOrConnectWithoutSolutionsInput
@@ -618,6 +666,8 @@ export type problemsCreateWithoutPlatformsInput = {
   simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
+  drill_type?: $Enums.drill_type | null
+  drill_notes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   problem_tags?: Prisma.problem_tagsCreateNestedManyWithoutProblemsInput
@@ -634,6 +684,8 @@ export type problemsUncheckedCreateWithoutPlatformsInput = {
   simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
+  drill_type?: $Enums.drill_type | null
+  drill_notes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   problem_tags?: Prisma.problem_tagsUncheckedCreateNestedManyWithoutProblemsInput
@@ -680,6 +732,8 @@ export type problemsScalarWhereInput = {
   simplified_statement?: Prisma.StringNullableFilter<"problems"> | string | null
   notes?: Prisma.StringNullableFilter<"problems"> | string | null
   is_great_problem?: Prisma.BoolFilter<"problems"> | boolean
+  drill_type?: Prisma.Enumdrill_typeNullableFilter<"problems"> | $Enums.drill_type | null
+  drill_notes?: Prisma.StringNullableFilter<"problems"> | string | null
   created_at?: Prisma.DateTimeFilter<"problems"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"problems"> | Date | string
 }
@@ -694,6 +748,8 @@ export type problemsCreateWithoutProblem_tagsInput = {
   simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
+  drill_type?: $Enums.drill_type | null
+  drill_notes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   platforms: Prisma.platformsCreateNestedOneWithoutProblemsInput
@@ -711,6 +767,8 @@ export type problemsUncheckedCreateWithoutProblem_tagsInput = {
   simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
+  drill_type?: $Enums.drill_type | null
+  drill_notes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   solutions?: Prisma.solutionsUncheckedCreateNestedManyWithoutProblemsInput
@@ -742,6 +800,8 @@ export type problemsUpdateWithoutProblem_tagsInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   platforms?: Prisma.platformsUpdateOneRequiredWithoutProblemsNestedInput
@@ -759,6 +819,8 @@ export type problemsUncheckedUpdateWithoutProblem_tagsInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   solutions?: Prisma.solutionsUncheckedUpdateManyWithoutProblemsNestedInput
@@ -774,6 +836,8 @@ export type problemsCreateWithoutSolutionsInput = {
   simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
+  drill_type?: $Enums.drill_type | null
+  drill_notes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   problem_tags?: Prisma.problem_tagsCreateNestedManyWithoutProblemsInput
@@ -791,6 +855,8 @@ export type problemsUncheckedCreateWithoutSolutionsInput = {
   simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
+  drill_type?: $Enums.drill_type | null
+  drill_notes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   problem_tags?: Prisma.problem_tagsUncheckedCreateNestedManyWithoutProblemsInput
@@ -822,6 +888,8 @@ export type problemsUpdateWithoutSolutionsInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   problem_tags?: Prisma.problem_tagsUpdateManyWithoutProblemsNestedInput
@@ -839,6 +907,8 @@ export type problemsUncheckedUpdateWithoutSolutionsInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   problem_tags?: Prisma.problem_tagsUncheckedUpdateManyWithoutProblemsNestedInput
@@ -854,6 +924,8 @@ export type problemsCreateManyPlatformsInput = {
   simplified_statement?: string | null
   notes?: string | null
   is_great_problem?: boolean
+  drill_type?: $Enums.drill_type | null
+  drill_notes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -868,6 +940,8 @@ export type problemsUpdateWithoutPlatformsInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   problem_tags?: Prisma.problem_tagsUpdateManyWithoutProblemsNestedInput
@@ -884,6 +958,8 @@ export type problemsUncheckedUpdateWithoutPlatformsInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   problem_tags?: Prisma.problem_tagsUncheckedUpdateManyWithoutProblemsNestedInput
@@ -900,6 +976,8 @@ export type problemsUncheckedUpdateManyWithoutPlatformsInput = {
   simplified_statement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_great_problem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  drill_type?: Prisma.NullableEnumdrill_typeFieldUpdateOperationsInput | $Enums.drill_type | null
+  drill_notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -955,6 +1033,8 @@ export type problemsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   simplified_statement?: boolean
   notes?: boolean
   is_great_problem?: boolean
+  drill_type?: boolean
+  drill_notes?: boolean
   created_at?: boolean
   updated_at?: boolean
   problem_tags?: boolean | Prisma.problems$problem_tagsArgs<ExtArgs>
@@ -974,6 +1054,8 @@ export type problemsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   simplified_statement?: boolean
   notes?: boolean
   is_great_problem?: boolean
+  drill_type?: boolean
+  drill_notes?: boolean
   created_at?: boolean
   updated_at?: boolean
   platforms?: boolean | Prisma.platformsDefaultArgs<ExtArgs>
@@ -990,6 +1072,8 @@ export type problemsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   simplified_statement?: boolean
   notes?: boolean
   is_great_problem?: boolean
+  drill_type?: boolean
+  drill_notes?: boolean
   created_at?: boolean
   updated_at?: boolean
   platforms?: boolean | Prisma.platformsDefaultArgs<ExtArgs>
@@ -1006,11 +1090,13 @@ export type problemsSelectScalar = {
   simplified_statement?: boolean
   notes?: boolean
   is_great_problem?: boolean
+  drill_type?: boolean
+  drill_notes?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type problemsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "platform_id" | "platform_problem_id" | "title" | "url" | "platform_difficulty" | "normalized_difficulty" | "simplified_statement" | "notes" | "is_great_problem" | "created_at" | "updated_at", ExtArgs["result"]["problems"]>
+export type problemsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "platform_id" | "platform_problem_id" | "title" | "url" | "platform_difficulty" | "normalized_difficulty" | "simplified_statement" | "notes" | "is_great_problem" | "drill_type" | "drill_notes" | "created_at" | "updated_at", ExtArgs["result"]["problems"]>
 export type problemsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   problem_tags?: boolean | Prisma.problems$problem_tagsArgs<ExtArgs>
   platforms?: boolean | Prisma.platformsDefaultArgs<ExtArgs>
@@ -1042,6 +1128,8 @@ export type $problemsPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     simplified_statement: string | null
     notes: string | null
     is_great_problem: boolean
+    drill_type: $Enums.drill_type | null
+    drill_notes: string | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["problems"]>
@@ -1480,6 +1568,8 @@ export interface problemsFieldRefs {
   readonly simplified_statement: Prisma.FieldRef<"problems", 'String'>
   readonly notes: Prisma.FieldRef<"problems", 'String'>
   readonly is_great_problem: Prisma.FieldRef<"problems", 'Boolean'>
+  readonly drill_type: Prisma.FieldRef<"problems", 'drill_type'>
+  readonly drill_notes: Prisma.FieldRef<"problems", 'String'>
   readonly created_at: Prisma.FieldRef<"problems", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"problems", 'DateTime'>
 }

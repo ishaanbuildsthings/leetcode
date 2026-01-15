@@ -1012,6 +1012,8 @@ export const ProblemsScalarFieldEnum = {
   simplified_statement: 'simplified_statement',
   notes: 'notes',
   is_great_problem: 'is_great_problem',
+  drill_type: 'drill_type',
+  drill_notes: 'drill_notes',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1144,6 +1146,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'drill_type'
+ */
+export type Enumdrill_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'drill_type'>
+    
+
+
+/**
+ * Reference to a field of type 'drill_type[]'
+ */
+export type ListEnumdrill_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'drill_type[]'>
     
 
 

@@ -2,7 +2,7 @@ import { router, publicProcedure, adminProcedure } from "../trpc";
 import { z } from "zod";
 import * as problemService from "../../lib/services/problem.service";
 import { transformProblemWithRelations } from "../../lib/transforms";
-import { tag_role, programming_language } from "../../src/generated/prisma/enums";
+import { tag_role, programming_language, drill_type } from "../../src/generated/prisma/enums";
 
 export const problemRouter = router({
   list: publicProcedure.query(async () => {
@@ -28,6 +28,8 @@ export const problemRouter = router({
         normalizedDifficulty: z.number().int().min(1).max(10).optional(),
         simplifiedStatement: z.string().optional(),
         notes: z.string().optional(),
+        drillType: z.nativeEnum(drill_type).nullable().optional(),
+        drillNotes: z.string().optional(),
         tags: z
           .array(
             z.object({
@@ -67,6 +69,8 @@ export const problemRouter = router({
         normalizedDifficulty: z.number().int().min(1).max(10).optional(),
         simplifiedStatement: z.string().optional(),
         notes: z.string().optional(),
+        drillType: z.nativeEnum(drill_type).nullable().optional(),
+        drillNotes: z.string().optional(),
         tags: z
           .array(
             z.object({

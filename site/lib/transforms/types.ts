@@ -21,6 +21,8 @@ export interface ISolution {
   githubUrl: string | null;
 }
 
+export type DrillType = "mindsolve" | "implement" | null;
+
 export interface IProblem {
   id: string;
   platformId: string;
@@ -32,6 +34,8 @@ export interface IProblem {
   simplifiedStatement: string | null;
   notes: string | null;
   isGreatProblem: boolean;
+  drillType: DrillType;
+  drillNotes: string | null;
 }
 
 export interface IProblemWithRelations extends IProblem {

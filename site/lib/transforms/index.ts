@@ -42,6 +42,8 @@ export function transformProblem(problem: problems): IProblem {
     simplifiedStatement: problem.simplified_statement,
     notes: problem.notes,
     isGreatProblem: problem.is_great_problem,
+    drillType: problem.drill_type,
+    drillNotes: problem.drill_notes,
   };
 }
 

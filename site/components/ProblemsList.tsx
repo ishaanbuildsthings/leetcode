@@ -10,9 +10,12 @@ const displayLanguage = (lang: string) => {
 
 interface ProblemsListProps {
   problems: IProblemWithRelations[];
+  title?: string;
+  description?: string;
+  activeNav?: "mindsolves" | "implements" | null;
 }
 
-export function ProblemsList({ problems }: ProblemsListProps) {
+export function ProblemsList({ problems, title = "Problems", description = "A curated list of coding problems", activeNav = null }: ProblemsListProps) {
   const { isAdmin } = useAuth();
   return (
     <div className="min-h-screen bg-gray-50">
@@ -22,7 +25,27 @@ export function ProblemsList({ problems }: ProblemsListProps) {
             LeetCode Tracker
           </Link>
           
-          <div>
+          <div className="flex gap-4">
+            <Link 
+              href="/mindsolves" 
+              className={`px-4 py-2 rounded-lg transition-colors font-medium ${
+                activeNav === "mindsolves"
+                  ? "bg-purple-600 text-white hover:bg-purple-700"
+                  : "text-gray-700 hover:text-gray-900"
+              }`}
+            >
+              Mindsolves
+            </Link>
+            <Link 
+              href="/implements" 
+              className={`px-4 py-2 rounded-lg transition-colors font-medium ${
+                activeNav === "implements"
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "text-gray-700 hover:text-gray-900"
+              }`}
+            >
+              Implements
+            </Link>
             {isAdmin ? (
               <Link 
                 href="/admin" 
@@ -44,8 +67,8 @@ export function ProblemsList({ problems }: ProblemsListProps) {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Problems</h1>
-          <p className="text-gray-600">A curated list of coding problems</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{title}</h1>
+          <p className="text-gray-600">{description}</p>
         </div>
 
         {problems.length > 0 ? (
@@ -120,6 +143,26 @@ export function ProblemsList({ problems }: ProblemsListProps) {
                       <div className="mb-3">
                         <h4 className="text-sm font-semibold text-gray-700 mb-1">Notes:</h4>
                         <p className="text-gray-600 text-sm">{problem.notes}</p>
+                      </div>
+                    )}
+
+                    {problem.drillType && (
+                      <div className="mb-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-sm font-semibold text-gray-700">
+                            Drill Type:
+                          </h4>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            problem.drillType === 'mindsolve' 
+                              ? 'bg-purple-100 text-purple-700' 
+                              : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {problem.drillType === 'mindsolve' ? '🧠 Mindsolve' : '💻 Implement'}
+                          </span>
+                        </div>
+                        {problem.drillNotes && (
+                          <p className="text-gray-600 text-sm mt-1">{problem.drillNotes}</p>
+                        )}
                       </div>
                     )}
 

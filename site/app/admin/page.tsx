@@ -171,6 +171,8 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
     normalizedDifficulty: undefined as number | undefined,
     simplifiedStatement: "",
     notes: "",
+    drillType: null as "mindsolve" | "implement" | null,
+    drillNotes: "",
     selectedTags: [] as Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>,
     solutions: [] as Array<{ submissionUrl?: string; language: programming_language | ""; githubUrl?: string }>,
   });
@@ -187,6 +189,8 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
       normalizedDifficulty: formData.normalizedDifficulty,
       simplifiedStatement: formData.simplifiedStatement || undefined,
       notes: formData.notes || undefined,
+      drillType: formData.drillType || null,
+      drillNotes: formData.drillNotes || undefined,
       tags: formData.selectedTags.length > 0 ? formData.selectedTags : undefined,
       solutions: formData.solutions.length > 0 
         ? formData.solutions
@@ -324,6 +328,32 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
         />
         <label className="text-sm font-semibold text-gray-900">Great Problem</label>
       </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Type</label>
+        <select
+          value={formData.drillType || ""}
+          onChange={(e) => setFormData({ ...formData, drillType: e.target.value === "" ? null : e.target.value as "mindsolve" | "implement" })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
+        >
+          <option value="">None</option>
+          <option value="mindsolve">🧠 Mindsolve</option>
+          <option value="implement">💻 Implement</option>
+        </select>
+      </div>
+
+      {formData.drillType && (
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Notes</label>
+          <textarea
+            value={formData.drillNotes}
+            onChange={(e) => setFormData({ ...formData, drillNotes: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            rows={3}
+            placeholder="Notes about drilling this problem..."
+          />
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-semibold text-gray-900 mb-3">Tags</label>
@@ -704,6 +734,8 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
     normalizedDifficulty: undefined as number | undefined,
     simplifiedStatement: "",
     notes: "",
+    drillType: null as "mindsolve" | "implement" | null,
+    drillNotes: "",
     selectedTags: [] as Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>,
     solutions: [] as Array<{ submissionUrl?: string; language: programming_language | ""; githubUrl?: string }>,
   });
@@ -720,6 +752,8 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
         normalizedDifficulty: problem.normalizedDifficulty || undefined,
         simplifiedStatement: problem.simplifiedStatement || "",
         notes: problem.notes || "",
+        drillType: problem.drillType || null,
+        drillNotes: problem.drillNotes || "",
         selectedTags: problem.tags.map(pt => ({
           tagId: pt.tag.id,
           role: pt.role || undefined,
@@ -748,6 +782,8 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
       normalizedDifficulty: formData.normalizedDifficulty,
       simplifiedStatement: formData.simplifiedStatement || undefined,
       notes: formData.notes || undefined,
+      drillType: formData.drillType || null,
+      drillNotes: formData.drillNotes || undefined,
       tags: formData.selectedTags.length > 0 ? formData.selectedTags : undefined,
       solutions: formData.solutions.length > 0 
         ? formData.solutions
@@ -887,6 +923,32 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
           <span className="text-sm font-semibold text-gray-900">Great Problem</span>
         </label>
       </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Type</label>
+        <select
+          value={formData.drillType || ""}
+          onChange={(e) => setFormData({ ...formData, drillType: e.target.value === "" ? null : e.target.value as "mindsolve" | "implement" })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
+        >
+          <option value="">None</option>
+          <option value="mindsolve">🧠 Mindsolve</option>
+          <option value="implement">💻 Implement</option>
+        </select>
+      </div>
+
+      {formData.drillType && (
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Notes</label>
+          <textarea
+            value={formData.drillNotes}
+            onChange={(e) => setFormData({ ...formData, drillNotes: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            rows={3}
+            placeholder="Notes about drilling this problem..."
+          />
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-semibold text-gray-900 mb-2">Tags</label>

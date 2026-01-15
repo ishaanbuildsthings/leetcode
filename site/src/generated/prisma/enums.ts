@@ -25,3 +25,11 @@ export const programming_language = {
 } as const
 
 export type programming_language = (typeof programming_language)[keyof typeof programming_language]
+
+
+export const drill_type = {
+  mindsolve: 'mindsolve',
+  implement: 'implement'
+} as const
+
+export type drill_type = (typeof drill_type)[keyof typeof drill_type]

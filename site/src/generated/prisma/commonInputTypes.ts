@@ -189,6 +189,13 @@ export type StringNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedStringNullableFilter<$PrismaModel> | string | null
 }
 
+export type Enumdrill_typeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.drill_type | Prisma.Enumdrill_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.drill_type[] | Prisma.ListEnumdrill_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.drill_type[] | Prisma.ListEnumdrill_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumdrill_typeNullableFilter<$PrismaModel> | $Enums.drill_type | null
+}
+
 export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -205,6 +212,16 @@ export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
+}
+
+export type Enumdrill_typeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.drill_type | Prisma.Enumdrill_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.drill_type[] | Prisma.ListEnumdrill_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.drill_type[] | Prisma.ListEnumdrill_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumdrill_typeNullableWithAggregatesFilter<$PrismaModel> | $Enums.drill_type | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumdrill_typeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumdrill_typeNullableFilter<$PrismaModel>
 }
 
 export type Enumprogramming_languageFilter<$PrismaModel = never> = {
@@ -411,6 +428,13 @@ export type NestedStringNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedStringNullableFilter<$PrismaModel> | string | null
 }
 
+export type NestedEnumdrill_typeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.drill_type | Prisma.Enumdrill_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.drill_type[] | Prisma.ListEnumdrill_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.drill_type[] | Prisma.ListEnumdrill_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumdrill_typeNullableFilter<$PrismaModel> | $Enums.drill_type | null
+}
+
 export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -426,6 +450,16 @@ export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumdrill_typeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.drill_type | Prisma.Enumdrill_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.drill_type[] | Prisma.ListEnumdrill_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.drill_type[] | Prisma.ListEnumdrill_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumdrill_typeNullableWithAggregatesFilter<$PrismaModel> | $Enums.drill_type | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumdrill_typeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumdrill_typeNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumprogramming_languageFilter<$PrismaModel = never> = {
