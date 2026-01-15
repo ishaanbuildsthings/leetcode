@@ -1,3 +1,4 @@
+// Sparse segment tree with vector based nodes and indices pointers to vector, SO evil, so many bugs with vectors being resized and losing references to things, like Node& node = tree[i]; and they end up diverging
 // #include <bits/stdc++.h>
 // using namespace std;
 
@@ -96,79 +97,111 @@
 // }
 
 
+// Solution 2, sparse seg tree with full pointers, found it easier than a vector to store the nodes
+// #include <bits/stdc++.h>
+// using namespace std;
+
+// struct DynSeg {
+//     struct Node {
+//         int pref;
+//         int suff;
+//         int max;
+//         int width;
+//         Node* l;
+//         Node* r;
+//     };
+//     Node root;
+//     int low;
+//     int high;
+//     DynSeg(int _low, int _high) {
+//         low = _low;
+//         high = _high;
+//         int width = high - low + 1;
+//         root = Node{width, width, width, width};
+//     }
+//     int queryAll() {
+//         return root.max;
+//     }
+//     void pointUpdate(int pos) {
+//         _pointUpdate(root, low, high, pos);
+//     }
+//     void _pointUpdate(Node& node, int tl, int tr, int pos) {
+//         if (tl == tr) {
+//             node.pref = 0;
+//             node.suff = 0;
+//             node.max = 0;
+//             node.width = 1;
+//             return;
+//         }
+//         int tm = (tr + tl) / 2;
+//         if (!node.l) {
+//             int leftWidth = tm - tl + 1;
+//             node.l = new Node{leftWidth, leftWidth, leftWidth, leftWidth};
+//         }
+//         if (!node.r) {
+//             int rightWidth = tr - (tm + 1) + 1;
+//             node.r = new Node{rightWidth, rightWidth, rightWidth, rightWidth};
+//         }
+//         if (pos <= tm) {
+//             _pointUpdate(*node.l, tl, tm, pos);
+//         } else {
+//             _pointUpdate(*node.r, tm + 1, tr, pos);
+//         }
+//         pull(node);
+//     }
+//     void pull(Node& node) {
+//         node.max = max({node.l->max, node.r->max, node.l->suff + node.r->pref});
+//         node.width = node.l->width + node.r->width;
+//         int newPref = node.l->pref;
+//         if (node.l->pref == node.l->width) newPref += node.r->pref;
+//         int newSuff = node.r->suff;
+//         if (node.r->suff == node.r->width) newSuff += node.l->suff;
+//         node.pref = newPref;
+//         node.suff = newSuff;
+//     }
+// };
+
+// int main() {
+//     cin.tie(nullptr);
+//     ios::sync_with_stdio(false);
+//     int x, n; cin >> x >> n;
+//     vector<int> A(n); for (int i = 0; i < n; i++) cin >> A[i];
+//     DynSeg seg(0, x);
+//     seg.pointUpdate(0);
+//     seg.pointUpdate(x);
+//     for (auto x : A) {
+//         seg.pointUpdate(x);
+//         cout << seg.queryAll() + 1 << " ";
+//     }
+// }
+
+
+
+// Solution 3, interval style tree, but instead of storing the intervals I store the cut points as it is easier in this
 #include <bits/stdc++.h>
 using namespace std;
-
-struct DynSeg {
-    struct Node {
-        int pref;
-        int suff;
-        int max;
-        int width;
-        Node* l;
-        Node* r;
-    };
-    Node root;
-    int low;
-    int high;
-    DynSeg(int _low, int _high) {
-        low = _low;
-        high = _high;
-        int width = high - low + 1;
-        root = Node{width, width, width, width};
-    }
-    int queryAll() {
-        return root.max;
-    }
-    void pointUpdate(int pos) {
-        _pointUpdate(root, low, high, pos);
-    }
-    void _pointUpdate(Node& node, int tl, int tr, int pos) {
-        if (tl == tr) {
-            node.pref = 0;
-            node.suff = 0;
-            node.max = 0;
-            node.width = 1;
-            return;
-        }
-        int tm = (tr + tl) / 2;
-        if (!node.l) {
-            int leftWidth = tm - tl + 1;
-            node.l = new Node{leftWidth, leftWidth, leftWidth, leftWidth};
-        }
-        if (!node.r) {
-            int rightWidth = tr - (tm + 1) + 1;
-            node.r = new Node{rightWidth, rightWidth, rightWidth, rightWidth};
-        }
-        if (pos <= tm) {
-            _pointUpdate(*node.l, tl, tm, pos);
-        } else {
-            _pointUpdate(*node.r, tm + 1, tr, pos);
-        }
-        pull(node);
-    }
-    void pull(Node& node) {
-        node.max = max({node.l->max, node.r->max, node.l->suff + node.r->pref});
-        node.width = node.l->width + node.r->width;
-        int newPref = node.l->pref;
-        if (node.l->pref == node.l->width) newPref += node.r->pref;
-        int newSuff = node.r->suff;
-        if (node.r->suff == node.r->width) newSuff += node.l->suff;
-        node.pref = newPref;
-        node.suff = newSuff;
-    }
-};
 
 int main() {
     cin.tie(nullptr);
     ios::sync_with_stdio(false);
     int x, n; cin >> x >> n;
-    vector<int> A(n); for (int i = 0; i < n; i++) cin >> A[i];
-    DynSeg seg(0, x);
-    seg.pointUpdate(0);
-    seg.pointUpdate(x);
-    for (auto x : A) {
-        seg.pointUpdate(x);
-        cout << seg.queryAll() + 1 << " ";
+    set<int> cuts;
+    cuts.insert(0);
+    cuts.insert(x);
+    multiset<int> sizes;
+    sizes.insert(x);
+    for (int i = 0; i < n; i++) {
+        int cut; cin >> cut;
+        auto it = cuts.lower_bound(cut); // first element >= cut
+        int prevNum = *prev(it);
+        int nextNum = *it;
+        int size = nextNum - prevNum;
+        sizes.erase(sizes.find(size));
+        int lowSize = cut - prevNum;
+        int highSize = nextNum - cut;
+        cuts.insert(cut);
+        sizes.insert(lowSize);
+        sizes.insert(highSize);
+        cout << *prev(sizes.end()) << " ";
     }
 }
