@@ -2,9 +2,6 @@
 using namespace std;
 const long long MOD = 998244353;
 
-#include <bits/stdc++.h>
-using namespace std;
-
 struct CombModPrime {
     long long MOD;
     int maxN;
@@ -74,9 +71,7 @@ int main() {
     for (int i = 0; i < lefts.size(); i++) {
         int left = lefts[i];
         int leftFrqHere = leftFrq[left].size();
-        // cout << "unique left is: " << left << endl;
         rights.erase(rights.begin(), rights.lower_bound(left)); // remove all rights that ended already
-        // cout << "rights still overlapping: " << rights.size() << endl;
         for (int takeHere = 1; takeHere <= min(k, leftFrqHere); takeHere++) {
             // ways to take takeHere from this group
             long long ways = modder.C(leftFrqHere, takeHere);
@@ -95,7 +90,3 @@ int main() {
     cout << out;
     
 }
-
-// 5 7 6
-// if we take only 7 we are take take and +7
-// if we take 5 and 6 and lose 7 we are take take and +4
