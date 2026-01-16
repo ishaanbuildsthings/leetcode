@@ -1,9 +1,6 @@
 t = int(input())
 for _ in range(t):
     height, width, row, col = map(int,input().split())
-    # print('==================')
-    # print(f'{height=} {width=}')
-    # print(f'{row=} {col=}')
 
     def dist(p1, p2):
         xd = abs(p1[0] - p2[0])
@@ -25,7 +22,6 @@ for _ in range(t):
             if distSum > res:
                 res = distSum
                 resPairs = [c1, c2]
-    # print(f'{resPairs=}')
     v = [resPairs[0][0], resPairs[0][1], resPairs[1][0], resPairs[1][1]]
     print(*v)
 
