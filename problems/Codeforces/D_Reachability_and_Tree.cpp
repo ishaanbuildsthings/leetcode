@@ -6,9 +6,6 @@ int main() {
     ios::sync_with_stdio(false);
     int t; cin >> t;
     while (t--) {
-        // cout << "==========" << endl;
-
-
         int n; cin >> n;
         vector<vector<int>> g(n + 1);
         for (int i = 0; i < n - 1; i++) {
@@ -27,15 +24,6 @@ int main() {
             root = adj2;
             middle = node;
             break;
-            // if (g[adj1].size() == 1) {
-            //     root = adj2;
-            //     middle = node;
-            //     break;
-            // } else if (g[adj2].size() == 1) {
-            //     root = adj1;
-            //     middle = node;
-            //     break;
-            // }
         }
 
         if (root == -1) {
@@ -46,9 +34,6 @@ int main() {
         // we are going down from the root
 
         cout << "YES" << endl;
-
-        // cout << "root is:" << root << endl;
-        // cout << "middle is:" << middle << endl;
 
         auto dfs = [&](auto&& self, int node, int parent, bool down) -> void {
             // cout << "dfs called on node:" << node << endl;
