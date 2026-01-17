@@ -21,7 +21,8 @@ export type tag_role = (typeof tag_role)[keyof typeof tag_role]
 export const programming_language = {
   Python: 'Python',
   Cpp: 'Cpp',
-  JavaScript: 'JavaScript'
+  JavaScript: 'JavaScript',
+  PostgreSQL: 'PostgreSQL'
 } as const
 
 export type programming_language = (typeof programming_language)[keyof typeof programming_language]

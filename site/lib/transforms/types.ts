@@ -11,7 +11,7 @@ export interface IPlatform {
   slug: string;
 }
 
-export type ProgrammingLanguage = "Python" | "Cpp" | "JavaScript";
+export type ProgrammingLanguage = "Python" | "Cpp" | "JavaScript" | "PostgreSQL";
 
 export interface ISolution {
   id: string;

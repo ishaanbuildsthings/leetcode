@@ -506,6 +506,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                       <option value="Python">Python</option>
                       <option value="Cpp">C++</option>
                       <option value="JavaScript">JavaScript</option>
+                      <option value="PostgreSQL">PostgreSQL</option>
                     </select>
                   </div>
                   <div>
@@ -1101,6 +1102,7 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
                       <option value="Python">Python</option>
                       <option value="Cpp">C++</option>
                       <option value="JavaScript">JavaScript</option>
+                      <option value="PostgreSQL">PostgreSQL</option>
                     </select>
                   </div>
                   <div>
