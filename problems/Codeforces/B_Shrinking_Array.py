@@ -1,5 +1,4 @@
 def solve(A):
-    # print(f'{A=}')
     for i in range(len(A) - 1):
         if abs(A[i] - A[i+1]) <= 1:
             return 0
