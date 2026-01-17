@@ -4,7 +4,6 @@ for _ in range(t):
     height, width = map(int, input().split())
     for r in range(height):
         board.append(input())
-    # print(f'{board}')
 
     if board[0][0] == board[-1][-1]:
         print("YES")
@@ -42,9 +41,6 @@ for _ in range(t):
         continue
     
     print("NO")
-
-    
-    # print(f'{r1=}')
 
 # # if we have opposite corners the same color, we win
 # # if we do not, we must have (or rotated)
