@@ -1,11 +1,9 @@
 t = int(input())
 for _ in range(t):
-    # print('====')
     n, s = map(int, input().split())
     res = 0
     for _ in range(n):
         dx, dy, x, y = map(int, input().split())
-        # print(f'ball is at: {x} {y}')
         # if we are on upright diag
         if x == y:
             # we must launch up right or down left
@@ -22,5 +20,4 @@ for _ in range(t):
             elif dx == -1 and dy == 1:
                 res += 1
         
-        # print(f'res now: {res}')
     print(res)
