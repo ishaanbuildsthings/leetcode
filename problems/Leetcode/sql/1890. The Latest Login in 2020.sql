@@ -1,0 +1,2 @@
+-- Write your PostgreSQL query statement below
+SELECT user_id, MAX(time_stamp) AS last_stamp FROM Logins WHERE Logins.time_stamp >= '2020-01-01'::timestamp AND Logins.time_stamp < '2021-01-01'::timestamp GROUP BY user_id;
