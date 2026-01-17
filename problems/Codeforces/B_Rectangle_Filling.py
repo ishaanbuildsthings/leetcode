@@ -28,7 +28,7 @@ for _ in range(t):
     # left column
     c1 = set()
     for r in range(height):
-        c1.add(board[r][0])
+    c1.add(board[r][0])
     if len(c1) > 1:
         print("YES")
         continue

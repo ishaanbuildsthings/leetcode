@@ -8,8 +8,6 @@ for _ in range(t):
         stones2.append(int(x))
     stones = stones2
     stones.sort()
-    # print('============')
-    # print(f'{stones=}')
 
     # If I am on the last pile I win
     # If I am on the second to last pile, as long as it is not 1, I win
