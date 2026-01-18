@@ -1,14 +1,10 @@
 def solve(A):
-    # print('===========')
-    # print(f'{A=}')
     # If 0 is not in the array, mex the entire array
     if 0 not in A:
-        # print(f'0 not in A, mex entire')
         print(1)
         print(f'{1} {len(A)}')
         return
     if A[0] != 0 and A[-1] != 0:
-        # print(f'neither boundary is 0')
         # mex just inside
         print(2)
         print(f'{2} {len(A) - 1}')
