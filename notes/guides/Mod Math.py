@@ -19,3 +19,5 @@ Take this mod M. We can take the individual pieces mod M due to addition mod mat
 
 So the remainder is (10*r + d) % M.
 """
+
+TODO: explain how A*B % C is derived
