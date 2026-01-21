@@ -41,4 +41,23 @@ Don't use vector<bool> since it does some weird stuff under the hood. https://cp
 ------------
 Segmented Sieve
 
+We want to know which numbers from L...R are prime for big L and R, but R-L is still manageable.
+
+Say L = 1e9 and R = L + 1e6.
+
+We create a sieve of size 1e6 representing the numbers from L to R.
+
+We generate a normal sieve up to root(R).
+
+We only need to sift up all of those primes, why would we not need to sift up a prime > root(R)? Because if we marked a number with that prime it would necessarily have another factor < root(R).
+
+Let us establish a loose upper bound on the complexity of this. Recall H_n (harmonic) is roughly log N. 1 + 1/2 + 1/3 + .... + 1/n. And n + n/2 + n/3 + ... is n log n.
+
+If worst case every single number from 1 to rootR was prime (obviously most are not) then we loop over all of those, and the work each "prime" would do is W/p (W = width)
+We wish to sum these for all numbers 1 to rootR, we can factor out the W.
+
+So W * Sigma(1/p) for all p up to rootR.
+That harmonic is log rootR. Times the outside W is W log (rootR) which is W log R. This generates the segmented sieve after the initial sieve up to rootR is computed.
+
+The real complexity is W log log R (I have no idea how)
 """

@@ -1,18 +1,18 @@
-// // 35=1 + 5 + 7 + 35
-
-// so 70 has all of those factors
-// but it also adds its spf times all of those factors
-
-// 1 + 5 + 7 + 35
-// 2 + 10 + 14 + 70
-
-// so it basically triples it
-
 #include<bits/stdc++.h>
 using namespace std;
 
 int main() {
     cin.tie(nullptr);
     ios::sync_with_stdio(false);
-    vector<long long>sumFac()
+    long long n; cin >> n;
+    int MOD = 1000000000 + 7;
+    long long res = 0;
+    for (long long fac = 1; fac <= n; fac++) {
+        if (fac * fac > n) break;
+        // how many numbers are divisible by fac
+        long long divByFac = n / fac;
+        res += divByFac * fac;
+
+        
+    }
 }
