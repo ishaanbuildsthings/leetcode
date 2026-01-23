@@ -87,18 +87,6 @@ if True:
 
     inf = float('inf')
 
-# TEMPLATE BY https://github.com/agrawalishaan
-# You are welcome to use this template. Please keep the link in your contest code to prevent automatic detection of copied content. Templates are allowed. Thanks!
-
-# Complexities:
-# Build: O(n)
-# Space: O(n)
-# Query/Update: O(log N)
-
-# baseFn: (val, i) => ...
-# combineFn: (leftVal, rightVal, leftLeftIdx, leftRightIdx, rightLeftIdx, rightRightIdx) => ...
-# tupleNametags: If baseFn returns a tuple, we can supply nametags for each value, like ('min', 'max'), used for debugging
-
 fmax = lambda x, y: x if x > y else y
 fmin = lambda x, y: x if x < y else y
 
@@ -138,10 +126,6 @@ t = II()
 for _ in range(t):
     n = II()
     A = LII()
-    # print(f'============')
-    # print(f'{A=}')
-
-
     # start at tall trees, record max height reachable
 
     # we are at a shorter tree, every taller tree has been processed
@@ -172,15 +156,12 @@ for _ in range(t):
                 r = m - 1
         rightmost[i] = resI
     
-    # print(f'{rightmost=}')
-
     A2 = [(x, i) for i, x in enumerate(A)]
     A2.sort(reverse=True)
     
     # we need to supportp point update in range and range max
     st = SEG(n, fmax)
 
-    # print(f'{keys=}')
     for x, i in A2:
         right = rightmost[i] if rightmost[i] is not None else i
         bigBefore = fmax(x, st.query(0, right + 1))
