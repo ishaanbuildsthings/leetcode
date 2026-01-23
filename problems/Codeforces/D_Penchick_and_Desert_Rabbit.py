@@ -87,40 +87,61 @@ if True:
 
     inf = float('inf')
 
-fmax = lambda x, y: x if x > y else y
-fmin = lambda x, y: x if x < y else y
+class MaxSegTree:
+    def __init__(self, arr):
+        self.arr = arr
+        self.n = len(arr)
 
-class SEG:
-    def __init__(self, n, func):
-        z = 1
-        while z < n:
-            z = z * 2
-        self.func = func
-        self.tree = [0] * (2 * z)
-        self.n = z
+        size = 1
+        while size < self.n:
+            size <<= 1
+        self.size = size
 
-    def query(self, l, r): ## interval [l,r)
-        l += self.n
-        r += self.n
-        ans = 0
+        tree = [float("-inf")] * (2 * size)
+        base = size
+        for i, v in enumerate(arr):
+            tree[base + i] = v
+        for idx in range(size - 1, 0, -1):
+            left = tree[idx << 1]
+            right = tree[(idx << 1) | 1]
+            tree[idx] = left if left >= right else right
+        self.tree = tree
+
+    def _queryHalfOpen(self, l, r):
+        tree = self.tree
+        l += self.size
+        r += self.size
+        ans = float("-inf")
         while l < r:
             if l & 1:
-                ans = self.func(ans, self.tree[l])
+                v = tree[l]
+                ans = v if v >= ans else ans
                 l += 1
             if r & 1:
                 r -= 1
-                ans = self.func(ans, self.tree[r])
+                v = tree[r]
+                ans = v if v >= ans else ans
             l >>= 1
             r >>= 1
         return ans
 
-    def update(self, i, val):
-        i += self.n
-        self.tree[i] = self.func(self.tree[i],val)
-        while i > 1:
-            i >>= 1
-            self.tree[i] = self.func(self.tree[i * 2], self.tree[i * 2 + 1])
+    def queryMax(self, l, r):
+        return self._queryHalfOpen(l, r + 1)
 
+    def pointUpdateAndMutateArray(self, index, newVal):
+        self.arr[index] = newVal
+        tree = self.tree
+        pos = self.size + index
+        tree[pos] = newVal
+        pos >>= 1
+        while pos:
+            left = tree[pos << 1]
+            right = tree[(pos << 1) | 1]
+            tree[pos] = left if left >= right else right
+            pos >>= 1
+
+fmin = lambda x, y: x if x < y else y
+fmax = lambda x, y: x if x > y else y
 from collections import defaultdict
 t = II()
 for _ in range(t):
@@ -160,17 +181,17 @@ for _ in range(t):
     A2.sort(reverse=True)
     
     # we need to supportp point update in range and range max
-    st = SEG(n, fmax)
+    st = MaxSegTree([0] * n)
 
     for x, i in A2:
         right = rightmost[i] if rightmost[i] is not None else i
-        bigBefore = fmax(x, st.query(0, right + 1))
-        st.update(i, bigBefore)
+        bigBefore = fmax(x, st.queryMax(0, right))
+        st.pointUpdateAndMutateArray(i, bigBefore)
         
     
     res = []
     for i in range(n):
-        res.append(st.query(i, i + 1))
+        res.append(st.queryMax(i, i))
     print(*res)
 
 
