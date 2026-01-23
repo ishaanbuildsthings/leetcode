@@ -2,10 +2,7 @@ t = int(input())
 for _ in range(t):
     n, h, l = map(int, input().split())
     A = list(map(int, input().split()))
-    # print('==========')
-    # print(f'{h=} {l=}')
     A.sort()
-    # print(f'{A=}')
     res = 0
 
     maxPairs = n // 2
