@@ -12,19 +12,6 @@ def solve(A):
             return
     
     print("YES")
-    # for i in range(0, n, 2):
-    #     a = A[i]
-    #     if i == n - 1:
-    #         break
-    #     b = A[i + 1]
-    #     desiredLow = i + 1
-    #     desiredHigh = desiredLow + 1
-    #     if min(a, b) == desiredLow and max(a, b) == desiredHigh:
-    #         continue
-    #     else:
-    #         print("NO")
-    #         return
-    # print("YES")
             
 t = int(input())
 for _ in range(t):
