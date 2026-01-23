@@ -1,7 +1,6 @@
 import math
 tests = int(input())
 for _ in range(tests):
-    # print('=========')
     
     n, target = map(int, input().split())
     jumps = [] # holds (forward, magic time, back)
@@ -18,16 +17,13 @@ for _ in range(tests):
     if gain >= target:
         print(0)
         continue
-    
-    # print(f'gain is: {gain}')
-    
+        
     res = float('inf')
 
     # pick one to endure jumps
     for a, b, c in jumps:
         distance = target - gain # we need to cover DISTANCE more ground with up up up then fallback
         fullCycle = (a * b) - c
-        # print(f'a full cycle is: {fullCycle}')
         if fullCycle <= 0:
             continue
         fullCyclesReq = (distance + fullCycle - 1) // fullCycle
