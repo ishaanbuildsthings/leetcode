@@ -16,7 +16,7 @@ class TreeNode {
 }
 
 class SelfBalancingBST {
-  constructor() {
+constructor() {
     this.root = null;
   }
 

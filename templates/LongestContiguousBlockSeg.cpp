@@ -1,4 +1,5 @@
 // This can basically tell us the longest contiguous block of ints in a range l...r
+// We can update points to new integers
 // So 12223345 and we query from idx 1 to idx 4, the longest block is 222 which is length 3
 // That field is "maxRange" on the Node struct
 // We can also do this behavior with SortedLists usually, one to track ranges and one to track sizes of the ranges
