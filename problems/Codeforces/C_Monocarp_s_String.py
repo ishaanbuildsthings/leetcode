@@ -2,15 +2,10 @@ t = int(input())
 for _ in range(t):
     n = int(input())
     s = input()
-    # print('================')
-    # print(f'{s=}')
     res = float('inf')
     a = s.count('a')
     b = s.count('b')
-    # print(f'{a=} {b=}')
     initASurplus = a - b
-
-    # print(f'{initASurplus=}')
 
     if initASurplus == 0:
         print('0')
@@ -28,12 +23,9 @@ for _ in range(t):
         else:
             asurplus -= 1
         desired = asurplus - initASurplus
-        # print(f'a surplus now: {asurplus}, desired: {desired}')
         # we have some surplus amount of a, we need to cut off another surplus
         if str(desired) in rightmost:
-            # print(f'a prefix with that desired exists')
             width = i - rightmost[str(desired)]
-            # print(f'the width makes: {width}')
             res = min(res, width)
         
         rightmost[str(asurplus)] = i
