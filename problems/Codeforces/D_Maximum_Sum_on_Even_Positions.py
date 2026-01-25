@@ -9,6 +9,12 @@ t = int(input())
 for _ in range(t):
     n = int(input())
     A = list(map(int, input().split()))
+    closed = 0
+    open = float('-inf')
+    notOpen = 0
+    for i, v in enumerate(A):
+        nNotOpen = notOpen + v
+        nOpen = max(notOpen + (v if i % 2 ))
     dpClosed = 0 # finished reversing
     dpOddOpen = float('-inf') # started reversing at an odd index
     dpEvenOpen = float('-inf')
