@@ -6,8 +6,6 @@ for _ in range(t):
         row = list(map(int, input().split()))
         board.append(row)
     
-    # print(board)
-
     uniq = set()
     
     touching = [False] * (h * w + 1)
@@ -23,7 +21,6 @@ for _ in range(t):
                     touching[board[r][c]] = True
 
     
-    # print(f'{touching=}')
     twos = sum(touching)
     ones = len(uniq) - twos
     if twos:
