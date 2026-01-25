@@ -73,8 +73,6 @@ while curr > 0:
     pairs.append((diff, curr))
     curr = diff - 1
 
-# print(pairs)
-
 res1 = []
 res2 = []
 for a, b in pairs:
