@@ -38,16 +38,8 @@ def solve():
         cur += v
         req.append(cur)
     
-
-
-    
-
     totalStrikes = sum(strikes)
-
-
-    
     res = 0
-
     values = sorted(list(int(x) for x in interesting))
     for v in values:
         # difficulty is v
