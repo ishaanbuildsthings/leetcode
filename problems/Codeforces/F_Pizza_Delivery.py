@@ -4,13 +4,9 @@ fmin = lambda a, b: a if a < b else b
 from collections import defaultdict
 
 def solve():
-    # print(f'========')
     n, Ax, Ay, Bx, By = map(int, input().split())
-    # print(f'{n=} {Ax=} {Ay=} {Bx=} {By=}')
     xs = list(map(int, input().split()))
     ys = list(map(int, input().split()))
-    # print(f'{xs=}')
-    # print(f'{ys=}')
     
     uniqXs = set()
     for x in xs:
@@ -31,7 +27,6 @@ def solve():
     xBot[str(Bx)] = fmin(xBot[str(Bx)], By)
 
     allXs = sorted(list(int(x) for x in uniqXs))
-    # print(f'all xs: {allXs}')
     # we are at Ax, Ay right now
     up = 0 # min to reach the highest y
     down = 0 # min to reach lowest y
@@ -59,10 +54,6 @@ def solve():
 
         up = newUp
         down = newDown
-
-        # print(f'right is: {right}')
-
-        # print(f'up now: {up}, down now: {down}')
     
 
         prevX = x
