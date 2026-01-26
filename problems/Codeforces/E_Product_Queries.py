@@ -3,16 +3,12 @@ fmin = lambda x, y: x if x < y else y
 def solve():
     n = int(input())
     A = list(map(int, input().split()))
-    # print('===========')
-    # print(f'{A=}')
 
     # dp[x] is min # of factors to form x
     dp = [float('inf')] * (n + 1)
     for v in A:
         dp[v] = 1
-    
-    # print(f'init dp: {dp}')
-    
+        
 
     def factorize(x):
         res = []
@@ -31,7 +27,6 @@ def solve():
         bestHere = float('inf')
         for fac in factors:
             other = v // fac
-            # otherDp = dp[other]÷
             bestHere = fmin(dp[other] + dp[fac], bestHere)
         dp[v] = fmin(dp[v], bestHere)
     
