@@ -21,8 +21,6 @@ def solve():
             return pf[r]
         return pf[r] - pf[l - 1]
     
-    # print(f'a now: {A}')
-
     for _ in range(q):
         l, r = map(int, input().split())
         l -= 1
