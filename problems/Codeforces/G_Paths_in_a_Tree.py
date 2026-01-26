@@ -74,8 +74,6 @@ def solve():
         yield 0
     dfs(0, -1)
     
-    # print(f'children:')
-    # print(children)
 
     postorder = []
 
@@ -92,8 +90,6 @@ def solve():
     dfs2(0)
 
     processed = [False] * n
-
-    # print(f'{postorder=}')
 
     for node in postorder:
         if node == 0:
@@ -119,10 +115,8 @@ def solve():
                             else:
                                 return finish(lc[1])
 
-        # print(f'trying node: {node} now')
         lc = [c for c in children[node] if not processed[c]]
         if len(lc) == 0:
-            # print(f'no lc for this node, continuing')
             continue
 
         # if we have even children
@@ -215,5 +209,4 @@ def solve():
 
 t = int(input())
 for _ in range(t):
-    # print(f'number of tests is: {t}')
     solve()
