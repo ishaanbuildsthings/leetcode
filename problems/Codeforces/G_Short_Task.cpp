@@ -16,21 +16,19 @@ int main() {
     }
     auto facSum = [&](int num) -> long long {
         int curr = num;
-        long long sigma = 1;
+        long long out = 1;
         while (curr > 1) {
-            int prime = spf[curr];
-        
-            long long primePow = 1;
-            long long geoSum = 1;
-        
-            while (curr % prime == 0) {
-                curr /= prime;
-                primePow *= prime;
-                geoSum += primePow;
+            int p = spf[curr];
+            int geoSum = 1;
+            int currPrimeToPow = 1;
+            while (curr % p == 0) {
+                curr /= p;
+                currPrimeToPow *= p;
+                geoSum += currPrimeToPow;
             }
-            sigma *= geoSum;
+            out *= geoSum;
         }
-        return sigma;
+        return out;
     };
     vector<int> earlySum(MX + 1, -1);
     for (int number = 1; number <= MX; number++) {

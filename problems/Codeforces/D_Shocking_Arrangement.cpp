@@ -156,11 +156,8 @@ struct OrderedMultiSet {
 };
 
 void solve() {
-    // cout << "==============" << endl;
     int n; cin >> n;
     vector<long long> A(n); for (int i = 0; i < n; i++) cin >> A[i];
-    // for (auto x : A) cout << x << " ";
-    // cout << endl;
     int mx = *max_element(A.begin(), A.end());
     int mn = *min_element(A.begin(), A.end());
     if (mx == 0) {
@@ -170,14 +167,10 @@ void solve() {
     int cantGoTo = mx - mn;
     vector<int> res;
     int zeroes = 0;
-    // OrderedMultiSet pos(A);
-    // OrderedMultiSet neg(A);
     OrderedMultiSet others(A);
     for (auto x : A) {
         if (x == 0) zeroes += 1;
         if (x < 0 || x > 0) others.add(x);
-        // if (x > 0) pos.insert(x);
-        // if (x < 0) neg.insert(x);
     }
     // keep placing the maximum element that we can place 
     int pf = 0;
