@@ -1,6 +1,5 @@
 from collections import deque
 def solve():
-    # print('=====')
     height, width, k = map(int, input().split())
     res = [[None for _ in range(width)] for _ in range(height)]
     cells = height * width
