@@ -42,8 +42,15 @@ void solve() {
     }
     unordered_map<long long,int> frqLeft; frqLeft.reserve(n + 5);
     sort(A.begin(), A.end());
+    long long prevGain = 0;
     for (int i = 0; i < A.size(); i++) {
         int num = A[i];
+        if (i > 0 && num == A[i - 1]) {
+            out += prevGain;
+            frqLeft[num]++;
+            continue;
+        }
+        prevGain = 0;
         // we can iterate over divisors
         if (num <= MAX_WITH_DIV) {
             auto divs = factorize(num);
@@ -54,8 +61,9 @@ void solve() {
                 long long reqRight = 1LL * num * div;
                 if (frq.find(reqRight) == frq.end()) continue;
                 if (reqRight > MAX_ELEMENT) continue;
-                out += frqLeft[reqLeft] * (frq[reqRight] - frqLeft[reqRight]);
+                prevGain += frqLeft[reqLeft] * (frq[reqRight] - frqLeft[reqRight]);
             }
+            out += prevGain;
         } else {
             int bigMult = MAX_ELEMENT / num + 5;
             for (int div = 2; div <= bigMult; div++) {
@@ -67,8 +75,9 @@ void solve() {
                 if (reqRight > MAX_ELEMENT) continue;
                 long long leftChoices = frqLeft[reqLeft];
                 long long rightChoices = frq[reqRight] - frqLeft[reqRight];
-                out += leftChoices * rightChoices;
+                prevGain += leftChoices * rightChoices;
             }
+            out += prevGain;
         }
         frqLeft[num]++;
     }
