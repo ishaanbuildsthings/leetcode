@@ -1,0 +1,1 @@
+{"name":"Local: B_Seats","url":"/Users/ishaan/code/leetcode/B_Seats.cpp","tests":[{"id":1769698323567,"input":"5\n1\n0\n3\n000\n5\n00000\n6\n100101\n13\n0000100001000\n","output":"1\n1\n2\n3\n5\n"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/B_Seats.cpp","group":"local","local":true}
