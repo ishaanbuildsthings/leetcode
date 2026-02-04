@@ -6,4 +6,4 @@ class Solution:
                 res = num
             elif abs(num) == abs(res):
                 res = max(num, res)
-        return res 
+        return res
