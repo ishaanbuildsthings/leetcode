@@ -1,0 +1,2 @@
+-- Write your PostgreSQL query statement below
+SELECT Warehouse.name AS warehouse_name, SUM(Warehouse.units * Products.Width * Products.Length * Products.height) AS volume FROM Products JOIN Warehouse ON Warehouse.product_id = Products.product_id GROUP BY Warehouse.name;
