@@ -2,10 +2,7 @@ def solve():
     n = int(input())
     A = list(map(int, input().split()))
 
-    # print('============')
-    # print(f'{A=}')
     if (A == sorted(A)):
-        # print(f'equals sorted')
         print(-1)
         return
 
@@ -20,8 +17,12 @@ def solve():
     for i in range(n):
         if A[i] == s[i]:
             continue
-        bottle = max(A[i] - mn, mx - A[i])
+        farA = max(mx - A[i], A[i] - mn)
+        farS = max(mx - s[i], s[i] - mn)
+        bottle = min(farA, farS)
         res = min(res, bottle)
+        # bottle = max(A[i] - mn, mx - A[i])
+        # res = min(res, bottle)
 
     print(res)
     return
