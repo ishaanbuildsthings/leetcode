@@ -23,9 +23,6 @@ def solve():
     print(*res)
 
 
-
-
-
 t = int(input())
 for _ in range(t):
     solve()
