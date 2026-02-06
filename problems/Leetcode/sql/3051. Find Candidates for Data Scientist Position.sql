@@ -1,0 +1,2 @@
+-- Write your PostgreSQL query statement below
+SELECT candidate_id FROM (SELECT * FROM Candidates WHERE skill = 'Python' OR skill ='Tableau' OR skill = 'PostgreSQL') t GROUP BY candidate_id HAVING COUNT(*) >= 3;
