@@ -14,12 +14,8 @@ void solve() {
 
     vector<unordered_map<int,int>> below(n + 1); // below[node] holds a map of colors -> frequency that can go up to this root with no blocker
     auto dfs = [&](auto&& self, int node, int parent) -> void {
-        // cerr << "dfs called on: " << node << endl;
-        // cerr << "graph adj size: " << g[node].size() << endl;
         int color = A[node - 1];
-        // cerr << "color: " << color << endl;
         if (node != 1 && g[node].size() == 1) {
-            // cerr << "node is a base case, setting and returning" << endl;
             below[node] = {{color, 1}};
             return;
         }
@@ -63,9 +59,3 @@ int main() {
         solve();
     }
 }
-
-
-// (1) [2]
-// (3)
-// [4]
-// (5)
