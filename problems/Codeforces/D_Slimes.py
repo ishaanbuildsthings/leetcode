@@ -47,8 +47,6 @@ fmin = lambda x, y: x if x < y else y
 def solve():
     n = int(input())
     A = list(map(int, input().split()))
-    # print('==========')
-    # print(f'{A=}')
 
     mx = SparseTable(A, fmax)
     mn = SparseTable(A, fmin)
@@ -64,8 +62,6 @@ def solve():
             return pf[r]
         return pf[r] - pf[l - 1]
 
-    
-
     # any slime inside a continuous block is easy as we look at the two edges
     # any slime with a bigger neighbor is easy as it is 1
     # slimes that are local maximum are hard
@@ -79,8 +75,6 @@ def solve():
             res[i] = 1
             continue
         
-        # print(f'{i=}')
-
         bestHere = float('inf')
         # I do not have a bigger neighbor
         # . ^ .
@@ -106,7 +100,6 @@ def solve():
                 bestHere = dist
         # search right
         if i != n - 1:
-            # print(f'searching right...')
             l = i + 1
             r = n - 1
             resI = None
@@ -129,8 +122,6 @@ def solve():
             res[i] = bestHere
         
     print(*res)
-
-
 
         # we can search right for the first bigger sum with 2 distinct elements
         # or search left with the same
