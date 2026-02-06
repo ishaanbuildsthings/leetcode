@@ -7,9 +7,6 @@ def solve():
         l -= 1
         r -= 1
         qs.append((l, r))
-    # print('=======')
-    # print(f'{C=}')
-    # print(f'{qs=}')
 
     pf = []
     curr = 0
