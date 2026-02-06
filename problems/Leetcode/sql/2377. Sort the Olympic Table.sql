@@ -1,0 +1,7 @@
+-- Write your PostgreSQL query statement below
+SELECT country, gold_medals, silver_medals, bronze_medals FROM Olympic
+ORDER BY
+gold_medals DESC,
+silver_medals DESC,
+bronze_medals DESC,
+country ASC;
