@@ -7,11 +7,6 @@ def solve():
         hlth = A[i]
         rights[abs(x)] += hlth
 
-    
-    # print('========')
-    # print(f'healths: {A=}')
-    # print(f'{rights=}')
-    # print(f'{xs=}')
     extraShots = 0
     for i, v in enumerate(rights[1:]):
         extraShots += k
