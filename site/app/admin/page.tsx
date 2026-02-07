@@ -105,21 +105,37 @@ export default function AdminPage() {
 
 function ProblemsTab() {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showDatabaseForm, setShowDatabaseForm] = useState(false);
   const [editingProblem, setEditingProblem] = useState<string | null>(null);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-gray-900">Problems</h2>
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          {showCreateForm ? "Cancel" : "Create Problem"}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => {
+              setShowDatabaseForm(!showDatabaseForm);
+              if (!showDatabaseForm) setShowCreateForm(false);
+            }}
+            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+          >
+            {showDatabaseForm ? "Cancel" : "Add Database Leetcode Problem"}
+          </button>
+          <button
+            onClick={() => {
+              setShowCreateForm(!showCreateForm);
+              if (!showCreateForm) setShowDatabaseForm(false);
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            {showCreateForm ? "Cancel" : "Create Problem"}
+          </button>
+        </div>
       </div>
 
       {showCreateForm && <CreateProblemForm onSuccess={() => setShowCreateForm(false)} />}
+      {showDatabaseForm && <CreateDatabaseLeetcodeProblemForm onSuccess={() => setShowDatabaseForm(false)} />}
       {editingProblem && (
         <EditProblemForm
           problemId={editingProblem}
@@ -551,6 +567,461 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
         className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {createProblem.isPending ? "Creating..." : "Create Problem"}
+      </button>
+
+      {createProblem.error && (
+        <p className="text-red-600 text-sm font-medium">{createProblem.error.message}</p>
+      )}
+    </form>
+  );
+}
+
+function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
+  const utils = trpc.useUtils();
+  const { data: platforms } = trpc.platform.list.useQuery();
+  const { data: tags } = trpc.tag.list.useQuery();
+
+  const createProblem = trpc.problem.create.useMutation({
+    onSuccess: () => {
+      utils.problem.list.invalidate();
+      onSuccess();
+    },
+  });
+
+  // Find Leetcode platform and Database tag
+  const leetcodePlatform = platforms?.find(p => p.slug === 'leetcode' || p.name.toLowerCase() === 'leetcode');
+  const databaseTag = tags?.find(t => t.slug === 'database' || t.name.toLowerCase() === 'database');
+
+  // Extract problem ID from title (e.g., "2339. Problem Name" -> "2339")
+  const extractProblemId = (title: string): string => {
+    const match = title.match(/^(\d+)\./);
+    return match ? match[1] : "";
+  };
+
+  const [formData, setFormData] = useState({
+    platformId: leetcodePlatform?.id || "",
+    title: "",
+    url: "",
+    isGreatProblem: false,
+    platformProblemId: "",
+    platformDifficulty: "",
+    normalizedDifficulty: undefined as number | undefined,
+    simplifiedStatement: "",
+    notes: "",
+    drillType: null as "mindsolve" | "implement" | null,
+    drillNotes: "",
+    selectedTags: databaseTag ? [{ tagId: databaseTag.id, role: "core" as tag_role, isInstructive: false }] : [] as Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>,
+    solutions: [] as Array<{ submissionUrl?: string; language: programming_language | ""; githubUrl?: string }>,
+  });
+
+  // Update platform when platforms load
+  useEffect(() => {
+    if (leetcodePlatform && !formData.platformId) {
+      setFormData(prev => ({ ...prev, platformId: leetcodePlatform.id }));
+    }
+  }, [leetcodePlatform, formData.platformId]);
+
+  // Update database tag when tags load
+  useEffect(() => {
+    if (databaseTag && formData.selectedTags.length === 0) {
+      setFormData(prev => ({
+        ...prev,
+        selectedTags: [{ tagId: databaseTag.id, role: "core" as tag_role, isInstructive: false }]
+      }));
+    }
+  }, [databaseTag, formData.selectedTags.length]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createProblem.mutate({
+      platformId: formData.platformId,
+      title: formData.title,
+      url: formData.url,
+      isGreatProblem: formData.isGreatProblem,
+      platformProblemId: formData.platformProblemId || undefined,
+      platformDifficulty: formData.platformDifficulty || undefined,
+      normalizedDifficulty: formData.normalizedDifficulty,
+      simplifiedStatement: formData.simplifiedStatement || undefined,
+      notes: formData.notes || undefined,
+      drillType: formData.drillType || null,
+      drillNotes: formData.drillNotes || undefined,
+      tags: formData.selectedTags.length > 0 ? formData.selectedTags : undefined,
+      solutions: formData.solutions.length > 0 
+        ? formData.solutions
+            .filter(s => s.language !== "")
+            .map(s => ({
+              submissionUrl: s.submissionUrl || undefined,
+              language: s.language as programming_language,
+              githubUrl: s.githubUrl || undefined,
+            }))
+        : undefined,
+    });
+  };
+
+  const handleTitleChange = (newTitle: string) => {
+    const problemId = extractProblemId(newTitle);
+    setFormData({
+      ...formData,
+      title: newTitle,
+      platformProblemId: problemId,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6 border-2 border-purple-200">
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+        <h3 className="text-lg font-semibold text-purple-900 mb-2">🗃️ Database Leetcode Problem</h3>
+        <p className="text-sm text-purple-700">
+          Pre-configured for database problems. Platform is set to Leetcode, Database tag is selected with core role and instructive set to No.
+          Problem ID will be auto-extracted from the title.
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Title *</label>
+        <input
+          type="text"
+          required
+          value={formData.title}
+          onChange={(e) => handleTitleChange(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          placeholder="e.g., 2339. All the Matches of the League"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">URL *</label>
+        <input
+          type="url"
+          required
+          value={formData.url}
+          onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          placeholder="https://leetcode.com/problems/..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Platform *</label>
+        <select
+          required
+          value={formData.platformId}
+          onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+        >
+          <option value="">Select a platform</option>
+          {platforms?.map((platform) => (
+            <option key={platform.id} value={platform.id}>
+              {platform.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">
+          Platform Problem ID
+          {formData.platformProblemId && (
+            <span className="ml-2 text-xs text-purple-600 font-normal">
+              (auto-extracted: {formData.platformProblemId})
+            </span>
+          )}
+        </label>
+        <input
+          type="text"
+          value={formData.platformProblemId}
+          onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">
+            Platform Difficulty
+          </label>
+          <input
+            type="text"
+            value={formData.platformDifficulty}
+            onChange={(e) => setFormData({ ...formData, platformDifficulty: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            placeholder="e.g., Easy, Medium, Hard"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">
+            Normalized Difficulty (1-10)
+          </label>
+          <input
+            type="number"
+            min="1"
+            max="10"
+            value={formData.normalizedDifficulty || ""}
+            onChange={(e) => setFormData({ ...formData, normalizedDifficulty: e.target.value ? parseInt(e.target.value) : undefined })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            placeholder="1-10"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Simplified Problem Statement</label>
+        <textarea
+          value={formData.simplifiedStatement}
+          onChange={(e) => setFormData({ ...formData, simplifiedStatement: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          rows={3}
+          placeholder="A brief summary of the problem"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Notes</label>
+        <textarea
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          rows={3}
+        />
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isGreatProblem}
+          onChange={(e) => setFormData({ ...formData, isGreatProblem: e.target.checked })}
+          className="w-4 h-4 text-purple-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">Great Problem</label>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Type</label>
+        <select
+          value={formData.drillType || ""}
+          onChange={(e) => setFormData({ ...formData, drillType: e.target.value === "" ? null : e.target.value as "mindsolve" | "implement" })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+        >
+          <option value="">None</option>
+          <option value="mindsolve">🧠 Mindsolve</option>
+          <option value="implement">💻 Implement</option>
+        </select>
+      </div>
+
+      {formData.drillType && (
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Notes</label>
+          <textarea
+            value={formData.drillNotes}
+            onChange={(e) => setFormData({ ...formData, drillNotes: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            rows={3}
+            placeholder="Notes about drilling this problem..."
+          />
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 mb-3">Tags</label>
+        <div className="space-y-3 border border-gray-200 rounded-md p-4">
+          {tags
+            ?.filter(tag => tag.slug === 'database' || tag.name.toLowerCase() === 'database')
+            .map((tag) => {
+              const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
+              return (
+                <div key={tag.id} className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={!!selected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({
+                            ...formData,
+                            selectedTags: [...formData.selectedTags, { tagId: tag.id, role: "core" as tag_role, isInstructive: false }],
+                          });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.filter((t) => t.tagId !== tag.id),
+                          });
+                        }
+                      }}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded"
+                    />
+                    <span className="flex-1 text-gray-900 font-medium">{tag.name}</span>
+                    {selected && (
+                      <select
+                        value={selected.role || ""}
+                        onChange={(e) => {
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.map((t) =>
+                              t.tagId === tag.id
+                                ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" }
+                                : t
+                            ),
+                          });
+                        }}
+                        className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
+                      >
+                        <option value="">No role</option>
+                        <option value="core">Core</option>
+                        <option value="secondary">Secondary</option>
+                        <option value="mention">Mention</option>
+                      </select>
+                    )}
+                  </div>
+                  {selected && (
+                    <div className="ml-7 flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={selected.tagDifficulty || ""}
+                          onChange={(e) => {
+                            const val = e.target.value ? parseInt(e.target.value) : undefined;
+                            setFormData({
+                              ...formData,
+                              selectedTags: formData.selectedTags.map((t) =>
+                                t.tagId === tag.id ? { ...t, tagDifficulty: val } : t
+                              ),
+                            });
+                          }}
+                          placeholder="1-10"
+                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 font-medium"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
+                          onChange={(e) => {
+                            const val = e.target.value === "" ? undefined : e.target.value === "true";
+                            setFormData({
+                              ...formData,
+                              selectedTags: formData.selectedTags.map((t) =>
+                                t.tagId === tag.id ? { ...t, isInstructive: val } : t
+                              ),
+                            });
+                          }}
+                          className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 font-medium"
+                        >
+                          <option value="">Instructive: Not set</option>
+                          <option value="true">Instructive: Yes</option>
+                          <option value="false">Instructive: No</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
+        <div className="mt-3 text-xs text-gray-600">
+          Only showing Database tag. To add other tags, use the regular form.
+        </div>
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <label className="block text-sm font-semibold text-gray-900">Solutions (optional)</label>
+          <button
+            type="button"
+            onClick={() => {
+              setFormData({
+                ...formData,
+                solutions: [...formData.solutions, { submissionUrl: "", language: "PostgreSQL", githubUrl: "" }],
+              });
+            }}
+            className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            + Add Solution
+          </button>
+        </div>
+        {formData.solutions.length > 0 && (
+          <div className="space-y-4">
+            {formData.solutions.map((sol, index) => (
+              <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold text-gray-700">Solution {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        solutions: formData.solutions.filter((_, i) => i !== index),
+                      });
+                    }}
+                    className="text-xs text-red-600 hover:text-red-700 px-2 py-1 hover:bg-red-50 rounded"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Language *</label>
+                    <select
+                      required
+                      value={sol.language || ""}
+                      onChange={(e) => {
+                        const newSolutions = [...formData.solutions];
+                        newSolutions[index] = { ...newSolutions[index], language: e.target.value as programming_language | "" };
+                        setFormData({ ...formData, solutions: newSolutions });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    >
+                      <option value="">Select language</option>
+                      <option value="Python">Python</option>
+                      <option value="Cpp">C++</option>
+                      <option value="JavaScript">JavaScript</option>
+                      <option value="PostgreSQL">PostgreSQL</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">GitHub URL</label>
+                    <input
+                      type="url"
+                      value={sol.githubUrl || ""}
+                      onChange={(e) => {
+                        const newSolutions = [...formData.solutions];
+                        newSolutions[index] = { ...newSolutions[index], githubUrl: e.target.value };
+                        setFormData({ ...formData, solutions: newSolutions });
+                      }}
+                      placeholder="https://github.com/..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Submission URL</label>
+                  <input
+                    type="url"
+                    value={sol.submissionUrl || ""}
+                    onChange={(e) => {
+                      const newSolutions = [...formData.solutions];
+                      newSolutions[index] = { ...newSolutions[index], submissionUrl: e.target.value };
+                      setFormData({ ...formData, solutions: newSolutions });
+                    }}
+                    placeholder="https://leetcode.com/submissions/..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <button
+        type="submit"
+        disabled={createProblem.isPending}
+        className="w-full px-4 py-3 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {createProblem.isPending ? "Creating..." : "Create Database Problem"}
       </button>
 
       {createProblem.error && (
