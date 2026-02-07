@@ -1090,6 +1090,19 @@ function ProblemsList({ onEdit }: { onEdit: (id: string) => void }) {
                   <span className="text-sm text-gray-500">{problem.notes}</span>
                 </div>
               )}
+              {problem.drillType && (
+                <div className="mt-2 flex items-start gap-2">
+                  <span className="px-2 py-1 rounded text-xs font-semibold bg-gradient-to-r from-blue-50 to-purple-50 text-purple-900 border border-purple-200">
+                    {problem.drillType === 'mindsolve' ? '🧠 Mindsolve' : '💻 Implement'}
+                  </span>
+                  {problem.drillNotes && (
+                    <div className="flex-1">
+                      <span className="text-xs font-semibold text-gray-700">Drill Notes: </span>
+                      <span className="text-sm text-gray-600">{problem.drillNotes}</span>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex flex-wrap gap-1 mt-2">
                 {problem.tags.map((pt) => (
                   <span
