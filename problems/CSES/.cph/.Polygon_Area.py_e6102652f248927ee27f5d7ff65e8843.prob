@@ -1,0 +1,1 @@
+{"name":"Local: Polygon_Area","url":"/Users/ishaan/code/leetcode/problems/CSES/Polygon_Area.py","tests":[{"id":1770621357165,"input":"4\n1 1\n4 2\n3 5\n1 4","output":""}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/ishaan/code/leetcode/problems/CSES/Polygon_Area.py","group":"local","local":true}
