@@ -1,0 +1,2 @@
+-- Write your PostgreSQL query statement below
+SELECT domain AS email_domain, COUNT(*) AS count FROM (SELECT split_part(email, '@', 2) AS domain FROM Emails WHERE split_part(email, '@', 2) LIKE '%.com') GROUP BY domain ORDER BY domain;
