@@ -192,6 +192,12 @@ export async function unsafe_deleteProblem(id: string) {
   });
 }
 
+export async function unsafe_countProblemsByPlatform(platformSlug: string) {
+  return prisma.problems.count({
+    where: { platforms: { slug: platformSlug } },
+  });
+}
+
 export async function unsafe_listProblemsByPlatformAndTags(
   platformSlug: string,
   tagSlugs: string[]

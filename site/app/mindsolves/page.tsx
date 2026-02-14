@@ -25,11 +25,11 @@ export default async function MindsolvesPage() {
 
   return (
     <AuthProvider value={{ userId, isAdmin }}>
-      <ProblemsList 
-        problems={mindsolves} 
-        title="🧠 Mindsolves"
+      <ProblemsList
+        problems={mindsolves}
+        title="Mindsolves"
         description="Problems to mindsolve and think through"
-        activeNav="mindsolves"
+        activePath="/mindsolves"
       />
     </AuthProvider>
   );

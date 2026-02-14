@@ -25,11 +25,11 @@ export default async function ImplementsPage() {
 
   return (
     <AuthProvider value={{ userId, isAdmin }}>
-      <ProblemsList 
-        problems={implements_} 
-        title="💻 Implements"
+      <ProblemsList
+        problems={implements_}
+        title="Implements"
         description="Problems to implement and code"
-        activeNav="implements"
+        activePath="/implements"
       />
     </AuthProvider>
   );
