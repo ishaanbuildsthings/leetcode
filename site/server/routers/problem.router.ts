@@ -101,5 +101,20 @@ export const problemRouter = router({
     await problemService.unsafe_deleteProblem(input.id);
     return { success: true };
   }),
+
+  listByTags: publicProcedure
+    .input(
+      z.object({
+        platformSlug: z.string(),
+        tagSlugs: z.array(z.string()),
+      })
+    )
+    .query(async ({ input }) => {
+      const problems = await problemService.unsafe_listProblemsByPlatformAndTags(
+        input.platformSlug,
+        input.tagSlugs
+      );
+      return problems.map(transformProblemWithRelations);
+    }),
 });
 

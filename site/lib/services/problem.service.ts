@@ -191,3 +191,28 @@ export async function unsafe_deleteProblem(id: string) {
     where: { id },
   });
 }
+
+export async function unsafe_listProblemsByPlatformAndTags(
+  platformSlug: string,
+  tagSlugs: string[]
+) {
+  return prisma.problems.findMany({
+    where: {
+      platforms: { slug: platformSlug },
+      problem_tags: {
+        some: {
+          role: "core",
+          tags: { slug: { in: tagSlugs } },
+        },
+      },
+    },
+    include: {
+      platforms: true,
+      problem_tags: {
+        include: { tags: true },
+      },
+      solutions: true,
+    },
+    orderBy: { created_at: "desc" },
+  });
+}

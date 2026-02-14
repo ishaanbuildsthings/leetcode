@@ -12,7 +12,7 @@ interface ProblemsListProps {
   problems: IProblemWithRelations[];
   title?: string;
   description?: string;
-  activeNav?: "mindsolves" | "implements" | null;
+  activeNav?: "leetcode" | "mindsolves" | "implements" | null;
 }
 
 export function ProblemsList({ problems, title = "Problems", description = "A curated list of coding problems", activeNav = null }: ProblemsListProps) {
@@ -26,8 +26,18 @@ export function ProblemsList({ problems, title = "Problems", description = "A cu
           </Link>
           
           <div className="flex gap-4">
-            <Link 
-              href="/mindsolves" 
+            <Link
+              href="/leetcode"
+              className={`px-4 py-2 rounded-lg transition-colors font-medium ${
+                activeNav === "leetcode"
+                  ? "bg-orange-600 text-white hover:bg-orange-700"
+                  : "text-gray-700 hover:text-gray-900"
+              }`}
+            >
+              LeetCode
+            </Link>
+            <Link
+              href="/mindsolves"
               className={`px-4 py-2 rounded-lg transition-colors font-medium ${
                 activeNav === "mindsolves"
                   ? "bg-purple-600 text-white hover:bg-purple-700"
