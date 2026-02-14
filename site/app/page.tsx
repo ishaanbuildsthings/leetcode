@@ -36,12 +36,11 @@ export default async function HomePage() {
   }
 
   // Fetch data in parallel
-  const [problemsData, totalProblems, githubStars] = await Promise.all([
+  const [problemsData, githubStars] = await Promise.all([
     problemService.unsafe_listProblemsByPlatformAndTags(
       "leetcode",
       TAG_SLUGS_ORDERED
     ),
-    problemService.unsafe_countProblemsByPlatform("leetcode"),
     fetchGitHubStars("ishaanbuildsthings/leetcode"),
   ]);
 
@@ -90,11 +89,8 @@ export default async function HomePage() {
   return (
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-gray-50">
-        <Nav activePath="/" githubStars={githubStars} />
-        <TagBucketList
-          sections={sections}
-          stats={{ totalProblems, githubStars }}
-        />
+        <Nav activePath="/" />
+        <TagBucketList sections={sections} githubStars={githubStars} />
       </div>
     </AuthProvider>
   );
