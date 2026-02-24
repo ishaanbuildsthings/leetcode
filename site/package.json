@@ -18,6 +18,7 @@
     "@trpc/react-query": "^11.8.0",
     "@trpc/server": "^11.8.0",
     "@types/dagre": "^0.7.53",
+    "@vercel/analytics": "^1.6.1",
     "dagre": "^0.8.5",
     "dotenv": "^17.2.3",
     "next": "16.0.10",
