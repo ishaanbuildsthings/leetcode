@@ -30,7 +30,7 @@ class LazyPropagationSegmentTree:
     def _build(self, i, tl, tr):
         if tl == tr:
             self.tree[i] = self._baseFn(self.arr[tl], tl)
-            return
+        return
         tm = (tr + tl) // 2
         self._build(2 * i, tl, tm)
         self._build(2 * i + 1, tm + 1, tr)
