@@ -22,13 +22,14 @@
 class Solution:
     def bstToGst(self, root: TreeNode) -> TreeNode:
         runningSum = 0
-        def postorder(node):
+        def revInorder(node):
             nonlocal runningSum
             if not node:
                 return
-            postorder(node.right)
+            revInorder(node.right)
+            newVal = node.val + runningSum
             runningSum += node.val
-            node.val = runningSum
-            postorder(node.left)
-        postorder(root)
+            node.val = newVal
+            revInorder(node.left)
+        revInorder(root)
         return root
