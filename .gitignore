@@ -7,3 +7,4 @@ venv/
 __pycache__/.claude/
 .cph/
 CLAUDE.md
+.claude/
