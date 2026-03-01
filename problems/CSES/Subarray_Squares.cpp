@@ -91,7 +91,7 @@ int main() {
     // gives us [min cost, partitions pade]
     auto withCost = [&](ll lambda) -> pair<ll,int> {
         vector<ll> dp(n, LLONG_MAX); // dp[i] is the min cost to split ...i into any number of partitions
-        vector<int> bestPartitions(n, -1); // bestPartitions[i] is the best amount of partitions to get the min cost for 0...i
+        vector<int> bestPartitions(n, -1); // bestPartitions[i] is the max partitions to get the min cost for 0...i, we could also use min depending on the binary-search
         bestPartitions[0] = 1;
 
         dp[0] = (1LL * arr[0] * arr[0]) + lambda;
@@ -104,6 +104,8 @@ int main() {
                 if (totCost < dp[i]) {
                     dp[i] = totCost;
                     bestPartitions[i] = (j > 0) ? (bestPartitions[j - 1] + 1) : 1;
+                } else if (totCost == dp[i]) {
+                    bestPartitions[i] = max(bestPartitions[i], (j > 0) ? (bestPartitions[j - 1] + 1) : 1);
                 }
             }
         }
@@ -122,13 +124,15 @@ int main() {
         // cerr << "lambda is: " << lambda << endl;
         auto [cost, partitions] = withCost(lambda);
         // cerr << "optimal partitions: " << partitions << endl;
-        if (partitions <= k) {
-            r = lambda - 1;
+        // since we are finding the MAX possible number of partitions, its possible that this is the point we cross over to exactly k partitions by going left
+        // if we found the MIN possible # of partitions we could flip this binary search
+        if (partitions >= k) {
+            l = lambda + 1;
             resLambda = lambda;
             resCost = cost;
             resPartitions = partitions;
-        } else if (partitions > k) {
-            l = lambda + 1;
+        } else if (partitions < k) {
+            r = lambda - 1;
         }
     }
     ll out = resCost - (resLambda * k);
