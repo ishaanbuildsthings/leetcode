@@ -39,6 +39,7 @@
 #                 bestJ = None
 
 #                 # find some j < i that works by checking all
+                  # min here wasn't needed to pass tests but I think it is poor test cases based on my leetgoat explanation for cses subarray squares
 #                 for j in range(leftJ, min(rightJ + 1, mid + 1)):
 #                     costHere = dp[partitions - 1][j] + cost(j + 1, mid)
 #                     if costHere < bestCost:
