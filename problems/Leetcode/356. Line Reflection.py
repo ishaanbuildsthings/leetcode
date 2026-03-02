@@ -7,7 +7,6 @@ class Solution:
         for x, y in points:
             c[tuple([x, y])] += 1
         
-        skipGroup = Counter()
         for x, y in points:
 
             dist = abs(mid - x)
