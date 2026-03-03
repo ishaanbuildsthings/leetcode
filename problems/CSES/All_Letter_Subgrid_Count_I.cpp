@@ -8,13 +8,22 @@ const int MAX_N = 3000;
 int best[MAX_N][MAX_N]; // best[r][c] is if (r, c) is the bottom right corner of a square, what is smallest side-length we need to be to contain every letter?
 int dp[MAX_N]; // stores best side length, for each letter (one at a time, we overwrite), 1d space optimized to help with time
 int ndp[MAX_N]; // again, the rolling 2 arrays trick
-string grid[MAX_N];
+// string grid[MAX_N];
+int grid[MAX_N][MAX_N];
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int n, k; cin >> n >> k;
     // vector<string> grid(n); for (int i = 0; i < n; i++) cin >> grid[i];
-    for (int i = 0; i < n; i++) cin >> grid[i];
+    // for (int i = 0; i < n; i++) cin >> grid[i];
+    for (int r = 0; r < n; r++) {
+        for (int c = 0; c < n; c++) {
+            char letter; cin >> letter;
+            grid[r][c] = letter - 'A';
+        }
+    }
+
+
 
 
     // process for each letter separately, what is the best side-length we need to make it so we contain that letter?
@@ -22,16 +31,17 @@ int main() {
         for (int r = 0; r < n; r++) {
             for (int c = 0; c < n; c++) {
                 if (r == 0 || c == 0) {
-                    if (grid[r][c] - 'A' == i) {
+                    if (grid[r][c] == i) {
                         ndp[c] = 1;
                     } else {
                         ndp[c] = INF;
                     }
                 } else {
-                    if (grid[r][c] - 'A' == i) {
+                    if (grid[r][c] == i) {
                         ndp[c] = 1;
                     } else {
-                        int bottle = min({ndp[c-1], dp[c], dp[c-1]});
+                        int bottle = min(ndp[c-1], min(dp[c], dp[c-1]));
+                        // int bottle = min({ndp[c-1], dp[c], dp[c-1]});
                         if (bottle == INF) {
                             ndp[c] = INF;
                         } else {
