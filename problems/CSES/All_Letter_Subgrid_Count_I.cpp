@@ -185,7 +185,7 @@
 //     SquareSparseTable(const vector<vector<T>>& grid, Combine combine) : combine(combine) {
 //         int h = grid.size();
 //         int w = grid[0].size();
-//         LOG = __lg(min(h, w)) + 1; // I think this is sometimes 1 extra which is fine
+//         LOG = __lg(min(h, w)) + 1; // I think this is sometimes 1 extra which is fine, we do +1 for 0 and 1 indexing handling I believe
 //         dp.resize(LOG);
 //         dp[0] = grid; // basically we imply the input grid already has the preprocessed single values, so we can copy directly
 //         for (int power = 1; power < LOG; power++) {

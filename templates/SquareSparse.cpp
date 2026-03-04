@@ -3,14 +3,14 @@
 // This allows the build time to be O(N * M * log(max(N, M)))
 template<typename T, typename Combine> // T = type of grid[r][c], Combine is the type signature of our aggregator
 struct SquareSparseTable {
-    vector<vector<vector<T>>> dp; // dp[power][r][c], where (r, c) is the top left corner
+    vector<vector<vector<T>>> dp; // dp[power][r][c], where (r, c) is the top left corner, power first is best because of cache acess, we read from dp[power] and dp[power-1] often so they get cached, as opposed to jumping around different top level r and c in the dp, if we put those dimensions first
     int LOG;
     Combine combine;
     
     SquareSparseTable(const vector<vector<T>>& grid, Combine combine) : combine(combine) {
         int h = grid.size();
         int w = grid[0].size();
-        LOG = __lg(min(h, w)) + 1; // I think this is sometimes 1 extra which is fine
+        LOG = __lg(min(h, w)) + 1; // I think this is sometimes 1 extra which is fine, we do +1 for 0 and 1 indexing handling I think
         dp.resize(LOG);
         dp[0] = grid; // basically we imply the input grid already has the preprocessed single values, so we can copy directly
         for (int power = 1; power < LOG; power++) {
@@ -20,6 +20,7 @@ struct SquareSparseTable {
             int fullPower = 1 << power;
             int verticalRows = h - fullPower + 1;
             int horizontalRows = w - fullPower + 1;
+            // once we "get past" the power and resize it, for a given power we know exactly how many r and c get assigned so we can do this in one go
             dp[power].assign(verticalRows, vector<T>(horizontalRows)); // despite using T, the compiler knows what this is at compile time, so it can set a default value
             for (int r = 0; r < verticalRows; r++) {
                 for (int c = 0; c < horizontalRows; c++) {
