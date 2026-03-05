@@ -9,18 +9,39 @@ interface NavProps {
   githubStars?: number;
 }
 
+const navLinks = [
+  { href: "/practice", label: "Practice" },
+  { href: "/competitive", label: "Competitive Programming" },
+];
+
 export function Nav({ activePath, isDev, githubStars }: NavProps) {
   const { isAdmin } = useAuth();
 
   return (
     <nav className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link
-          href="/"
-          className="text-lg font-semibold tracking-tight text-gray-900"
-        >
-          leetgoat
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link
+            href="/"
+            className="text-lg font-semibold tracking-tight text-gray-900"
+          >
+            leetgoat
+          </Link>
+
+          {navLinks.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`text-sm font-medium transition-colors ${
+                activePath === href
+                  ? "font-bold text-gray-900 underline underline-offset-4"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
 
         <div className="flex items-center gap-5">
           <a
