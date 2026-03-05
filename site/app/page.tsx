@@ -25,12 +25,11 @@ export default async function HomePage() {
 
   const isDev = process.env.NODE_ENV === "development";
 
-  // Fetch all tags, all leetcode problems with tags, and GitHub stars in parallel
+  // Fetch all tags, all problems with core tags, and GitHub stars in parallel
   const [allTags, allProblemsRaw, githubStars] = await Promise.all([
     tagService.unsafe_listTags(),
     prisma.problems.findMany({
       where: {
-        platforms: { slug: "leetcode" },
         problem_tags: { some: { role: "core" } },
       },
       include: {
@@ -76,7 +75,6 @@ export default async function HomePage() {
       name: tag.name,
       problems: grouped.get(tag.slug) ?? [],
     }))
-    .filter((s) => s.problems.length > 0)
     .sort((a, b) => {
       if (b.problems.length !== a.problems.length)
         return b.problems.length - a.problems.length;

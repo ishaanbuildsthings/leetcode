@@ -125,6 +125,7 @@ export function TagBucketList({ sections }: TagBucketListProps) {
                         <div className="w-16 text-center">Tag Diff</div>
                         <div className="w-16 text-center">Norm Diff</div>
                         <div className="min-w-0 flex-1">Problem</div>
+                        <div className="w-20 text-center">Platform</div>
                         <div className="w-16 text-center">Level</div>
                         <div className="w-32 text-right">Links</div>
                       </div>
@@ -193,6 +194,13 @@ export function TagBucketList({ sections }: TagBucketListProps) {
                                   ★
                                 </span>
                               )}
+                            </div>
+
+                            {/* Platform */}
+                            <div className="w-20 flex-shrink-0 text-center">
+                              <span className="text-xs font-medium text-slate-500 capitalize">
+                                {problem.platform.name}
+                              </span>
                             </div>
 
                             {/* Platform difficulty */}
