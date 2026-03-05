@@ -13,6 +13,7 @@ const navLinks = [
   { href: "/practice", label: "Interview Prep" },
   { href: "/competitive", label: "Competitive Programming" },
   { href: "/questions", label: "Mega Questions List (Free)" },
+  { href: "/ask", label: "Ask LeetGoat" },
 ];
 
 export function Nav({ activePath, isDev, githubStars }: NavProps) {
