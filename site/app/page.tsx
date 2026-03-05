@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { fetchGitHubStars } from "@/lib/github";
+import { PatternAnimations } from "@/components/PatternAnimations";
 import Link from "next/link";
 
 export default async function HomePage() {
@@ -34,7 +35,7 @@ export default async function HomePage() {
     }),
   ]);
 
-  const tags = tagsRaw
+  const allTags = tagsRaw
     .map((t) => ({
       name: t.name,
       slug: t.slug,
@@ -44,6 +45,10 @@ export default async function HomePage() {
     .filter((t) => t.problemCount > 0)
     .sort((a, b) => b.problemCount - a.problemCount);
 
+  // Show top 6 on homepage
+  const topTags = allTags.slice(0, 6);
+  const totalProblems = allTags.reduce((s, t) => s + t.problemCount, 0);
+
   return (
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-white">
@@ -51,7 +56,7 @@ export default async function HomePage() {
 
         {/* Hero */}
         <section className="bg-gradient-to-b from-gray-50 to-white">
-          <div className="mx-auto max-w-6xl px-6 pb-20 pt-20 md:pt-28">
+          <div className="mx-auto max-w-6xl px-6 pb-10 pt-20 md:pt-28">
             <h1 className="max-w-3xl text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
               Train smarter for coding interviews &amp; competitions
             </h1>
@@ -78,6 +83,13 @@ export default async function HomePage() {
                 Explore Competition Track
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* Pattern Animations */}
+        <section className="border-t border-gray-100 bg-white">
+          <div className="mx-auto max-w-6xl px-6 py-16">
+            <PatternAnimations />
           </div>
         </section>
 
@@ -159,7 +171,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Interview Prep Topics */}
+        {/* Interview Prep Topics — top 6 */}
         <section className="border-t border-gray-100 bg-gray-50/50">
           <div className="mx-auto max-w-6xl px-6 py-20">
             <div className="mb-2">
@@ -176,7 +188,7 @@ export default async function HomePage() {
             </p>
 
             <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {tags.map((tag) => (
+              {topTags.map((tag) => (
                 <Link
                   key={tag.slug}
                   href={`/practice#${tag.slug}`}
@@ -198,11 +210,9 @@ export default async function HomePage() {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate font-semibold text-gray-900">
-                        {tag.name}
-                      </span>
-                    </div>
+                    <span className="truncate font-semibold text-gray-900">
+                      {tag.name}
+                    </span>
                     {tag.description && (
                       <p className="mt-0.5 truncate text-xs text-gray-400">
                         {tag.description}
@@ -210,10 +220,7 @@ export default async function HomePage() {
                     )}
                   </div>
                   <div className="flex flex-shrink-0 items-center gap-2 text-sm text-gray-400">
-                    <span>
-                      {tag.problemCount}{" "}
-                      <span className="hidden sm:inline">problems</span>
-                    </span>
+                    <span>{tag.problemCount} problems</span>
                     <svg
                       className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
                       fill="none"
@@ -230,6 +237,15 @@ export default async function HomePage() {
                   </div>
                 </Link>
               ))}
+            </div>
+
+            <div className="mt-8 text-center">
+              <Link
+                href="/practice"
+                className="text-sm font-semibold text-gray-600 transition-colors hover:text-gray-900"
+              >
+                View all {allTags.length} topics &rarr;
+              </Link>
             </div>
           </div>
         </section>
