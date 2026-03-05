@@ -1,24 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import * as problemService from "@/lib/services/problem.service";
+import * as tagService from "@/lib/services/tag.service";
 import { transformProblemWithRelations } from "@/lib/transforms";
 import type { IProblemWithRelations } from "@/lib/transforms";
 import { TagBucketList } from "@/components/TagBucketList";
 import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { fetchGitHubStars } from "@/lib/github";
-
-const TAG_SLUGS_ORDERED = [
-  "kadanes",
-  "binary-search",
-  "binary-search-on-answer",
-  "sliding-window-fixed",
-  "sliding-window-variable",
-  "prefix-suffix",
-  "two-pointers",
-  "knapsack-dp",
-  "stacks",
-];
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -35,25 +23,36 @@ export default async function HomePage() {
     isAdmin = dbUser?.is_admin ?? false;
   }
 
-  // Fetch data in parallel
-  const [problemsData, githubStars] = await Promise.all([
-    problemService.unsafe_listProblemsByPlatformAndTags(
-      "leetcode",
-      TAG_SLUGS_ORDERED
-    ),
+  const isDev = process.env.NODE_ENV === "development";
+
+  // Fetch all tags, all leetcode problems with tags, and GitHub stars in parallel
+  const [allTags, allProblemsRaw, githubStars] = await Promise.all([
+    tagService.unsafe_listTags(),
+    prisma.problems.findMany({
+      where: {
+        platforms: { slug: "leetcode" },
+        problem_tags: { some: { role: "core" } },
+      },
+      include: {
+        platforms: true,
+        problem_tags: { include: { tags: true } },
+        solutions: true,
+      },
+      orderBy: { created_at: "desc" },
+    }),
     fetchGitHubStars("ishaanbuildsthings/leetcode"),
   ]);
 
-  const problems = problemsData.map(transformProblemWithRelations);
+  const problems = allProblemsRaw.map(transformProblemWithRelations);
 
   // Group problems by their core tag slug
   const grouped = new Map<string, IProblemWithRelations[]>();
-  for (const slug of TAG_SLUGS_ORDERED) {
-    grouped.set(slug, []);
+  for (const tag of allTags) {
+    grouped.set(tag.slug, []);
   }
   for (const problem of problems) {
     for (const pt of problem.tags) {
-      if (pt.role === "core" && TAG_SLUGS_ORDERED.includes(pt.tag.slug)) {
+      if (pt.role === "core" && grouped.has(pt.tag.slug)) {
         grouped.get(pt.tag.slug)!.push(problem);
       }
     }
@@ -70,27 +69,25 @@ export default async function HomePage() {
     });
   }
 
-  // Build ordered sections with tag names from the data
-  const tagNameMap = new Map<string, string>();
-  for (const problem of problems) {
-    for (const pt of problem.tags) {
-      if (!tagNameMap.has(pt.tag.slug)) {
-        tagNameMap.set(pt.tag.slug, pt.tag.name);
-      }
-    }
-  }
-
-  const sections = TAG_SLUGS_ORDERED.map((slug) => ({
-    slug,
-    name: tagNameMap.get(slug) ?? slug,
-    problems: grouped.get(slug) ?? [],
-  }));
+  // Build sections sorted by problem count descending, then alphabetically
+  const sections = allTags
+    .map((tag) => ({
+      slug: tag.slug,
+      name: tag.name,
+      problems: grouped.get(tag.slug) ?? [],
+    }))
+    .filter((s) => s.problems.length > 0)
+    .sort((a, b) => {
+      if (b.problems.length !== a.problems.length)
+        return b.problems.length - a.problems.length;
+      return a.name.localeCompare(b.name);
+    });
 
   return (
     <AuthProvider value={{ userId, isAdmin }}>
-      <div className="min-h-screen bg-gray-50">
-        <Nav activePath="/" />
-        <TagBucketList sections={sections} githubStars={githubStars} />
+      <div className="min-h-screen bg-slate-50">
+        <Nav activePath="/" isDev={isDev} githubStars={githubStars} />
+        <TagBucketList sections={sections} />
       </div>
     </AuthProvider>
   );
