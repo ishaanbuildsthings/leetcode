@@ -12,4 +12,4 @@ class Solution:
                 right = dp(rt + 1, r)
                 res += left * right
             return res
-        return dp(1, n) 
+    return dp(1, n) 
