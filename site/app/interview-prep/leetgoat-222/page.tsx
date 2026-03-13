@@ -1,0 +1,29 @@
+export default function LeetGoat222Page() {
+  return (
+    <main className="flex min-h-[60vh] items-center justify-center px-6">
+      <div className="rounded-2xl border border-border bg-background/90 px-12 py-16 text-center shadow-lg backdrop-blur-sm">
+        <h1 className="font-[family-name:var(--font-playfair)] text-4xl font-bold text-foreground">
+          Coming Soon
+        </h1>
+        <p className="mx-auto mt-4 max-w-md font-[family-name:var(--font-dm-sans)] text-base text-muted-foreground">
+          Coming up with a curated set of the best 222 problems to solve.
+          Still working on this!
+        </p>
+        <p className="mt-6 font-[family-name:var(--font-dm-sans)] text-sm text-muted-foreground">
+          &ndash; leetgoat{" "}
+          <span className="inline-block text-lg animate-[wiggle_1.5s_ease-in-out_infinite]">
+            🐐
+          </span>
+        </p>
+        <a
+          href="https://discord.gg/yaRMFNvB"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 inline-block font-[family-name:var(--font-dm-sans)] text-sm font-medium text-primary underline underline-offset-4 hover:text-primary/80"
+        >
+          Join the Discord for updates &rarr;
+        </a>
+      </div>
+    </main>
+  );
+}

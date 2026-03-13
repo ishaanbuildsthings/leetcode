@@ -1,26 +1,73 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 45 30% 97%;
+    --foreground: 30 15% 18%;
+
+    --card: 45 40% 95%;
+    --card-foreground: 30 15% 18%;
+
+    --primary: 140 25% 32%;
+    --primary-foreground: 45 30% 97%;
+
+    --secondary: 38 45% 88%;
+    --secondary-foreground: 30 15% 18%;
+
+    --muted: 45 20% 92%;
+    --muted-foreground: 30 10% 45%;
+
+    --accent: 32 60% 58%;
+    --accent-foreground: 45 30% 97%;
+
+    --border: 40 20% 86%;
+    --input: 40 20% 86%;
+    --ring: 140 25% 32%;
+
+    --radius: 0.75rem;
+
+    --sage: 140 18% 72%;
+    --golden: 38 65% 62%;
+    --cream: 42 50% 94%;
+    --warm-brown: 25 30% 30%;
   }
 }
 
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-border: hsl(var(--border));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --font-display: var(--font-playfair);
+  --font-body: var(--font-dm-sans);
+}
+
+html {
+  scroll-behavior: smooth;
+  overscroll-behavior: none;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-body), 'DM Sans', sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display), 'Playfair Display', serif;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(12deg); }
+  75% { transform: rotate(-12deg); }
 }

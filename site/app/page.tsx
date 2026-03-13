@@ -2,9 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { fetchGitHubStars } from "@/lib/github";
-import { PatternAnimations } from "@/components/PatternAnimations";
 import Link from "next/link";
+import { GoatModeToggle } from "@/components/GoatModeToggle";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -23,251 +22,74 @@ export default async function HomePage() {
 
   const isDev = process.env.NODE_ENV === "development";
 
-  const [githubStars, tagsRaw] = await Promise.all([
-    fetchGitHubStars("ishaanbuildsthings/leetcode"),
-    prisma.tags.findMany({
-      include: {
-        problem_tags: {
-          where: { role: "core" },
-          select: { problem_id: true },
-        },
-      },
-    }),
-  ]);
-
-  const allTags = tagsRaw
-    .map((t) => ({
-      name: t.name,
-      slug: t.slug,
-      description: t.description,
-      problemCount: t.problem_tags.length,
-    }))
-    .filter((t) => t.problemCount > 0)
-    .sort((a, b) => b.problemCount - a.problemCount);
-
-  // Show top 6 on homepage
-  const topTags = allTags.slice(0, 6);
-  const totalProblems = allTags.reduce((s, t) => s + t.problemCount, 0);
-
   return (
     <AuthProvider value={{ userId, isAdmin }}>
-      <div className="min-h-screen bg-white">
-        <Nav activePath="/" isDev={isDev} githubStars={githubStars} />
+      <GoatModeToggle>
+        <Nav activePath="/" isDev={isDev} />
 
         {/* Hero */}
-        <section className="bg-gradient-to-b from-gray-50 to-white">
-          <div className="mx-auto max-w-6xl px-6 pb-10 pt-20 md:pt-28">
-            <h1 className="max-w-3xl text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-              Train smarter for coding interviews &amp; competitions
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-500">
-              Curated problem sets and structured paths built by someone
-              who&apos;s solved{" "}
-              <span className="font-semibold text-gray-900">
-                4,000+ LeetCode problems
-              </span>
-              . No fluff, just the patterns that matter.
-            </p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <Link
-                href="/practice"
-                className="inline-flex items-center gap-2 rounded-lg bg-lime-400 px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm transition-colors hover:bg-lime-500"
-              >
-                Start Interview Prep
-                <span aria-hidden="true">&rarr;</span>
-              </Link>
-              <Link
-                href="/competitive"
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                Explore Competition Track
-              </Link>
-            </div>
-          </div>
-        </section>
+        <section
+          className="relative flex min-h-screen items-start pt-28 lg:items-center lg:pt-16"
+        >
 
-        {/* Pattern Animations */}
-        <section className="border-t border-gray-100 bg-white">
-          <div className="mx-auto max-w-6xl px-6 py-16">
-            <PatternAnimations />
-          </div>
-        </section>
-
-        {/* Features */}
-        <section className="border-t border-gray-100">
-          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-20 md:grid-cols-3">
+          <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-6 lg:grid-cols-2">
+            {/* Left — headline + CTA */}
             <div>
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-lime-100">
-                <svg
-                  className="h-5 w-5 text-lime-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-base font-semibold text-gray-900">
-                Battle-tested curriculum
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-500">
-                Every problem hand-picked from 4,000+ solved. Only the
-                highest-signal patterns make the cut.
-              </p>
-            </div>
-            <div>
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
-                <svg
-                  className="h-5 w-5 text-emerald-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M7.5 3.75H6A2.25 2.25 0 003.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0120.25 6v1.5m0 9V18A2.25 2.25 0 0118 20.25h-1.5m-9 0H6A2.25 2.25 0 013.75 18v-1.5M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-base font-semibold text-gray-900">
-                Two focused tracks
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-500">
-                Interview prep for landing offers. Competition track for pushing
-                your limits. Pick your path.
-              </p>
-            </div>
-            <div>
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
-                <svg
-                  className="h-5 w-5 text-emerald-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-base font-semibold text-gray-900">
-                Pattern-first approach
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-500">
-                Stop grinding randomly. Learn the underlying patterns so you can
-                solve any variation.
-              </p>
-            </div>
-          </div>
-        </section>
+              <h1 className="font-[family-name:var(--font-playfair)] text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+                Learn to actually solve LeetCode problems. Not memorize them.
+              </h1>
 
-        {/* Interview Prep Topics — top 6 */}
-        <section className="border-t border-gray-100 bg-gray-50/50">
-          <div className="mx-auto max-w-6xl px-6 py-20">
-            <div className="mb-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-lime-100 px-3 py-1 text-xs font-semibold text-lime-700">
-                🎯 Interview Prep
-              </span>
-            </div>
-            <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-              Master the patterns that land offers
-            </h2>
-            <p className="mt-2 text-gray-500">
-              Structured topic tracks covering every pattern you&apos;ll
-              encounter at top companies.
-            </p>
+              <p className="mt-4 font-[family-name:var(--font-dm-sans)] text-lg font-semibold text-foreground" style={{ textShadow: '0 1px 8px rgba(255,255,255,0.6), 0 0 30px rgba(255,255,255,0.3)' }}>
+                (from someone who&apos;s solved 3,000+ of them)
+              </p>
 
-            <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {topTags.map((tag) => (
+              <div className="mt-8 flex flex-wrap items-center gap-4">
                 <Link
-                  key={tag.slug}
-                  href={`/practice#${tag.slug}`}
-                  className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 transition-all hover:border-gray-300 hover:shadow-md"
+                  href="/interview-prep"
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-7 py-3.5 font-[family-name:var(--font-dm-sans)] text-sm font-semibold text-primary-foreground shadow-md transition-colors hover:bg-primary/90"
                 >
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"
-                      />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="truncate font-semibold text-gray-900">
-                      {tag.name}
-                    </span>
-                    {tag.description && (
-                      <p className="mt-0.5 truncate text-xs text-gray-400">
-                        {tag.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-shrink-0 items-center gap-2 text-sm text-gray-400">
-                    <span>{tag.problemCount} problems</span>
-                    <svg
-                      className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                      />
-                    </svg>
-                  </div>
+                  Start Practicing (it&apos;s free)
+                  <span aria-hidden="true">&rarr;</span>
                 </Link>
-              ))}
+                <a
+                  href="https://discord.gg/yaRMFNvB"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#5865F2] px-7 py-3.5 font-[family-name:var(--font-dm-sans)] text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#4752C4]"
+                >
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                  </svg>
+                  Join the Herd
+                </a>
+              </div>
             </div>
 
-            <div className="mt-8 text-center">
-              <Link
-                href="/practice"
-                className="text-sm font-semibold text-gray-600 transition-colors hover:text-gray-900"
-              >
-                View all {allTags.length} topics &rarr;
-              </Link>
+            {/* Right — video placeholder */}
+            <div className="flex items-center justify-center">
+              <div className="flex w-full max-w-lg flex-col items-center justify-center rounded-2xl border border-border bg-background/70 backdrop-blur-md aspect-video shadow-lg">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/20">
+                  <svg
+                    className="h-6 w-6 text-primary"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+                <p className="mt-4 text-center font-[family-name:var(--font-dm-sans)] text-sm text-foreground font-medium">
+                  What I learned from solving 3,000 LeetCode problems
+                </p>
+                <p className="mt-1 text-center font-[family-name:var(--font-dm-sans)] text-xs text-muted-foreground">
+                  Coming soon
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Competition Teaser */}
-        <section className="border-t border-gray-100">
-          <div className="mx-auto max-w-6xl px-6 py-20">
-            <div className="mb-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600">
-                ⚔️ Competition
-              </span>
-            </div>
-            <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-              Push beyond interviews
-            </h2>
-            <p className="mt-2 text-gray-500">
-              Olympiad-level topics for competitive programming mastery. Coming
-              soon.
-            </p>
-          </div>
-        </section>
-      </div>
+
+      </GoatModeToggle>
     </AuthProvider>
   );
 }
