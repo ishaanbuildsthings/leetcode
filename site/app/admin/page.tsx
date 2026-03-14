@@ -387,103 +387,6 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
       )}
 
       <div>
-        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
-        <div className="flex flex-wrap gap-1.5 border border-gray-200 rounded-md p-3">
-          {tags?.map((tag) => {
-            const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
-            return (
-              <div key={tag.id} className="inline-flex items-center gap-1.5">
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="checkbox"
-                    checked={!!selected}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFormData({
-                          ...formData,
-                          selectedTags: [...formData.selectedTags, { tagId: tag.id }],
-                        });
-                      } else {
-                        setFormData({
-                          ...formData,
-                          selectedTags: formData.selectedTags.filter((t) => t.tagId !== tag.id),
-                        });
-                      }
-                    }}
-                    className="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded"
-                  />
-                  <span className="text-xs text-gray-900 font-medium">{tag.name}</span>
-                  {selected && (
-                    <select
-                      value={selected.role || ""}
-                      onChange={(e) => {
-                        setFormData({
-                          ...formData,
-                          selectedTags: formData.selectedTags.map((t) =>
-                            t.tagId === tag.id
-                              ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" }
-                              : t
-                          ),
-                        });
-                      }}
-                      className="px-1.5 py-0.5 border border-gray-300 rounded text-xs bg-white text-gray-900"
-                    >
-                      <option value="">No role</option>
-                      <option value="core">Core</option>
-                      <option value="secondary">Secondary</option>
-                      <option value="mention">Mention</option>
-                    </select>
-                  )}
-                </div>
-                {selected && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={selected.tagDifficulty || ""}
-                        onChange={(e) => {
-                          const val = e.target.value ? parseInt(e.target.value) : undefined;
-                          setFormData({
-                            ...formData,
-                            selectedTags: formData.selectedTags.map((t) =>
-                              t.tagId === tag.id ? { ...t, tagDifficulty: val } : t
-                            ),
-                          });
-                        }}
-                        placeholder="1-10"
-                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-gray-900"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <select
-                        value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
-                        onChange={(e) => {
-                          const val = e.target.value === "" ? undefined : e.target.value === "true";
-                          setFormData({
-                            ...formData,
-                            selectedTags: formData.selectedTags.map((t) =>
-                              t.tagId === tag.id ? { ...t, isInstructive: val } : t
-                            ),
-                          });
-                        }}
-                        className="px-1.5 py-0.5 border border-gray-300 rounded text-xs text-gray-900"
-                      >
-                        <option value="">Instr: —</option>
-                        <option value="true">Instr: Y</option>
-                        <option value="false">Instr: N</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div>
         <div className="flex justify-between items-center mb-3">
           <label className="block text-sm font-semibold text-gray-900">Solutions (optional)</label>
           <button
@@ -573,6 +476,104 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
             ))}
           </div>
         )}
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
+        <div className="space-y-3 border border-gray-200 rounded-md p-4">
+          {tags?.map((tag) => {
+            const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
+            return (
+              <div key={tag.id} className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={!!selected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          selectedTags: [...formData.selectedTags, { tagId: tag.id }],
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          selectedTags: formData.selectedTags.filter((t) => t.tagId !== tag.id),
+                        });
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+                  />
+                  <span className="flex-1 text-gray-900 font-medium">{tag.name}</span>
+                  {selected && (
+                    <select
+                      value={selected.role || ""}
+                      onChange={(e) => {
+                        setFormData({
+                          ...formData,
+                          selectedTags: formData.selectedTags.map((t) =>
+                            t.tagId === tag.id
+                              ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" }
+                              : t
+                          ),
+                        });
+                      }}
+                      className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
+                    >
+                      <option value="">No role</option>
+                      <option value="core">Core</option>
+                      <option value="secondary">Secondary</option>
+                      <option value="mention">Mention</option>
+                    </select>
+                  )}
+                </div>
+                {selected && (
+                  <div className="ml-7 flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={selected.tagDifficulty || ""}
+                        onChange={(e) => {
+                          const val = e.target.value ? parseInt(e.target.value) : undefined;
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.map((t) =>
+                              t.tagId === tag.id ? { ...t, tagDifficulty: val } : t
+                            ),
+                          });
+                        }}
+                        placeholder="1-10"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 font-medium"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
+                        onChange={(e) => {
+                          const val = e.target.value === "" ? undefined : e.target.value === "true";
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.map((t) =>
+                              t.tagId === tag.id ? { ...t, isInstructive: val } : t
+                            ),
+                          });
+                        }}
+                        className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 font-medium"
+                      >
+                        <option value="">Instructive: Not set</option>
+                        <option value="true">Instructive: Yes</option>
+                        <option value="false">Instructive: No</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <button
@@ -815,103 +816,6 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
       )}
 
       <div>
-        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
-        <div className="flex flex-wrap gap-1.5 border border-gray-200 rounded-md p-3">
-          {tags?.map((tag) => {
-            const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
-            return (
-              <div key={tag.id} className="inline-flex items-center gap-1.5">
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="checkbox"
-                    checked={!!selected}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFormData({
-                          ...formData,
-                          selectedTags: [...formData.selectedTags, { tagId: tag.id }],
-                        });
-                      } else {
-                        setFormData({
-                          ...formData,
-                          selectedTags: formData.selectedTags.filter((t) => t.tagId !== tag.id),
-                        });
-                      }
-                    }}
-                    className="w-3.5 h-3.5 text-green-600 border-gray-300 rounded"
-                  />
-                  <span className="text-xs text-gray-900 font-medium">{tag.name}</span>
-                  {selected && (
-                    <select
-                      value={selected.role || ""}
-                      onChange={(e) => {
-                        setFormData({
-                          ...formData,
-                          selectedTags: formData.selectedTags.map((t) =>
-                            t.tagId === tag.id
-                              ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" }
-                              : t
-                          ),
-                        });
-                      }}
-                      className="px-1.5 py-0.5 border border-gray-300 rounded text-xs bg-white text-gray-900"
-                    >
-                      <option value="">No role</option>
-                      <option value="core">Core</option>
-                      <option value="secondary">Secondary</option>
-                      <option value="mention">Mention</option>
-                    </select>
-                  )}
-                </div>
-                {selected && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={selected.tagDifficulty || ""}
-                        onChange={(e) => {
-                          const val = e.target.value ? parseInt(e.target.value) : undefined;
-                          setFormData({
-                            ...formData,
-                            selectedTags: formData.selectedTags.map((t) =>
-                              t.tagId === tag.id ? { ...t, tagDifficulty: val } : t
-                            ),
-                          });
-                        }}
-                        placeholder="1-10"
-                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-gray-900"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <select
-                        value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
-                        onChange={(e) => {
-                          const val = e.target.value === "" ? undefined : e.target.value === "true";
-                          setFormData({
-                            ...formData,
-                            selectedTags: formData.selectedTags.map((t) =>
-                              t.tagId === tag.id ? { ...t, isInstructive: val } : t
-                            ),
-                          });
-                        }}
-                        className="px-1.5 py-0.5 border border-gray-300 rounded text-xs text-gray-900"
-                      >
-                        <option value="">Instr: —</option>
-                        <option value="true">Instr: Y</option>
-                        <option value="false">Instr: N</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div>
         <div className="flex justify-between items-center mb-3">
           <label className="block text-sm font-semibold text-gray-900">Solutions (optional)</label>
           <button
@@ -1001,6 +905,104 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
             ))}
           </div>
         )}
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
+        <div className="space-y-3 border border-gray-200 rounded-md p-4">
+          {tags?.map((tag) => {
+            const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
+            return (
+              <div key={tag.id} className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={!!selected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          selectedTags: [...formData.selectedTags, { tagId: tag.id }],
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          selectedTags: formData.selectedTags.filter((t) => t.tagId !== tag.id),
+                        });
+                      }
+                    }}
+                    className="w-4 h-4 text-green-600 border-gray-300 rounded"
+                  />
+                  <span className="flex-1 text-gray-900 font-medium">{tag.name}</span>
+                  {selected && (
+                    <select
+                      value={selected.role || ""}
+                      onChange={(e) => {
+                        setFormData({
+                          ...formData,
+                          selectedTags: formData.selectedTags.map((t) =>
+                            t.tagId === tag.id
+                              ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" }
+                              : t
+                          ),
+                        });
+                      }}
+                      className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
+                    >
+                      <option value="">No role</option>
+                      <option value="core">Core</option>
+                      <option value="secondary">Secondary</option>
+                      <option value="mention">Mention</option>
+                    </select>
+                  )}
+                </div>
+                {selected && (
+                  <div className="ml-7 flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={selected.tagDifficulty || ""}
+                        onChange={(e) => {
+                          const val = e.target.value ? parseInt(e.target.value) : undefined;
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.map((t) =>
+                              t.tagId === tag.id ? { ...t, tagDifficulty: val } : t
+                            ),
+                          });
+                        }}
+                        placeholder="1-10"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 font-medium"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
+                        onChange={(e) => {
+                          const val = e.target.value === "" ? undefined : e.target.value === "true";
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.map((t) =>
+                              t.tagId === tag.id ? { ...t, isInstructive: val } : t
+                            ),
+                          });
+                        }}
+                        className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 font-medium"
+                      >
+                        <option value="">Instructive: Not set</option>
+                        <option value="true">Instructive: Yes</option>
+                        <option value="false">Instructive: No</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <button
@@ -1254,109 +1256,6 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
       )}
 
       <div>
-        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
-        <div className="flex flex-wrap gap-1.5 border border-gray-200 rounded-md p-3">
-          {tags
-            ?.filter(tag => tag.slug === 'database' || tag.name.toLowerCase() === 'database')
-            .map((tag) => {
-              const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
-              return (
-                <div key={tag.id} className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={!!selected}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData({
-                            ...formData,
-                            selectedTags: [...formData.selectedTags, { tagId: tag.id, role: "core" as tag_role, isInstructive: false }],
-                          });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            selectedTags: formData.selectedTags.filter((t) => t.tagId !== tag.id),
-                          });
-                        }
-                      }}
-                      className="w-4 h-4 text-purple-600 border-gray-300 rounded"
-                    />
-                    <span className="text-xs text-gray-900 font-medium">{tag.name}</span>
-                    {selected && (
-                      <select
-                        value={selected.role || ""}
-                        onChange={(e) => {
-                          setFormData({
-                            ...formData,
-                            selectedTags: formData.selectedTags.map((t) =>
-                              t.tagId === tag.id
-                                ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" }
-                                : t
-                            ),
-                          });
-                        }}
-                        className="px-1.5 py-0.5 border border-gray-300 rounded text-xs bg-white text-gray-900"
-                      >
-                        <option value="">No role</option>
-                        <option value="core">Core</option>
-                        <option value="secondary">Secondary</option>
-                        <option value="mention">Mention</option>
-                      </select>
-                    )}
-                  </div>
-                  {selected && (
-                    <div className="ml-7 flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="10"
-                          value={selected.tagDifficulty || ""}
-                          onChange={(e) => {
-                            const val = e.target.value ? parseInt(e.target.value) : undefined;
-                            setFormData({
-                              ...formData,
-                              selectedTags: formData.selectedTags.map((t) =>
-                                t.tagId === tag.id ? { ...t, tagDifficulty: val } : t
-                              ),
-                            });
-                          }}
-                          placeholder="1-10"
-                          className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-gray-900"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
-                          onChange={(e) => {
-                            const val = e.target.value === "" ? undefined : e.target.value === "true";
-                            setFormData({
-                              ...formData,
-                              selectedTags: formData.selectedTags.map((t) =>
-                                t.tagId === tag.id ? { ...t, isInstructive: val } : t
-                              ),
-                            });
-                          }}
-                          className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 font-medium"
-                        >
-                          <option value="">Instructive: Not set</option>
-                          <option value="true">Instructive: Yes</option>
-                          <option value="false">Instructive: No</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-        </div>
-        <div className="mt-3 text-xs text-gray-600">
-          Only showing Database tag. To add other tags, use the regular form.
-        </div>
-      </div>
-
-      <div>
         <div className="flex justify-between items-center mb-3">
           <label className="block text-sm font-semibold text-gray-900">Solutions (optional)</label>
           <button
@@ -1446,6 +1345,109 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
             ))}
           </div>
         )}
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
+        <div className="space-y-3 border border-gray-200 rounded-md p-4">
+          {tags
+            ?.filter(tag => tag.slug === 'database' || tag.name.toLowerCase() === 'database')
+            .map((tag) => {
+              const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
+              return (
+                <div key={tag.id} className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={!!selected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({
+                            ...formData,
+                            selectedTags: [...formData.selectedTags, { tagId: tag.id, role: "core" as tag_role, isInstructive: false }],
+                          });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.filter((t) => t.tagId !== tag.id),
+                          });
+                        }
+                      }}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded"
+                    />
+                    <span className="flex-1 text-gray-900 font-medium">{tag.name}</span>
+                    {selected && (
+                      <select
+                        value={selected.role || ""}
+                        onChange={(e) => {
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.map((t) =>
+                              t.tagId === tag.id
+                                ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" }
+                                : t
+                            ),
+                          });
+                        }}
+                        className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
+                      >
+                        <option value="">No role</option>
+                        <option value="core">Core</option>
+                        <option value="secondary">Secondary</option>
+                        <option value="mention">Mention</option>
+                      </select>
+                    )}
+                  </div>
+                  {selected && (
+                    <div className="ml-7 flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={selected.tagDifficulty || ""}
+                          onChange={(e) => {
+                            const val = e.target.value ? parseInt(e.target.value) : undefined;
+                            setFormData({
+                              ...formData,
+                              selectedTags: formData.selectedTags.map((t) =>
+                                t.tagId === tag.id ? { ...t, tagDifficulty: val } : t
+                              ),
+                            });
+                          }}
+                          placeholder="1-10"
+                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 font-medium"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
+                          onChange={(e) => {
+                            const val = e.target.value === "" ? undefined : e.target.value === "true";
+                            setFormData({
+                              ...formData,
+                              selectedTags: formData.selectedTags.map((t) =>
+                                t.tagId === tag.id ? { ...t, isInstructive: val } : t
+                              ),
+                            });
+                          }}
+                          className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 font-medium"
+                        >
+                          <option value="">Instructive: Not set</option>
+                          <option value="true">Instructive: Yes</option>
+                          <option value="false">Instructive: No</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
+        <div className="mt-3 text-xs text-gray-600">
+          Only showing Database tag. To add other tags, use the regular form.
+        </div>
       </div>
 
       <button
