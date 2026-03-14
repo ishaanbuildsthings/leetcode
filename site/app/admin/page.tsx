@@ -241,117 +241,112 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6">
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Title *</label>
-        <input
-          type="text"
-          required
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">URL *</label>
-        <input
-          type="url"
-          required
-          value={formData.url}
-          onChange={(e) => {
-            const url = e.target.value;
-            setFormData({ ...formData, url });
-            
-            const parsed = parseAtCoderUrl(url);
-            if (parsed) {
-              setFormData(prev => ({
-                ...prev,
-                url,
-                platformId: parsed.platformId || prev.platformId,
-                platformProblemId: parsed.problemId,
-              }));
-            }
-          }}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-          placeholder="https://atcoder.jp/contests/abc213/tasks/abc213_e"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Platform *</label>
-        <select
-          required
-          value={formData.platformId}
-          onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
-        >
-          <option value="">Select a platform</option>
-          {platforms?.map((platform) => (
-            <option key={platform.id} value={platform.id}>
-              {platform.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Platform Problem ID</label>
-        <input
-          type="text"
-          value={formData.platformProblemId}
-          onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3">
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">
-            Platform Difficulty
-          </label>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Title *</label>
+          <input
+            type="text"
+            required
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">URL *</label>
+          <input
+            type="url"
+            required
+            value={formData.url}
+            onChange={(e) => {
+              const url = e.target.value;
+              setFormData({ ...formData, url });
+
+              const parsed = parseAtCoderUrl(url);
+              if (parsed) {
+                setFormData(prev => ({
+                  ...prev,
+                  url,
+                  platformId: parsed.platformId || prev.platformId,
+                  platformProblemId: parsed.problemId,
+                }));
+              }
+            }}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="https://atcoder.jp/contests/..."
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Platform *</label>
+          <select
+            required
+            value={formData.platformId}
+            onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 text-sm"
+          >
+            <option value="">Select</option>
+            {platforms?.map((platform) => (
+              <option key={platform.id} value={platform.id}>
+                {platform.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Problem ID</label>
+          <input
+            type="text"
+            value={formData.platformProblemId}
+            onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Difficulty</label>
           <input
             type="text"
             value={formData.platformDifficulty}
             onChange={(e) => setFormData({ ...formData, platformDifficulty: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
             placeholder="e.g., Hard, 2200"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">
-            Normalized Difficulty (1-10)
-          </label>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Norm Diff (1-10)</label>
           <input
             type="number"
             min="1"
             max="10"
             value={formData.normalizedDifficulty || ""}
             onChange={(e) => setFormData({ ...formData, normalizedDifficulty: e.target.value ? parseInt(e.target.value) : undefined })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
             placeholder="1-10"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Simplified Problem Statement</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Simplified Problem Statement</label>
         <textarea
           value={formData.simplifiedStatement}
           onChange={(e) => setFormData({ ...formData, simplifiedStatement: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-          rows={3}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          rows={2}
           placeholder="A brief summary of the problem"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Notes</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Notes</label>
         <textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-          rows={3}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          rows={2}
         />
       </div>
 
@@ -366,11 +361,11 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Type</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Type</label>
         <select
           value={formData.drillType || ""}
           onChange={(e) => setFormData({ ...formData, drillType: e.target.value === "" ? null : e.target.value as "mindsolve" | "implement" })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
         >
           <option value="">None</option>
           <option value="mindsolve">🧠 Mindsolve</option>
@@ -380,25 +375,25 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
 
       {formData.drillType && (
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Notes</label>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Notes</label>
           <textarea
             value={formData.drillNotes}
             onChange={(e) => setFormData({ ...formData, drillNotes: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-            rows={3}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            rows={2}
             placeholder="Notes about drilling this problem..."
           />
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-3">Tags</label>
-        <div className="space-y-3 border border-gray-200 rounded-md p-4">
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
+        <div className="flex flex-wrap gap-1.5 border border-gray-200 rounded-md p-3">
           {tags?.map((tag) => {
             const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
             return (
-              <div key={tag.id} className="space-y-2">
-                <div className="flex items-center gap-3">
+              <div key={tag.id} className="inline-flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5">
                   <input
                     type="checkbox"
                     checked={!!selected}
@@ -415,9 +410,9 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                         });
                       }
                     }}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+                    className="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded"
                   />
-                  <span className="flex-1 text-gray-900 font-medium">{tag.name}</span>
+                  <span className="text-xs text-gray-900 font-medium">{tag.name}</span>
                   {selected && (
                     <select
                       value={selected.role || ""}
@@ -431,7 +426,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                           ),
                         });
                       }}
-                      className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
+                      className="px-1.5 py-0.5 border border-gray-300 rounded text-xs bg-white text-gray-900"
                     >
                       <option value="">No role</option>
                       <option value="core">Core</option>
@@ -441,9 +436,8 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                   )}
                 </div>
                 {selected && (
-                  <div className="ml-7 flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <input
                         type="number"
                         min="1"
@@ -459,10 +453,10 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                           });
                         }}
                         placeholder="1-10"
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 font-medium"
+                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-gray-900"
                       />
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <select
                         value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
                         onChange={(e) => {
@@ -474,11 +468,11 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                             ),
                           });
                         }}
-                        className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 font-medium"
+                        className="px-1.5 py-0.5 border border-gray-300 rounded text-xs text-gray-900"
                       >
-                        <option value="">Instructive: Not set</option>
-                        <option value="true">Instructive: Yes</option>
-                        <option value="false">Instructive: No</option>
+                        <option value="">Instr: —</option>
+                        <option value="true">Instr: Y</option>
+                        <option value="false">Instr: N</option>
                       </select>
                     </div>
                   </div>
@@ -677,119 +671,110 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6 border-2 border-green-200">
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-        <h3 className="text-lg font-semibold text-green-900 mb-2">💻 Leetcode Problem</h3>
-        <p className="text-sm text-green-700">
-          Pre-configured for Leetcode problems. Platform is set to Leetcode and problem ID will be auto-extracted from the title.
-        </p>
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3 border-2 border-green-200">
+      <div className="bg-green-50 border border-green-200 rounded-md px-3 py-2">
+        <span className="text-sm font-semibold text-green-900">💻 Leetcode Problem</span>
+        <span className="ml-2 text-xs text-green-700">Platform auto-set, problem ID auto-extracted from title.</span>
       </div>
 
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Title *</label>
-        <input
-          type="text"
-          required
-          value={formData.title}
-          onChange={(e) => handleTitleChange(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
-          placeholder="e.g., 3737. Count Subarrays With Majority Element I"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">URL *</label>
-        <input
-          type="url"
-          required
-          value={formData.url}
-          onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
-          placeholder="https://leetcode.com/problems/..."
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Platform *</label>
-        <select
-          required
-          value={formData.platformId}
-          onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-900"
-        >
-          <option value="">Select a platform</option>
-          {platforms?.map((platform) => (
-            <option key={platform.id} value={platform.id}>
-              {platform.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">
-          Platform Problem ID
-          {formData.platformProblemId && (
-            <span className="ml-2 text-xs text-green-600 font-normal">
-              (auto-extracted: {formData.platformProblemId})
-            </span>
-          )}
-        </label>
-        <input
-          type="text"
-          value={formData.platformProblemId}
-          onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">
-            Platform Difficulty
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Title *</label>
+          <input
+            type="text"
+            required
+            value={formData.title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="e.g., 3737. Count Subarrays With Majority Element I"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">URL *</label>
+          <input
+            type="url"
+            required
+            value={formData.url}
+            onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="https://leetcode.com/problems/..."
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Platform *</label>
+          <select
+            required
+            value={formData.platformId}
+            onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-900 text-sm"
+          >
+            <option value="">Select</option>
+            {platforms?.map((platform) => (
+              <option key={platform.id} value={platform.id}>
+                {platform.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">
+            Problem ID
+            {formData.platformProblemId && (
+              <span className="ml-1 text-xs text-green-600 font-normal">({formData.platformProblemId})</span>
+            )}
           </label>
+          <input
+            type="text"
+            value={formData.platformProblemId}
+            onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Difficulty</label>
           <input
             type="text"
             value={formData.platformDifficulty}
             onChange={(e) => setFormData({ ...formData, platformDifficulty: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
-            placeholder="e.g., Easy, Medium, Hard"
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="Easy, Medium, Hard"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">
-            Normalized Difficulty (1-10)
-          </label>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Norm Diff (1-10)</label>
           <input
             type="number"
             min="1"
             max="10"
             value={formData.normalizedDifficulty || ""}
             onChange={(e) => setFormData({ ...formData, normalizedDifficulty: e.target.value ? parseInt(e.target.value) : undefined })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 text-sm"
             placeholder="1-10"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Simplified Problem Statement</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Simplified Problem Statement</label>
         <textarea
           value={formData.simplifiedStatement}
           onChange={(e) => setFormData({ ...formData, simplifiedStatement: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
-          rows={3}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+          rows={2}
           placeholder="A brief summary of the problem"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Notes</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Notes</label>
         <textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
-          rows={3}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+          rows={2}
         />
       </div>
 
@@ -804,11 +789,11 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Type</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Type</label>
         <select
           value={formData.drillType || ""}
           onChange={(e) => setFormData({ ...formData, drillType: e.target.value === "" ? null : e.target.value as "mindsolve" | "implement" })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-900"
         >
           <option value="">None</option>
           <option value="mindsolve">🧠 Mindsolve</option>
@@ -818,25 +803,25 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
 
       {formData.drillType && (
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Notes</label>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Notes</label>
           <textarea
             value={formData.drillNotes}
             onChange={(e) => setFormData({ ...formData, drillNotes: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
-            rows={3}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+            rows={2}
             placeholder="Notes about drilling this problem..."
           />
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-3">Tags</label>
-        <div className="space-y-3 border border-gray-200 rounded-md p-4">
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
+        <div className="flex flex-wrap gap-1.5 border border-gray-200 rounded-md p-3">
           {tags?.map((tag) => {
             const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
             return (
-              <div key={tag.id} className="space-y-2">
-                <div className="flex items-center gap-3">
+              <div key={tag.id} className="inline-flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5">
                   <input
                     type="checkbox"
                     checked={!!selected}
@@ -853,9 +838,9 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
                         });
                       }
                     }}
-                    className="w-4 h-4 text-green-600 border-gray-300 rounded"
+                    className="w-3.5 h-3.5 text-green-600 border-gray-300 rounded"
                   />
-                  <span className="flex-1 text-gray-900 font-medium">{tag.name}</span>
+                  <span className="text-xs text-gray-900 font-medium">{tag.name}</span>
                   {selected && (
                     <select
                       value={selected.role || ""}
@@ -869,7 +854,7 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
                           ),
                         });
                       }}
-                      className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
+                      className="px-1.5 py-0.5 border border-gray-300 rounded text-xs bg-white text-gray-900"
                     >
                       <option value="">No role</option>
                       <option value="core">Core</option>
@@ -879,9 +864,8 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
                   )}
                 </div>
                 {selected && (
-                  <div className="ml-7 flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <input
                         type="number"
                         min="1"
@@ -897,10 +881,10 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
                           });
                         }}
                         placeholder="1-10"
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 font-medium"
+                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-gray-900"
                       />
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <select
                         value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
                         onChange={(e) => {
@@ -912,11 +896,11 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
                             ),
                           });
                         }}
-                        className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 font-medium"
+                        className="px-1.5 py-0.5 border border-gray-300 rounded text-xs text-gray-900"
                       >
-                        <option value="">Instructive: Not set</option>
-                        <option value="true">Instructive: Yes</option>
-                        <option value="false">Instructive: No</option>
+                        <option value="">Instr: —</option>
+                        <option value="true">Instr: Y</option>
+                        <option value="false">Instr: N</option>
                       </select>
                     </div>
                   </div>
@@ -1126,120 +1110,110 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6 border-2 border-purple-200">
-      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
-        <h3 className="text-lg font-semibold text-purple-900 mb-2">🗃️ Database Leetcode Problem</h3>
-        <p className="text-sm text-purple-700">
-          Pre-configured for database problems. Platform is set to Leetcode, Database tag is selected with core role and instructive set to No.
-          Problem ID will be auto-extracted from the title.
-        </p>
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3 border-2 border-purple-200">
+      <div className="bg-purple-50 border border-purple-200 rounded-md px-3 py-2">
+        <span className="text-sm font-semibold text-purple-900">🗃️ Database Leetcode Problem</span>
+        <span className="ml-2 text-xs text-purple-700">DB tag auto-selected (core, non-instructive). ID auto-extracted.</span>
       </div>
 
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Title *</label>
-        <input
-          type="text"
-          required
-          value={formData.title}
-          onChange={(e) => handleTitleChange(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
-          placeholder="e.g., 2339. All the Matches of the League"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">URL *</label>
-        <input
-          type="url"
-          required
-          value={formData.url}
-          onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
-          placeholder="https://leetcode.com/problems/..."
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Platform *</label>
-        <select
-          required
-          value={formData.platformId}
-          onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
-        >
-          <option value="">Select a platform</option>
-          {platforms?.map((platform) => (
-            <option key={platform.id} value={platform.id}>
-              {platform.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">
-          Platform Problem ID
-          {formData.platformProblemId && (
-            <span className="ml-2 text-xs text-purple-600 font-normal">
-              (auto-extracted: {formData.platformProblemId})
-            </span>
-          )}
-        </label>
-        <input
-          type="text"
-          value={formData.platformProblemId}
-          onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">
-            Platform Difficulty
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Title *</label>
+          <input
+            type="text"
+            required
+            value={formData.title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="e.g., 2339. All the Matches of the League"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">URL *</label>
+          <input
+            type="url"
+            required
+            value={formData.url}
+            onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="https://leetcode.com/problems/..."
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Platform *</label>
+          <select
+            required
+            value={formData.platformId}
+            onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900 text-sm"
+          >
+            <option value="">Select</option>
+            {platforms?.map((platform) => (
+              <option key={platform.id} value={platform.id}>
+                {platform.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">
+            Problem ID
+            {formData.platformProblemId && (
+              <span className="ml-1 text-xs text-purple-600 font-normal">({formData.platformProblemId})</span>
+            )}
           </label>
+          <input
+            type="text"
+            value={formData.platformProblemId}
+            onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Difficulty</label>
           <input
             type="text"
             value={formData.platformDifficulty}
             onChange={(e) => setFormData({ ...formData, platformDifficulty: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
-            placeholder="e.g., Easy, Medium, Hard"
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="Easy, Medium, Hard"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">
-            Normalized Difficulty (1-10)
-          </label>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Norm Diff (1-10)</label>
           <input
             type="number"
             min="1"
             max="10"
             value={formData.normalizedDifficulty || ""}
             onChange={(e) => setFormData({ ...formData, normalizedDifficulty: e.target.value ? parseInt(e.target.value) : undefined })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 text-sm"
             placeholder="1-10"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Simplified Problem Statement</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Simplified Problem Statement</label>
         <textarea
           value={formData.simplifiedStatement}
           onChange={(e) => setFormData({ ...formData, simplifiedStatement: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
-          rows={3}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          rows={2}
           placeholder="A brief summary of the problem"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Notes</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Notes</label>
         <textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
-          rows={3}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          rows={2}
         />
       </div>
 
@@ -1254,11 +1228,11 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Type</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Type</label>
         <select
           value={formData.drillType || ""}
           onChange={(e) => setFormData({ ...formData, drillType: e.target.value === "" ? null : e.target.value as "mindsolve" | "implement" })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
         >
           <option value="">None</option>
           <option value="mindsolve">🧠 Mindsolve</option>
@@ -1268,20 +1242,20 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
 
       {formData.drillType && (
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Notes</label>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Notes</label>
           <textarea
             value={formData.drillNotes}
             onChange={(e) => setFormData({ ...formData, drillNotes: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
-            rows={3}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            rows={2}
             placeholder="Notes about drilling this problem..."
           />
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-3">Tags</label>
-        <div className="space-y-3 border border-gray-200 rounded-md p-4">
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
+        <div className="flex flex-wrap gap-1.5 border border-gray-200 rounded-md p-3">
           {tags
             ?.filter(tag => tag.slug === 'database' || tag.name.toLowerCase() === 'database')
             .map((tag) => {
@@ -1307,7 +1281,7 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
                       }}
                       className="w-4 h-4 text-purple-600 border-gray-300 rounded"
                     />
-                    <span className="flex-1 text-gray-900 font-medium">{tag.name}</span>
+                    <span className="text-xs text-gray-900 font-medium">{tag.name}</span>
                     {selected && (
                       <select
                         value={selected.role || ""}
@@ -1321,7 +1295,7 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
                             ),
                           });
                         }}
-                        className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
+                        className="px-1.5 py-0.5 border border-gray-300 rounded text-xs bg-white text-gray-900"
                       >
                         <option value="">No role</option>
                         <option value="core">Core</option>
@@ -1349,7 +1323,7 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
                             });
                           }}
                           placeholder="1-10"
-                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 font-medium"
+                          className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-gray-900"
                         />
                       </div>
                       <div className="flex items-center gap-2">
@@ -1749,7 +1723,7 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-gray-900">Edit Problem</h3>
         <button
@@ -1762,34 +1736,34 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Title *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Title *</label>
         <input
           type="text"
           required
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">URL *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">URL *</label>
         <input
           type="url"
           required
           value={formData.url}
           onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Platform *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Platform *</label>
         <select
           required
           value={formData.platformId}
           onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         >
           <option value="">Select platform</option>
           {platforms?.map((platform) => (
@@ -1802,56 +1776,56 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">Platform Problem ID</label>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Platform Problem ID</label>
           <input
             type="text"
             value={formData.platformProblemId}
             onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">Platform Difficulty</label>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Platform Difficulty</label>
           <input
             type="text"
             value={formData.platformDifficulty}
             onChange={(e) => setFormData({ ...formData, platformDifficulty: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Normalized Difficulty (1-10)</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Normalized Difficulty (1-10)</label>
         <input
           type="number"
           min="1"
           max="10"
           value={formData.normalizedDifficulty || ""}
           onChange={(e) => setFormData({ ...formData, normalizedDifficulty: e.target.value ? parseInt(e.target.value) : undefined })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Simplified Problem Statement</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Simplified Problem Statement</label>
         <textarea
           value={formData.simplifiedStatement}
           onChange={(e) => setFormData({ ...formData, simplifiedStatement: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-          rows={3}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          rows={2}
           placeholder="A brief summary of the problem"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Notes</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Notes</label>
         <textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-          rows={3}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          rows={2}
         />
       </div>
 
@@ -1868,11 +1842,11 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Type</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Type</label>
         <select
           value={formData.drillType || ""}
           onChange={(e) => setFormData({ ...formData, drillType: e.target.value === "" ? null : e.target.value as "mindsolve" | "implement" })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
         >
           <option value="">None</option>
           <option value="mindsolve">🧠 Mindsolve</option>
@@ -1882,19 +1856,19 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
 
       {formData.drillType && (
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">Drill Notes</label>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Notes</label>
           <textarea
             value={formData.drillNotes}
             onChange={(e) => setFormData({ ...formData, drillNotes: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-            rows={3}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            rows={2}
             placeholder="Notes about drilling this problem..."
           />
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Tags</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
         <div className="space-y-2">
           {tags?.map((tag) => {
             const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
@@ -2204,36 +2178,36 @@ function CreateTagForm({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3">
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Name *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Name *</label>
         <input
           type="text"
           required
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Slug *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Slug *</label>
         <input
           type="text"
           required
           value={formData.slug}
           onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Description</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Description</label>
         <textarea
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-          rows={3}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          rows={2}
         />
       </div>
 
@@ -2276,36 +2250,36 @@ function EditTagForm({ tag, onSuccess, onCancel }: { tag: { id: string; name: st
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3">
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Name *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Name *</label>
         <input
           type="text"
           required
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Slug *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Slug *</label>
         <input
           type="text"
           required
           value={formData.slug}
           onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Description</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Description</label>
         <textarea
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-          rows={3}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          rows={2}
         />
       </div>
 
@@ -2424,26 +2398,26 @@ function CreatePlatformForm({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3">
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Name *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Name *</label>
         <input
           type="text"
           required
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Slug *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Slug *</label>
         <input
           type="text"
           required
           value={formData.slug}
           onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
@@ -2483,26 +2457,26 @@ function EditPlatformForm({ platform, onSuccess, onCancel }: { platform: { id: s
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3">
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Name *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Name *</label>
         <input
           type="text"
           required
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Slug *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Slug *</label>
         <input
           type="text"
           required
           value={formData.slug}
           onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         />
       </div>
 
@@ -2814,14 +2788,14 @@ function CreateTagHierarchyForm({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3">
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Child Tag *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Child Tag *</label>
         <select
           required
           value={formData.childTagId}
           onChange={(e) => setFormData({ ...formData, childTagId: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         >
           <option value="">Select a child tag</option>
           {tags?.map((tag) => (
@@ -2834,12 +2808,12 @@ function CreateTagHierarchyForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Parent Tag *</label>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Parent Tag *</label>
         <select
           required
           value={formData.parentTagId}
           onChange={(e) => setFormData({ ...formData, parentTagId: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
         >
           <option value="">Select a parent tag</option>
           {tags?.map((tag) => (
