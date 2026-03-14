@@ -210,7 +210,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
     drillType: null as "mindsolve" | "implement" | null,
     drillNotes: "",
     selectedTags: [] as Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>,
-    solutions: [] as Array<{ submissionUrl?: string; language: programming_language | ""; githubUrl?: string }>,
+    solutions: [{ submissionUrl: "", language: "Python" as programming_language | "", githubUrl: "" }],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -228,7 +228,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
       drillType: formData.drillType || null,
       drillNotes: formData.drillNotes || undefined,
       tags: formData.selectedTags.length > 0 ? formData.selectedTags : undefined,
-      solutions: formData.solutions.length > 0 
+      solutions: formData.solutions.length > 0
         ? formData.solutions
             .filter(s => s.language !== "")
             .map(s => ({
@@ -625,7 +625,7 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
     drillType: null as "mindsolve" | "implement" | null,
     drillNotes: "",
     selectedTags: [] as Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>,
-    solutions: [] as Array<{ submissionUrl?: string; language: programming_language | ""; githubUrl?: string }>,
+    solutions: [{ submissionUrl: "", language: "Python" as programming_language | "", githubUrl: "" }],
   });
 
   // Update platform when platforms load
@@ -1055,7 +1055,7 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
     drillType: null as "mindsolve" | "implement" | null,
     drillNotes: "",
     selectedTags: databaseTag ? [{ tagId: databaseTag.id, role: "core" as tag_role, isInstructive: false }] : [] as Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>,
-    solutions: [] as Array<{ submissionUrl?: string; language: programming_language | ""; githubUrl?: string }>,
+    solutions: [{ submissionUrl: "", language: "PostgreSQL" as programming_language | "", githubUrl: "" }],
   });
 
   // Update platform when platforms load
