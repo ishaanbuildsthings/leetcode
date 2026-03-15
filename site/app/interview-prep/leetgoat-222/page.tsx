@@ -57,7 +57,7 @@ export default async function LeetGoat222Page() {
             </p>
             <p>
               &ndash; leetgoat{" "}
-              <span className="inline-block animate-[wiggle_1.5s_ease-in-out_infinite]">🕺</span>
+              <span className="inline-block animate-[wiggle_1.5s_ease-in-out_infinite]">🐐</span>
             </p>
           </div>
         </div>
