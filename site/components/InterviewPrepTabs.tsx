@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const tabs = [
   { href: "/interview-prep", label: "Topics", exact: true },
   { href: "/interview-prep/leetgoat-222", label: "LeetGoat 222", badge: "🚧 under construction" },
+  { href: "/interview-prep/leetgoat-infinite", label: "LeetGoat ∞", pulseSymbol: true, badge: "soon" },
   {
     href: "/interview-prep/flashcards",
     label: "Flashcards",
@@ -41,7 +42,28 @@ export function InterviewPrepTabs() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {tab.label}
+            {tab.pulseSymbol ? (
+              <>
+                {tab.label.replace(" ∞", "")}{" "}
+                <svg className="inline-block w-5 h-5 -mt-0.5" viewBox="0 0 100 50" fill="none">
+                  <path
+                    d="M50 25C50 25 62 5 78 5C90 5 95 15 95 25C95 35 90 45 78 45C62 45 50 25 50 25C50 25 38 5 22 5C10 5 5 15 5 25C5 35 10 45 22 45C38 45 50 25 50 25Z"
+                    stroke="#3b82f6"
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                  />
+                  <circle r="4" fill="#3b82f6">
+                    <animateMotion
+                      dur="2s"
+                      repeatCount="indefinite"
+                      path="M50 25C50 25 62 5 78 5C90 5 95 15 95 25C95 35 90 45 78 45C62 45 50 25 50 25C50 25 38 5 22 5C10 5 5 15 5 25C5 35 10 45 22 45C38 45 50 25 50 25Z"
+                    />
+                  </circle>
+                </svg>
+              </>
+            ) : (
+              tab.label
+            )}
             {tab.badge && (
               <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                 {tab.badge}
