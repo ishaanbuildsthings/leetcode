@@ -107,13 +107,17 @@ export async function unsafe_updateProblem(data: {
   tags?: Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>;
   solutions?: Array<{ submissionUrl?: string; language: programming_language; githubUrl?: string }>;
 }) {
-  await prisma.problem_tags.deleteMany({
-    where: { problem_id: data.id },
-  });
-  
-  await prisma.solutions.deleteMany({
-    where: { problem_id: data.id },
-  });
+  if (data.tags !== undefined) {
+    await prisma.problem_tags.deleteMany({
+      where: { problem_id: data.id },
+    });
+  }
+
+  if (data.solutions !== undefined) {
+    await prisma.solutions.deleteMany({
+      where: { problem_id: data.id },
+    });
+  }
 
   type UpdateData = {
     platform_id?: string;
