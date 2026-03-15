@@ -20,6 +20,15 @@ function GoatRating({ normalizedDifficulty }: { normalizedDifficulty: number | n
   );
 }
 
+function lcDifficultyColor(difficulty: string | null) {
+  switch (difficulty?.toLowerCase()) {
+    case "easy": return "text-green-600";
+    case "medium": return "text-amber-500";
+    case "hard": return "text-red-500";
+    default: return "text-muted-foreground";
+  }
+}
+
 export default async function LeetGoat222Page() {
   const problemsRaw = await prisma.problems.findMany({
     where: { is_leetgoat_222: true },
@@ -37,7 +46,7 @@ export default async function LeetGoat222Page() {
 
   return (
     <main className="flex flex-col items-center px-6 py-12">
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-5xl">
         <div className="mb-8 text-center">
           <h1 className="font-[family-name:var(--font-playfair)] text-4xl font-bold text-foreground">
             LeetGoat 222{" "}
@@ -45,7 +54,7 @@ export default async function LeetGoat222Page() {
               🐐
             </span>
           </h1>
-          <p className="mt-3 font-[family-name:var(--font-dm-sans)] text-base text-muted-foreground">
+          <p className="mt-3 font-[family-name:var(--font-dm-sans)] text-base text-foreground">
             After solving &gt;3000 problems, these are the 222 questions I recommend to do for passing interviews! &ndash; leetgoat{" "}
             <span className="inline-block animate-[wiggle_1.5s_ease-in-out_infinite]">🐐</span>
           </p>
@@ -54,8 +63,20 @@ export default async function LeetGoat222Page() {
         <div className="rounded-2xl border border-border bg-background/90 shadow-lg backdrop-blur-sm overflow-hidden">
           {/* Header row */}
           <div className="flex items-center gap-4 px-5 py-2.5 border-b border-border bg-muted/50">
-            <div className="w-28 shrink-0 font-[family-name:var(--font-dm-sans)] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Difficulty
+            <div className="w-32 shrink-0 font-[family-name:var(--font-dm-sans)] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <span>LeetGoat Difficulty</span>
+              <span className="relative group cursor-help">
+                <svg className="w-3.5 h-3.5 text-muted-foreground/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 16v-4M12 8h.01" />
+                </svg>
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded-lg bg-foreground text-background text-[11px] font-normal normal-case tracking-normal px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
+                  I think the default LeetCode easy/medium/hard ratings are bad, so I made my own after experiencing thousands of questions.
+                </span>
+              </span>
+            </div>
+            <div className="w-16 shrink-0 font-[family-name:var(--font-dm-sans)] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-center">
+              LC Difficulty
             </div>
             <div className="flex-1 font-[family-name:var(--font-dm-sans)] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Problem
@@ -81,8 +102,12 @@ export default async function LeetGoat222Page() {
                   key={problem.id}
                   className="flex items-center gap-4 px-5 py-3 hover:bg-muted/40 transition-colors"
                 >
-                  <div className="w-28 shrink-0">
+                  <div className="w-32 shrink-0">
                     <GoatRating normalizedDifficulty={problem.normalizedDifficulty} />
+                  </div>
+
+                  <div className={`w-16 shrink-0 text-center font-[family-name:var(--font-dm-sans)] text-xs font-semibold ${lcDifficultyColor(problem.platformDifficulty)}`}>
+                    {problem.platformDifficulty || "—"}
                   </div>
 
                   <div className="flex-1 min-w-0">
