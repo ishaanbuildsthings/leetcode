@@ -71,7 +71,7 @@ export default async function LeetGoat222Page() {
                   <path d="M12 16v-4M12 8h.01" />
                 </svg>
                 <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded-lg bg-foreground text-background text-[11px] font-normal normal-case tracking-normal px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
-                  I think the default LeetCode easy/medium/hard ratings are bad, so I made my own after experiencing thousands of questions.
+                  I found the LeetCode difficulties inaccurate, so I gave my own ratings!
                 </span>
               </span>
             </div>
