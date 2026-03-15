@@ -50,7 +50,7 @@ export default async function LeetGoat222Page() {
         <div className="mb-8 text-center">
           <h1 className="font-[family-name:var(--font-playfair)] text-4xl font-bold text-foreground">
             LeetGoat 222{" "}
-            <span className="inline-block text-3xl animate-[wiggle_1.5s_ease-in-out_infinite]">
+            <span className="inline-block text-3xl">
               🐐
             </span>
           </h1>
