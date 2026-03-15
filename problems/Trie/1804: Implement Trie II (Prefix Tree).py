@@ -1,3 +1,4 @@
+# NOTE THIS CODE IS INEFFICIENT / OLD
 # https://leetcode.com/problems/implement-trie-ii-prefix-tree/
 # difficulty: medium
 # tags: trie
