@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const tabs = [
-  { href: "/interview-prep", label: "Topics", exact: true },
+  { href: "/interview-prep", label: "Learn", exact: true },
   { href: "/interview-prep/leetgoat-222", label: "LeetGoat 222", badge: "🚧 under construction" },
   { href: "/interview-prep/leetgoat-infinite", label: "LeetGoat ∞", pulseSymbol: true, badge: "soon" },
   {
