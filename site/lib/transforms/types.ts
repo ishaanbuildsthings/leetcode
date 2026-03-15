@@ -34,6 +34,8 @@ export interface IProblem {
   simplifiedStatement: string | null;
   notes: string | null;
   isGreatProblem: boolean;
+  isLeetgoat222: boolean;
+  isLeetgoatAdvanced: boolean;
   drillType: DrillType;
   drillNotes: string | null;
 }

@@ -202,6 +202,8 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
     title: "",
     url: "",
     isGreatProblem: false,
+    isLeetgoat222: false,
+    isLeetgoatAdvanced: false,
     platformProblemId: "",
     platformDifficulty: "",
     normalizedDifficulty: undefined as number | undefined,
@@ -220,6 +222,8 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
       title: formData.title,
       url: formData.url,
       isGreatProblem: formData.isGreatProblem,
+      isLeetgoat222: formData.isLeetgoat222,
+      isLeetgoatAdvanced: formData.isLeetgoatAdvanced,
       platformProblemId: formData.platformProblemId || undefined,
       platformDifficulty: formData.platformDifficulty || undefined,
       normalizedDifficulty: formData.normalizedDifficulty,
@@ -358,6 +362,26 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
           className="w-4 h-4 text-blue-600 border-gray-300 rounded mr-3"
         />
         <label className="text-sm font-semibold text-gray-900">Great Problem</label>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isLeetgoat222}
+          onChange={(e) => setFormData({ ...formData, isLeetgoat222: e.target.checked })}
+          className="w-4 h-4 text-blue-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">LeetGoat 222</label>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isLeetgoatAdvanced}
+          onChange={(e) => setFormData({ ...formData, isLeetgoatAdvanced: e.target.checked })}
+          className="w-4 h-4 text-blue-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">LeetGoat Advanced</label>
       </div>
 
       <div>
@@ -617,6 +641,8 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
     title: "",
     url: "",
     isGreatProblem: false,
+    isLeetgoat222: false,
+    isLeetgoatAdvanced: false,
     platformProblemId: "",
     platformDifficulty: "",
     normalizedDifficulty: undefined as number | undefined,
@@ -642,6 +668,8 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
       title: formData.title,
       url: formData.url,
       isGreatProblem: formData.isGreatProblem,
+      isLeetgoat222: formData.isLeetgoat222,
+      isLeetgoatAdvanced: formData.isLeetgoatAdvanced,
       platformProblemId: formData.platformProblemId || undefined,
       platformDifficulty: formData.platformDifficulty || undefined,
       normalizedDifficulty: formData.normalizedDifficulty,
@@ -787,6 +815,26 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
           className="w-4 h-4 text-green-600 border-gray-300 rounded mr-3"
         />
         <label className="text-sm font-semibold text-gray-900">Great Problem</label>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isLeetgoat222}
+          onChange={(e) => setFormData({ ...formData, isLeetgoat222: e.target.checked })}
+          className="w-4 h-4 text-green-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">LeetGoat 222</label>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isLeetgoatAdvanced}
+          onChange={(e) => setFormData({ ...formData, isLeetgoatAdvanced: e.target.checked })}
+          className="w-4 h-4 text-green-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">LeetGoat Advanced</label>
       </div>
 
       <div>
@@ -1047,6 +1095,8 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
     title: "",
     url: "",
     isGreatProblem: false,
+    isLeetgoat222: false,
+    isLeetgoatAdvanced: false,
     platformProblemId: "",
     platformDifficulty: "",
     normalizedDifficulty: undefined as number | undefined,
@@ -1082,6 +1132,8 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
       title: formData.title,
       url: formData.url,
       isGreatProblem: formData.isGreatProblem,
+      isLeetgoat222: formData.isLeetgoat222,
+      isLeetgoatAdvanced: formData.isLeetgoatAdvanced,
       platformProblemId: formData.platformProblemId || undefined,
       platformDifficulty: formData.platformDifficulty || undefined,
       normalizedDifficulty: formData.normalizedDifficulty,
@@ -1227,6 +1279,26 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
           className="w-4 h-4 text-purple-600 border-gray-300 rounded mr-3"
         />
         <label className="text-sm font-semibold text-gray-900">Great Problem</label>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isLeetgoat222}
+          onChange={(e) => setFormData({ ...formData, isLeetgoat222: e.target.checked })}
+          className="w-4 h-4 text-purple-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">LeetGoat 222</label>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isLeetgoatAdvanced}
+          onChange={(e) => setFormData({ ...formData, isLeetgoatAdvanced: e.target.checked })}
+          className="w-4 h-4 text-purple-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">LeetGoat Advanced</label>
       </div>
 
       <div>
@@ -1472,6 +1544,11 @@ function ProblemsList({ onEdit }: { onEdit: (id: string) => void }) {
       trpc.useUtils().problem.list.invalidate();
     },
   });
+  const updateProblem = trpc.problem.update.useMutation({
+    onSuccess: () => {
+      trpc.useUtils().problem.list.invalidate();
+    },
+  });
 
   if (isLoading) {
     return <div className="text-center py-8">Loading problems...</div>;
@@ -1498,6 +1575,24 @@ function ProblemsList({ onEdit }: { onEdit: (id: string) => void }) {
                     Great
                   </span>
                 )}
+                <label className="flex items-center gap-1 cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={problem.isLeetgoat222}
+                    onChange={() => updateProblem.mutate({ id: problem.id, isLeetgoat222: !problem.isLeetgoat222 })}
+                    className="w-3 h-3 text-blue-600 border-gray-300 rounded"
+                  />
+                  <span className="text-xs text-gray-600">222</span>
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={problem.isLeetgoatAdvanced}
+                    onChange={() => updateProblem.mutate({ id: problem.id, isLeetgoatAdvanced: !problem.isLeetgoatAdvanced })}
+                    className="w-3 h-3 text-purple-600 border-gray-300 rounded"
+                  />
+                  <span className="text-xs text-gray-600">Adv</span>
+                </label>
               </div>
               <p className="text-sm text-gray-600 mb-2">
                 {problem.platform.name}
@@ -1648,6 +1743,8 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
     title: "",
     url: "",
     isGreatProblem: false,
+    isLeetgoat222: false,
+    isLeetgoatAdvanced: false,
     platformProblemId: "",
     platformDifficulty: "",
     normalizedDifficulty: undefined as number | undefined,
@@ -1666,6 +1763,8 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
         title: problem.title,
         url: problem.url,
         isGreatProblem: problem.isGreatProblem,
+        isLeetgoat222: problem.isLeetgoat222,
+        isLeetgoatAdvanced: problem.isLeetgoatAdvanced,
         platformProblemId: problem.platformProblemId || "",
         platformDifficulty: problem.platformDifficulty || "",
         normalizedDifficulty: problem.normalizedDifficulty || undefined,
@@ -1696,6 +1795,8 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
       title: formData.title,
       url: formData.url,
       isGreatProblem: formData.isGreatProblem,
+      isLeetgoat222: formData.isLeetgoat222,
+      isLeetgoatAdvanced: formData.isLeetgoatAdvanced,
       platformProblemId: formData.platformProblemId || undefined,
       platformDifficulty: formData.platformDifficulty || undefined,
       normalizedDifficulty: formData.normalizedDifficulty,
@@ -1840,6 +1941,30 @@ function EditProblemForm({ problemId, onClose }: { problemId: string; onClose: (
             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
           />
           <span className="text-sm font-semibold text-gray-900">Great Problem</span>
+        </label>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={formData.isLeetgoat222}
+            onChange={(e) => setFormData({ ...formData, isLeetgoat222: e.target.checked })}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <span className="text-sm font-semibold text-gray-900">LeetGoat 222</span>
+        </label>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={formData.isLeetgoatAdvanced}
+            onChange={(e) => setFormData({ ...formData, isLeetgoatAdvanced: e.target.checked })}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <span className="text-sm font-semibold text-gray-900">LeetGoat Advanced</span>
         </label>
       </div>
 

@@ -6,6 +6,8 @@ export async function unsafe_createProblem(data: {
   title: string;
   url: string;
   isGreatProblem: boolean;
+  isLeetgoat222: boolean;
+  isLeetgoatAdvanced: boolean;
   platformProblemId?: string;
   platformDifficulty?: string;
   normalizedDifficulty?: number;
@@ -27,6 +29,8 @@ export async function unsafe_createProblem(data: {
       simplified_statement: data.simplifiedStatement,
       notes: data.notes,
       is_great_problem: data.isGreatProblem,
+      is_leetgoat_222: data.isLeetgoat222,
+      is_leetgoat_advanced: data.isLeetgoatAdvanced,
       drill_type: data.drillType ?? null,
       drill_notes: data.drillNotes,
       problem_tags: data.tags
@@ -91,6 +95,8 @@ export async function unsafe_updateProblem(data: {
   title?: string;
   url?: string;
   isGreatProblem?: boolean;
+  isLeetgoat222?: boolean;
+  isLeetgoatAdvanced?: boolean;
   platformProblemId?: string;
   platformDifficulty?: string;
   normalizedDifficulty?: number;
@@ -114,6 +120,8 @@ export async function unsafe_updateProblem(data: {
     title?: string;
     url?: string;
     is_great_problem?: boolean;
+    is_leetgoat_222?: boolean;
+    is_leetgoat_advanced?: boolean;
     platform_problem_id?: string | null;
     platform_difficulty?: string | null;
     normalized_difficulty?: number;
@@ -144,6 +152,8 @@ export async function unsafe_updateProblem(data: {
   if (data.title !== undefined) updateData.title = data.title;
   if (data.url !== undefined) updateData.url = data.url;
   if (data.isGreatProblem !== undefined) updateData.is_great_problem = data.isGreatProblem;
+  if (data.isLeetgoat222 !== undefined) updateData.is_leetgoat_222 = data.isLeetgoat222;
+  if (data.isLeetgoatAdvanced !== undefined) updateData.is_leetgoat_advanced = data.isLeetgoatAdvanced;
   if (data.platformProblemId !== undefined) updateData.platform_problem_id = data.platformProblemId || null;
   if (data.platformDifficulty !== undefined) updateData.platform_difficulty = data.platformDifficulty || null;
   if (data.normalizedDifficulty !== undefined) updateData.normalized_difficulty = data.normalizedDifficulty;

@@ -1012,6 +1012,8 @@ export const ProblemsScalarFieldEnum = {
   simplified_statement: 'simplified_statement',
   notes: 'notes',
   is_great_problem: 'is_great_problem',
+  is_leetgoat_222: 'is_leetgoat_222',
+  is_leetgoat_advanced: 'is_leetgoat_advanced',
   drill_type: 'drill_type',
   drill_notes: 'drill_notes',
   created_at: 'created_at',

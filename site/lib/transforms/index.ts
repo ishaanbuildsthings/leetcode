@@ -42,6 +42,8 @@ export function transformProblem(problem: problems): IProblem {
     simplifiedStatement: problem.simplified_statement,
     notes: problem.notes,
     isGreatProblem: problem.is_great_problem,
+    isLeetgoat222: problem.is_leetgoat_222,
+    isLeetgoatAdvanced: problem.is_leetgoat_advanced,
     drillType: problem.drill_type,
     drillNotes: problem.drill_notes,
   };
