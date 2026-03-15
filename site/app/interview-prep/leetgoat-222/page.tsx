@@ -45,21 +45,10 @@ export default async function LeetGoat222Page() {
               🐐
             </span>
           </h1>
-          <div className="mt-4 mx-auto max-w-lg font-[family-name:var(--font-dm-sans)] text-sm text-muted-foreground space-y-3">
-            <p>
-              Hello! After solving &gt;3000 problems these are (in my opinion) the BEST problems to solve to give you a good foundation for interviews.
-            </p>
-            <p>
-              I&apos;ve given my own rating difficulty out of five goats, since the LeetCode easy/medium/hard tags aren&apos;t so great.
-            </p>
-            <p>
-              For the time being the problems aren&apos;t ordered or grouped together in any way, will add that soon!
-            </p>
-            <p>
-              &ndash; leetgoat{" "}
-              <span className="inline-block animate-[wiggle_1.5s_ease-in-out_infinite]">🐐</span>
-            </p>
-          </div>
+          <p className="mt-3 font-[family-name:var(--font-dm-sans)] text-base text-muted-foreground">
+            After solving &gt;3000 problems, these are the 222 questions I recommend to do for passing interviews! &ndash; leetgoat{" "}
+            <span className="inline-block animate-[wiggle_1.5s_ease-in-out_infinite]">🐐</span>
+          </p>
         </div>
 
         <div className="rounded-2xl border border-border bg-background/90 shadow-lg backdrop-blur-sm overflow-hidden">
