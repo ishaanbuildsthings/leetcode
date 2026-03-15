@@ -4,7 +4,7 @@ import type { IProblemWithRelations } from "@/lib/transforms";
 
 function GoatRating({ normalizedDifficulty }: { normalizedDifficulty: number | null }) {
   const filled = normalizedDifficulty
-    ? Math.min(Math.ceil(normalizedDifficulty / 2), 5)
+    ? Math.min(normalizedDifficulty, 5)
     : 0;
   const empty = 5 - filled;
 
