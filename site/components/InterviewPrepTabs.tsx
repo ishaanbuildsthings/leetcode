@@ -43,24 +43,25 @@ export function InterviewPrepTabs() {
             }`}
           >
             {tab.pulseSymbol ? (
-              <>
-                {tab.label.replace(" ∞", "")}{" "}
-                <svg className="inline-block w-5 h-5 -mt-0.5" viewBox="0 0 100 50" fill="none">
+              <span className="inline-flex items-center gap-0">
+                {tab.label.replace(" ∞", "")}
+                <svg className="w-4 h-4 ml-1" viewBox="0 0 24 12" fill="none">
                   <path
-                    d="M50 25C50 25 62 5 78 5C90 5 95 15 95 25C95 35 90 45 78 45C62 45 50 25 50 25C50 25 38 5 22 5C10 5 5 15 5 25C5 35 10 45 22 45C38 45 50 25 50 25Z"
-                    stroke="#3b82f6"
-                    strokeWidth="5"
+                    d="M12 6C12 6 14.5 1.5 18 1.5C20.5 1.5 22.5 3.5 22.5 6C22.5 8.5 20.5 10.5 18 10.5C14.5 10.5 12 6 12 6ZM12 6C12 6 9.5 1.5 6 1.5C3.5 1.5 1.5 3.5 1.5 6C1.5 8.5 3.5 10.5 6 10.5C9.5 10.5 12 6 12 6Z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
                     strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
-                  <circle r="4" fill="#3b82f6">
+                  <circle r="1.5" fill="currentColor" opacity="0.9">
                     <animateMotion
-                      dur="2s"
+                      dur="2.5s"
                       repeatCount="indefinite"
-                      path="M50 25C50 25 62 5 78 5C90 5 95 15 95 25C95 35 90 45 78 45C62 45 50 25 50 25C50 25 38 5 22 5C10 5 5 15 5 25C5 35 10 45 22 45C38 45 50 25 50 25Z"
+                      path="M12 6C12 6 14.5 1.5 18 1.5C20.5 1.5 22.5 3.5 22.5 6C22.5 8.5 20.5 10.5 18 10.5C14.5 10.5 12 6 12 6C12 6 9.5 1.5 6 1.5C3.5 1.5 1.5 3.5 1.5 6C1.5 8.5 3.5 10.5 6 10.5C9.5 10.5 12 6 12 6Z"
                     />
                   </circle>
                 </svg>
-              </>
+              </span>
             ) : (
               tab.label
             )}
