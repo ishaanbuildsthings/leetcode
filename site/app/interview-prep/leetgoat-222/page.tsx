@@ -81,7 +81,7 @@ export default async function LeetGoat222Page() {
             <div className="flex-1 font-[family-name:var(--font-dm-sans)] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Problem
             </div>
-            <div className="w-24 shrink-0 font-[family-name:var(--font-dm-sans)] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-center">
+            <div className="w-44 shrink-0 font-[family-name:var(--font-dm-sans)] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-center">
               Topics
             </div>
             <div className="w-12 shrink-0 font-[family-name:var(--font-dm-sans)] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">
@@ -121,7 +121,7 @@ export default async function LeetGoat222Page() {
                     </a>
                   </div>
 
-                  <div className="w-24 shrink-0 flex flex-wrap gap-1 justify-center">
+                  <div className="w-44 shrink-0 flex flex-wrap gap-1 justify-center">
                     {coreTags.map((tag) => (
                       <span
                         key={tag}
