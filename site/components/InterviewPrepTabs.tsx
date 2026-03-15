@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const tabs = [
   { href: "/interview-prep", label: "Topics", exact: true },
-  { href: "/interview-prep/leetgoat-222", label: "LeetGoat 222", badge: "soon" },
+  { href: "/interview-prep/leetgoat-222", label: "LeetGoat 222", badge: "🚧 under construction" },
   {
     href: "/interview-prep/flashcards",
     label: "Flashcards",
