@@ -1538,15 +1538,19 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
 }
 
 function ProblemsList({ onEdit }: { onEdit: (id: string) => void }) {
+  const utils = trpc.useUtils();
   const { data: problems, isLoading } = trpc.problem.list.useQuery();
   const deleteProblem = trpc.problem.delete.useMutation({
     onSuccess: () => {
-      trpc.useUtils().problem.list.invalidate();
+      utils.problem.list.invalidate();
     },
   });
   const updateProblem = trpc.problem.update.useMutation({
     onSuccess: () => {
-      trpc.useUtils().problem.list.invalidate();
+      utils.problem.list.invalidate();
+    },
+    onError: (error) => {
+      alert(`Failed to update: ${error.message}`);
     },
   });
 
