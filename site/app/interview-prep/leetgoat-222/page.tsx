@@ -60,7 +60,7 @@ export default async function LeetGoat222Page() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-background/90 shadow-lg backdrop-blur-sm overflow-hidden">
+        <div className="rounded-2xl border border-border bg-background/90 shadow-lg backdrop-blur-sm">
           {/* Header row */}
           <div className="flex items-center gap-4 px-5 py-2.5 border-b border-border bg-muted/50">
             <div className="w-32 shrink-0 font-[family-name:var(--font-dm-sans)] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
@@ -70,7 +70,7 @@ export default async function LeetGoat222Page() {
                   <circle cx="12" cy="12" r="10" />
                   <path d="M12 16v-4M12 8h.01" />
                 </svg>
-                <span className="absolute top-full left-0 mt-2 w-56 rounded-lg bg-foreground text-background text-[11px] font-normal normal-case tracking-normal px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded-lg bg-foreground text-background text-[11px] font-normal normal-case tracking-normal px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
                   I think the default LeetCode easy/medium/hard ratings are bad, so I made my own after experiencing thousands of questions.
                 </span>
               </span>
