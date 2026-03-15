@@ -46,6 +46,11 @@ export function InterviewPrepTabs() {
               <span className="inline-flex items-center gap-0">
                 {tab.label.replace(" ∞", "")}
                 <svg className="w-4 h-4 ml-1" viewBox="0 0 24 12" fill="none">
+                  <defs>
+                    <filter id="flash-blur-sm" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur stdDeviation="0.8" />
+                    </filter>
+                  </defs>
                   <path
                     d="M12 6C12 6 14.5 1.5 18 1.5C20.5 1.5 22.5 3.5 22.5 6C22.5 8.5 20.5 10.5 18 10.5C14.5 10.5 12 6 12 6ZM12 6C12 6 9.5 1.5 6 1.5C3.5 1.5 1.5 3.5 1.5 6C1.5 8.5 3.5 10.5 6 10.5C9.5 10.5 12 6 12 6Z"
                     stroke="currentColor"
@@ -53,7 +58,7 @@ export function InterviewPrepTabs() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
-                  <circle r="1.5" fill="currentColor" opacity="0.9">
+                  <circle r="1.2" fill="white" filter="url(#flash-blur-sm)" opacity="0.9">
                     <animateMotion
                       dur="2.5s"
                       repeatCount="indefinite"
