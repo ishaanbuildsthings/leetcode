@@ -1,96 +1,67 @@
-# TEMPLATE BY ISHAAN AGRAWAL: https://github.com/ishaanbuildsthings
-# O(n log n) time to build, O(combineFn) time to query, so & is O(1) since AND-ing two numbers is constant
-
-class SparseTable:
-    def __init__(self, nums, combineFn):
-        BITS = math.ceil(math.log2(len(nums))) + 1
-
-        # Initialize the sparse table for all windows of length 1
-        sparse = [[None] * len(nums) for _ in range(BITS)] # sparse[log][left] is the answer to the fn operator for the subarray [left:left+2**power]
-        for left in range(len(nums)):
-            sparse[0][left] = nums[left]
-
-        for log in range(1, BITS):
-            for left in range(len(nums)):
-                right = left + 2**log - 1
-                if right >= len(nums):
-                    break
-                leftHalfAnswer = sparse[log - 1][left]
-                rightHalfAnswer = sparse[log - 1][int(left + (2**(log - 1)))]
-                combinedAnswer = combineFn(leftHalfAnswer, rightHalfAnswer)
-                sparse[log][left] = combinedAnswer
-
-        self.sparse = sparse
-        self.combineFn = combineFn
-
-    def query(self, l, r):
-        width = r - l + 1
-        power = math.floor(math.log2(width))
-        windowWidth = 2**power
-        leftAnswer = self.sparse[power][l]
-        rightSideStart = r - windowWidth + 1
-        rightAnswer = self.sparse[power][rightSideStart]
-        combinedAnswer = self.combineFn(leftAnswer, rightAnswer)
-        return combinedAnswer
-
 class Solution:
     def maxGcdSum(self, nums: List[int], k: int) -> int:
-        res = -inf
+        n = len(nums)
+        _gcd = gcd # speed optimization lol
 
-        def agg(a, b):
-            return math.gcd(a, b)
+        LOG = n.bit_length()
+        sparse = [[0] * n for _ in range(LOG)]
+        sparse[0] = list(nums)
+        for power in range(1, LOG):
+            prev = sparse[power - 1]
+            cur = sparse[power]
+            halfWidth = 1 << (power - 1)
+            limit = n - halfWidth
+            for left in range(limit):
+                cur[left] = _gcd(prev[left], prev[left + halfWidth])
+            for left in range(limit, n):
+                cur[left] = prev[left]
 
-        sparse = SparseTable(nums, agg)
+        pf = [0] * n
+        pf[0] = nums[0]
+        for i in range(1, n):
+            pf[i] = pf[i - 1] + nums[i]
 
-        curr = 0
-        pf = []
-        for num in nums:
-            curr += num
-            pf.append(curr)
-        
-        def query(l, r):
-            return pf[r] - pf[l - 1] if l else pf[r]
-        
-        # for each l, we have up to log(max(nums)) valid right positions, since at most our GCD can drop that many times, so we binary search for the maximum sum for all possible GCDs
-        for l in range(len(nums)):
+        res = 0
+        nMinus1 = n - 1
+
+        for l in range(n - k + 1):
             currentLeftBoundary = l + k - 1
-            if currentLeftBoundary >= len(nums):
-                break
-            desiredGcd = sparse.query(l, currentLeftBoundary)
-            while desiredGcd >= 1:
+            
+            w = currentLeftBoundary - l + 1
+            maxPow = w.bit_length() - 1
+            desiredGcd = _gcd(sparse[maxPow][l], sparse[maxPow][l + w - (1 << maxPow)])
 
-                # binary search for the rightmost index s.t. l...rightmost has a gcd of at least desiredGcd
-                left = currentLeftBoundary
-                right = len(nums) - 1
-                resRightmost = None
-                while left <= right:
-                    m = (left+right)//2
-                    computedGcd = sparse.query(l, m)
-                    computedSum = query(l, m)
-                    if computedGcd >= desiredGcd:
+            while True:
+                lo = currentLeftBoundary
+                hi = nMinus1
+                resRightmost = -1
+                while lo <= hi:
+                    m = (lo + hi) >> 1
+                    w = m - l + 1
+                    maxPow = w.bit_length() - 1
+                    pw = 1 << maxPow
+                    g = _gcd(sparse[maxPow][l], sparse[maxPow][l + w - pw])
+                    if g >= desiredGcd:
                         resRightmost = m
-                        left = m + 1
+                        lo = m + 1
                     else:
-                        right = m - 1
-                if resRightmost is None:
-                    break
-                width = resRightmost - l + 1
-                totSum = query(l, resRightmost)
-                score = totSum * desiredGcd
-                res = max(res, score)
+                        hi = m - 1
 
-                if currentLeftBoundary == len(nums) - 1:
+                if resRightmost == -1:
                     break
-                
-                if desiredGcd == 1:
+
+                totSum = pf[resRightmost] - pf[l - 1] if l else pf[resRightmost]
+                score = totSum * desiredGcd
+                if score > res:
+                    res = score
+
+                if desiredGcd == 1 or resRightmost == nMinus1:
                     break
-                
-                if resRightmost == len(nums) - 1:
-                    break
-                nextGcd = sparse.query(l, resRightmost + 1)
-                desiredGcd = nextGcd
+
+                w = resRightmost - l + 2
+                maxPow = w.bit_length() - 1
+                pw = 1 << maxPow
+                desiredGcd = _gcd(sparse[maxPow][l], sparse[maxPow][l + w - pw])
                 currentLeftBoundary = resRightmost + 1
 
-        
         return res
-            
