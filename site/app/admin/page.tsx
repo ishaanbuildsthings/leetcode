@@ -254,7 +254,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
             required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+            className={`w-full px-3 py-1.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm ${formData.title ? 'border border-gray-300' : 'border-2 border-red-400'}`}
           />
         </div>
         <div>
@@ -277,7 +277,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                 }));
               }
             }}
-            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+            className={`w-full px-3 py-1.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm ${formData.url ? 'border border-gray-300' : 'border-2 border-red-400'}`}
             placeholder="https://atcoder.jp/contests/..."
           />
         </div>
@@ -714,7 +714,7 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
             required
             value={formData.title}
             onChange={(e) => handleTitleChange(e.target.value)}
-            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 text-sm"
+            className={`w-full px-3 py-1.5 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 text-sm ${formData.title ? 'border border-gray-300' : 'border-2 border-red-400'}`}
             placeholder="e.g., 3737. Count Subarrays With Majority Element I"
           />
         </div>
@@ -725,7 +725,7 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
             required
             value={formData.url}
             onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 text-sm"
+            className={`w-full px-3 py-1.5 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 text-sm ${formData.url ? 'border border-gray-300' : 'border-2 border-red-400'}`}
             placeholder="https://leetcode.com/problems/..."
           />
         </div>
@@ -1178,7 +1178,7 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
             required
             value={formData.title}
             onChange={(e) => handleTitleChange(e.target.value)}
-            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 text-sm"
+            className={`w-full px-3 py-1.5 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 text-sm ${formData.title ? 'border border-gray-300' : 'border-2 border-red-400'}`}
             placeholder="e.g., 2339. All the Matches of the League"
           />
         </div>
@@ -1189,7 +1189,7 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
             required
             value={formData.url}
             onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 text-sm"
+            className={`w-full px-3 py-1.5 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 text-sm ${formData.url ? 'border border-gray-300' : 'border-2 border-red-400'}`}
             placeholder="https://leetcode.com/problems/..."
           />
         </div>
