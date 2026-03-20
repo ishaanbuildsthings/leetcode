@@ -105,7 +105,7 @@ export default function InterviewPrepPage() {
             </span>
           </p>
           <a
-            href="https://discord.gg/yaRMFNvB"
+            href="https://discord.gg/NFscUPSx"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-block font-[family-name:var(--font-dm-sans)] text-sm font-medium text-primary underline underline-offset-4 hover:text-primary/80"

@@ -63,7 +63,7 @@ export function Nav({ activePath, isDev }: NavProps) {
           )}
 
           <a
-            href="https://discord.gg/yaRMFNvB"
+            href="https://discord.gg/NFscUPSx"
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground transition-colors hover:text-foreground font-[family-name:var(--font-dm-sans)] text-sm font-medium"

@@ -52,7 +52,7 @@ export default async function HomePage() {
                   <span aria-hidden="true">&rarr;</span>
                 </Link>
                 <a
-                  href="https://discord.gg/yaRMFNvB"
+                  href="https://discord.gg/NFscUPSx"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-lg bg-[#5865F2] px-7 py-3.5 font-[family-name:var(--font-dm-sans)] text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#4752C4]"
