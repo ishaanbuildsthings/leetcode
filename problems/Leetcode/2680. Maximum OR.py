@@ -33,4 +33,4 @@ class Solution:
             orHere = num | orOnLeft | orOnRight
             res = max(res, orHere)
         
-        return res
+    return res
