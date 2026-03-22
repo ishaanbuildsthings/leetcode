@@ -1,17 +1,10 @@
-// Construct an AND sparse table
-
-// O(n log n) build time
-// O(1) query range AND
-// ✅ Passed a question
-// ⚠️ Not optimized, also my style is a bit weird as I populate sparse[power][left] even when it would go past the right edge, might be slower to build
-
 #include <bits/stdc++.h>
 using namespace std;
 
 struct Sparse {
     int n;
     int LOG;
-    vector<vector<int>> sparse; // sparse[power][left] is the AND for that range
+    vector<vector<int>> sparse; // sparse[power][left] is the OR for that range
     Sparse(const vector<int>& arr) {
         n = arr.size();
         LOG = 32 - __builtin_clz(n);
@@ -23,12 +16,12 @@ struct Sparse {
             int width = 1 << power;
             int halfWidth = width / 2;
             for (int left = 0; left < n; left++) {
-                int andLeft = sparse[power-1][left];
+                int orLeft = sparse[power-1][left];
                 int rightEdge = left + halfWidth;
                 if (rightEdge < n) {
-                    andLeft &= sparse[power-1][rightEdge];
+                    orLeft |= sparse[power-1][rightEdge];
                 }
-                sparse[power][left] = andLeft;
+                sparse[power][left] = orLeft;
             }
         }
     }
@@ -38,6 +31,6 @@ struct Sparse {
         int powWidth = 1 << maxPow;
         int left = sparse[maxPow][l];
         int right = sparse[maxPow][l + width - powWidth];
-        return left & right;
+        return left | right;
     }
 };
