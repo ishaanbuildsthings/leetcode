@@ -1,3 +1,4 @@
+// SOLUTION 1 WITH BINARY LIFTING, O(n^2 * logn * n/W)
 template<typename T, typename V, typename BaseFn, typename MergeFn>
 struct Lift {
     int n, LOG;
@@ -202,3 +203,97 @@ public:
         return res;
     }
 };
+
+
+
+
+// SOLUTION 2 WITH BASIC DFS, O(n^2)
+// # Definition for a binary tree node.
+// # class TreeNode:
+// #     def __init__(self, val=0, left=None, right=None):
+// #         self.val = val
+// #         self.left = left
+// #         self.right = right
+// class Solution:
+//     def maxSum(self, root: Optional[TreeNode]) -> int:
+//         # dfs from every node, visiting all other nodes
+
+//         g = defaultdict(list) # node -> list of adj nodes
+
+//         def makeG(node):
+//             for ch in [node.left, node.right]:
+//                 if ch:
+//                     g[node].append(ch)
+//                     g[ch].append(node)
+//                     makeG(ch)
+//         makeG(root)
+
+//         used = set() # used values
+//         seen = set() # basically our path
+//         res = -inf
+//         def dfs(node, currSum):
+//             nonlocal res
+//             used.add(node.val)
+//             seen.add(node)
+//             res = max(res, currSum)
+//             for adj in g[node]:
+//                 if adj not in seen and adj.val not in used:
+//                     dfs(adj, currSum + adj.val)
+//             used.remove(node.val)
+//             seen.remove(node)
+        
+//         def getScores(node):
+//             dfs(node, node.val)
+//             for ch in [node.left, node.right]:
+//                 if ch:
+//                     getScores(ch)
+//         getScores(root)
+
+//         return res
+
+            
+
+// Solution 3 WITH TREE CONVOLUTION DFS O(n^2 * n/W)
+# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def maxSum(self, root: Optional[TreeNode]) -> int:
+
+        res = -inf
+        
+        # returns all possible (pathSum, bitset) up
+        def dfs(node):
+            nonlocal res
+            res = max(res, node.val) # single node paths
+            bs = 1 << (node.val + 1000)
+            # if we are a leaf just send that up
+            if not node.left and not node.right:
+                return [(node.val, bs)]
+            # chains up to root
+            chains = [(node.val, bs)]
+            for child in [node.left, node.right]:
+                nchains = []
+                if not child: continue
+                allData = dfs(child)
+                for pathSum, pathBs in allData:
+                    # generate new chains
+                    if (not bs & pathBs):
+                        nchains.append((node.val + pathSum, bs | pathBs))
+                    else:
+                        continue
+                    for beforePathSum, beforeBs in chains:
+                        if not (beforeBs & pathBs):
+                            nsum = beforePathSum + pathSum
+                            res = max(res, nsum)
+
+                chains += nchains
+            
+            return chains
+        
+        dfs(root)
+
+        return res
