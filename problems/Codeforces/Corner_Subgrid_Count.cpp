@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
-#pragma GCC target("popcnt")
 using namespace std;
+#pragma GCC target("popcnt")
 
 int main() {
     ios::sync_with_stdio(false);
@@ -20,3 +20,5 @@ int main() {
     }
     cout << out << '\n';
 }
+
+
