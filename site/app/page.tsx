@@ -62,14 +62,6 @@ export default async function HomePage() {
                   </svg>
                   Join the Herd
                 </a>
-                <a
-                  href="https://www.linkedin.com/feed/update/urn:li:activity:7443027944224022528/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-background/80 px-7 py-3.5 font-[family-name:var(--font-dm-sans)] text-sm font-semibold text-foreground shadow-md transition-colors hover:bg-muted"
-                >
-                  Latest Update &rarr;
-                </a>
               </div>
             </div>
 
