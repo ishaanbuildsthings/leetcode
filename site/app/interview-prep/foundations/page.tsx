@@ -122,7 +122,7 @@ export default function FoundationsPage() {
         <p className="mt-6 font-[family-name:var(--font-dm-sans)] text-sm text-muted-foreground">
           Have questions?{" "}
           <a
-            href="https://discord.gg/NFscUPSx"
+            href="https://discord.gg/HYqgVAvC"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
