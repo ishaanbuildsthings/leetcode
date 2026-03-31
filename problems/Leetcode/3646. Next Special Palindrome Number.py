@@ -19,7 +19,7 @@ class Solution:
             for d in digits:
                 half.extend([d] * (d//2))
             oddDigits = [x for x in digits if x % 2]
-            for perm in itertools.permutations(half):
+            for perm in set(itertools.permutations(half)): # set here not required but a huge speedup, prevents downstream work from being duplicated
                 full = perm + tuple(oddDigits) + perm[::-1]
                 num = int(''.join(str(x) for x in full))
                 if num > n and num < res:
