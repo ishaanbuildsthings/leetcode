@@ -156,14 +156,11 @@ function ProblemsTab() {
       {showCreateForm && <CreateProblemForm onSuccess={() => setShowCreateForm(false)} />}
       {showLeetcodeForm && <CreateLeetcodeProblemForm onSuccess={() => setShowLeetcodeForm(false)} />}
       {showDatabaseForm && <CreateDatabaseLeetcodeProblemForm onSuccess={() => setShowDatabaseForm(false)} />}
-      {editingProblem && (
-        <EditProblemForm
-          problemId={editingProblem}
-          onClose={() => setEditingProblem(null)}
-        />
-      )}
-
-      <ProblemsList onEdit={setEditingProblem} />
+      <ProblemsList
+        editingProblem={editingProblem}
+        onEdit={setEditingProblem}
+        onCloseEdit={() => setEditingProblem(null)}
+      />
     </div>
   );
 }
@@ -1537,9 +1534,457 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
   );
 }
 
-function ProblemsList({ onEdit }: { onEdit: (id: string) => void }) {
+const PROBLEMS_PER_PAGE = 20;
+
+function InlineEditText({
+  label,
+  value,
+  valueClassName = "text-gray-600",
+  onSave,
+}: {
+  label: string;
+  value: string;
+  valueClassName?: string;
+  onSave: (value: string) => Promise<unknown>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const [saving, setSaving] = useState(false);
+
+  const startEdit = () => {
+    setDraft(value);
+    setEditing(true);
+  };
+
+  const save = async () => {
+    if (draft === value) {
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      await onSave(draft);
+      setEditing(false);
+    } catch (e: any) {
+      alert(`Failed to save: ${e?.message ?? e}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (editing) {
+    return (
+      <div className="mt-2">
+        <div className="text-xs font-semibold text-gray-700 mb-1">{label}:</div>
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          autoFocus
+          rows={Math.max(2, Math.min(8, draft.split("\n").length + 1))}
+          className="w-full text-sm text-gray-800 border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setEditing(false);
+            } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              save();
+            }
+          }}
+        />
+        <div className="flex gap-2 mt-1">
+          <button
+            onClick={save}
+            disabled={saving}
+            className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save"}
+          </button>
+          <button
+            onClick={() => setEditing(false)}
+            disabled={saving}
+            className="px-2 py-0.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+          >
+            Cancel
+          </button>
+          <span className="text-xs text-gray-400 self-center">⌘+Enter to save · Esc to cancel</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!value) {
+    return (
+      <div className="mt-2">
+        <button
+          onClick={startEdit}
+          className="text-xs text-gray-400 hover:text-blue-600 inline-flex items-center gap-1"
+        >
+          ✎ Add {label.toLowerCase()}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2">
+      <span className="text-xs font-semibold text-gray-700">{label}: </span>
+      <span className={`text-sm ${valueClassName}`}>{value}</span>
+      <button
+        onClick={startEdit}
+        className="ml-1 text-xs text-gray-400 hover:text-blue-600"
+        title={`Edit ${label.toLowerCase()}`}
+      >
+        ✎
+      </button>
+    </div>
+  );
+}
+
+type ProblemTagRow = {
+  tag: { id: string; name: string };
+  role: tag_role | null;
+  tagDifficulty: number | null;
+  isInstructive: boolean | null;
+};
+
+type TagMutationInput = { tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean };
+
+function tagsToMutation(tags: ProblemTagRow[]): TagMutationInput[] {
+  return tags.map((pt) => ({
+    tagId: pt.tag.id,
+    role: pt.role ?? undefined,
+    tagDifficulty: pt.tagDifficulty ?? undefined,
+    isInstructive: pt.isInstructive ?? undefined,
+  }));
+}
+
+function InlineTagEditor({
+  pt,
+  allTags,
+  onChange,
+  onRemove,
+}: {
+  pt: ProblemTagRow;
+  allTags: ProblemTagRow[];
+  onChange: (updated: TagMutationInput[]) => Promise<unknown>;
+  onRemove: (updated: TagMutationInput[]) => Promise<unknown>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const classes = pt.isInstructive === true
+    ? "bg-purple-100 text-purple-800 border border-purple-300"
+    : pt.role === "core"
+    ? "bg-blue-100 text-blue-800"
+    : pt.role === "secondary"
+    ? "bg-green-100 text-green-800"
+    : pt.role === "mention"
+    ? "bg-yellow-100 text-yellow-800"
+    : "bg-gray-100 text-gray-800";
+
+  const applyPatch = async (patch: Partial<TagMutationInput>) => {
+    setSaving(true);
+    try {
+      const updated = tagsToMutation(allTags).map((t) =>
+        t.tagId === pt.tag.id ? { ...t, ...patch } : t
+      );
+      await onChange(updated);
+    } catch (e: any) {
+      alert(`Failed to save: ${e?.message ?? e}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeTag = async () => {
+    setSaving(true);
+    setOpen(false);
+    try {
+      const updated = tagsToMutation(allTags).filter((t) => t.tagId !== pt.tag.id);
+      await onRemove(updated);
+    } catch (e: any) {
+      alert(`Failed to remove: ${e?.message ?? e}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <span className="relative inline-block">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        disabled={saving}
+        className={`px-2 py-0.5 text-xs rounded hover:ring-1 hover:ring-blue-400 disabled:opacity-50 ${classes}`}
+      >
+        {pt.isInstructive === true && "📚 "}
+        {pt.tag.name}
+        {pt.role && ` (${pt.role})`}
+        {pt.tagDifficulty && ` ${pt.tagDifficulty}/10`}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-6 z-20 bg-white border border-gray-200 rounded shadow-lg p-2 w-64">
+            <div className="text-xs font-semibold text-gray-700 mb-1">{pt.tag.name}</div>
+
+            <div className="text-[10px] uppercase text-gray-500 mt-1">Role</div>
+            <div className="flex gap-1 mb-2">
+              {(["core", "secondary", "mention"] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => applyPatch({ role: r })}
+                  disabled={saving}
+                  className={`flex-1 px-1 py-0.5 text-xs rounded border ${
+                    pt.role === r ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 hover:bg-gray-100"
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+              <button
+                onClick={() => applyPatch({ role: undefined })}
+                disabled={saving}
+                className={`px-1 py-0.5 text-xs rounded border ${
+                  !pt.role ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 hover:bg-gray-100"
+                }`}
+                title="Clear role"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="text-[10px] uppercase text-gray-500">Difficulty</div>
+            <div className="flex gap-0.5 mb-2 flex-wrap">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                <button
+                  key={n}
+                  onClick={() => applyPatch({ tagDifficulty: n })}
+                  disabled={saving}
+                  className={`w-6 h-6 text-xs rounded ${
+                    pt.tagDifficulty === n ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-blue-100"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+              <button
+                onClick={() => applyPatch({ tagDifficulty: undefined })}
+                disabled={saving}
+                className="w-6 h-6 text-xs rounded bg-gray-100 hover:bg-gray-200"
+                title="Clear difficulty"
+              >
+                ✕
+              </button>
+            </div>
+
+            <label className="flex items-center gap-1 text-xs mb-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={pt.isInstructive === true}
+                onChange={(e) => applyPatch({ isInstructive: e.target.checked })}
+                disabled={saving}
+              />
+              📚 Instructive
+            </label>
+
+            <div className="flex justify-between pt-1 border-t border-gray-100">
+              <button
+                onClick={removeTag}
+                disabled={saving}
+                className="text-xs text-red-600 hover:bg-red-50 px-2 py-0.5 rounded"
+              >
+                Remove
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                className="text-xs text-gray-600 hover:bg-gray-100 px-2 py-0.5 rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </span>
+  );
+}
+
+function InlineDifficulty({
+  value,
+  onSave,
+}: {
+  value: number | null;
+  onSave: (v: number) => Promise<unknown>;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const handleChange = async (v: number) => {
+    setSaving(true);
+    setOpen(false);
+    try {
+      await onSave(v);
+    } catch (e: any) {
+      alert(`Failed to save: ${e?.message ?? e}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <span className="relative inline-flex items-center">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        disabled={saving}
+        className="text-xs px-1.5 py-0.5 rounded border border-gray-200 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50"
+        title="Adjust difficulty"
+      >
+        {saving ? "…" : value != null ? `Normalized: ${value}/10` : "Set difficulty"} ✎
+      </button>
+      {open && (
+        <div className="absolute left-0 top-6 z-10 bg-white border border-gray-200 rounded shadow-lg p-1 flex gap-0.5">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+            <button
+              key={n}
+              onClick={() => handleChange(n)}
+              className={`w-6 h-6 text-xs rounded hover:bg-blue-100 ${
+                n === value ? "bg-blue-600 text-white" : "text-gray-700"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      )}
+    </span>
+  );
+}
+
+function InlineDrillEditor({
+  drillType,
+  drillNotes,
+  onSave,
+}: {
+  drillType: "mindsolve" | "implement" | null;
+  drillNotes: string | null;
+  onSave: (input: { drillType: "mindsolve" | "implement" | null; drillNotes: string }) => Promise<unknown>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [typeDraft, setTypeDraft] = useState<"mindsolve" | "implement" | "">(drillType ?? "");
+  const [notesDraft, setNotesDraft] = useState(drillNotes ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const startEdit = () => {
+    setTypeDraft(drillType ?? "");
+    setNotesDraft(drillNotes ?? "");
+    setEditing(true);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await onSave({ drillType: typeDraft === "" ? null : typeDraft, drillNotes: notesDraft });
+      setEditing(false);
+    } catch (e: any) {
+      alert(`Failed to save: ${e?.message ?? e}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (editing) {
+    return (
+      <div className="mt-2 p-2 border border-blue-200 rounded bg-blue-50/30">
+        <div className="text-xs font-semibold text-gray-700 mb-1">Drill:</div>
+        <div className="flex gap-3 mb-2">
+          <label className="flex items-center gap-1 text-xs cursor-pointer">
+            <input type="radio" checked={typeDraft === ""} onChange={() => setTypeDraft("")} />
+            None
+          </label>
+          <label className="flex items-center gap-1 text-xs cursor-pointer">
+            <input type="radio" checked={typeDraft === "mindsolve"} onChange={() => setTypeDraft("mindsolve")} />
+            🧠 Mindsolve
+          </label>
+          <label className="flex items-center gap-1 text-xs cursor-pointer">
+            <input type="radio" checked={typeDraft === "implement"} onChange={() => setTypeDraft("implement")} />
+            💻 Implement
+          </label>
+        </div>
+        <textarea
+          value={notesDraft}
+          onChange={(e) => setNotesDraft(e.target.value)}
+          placeholder="Drill notes..."
+          rows={Math.max(2, Math.min(8, notesDraft.split("\n").length + 1))}
+          className="w-full text-sm text-gray-800 border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setEditing(false);
+            else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              save();
+            }
+          }}
+        />
+        <div className="flex gap-2 mt-1">
+          <button
+            onClick={save}
+            disabled={saving}
+            className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save"}
+          </button>
+          <button
+            onClick={() => setEditing(false)}
+            disabled={saving}
+            className="px-2 py-0.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+          >
+            Cancel
+          </button>
+          <span className="text-xs text-gray-400 self-center">⌘+Enter to save · Esc to cancel</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!drillType) {
+    return (
+      <div className="mt-2">
+        <button
+          onClick={startEdit}
+          className="text-xs text-gray-400 hover:text-blue-600 inline-flex items-center gap-1"
+        >
+          ✎ Add drill
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 flex items-start gap-2">
+      <span className="px-2 py-1 rounded text-xs font-semibold bg-gradient-to-r from-blue-50 to-purple-50 text-purple-900 border border-purple-200">
+        {drillType === "mindsolve" ? "🧠 Mindsolve" : "💻 Implement"}
+      </span>
+      <div className="flex-1">
+        <span className="text-xs font-semibold text-gray-700">Drill Notes: </span>
+        <span className="text-sm text-gray-600">
+          {drillNotes || <span className="italic text-gray-400">none</span>}
+        </span>
+        <button
+          onClick={startEdit}
+          className="ml-1 text-xs text-gray-400 hover:text-blue-600"
+          title="Edit drill"
+        >
+          ✎
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem: string | null; onEdit: (id: string) => void; onCloseEdit: () => void }) {
   const utils = trpc.useUtils();
   const { data: problems, isLoading } = trpc.problem.list.useQuery();
+  const [page, setPage] = useState(1);
+  const [fullView, setFullView] = useState(false);
   const deleteProblem = trpc.problem.delete.useMutation({
     onSuccess: () => {
       utils.problem.list.invalidate();
@@ -1566,19 +2011,90 @@ function ProblemsList({ onEdit }: { onEdit: (id: string) => void }) {
     );
   }
 
+  const totalPages = Math.max(1, Math.ceil(problems.length / PROBLEMS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * PROBLEMS_PER_PAGE;
+  const pageProblems = fullView ? problems : problems.slice(startIdx, startIdx + PROBLEMS_PER_PAGE);
+
+  const Pager = () => (
+    <div className="flex items-center justify-between gap-2 px-4 py-3 bg-gray-50 flex-wrap">
+      <div className="text-sm text-gray-600">
+        {fullView
+          ? `Showing all ${problems.length}`
+          : `Showing ${startIdx + 1}–${Math.min(startIdx + PROBLEMS_PER_PAGE, problems.length)} of ${problems.length}`}
+      </div>
+      <div className="flex items-center gap-1">
+        {!fullView && (
+          <>
+            <button
+              onClick={() => setPage(1)}
+              disabled={currentPage === 1}
+              className="px-2 py-1 text-sm rounded border border-gray-300 bg-white disabled:opacity-40 hover:bg-gray-100"
+            >
+              « First
+            </button>
+            <button
+              onClick={() => setPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-2 py-1 text-sm rounded border border-gray-300 bg-white disabled:opacity-40 hover:bg-gray-100"
+            >
+              ‹ Prev
+            </button>
+            <span className="px-2 text-sm text-gray-700">
+              Page {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-2 py-1 text-sm rounded border border-gray-300 bg-white disabled:opacity-40 hover:bg-gray-100"
+            >
+              Next ›
+            </button>
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className="px-2 py-1 text-sm rounded border border-gray-300 bg-white disabled:opacity-40 hover:bg-gray-100"
+            >
+              Last »
+            </button>
+          </>
+        )}
+        <button
+          onClick={() => setFullView((f) => !f)}
+          className={`ml-2 px-2 py-1 text-sm rounded border ${
+            fullView
+              ? "border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
+              : "border-gray-300 bg-white hover:bg-gray-100"
+          }`}
+          title={fullView ? "Switch to paginated view" : "Render all problems (may be slow)"}
+        >
+          {fullView ? "Paginate" : "Full view"}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="bg-white rounded-lg shadow divide-y">
-      {problems.map((problem) => (
-        <div key={problem.id} className="p-4 hover:bg-gray-50">
+      <Pager />
+      {pageProblems.map((problem) => (
+        <div key={problem.id}>
+        <div className="p-4 hover:bg-gray-50">
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-gray-900">{problem.title}</h3>
-                {problem.isGreatProblem && (
-                  <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded">
+                <label className="flex items-center gap-1 cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={problem.isGreatProblem}
+                    onChange={() => updateProblem.mutate({ id: problem.id, isGreatProblem: !problem.isGreatProblem })}
+                    className="w-3 h-3 text-yellow-600 border-gray-300 rounded"
+                  />
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${problem.isGreatProblem ? 'bg-yellow-100 text-yellow-800' : 'text-gray-600'}`}>
                     Great
                   </span>
-                )}
+                </label>
                 <label className="flex items-center gap-1 cursor-pointer" onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
@@ -1598,11 +2114,15 @@ function ProblemsList({ onEdit }: { onEdit: (id: string) => void }) {
                   <span className="text-xs text-gray-600">Adv</span>
                 </label>
               </div>
-              <p className="text-sm text-gray-600 mb-2">
-                {problem.platform.name}
-                {problem.platformDifficulty && ` • ${problem.platformDifficulty}`}
-                {problem.normalizedDifficulty && ` • Normalized: ${problem.normalizedDifficulty}/10`}
-              </p>
+              <div className="text-sm text-gray-600 mb-2 flex items-center gap-1 flex-wrap">
+                <span>{problem.platform.name}</span>
+                {problem.platformDifficulty && <span>• {problem.platformDifficulty}</span>}
+                <span>•</span>
+                <InlineDifficulty
+                  value={problem.normalizedDifficulty ?? null}
+                  onSave={(v) => updateProblem.mutateAsync({ id: problem.id, normalizedDifficulty: v ?? undefined })}
+                />
+              </div>
               <a
                 href={problem.url}
                 target="_blank"
@@ -1611,52 +2131,34 @@ function ProblemsList({ onEdit }: { onEdit: (id: string) => void }) {
               >
                 {problem.url}
               </a>
-              {problem.simplifiedStatement && (
-                <div className="mt-2">
-                  <span className="text-xs font-semibold text-gray-700">Summary: </span>
-                  <span className="text-sm text-gray-600">{problem.simplifiedStatement}</span>
-                </div>
-              )}
-              {problem.notes && (
-                <div className="mt-2">
-                  <span className="text-xs font-semibold text-gray-700">Notes: </span>
-                  <span className="text-sm text-gray-500">{problem.notes}</span>
-                </div>
-              )}
-              {problem.drillType && (
-                <div className="mt-2 flex items-start gap-2">
-                  <span className="px-2 py-1 rounded text-xs font-semibold bg-gradient-to-r from-blue-50 to-purple-50 text-purple-900 border border-purple-200">
-                    {problem.drillType === 'mindsolve' ? '🧠 Mindsolve' : '💻 Implement'}
-                  </span>
-                  {problem.drillNotes && (
-                    <div className="flex-1">
-                      <span className="text-xs font-semibold text-gray-700">Drill Notes: </span>
-                      <span className="text-sm text-gray-600">{problem.drillNotes}</span>
-                    </div>
-                  )}
-                </div>
-              )}
+              <InlineEditText
+                label="Summary"
+                value={problem.simplifiedStatement ?? ""}
+                valueClassName="text-gray-600"
+                onSave={(v) => updateProblem.mutateAsync({ id: problem.id, simplifiedStatement: v })}
+              />
+              <InlineEditText
+                label="Notes"
+                value={problem.notes ?? ""}
+                valueClassName="text-gray-500"
+                onSave={(v) => updateProblem.mutateAsync({ id: problem.id, notes: v })}
+              />
+              <InlineDrillEditor
+                drillType={(problem.drillType as "mindsolve" | "implement" | null) ?? null}
+                drillNotes={problem.drillNotes ?? null}
+                onSave={({ drillType, drillNotes }) =>
+                  updateProblem.mutateAsync({ id: problem.id, drillType, drillNotes })
+                }
+              />
               <div className="flex flex-wrap gap-1 mt-2">
-                {problem.tags.map((pt) => (
-                  <span
+                {problem.tags.map((pt: any) => (
+                  <InlineTagEditor
                     key={pt.tag.id}
-                    className={`px-2 py-0.5 text-xs rounded ${
-                      pt.isInstructive === true
-                        ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                        : pt.role === 'core'
-                        ? 'bg-blue-100 text-blue-800'
-                        : pt.role === 'secondary'
-                        ? 'bg-green-100 text-green-800'
-                        : pt.role === 'mention'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {pt.isInstructive === true && '📚 '}
-                    {pt.tag.name}
-                    {pt.role && ` (${pt.role})`}
-                    {pt.tagDifficulty && ` ${pt.tagDifficulty}/10`}
-                  </span>
+                    pt={pt as ProblemTagRow}
+                    allTags={problem.tags as ProblemTagRow[]}
+                    onChange={(tags) => updateProblem.mutateAsync({ id: problem.id, tags })}
+                    onRemove={(tags) => updateProblem.mutateAsync({ id: problem.id, tags })}
+                  />
                 ))}
               </div>
               {problem.solutions.length > 0 && (
@@ -1720,7 +2222,14 @@ function ProblemsList({ onEdit }: { onEdit: (id: string) => void }) {
             </div>
           </div>
         </div>
+        {editingProblem === problem.id && (
+          <div className="border-t border-b border-blue-200 bg-blue-50/30">
+            <EditProblemForm problemId={problem.id} onClose={onCloseEdit} />
+          </div>
+        )}
+        </div>
       ))}
+      <Pager />
     </div>
   );
 }
