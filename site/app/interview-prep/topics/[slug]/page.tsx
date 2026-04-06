@@ -222,7 +222,7 @@ export default function TopicDetailPage() {
             <p className="mt-6 font-[family-name:var(--font-dm-sans)] text-sm text-muted-foreground">
               Questions about {topic.name.toLowerCase()}?{" "}
               <a
-                href="https://discord.gg/HYqgVAvC"
+                href="https://discord.gg/ENypyH9n"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
@@ -325,7 +325,7 @@ export default function TopicDetailPage() {
                   <p className="mt-6 font-[family-name:var(--font-dm-sans)] text-sm text-muted-foreground">
                     Stuck on this problem?{" "}
                     <a
-                      href="https://discord.gg/HYqgVAvC"
+                      href="https://discord.gg/ENypyH9n"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
