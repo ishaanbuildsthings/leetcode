@@ -63,6 +63,6 @@ def matVecMul(A, v):
         out[i] = s
     return out
 
-# When you multiply a matrix by a column vector that is “1 in position 0 and 0 elsewhere”, the result is just the 0th column of the matrix. So we could skip the matVecMul here and just tkaae the first column.
+# When you multiply a matrix by a column vector that is “1 in position 0 and 0 elsewhere”, the result is just the 0th column of the matrix. So we could skip the matVecMul here and just take the first column.
 vec2 = matVecMul(matPow(mat, n), vector)
 print(vec2[0])
