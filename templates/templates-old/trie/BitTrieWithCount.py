@@ -74,3 +74,30 @@ class BitTrie:
             return resHere
 
         return dfs(self.root, self.BITS - 1)
+
+
+    def countNumbersGTEVal(self, valToBeXord, threshold):
+        if not self.root.children:
+            return 0
+
+        def dfs(node, bitOffset):
+            if bitOffset < 0:
+                return node.countOfNumbers
+
+            limitBit = (threshold >> bitOffset) & 1
+            valueBit = (valToBeXord >> bitOffset) & 1
+            xor0Child = node.children.get(valueBit)
+            xor1Child = node.children.get(1 - valueBit)
+
+            res = 0
+            if limitBit == 0:
+                if xor1Child:
+                    res += xor1Child.countOfNumbers
+                if xor0Child:
+                    res += dfs(xor0Child, bitOffset - 1)
+            else:
+                if xor1Child:
+                    res += dfs(xor1Child, bitOffset - 1)
+            return res
+
+        return dfs(self.root, self.BITS - 1)
