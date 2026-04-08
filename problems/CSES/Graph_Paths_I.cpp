@@ -13,40 +13,50 @@ int main() {
     vector<int> state(n + 1); // number of ways to reach node N
     state[1] = 1; // start at node 1
 
-    vector<vector<int> T(n + 1, vector<int>(n + 1, 0));
+    vector<vector<int>> T(n + 1, vector<int>(n + 1, 0));
 
     for (int fromNode = 1; fromNode <= n; fromNode++) {
-        for (auto toNode : g[node]) {
-            T[toNode][fromNode] = 1;
+        for (auto toNode : g[fromNode]) {
+            T[toNode][fromNode] += 1; // we do this because of duplicate edges
         }
     }
 
-    auto matMult(auto& A, auto&B) -> vector<vector<int>> {
+    auto matMult = [&](auto& A, auto& B) -> vector<vector<int>> {
         vector<vector<int>> C(n + 1, vector<int>(n + 1, 0));
-        for (int i = 0; i < n + 1; i++) {
-            auto& Ai = A[i];
-            auto& Ci = C[i];
-            for (int k = 0; k < n + 1; k++) {
-                if (Ai[k] == 0) continue;
-                int a = Ai[k];
-                auto& Bk = B[k];
-                for (int j = 0; j < n + 1; j++) {
-                    Ci[j] = (Ci[j] + a * Bk[j]) % MOD;
+        for (int i = 0; i <= n; i++) {
+            for (int k2 = 0; k2 <= n; k2++) {
+                if (A[i][k2] == 0) continue;
+                long long a = A[i][k2];
+                for (int j = 0; j <= n; j++) {
+                    C[i][j] = (C[i][j] + a * B[k2][j]) % MOD;
                 }
             }
         }
         return C;
     };
-
-    auto matPow = [&](auto& mat, int e) -> vector<vector<int>> {
-
+    
+    auto matPow = [&](auto mat, int e) -> vector<vector<int>> {
+        vector<vector<int>> res(n + 1, vector<int>(n + 1, 0));
+        for (int i = 0; i <= n; i++) res[i][i] = 1; // identity
+        while (e > 0) {
+            if (e & 1) res = matMult(res, mat);
+            mat = matMult(mat, mat);
+            e >>= 1;
+        }
+        return res;
+    };
+    
+    auto matVecMul = [&](auto& mat, auto& vec) -> vector<int> {
+        vector<int> res(n + 1, 0);
+        for (int i = 0; i <= n; i++) {
+            for (int j = 0; j <= n; j++) {
+                res[i] = (res[i] + (long long)mat[i][j] * vec[j]) % MOD;
+            }
+        }
+        return res;
     };
 
-    auto matVecMult = [&](auto& mat, auto& vec) -> vector<vector<int>> {
-
-    };
-
-    int transitions = n - 1;
+    int transitions = k;
     auto powered = matPow(T, transitions);
     auto finalVec = matVecMul(powered, state);
     cout << finalVec[n];
