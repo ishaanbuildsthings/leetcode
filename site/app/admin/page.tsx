@@ -1985,6 +1985,7 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
   const { data: problems, isLoading } = trpc.problem.list.useQuery();
   const [page, setPage] = useState(1);
   const [fullView, setFullView] = useState(false);
+  const [greatOnly, setGreatOnly] = useState(false);
   const deleteProblem = trpc.problem.delete.useMutation({
     onSuccess: () => {
       utils.problem.list.invalidate();
@@ -2011,19 +2012,30 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
     );
   }
 
-  const totalPages = Math.max(1, Math.ceil(problems.length / PROBLEMS_PER_PAGE));
+  const filteredProblems = greatOnly ? problems.filter((p) => p.isGreatProblem) : problems;
+  const totalPages = Math.max(1, Math.ceil(filteredProblems.length / PROBLEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const startIdx = (currentPage - 1) * PROBLEMS_PER_PAGE;
-  const pageProblems = fullView ? problems : problems.slice(startIdx, startIdx + PROBLEMS_PER_PAGE);
+  const pageProblems = fullView ? filteredProblems : filteredProblems.slice(startIdx, startIdx + PROBLEMS_PER_PAGE);
 
   const Pager = () => (
     <div className="flex items-center justify-between gap-2 px-4 py-3 bg-gray-50 flex-wrap">
       <div className="text-sm text-gray-600">
         {fullView
-          ? `Showing all ${problems.length}`
-          : `Showing ${startIdx + 1}–${Math.min(startIdx + PROBLEMS_PER_PAGE, problems.length)} of ${problems.length}`}
+          ? `Showing all ${filteredProblems.length}`
+          : `Showing ${filteredProblems.length === 0 ? 0 : startIdx + 1}–${Math.min(startIdx + PROBLEMS_PER_PAGE, filteredProblems.length)} of ${filteredProblems.length}`}
+        {greatOnly && <span className="ml-2 text-yellow-700">(great only)</span>}
       </div>
       <div className="flex items-center gap-1">
+        <label className="flex items-center gap-1 text-sm mr-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={greatOnly}
+            onChange={(e) => { setGreatOnly(e.target.checked); setPage(1); }}
+            className="w-3.5 h-3.5 text-yellow-600 border-gray-300 rounded"
+          />
+          <span className={greatOnly ? "text-yellow-800 font-medium" : "text-gray-700"}>Great only</span>
+        </label>
         {!fullView && (
           <>
             <button
