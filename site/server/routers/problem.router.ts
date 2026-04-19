@@ -106,6 +106,20 @@ export const problemRouter = router({
     return { success: true };
   }),
 
+  markDrilled: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      const problem = await problemService.unsafe_markDrilled(input.id);
+      return transformProblemWithRelations(problem);
+    }),
+
+  undoDrilled: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      const problem = await problemService.unsafe_undoDrilled(input.id);
+      return transformProblemWithRelations(problem);
+    }),
+
   listByTags: publicProcedure
     .input(
       z.object({

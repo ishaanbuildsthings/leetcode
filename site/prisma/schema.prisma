@@ -56,6 +56,8 @@ model problems {
   is_leetgoat_advanced Boolean        @default(false)
   drill_type           drill_type?
   drill_notes          String?
+  drill_completions    Int            @default(0)
+  last_drilled_at      DateTime?      @db.Timestamptz(6)
   created_at           DateTime       @default(now()) @db.Timestamptz(6)
   updated_at           DateTime       @default(now()) @db.Timestamptz(6)
   problem_tags         problem_tags[]

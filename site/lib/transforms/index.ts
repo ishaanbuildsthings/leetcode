@@ -46,6 +46,8 @@ export function transformProblem(problem: problems): IProblem {
     isLeetgoatAdvanced: problem.is_leetgoat_advanced,
     drillType: problem.drill_type,
     drillNotes: problem.drill_notes,
+    drillCompletions: problem.drill_completions,
+    lastDrilledAt: problem.last_drilled_at ? problem.last_drilled_at.toISOString() : null,
   };
 }
 

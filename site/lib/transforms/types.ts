@@ -38,6 +38,8 @@ export interface IProblem {
   isLeetgoatAdvanced: boolean;
   drillType: DrillType;
   drillNotes: string | null;
+  drillCompletions: number;
+  lastDrilledAt: string | null;
 }
 
 export interface IProblemWithRelations extends IProblem {

@@ -206,6 +206,38 @@ export async function unsafe_deleteProblem(id: string) {
   });
 }
 
+export async function unsafe_markDrilled(id: string) {
+  return prisma.problems.update({
+    where: { id },
+    data: {
+      drill_completions: { increment: 1 },
+      last_drilled_at: new Date(),
+    },
+    include: {
+      platforms: true,
+      problem_tags: { include: { tags: true } },
+      solutions: true,
+    },
+  });
+}
+
+export async function unsafe_undoDrilled(id: string) {
+  const current = await prisma.problems.findUnique({
+    where: { id },
+    select: { drill_completions: true },
+  });
+  const next = Math.max(0, (current?.drill_completions ?? 0) - 1);
+  return prisma.problems.update({
+    where: { id },
+    data: { drill_completions: next },
+    include: {
+      platforms: true,
+      problem_tags: { include: { tags: true } },
+      solutions: true,
+    },
+  });
+}
+
 export async function unsafe_countProblemsByPlatform(platformSlug: string) {
   return prisma.problems.count({
     where: { platforms: { slug: platformSlug } },

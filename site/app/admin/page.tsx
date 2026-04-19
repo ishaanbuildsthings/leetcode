@@ -41,12 +41,20 @@ export default function AdminPage() {
               ← Back to Home
             </Link>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
-          >
-            Log Out
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/drill/implements"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Drill Implements
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            >
+              Log Out
+            </button>
+          </div>
         </div>
 
         <div className="border-b border-gray-200 mb-6">
