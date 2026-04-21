@@ -121,6 +121,7 @@ function ProblemsTab() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showDatabaseForm, setShowDatabaseForm] = useState(false);
   const [showLeetcodeForm, setShowLeetcodeForm] = useState(false);
+  const [showCodeforcesForm, setShowCodeforcesForm] = useState(false);
   const [editingProblem, setEditingProblem] = useState<string | null>(null);
 
   return (
@@ -134,6 +135,7 @@ function ProblemsTab() {
               if (!showLeetcodeForm) {
                 setShowCreateForm(false);
                 setShowDatabaseForm(false);
+                setShowCodeforcesForm(false);
               }
             }}
             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
@@ -142,10 +144,24 @@ function ProblemsTab() {
           </button>
           <button
             onClick={() => {
+              setShowCodeforcesForm(!showCodeforcesForm);
+              if (!showCodeforcesForm) {
+                setShowCreateForm(false);
+                setShowDatabaseForm(false);
+                setShowLeetcodeForm(false);
+              }
+            }}
+            className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
+          >
+            {showCodeforcesForm ? "Cancel" : "Add Codeforces Problem"}
+          </button>
+          <button
+            onClick={() => {
               setShowDatabaseForm(!showDatabaseForm);
               if (!showDatabaseForm) {
                 setShowCreateForm(false);
                 setShowLeetcodeForm(false);
+                setShowCodeforcesForm(false);
               }
             }}
             className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
@@ -158,6 +174,7 @@ function ProblemsTab() {
               if (!showCreateForm) {
                 setShowDatabaseForm(false);
                 setShowLeetcodeForm(false);
+                setShowCodeforcesForm(false);
               }
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -169,6 +186,7 @@ function ProblemsTab() {
 
       {showCreateForm && <CreateProblemForm onSuccess={() => setShowCreateForm(false)} />}
       {showLeetcodeForm && <CreateLeetcodeProblemForm onSuccess={() => setShowLeetcodeForm(false)} />}
+      {showCodeforcesForm && <CreateCodeforcesProblemForm onSuccess={() => setShowCodeforcesForm(false)} />}
       {showDatabaseForm && <CreateDatabaseLeetcodeProblemForm onSuccess={() => setShowDatabaseForm(false)} />}
       <ProblemsList
         editingProblem={editingProblem}
@@ -1070,6 +1088,465 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
         className="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {createProblem.isPending ? "Creating..." : "Create Leetcode Problem"}
+      </button>
+
+      {createProblem.error && (
+        <p className="text-red-600 text-sm font-medium">{createProblem.error.message}</p>
+      )}
+    </form>
+  );
+}
+
+function CreateCodeforcesProblemForm({ onSuccess }: { onSuccess: () => void }) {
+  const utils = trpc.useUtils();
+  const { data: platforms } = trpc.platform.list.useQuery();
+  const { data: tags } = trpc.tag.list.useQuery();
+
+  const createProblem = trpc.problem.create.useMutation({
+    onSuccess: () => {
+      utils.problem.list.invalidate();
+      onSuccess();
+    },
+  });
+
+  const codeforcesPlatform = platforms?.find(p => p.slug === 'codeforces' || p.name.toLowerCase() === 'codeforces');
+
+  // Extract problem ID from URL.
+  // https://codeforces.com/contest/2117/problem/B -> "2117B"
+  // https://codeforces.com/problemset/problem/2117/B -> "2117B"
+  // https://codeforces.com/gym/104252/problem/A -> "104252A"
+  const extractProblemIdFromUrl = (url: string): string => {
+    const contestMatch = url.match(/codeforces\.com\/contest\/(\d+)\/problem\/([A-Za-z0-9]+)/i);
+    if (contestMatch) return `${contestMatch[1]}${contestMatch[2].toUpperCase()}`;
+    const problemsetMatch = url.match(/codeforces\.com\/problemset\/problem\/(\d+)\/([A-Za-z0-9]+)/i);
+    if (problemsetMatch) return `${problemsetMatch[1]}${problemsetMatch[2].toUpperCase()}`;
+    const gymMatch = url.match(/codeforces\.com\/gym\/(\d+)\/problem\/([A-Za-z0-9]+)/i);
+    if (gymMatch) return `${gymMatch[1]}${gymMatch[2].toUpperCase()}`;
+    return "";
+  };
+
+  const [formData, setFormData] = useState({
+    platformId: codeforcesPlatform?.id || "",
+    title: "",
+    url: "",
+    isGreatProblem: false,
+    isLeetgoat222: false,
+    isLeetgoatAdvanced: false,
+    platformProblemId: "",
+    platformDifficulty: "",
+    normalizedDifficulty: undefined as number | undefined,
+    simplifiedStatement: "",
+    notes: "",
+    drillType: null as "mindsolve" | "implement" | null,
+    drillNotes: "",
+    selectedTags: [] as Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>,
+    solutions: [{ submissionUrl: "", language: "Python" as programming_language | "", githubUrl: "" }],
+  });
+
+  useEffect(() => {
+    if (codeforcesPlatform && !formData.platformId) {
+      setFormData(prev => ({ ...prev, platformId: codeforcesPlatform.id }));
+    }
+  }, [codeforcesPlatform, formData.platformId]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createProblem.mutate({
+      platformId: formData.platformId,
+      title: formData.title,
+      url: formData.url,
+      isGreatProblem: formData.isGreatProblem,
+      isLeetgoat222: formData.isLeetgoat222,
+      isLeetgoatAdvanced: formData.isLeetgoatAdvanced,
+      platformProblemId: formData.platformProblemId || undefined,
+      platformDifficulty: formData.platformDifficulty || undefined,
+      normalizedDifficulty: formData.normalizedDifficulty,
+      simplifiedStatement: formData.simplifiedStatement || undefined,
+      notes: formData.notes || undefined,
+      drillType: formData.drillType || null,
+      drillNotes: formData.drillNotes || undefined,
+      tags: formData.selectedTags.length > 0 ? formData.selectedTags : undefined,
+      solutions: formData.solutions.length > 0
+        ? formData.solutions
+            .filter(s => s.language !== "")
+            .map(s => ({
+              submissionUrl: s.submissionUrl || undefined,
+              language: s.language as programming_language,
+              githubUrl: s.githubUrl || undefined,
+            }))
+        : undefined,
+    });
+  };
+
+  const handleUrlChange = (newUrl: string) => {
+    const problemId = extractProblemIdFromUrl(newUrl);
+    setFormData({
+      ...formData,
+      url: newUrl,
+      platformProblemId: problemId || formData.platformProblemId,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3 border-2 border-amber-200">
+      <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+        <span className="text-sm font-semibold text-amber-900">⚔️ Codeforces Problem</span>
+        <span className="ml-2 text-xs text-amber-700">Platform auto-set, problem ID auto-extracted from URL (e.g. &quot;2117B&quot;).</span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Title *</label>
+          <input
+            type="text"
+            required
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className={`w-full px-3 py-1.5 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 text-sm ${formData.title ? 'border border-gray-300' : 'border-2 border-red-400'}`}
+            placeholder="e.g., B. Energetic Mashtali"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">URL *</label>
+          <input
+            type="url"
+            required
+            value={formData.url}
+            onChange={(e) => handleUrlChange(e.target.value)}
+            className={`w-full px-3 py-1.5 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 text-sm ${formData.url ? 'border border-gray-300' : 'border-2 border-red-400'}`}
+            placeholder="https://codeforces.com/contest/2117/problem/B"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Platform *</label>
+          <select
+            required
+            value={formData.platformId}
+            onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white text-gray-900 text-sm"
+          >
+            <option value="">Select</option>
+            {platforms?.map((platform) => (
+              <option key={platform.id} value={platform.id}>
+                {platform.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">
+            Problem ID
+            {formData.platformProblemId && (
+              <span className="ml-1 text-xs text-amber-600 font-normal">({formData.platformProblemId})</span>
+            )}
+          </label>
+          <input
+            type="text"
+            value={formData.platformProblemId}
+            onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Difficulty</label>
+          <input
+            type="text"
+            value={formData.platformDifficulty}
+            onChange={(e) => setFormData({ ...formData, platformDifficulty: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="e.g., 1500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Norm Diff (1-10)</label>
+          <input
+            type="number"
+            min="1"
+            max="10"
+            value={formData.normalizedDifficulty || ""}
+            onChange={(e) => setFormData({ ...formData, normalizedDifficulty: e.target.value ? parseInt(e.target.value) : undefined })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="1-10"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Simplified Problem Statement</label>
+        <textarea
+          value={formData.simplifiedStatement}
+          onChange={(e) => setFormData({ ...formData, simplifiedStatement: e.target.value })}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900"
+          rows={2}
+          placeholder="A brief summary of the problem"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Notes</label>
+        <textarea
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900"
+          rows={2}
+        />
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isGreatProblem}
+          onChange={(e) => setFormData({ ...formData, isGreatProblem: e.target.checked })}
+          className="w-4 h-4 text-amber-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">Great Problem</label>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isLeetgoat222}
+          onChange={(e) => setFormData({ ...formData, isLeetgoat222: e.target.checked })}
+          className="w-4 h-4 text-amber-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">LeetGoat 222</label>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isLeetgoatAdvanced}
+          onChange={(e) => setFormData({ ...formData, isLeetgoatAdvanced: e.target.checked })}
+          className="w-4 h-4 text-amber-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">LeetGoat Advanced</label>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Type</label>
+        <select
+          value={formData.drillType || ""}
+          onChange={(e) => setFormData({ ...formData, drillType: e.target.value === "" ? null : e.target.value as "mindsolve" | "implement" })}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white text-gray-900"
+        >
+          <option value="">None</option>
+          <option value="mindsolve">🧠 Mindsolve</option>
+          <option value="implement">💻 Implement</option>
+        </select>
+      </div>
+
+      {formData.drillType && (
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Notes</label>
+          <textarea
+            value={formData.drillNotes}
+            onChange={(e) => setFormData({ ...formData, drillNotes: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900"
+            rows={2}
+            placeholder="Notes about drilling this problem..."
+          />
+        </div>
+      )}
+
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <label className="block text-sm font-semibold text-gray-900">Solutions (optional)</label>
+          <button
+            type="button"
+            onClick={() => {
+              setFormData({
+                ...formData,
+                solutions: [...formData.solutions, { submissionUrl: "", language: "", githubUrl: "" }],
+              });
+            }}
+            className="px-3 py-1 text-sm bg-amber-600 text-white rounded hover:bg-amber-700"
+          >
+            + Add Solution
+          </button>
+        </div>
+        {formData.solutions.length > 0 && (
+          <div className="space-y-4">
+            {formData.solutions.map((sol, index) => (
+              <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold text-gray-700">Solution {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        solutions: formData.solutions.filter((_, i) => i !== index),
+                      });
+                    }}
+                    className="text-xs text-red-600 hover:text-red-700 px-2 py-1 hover:bg-red-50 rounded"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Language *</label>
+                    <select
+                      required
+                      value={sol.language || ""}
+                      onChange={(e) => {
+                        const newSolutions = [...formData.solutions];
+                        newSolutions[index] = { ...newSolutions[index], language: e.target.value as programming_language | "" };
+                        setFormData({ ...formData, solutions: newSolutions });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    >
+                      <option value="">Select language</option>
+                      <option value="Python">Python</option>
+                      <option value="Cpp">C++</option>
+                      <option value="JavaScript">JavaScript</option>
+                      <option value="PostgreSQL">PostgreSQL</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">GitHub URL</label>
+                    <input
+                      type="url"
+                      value={sol.githubUrl || ""}
+                      onChange={(e) => {
+                        const newSolutions = [...formData.solutions];
+                        newSolutions[index] = { ...newSolutions[index], githubUrl: e.target.value };
+                        setFormData({ ...formData, solutions: newSolutions });
+                      }}
+                      placeholder="https://github.com/..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Submission URL</label>
+                  <input
+                    type="url"
+                    value={sol.submissionUrl || ""}
+                    onChange={(e) => {
+                      const newSolutions = [...formData.solutions];
+                      newSolutions[index] = { ...newSolutions[index], submissionUrl: e.target.value };
+                      setFormData({ ...formData, solutions: newSolutions });
+                    }}
+                    placeholder="https://codeforces.com/contest/.../submission/..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
+        <div className="space-y-3 border border-gray-200 rounded-md p-4">
+          {tags?.map((tag) => {
+            const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
+            return (
+              <div key={tag.id} className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={!!selected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          selectedTags: [...formData.selectedTags, { tagId: tag.id }],
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          selectedTags: formData.selectedTags.filter((t) => t.tagId !== tag.id),
+                        });
+                      }
+                    }}
+                    className="w-4 h-4 text-amber-600 border-gray-300 rounded"
+                  />
+                  <span className="flex-1 text-gray-900 font-medium">{tag.name}</span>
+                  {selected && (
+                    <select
+                      value={selected.role || ""}
+                      onChange={(e) => {
+                        setFormData({
+                          ...formData,
+                          selectedTags: formData.selectedTags.map((t) =>
+                            t.tagId === tag.id
+                              ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" }
+                              : t
+                          ),
+                        });
+                      }}
+                      className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
+                    >
+                      <option value="">No role</option>
+                      <option value="core">Core</option>
+                      <option value="secondary">Secondary</option>
+                      <option value="mention">Mention</option>
+                    </select>
+                  )}
+                </div>
+                {selected && (
+                  <div className="ml-7 flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={selected.tagDifficulty || ""}
+                        onChange={(e) => {
+                          const val = e.target.value ? parseInt(e.target.value) : undefined;
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.map((t) =>
+                              t.tagId === tag.id ? { ...t, tagDifficulty: val } : t
+                            ),
+                          });
+                        }}
+                        placeholder="1-10"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 font-medium"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
+                        onChange={(e) => {
+                          const val = e.target.value === "" ? undefined : e.target.value === "true";
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.map((t) =>
+                              t.tagId === tag.id ? { ...t, isInstructive: val } : t
+                            ),
+                          });
+                        }}
+                        className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 font-medium"
+                      >
+                        <option value="">Instructive: Not set</option>
+                        <option value="true">Instructive: Yes</option>
+                        <option value="false">Instructive: No</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={createProblem.isPending}
+        className="w-full px-4 py-3 bg-amber-600 text-white font-semibold rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {createProblem.isPending ? "Creating..." : "Create Codeforces Problem"}
       </button>
 
       {createProblem.error && (

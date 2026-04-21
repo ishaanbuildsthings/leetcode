@@ -23,4 +23,4 @@ for _ in range(t):
                 del c[key]
         curr = Counter()
  
-    print(splits)
+print(splits)
