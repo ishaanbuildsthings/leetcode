@@ -48,6 +48,12 @@ export default function AdminPage() {
             >
               Drill Implements
             </Link>
+            <Link
+              href="/admin/drill/mindsolves"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            >
+              Drill Mindsolves
+            </Link>
             <button
               onClick={handleLogout}
               className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
