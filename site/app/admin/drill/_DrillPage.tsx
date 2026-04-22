@@ -4,6 +4,14 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { trpc } from "../../providers";
 import type { IProblemWithRelations } from "@/lib/transforms";
+import {
+  InlineEditText,
+  InlineDifficulty,
+  InlineDrillEditor,
+  InlineTagEditor,
+  EditProblemForm,
+  type ProblemTagRow,
+} from "../_components/inline-editors";
 
 type SortKey = "completions" | "lastDrilled";
 
@@ -60,6 +68,7 @@ function sortProblems(
 
 export function DrillPage({ drillType, title }: DrillPageProps) {
   const [sortKey, setSortKey] = useState<SortKey>("completions");
+  const [editingProblem, setEditingProblem] = useState<string | null>(null);
 
   const listQuery = trpc.problem.list.useQuery();
   const utils = trpc.useUtils();
@@ -68,6 +77,13 @@ export function DrillPage({ drillType, title }: DrillPageProps) {
     onSuccess: () => utils.problem.list.invalidate(),
   });
   const undoDrilled = trpc.problem.undoDrilled.useMutation({
+    onSuccess: () => utils.problem.list.invalidate(),
+  });
+  const updateProblem = trpc.problem.update.useMutation({
+    onSuccess: () => utils.problem.list.invalidate(),
+    onError: (err) => alert(`Failed to update: ${err.message}`),
+  });
+  const deleteProblem = trpc.problem.delete.useMutation({
     onSuccess: () => utils.problem.list.invalidate(),
   });
 
@@ -135,169 +151,267 @@ export function DrillPage({ drillType, title }: DrillPageProps) {
         ) : problems.length === 0 ? (
           <div className="text-gray-500">No {drillType}-tagged problems yet.</div>
         ) : (
-          <div className="grid gap-4">
+          <div className="bg-white rounded-lg shadow divide-y">
             {problems.map((p, idx) => {
               const isInCurrentRound = p.drillCompletions === minCompletions;
               const pending =
                 (markDrilled.isPending && markDrilled.variables?.id === p.id) ||
                 (undoDrilled.isPending && undoDrilled.variables?.id === p.id);
               return (
-                <div
-                  key={p.id}
-                  className={`bg-white rounded-lg border p-6 transition-shadow hover:shadow-sm ${
-                    isInCurrentRound
-                      ? "border-gray-200"
-                      : "border-gray-200 opacity-60"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-baseline gap-3 mb-2">
-                        <span className="text-sm text-gray-400 tabular-nums">
-                          #{idx + 1}
-                        </span>
-                        <h3 className="text-xl font-semibold text-gray-900">
-                          {p.title}
-                        </h3>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 mb-3">
-                        <span className="font-medium">{p.platform.name}</span>
-                        {p.platformDifficulty && (
-                          <>
-                            <span>·</span>
-                            <span>{p.platformDifficulty}</span>
-                          </>
-                        )}
-                        {p.normalizedDifficulty && (
-                          <>
-                            <span>·</span>
-                            <span className="font-medium text-blue-600">
-                              {p.normalizedDifficulty}/10
-                            </span>
-                          </>
-                        )}
-                        <span>·</span>
-                        <span>
-                          Drilled{" "}
-                          <span className="font-semibold text-gray-900 tabular-nums">
-                            {p.drillCompletions}
+                <div key={p.id}>
+                  <div
+                    className={`p-4 hover:bg-gray-50 ${
+                      isInCurrentRound ? "" : "opacity-60"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm text-gray-400 tabular-nums">
+                            #{idx + 1}
                           </span>
-                          {"× · last "}
-                          <span className="text-gray-700">
-                            {formatRelative(p.lastDrilledAt)}
-                          </span>
-                        </span>
-                      </div>
-
-                      {p.simplifiedStatement && (
-                        <div className="mb-3">
-                          <h4 className="text-sm font-semibold text-gray-700 mb-1">
-                            Problem Summary:
-                          </h4>
-                          <p className="text-gray-700 text-sm whitespace-pre-wrap">
-                            {p.simplifiedStatement}
-                          </p>
-                        </div>
-                      )}
-
-                      {p.notes && (
-                        <div className="mb-3">
-                          <h4 className="text-sm font-semibold text-gray-700 mb-1">
-                            Notes:
-                          </h4>
-                          <p className="text-gray-700 text-sm whitespace-pre-wrap">
-                            {p.notes}
-                          </p>
-                        </div>
-                      )}
-
-                      {p.drillNotes && (
-                        <div className="mb-3">
-                          <h4 className="text-sm font-semibold text-gray-700 mb-1">
-                            Drill Notes:
-                          </h4>
-                          <p className="text-gray-700 text-sm whitespace-pre-wrap">
-                            {p.drillNotes}
-                          </p>
-                        </div>
-                      )}
-
-                      {p.solutions.length > 0 && (
-                        <div className="mb-3 space-y-2">
-                          <h4 className="text-sm font-semibold text-gray-700">
-                            Solutions:
-                          </h4>
-                          {p.solutions.map((solution) => (
-                            <div
-                              key={solution.id}
-                              className="flex items-center gap-3 text-sm bg-gray-50 rounded-md px-3 py-2"
+                          <h3 className="font-semibold text-gray-900">
+                            {p.title}
+                          </h3>
+                          <label
+                            className="flex items-center gap-1 cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={p.isGreatProblem}
+                              onChange={() =>
+                                updateProblem.mutate({
+                                  id: p.id,
+                                  isGreatProblem: !p.isGreatProblem,
+                                })
+                              }
+                              className="w-3 h-3 text-yellow-600 border-gray-300 rounded"
+                            />
+                            <span
+                              className={`text-xs px-1.5 py-0.5 rounded ${
+                                p.isGreatProblem
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "text-gray-600"
+                              }`}
                             >
-                              <span className="font-medium text-gray-700">
-                                {displayLanguage(solution.language)}
-                              </span>
-                              <div className="flex gap-2">
-                                {solution.githubUrl && (
-                                  <a
-                                    href={solution.githubUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-700 font-medium"
-                                  >
-                                    GitHub
-                                  </a>
-                                )}
-                                {solution.submissionUrl && (
-                                  <>
-                                    {solution.githubUrl && (
-                                      <span className="text-gray-300">|</span>
-                                    )}
-                                    <a
-                                      href={solution.submissionUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-green-600 hover:text-green-700 font-medium"
-                                    >
-                                      Submission
-                                    </a>
-                                  </>
-                                )}
-                              </div>
-                            </div>
+                              Great
+                            </span>
+                          </label>
+                          <label
+                            className="flex items-center gap-1 cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={p.isLeetgoat222}
+                              onChange={() =>
+                                updateProblem.mutate({
+                                  id: p.id,
+                                  isLeetgoat222: !p.isLeetgoat222,
+                                })
+                              }
+                              className="w-3 h-3 text-blue-600 border-gray-300 rounded"
+                            />
+                            <span className="text-xs text-gray-600">222</span>
+                          </label>
+                          <label
+                            className="flex items-center gap-1 cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={p.isLeetgoatAdvanced}
+                              onChange={() =>
+                                updateProblem.mutate({
+                                  id: p.id,
+                                  isLeetgoatAdvanced: !p.isLeetgoatAdvanced,
+                                })
+                              }
+                              className="w-3 h-3 text-purple-600 border-gray-300 rounded"
+                            />
+                            <span className="text-xs text-gray-600">Adv</span>
+                          </label>
+                        </div>
+
+                        <div className="text-sm text-gray-600 mb-2 flex items-center gap-1 flex-wrap">
+                          <span>{p.platform.name}</span>
+                          {p.platformDifficulty && (
+                            <span>• {p.platformDifficulty}</span>
+                          )}
+                          <span>•</span>
+                          <InlineDifficulty
+                            value={p.normalizedDifficulty ?? null}
+                            onSave={(v) =>
+                              updateProblem.mutateAsync({
+                                id: p.id,
+                                normalizedDifficulty: v ?? undefined,
+                              })
+                            }
+                          />
+                          <span>•</span>
+                          <span>
+                            Drilled{" "}
+                            <span className="font-semibold text-gray-900 tabular-nums">
+                              {p.drillCompletions}
+                            </span>
+                            {"× · last "}
+                            <span className="text-gray-700">
+                              {formatRelative(p.lastDrilledAt)}
+                            </span>
+                          </span>
+                        </div>
+
+                        <a
+                          href={p.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          {p.url}
+                        </a>
+
+                        <InlineEditText
+                          label="Summary"
+                          value={p.simplifiedStatement ?? ""}
+                          valueClassName="text-gray-600"
+                          onSave={(v) =>
+                            updateProblem.mutateAsync({
+                              id: p.id,
+                              simplifiedStatement: v,
+                            })
+                          }
+                        />
+                        <InlineEditText
+                          label="Notes"
+                          value={p.notes ?? ""}
+                          valueClassName="text-gray-500"
+                          onSave={(v) =>
+                            updateProblem.mutateAsync({
+                              id: p.id,
+                              notes: v,
+                            })
+                          }
+                        />
+                        <InlineDrillEditor
+                          drillType={p.drillType as DrillKind | null}
+                          drillNotes={p.drillNotes ?? null}
+                          onSave={({ drillType: newType, drillNotes }) =>
+                            updateProblem.mutateAsync({
+                              id: p.id,
+                              drillType: newType,
+                              drillNotes,
+                            })
+                          }
+                        />
+
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {p.tags.map((pt) => (
+                            <InlineTagEditor
+                              key={pt.tag.id}
+                              pt={pt as ProblemTagRow}
+                              allTags={p.tags as ProblemTagRow[]}
+                              onChange={(tags) =>
+                                updateProblem.mutateAsync({ id: p.id, tags })
+                              }
+                              onRemove={(tags) =>
+                                updateProblem.mutateAsync({ id: p.id, tags })
+                              }
+                            />
                           ))}
                         </div>
-                      )}
 
-                      <a
-                        href={p.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-                      >
-                        View Problem →
-                      </a>
-                    </div>
+                        {p.solutions.length > 0 && (
+                          <div className="mt-3 space-y-1">
+                            <h4 className="text-xs font-semibold text-gray-600">
+                              Solutions:
+                            </h4>
+                            {p.solutions.map((solution) => (
+                              <div
+                                key={solution.id}
+                                className="flex items-center gap-2 text-xs bg-gray-50 rounded px-2 py-1"
+                              >
+                                <span className="font-medium text-gray-700">
+                                  {displayLanguage(solution.language)}
+                                </span>
+                                <div className="flex gap-2">
+                                  {solution.githubUrl && (
+                                    <a
+                                      href={solution.githubUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:text-blue-700"
+                                    >
+                                      GitHub →
+                                    </a>
+                                  )}
+                                  {solution.submissionUrl && (
+                                    <>
+                                      {solution.githubUrl && (
+                                        <span className="text-gray-300">|</span>
+                                      )}
+                                      <a
+                                        href={solution.submissionUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-green-600 hover:text-green-700"
+                                      >
+                                        Submission →
+                                      </a>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
-                    <div className="flex flex-col gap-2 shrink-0">
-                      <button
-                        disabled={pending}
-                        onClick={() => markDrilled.mutate({ id: p.id })}
-                        className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        Mark drilled
-                      </button>
-                      {p.drillCompletions > 0 && (
+                      <div className="ml-4 flex flex-col gap-2 shrink-0">
                         <button
                           disabled={pending}
-                          onClick={() => undoDrilled.mutate({ id: p.id })}
-                          className="px-3 py-1.5 text-xs rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
-                          title="Decrement count"
+                          onClick={() => markDrilled.mutate({ id: p.id })}
+                          className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
                         >
-                          − Undo
+                          Mark drilled
                         </button>
-                      )}
+                        {p.drillCompletions > 0 && (
+                          <button
+                            disabled={pending}
+                            onClick={() => undoDrilled.mutate({ id: p.id })}
+                            className="px-3 py-1.5 text-xs rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                            title="Decrement count"
+                          >
+                            − Undo
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setEditingProblem(p.id)}
+                          className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm("Delete this problem?")) {
+                              deleteProblem.mutate({ id: p.id });
+                            }
+                          }}
+                          className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
+                  {editingProblem === p.id && (
+                    <div className="border-t border-b border-blue-200 bg-blue-50/30">
+                      <EditProblemForm
+                        problemId={p.id}
+                        onClose={() => setEditingProblem(null)}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
