@@ -1,12 +1,13 @@
 import sys
 
-def treeMaxDistances(n, edges):
+def treeMaxDistances(numNodes, edges):
     """
     Returns list where res[i] = max distance from node i to any other node.
-    Works with either 0-indexed nodes (in [0, n)) or 1-indexed nodes (in [1, n]).
-    res has length n + 1; the unused slot is 0.
+    numNodes is the number of nodes in the tree.
+    Node labels must be either 0-indexed in [0, numNodes) or 1-indexed in [1, numNodes].
+    res has length numNodes + 1; the unused slot (res[0] or res[numNodes]) is 0.
     """
-    sz = n + 1
+    sz = numNodes + 1
     adj = [[] for _ in range(sz)]
     for a, b in edges:
         adj[a].append(b)
