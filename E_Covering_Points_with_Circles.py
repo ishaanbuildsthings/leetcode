@@ -20,10 +20,11 @@ for x, y in points:
     # row2 centered at y=h
     rows = [row1 - 2, row1 - 1, row1, row1 + 1, row1 + 2]
     for row in rows:
-        col = (x - r * row) // (2*r)
+        shift = r if row % 2 else 0
+        col = (x - shift) // (2 * r)
         cols = [col - 2, col - 1, col, col + 1, col + 2]
         for column in cols:
-            cx = (2 * r * column) + (r * row)
+            cx = 2 * r * column + shift
             if overlap(cx, diff * row, x, y):
                 used.add((str(cx), str(diff * row)))
                 break
