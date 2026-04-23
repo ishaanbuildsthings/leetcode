@@ -13,7 +13,7 @@ import {
   type ProblemTagRow,
 } from "../_components/inline-editors";
 
-type SortKey = "completions" | "lastDrilled";
+type SortKey = "completions" | "lastDrilled" | "random";
 
 type DrillKind = "implement" | "mindsolve";
 
@@ -43,7 +43,8 @@ function formatRelative(iso: string | null): string {
 
 function sortProblems(
   problems: IProblemWithRelations[],
-  key: SortKey
+  key: SortKey,
+  randomOrder: string[]
 ): IProblemWithRelations[] {
   const copy = [...problems];
   if (key === "completions") {
@@ -55,20 +56,37 @@ function sortProblems(
       const bT = b.lastDrilledAt ? new Date(b.lastDrilledAt).getTime() : 0;
       return aT - bT;
     });
-  } else {
+  } else if (key === "lastDrilled") {
     copy.sort((a, b) => {
       const aT = a.lastDrilledAt ? new Date(a.lastDrilledAt).getTime() : 0;
       const bT = b.lastDrilledAt ? new Date(b.lastDrilledAt).getTime() : 0;
       if (aT !== bT) return aT - bT;
       return a.drillCompletions - b.drillCompletions;
     });
+  } else {
+    const rank = new Map(randomOrder.map((id, idx) => [id, idx]));
+    copy.sort((a, b) => {
+      const aR = rank.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+      const bR = rank.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+      return aR - bR;
+    });
   }
   return copy;
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 export function DrillPage({ drillType, title }: DrillPageProps) {
   const [sortKey, setSortKey] = useState<SortKey>("completions");
   const [editingProblem, setEditingProblem] = useState<string | null>(null);
+  const [randomOrder, setRandomOrder] = useState<string[]>([]);
 
   const listQuery = trpc.problem.list.useQuery();
   const utils = trpc.useUtils();
@@ -90,8 +108,16 @@ export function DrillPage({ drillType, title }: DrillPageProps) {
   const problems = useMemo(() => {
     const all = listQuery.data ?? [];
     const filtered = all.filter((p) => p.drillType === drillType);
-    return sortProblems(filtered, sortKey);
-  }, [listQuery.data, sortKey, drillType]);
+    return sortProblems(filtered, sortKey, randomOrder);
+  }, [listQuery.data, sortKey, drillType, randomOrder]);
+
+  const handleShuffle = () => {
+    const ids = (listQuery.data ?? [])
+      .filter((p) => p.drillType === drillType)
+      .map((p) => p.id);
+    setRandomOrder(shuffle(ids));
+    setSortKey("random");
+  };
 
   const minCompletions =
     problems.length > 0
@@ -142,6 +168,17 @@ export function DrillPage({ drillType, title }: DrillPageProps) {
               }`}
             >
               Oldest last drilled
+            </button>
+            <button
+              onClick={handleShuffle}
+              className={`px-3 py-1 rounded-md border text-sm ${
+                sortKey === "random"
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              }`}
+              title={sortKey === "random" ? "Reshuffle" : "Random order"}
+            >
+              {sortKey === "random" ? "🔀 Reshuffle" : "🔀 Random"}
             </button>
           </div>
         </div>
