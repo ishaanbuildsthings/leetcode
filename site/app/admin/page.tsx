@@ -124,6 +124,7 @@ function ProblemsTab() {
   const [showDatabaseForm, setShowDatabaseForm] = useState(false);
   const [showLeetcodeForm, setShowLeetcodeForm] = useState(false);
   const [showCodeforcesForm, setShowCodeforcesForm] = useState(false);
+  const [showQuantQuestionsForm, setShowQuantQuestionsForm] = useState(false);
   const [editingProblem, setEditingProblem] = useState<string | null>(null);
 
   return (
@@ -138,6 +139,7 @@ function ProblemsTab() {
                 setShowCreateForm(false);
                 setShowDatabaseForm(false);
                 setShowCodeforcesForm(false);
+                setShowQuantQuestionsForm(false);
               }
             }}
             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
@@ -151,6 +153,7 @@ function ProblemsTab() {
                 setShowCreateForm(false);
                 setShowDatabaseForm(false);
                 setShowLeetcodeForm(false);
+                setShowQuantQuestionsForm(false);
               }
             }}
             className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
@@ -159,11 +162,26 @@ function ProblemsTab() {
           </button>
           <button
             onClick={() => {
+              setShowQuantQuestionsForm(!showQuantQuestionsForm);
+              if (!showQuantQuestionsForm) {
+                setShowCreateForm(false);
+                setShowDatabaseForm(false);
+                setShowLeetcodeForm(false);
+                setShowCodeforcesForm(false);
+              }
+            }}
+            className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
+          >
+            {showQuantQuestionsForm ? "Cancel" : "Add Quant Questions Problem"}
+          </button>
+          <button
+            onClick={() => {
               setShowDatabaseForm(!showDatabaseForm);
               if (!showDatabaseForm) {
                 setShowCreateForm(false);
                 setShowLeetcodeForm(false);
                 setShowCodeforcesForm(false);
+                setShowQuantQuestionsForm(false);
               }
             }}
             className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
@@ -177,6 +195,7 @@ function ProblemsTab() {
                 setShowDatabaseForm(false);
                 setShowLeetcodeForm(false);
                 setShowCodeforcesForm(false);
+                setShowQuantQuestionsForm(false);
               }
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -189,6 +208,7 @@ function ProblemsTab() {
       {showCreateForm && <CreateProblemForm onSuccess={() => setShowCreateForm(false)} />}
       {showLeetcodeForm && <CreateLeetcodeProblemForm onSuccess={() => setShowLeetcodeForm(false)} />}
       {showCodeforcesForm && <CreateCodeforcesProblemForm onSuccess={() => setShowCodeforcesForm(false)} />}
+      {showQuantQuestionsForm && <CreateQuantQuestionsProblemForm onSuccess={() => setShowQuantQuestionsForm(false)} />}
       {showDatabaseForm && <CreateDatabaseLeetcodeProblemForm onSuccess={() => setShowDatabaseForm(false)} />}
       <ProblemsList
         editingProblem={editingProblem}
@@ -1549,6 +1569,366 @@ function CreateCodeforcesProblemForm({ onSuccess }: { onSuccess: () => void }) {
         className="w-full px-4 py-3 bg-amber-600 text-white font-semibold rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {createProblem.isPending ? "Creating..." : "Create Codeforces Problem"}
+      </button>
+
+      {createProblem.error && (
+        <p className="text-red-600 text-sm font-medium">{createProblem.error.message}</p>
+      )}
+    </form>
+  );
+}
+
+function CreateQuantQuestionsProblemForm({ onSuccess }: { onSuccess: () => void }) {
+  const utils = trpc.useUtils();
+  const { data: platforms } = trpc.platform.list.useQuery();
+  const { data: tags } = trpc.tag.list.useQuery();
+
+  const createProblem = trpc.problem.create.useMutation({
+    onSuccess: () => {
+      utils.problem.list.invalidate();
+      onSuccess();
+    },
+  });
+
+  const qqPlatform = platforms?.find(p => p.slug === 'quantquestions' || p.name.toLowerCase() === 'quantquestions');
+  const quantTag = tags?.find(t => t.slug === 'quant' || t.name.toLowerCase() === 'quant');
+
+  // Turn "2d-paths-i" into "2D Paths I".
+  // Rules: split on "-"; pure roman-numeral words (i, ii, iii, iv, v, vi, ...) uppercased;
+  // otherwise capitalize first letter and any letter that follows a digit ("2d" -> "2D").
+  const titleFromSlug = (slug: string): string => {
+    return slug
+      .split("-")
+      .filter(Boolean)
+      .map((w) => {
+        if (/^[ivx]+$/i.test(w)) return w.toUpperCase();
+        return w.replace(/(^|\d)([a-z])/g, (_m, a: string, b: string) => a + b.toUpperCase());
+      })
+      .join(" ");
+  };
+
+  // Extract the slug from URLs like https://quantquestions.io/problems/2d-paths-i (optional trailing slash / query)
+  const extractTitleFromUrl = (url: string): string => {
+    const m = url.match(/quantquestions\.io\/problems\/([^\/?#]+)/i);
+    if (!m) return "";
+    return titleFromSlug(m[1]);
+  };
+
+  const [formData, setFormData] = useState({
+    platformId: qqPlatform?.id || "",
+    title: "",
+    url: "",
+    isGreatProblem: false,
+    isLeetgoat222: false,
+    isLeetgoatAdvanced: false,
+    platformProblemId: "",
+    platformDifficulty: "",
+    normalizedDifficulty: undefined as number | undefined,
+    simplifiedStatement: "",
+    notes: "",
+    drillType: null as "mindsolve" | "implement" | null,
+    drillNotes: "",
+    selectedTags: quantTag ? [{ tagId: quantTag.id, role: "core" as tag_role }] : [] as Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>,
+    solutions: [] as Array<{ submissionUrl: string; language: programming_language | ""; githubUrl: string }>,
+  });
+
+  useEffect(() => {
+    if (qqPlatform && !formData.platformId) {
+      setFormData(prev => ({ ...prev, platformId: qqPlatform.id }));
+    }
+  }, [qqPlatform, formData.platformId]);
+
+  useEffect(() => {
+    if (quantTag && formData.selectedTags.length === 0) {
+      setFormData(prev => ({
+        ...prev,
+        selectedTags: [{ tagId: quantTag.id, role: "core" as tag_role }],
+      }));
+    }
+  }, [quantTag, formData.selectedTags.length]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createProblem.mutate({
+      platformId: formData.platformId,
+      title: formData.title,
+      url: formData.url,
+      isGreatProblem: formData.isGreatProblem,
+      isLeetgoat222: formData.isLeetgoat222,
+      isLeetgoatAdvanced: formData.isLeetgoatAdvanced,
+      platformProblemId: formData.platformProblemId || undefined,
+      platformDifficulty: formData.platformDifficulty || undefined,
+      normalizedDifficulty: formData.normalizedDifficulty,
+      simplifiedStatement: formData.simplifiedStatement || undefined,
+      notes: formData.notes || undefined,
+      drillType: formData.drillType || null,
+      drillNotes: formData.drillNotes || undefined,
+      tags: formData.selectedTags.length > 0 ? formData.selectedTags : undefined,
+      solutions: formData.solutions.length > 0
+        ? formData.solutions
+            .filter(s => s.language !== "")
+            .map(s => ({
+              submissionUrl: s.submissionUrl || undefined,
+              language: s.language as programming_language,
+              githubUrl: s.githubUrl || undefined,
+            }))
+        : undefined,
+    });
+  };
+
+  const handleUrlChange = (newUrl: string) => {
+    const parsedTitle = extractTitleFromUrl(newUrl);
+    setFormData(prev => ({
+      ...prev,
+      url: newUrl,
+      // Only auto-fill title if user hasn't typed one yet
+      title: prev.title || parsedTitle,
+    }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-3 border-2 border-teal-200">
+      <div className="bg-teal-50 border border-teal-200 rounded-md px-3 py-2">
+        <span className="text-sm font-semibold text-teal-900">📈 QuantQuestions Problem</span>
+        <span className="ml-2 text-xs text-teal-700">Platform auto-set, title auto-parsed from URL, Quant tag pre-selected.</span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">URL *</label>
+          <input
+            type="url"
+            required
+            value={formData.url}
+            onChange={(e) => handleUrlChange(e.target.value)}
+            className={`w-full px-3 py-1.5 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900 text-sm ${formData.url ? 'border border-gray-300' : 'border-2 border-red-400'}`}
+            placeholder="https://quantquestions.io/problems/2d-paths-i"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Title *</label>
+          <input
+            type="text"
+            required
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className={`w-full px-3 py-1.5 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900 text-sm ${formData.title ? 'border border-gray-300' : 'border-2 border-red-400'}`}
+            placeholder="Auto-filled from URL (editable)"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Platform *</label>
+          <select
+            required
+            value={formData.platformId}
+            onChange={(e) => setFormData({ ...formData, platformId: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900 text-sm"
+          >
+            <option value="">Select</option>
+            {platforms?.map((platform) => (
+              <option key={platform.id} value={platform.id}>
+                {platform.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Problem ID</label>
+          <input
+            type="text"
+            value={formData.platformProblemId}
+            onChange={(e) => setFormData({ ...formData, platformProblemId: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Difficulty</label>
+          <input
+            type="text"
+            value={formData.platformDifficulty}
+            onChange={(e) => setFormData({ ...formData, platformDifficulty: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="e.g., Easy, Medium, Hard"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Norm Diff (1-10)</label>
+          <input
+            type="number"
+            min="1"
+            max="10"
+            value={formData.normalizedDifficulty || ""}
+            onChange={(e) => setFormData({ ...formData, normalizedDifficulty: e.target.value ? parseInt(e.target.value) : undefined })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900 text-sm"
+            placeholder="1-10"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Simplified Problem Statement</label>
+        <textarea
+          value={formData.simplifiedStatement}
+          onChange={(e) => setFormData({ ...formData, simplifiedStatement: e.target.value })}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+          rows={2}
+          placeholder="A brief summary of the problem"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Notes</label>
+        <textarea
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+          rows={2}
+        />
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={formData.isGreatProblem}
+          onChange={(e) => setFormData({ ...formData, isGreatProblem: e.target.checked })}
+          className="w-4 h-4 text-teal-600 border-gray-300 rounded mr-3"
+        />
+        <label className="text-sm font-semibold text-gray-900">Great Problem</label>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Type</label>
+        <select
+          value={formData.drillType || ""}
+          onChange={(e) => setFormData({ ...formData, drillType: e.target.value === "" ? null : e.target.value as "mindsolve" | "implement" })}
+          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
+        >
+          <option value="">None</option>
+          <option value="mindsolve">🧠 Mindsolve</option>
+          <option value="implement">💻 Implement</option>
+        </select>
+      </div>
+
+      {formData.drillType && (
+        <div>
+          <label className="block text-xs font-semibold text-gray-900 mb-1">Drill Notes</label>
+          <textarea
+            value={formData.drillNotes}
+            onChange={(e) => setFormData({ ...formData, drillNotes: e.target.value })}
+            className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+            rows={2}
+            placeholder="Notes about drilling this problem..."
+          />
+        </div>
+      )}
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-900 mb-1">Tags</label>
+        <div className="space-y-3 border border-gray-200 rounded-md p-4">
+          {tags?.map((tag) => {
+            const selected = formData.selectedTags.find((t) => t.tagId === tag.id);
+            return (
+              <div key={tag.id} className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={!!selected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          selectedTags: [...formData.selectedTags, { tagId: tag.id }],
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          selectedTags: formData.selectedTags.filter((t) => t.tagId !== tag.id),
+                        });
+                      }
+                    }}
+                    className="w-4 h-4 text-teal-600 border-gray-300 rounded"
+                  />
+                  <span className="flex-1 text-gray-900 font-medium">{tag.name}</span>
+                  {selected && (
+                    <select
+                      value={selected.role || ""}
+                      onChange={(e) => {
+                        setFormData({
+                          ...formData,
+                          selectedTags: formData.selectedTags.map((t) =>
+                            t.tagId === tag.id
+                              ? { ...t, role: e.target.value === "" ? undefined : e.target.value as "core" | "secondary" | "mention" }
+                              : t
+                          ),
+                        });
+                      }}
+                      className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900 font-medium"
+                    >
+                      <option value="">No role</option>
+                      <option value="core">Core</option>
+                      <option value="secondary">Secondary</option>
+                      <option value="mention">Mention</option>
+                    </select>
+                  )}
+                </div>
+                {selected && (
+                  <div className="ml-7 flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-medium text-gray-700">Difficulty (1-10):</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={selected.tagDifficulty || ""}
+                        onChange={(e) => {
+                          const val = e.target.value ? parseInt(e.target.value) : undefined;
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.map((t) =>
+                              t.tagId === tag.id ? { ...t, tagDifficulty: val } : t
+                            ),
+                          });
+                        }}
+                        placeholder="1-10"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 font-medium"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={selected.isInstructive === null || selected.isInstructive === undefined ? "" : String(selected.isInstructive)}
+                        onChange={(e) => {
+                          const val = e.target.value === "" ? undefined : e.target.value === "true";
+                          setFormData({
+                            ...formData,
+                            selectedTags: formData.selectedTags.map((t) =>
+                              t.tagId === tag.id ? { ...t, isInstructive: val } : t
+                            ),
+                          });
+                        }}
+                        className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 font-medium"
+                      >
+                        <option value="">Instructive: Not set</option>
+                        <option value="true">Instructive: Yes</option>
+                        <option value="false">Instructive: No</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={createProblem.isPending}
+        className="w-full px-4 py-3 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {createProblem.isPending ? "Creating..." : "Create Quant Questions Problem"}
       </button>
 
       {createProblem.error && (
