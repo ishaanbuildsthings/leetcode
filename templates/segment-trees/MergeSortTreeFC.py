@@ -1,4 +1,3 @@
-from bisect import lower_bound as _lb, upper_bound as _ub
 from bisect import bisect_left, bisect_right
 
 class MergeSortTree:
