@@ -2413,9 +2413,12 @@ const PROBLEMS_PER_PAGE = 20;
 function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem: string | null; onEdit: (id: string) => void; onCloseEdit: () => void }) {
   const utils = trpc.useUtils();
   const { data: problems, isLoading } = trpc.problem.list.useQuery();
+  const { data: allTags } = trpc.tag.list.useQuery();
   const [page, setPage] = useState(1);
   const [fullView, setFullView] = useState(false);
   const [greatOnly, setGreatOnly] = useState(false);
+  const [tagFilterId, setTagFilterId] = useState<string>("");
+  const [tagFilterCoreOnly, setTagFilterCoreOnly] = useState(false);
   const deleteProblem = trpc.problem.delete.useMutation({
     onSuccess: () => {
       utils.problem.list.invalidate();
@@ -2442,7 +2445,18 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
     );
   }
 
-  const filteredProblems = greatOnly ? problems.filter((p) => p.isGreatProblem) : problems;
+  const filteredProblems = problems.filter((p) => {
+    if (greatOnly && !p.isGreatProblem) return false;
+    if (tagFilterId) {
+      const match = p.tags.some((pt) =>
+        pt.tag.id === tagFilterId && (!tagFilterCoreOnly || pt.role === "core")
+      );
+      if (!match) return false;
+    }
+    return true;
+  });
+  const sortedTags = (allTags ?? []).slice().sort((a, b) => a.name.localeCompare(b.name));
+  const activeTagName = sortedTags.find((t) => t.id === tagFilterId)?.name;
   const totalPages = Math.max(1, Math.ceil(filteredProblems.length / PROBLEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const startIdx = (currentPage - 1) * PROBLEMS_PER_PAGE;
@@ -2455,6 +2469,11 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
           ? `Showing all ${filteredProblems.length}`
           : `Showing ${filteredProblems.length === 0 ? 0 : startIdx + 1}–${Math.min(startIdx + PROBLEMS_PER_PAGE, filteredProblems.length)} of ${filteredProblems.length}`}
         {greatOnly && <span className="ml-2 text-yellow-700">(great only)</span>}
+        {activeTagName && (
+          <span className="ml-2 text-blue-700">
+            (tag: {activeTagName}{tagFilterCoreOnly ? ", core" : ""})
+          </span>
+        )}
       </div>
       <div className="flex items-center gap-1">
         <label className="flex items-center gap-1 text-sm mr-2 cursor-pointer select-none">
@@ -2466,6 +2485,28 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
           />
           <span className={greatOnly ? "text-yellow-800 font-medium" : "text-gray-700"}>Great only</span>
         </label>
+        <select
+          value={tagFilterId}
+          onChange={(e) => { setTagFilterId(e.target.value); setPage(1); }}
+          className="px-2 py-1 text-sm border border-gray-300 rounded bg-white text-gray-700 mr-1 max-w-[180px]"
+          title="Filter by tag"
+        >
+          <option value="">All tags</option>
+          {sortedTags.map((t) => (
+            <option key={t.id} value={t.id}>{t.name}</option>
+          ))}
+        </select>
+        {tagFilterId && (
+          <label className="flex items-center gap-1 text-sm mr-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={tagFilterCoreOnly}
+              onChange={(e) => { setTagFilterCoreOnly(e.target.checked); setPage(1); }}
+              className="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded"
+            />
+            <span className={tagFilterCoreOnly ? "text-blue-800 font-medium" : "text-gray-700"}>Core only</span>
+          </label>
+        )}
         {!fullView && (
           <>
             <button
