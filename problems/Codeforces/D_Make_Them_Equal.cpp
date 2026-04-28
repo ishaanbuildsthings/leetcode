@@ -15,8 +15,8 @@ void precomputeCost() {
             int num = q.front(); q.pop_front();
             int x = 1;
             while (x <= num) {
-                int qVal = num / x;
-                int xMax = num / qVal;
+                int qVal = num / x; // quotient, we start by floor dividing say 100/1 to see what we can add to 100, obviously 100/1 starts at 100
+                int xMax = num / qVal; // what is the largest number we can floor divide by that also gives 1?
                 int next = num + qVal;
                 if (next < MAXB && !seen[next]) {
                     seen[next] = true;
@@ -29,28 +29,26 @@ void precomputeCost() {
     }
 }
 
+int MX = 13; // max number of operations needed as per the BFS
+
 void solve() {
     int n, k; cin >> n >> k;
     vector<int> B(n); for (int i = 0; i < n; i++) cin >> B[i];
     vector<int> C(n); for (int i = 0; i < n; i++) cin >> C[i];
+    int maxOps = min(k, MX * n); // at most we let k ops, or the actual number of ops required
 
-    vector<vector<int>> cache(n, vector<int>(20 * n, -1));
-
-    // gives us max coins we can get
-    auto dp = [&](auto&& self, int i, int opsUsed) -> int {
-        if (i == n) return 0;
-        if (cache[i][opsUsed] != -1) {
-            return cache[i][opsUsed];
+    vector<int> dp(maxOps + 1, 0); // dp[ops used] is the max # of coins we can get
+    for (int i = 0; i < n; i++) {
+        int v = B[i];
+        int costToMakeB = cost[v];
+        int score = C[i];
+        for (int newOps = maxOps; newOps >= costToMakeB; newOps--) {
+            int prevOps = newOps - costToMakeB;
+            dp[newOps] = max(dp[newOps], dp[prevOps] + score);
         }
-        int ifSkip = self(self, i + 1, opsUsed);
-        int ifTake = (opsUsed + cost[B[i]] <= k ? (self(self, i + 1, opsUsed + cost[B[i]]) + C[i]) : 0);
-        int ans = max(ifSkip, ifTake);
-        cache[i][opsUsed] = ans;
-        return ans;
-    };
-    int ans = dp(dp, 0, 0);
+    }
+    int ans = *max_element(dp.begin(), dp.end());
     cout << ans << '\n';
-
 }
 
 int main() {
