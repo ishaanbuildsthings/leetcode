@@ -118,6 +118,7 @@ enum programming_language {
   Cpp
   JavaScript
   PostgreSQL
+  Shell
 }
 
 enum drill_type {

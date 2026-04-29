@@ -515,6 +515,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
                       <option value="Cpp">C++</option>
                       <option value="JavaScript">JavaScript</option>
                       <option value="PostgreSQL">PostgreSQL</option>
+                      <option value="Shell">Shell</option>
                     </select>
                   </div>
                   <div>
@@ -968,6 +969,7 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
                       <option value="Cpp">C++</option>
                       <option value="JavaScript">JavaScript</option>
                       <option value="PostgreSQL">PostgreSQL</option>
+                      <option value="Shell">Shell</option>
                     </select>
                   </div>
                   <div>
@@ -1427,6 +1429,7 @@ function CreateCodeforcesProblemForm({ onSuccess }: { onSuccess: () => void }) {
                       <option value="Cpp">C++</option>
                       <option value="JavaScript">JavaScript</option>
                       <option value="PostgreSQL">PostgreSQL</option>
+                      <option value="Shell">Shell</option>
                     </select>
                   </div>
                   <div>
@@ -2251,6 +2254,7 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
                       <option value="Cpp">C++</option>
                       <option value="JavaScript">JavaScript</option>
                       <option value="PostgreSQL">PostgreSQL</option>
+                      <option value="Shell">Shell</option>
                     </select>
                   </div>
                   <div>

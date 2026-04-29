@@ -873,6 +873,7 @@ export function EditProblemForm({ problemId, onClose }: { problemId: string; onC
                       <option value="Cpp">C++</option>
                       <option value="JavaScript">JavaScript</option>
                       <option value="PostgreSQL">PostgreSQL</option>
+                      <option value="Shell">Shell</option>
                     </select>
                   </div>
                   <div>

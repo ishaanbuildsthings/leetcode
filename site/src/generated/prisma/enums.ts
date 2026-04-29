@@ -22,7 +22,8 @@ export const programming_language = {
   Python: 'Python',
   Cpp: 'Cpp',
   JavaScript: 'JavaScript',
-  PostgreSQL: 'PostgreSQL'
+  PostgreSQL: 'PostgreSQL',
+  Shell: 'Shell'
 } as const
 
 export type programming_language = (typeof programming_language)[keyof typeof programming_language]
