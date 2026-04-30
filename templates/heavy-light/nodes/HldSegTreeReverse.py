@@ -3,19 +3,25 @@
 # edges = [a, b], [c, d], ...
 # vals[node] -> value, like a letter or number
 # base(nodeValue) -> stored data
-# combine(node1data, node2data) -> aggregate data
+# combine(node1data, node2data) -> aggregate data (NON-commutative; node1 is to the LEFT of node2 on the path)
+# reverse(data) -> data as if the underlying segment were reversed (for non-commutative path queries)
+# example
+# def reverseData(d):
+#     length, B, prefW, sufW, ww, badT = d
+#     return (length, B, sufW, prefW, ww, badT)
 
 # pointSet(node, newValue) like a new letter
-# pointApply(node, delta) adds +delta (used if we stored sums)
+# pointApply(node, delta) applies a delta to a node, such as an XOR or add
 # pathQuery(a, b) -> gives us aggregated data
 # subtreeQuery(a) -> gives us subtree data for that
 
-# hld = HLD(numNodes, edgeList, vals, baseFn, combineFn)
+# hld = HLD(numNodes, edgeList, vals, baseFn, combineFn, reverseFn)
 class HLD:
-    def __init__(self, n, edges, vals, base, combine):
+    def __init__(self, n, edges, vals, base, combine, reverse):
         self.n = n
         self.base = base
         self.combine = combine
+        self.reverse = reverse
         self.adj = [[] for _ in range(n)]
         for u, v in edges:
             self.adj[u].append(v)
@@ -98,32 +104,57 @@ class HLD:
             p >>= 1
     
     def _rangeQuery(self, ql, qr):
-        res = None
+        # combined data over [ql, qr] in DFS-position order (left-to-right)
+        resL = None
+        resR = None
         ql += self.segN
         qr += self.segN + 1
         while ql < qr:
             if ql & 1:
-                res = self._combineOpt(res, self.seg[ql])
+                resL = self._combineOpt(resL, self.seg[ql])
                 ql += 1
             if qr & 1:
                 qr -= 1
-                res = self._combineOpt(res, self.seg[qr])
+                resR = self._combineOpt(self.seg[qr], resR)
             ql >>= 1
             qr >>= 1
-        return res
+        return self._combineOpt(resL, resR)
     
+    # Non-commutative path query.
+    # Each chain segment from seg comes in DFS order (chain top first, chain bottom last).
+    # Path a -> LCA -> b. Collect chunks in path order:
+    #   leftPieces: from a moving up, each chunk reversed so it reads "deep first" (a-side)
+    #   rightPieces: from b moving up, each chunk reversed so it reads "deep first" (b-side)
+    # Final answer: combine(leftAcc, rightAcc) where rightAcc is built from b inward to LCA,
+    # then reversed piece-by-piece so it reads LCA-side first.
     def pathQuery(self, a, b):
-        res = None
+        leftPieces = []
+        rightPieces = []
         while self.head[a] != self.head[b]:
-            if self.depth[self.head[a]] < self.depth[self.head[b]]:
-                a, b = b, a
-            chain = self._rangeQuery(self.pos[self.head[a]], self.pos[a])
-            res = self._combineOpt(res, chain)
-            a = self.par[self.head[a]]
-        if self.depth[a] > self.depth[b]:
-            a, b = b, a
-        last = self._rangeQuery(self.pos[a], self.pos[b])
-        return self._combineOpt(res, last)
+            if self.depth[self.head[a]] >= self.depth[self.head[b]]:
+                chunk = self._rangeQuery(self.pos[self.head[a]], self.pos[a])
+                leftPieces.append(self.reverse(chunk))
+                a = self.par[self.head[a]]
+            else:
+                chunk = self._rangeQuery(self.pos[self.head[b]], self.pos[b])
+                rightPieces.append(self.reverse(chunk))
+                b = self.par[self.head[b]]
+        if self.depth[a] >= self.depth[b]:
+            chunk = self._rangeQuery(self.pos[b], self.pos[a])
+            leftPieces.append(self.reverse(chunk))
+        else:
+            chunk = self._rangeQuery(self.pos[a], self.pos[b])
+            rightPieces.append(self.reverse(chunk))
+        leftAcc = None
+        for p in leftPieces:
+            leftAcc = p if leftAcc is None else self.combine(leftAcc, p)
+        rightAcc = None
+        for p in reversed(rightPieces):
+            rev = self.reverse(p)
+            rightAcc = rev if rightAcc is None else self.combine(rightAcc, rev)
+        if leftAcc is None: return rightAcc
+        if rightAcc is None: return leftAcc
+        return self.combine(leftAcc, rightAcc)
     
     def subtreeQuery(self, node):
         return self._rangeQuery(self.pos[node], self.pos[node] + self.sz[node] - 1)

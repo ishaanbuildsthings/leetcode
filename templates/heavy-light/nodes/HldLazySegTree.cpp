@@ -21,6 +21,7 @@ using namespace std;
 
 // using RawT = long long;       // the input value at each node
 // using NodeData = long long;   // what we store in seg tree (just the max)
+// or can do struct NodeData {...};
 // using LazyTag = long long;    // pending +d to add to every position
 //
 // auto base = [](RawT v) -> NodeData {
