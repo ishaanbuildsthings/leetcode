@@ -18,6 +18,8 @@ using namespace std;
 // EXAMPLE
 // auto base = [](int v) { return v; };
 // auto combine = [](int a, int b) { return max(a, b); };
+// first int = what is stored in the vals array
+// second int = what is returned by the baseFn, so the mapped data we store
 // HLD<int,int> hld(n, edges, arr, base, combine);
 
 template <typename RawT, typename StoredT>
