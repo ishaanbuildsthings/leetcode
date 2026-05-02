@@ -32,6 +32,7 @@ export const problemRouter = router({
         notes: z.string().optional(),
         drillType: z.nativeEnum(drill_type).nullable().optional(),
         drillNotes: z.string().optional(),
+        implementGroupId: z.string().nullable().optional(),
         tags: z
           .array(
             z.object({
@@ -75,6 +76,7 @@ export const problemRouter = router({
         notes: z.string().optional(),
         drillType: z.nativeEnum(drill_type).nullable().optional(),
         drillNotes: z.string().optional(),
+        implementGroupId: z.string().nullable().optional(),
         tags: z
           .array(
             z.object({

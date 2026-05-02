@@ -55,6 +55,7 @@ export const ModelName = {
   platforms: 'platforms',
   problem_tags: 'problem_tags',
   problems: 'problems',
+  implement_groups: 'implement_groups',
   solutions: 'solutions',
   tag_parents: 'tag_parents',
   tags: 'tags'
@@ -127,11 +128,22 @@ export const ProblemsScalarFieldEnum = {
   drill_notes: 'drill_notes',
   drill_completions: 'drill_completions',
   last_drilled_at: 'last_drilled_at',
+  implement_group_id: 'implement_group_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
 export type ProblemsScalarFieldEnum = (typeof ProblemsScalarFieldEnum)[keyof typeof ProblemsScalarFieldEnum]
+
+
+export const Implement_groupsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Implement_groupsScalarFieldEnum = (typeof Implement_groupsScalarFieldEnum)[keyof typeof Implement_groupsScalarFieldEnum]
 
 
 export const SolutionsScalarFieldEnum = {

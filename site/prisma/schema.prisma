@@ -58,14 +58,25 @@ model problems {
   drill_notes          String?
   drill_completions    Int            @default(0)
   last_drilled_at      DateTime?      @db.Timestamptz(6)
+  implement_group_id   String?        @db.Uuid
   created_at           DateTime       @default(now()) @db.Timestamptz(6)
   updated_at           DateTime       @default(now()) @db.Timestamptz(6)
   problem_tags         problem_tags[]
   platforms            platforms      @relation(fields: [platform_id], references: [id], onUpdate: NoAction)
   solutions            solutions[]
+  implement_groups     implement_groups? @relation(fields: [implement_group_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@index([platform_id])
   @@index([drill_type])
+  @@index([implement_group_id])
+}
+
+model implement_groups {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at DateTime   @default(now()) @db.Timestamptz(6)
+  problems   problems[]
 }
 
 model solutions {

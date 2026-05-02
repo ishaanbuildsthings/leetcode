@@ -40,6 +40,12 @@ export interface IProblem {
   drillNotes: string | null;
   drillCompletions: number;
   lastDrilledAt: string | null;
+  implementGroupId: string | null;
+}
+
+export interface IImplementGroup {
+  id: string;
+  name: string;
 }
 
 export interface IProblemWithRelations extends IProblem {
@@ -51,5 +57,6 @@ export interface IProblemWithRelations extends IProblem {
     isInstructive: boolean | null;
   }>;
   solutions: ISolution[];
+  implementGroup: IImplementGroup | null;
 }
 

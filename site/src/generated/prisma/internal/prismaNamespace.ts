@@ -388,6 +388,7 @@ export const ModelName = {
   platforms: 'platforms',
   problem_tags: 'problem_tags',
   problems: 'problems',
+  implement_groups: 'implement_groups',
   solutions: 'solutions',
   tag_parents: 'tag_parents',
   tags: 'tags'
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "platforms" | "problem_tags" | "problems" | "solutions" | "tag_parents" | "tags"
+    modelProps: "users" | "platforms" | "problem_tags" | "problems" | "implement_groups" | "solutions" | "tag_parents" | "tags"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -703,6 +704,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.problemsCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProblemsCountAggregateOutputType> | number
+        }
+      }
+    }
+    implement_groups: {
+      payload: Prisma.$implement_groupsPayload<ExtArgs>
+      fields: Prisma.implement_groupsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.implement_groupsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.implement_groupsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload>
+        }
+        findFirst: {
+          args: Prisma.implement_groupsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.implement_groupsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload>
+        }
+        findMany: {
+          args: Prisma.implement_groupsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload>[]
+        }
+        create: {
+          args: Prisma.implement_groupsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload>
+        }
+        createMany: {
+          args: Prisma.implement_groupsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.implement_groupsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload>[]
+        }
+        delete: {
+          args: Prisma.implement_groupsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload>
+        }
+        update: {
+          args: Prisma.implement_groupsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload>
+        }
+        deleteMany: {
+          args: Prisma.implement_groupsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.implement_groupsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.implement_groupsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload>[]
+        }
+        upsert: {
+          args: Prisma.implement_groupsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$implement_groupsPayload>
+        }
+        aggregate: {
+          args: Prisma.Implement_groupsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImplement_groups>
+        }
+        groupBy: {
+          args: Prisma.implement_groupsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Implement_groupsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.implement_groupsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Implement_groupsCountAggregateOutputType> | number
         }
       }
     }
@@ -1018,11 +1093,22 @@ export const ProblemsScalarFieldEnum = {
   drill_notes: 'drill_notes',
   drill_completions: 'drill_completions',
   last_drilled_at: 'last_drilled_at',
+  implement_group_id: 'implement_group_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
 export type ProblemsScalarFieldEnum = (typeof ProblemsScalarFieldEnum)[keyof typeof ProblemsScalarFieldEnum]
+
+
+export const Implement_groupsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Implement_groupsScalarFieldEnum = (typeof Implement_groupsScalarFieldEnum)[keyof typeof Implement_groupsScalarFieldEnum]
 
 
 export const SolutionsScalarFieldEnum = {
@@ -1293,6 +1379,7 @@ export type GlobalOmitConfig = {
   platforms?: Prisma.platformsOmit
   problem_tags?: Prisma.problem_tagsOmit
   problems?: Prisma.problemsOmit
+  implement_groups?: Prisma.implement_groupsOmit
   solutions?: Prisma.solutionsOmit
   tag_parents?: Prisma.tag_parentsOmit
   tags?: Prisma.tagsOmit

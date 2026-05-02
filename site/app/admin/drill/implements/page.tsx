@@ -3,5 +3,5 @@
 import { DrillPage } from "../_DrillPage";
 
 export default function ImplementDrillPage() {
-  return <DrillPage drillType="implement" title="Implement Drills" />;
+  return <DrillPage drillType="implement" title="Implement Drills" enableGroups />;
 }

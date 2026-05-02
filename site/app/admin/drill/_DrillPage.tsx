@@ -9,6 +9,7 @@ import {
   InlineDifficulty,
   InlineDrillEditor,
   InlineTagEditor,
+  InlineImplementGroupEditor,
   EditProblemForm,
   type ProblemTagRow,
 } from "../_components/inline-editors";
@@ -20,6 +21,7 @@ type DrillKind = "implement" | "mindsolve";
 interface DrillPageProps {
   drillType: DrillKind;
   title: string;
+  enableGroups?: boolean;
 }
 
 const displayLanguage = (lang: string) => (lang === "Cpp" ? "C++" : lang);
@@ -83,12 +85,16 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export function DrillPage({ drillType, title }: DrillPageProps) {
+export function DrillPage({ drillType, title, enableGroups = false }: DrillPageProps) {
   const [sortKey, setSortKey] = useState<SortKey>("completions");
   const [editingProblem, setEditingProblem] = useState<string | null>(null);
   const [randomOrder, setRandomOrder] = useState<string[]>([]);
+  const [groupFilter, setGroupFilter] = useState<string>("all");
 
   const listQuery = trpc.problem.list.useQuery();
+  const groupsQuery = trpc.implementGroup.list.useQuery(undefined, {
+    enabled: enableGroups,
+  });
   const utils = trpc.useUtils();
 
   const markDrilled = trpc.problem.markDrilled.useMutation({
@@ -107,15 +113,27 @@ export function DrillPage({ drillType, title }: DrillPageProps) {
 
   const problems = useMemo(() => {
     const all = listQuery.data ?? [];
-    const filtered = all.filter((p) => p.drillType === drillType);
+    let filtered = all.filter((p) => p.drillType === drillType);
+    if (enableGroups && groupFilter !== "all") {
+      filtered = filtered.filter((p) =>
+        groupFilter === "none"
+          ? p.implementGroupId === null
+          : p.implementGroupId === groupFilter
+      );
+    }
     return sortProblems(filtered, sortKey, randomOrder);
-  }, [listQuery.data, sortKey, drillType, randomOrder]);
+  }, [listQuery.data, sortKey, drillType, randomOrder, enableGroups, groupFilter]);
 
   const handleShuffle = () => {
-    const ids = (listQuery.data ?? [])
-      .filter((p) => p.drillType === drillType)
-      .map((p) => p.id);
-    setRandomOrder(shuffle(ids));
+    let ids = (listQuery.data ?? []).filter((p) => p.drillType === drillType);
+    if (enableGroups && groupFilter !== "all") {
+      ids = ids.filter((p) =>
+        groupFilter === "none"
+          ? p.implementGroupId === null
+          : p.implementGroupId === groupFilter
+      );
+    }
+    setRandomOrder(shuffle(ids.map((p) => p.id)));
     setSortKey("random");
   };
 
@@ -147,7 +165,26 @@ export function DrillPage({ drillType, title }: DrillPageProps) {
             <span className="font-semibold">{currentRoundDone}</span> /{" "}
             {problems.length} done this round
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2 flex-wrap">
+            {enableGroups && (
+              <>
+                <span className="text-gray-500">Group:</span>
+                <select
+                  value={groupFilter}
+                  onChange={(e) => setGroupFilter(e.target.value)}
+                  className="px-2 py-1 rounded-md border text-sm bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                >
+                  <option value="all">All</option>
+                  <option value="none">— No group —</option>
+                  {(groupsQuery.data ?? []).map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+                <span className="mx-1 text-gray-300">|</span>
+              </>
+            )}
             <span className="text-gray-500">Sort:</span>
             <button
               onClick={() => setSortKey("completions")}
@@ -341,6 +378,21 @@ export function DrillPage({ drillType, title }: DrillPageProps) {
                             })
                           }
                         />
+
+                        {enableGroups && (
+                          <div className="mt-2">
+                            <InlineImplementGroupEditor
+                              currentGroupId={p.implementGroupId}
+                              currentGroupName={p.implementGroup?.name ?? null}
+                              onAssign={(groupId) =>
+                                updateProblem.mutateAsync({
+                                  id: p.id,
+                                  implementGroupId: groupId,
+                                })
+                              }
+                            />
+                          </div>
+                        )}
 
                         <div className="flex flex-wrap gap-1 mt-2">
                           {p.tags.map((pt) => (

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { trpc } from "../../providers";
 import { programming_language, tag_role } from "@/src/generated/prisma/enums";
 
@@ -324,6 +325,204 @@ export function InlineDifficulty({
           ))}
         </div>
       )}
+    </span>
+  );
+}
+
+export function InlineImplementGroupEditor({
+  currentGroupId,
+  currentGroupName,
+  onAssign,
+}: {
+  currentGroupId: string | null;
+  currentGroupName: string | null;
+  onAssign: (groupId: string | null) => Promise<unknown>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const utils = trpc.useUtils();
+  const groupsQuery = trpc.implementGroup.list.useQuery();
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const reposition = () => {
+      const el = triggerRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setAnchor({ top: r.bottom + 4, left: r.left });
+    };
+    reposition();
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [open]);
+  const createGroup = trpc.implementGroup.create.useMutation({
+    onSuccess: () => utils.implementGroup.list.invalidate(),
+  });
+  const updateGroup = trpc.implementGroup.update.useMutation({
+    onSuccess: () => {
+      utils.implementGroup.list.invalidate();
+      utils.problem.list.invalidate();
+    },
+  });
+  const deleteGroup = trpc.implementGroup.delete.useMutation({
+    onSuccess: () => {
+      utils.implementGroup.list.invalidate();
+      utils.problem.list.invalidate();
+    },
+  });
+
+  const assign = async (groupId: string | null) => {
+    setSaving(true);
+    setOpen(false);
+    try {
+      await onAssign(groupId);
+    } catch (e: any) {
+      alert(`Failed to save: ${e?.message ?? e}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const createAndAssign = async () => {
+    const name = prompt("New group name:");
+    if (!name?.trim()) return;
+    setSaving(true);
+    try {
+      const created = await createGroup.mutateAsync({ name: name.trim() });
+      await onAssign(created.id);
+      setOpen(false);
+    } catch (e: any) {
+      alert(`Failed to create group: ${e?.message ?? e}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const renameGroup = async (id: string, currentName: string) => {
+    const name = prompt("Rename group:", currentName);
+    if (!name?.trim() || name.trim() === currentName) return;
+    try {
+      await updateGroup.mutateAsync({ id, name: name.trim() });
+    } catch (e: any) {
+      alert(`Failed to rename: ${e?.message ?? e}`);
+    }
+  };
+
+  const removeGroup = async (id: string, name: string) => {
+    if (!confirm(`Delete group "${name}"? Member problems will be unassigned.`)) return;
+    try {
+      await deleteGroup.mutateAsync({ id });
+    } catch (e: any) {
+      alert(`Failed to delete: ${e?.message ?? e}`);
+    }
+  };
+
+  const popover =
+    open && anchor && typeof document !== "undefined"
+      ? createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[9998]"
+              onClick={() => setOpen(false)}
+            />
+            <div
+              className="fixed z-[9999] bg-white border border-gray-200 rounded shadow-lg p-2 w-64 max-h-80 overflow-y-auto"
+              style={{ top: anchor.top, left: anchor.left }}
+            >
+              <div className="text-[10px] uppercase text-gray-500 mb-1">
+                Implement group
+              </div>
+              {groupsQuery.isLoading ? (
+                <div className="text-xs text-gray-500 py-1">Loading…</div>
+              ) : (groupsQuery.data ?? []).length === 0 ? (
+                <div className="text-xs text-gray-500 py-1 italic">
+                  No groups yet
+                </div>
+              ) : (
+                <div className="space-y-0.5 mb-2">
+                  {groupsQuery.data!.map((g) => (
+                    <div key={g.id} className="flex items-center gap-1">
+                      <button
+                        onClick={() => assign(g.id)}
+                        disabled={saving}
+                        className={`flex-1 text-left text-xs px-2 py-1 rounded ${
+                          g.id === currentGroupId
+                            ? "bg-indigo-600 text-white"
+                            : "hover:bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {g.name}
+                      </button>
+                      <button
+                        onClick={() => renameGroup(g.id, g.name)}
+                        className="text-xs text-gray-400 hover:text-blue-600 px-1"
+                        title="Rename"
+                      >
+                        ✎
+                      </button>
+                      <button
+                        onClick={() => removeGroup(g.id, g.name)}
+                        className="text-xs text-gray-400 hover:text-red-600 px-1"
+                        title="Delete group"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex justify-between pt-1 border-t border-gray-100 gap-1">
+                <button
+                  onClick={createAndAssign}
+                  disabled={saving}
+                  className="text-xs text-indigo-600 hover:bg-indigo-50 px-2 py-0.5 rounded"
+                >
+                  + New group…
+                </button>
+                {currentGroupId && (
+                  <button
+                    onClick={() => assign(null)}
+                    disabled={saving}
+                    className="text-xs text-red-600 hover:bg-red-50 px-2 py-0.5 rounded"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+          </>,
+          document.body
+        )
+      : null;
+
+  return (
+    <span className="inline-block">
+      {currentGroupId ? (
+        <button
+          ref={triggerRef}
+          onClick={() => setOpen((o) => !o)}
+          disabled={saving}
+          className="px-2 py-0.5 text-xs rounded bg-indigo-100 text-indigo-800 border border-indigo-300 hover:ring-1 hover:ring-indigo-400 disabled:opacity-50"
+        >
+          📦 {currentGroupName ?? "(unknown)"} ✎
+        </button>
+      ) : (
+        <button
+          ref={triggerRef}
+          onClick={() => setOpen((o) => !o)}
+          disabled={saving}
+          className="text-xs text-gray-400 hover:text-indigo-600 inline-flex items-center gap-1 px-2 py-0.5"
+        >
+          ✎ Add to group
+        </button>
+      )}
+      {popover}
     </span>
   );
 }

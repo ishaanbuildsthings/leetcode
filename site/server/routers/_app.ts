@@ -4,6 +4,7 @@ import { tagRouter } from "./tag.router";
 import { platformRouter } from "./platform.router";
 import { solutionRouter } from "./solution.router";
 import { tagParentRouter } from "./tag_parent.router";
+import { implementGroupRouter } from "./implement_group.router";
 
 export const appRouter = router({
   problem: problemRouter,
@@ -11,6 +12,7 @@ export const appRouter = router({
   platform: platformRouter,
   solution: solutionRouter,
   tagParent: tagParentRouter,
+  implementGroup: implementGroupRouter,
 });
 
 export type AppRouter = typeof appRouter;

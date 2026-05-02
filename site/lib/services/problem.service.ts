@@ -15,6 +15,7 @@ export async function unsafe_createProblem(data: {
   notes?: string;
   drillType?: drill_type | null;
   drillNotes?: string;
+  implementGroupId?: string | null;
   tags?: Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>;
   solutions?: Array<{ submissionUrl?: string; language: programming_language; githubUrl?: string }>;
 }) {
@@ -33,6 +34,7 @@ export async function unsafe_createProblem(data: {
       is_leetgoat_advanced: data.isLeetgoatAdvanced,
       drill_type: data.drillType ?? null,
       drill_notes: data.drillNotes,
+      implement_group_id: data.implementGroupId ?? null,
       problem_tags: data.tags
         ? {
             create: data.tags.map((t) => ({
@@ -59,6 +61,7 @@ export async function unsafe_createProblem(data: {
         include: { tags: true },
       },
       solutions: true,
+      implement_groups: true,
     },
   });
 }
@@ -72,6 +75,7 @@ export async function unsafe_getProblemById(id: string) {
         include: { tags: true },
       },
       solutions: true,
+      implement_groups: true,
     },
   });
 }
@@ -84,6 +88,7 @@ export async function unsafe_listProblems() {
         include: { tags: true },
       },
       solutions: true,
+      implement_groups: true,
     },
     orderBy: { created_at: "desc" },
   });
@@ -104,6 +109,7 @@ export async function unsafe_updateProblem(data: {
   notes?: string;
   drillType?: drill_type | null;
   drillNotes?: string;
+  implementGroupId?: string | null;
   tags?: Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>;
   solutions?: Array<{ submissionUrl?: string; language: programming_language; githubUrl?: string }>;
 }) {
@@ -133,6 +139,7 @@ export async function unsafe_updateProblem(data: {
     notes?: string | null;
     drill_type?: drill_type | null;
     drill_notes?: string | null;
+    implement_group_id?: string | null;
     problem_tags?: {
       create: Array<{
         tag_id: string;
@@ -165,6 +172,7 @@ export async function unsafe_updateProblem(data: {
   if (data.notes !== undefined) updateData.notes = data.notes || null;
   if (data.drillType !== undefined) updateData.drill_type = data.drillType ?? null;
   if (data.drillNotes !== undefined) updateData.drill_notes = data.drillNotes || null;
+  if (data.implementGroupId !== undefined) updateData.implement_group_id = data.implementGroupId ?? null;
 
   if (data.tags) {
     updateData.problem_tags = {
@@ -196,6 +204,7 @@ export async function unsafe_updateProblem(data: {
         include: { tags: true },
       },
       solutions: true,
+      implement_groups: true,
     },
   });
 }
@@ -217,6 +226,7 @@ export async function unsafe_markDrilled(id: string) {
       platforms: true,
       problem_tags: { include: { tags: true } },
       solutions: true,
+      implement_groups: true,
     },
   });
 }
@@ -234,6 +244,7 @@ export async function unsafe_undoDrilled(id: string) {
       platforms: true,
       problem_tags: { include: { tags: true } },
       solutions: true,
+      implement_groups: true,
     },
   });
 }
@@ -264,6 +275,7 @@ export async function unsafe_listProblemsByPlatformAndTags(
         include: { tags: true },
       },
       solutions: true,
+      implement_groups: true,
     },
     orderBy: { created_at: "desc" },
   });

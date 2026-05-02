@@ -38,6 +38,11 @@ export type problem_tags = Prisma.problem_tagsModel
  */
 export type problems = Prisma.problemsModel
 /**
+ * Model implement_groups
+ * 
+ */
+export type implement_groups = Prisma.implement_groupsModel
+/**
  * Model solutions
  * 
  */
