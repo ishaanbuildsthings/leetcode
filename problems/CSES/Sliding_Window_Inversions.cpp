@@ -1,3 +1,7 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // Used for sliding windows where we add & remove elements, find the k-th sorted element, and get the sum of the smallest X elements.
 // It is built on values so as we slide around we add or remove values. To find k-th we do a walk (we store counts in a node, think like a seg tree). To find sum we add up sums stored in prefixes.
 // Could support more things like sum of all numbers X <= ? <= Y by diffing.
@@ -139,3 +143,33 @@ struct OrderStatisticFenwick {
         return countLTEX(hi) - countLTX(lo);
     }
 };
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n, k; cin >> n >> k;
+    vector<int> vals(n); for (int i = 0; i < n; i++) cin >> vals[i];
+    OrderStatisticFenwick osf(vals);
+    ll inversions = 0;
+    // seed window
+    for (int r = 0; r < k; r++) {
+        int gain = vals[r];
+        int bigger = osf.countGTX(gain);
+        inversions += bigger;
+        osf.add(gain);
+    }
+    vector<ll> res;
+    res.push_back(inversions);
+    for (int r = k; r < n; r++) {
+        int gain = vals[r];
+        int lost = vals[r - k];
+        int bigger = osf.countGTX(gain);
+        inversions += bigger;
+        osf.add(gain);
+        int smaller = osf.countLTX(lost);
+        inversions -= smaller;
+        osf.remove(lost);
+        res.push_back(inversions);
+    }
+    for (auto x : res) cout << x << " ";
+}
