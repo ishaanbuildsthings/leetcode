@@ -1,230 +1,381 @@
-#include <bits/stdc++.h>
-using namespace std;
+// SOLUTION 0, lazy tag seg tree
+// #include <bits/stdc++.h>
+// using namespace std;
+// using ll = long long;
 
-// 0-INDEXED, ALL INTERFACES OPERATE ON 0-indexed data, WORKS WITH ANY DATA TYPE
-// N = number of nodes
-// edges = vector of PAIRS like {a, b}, {c, d}, ...
-// vals[node] -> raw value, like a letter or number
-// base(rawVal) -> stored data (e.g. v -> {v, v} to track min and max)
-// combine(data1, data2) -> aggregated data
+// struct Node {
+//     int tot;
+//     int evenDepthNodesInRange;
+//     int oddDepthNodesInRange;
+// };
 
-// pointSet(node, rawVal) - overwrite the data in a point
-// pointApply(node, delta) - apply an operation to a point, so for instance we XOR an old value with the delta, or add it
-// pathQuery(a, b) -> aggregated data over path
-// subtreeQuery(node) -> aggregated data over subtree
+// struct Tag {
+//     int gainToEvenDepthNodes;
+//     int gainToOddDepthNodes;
+// };
 
-// using RawT = int;       // the input value at each node
-// using NodeData = int;   // what we store in seg tree (just the max here)
-//
-// auto base = [](RawT v) -> NodeData {
-//     return v;
+// struct Seg {
+//     int n;
+//     vector<Node> tree;
+//     vector<Tag> lazy;
+//     vector<int> depths; // parity depths of nodes in dfs order, matched with the A array basically
+//     Seg(vector<int>& A, vector<int>& _depths) {
+//         depths = _depths;
+//         n = A.size();
+//         tree.resize( 4 * n);
+//         lazy.resize(4 * n);
+//         _build(1, 0, n - 1, A, depths);
+//     }
+//     Node _combine(Node& a, Node& b) {
+//         return {a.tot + b.tot, a.evenDepthNodesInRange + b.evenDepthNodesInRange, a.oddDepthNodesInRange + b.oddDepthNodesInRange};
+//     }
+//     void _pull(int nodeI) {
+//         tree[nodeI] = _combine(tree[2*nodeI], tree[2*nodeI+1]);
+//     }
+//     void _build(int nodeI, int tl, int tr, vector<int>& A, vector<int>& depths) {
+//         if (tl == tr) {
+//             bool isEvenDepth = depths[tl] % 2 == 0;
+//             tree[nodeI] = {A[tl], isEvenDepth ? 1 : 0, isEvenDepth ? 0 : 1};
+//             return;
+//         }
+//         int tm = (tl + tr) / 2;
+//         _build(2 * nodeI, tl, tm, A, depths);
+//         _build(2 * nodeI + 1, tm + 1, tr, A, depths);
+//         _pull(nodeI);
+//     }
+//     Tag _compose(Tag& old, Tag& newTag) {
+//         Tag out;
+//         out.gainToEvenDepthNodes = old.gainToEvenDepthNodes + newTag.gainToEvenDepthNodes;
+//         out.gainToOddDepthNodes = old.gainToOddDepthNodes + newTag.gainToOddDepthNodes;
+//         return out;
+//     }
+//     void _applyLazyAndCompose(int nodeI, Tag t) {
+//         Node& node = tree[nodeI];
+//         node.tot += (t.gainToEvenDepthNodes * node.evenDepthNodesInRange);
+//         node.tot += (t.gainToOddDepthNodes * node.oddDepthNodesInRange);
+//         lazy[nodeI] = _compose(lazy[nodeI], t);
+//     }
+//     void _pushDownApplyAndClear(int nodeI) {
+//         Tag& t = lazy[nodeI];
+//         _applyLazyAndCompose(2 * nodeI, t);
+//         _applyLazyAndCompose(2 * nodeI + 1, t);
+//         lazy[nodeI] = {0, 0};
+//     }
+//     void _rangeUpdate(int nodeI, int tl, int tr, int ql, int qr, Tag& t) {
+//         // oob
+//         if (qr < tl || ql > tr) {
+//             return;
+//         }
+//         // fully contained
+//         if (ql <= tl && qr >= tr) {
+//             _applyLazyAndCompose(nodeI, t);
+//             return;
+//         }
+//         _pushDownApplyAndClear(nodeI);
+//         int tm = (tl + tr) / 2;
+//         _rangeUpdate(2 * nodeI, tl, tm, ql, qr, t);
+//         _rangeUpdate(2 * nodeI + 1, tm + 1, tr, ql, qr, t);
+//         _pull(nodeI); // is this even needed?
+//     }
+
+//     void rangeUpdate(int l, int r, int evenGain, int oddGain) {
+//         Tag t = {evenGain, oddGain};
+//         _rangeUpdate(1, 0, n - 1, l, r, t);
+//     }
+//     Node _pointQuery(int nodeI, int tl, int tr, int pos) {
+//         if (tl == tr) {
+//             return tree[nodeI];
+//         }
+//         int tm = (tl + tr) / 2;
+//         _pushDownApplyAndClear(nodeI);
+//         if (pos <= tm) {
+//             return _pointQuery(2 * nodeI, tl, tm, pos);
+//         } else {
+//             return _pointQuery(2 * nodeI + 1, tm + 1, tr, pos);
+//         }
+//     }
+//     int pointQuery(int i) {
+//         return _pointQuery(1, 0, n - 1, i).tot;
+//     }
+
+// };
+
+// int main() {
+//     ios::sync_with_stdio(false);
+//     cin.tie(nullptr);
+//     int n, m; cin >> n >> m;
+//     vector<int> A(n); for (int i = 0; i < n; i++) cin >> A[i];
+//     vector<pair<int,int>> edges;
+//     vector<vector<int>> adj(n);
+//     for (int i = 0; i < n - 1; i++) {
+//         int a, b; cin >> a >> b; a--; b--;
+//         adj[a].push_back(b);
+//         adj[b].push_back((a));
+//     }
+//     vector<int> ordered; // initial node VALUES in dfs order
+//     int timer = 0;
+//     vector<int> tin(n);
+//     vector<int> tout(n);
+//     vector<int> depthsInOrder; // stores 0 or 1 parity depth, in DFS order
+//     auto dfs = [&](auto&& self, int node, int parent, int currDepth) -> void {
+//         tin[node] = timer++;
+//         ordered.push_back(A[node]);
+//         depthsInOrder.push_back(currDepth % 2);
+//         for (auto adjN : adj[node]) {
+//             if (adjN == parent) continue;
+//             self(self, adjN, node, currDepth ^ 1);
+//         }
+//         tout[node] = timer;
+//     };
+//     dfs(dfs, 0, -1, 0);
+
+//     Seg seg(ordered, depthsInOrder);
+//     while (m--) {
+//         int qtype; cin >> qtype;
+//         if (qtype == 1) {
+//             int node, val; cin >> node >> val; node--;
+//             int l = tin[node];
+//             int r = tout[node] - 1;
+//             int depth = depthsInOrder[tin[node]];
+//             seg.rangeUpdate(l, r, (depth % 2 == 0) ? val : -1 * val, (depth % 2 == 1) ? val : -1 * val);
+//         } else {
+//             int node; cin >> node; node--;
+//             int idx = tin[node];
+//             cout << seg.pointQuery(idx) << endl;
+//         }
+//     }
+
+//     return 0;
+// }
+
+// SOLUTION 1, point update HLD
+// #include <bits/stdc++.h>
+// using namespace std;
+
+// // 0-INDEXED, ALL INTERFACES OPERATE ON 0-indexed data, WORKS WITH ANY DATA TYPE
+// // N = number of nodes
+// // edges = vector of PAIRS like {a, b}, {c, d}, ...
+// // vals[node] -> raw value, like a letter or number
+// // base(rawVal) -> stored data (e.g. v -> {v, v} to track min and max)
+// // combine(data1, data2) -> aggregated data
+
+// // pointSet(node, rawVal) - overwrite the data in a point
+// // pointApply(node, delta) - apply an operation to a point, so for instance we XOR an old value with the delta, or add it
+// // pathQuery(a, b) -> aggregated data over path
+// // subtreeQuery(node) -> aggregated data over subtree
+
+// // using RawT = int;       // the input value at each node
+// // using NodeData = int;   // what we store in seg tree (just the max here)
+// //
+// // auto base = [](RawT v) -> NodeData {
+// //     return v;
+// // };
+// // auto combine = [](NodeData a, NodeData b) -> NodeData {
+// //     return max(a, b);
+// // };
+
+// // HLD<RawT, NodeData> hld(n, edges, arr, base, combine);
+// // NodeData mx = hld.pathQuery(u, v);
+
+// template <typename RawT, typename StoredT>
+// struct HLD {
+//     int n;
+//     function<StoredT(RawT, int)> base;
+//     function<StoredT(StoredT, StoredT)> combine;
+//     vector<vector<int>> adj;
+//     vector<int> par, depth, sz, heavy, head, pos;
+//     int segN;
+//     // use optional<StoredT> so we can represent "nothing here" without an identity
+//     vector<optional<StoredT>> seg;
+
+//     HLD(int n,
+//         const vector<pair<int,int>>& edges,
+//         const vector<RawT>& vals,
+//         function<StoredT(RawT, int)> base,
+//         function<StoredT(StoredT, StoredT)> combine)
+//         : n(n), base(base), combine(combine),
+//           adj(n), par(n, -1), depth(n, 0), sz(n, 1),
+//           heavy(n, -1), head(n, 0), pos(n, 0)
+//     {
+//         for (auto& [u, v] : edges) {
+//             adj[u].push_back(v);
+//             adj[v].push_back(u);
+//         }
+//         _dfsInit();
+//         _dfsDecompose();
+//         // build seg tree
+//         segN = 1;
+//         while (segN < n) segN <<= 1;
+//         seg.assign(2 * segN, nullopt);
+//         for (int i = 0; i < n; i++) {
+//             seg[segN + pos[i]] = base(vals[i], depth[i]);
+//         }
+//         for (int i = segN - 1; i >= 1; i--) {
+//             seg[i] = _combineOpt(seg[2*i], seg[2*i+1]);
+//         }
+//     }
+
+//     optional<StoredT> _combineOpt(const optional<StoredT>& a, const optional<StoredT>& b) {
+//         if (!a.has_value()) return b;
+//         if (!b.has_value()) return a;
+//         return combine(*a, *b);
+//     }
+
+//     void _dfsInit() {
+//         // iterative, compute sz, par, depth, heavy
+//         vector<int> order;
+//         order.reserve(n);
+//         vector<tuple<int,int,int>> stack;
+//         stack.push_back({0, -1, 0});
+//         while (!stack.empty()) {
+//             auto [node, parent, d] = stack.back();
+//             stack.pop_back();
+//             par[node] = parent;
+//             depth[node] = d;
+//             order.push_back(node);
+//             for (int nxt : adj[node]) {
+//                 if (nxt != parent) stack.push_back({nxt, node, d + 1});
+//             }
+//         }
+//         // process in reverse order to compute sz and heavy
+//         for (int i = (int)order.size() - 1; i >= 0; i--) {
+//             int node = order[i];
+//             int best = 0;
+//             for (int nxt : adj[node]) {
+//                 if (nxt == par[node]) continue;
+//                 sz[node] += sz[nxt];
+//                 if (sz[nxt] > best) {
+//                     best = sz[nxt];
+//                     heavy[node] = nxt;
+//                 }
+//             }
+//         }
+//     }
+
+//     void _dfsDecompose() {
+//         int timer = 0;
+//         vector<pair<int,int>> stack; // (node, chainHead)
+//         stack.push_back({0, 0});
+//         while (!stack.empty()) {
+//             auto [node, h] = stack.back();
+//             stack.pop_back();
+//             head[node] = h;
+//             pos[node] = timer++;
+//             // push light children first so they're processed AFTER heavy
+//             for (int nxt : adj[node]) {
+//                 if (nxt == par[node] || nxt == heavy[node]) continue;
+//                 stack.push_back({nxt, nxt});
+//             }
+//             if (heavy[node] != -1) {
+//                 stack.push_back({heavy[node], h});
+//             }
+//         }
+//     }
+
+//     void pointSet(int node, RawT rawVal) {
+//         int p = pos[node] + segN;
+//         seg[p] = base(rawVal, depth[node]);
+//         for (p >>= 1; p > 0; p >>= 1) {
+//             seg[p] = _combineOpt(seg[2*p], seg[2*p+1]);
+//         }
+//     }
+
+//     void pointApply(int node, RawT delta) {
+//         int p = pos[node] + segN;
+//         seg[p] = _combineOpt(seg[p], optional<StoredT>(base(delta, depth[node])));
+//         for (p >>= 1; p > 0; p >>= 1) {
+//             seg[p] = _combineOpt(seg[p], optional<StoredT>(base(delta, depth[node])));
+//         }
+//     }
+
+//     optional<StoredT> _rangeQuery(int ql, int qr) {
+//         // inclusive [ql, qr]
+//         optional<StoredT> res = nullopt;
+//         for (ql += segN, qr += segN + 1; ql < qr; ql >>= 1, qr >>= 1) {
+//             if (ql & 1) res = _combineOpt(res, seg[ql++]);
+//             if (qr & 1) res = _combineOpt(res, seg[--qr]);
+//         }
+//         return res;
+//     }
+
+//     StoredT pathQuery(int a, int b) {
+//         optional<StoredT> res = nullopt;
+//         while (head[a] != head[b]) {
+//             if (depth[head[a]] < depth[head[b]]) swap(a, b);
+//             auto chain = _rangeQuery(pos[head[a]], pos[a]);
+//             res = _combineOpt(res, chain);
+//             a = par[head[a]];
+//         }
+//         if (depth[a] > depth[b]) swap(a, b);
+//         auto last = _rangeQuery(pos[a], pos[b]);
+//         res = _combineOpt(res, last);
+//         return *res;
+//     }
+
+//     StoredT subtreeQuery(int node) {
+//         return *_rangeQuery(pos[node], pos[node] + sz[node] - 1);
+//     }
+// };
+
+
+
+// #include <bits/stdc++.h>
+// using namespace std;
+// using ll = long long;
+
+// using RawT = int; // raw array data
+// struct NodeData {
+//     int evenDepthSum = 0;
+//     int oddDepthSum = 0;
+// };
+
+// auto base = [](RawT v, int depth) -> NodeData {
+//     NodeData out;
+//     if (depth % 2 == 0) {
+//         out.evenDepthSum = v;
+//     } else {
+//         out.oddDepthSum = v;
+//     }
+//     return out;
 // };
 // auto combine = [](NodeData a, NodeData b) -> NodeData {
-//     return max(a, b);
+//     NodeData out;
+//     out.evenDepthSum = a.evenDepthSum + b.evenDepthSum;
+//     out.oddDepthSum = a.oddDepthSum + b.oddDepthSum;
+//     return out;
 // };
 
-// HLD<RawT, NodeData> hld(n, edges, arr, base, combine);
-// NodeData mx = hld.pathQuery(u, v);
 
-template <typename RawT, typename StoredT>
-struct HLD {
-    int n;
-    function<StoredT(RawT, int)> base;
-    function<StoredT(StoredT, StoredT)> combine;
-    vector<vector<int>> adj;
-    vector<int> par, depth, sz, heavy, head, pos;
-    int segN;
-    // use optional<StoredT> so we can represent "nothing here" without an identity
-    vector<optional<StoredT>> seg;
-
-    HLD(int n,
-        const vector<pair<int,int>>& edges,
-        const vector<RawT>& vals,
-        function<StoredT(RawT, int)> base,
-        function<StoredT(StoredT, StoredT)> combine)
-        : n(n), base(base), combine(combine),
-          adj(n), par(n, -1), depth(n, 0), sz(n, 1),
-          heavy(n, -1), head(n, 0), pos(n, 0)
-    {
-        for (auto& [u, v] : edges) {
-            adj[u].push_back(v);
-            adj[v].push_back(u);
-        }
-        _dfsInit();
-        _dfsDecompose();
-        // build seg tree
-        segN = 1;
-        while (segN < n) segN <<= 1;
-        seg.assign(2 * segN, nullopt);
-        for (int i = 0; i < n; i++) {
-            seg[segN + pos[i]] = base(vals[i], depth[i]);
-        }
-        for (int i = segN - 1; i >= 1; i--) {
-            seg[i] = _combineOpt(seg[2*i], seg[2*i+1]);
-        }
-    }
-
-    optional<StoredT> _combineOpt(const optional<StoredT>& a, const optional<StoredT>& b) {
-        if (!a.has_value()) return b;
-        if (!b.has_value()) return a;
-        return combine(*a, *b);
-    }
-
-    void _dfsInit() {
-        // iterative, compute sz, par, depth, heavy
-        vector<int> order;
-        order.reserve(n);
-        vector<tuple<int,int,int>> stack;
-        stack.push_back({0, -1, 0});
-        while (!stack.empty()) {
-            auto [node, parent, d] = stack.back();
-            stack.pop_back();
-            par[node] = parent;
-            depth[node] = d;
-            order.push_back(node);
-            for (int nxt : adj[node]) {
-                if (nxt != parent) stack.push_back({nxt, node, d + 1});
-            }
-        }
-        // process in reverse order to compute sz and heavy
-        for (int i = (int)order.size() - 1; i >= 0; i--) {
-            int node = order[i];
-            int best = 0;
-            for (int nxt : adj[node]) {
-                if (nxt == par[node]) continue;
-                sz[node] += sz[nxt];
-                if (sz[nxt] > best) {
-                    best = sz[nxt];
-                    heavy[node] = nxt;
-                }
-            }
-        }
-    }
-
-    void _dfsDecompose() {
-        int timer = 0;
-        vector<pair<int,int>> stack; // (node, chainHead)
-        stack.push_back({0, 0});
-        while (!stack.empty()) {
-            auto [node, h] = stack.back();
-            stack.pop_back();
-            head[node] = h;
-            pos[node] = timer++;
-            // push light children first so they're processed AFTER heavy
-            for (int nxt : adj[node]) {
-                if (nxt == par[node] || nxt == heavy[node]) continue;
-                stack.push_back({nxt, nxt});
-            }
-            if (heavy[node] != -1) {
-                stack.push_back({heavy[node], h});
-            }
-        }
-    }
-
-    void pointSet(int node, RawT rawVal) {
-        int p = pos[node] + segN;
-        seg[p] = base(rawVal, depth[node]);
-        for (p >>= 1; p > 0; p >>= 1) {
-            seg[p] = _combineOpt(seg[2*p], seg[2*p+1]);
-        }
-    }
-
-    void pointApply(int node, RawT delta) {
-        int p = pos[node] + segN;
-        seg[p] = _combineOpt(seg[p], optional<StoredT>(base(delta, depth[node])));
-        for (p >>= 1; p > 0; p >>= 1) {
-            seg[p] = _combineOpt(seg[p], optional<StoredT>(base(delta, depth[node])));
-        }
-    }
-
-    optional<StoredT> _rangeQuery(int ql, int qr) {
-        // inclusive [ql, qr]
-        optional<StoredT> res = nullopt;
-        for (ql += segN, qr += segN + 1; ql < qr; ql >>= 1, qr >>= 1) {
-            if (ql & 1) res = _combineOpt(res, seg[ql++]);
-            if (qr & 1) res = _combineOpt(res, seg[--qr]);
-        }
-        return res;
-    }
-
-    StoredT pathQuery(int a, int b) {
-        optional<StoredT> res = nullopt;
-        while (head[a] != head[b]) {
-            if (depth[head[a]] < depth[head[b]]) swap(a, b);
-            auto chain = _rangeQuery(pos[head[a]], pos[a]);
-            res = _combineOpt(res, chain);
-            a = par[head[a]];
-        }
-        if (depth[a] > depth[b]) swap(a, b);
-        auto last = _rangeQuery(pos[a], pos[b]);
-        res = _combineOpt(res, last);
-        return *res;
-    }
-
-    StoredT subtreeQuery(int node) {
-        return *_rangeQuery(pos[node], pos[node] + sz[node] - 1);
-    }
-};
-
-
-
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
-using RawT = int; // raw array data
-struct NodeData {
-    int evenDepthSum = 0;
-    int oddDepthSum = 0;
-};
-
-auto base = [](RawT v, int depth) -> NodeData {
-    NodeData out;
-    if (depth % 2 == 0) {
-        out.evenDepthSum = v;
-    } else {
-        out.oddDepthSum = v;
-    }
-    return out;
-};
-auto combine = [](NodeData a, NodeData b) -> NodeData {
-    NodeData out;
-    out.evenDepthSum = a.evenDepthSum + b.evenDepthSum;
-    out.oddDepthSum = a.oddDepthSum + b.oddDepthSum;
-    return out;
-};
-
-
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    int n, m; cin >> n >> m;
-    vector<int> A(n); for (int i = 0; i < n; i++) cin >> A[i];
-    vector<int> initial(n, 0);
-    vector<pair<int,int>> edges;
-    for (int i = 0; i < n - 1; i++) {
-        int a, b; cin >> a >> b; a--; b--; edges.push_back({a, b});
-    }
-    HLD<RawT, NodeData> hld(n, edges, initial, base, combine);
-    for (int i = 0; i < m; i++) {
-        int qtype; cin >> qtype;
-        if (qtype == 1) {
-            int node, add; cin >> node >> add; node--;
-            hld.pointApply(node, add); // add this delta to a single node
-            // we have some leaf node there storing the odd depth and even depth sums, one gets pudated
-        } else {
-            int node; cin >> node; node--;
-            // anything above me on the same depth parity gets added
-            // anything above me on the same depth parity gets subtracted
-            NodeData nodeVal = hld.pathQuery(node, 0);
-            int nodeDepth = hld.depth[node];
-            if (nodeDepth % 2 == 0) {
-                int added = nodeVal.evenDepthSum;
-                int lost = nodeVal.oddDepthSum;
-                cout << A[node] + added - lost << '\n';
-            } else {
-                cout << A[node] + nodeVal.oddDepthSum - nodeVal.evenDepthSum << '\n';
-            }
-        }
-    }
-}
+// int main() {
+//     ios::sync_with_stdio(false);
+//     cin.tie(nullptr);
+    // int n, m; cin >> n >> m;
+    // vector<int> A(n); for (int i = 0; i < n; i++) cin >> A[i];
+    // vector<int> initial(n, 0);
+    // vector<pair<int,int>> edges;
+    // for (int i = 0; i < n - 1; i++) {
+    //     int a, b; cin >> a >> b; a--; b--; edges.push_back({a, b});
+    // }
+//     HLD<RawT, NodeData> hld(n, edges, initial, base, combine);
+//     for (int i = 0; i < m; i++) {
+//         int qtype; cin >> qtype;
+//         if (qtype == 1) {
+//             int node, add; cin >> node >> add; node--;
+//             hld.pointApply(node, add); // add this delta to a single node
+//             // we have some leaf node there storing the odd depth and even depth sums, one gets updated
+//         } else {
+//             int node; cin >> node; node--;
+//             // anything above me on the same depth parity gets added
+//             // anything above me on the same depth parity gets subtracted
+//             NodeData nodeVal = hld.pathQuery(node, 0);
+//             int nodeDepth = hld.depth[node];
+//             if (nodeDepth % 2 == 0) {
+//                 int added = nodeVal.evenDepthSum;
+//                 int lost = nodeVal.oddDepthSum;
+//                 cout << A[node] + added - lost << '\n';
+//             } else {
+//                 cout << A[node] + nodeVal.oddDepthSum - nodeVal.evenDepthSum << '\n';
+//             }
+//         }
+//     }
+// }
