@@ -1,0 +1,8 @@
+CompileFlags:
+  Add:
+    - -std=c++20
+    - -Wall
+    - -Wextra
+    - -Wshadow
+    - -isystem
+    - /Users/ishaanagrawal/code/leetcode/.clangd-includes
