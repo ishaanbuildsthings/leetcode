@@ -389,6 +389,7 @@ export const ModelName = {
   problem_tags: 'problem_tags',
   problems: 'problems',
   implement_groups: 'implement_groups',
+  mindsolve_groups: 'mindsolve_groups',
   solutions: 'solutions',
   tag_parents: 'tag_parents',
   tags: 'tags'
@@ -407,7 +408,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "users" | "platforms" | "problem_tags" | "problems" | "implement_groups" | "solutions" | "tag_parents" | "tags"
+    modelProps: "users" | "platforms" | "problem_tags" | "problems" | "implement_groups" | "mindsolve_groups" | "solutions" | "tag_parents" | "tags"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -781,6 +782,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    mindsolve_groups: {
+      payload: Prisma.$mindsolve_groupsPayload<ExtArgs>
+      fields: Prisma.mindsolve_groupsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.mindsolve_groupsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.mindsolve_groupsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload>
+        }
+        findFirst: {
+          args: Prisma.mindsolve_groupsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.mindsolve_groupsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload>
+        }
+        findMany: {
+          args: Prisma.mindsolve_groupsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload>[]
+        }
+        create: {
+          args: Prisma.mindsolve_groupsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload>
+        }
+        createMany: {
+          args: Prisma.mindsolve_groupsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.mindsolve_groupsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload>[]
+        }
+        delete: {
+          args: Prisma.mindsolve_groupsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload>
+        }
+        update: {
+          args: Prisma.mindsolve_groupsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload>
+        }
+        deleteMany: {
+          args: Prisma.mindsolve_groupsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.mindsolve_groupsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.mindsolve_groupsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload>[]
+        }
+        upsert: {
+          args: Prisma.mindsolve_groupsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$mindsolve_groupsPayload>
+        }
+        aggregate: {
+          args: Prisma.Mindsolve_groupsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMindsolve_groups>
+        }
+        groupBy: {
+          args: Prisma.mindsolve_groupsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Mindsolve_groupsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.mindsolve_groupsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Mindsolve_groupsCountAggregateOutputType> | number
+        }
+      }
+    }
     solutions: {
       payload: Prisma.$solutionsPayload<ExtArgs>
       fields: Prisma.solutionsFieldRefs
@@ -1094,6 +1169,7 @@ export const ProblemsScalarFieldEnum = {
   drill_completions: 'drill_completions',
   last_drilled_at: 'last_drilled_at',
   implement_group_id: 'implement_group_id',
+  mindsolve_group_id: 'mindsolve_group_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1109,6 +1185,16 @@ export const Implement_groupsScalarFieldEnum = {
 } as const
 
 export type Implement_groupsScalarFieldEnum = (typeof Implement_groupsScalarFieldEnum)[keyof typeof Implement_groupsScalarFieldEnum]
+
+
+export const Mindsolve_groupsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Mindsolve_groupsScalarFieldEnum = (typeof Mindsolve_groupsScalarFieldEnum)[keyof typeof Mindsolve_groupsScalarFieldEnum]
 
 
 export const SolutionsScalarFieldEnum = {
@@ -1380,6 +1466,7 @@ export type GlobalOmitConfig = {
   problem_tags?: Prisma.problem_tagsOmit
   problems?: Prisma.problemsOmit
   implement_groups?: Prisma.implement_groupsOmit
+  mindsolve_groups?: Prisma.mindsolve_groupsOmit
   solutions?: Prisma.solutionsOmit
   tag_parents?: Prisma.tag_parentsOmit
   tags?: Prisma.tagsOmit

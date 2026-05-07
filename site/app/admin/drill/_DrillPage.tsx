@@ -9,7 +9,7 @@ import {
   InlineDifficulty,
   InlineDrillEditor,
   InlineTagEditor,
-  InlineImplementGroupEditor,
+  InlineDrillGroupEditor,
   EditProblemForm,
   type ProblemTagRow,
 } from "../_components/inline-editors";
@@ -92,9 +92,15 @@ export function DrillPage({ drillType, title, enableGroups = false }: DrillPageP
   const [groupFilter, setGroupFilter] = useState<string>("all");
 
   const listQuery = trpc.problem.list.useQuery();
-  const groupsQuery = trpc.implementGroup.list.useQuery(undefined, {
-    enabled: enableGroups,
+  const isImplement = drillType === "implement";
+  const implementGroupsQuery = trpc.implementGroup.list.useQuery(undefined, {
+    enabled: enableGroups && isImplement,
   });
+  const mindsolveGroupsQuery = trpc.mindsolveGroup.list.useQuery(undefined, {
+    enabled: enableGroups && !isImplement,
+  });
+  const groupsQuery = isImplement ? implementGroupsQuery : mindsolveGroupsQuery;
+  const groupIdField = isImplement ? "implementGroupId" : "mindsolveGroupId";
   const utils = trpc.useUtils();
 
   const markDrilled = trpc.problem.markDrilled.useMutation({
@@ -117,20 +123,20 @@ export function DrillPage({ drillType, title, enableGroups = false }: DrillPageP
     if (enableGroups && groupFilter !== "all") {
       filtered = filtered.filter((p) =>
         groupFilter === "none"
-          ? p.implementGroupId === null
-          : p.implementGroupId === groupFilter
+          ? p[groupIdField] === null
+          : p[groupIdField] === groupFilter
       );
     }
     return sortProblems(filtered, sortKey, randomOrder);
-  }, [listQuery.data, sortKey, drillType, randomOrder, enableGroups, groupFilter]);
+  }, [listQuery.data, sortKey, drillType, randomOrder, enableGroups, groupFilter, groupIdField]);
 
   const handleShuffle = () => {
     let ids = (listQuery.data ?? []).filter((p) => p.drillType === drillType);
     if (enableGroups && groupFilter !== "all") {
       ids = ids.filter((p) =>
         groupFilter === "none"
-          ? p.implementGroupId === null
-          : p.implementGroupId === groupFilter
+          ? p[groupIdField] === null
+          : p[groupIdField] === groupFilter
       );
     }
     setRandomOrder(shuffle(ids.map((p) => p.id)));
@@ -381,13 +387,20 @@ export function DrillPage({ drillType, title, enableGroups = false }: DrillPageP
 
                         {enableGroups && (
                           <div className="mt-2">
-                            <InlineImplementGroupEditor
-                              currentGroupId={p.implementGroupId}
-                              currentGroupName={p.implementGroup?.name ?? null}
+                            <InlineDrillGroupEditor
+                              kind={drillType}
+                              currentGroupId={p[groupIdField]}
+                              currentGroupName={
+                                isImplement
+                                  ? p.implementGroup?.name ?? null
+                                  : p.mindsolveGroup?.name ?? null
+                              }
                               onAssign={(groupId) =>
                                 updateProblem.mutateAsync({
                                   id: p.id,
-                                  implementGroupId: groupId,
+                                  ...(isImplement
+                                    ? { implementGroupId: groupId }
+                                    : { mindsolveGroupId: groupId }),
                                 })
                               }
                             />

@@ -97,7 +97,7 @@ export function InlineEditText({
   return (
     <div className="mt-2">
       <span className="text-xs font-semibold text-gray-700">{label}: </span>
-      <span className={`text-sm ${valueClassName}`}>{value}</span>
+      <span className={`text-sm whitespace-pre-wrap ${valueClassName}`}>{value}</span>
       <button
         onClick={startEdit}
         className="ml-1 text-xs text-gray-400 hover:text-blue-600"
@@ -329,11 +329,13 @@ export function InlineDifficulty({
   );
 }
 
-export function InlineImplementGroupEditor({
+export function InlineDrillGroupEditor({
+  kind,
   currentGroupId,
   currentGroupName,
   onAssign,
 }: {
+  kind: "implement" | "mindsolve";
   currentGroupId: string | null;
   currentGroupName: string | null;
   onAssign: (groupId: string | null) => Promise<unknown>;
@@ -343,7 +345,14 @@ export function InlineImplementGroupEditor({
   const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const utils = trpc.useUtils();
-  const groupsQuery = trpc.implementGroup.list.useQuery();
+  const isImplement = kind === "implement";
+  const implementGroupsQuery = trpc.implementGroup.list.useQuery(undefined, {
+    enabled: isImplement,
+  });
+  const mindsolveGroupsQuery = trpc.mindsolveGroup.list.useQuery(undefined, {
+    enabled: !isImplement,
+  });
+  const groupsQuery = isImplement ? implementGroupsQuery : mindsolveGroupsQuery;
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -361,21 +370,43 @@ export function InlineImplementGroupEditor({
       window.removeEventListener("resize", reposition);
     };
   }, [open]);
-  const createGroup = trpc.implementGroup.create.useMutation({
+  const invalidateGroups = () =>
+    isImplement
+      ? utils.implementGroup.list.invalidate()
+      : utils.mindsolveGroup.list.invalidate();
+  const createImplementGroup = trpc.implementGroup.create.useMutation({
     onSuccess: () => utils.implementGroup.list.invalidate(),
   });
-  const updateGroup = trpc.implementGroup.update.useMutation({
+  const createMindsolveGroup = trpc.mindsolveGroup.create.useMutation({
+    onSuccess: () => utils.mindsolveGroup.list.invalidate(),
+  });
+  const updateImplementGroup = trpc.implementGroup.update.useMutation({
     onSuccess: () => {
-      utils.implementGroup.list.invalidate();
+      invalidateGroups();
       utils.problem.list.invalidate();
     },
   });
-  const deleteGroup = trpc.implementGroup.delete.useMutation({
+  const updateMindsolveGroup = trpc.mindsolveGroup.update.useMutation({
     onSuccess: () => {
-      utils.implementGroup.list.invalidate();
+      invalidateGroups();
       utils.problem.list.invalidate();
     },
   });
+  const deleteImplementGroup = trpc.implementGroup.delete.useMutation({
+    onSuccess: () => {
+      invalidateGroups();
+      utils.problem.list.invalidate();
+    },
+  });
+  const deleteMindsolveGroup = trpc.mindsolveGroup.delete.useMutation({
+    onSuccess: () => {
+      invalidateGroups();
+      utils.problem.list.invalidate();
+    },
+  });
+  const createGroup = isImplement ? createImplementGroup : createMindsolveGroup;
+  const updateGroup = isImplement ? updateImplementGroup : updateMindsolveGroup;
+  const deleteGroup = isImplement ? deleteImplementGroup : deleteMindsolveGroup;
 
   const assign = async (groupId: string | null) => {
     setSaving(true);
@@ -632,7 +663,7 @@ export function InlineDrillEditor({
       </span>
       <div className="flex-1">
         <span className="text-xs font-semibold text-gray-700">Drill Notes: </span>
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-gray-600 whitespace-pre-wrap">
           {drillNotes || <span className="italic text-gray-400">none</span>}
         </span>
         <button

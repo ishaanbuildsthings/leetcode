@@ -88,14 +88,14 @@ export function ProblemsList({ problems, title = "Problems", description = "A cu
                     {problem.simplifiedStatement && (
                       <div className="mb-3">
                         <h4 className="text-sm font-semibold text-gray-700 mb-1">Problem Summary:</h4>
-                        <p className="text-gray-600 text-sm">{problem.simplifiedStatement}</p>
+                        <p className="text-gray-600 text-sm whitespace-pre-wrap">{problem.simplifiedStatement}</p>
                       </div>
                     )}
 
                     {problem.notes && (
                       <div className="mb-3">
                         <h4 className="text-sm font-semibold text-gray-700 mb-1">Notes:</h4>
-                        <p className="text-gray-600 text-sm">{problem.notes}</p>
+                        <p className="text-gray-600 text-sm whitespace-pre-wrap">{problem.notes}</p>
                       </div>
                     )}
 
@@ -114,7 +114,7 @@ export function ProblemsList({ problems, title = "Problems", description = "A cu
                           </span>
                         </div>
                         {problem.drillNotes && (
-                          <p className="text-gray-600 text-sm mt-1">{problem.drillNotes}</p>
+                          <p className="text-gray-600 text-sm mt-1 whitespace-pre-wrap">{problem.drillNotes}</p>
                         )}
                       </div>
                     )}

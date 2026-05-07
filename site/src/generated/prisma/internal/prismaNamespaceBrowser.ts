@@ -56,6 +56,7 @@ export const ModelName = {
   problem_tags: 'problem_tags',
   problems: 'problems',
   implement_groups: 'implement_groups',
+  mindsolve_groups: 'mindsolve_groups',
   solutions: 'solutions',
   tag_parents: 'tag_parents',
   tags: 'tags'
@@ -129,6 +130,7 @@ export const ProblemsScalarFieldEnum = {
   drill_completions: 'drill_completions',
   last_drilled_at: 'last_drilled_at',
   implement_group_id: 'implement_group_id',
+  mindsolve_group_id: 'mindsolve_group_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -144,6 +146,16 @@ export const Implement_groupsScalarFieldEnum = {
 } as const
 
 export type Implement_groupsScalarFieldEnum = (typeof Implement_groupsScalarFieldEnum)[keyof typeof Implement_groupsScalarFieldEnum]
+
+
+export const Mindsolve_groupsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Mindsolve_groupsScalarFieldEnum = (typeof Mindsolve_groupsScalarFieldEnum)[keyof typeof Mindsolve_groupsScalarFieldEnum]
 
 
 export const SolutionsScalarFieldEnum = {

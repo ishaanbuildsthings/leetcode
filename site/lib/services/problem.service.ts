@@ -16,6 +16,7 @@ export async function unsafe_createProblem(data: {
   drillType?: drill_type | null;
   drillNotes?: string;
   implementGroupId?: string | null;
+  mindsolveGroupId?: string | null;
   tags?: Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>;
   solutions?: Array<{ submissionUrl?: string; language: programming_language; githubUrl?: string }>;
 }) {
@@ -35,6 +36,7 @@ export async function unsafe_createProblem(data: {
       drill_type: data.drillType ?? null,
       drill_notes: data.drillNotes,
       implement_group_id: data.implementGroupId ?? null,
+      mindsolve_group_id: data.mindsolveGroupId ?? null,
       problem_tags: data.tags
         ? {
             create: data.tags.map((t) => ({
@@ -62,6 +64,7 @@ export async function unsafe_createProblem(data: {
       },
       solutions: true,
       implement_groups: true,
+      mindsolve_groups: true,
     },
   });
 }
@@ -76,6 +79,7 @@ export async function unsafe_getProblemById(id: string) {
       },
       solutions: true,
       implement_groups: true,
+      mindsolve_groups: true,
     },
   });
 }
@@ -89,6 +93,7 @@ export async function unsafe_listProblems() {
       },
       solutions: true,
       implement_groups: true,
+      mindsolve_groups: true,
     },
     orderBy: { created_at: "desc" },
   });
@@ -110,6 +115,7 @@ export async function unsafe_updateProblem(data: {
   drillType?: drill_type | null;
   drillNotes?: string;
   implementGroupId?: string | null;
+  mindsolveGroupId?: string | null;
   tags?: Array<{ tagId: string; role?: tag_role; tagDifficulty?: number; isInstructive?: boolean }>;
   solutions?: Array<{ submissionUrl?: string; language: programming_language; githubUrl?: string }>;
 }) {
@@ -140,6 +146,7 @@ export async function unsafe_updateProblem(data: {
     drill_type?: drill_type | null;
     drill_notes?: string | null;
     implement_group_id?: string | null;
+    mindsolve_group_id?: string | null;
     problem_tags?: {
       create: Array<{
         tag_id: string;
@@ -173,6 +180,7 @@ export async function unsafe_updateProblem(data: {
   if (data.drillType !== undefined) updateData.drill_type = data.drillType ?? null;
   if (data.drillNotes !== undefined) updateData.drill_notes = data.drillNotes || null;
   if (data.implementGroupId !== undefined) updateData.implement_group_id = data.implementGroupId ?? null;
+  if (data.mindsolveGroupId !== undefined) updateData.mindsolve_group_id = data.mindsolveGroupId ?? null;
 
   if (data.tags) {
     updateData.problem_tags = {
@@ -205,6 +213,7 @@ export async function unsafe_updateProblem(data: {
       },
       solutions: true,
       implement_groups: true,
+      mindsolve_groups: true,
     },
   });
 }
@@ -227,6 +236,7 @@ export async function unsafe_markDrilled(id: string) {
       problem_tags: { include: { tags: true } },
       solutions: true,
       implement_groups: true,
+      mindsolve_groups: true,
     },
   });
 }
@@ -245,6 +255,7 @@ export async function unsafe_undoDrilled(id: string) {
       problem_tags: { include: { tags: true } },
       solutions: true,
       implement_groups: true,
+      mindsolve_groups: true,
     },
   });
 }
@@ -276,6 +287,7 @@ export async function unsafe_listProblemsByPlatformAndTags(
       },
       solutions: true,
       implement_groups: true,
+      mindsolve_groups: true,
     },
     orderBy: { created_at: "desc" },
   });

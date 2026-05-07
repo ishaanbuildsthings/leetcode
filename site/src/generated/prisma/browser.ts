@@ -43,6 +43,11 @@ export type problems = Prisma.problemsModel
  */
 export type implement_groups = Prisma.implement_groupsModel
 /**
+ * Model mindsolve_groups
+ * 
+ */
+export type mindsolve_groups = Prisma.mindsolve_groupsModel
+/**
  * Model solutions
  * 
  */

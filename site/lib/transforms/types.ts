@@ -41,9 +41,15 @@ export interface IProblem {
   drillCompletions: number;
   lastDrilledAt: string | null;
   implementGroupId: string | null;
+  mindsolveGroupId: string | null;
 }
 
 export interface IImplementGroup {
+  id: string;
+  name: string;
+}
+
+export interface IMindsolveGroup {
   id: string;
   name: string;
 }
@@ -58,5 +64,6 @@ export interface IProblemWithRelations extends IProblem {
   }>;
   solutions: ISolution[];
   implementGroup: IImplementGroup | null;
+  mindsolveGroup: IMindsolveGroup | null;
 }
 

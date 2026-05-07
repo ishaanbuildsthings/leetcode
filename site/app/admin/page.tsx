@@ -2418,11 +2418,13 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
   const utils = trpc.useUtils();
   const { data: problems, isLoading } = trpc.problem.list.useQuery();
   const { data: allTags } = trpc.tag.list.useQuery();
+  const { data: allPlatforms } = trpc.platform.list.useQuery();
   const [page, setPage] = useState(1);
   const [fullView, setFullView] = useState(false);
   const [greatOnly, setGreatOnly] = useState(false);
   const [tagFilterId, setTagFilterId] = useState<string>("");
   const [tagFilterCoreOnly, setTagFilterCoreOnly] = useState(false);
+  const [platformFilterId, setPlatformFilterId] = useState<string>("");
   const deleteProblem = trpc.problem.delete.useMutation({
     onSuccess: () => {
       utils.problem.list.invalidate();
@@ -2451,6 +2453,7 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
 
   const filteredProblems = problems.filter((p) => {
     if (greatOnly && !p.isGreatProblem) return false;
+    if (platformFilterId && p.platform.id !== platformFilterId) return false;
     if (tagFilterId) {
       const match = p.tags.some((pt) =>
         pt.tag.id === tagFilterId && (!tagFilterCoreOnly || pt.role === "core")
@@ -2460,7 +2463,9 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
     return true;
   });
   const sortedTags = (allTags ?? []).slice().sort((a, b) => a.name.localeCompare(b.name));
+  const sortedPlatforms = (allPlatforms ?? []).slice().sort((a, b) => a.name.localeCompare(b.name));
   const activeTagName = sortedTags.find((t) => t.id === tagFilterId)?.name;
+  const activePlatformName = sortedPlatforms.find((p) => p.id === platformFilterId)?.name;
   const totalPages = Math.max(1, Math.ceil(filteredProblems.length / PROBLEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const startIdx = (currentPage - 1) * PROBLEMS_PER_PAGE;
@@ -2473,6 +2478,11 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
           ? `Showing all ${filteredProblems.length}`
           : `Showing ${filteredProblems.length === 0 ? 0 : startIdx + 1}–${Math.min(startIdx + PROBLEMS_PER_PAGE, filteredProblems.length)} of ${filteredProblems.length}`}
         {greatOnly && <span className="ml-2 text-yellow-700">(great only)</span>}
+        {activePlatformName && (
+          <span className="ml-2 text-emerald-700">
+            (platform: {activePlatformName})
+          </span>
+        )}
         {activeTagName && (
           <span className="ml-2 text-blue-700">
             (tag: {activeTagName}{tagFilterCoreOnly ? ", core" : ""})
@@ -2489,6 +2499,17 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
           />
           <span className={greatOnly ? "text-yellow-800 font-medium" : "text-gray-700"}>Great only</span>
         </label>
+        <select
+          value={platformFilterId}
+          onChange={(e) => { setPlatformFilterId(e.target.value); setPage(1); }}
+          className="px-2 py-1 text-sm border border-gray-300 rounded bg-white text-gray-700 mr-1 max-w-[180px]"
+          title="Filter by platform"
+        >
+          <option value="">All platforms</option>
+          {sortedPlatforms.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
         <select
           value={tagFilterId}
           onChange={(e) => { setTagFilterId(e.target.value); setPage(1); }}
@@ -2696,6 +2717,15 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
               >
                 Edit
               </button>
+              <a
+                href={`/admin/edit/${problem.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
+                title="Open isolated edit page in new tab (faster on long lists)"
+              >
+                Edit ↗
+              </a>
               <button
                 onClick={() => {
                   if (confirm("Delete this problem?")) {

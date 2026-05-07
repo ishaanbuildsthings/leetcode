@@ -5,7 +5,7 @@ const c = new Client({ connectionString: conn });
 await c.connect();
 const r = await c.query(
   `INSERT INTO platforms (name, slug) VALUES ($1, $2) RETURNING id, name, slug`,
-  ['Eolymp', 'eolymp']
+  ['Yosupo', 'yosupo']
 );
 console.log(JSON.stringify(r.rows, null, 2));
 await c.end();

@@ -1,5 +1,5 @@
-import type { tagsModel as tags, platformsModel as platforms, solutionsModel as solutions, problemsModel as problems, problem_tagsModel as problem_tags, implement_groupsModel as implement_groups } from "../../src/generated/prisma/models";
-import type { ITag, IPlatform, ISolution, IProblem, IProblemWithRelations, IImplementGroup } from "./types";
+import type { tagsModel as tags, platformsModel as platforms, solutionsModel as solutions, problemsModel as problems, problem_tagsModel as problem_tags, implement_groupsModel as implement_groups, mindsolve_groupsModel as mindsolve_groups } from "../../src/generated/prisma/models";
+import type { ITag, IPlatform, ISolution, IProblem, IProblemWithRelations, IImplementGroup, IMindsolveGroup } from "./types";
 
 export * from "./types";
 
@@ -49,10 +49,18 @@ export function transformProblem(problem: problems): IProblem {
     drillCompletions: problem.drill_completions,
     lastDrilledAt: problem.last_drilled_at ? problem.last_drilled_at.toISOString() : null,
     implementGroupId: problem.implement_group_id,
+    mindsolveGroupId: problem.mindsolve_group_id,
   };
 }
 
 export function transformImplementGroup(group: implement_groups): IImplementGroup {
+  return {
+    id: group.id,
+    name: group.name,
+  };
+}
+
+export function transformMindsolveGroup(group: mindsolve_groups): IMindsolveGroup {
   return {
     id: group.id,
     name: group.name,
@@ -65,6 +73,7 @@ export function transformProblemWithRelations(
     problem_tags: Array<problem_tags & { tags: tags }>;
     solutions: solutions[];
     implement_groups?: implement_groups | null;
+    mindsolve_groups?: mindsolve_groups | null;
   }
 ): IProblemWithRelations {
   return {
@@ -79,6 +88,9 @@ export function transformProblemWithRelations(
     solutions: problem.solutions.map(transformSolution),
     implementGroup: problem.implement_groups
       ? transformImplementGroup(problem.implement_groups)
+      : null,
+    mindsolveGroup: problem.mindsolve_groups
+      ? transformMindsolveGroup(problem.mindsolve_groups)
       : null,
   };
 }
