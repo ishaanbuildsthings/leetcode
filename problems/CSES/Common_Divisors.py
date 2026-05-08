@@ -169,7 +169,9 @@ if 1:
  
 n = II()
 arr = LII()
-  
+ 
+debug(f'{arr=}')
+ 
 c = Counter(arr)
  
 # for each factor, see how many numbers contain that has a factor
@@ -179,9 +181,11 @@ for factor in range(big, 0, -1):
     f2 = factor
     count = 0
     while True:
+        # print(f'{f2=}')
         if f2 > big:
             break
         count += c[f2]
+        # print(f'count now: {count}')
         if count > 1:
             print(factor)
             exit()
