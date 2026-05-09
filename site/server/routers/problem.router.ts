@@ -10,6 +10,32 @@ export const problemRouter = router({
     return problems.map(transformProblemWithRelations);
   }),
 
+  listPaged: publicProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).optional(),
+        pageSize: z.number().int().min(1).max(200).optional(),
+        fullView: z.boolean().optional(),
+        greatOnly: z.boolean().optional(),
+        platformId: z.string().optional(),
+        tagId: z.string().optional(),
+        tagRoles: z
+          .object({
+            core: z.boolean().optional(),
+            secondary: z.boolean().optional(),
+            mention: z.boolean().optional(),
+          })
+          .optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { items, total } = await problemService.unsafe_listProblemsPaged(input);
+      return {
+        items: items.map(transformProblemWithRelations),
+        total,
+      };
+    }),
+
   getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
     const problem = await problemService.unsafe_getProblemById(input.id);
     if (!problem) return null;

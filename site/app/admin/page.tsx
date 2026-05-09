@@ -2892,7 +2892,6 @@ const PROBLEMS_PER_PAGE = 20;
 
 function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem: string | null; onEdit: (id: string) => void; onCloseEdit: () => void }) {
   const utils = trpc.useUtils();
-  const { data: problems, isLoading } = trpc.problem.list.useQuery();
   const { data: allTags } = trpc.tag.list.useQuery();
   const { data: allPlatforms } = trpc.platform.list.useQuery();
   const [page, setPage] = useState(1);
@@ -2905,13 +2904,27 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
     mention: true,
   });
   const [platformFilterId, setPlatformFilterId] = useState<string>("");
+
+  const listInput = {
+    page,
+    pageSize: PROBLEMS_PER_PAGE,
+    fullView,
+    greatOnly,
+    platformId: platformFilterId || undefined,
+    tagId: tagFilterId || undefined,
+    tagRoles: tagFilterId ? tagFilterRoles : undefined,
+  };
+  const { data: pageData, isLoading } = trpc.problem.listPaged.useQuery(listInput);
+
   const deleteProblem = trpc.problem.delete.useMutation({
     onSuccess: () => {
+      utils.problem.listPaged.invalidate();
       utils.problem.list.invalidate();
     },
   });
   const updateProblem = trpc.problem.update.useMutation({
     onSuccess: () => {
+      utils.problem.listPaged.invalidate();
       utils.problem.list.invalidate();
     },
     onError: (error) => {
@@ -2923,45 +2936,33 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
     return <div className="text-center py-8">Loading problems...</div>;
   }
 
-  if (!problems || problems.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-        No problems yet. Create your first problem above!
-      </div>
-    );
-  }
+  const pageProblems = pageData?.items ?? [];
+  const totalProblems = pageData?.total ?? 0;
 
-  const filteredProblems = problems.filter((p) => {
-    if (greatOnly && !p.isGreatProblem) return false;
-    if (platformFilterId && p.platform.id !== platformFilterId) return false;
-    if (tagFilterId) {
-      const match = p.tags.some((pt) => {
-        if (pt.tag.id !== tagFilterId) return false;
-        // null/unset role is shown as long as any role checkbox is on
-        if (pt.role === null) return tagFilterRoles.core || tagFilterRoles.secondary || tagFilterRoles.mention;
-        return tagFilterRoles[pt.role];
-      });
-      if (!match) return false;
-    }
-    return true;
-  });
   const allRolesOn = tagFilterRoles.core && tagFilterRoles.secondary && tagFilterRoles.mention;
   const enabledRoleLabels = (["core", "secondary", "mention"] as const).filter((r) => tagFilterRoles[r]);
   const sortedTags = (allTags ?? []).slice().sort((a, b) => a.name.localeCompare(b.name));
   const sortedPlatforms = (allPlatforms ?? []).slice().sort((a, b) => a.name.localeCompare(b.name));
   const activeTagName = sortedTags.find((t) => t.id === tagFilterId)?.name;
   const activePlatformName = sortedPlatforms.find((p) => p.id === platformFilterId)?.name;
-  const totalPages = Math.max(1, Math.ceil(filteredProblems.length / PROBLEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(totalProblems / PROBLEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const startIdx = (currentPage - 1) * PROBLEMS_PER_PAGE;
-  const pageProblems = fullView ? filteredProblems : filteredProblems.slice(startIdx, startIdx + PROBLEMS_PER_PAGE);
+
+  if (totalProblems === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+        No problems match the current filters.
+      </div>
+    );
+  }
 
   const Pager = () => (
     <div className="flex items-center justify-between gap-2 px-4 py-3 bg-gray-50 flex-wrap">
       <div className="text-sm text-gray-600">
         {fullView
-          ? `Showing all ${filteredProblems.length}`
-          : `Showing ${filteredProblems.length === 0 ? 0 : startIdx + 1}–${Math.min(startIdx + PROBLEMS_PER_PAGE, filteredProblems.length)} of ${filteredProblems.length}`}
+          ? `Showing all ${totalProblems}`
+          : `Showing ${totalProblems === 0 ? 0 : startIdx + 1}–${Math.min(startIdx + PROBLEMS_PER_PAGE, totalProblems)} of ${totalProblems}`}
         {greatOnly && <span className="ml-2 text-yellow-700">(great only)</span>}
         {activePlatformName && (
           <span className="ml-2 text-emerald-700">

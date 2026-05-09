@@ -1,4 +1,5 @@
 import { prisma } from "../prisma";
+import { Prisma } from "../../src/generated/prisma/client";
 import { tag_role, programming_language, drill_type } from "../../src/generated/prisma/enums";
 
 export async function unsafe_createProblem(data: {
@@ -97,6 +98,64 @@ export async function unsafe_listProblems() {
     },
     orderBy: { created_at: "desc" },
   });
+}
+
+export async function unsafe_listProblemsPaged(opts: {
+  page?: number;
+  pageSize?: number;
+  fullView?: boolean;
+  greatOnly?: boolean;
+  platformId?: string;
+  tagId?: string;
+  tagRoles?: { core?: boolean; secondary?: boolean; mention?: boolean };
+}) {
+  const where: Prisma.problemsWhereInput = {};
+  if (opts.greatOnly) where.is_great_problem = true;
+  if (opts.platformId) where.platform_id = opts.platformId;
+  if (opts.tagId) {
+    const roles = opts.tagRoles ?? { core: true, secondary: true, mention: true };
+    const enabledRoles: tag_role[] = [];
+    if (roles.core) enabledRoles.push(tag_role.core);
+    if (roles.secondary) enabledRoles.push(tag_role.secondary);
+    if (roles.mention) enabledRoles.push(tag_role.mention);
+    where.problem_tags = {
+      some: {
+        tag_id: opts.tagId,
+        OR: [{ role: { in: enabledRoles } }, { role: null }],
+      },
+    };
+  }
+
+  const include = {
+    platforms: true,
+    problem_tags: { include: { tags: true } },
+    solutions: true,
+    implement_groups: true,
+    mindsolve_groups: true,
+  } as const;
+
+  if (opts.fullView) {
+    const items = await prisma.problems.findMany({
+      where,
+      include,
+      orderBy: { created_at: "desc" },
+    });
+    return { items, total: items.length };
+  }
+
+  const page = Math.max(1, opts.page ?? 1);
+  const pageSize = Math.min(200, Math.max(1, opts.pageSize ?? 20));
+  const [items, total] = await Promise.all([
+    prisma.problems.findMany({
+      where,
+      include,
+      orderBy: { created_at: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.problems.count({ where }),
+  ]);
+  return { items, total };
 }
 
 export async function unsafe_updateProblem(data: {
