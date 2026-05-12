@@ -92,20 +92,36 @@ int main() {
 
     vector<int> minD(maxId + 1, INF);
     vector<int> parent(maxId + 1, -1);
-    priority_queue<pair<ll,int>, vector<pair<ll,int>>, greater<>> heap; // holds (cost, node)
-    heap.push({0, stableIds[n]});
+    deque<pair<ll,int>> dq; // (cost, node)
+    dq.push_front({0, stableIds[n]});
     minD[stableIds[n]] = 0;
-    while (heap.size()) {
-        auto [cost, nodeId] = heap.top(); heap.pop();
+    while (dq.size()) {
+        auto [cost, nodeId] = dq.front(); dq.pop_front();
         if (minD[nodeId] != cost) continue;
         for (auto [adjN, adjW] : adj[nodeId]) {
-            int ncost = cost + adjW;
+            ll ncost = cost + adjW;
             if (minD[adjN] <= ncost) continue;
             minD[adjN] = ncost;
             parent[adjN] = nodeId;
-            heap.push({ncost, adjN});
+            if (adjW == 0) dq.push_front({ncost, adjN});
+            else dq.push_back({ncost, adjN});
         }
     }
+
+    // priority_queue<pair<ll,int>, vector<pair<ll,int>>, greater<>> heap; // holds (cost, node)
+    // heap.push({0, stableIds[n]});
+    // minD[stableIds[n]] = 0;
+    // while (heap.size()) {
+    //     auto [cost, nodeId] = heap.top(); heap.pop();
+    //     if (minD[nodeId] != cost) continue;
+    //     for (auto [adjN, adjW] : adj[nodeId]) {
+    //         int ncost = cost + adjW;
+    //         if (minD[adjN] <= ncost) continue;
+    //         minD[adjN] = ncost;
+    //         parent[adjN] = nodeId;
+    //         heap.push({ncost, adjN});
+    //     }
+    // }
 
     int goal = slipIds[0];
     if (minD[goal] >= INF) {
