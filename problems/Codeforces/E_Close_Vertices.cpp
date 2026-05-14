@@ -239,8 +239,6 @@ int main() {
         int maxUnweightedDist = L - dist; // only nodes with 0...maxUnweightedDist are legal
         ll maxWeightedDist = W - wdist; // and nodes with 0...maxWeightedDist
         if (dist <= L && wdist <= W) centroidPathCount++;
-        // cerr << "gain=" << (gain ? "true" : "false") << " scoring branch at node=" << node << " dist=" << dist << " wdist=" << wdist << '\n';
-        // cerr << "max unweighted dist: " << maxUnweightedDist << " max weighted dist: " << maxWeightedDist << '\n';
 
         // DO SOME SCORING
         // need rightmost index with a WEIGHTED distance <= maxWeightedDist
@@ -254,7 +252,6 @@ int main() {
         // query from 0...idx, if idx != -1
         if (idx != -1) {
             ll count = mst.countLteX(0, idx, maxUnweightedDist);
-            // cerr << "gained amount: " << count << '\n';
             if (gain) {
                 counter += count;
             } else {
@@ -269,7 +266,6 @@ int main() {
     };
 
     auto decompose  = [&](auto&& self, int entry) -> void {
-        // cerr << "DECOMPOSE CALLED ON NODE: " << entry << '\n';
         // 1. get sizes
         subtreeSize(subtreeSize, entry, -1);
         int pieceSize = sz[entry];
@@ -277,12 +273,10 @@ int main() {
         // 2. find the centroid
         int centroid = findCentroid(findCentroid, entry, -1, pieceSize);
 
-        // cout << "centroid: " << centroid << '\n';
-
         // 3. do some work
 
         // walk entire tree, gather all (weighted, unweighted) pairs
-        vector<pair<ll,int>> pairs; // TODO: reserve for speedup
+        vector<pair<ll,int>> pairs;
         // pairs.push_back({0, 0});
         for (auto& [adjNode, edgeWeight] : adj[centroid]) {
             if (removed[adjNode]) continue;
@@ -290,12 +284,8 @@ int main() {
         }
         sort(pairs.begin(), pairs.end());
 
-        // for (auto& [unw, wei] : pairs) {
-        //     cout << "unw: " << unw << " wei: " << wei << '\n';
-        // }
-
         // build merge sort tree on ALL values
-        vector<int> unweighteds; // TODO: speedup
+        vector<int> unweighteds;
         for (auto& [wei, unwei] : pairs) {
             unweighteds.push_back(unwei);
         }
@@ -320,7 +310,6 @@ int main() {
         // still counting branch-branch pairs
         // missing anything-centroid pairs
 
-        // cerr << "INITIAL SCORE AFTER DECOMP, pre-dedupe: " << out << endl;
         // walk each branch again, build an MST on only those nodes
         // walk each branch one more time, dedupe via the mst
         for (auto& [adjNode, edgeWeight] : adj[centroid]) {
@@ -329,7 +318,7 @@ int main() {
             // fill up the branch pairs
             gather(gather, adjNode, centroid, 1, edgeWeight, branchPairs);
             sort(branchPairs.begin(), branchPairs.end());
-            vector<int> unweightedsBranch; // TODO: speedup
+            vector<int> unweightedsBranch;
             for (auto& [wei, unwei] : branchPairs) {
                 unweightedsBranch.push_back(unwei);
             }
