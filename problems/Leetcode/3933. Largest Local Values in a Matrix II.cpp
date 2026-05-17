@@ -82,3 +82,41 @@ struct RectangleSparseTable {
 
 // // inferred
 // // RectangleSparseTable st(grid, [](int a, int b) { return min(a, b); });
+
+class Solution {
+public:
+    int countLocalMaximums(vector<vector<int>>& matrix) {
+        int H = matrix.size();
+        int W = matrix[0].size();
+        auto fn = [](int a, int b) { return max(a, b); };
+        RectangleSparseTable<int, decltype(fn)> st(matrix, fn);
+        auto q = [&](int r1, int r2, int c1, int c2) -> int {
+          if (r1 > r2 || c1 > c2) return 0;
+            r1 = max(r1, 0);
+            r2 = min(r2, H - 1);
+            c1 = max(0, c1);
+            c2 = min(W - 1, c2);
+            if (r1 > r2 || c1 > c2) return 0;
+            return st.query(r1,r2,c1,c2);
+        };
+        
+        int res = 0;
+        for (int r = 0; r < H; r++) {
+            for (int c = 0; c < W; c++) {
+                int v = matrix[r][c];
+                if (v == 0) continue;
+                int up = r - v;
+                int down = r + v;
+                int left = c - v;
+                int right = c + v;
+                int q1 = q(up, down, left + 1, right - 1);
+                int q2 = q(up + 1, down - 1, left, right);
+                int mx = max(q1, q2);
+                if (mx <= v) {
+                    res++;
+                }
+            }
+        }
+        return res;
+    }
+};
