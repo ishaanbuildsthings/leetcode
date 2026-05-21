@@ -23,7 +23,7 @@ class Solution:
             upperBoundary = int(strNum[i]) if tight else 9
             for digit in range(upperBoundary + 1):
                 newTight = tight and digit == upperBoundary
-                newNonZeroTaken = nonZeroTaken or (digit != 0)
+            newNonZeroTaken = nonZeroTaken or (digit != 0)
                 newHasRepeated = hasRepeated or (((mask >> digit) & 1) and not (not nonZeroTaken and digit == 0))
                 # if our only zeroes were leading zeroes before, adding a new zero doesn't trigger repeated, e.g. 010
                 if not nonZeroTaken and digit == 0:
