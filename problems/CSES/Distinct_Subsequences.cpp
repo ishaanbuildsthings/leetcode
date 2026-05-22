@@ -1,42 +1,83 @@
-#include<bits/stdc++.h>
+// SOLUTION 1, 26N dp
+// at a position, we can chain to all of the next letters that occur, at their first positions
+// really we can just optimize this to 1N dp by taking the suffix sum for every unique letter type, or something like that, similar to solution 2, i think this reduces to that
+// #include <bits/stdc++.h>
+// using namespace std;
+// using ll = long long;
+
+// const int MOD = 1000000007;
+
+// int main() {
+//     ios::sync_with_stdio(false);
+//     cin.tie(nullptr);
+//     string s; cin >> s;
+//     s = '#' + s;
+//     int n = s.size();
+
+//     string ABC = "abcdefghijklmnopqrstuvwxyz";
+    
+//     vector<vector<int>> cache(n, vector<int>(26, -1));
+//     // finds first occurrence of a letter in i..., or -1 if it does not exist
+//     auto first = [&](auto&& self, int i, int charI) -> int {
+//         if (i == n) return -1;
+//         char c = ABC[charI];
+//         if (s[i] == c) return i;
+//         auto& res = cache[i][charI];
+//         if (res != -1) return res;
+//         res = self(self, i + 1, charI);
+//         return res;
+//     };
+
+//     vector<int> cache2(n, -1);
+//     // tells us how many sequences we get if we must include this index
+//     auto dp = [&](auto&& self, int i) -> int {
+//         if (i == n) return 0;
+//         if (i == n - 1) return 1;
+//         if (cache2[i] != -1) return cache2[i];
+//         int res = 1; // end here
+//         for (int j = 0; j < 26; j++) {
+//             int nextI = first(first, i + 1, j);
+//             if (nextI != -1) {
+//                 res += self(self, nextI);
+//                 res %= MOD;
+//             }
+//         }
+//         cache2[i] = res;
+//         return res;
+//     };
+
+//     int ans = dp(dp, 0);
+//     ans--;
+//     if (ans < 0) ans += MOD;
+//     cout << ans;
+// }
+
+
+
+
+// SOLUTION 2, O(1 * N) dp
+// dp[i] is the # of subsequences in ...i
+// at a new i we can add this letter to all previous subsequences
+// but we must subtract endingAt[currentLetter] to avoid duplicates
+#include <bits/stdc++.h>
 using namespace std;
-int MOD = 1000000000 + 7;
+using ll = long long;
+const int MOD = 1000000007;
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     string s; cin >> s;
-    int n = s.size();
-    int SENTINEL = n + 1;
-    vector<int> earliest(26, SENTINEL);
-    vector<vector<int>> nxt(n, vector<int>(26));
-    for (int i = n - 1; i >= 0; i--) {
-        for (int letter = 0; letter < 26; letter++) {
-            nxt[i][letter] = earliest[letter];
-        }
+    vector<int> endingAt(26, 0);
+    int totalSequences = 1; // empty subsequence
+    for (int i = 0; i < s.size(); i++) {
         char c = s[i];
-        earliest[c - 'a'] = i;
+        int charI = c - 'a';
+        int newTotal = (2 * totalSequences) % MOD; // we can append this letter to any previous subsequence
+        newTotal -= endingAt[charI]; // but any previous sequence made, ending in this letter, gets double counted
+        if (newTotal < 0) newTotal += MOD;
+        endingAt[charI] = totalSequences;
+        totalSequences = newTotal;
     }
-    vector<int>dp(n); // dp[i] is the number of subsequences in s[i:] where we must use the i-th letterc
-    for (int i = n - 1; i >= 0; i--) {
-        int ways = 1; // can just use this single letter.
-        for (int nextLetter = 0; nextLetter < 26; nextLetter++) {
-            if (nxt[i][nextLetter] == SENTINEL) {
-                continue;
-            }
-            ways += dp[nxt[i][nextLetter]];
-            ways %= MOD;
-        }
-        dp[i] = ways;
-    }
-    int result = 0;
-    for (auto c : "abcdefghijklmnopqrstuvwxyz") {
-        for (int i = 0; i < n; i++) {
-            if (s[i] == c) {
-                result += dp[i];
-                result %= MOD;
-                break;
-            }
-        }
-    }
-    cout << result;
+    cout << (totalSequences - 1 + MOD) % MOD; // subtract empty sequence
 }
