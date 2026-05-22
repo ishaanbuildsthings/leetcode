@@ -1,3 +1,6 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
 
 #include <ext/pb_ds/assoc_container.hpp>
 using namespace __gnu_pbds;
@@ -57,3 +60,96 @@ template<class K>          using hash_set = gp_hash_table<K, null_type, custom_h
 //   - no .reserve() or .bucket_count(), pb_ds manages capacity internally
 //   - iteration order is unspecified (it's a hash table)
 //   - cannot store gp_hash_table inside another gp_hash_table directly without extra wrapping
+
+const ll BASE = 911;
+const ll BASE2 = 31;
+const ll MOD2 = 1000000007;
+const ll MOD = 999999527;
+const ll MAX_N = 100000;
+ll basePow[MAX_N + 1];
+ll basePow2[MAX_N + 1];
+
+struct Hasher {
+    ll h1 = 0;
+    ll h2 = 0;
+    ll size = 0;
+
+    pair<ll,ll> getHash() { return {h1, h2}; }
+    void addRight(char c) {
+        ll coeff = c - 'a' + 1;
+        h1 *= BASE;
+        h1 += coeff;
+        h1 %= MOD;
+        h2 *= BASE2;
+        h2 += coeff;
+        h2 %= MOD2;
+        size++;
+    }
+    void popLeft(char c) {
+        ll leftPow = size - 1;
+        ll coeff = c - 'a' + 1;
+        ll lost1 = (coeff * basePow[leftPow]) % MOD;
+        h1 -= lost1;
+        if (h1 < 0) h1 += MOD;
+        ll lost2 = (coeff * basePow2[leftPow]) % MOD2;
+        h2 -= lost2;
+        if (h2 < 0) h2 += MOD2;
+        size--;
+    }
+};
+
+void init() {
+    basePow[0] = 1;
+    basePow2[0] = 1;
+    for (int p = 1; p <= MAX_N; p++) {
+        ll npow = (basePow[p - 1] * BASE) % MOD;
+        basePow[p] = npow;
+        ll npow2 = (basePow2[p - 1] * BASE2) % MOD2;
+        basePow2[p] = npow2;
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int resL = -1;
+    int resR = -1;
+    string s; cin >> s;
+    int n = s.size();
+
+    int l = 1;
+    int r = n;
+    while (l <= r) {
+        int m = (l + r) / 2;
+        // cerr << "length: " << m << endl;
+        Hasher h;
+        hash_set<pair<ll,ll>> seenHashes;
+        for (int right = 0; right < m; right++) {
+            h.addRight(s[right]);
+        }
+        int found = 0;
+        seenHashes.insert(h.getHash());
+        for (int right = m; right < n; right++) {
+            h.addRight(s[right]);
+            h.popLeft(s[right - m]);
+            if (seenHashes.find(h.getHash()) != seenHashes.end()) {
+                resL = right - m + 1;
+                resR = right;
+                found = 1;
+            }
+            seenHashes.insert(h.getHash());
+        }
+        if (found) {
+            l = m + 1;
+        } else {
+            r = m - 1;
+        }
+
+    }
+    if (resL == -1) {
+        cout << -1 << endl;
+    } else {
+        for (int i = resL; i <= resR; i++) cout << s[i];
+    }
+}
