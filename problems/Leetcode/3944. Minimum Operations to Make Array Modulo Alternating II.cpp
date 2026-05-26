@@ -162,3 +162,62 @@ class FenwickMedianSet:
     # Total cost to make every element equal to the median
     def costToMedian(self):
         return self.costToTarget(self.median())
+
+
+class Solution:
+    def minOperations(self, nums: list[int], k: int) -> int:
+        
+        def process(numbers):
+            remainders = [num % k for num in numbers]
+            fw = FenwickMedianSet(k)
+            for v in remainders:
+                fw.add(v)
+            
+            options = [] # holds (cost, value) which is the cost to set all numbers to that value
+            halfL = k // 2
+            halfR = (k - 1) // 2
+
+            for x in range(k):
+                cost = 0
+
+                # direct left [max(0, x-halfL) ... x - 1]
+                lo = max(0, x - halfL)
+                if lo <= x - 1:
+                    c = fw.countInRange(lo, x - 1)
+                    s = fw.sumInRange(lo, x - 1)
+                    cost += x * c - s
+
+                # direct right, [x+1 ... min(k - 1, x + halfR)]
+                hi = min(k - 1, x + halfR)
+                if x + 1 <= hi:
+                    c = fw.countInRange(x + 1, hi)
+                    s = fw.sumInRange(x + 1, hi)
+                    cost += s - x * c
+
+                # left wrap: if x - halfL < 0, elements [k + x - halfL, k-1]
+                if x - halfL < 0:
+                    c = fw.countInRange(k + x - halfL, k - 1)
+                    s = fw.sumInRange(k + x - halfL, k - 1)
+                    cost += (k + x) * c - s
+
+                # right wrap: if x + halfR > k-1, elements [0, x + halfR - k]
+                if x + halfR > k - 1:
+                    c = fw.countInRange(0, x + halfR - k)
+                    s = fw.sumInRange(0, x + halfR - k)
+                    cost += (k - x) * c + s
+
+                options.append((cost, x))
+            options.sort()
+            return options
+        
+        evenNums = [nums[i] for i in range(len(nums)) if i % 2 == 0]
+        oddNums = [nums[i] for i in range(len(nums)) if i % 2 == 1]
+        
+        evenOpts = process(evenNums)
+        oddOpts = process(oddNums)
+
+        if evenOpts[0][1] != oddOpts[0][1]:
+            return evenOpts[0][0] + oddOpts[0][0]
+        v1 = evenOpts[1][0] + oddOpts[0][0]
+        v2 = evenOpts[0][0] + oddOpts[1][0]
+        return min(v1, v2)

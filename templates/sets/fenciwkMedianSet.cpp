@@ -134,6 +134,18 @@ struct FenwickMedianSet {
     ll sumGTE(int x) {
         return totalSum - sumLT(x);
     }
+
+    // count of elements in [lo, hi]
+    ll countInRange(int lo, int hi) {
+        if (lo > hi) return 0;
+        return countLTE(hi) - countLT(lo);
+    }
+
+    // sum of elements in [lo, hi]
+    ll sumInRange(int lo, int hi) {
+        if (lo > hi) return 0;
+        return sumLTE(hi) - sumLT(lo);
+    }
     
     // find the kth smallest element (0-indexed), O(log n)
     int kthSmallest(ll k) {
