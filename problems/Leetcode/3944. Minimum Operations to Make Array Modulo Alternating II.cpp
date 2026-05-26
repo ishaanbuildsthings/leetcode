@@ -1,223 +1,263 @@
-# TEMPLATE FROM MY GITHUB: ishaanbuildsthings
-class FenwickMedianSet:
-    """
-    Multiset over non-negative integers in [0, maxVal].
-    Supports add, remove, kth element, median, sum, and cost-to-target queries.
-    """
-    def __init__(self, maxVal):
-        self.n = maxVal
-        # Two Fenwicks: one tracks counts, one tracks sums of values
-        self.cntTree = [0] * (self.n + 2)
-        self.sumTree = [0] * (self.n + 2)
-        self.cnt = [0] * (self.n + 1)
-        self.size = 0
-        self.totalSum = 0
+// TEMPLATE FROM MY GITHUB: ishaanbuildsthings
+// Multiset over non-negative integers in [0, maxVal].
+// Supports add, remove, kth element, median, sum, and cost-to-target queries.
+//
+// USAGE:
+//   FenwickMedianSet fms(1000000);  // values in [0, 10^6]
+//   fms.add(5);
+//   fms.add(3);
+//   fms.add(7);
+//   fms.median();         // 5
+//   fms.costToMedian();   // 4 (|3-5| + |5-5| + |7-5|)
+//   fms.costToTarget(4);  // 5 (|3-4| + |5-4| + |7-4|)
+//   fms.countLTE(5);      // 2
+//   fms.sumGT(4);         // 12 (5 + 7)
+//   fms.kthSmallest(0);   // 3 (smallest)
+//   fms.remove(5);
+using ll = long long;
+struct FenwickMedianSet {
+    int n;
+    vector<ll> cntTree, sumTree;
+    vector<int> cnt;
+    ll size_ = 0;
+    ll totalSum = 0;
     
-    def _updateCnt(self, i, delta):
-        i += 1
-        while i <= self.n + 1:
-            self.cntTree[i] += delta
-            i += i & (-i)
+    FenwickMedianSet(int maxVal) : n(maxVal) {
+        cntTree.assign(n + 2, 0);
+        sumTree.assign(n + 2, 0);
+        cnt.assign(n + 1, 0);
+    }
     
-    def _updateSum(self, i, delta):
-        i += 1
-        while i <= self.n + 1:
-            self.sumTree[i] += delta
-            i += i & (-i)
+    void _updateCnt(int i, ll delta) {
+        i++;
+        while (i <= n + 1) {
+            cntTree[i] += delta;
+            i += i & -i;
+        }
+    }
     
-    def _queryCnt(self, i):
-        # prefix count [0..i]
-        i += 1
-        s = 0
-        while i > 0:
-            s += self.cntTree[i]
-            i -= i & (-i)
-        return s
+    void _updateSum(int i, ll delta) {
+        i++;
+        while (i <= n + 1) {
+            sumTree[i] += delta;
+            i += i & -i;
+        }
+    }
     
-    def _querySum(self, i):
-        # prefix sum [0..i]
-        i += 1
-        s = 0
-        while i > 0:
-            s += self.sumTree[i]
-            i -= i & (-i)
-        return s
+    ll _queryCnt(int i) {
+        // prefix count [0..i]
+        i++;
+        ll s = 0;
+        while (i > 0) {
+            s += cntTree[i];
+            i -= i & -i;
+        }
+        return s;
+    }
     
-    # Insert a value
-    def add(self, val):
-        self.cnt[val] += 1
-        self._updateCnt(val, 1)
-        self._updateSum(val, val)
-        self.size += 1
-        self.totalSum += val
+    ll _querySum(int i) {
+        // prefix sum [0..i]
+        i++;
+        ll s = 0;
+        while (i > 0) {
+            s += sumTree[i];
+            i -= i & -i;
+        }
+        return s;
+    }
     
-    # Remove one occurrence of value
-    def remove(self, val):
-        if self.cnt[val] == 0:
-            return False
-        self.cnt[val] -= 1
-        self._updateCnt(val, -1)
-        self._updateSum(val, -val)
-        self.size -= 1
-        self.totalSum -= val
-        return True
+    // insert a value
+    void add(int val) {
+        cnt[val]++;
+        _updateCnt(val, 1);
+        _updateSum(val, val);
+        size_++;
+        totalSum += val;
+    }
     
-    # Total number of elements
-    def __len__(self):
-        return self.size
+    // remove one occurrence of value
+    bool remove(int val) {
+        if (cnt[val] == 0) return false;
+        cnt[val]--;
+        _updateCnt(val, -1);
+        _updateSum(val, -val);
+        size_--;
+        totalSum -= val;
+        return true;
+    }
     
-    # True if no elements
-    def empty(self):
-        return self.size == 0
+    // total number of elements
+    ll size() const { return size_; }
     
-    # Count of elements < x
-    def countLT(self, x):
-        if x <= 0:
-            return 0
-        return self._queryCnt(min(x - 1, self.n))
+    // true if no elements
+    bool empty() const { return size_ == 0; }
     
-    # Count of elements <= x
-    def countLTE(self, x):
-        if x < 0:
-            return 0
-        return self._queryCnt(min(x, self.n))
+    // count of elements < x
+    ll countLT(int x) {
+        if (x <= 0) return 0;
+        return _queryCnt(min(x - 1, n));
+    }
     
-    # Count of elements > x
-    def countGT(self, x):
-        return self.size - self.countLTE(x)
+    // count of elements <= x
+    ll countLTE(int x) {
+        if (x < 0) return 0;
+        return _queryCnt(min(x, n));
+    }
     
-    # Count of elements >= x
-    def countGTE(self, x):
-        return self.size - self.countLT(x)
+    // count of elements > x
+    ll countGT(int x) {
+        return size_ - countLTE(x);
+    }
     
-    # Sum of elements < x
-    def sumLT(self, x):
-        if x <= 0:
-            return 0
-        return self._querySum(min(x - 1, self.n))
+    // count of elements >= x
+    ll countGTE(int x) {
+        return size_ - countLT(x);
+    }
     
-    # Sum of elements <= x
-    def sumLTE(self, x):
-        if x < 0:
-            return 0
-        return self._querySum(min(x, self.n))
+    // sum of elements < x
+    ll sumLT(int x) {
+        if (x <= 0) return 0;
+        return _querySum(min(x - 1, n));
+    }
     
-    # Sum of elements > x
-    def sumGT(self, x):
-        return self.totalSum - self.sumLTE(x)
+    // sum of elements <= x
+    ll sumLTE(int x) {
+        if (x < 0) return 0;
+        return _querySum(min(x, n));
+    }
     
-    # Sum of elements >= x
-    def sumGTE(self, x):
-        return self.totalSum - self.sumLT(x)
+    // sum of elements > x
+    ll sumGT(int x) {
+        return totalSum - sumLTE(x);
+    }
+    
+    // sum of elements >= x
+    ll sumGTE(int x) {
+        return totalSum - sumLT(x);
+    }
 
-    # Count of elements in [lo, hi]
-    def countInRange(self, lo, hi):
-        if lo > hi:
-            return 0
-        return self.countLTE(hi) - self.countLT(lo)
+    // count of elements in [lo, hi]
+    ll countInRange(int lo, int hi) {
+        if (lo > hi) return 0;
+        return countLTE(hi) - countLT(lo);
+    }
 
-    # Sum of elements in [lo, hi]
-    def sumInRange(self, lo, hi):
-        if lo > hi:
-            return 0
-        return self.sumLTE(hi) - self.sumLT(lo)
+    // sum of elements in [lo, hi]
+    ll sumInRange(int lo, int hi) {
+        if (lo > hi) return 0;
+        return sumLTE(hi) - sumLT(lo);
+    }
     
-    # Find the kth smallest element (0-indexed), O(log n)
-    def kthSmallest(self, k):
-        idx = 0
-        step = 1
-        while step * 2 <= self.n + 1:
-            step *= 2
-        while step > 0:
-            if idx + step <= self.n + 1 and self.cntTree[idx + step] <= k:
-                idx += step
-                k -= self.cntTree[idx]
-            step >>= 1
-        return idx
+    // find the kth smallest element (0-indexed), O(log n)
+    int kthSmallest(ll k) {
+        int idx = 0;
+        int step = 1;
+        while (step * 2 <= n + 1) step *= 2;
+        while (step > 0) {
+            if (idx + step <= n + 1 && cntTree[idx + step] <= k) {
+                idx += step;
+                k -= cntTree[idx];
+            }
+            step >>= 1;
+        }
+        return idx;
+    }
     
-    # Lower median (for odd: middle; for even: lower middle)
-    def median(self):
-        return self.kthSmallest((self.size - 1) // 2)
+    // lower median (for odd: middle; for even: lower middle)
+    int median() {
+        return kthSmallest((size_ - 1) / 2);
+    }
     
-    # Sum of all elements
-    def sum(self):
-        return self.totalSum
+    // sum of all elements
+    ll sum() const { return totalSum; }
     
-    # Smallest element
-    def minVal(self):
-        return self.kthSmallest(0)
+    // smallest element
+    int minVal() { return kthSmallest(0); }
     
-    # Largest element
-    def maxVal(self):
-        return self.kthSmallest(self.size - 1)
+    // largest element
+    int maxVal() { return kthSmallest(size_ - 1); }
     
-    # Total cost to make every element equal to target t
-    def costToTarget(self, t):
-        cntLTE = self.countLTE(t)
-        sumLTE = self.sumLTE(t)
-        cntGT = self.size - cntLTE
-        sumGT = self.totalSum - sumLTE
-        return t * cntLTE - sumLTE + sumGT - t * cntGT
+    // total cost to make every element equal to target t
+    ll costToTarget(ll t) {
+        ll cnt_LTE = countLTE((int)t);
+        ll sum_LTE = sumLTE((int)t);
+        ll cntGreater = size_ - cnt_LTE;
+        ll sumGreater = totalSum - sum_LTE;
+        return t * cnt_LTE - sum_LTE + sumGreater - t * cntGreater;
+    }
     
-    # Total cost to make every element equal to the median
-    def costToMedian(self):
-        return self.costToTarget(self.median())
+    // total cost to make every element equal to the median
+    ll costToMedian() {
+        return costToTarget(median());
+    }
+};
 
+class Solution {
+public:
+    long long minOperations(vector<int>& nums, int k) {
+        auto process = [&](vector<int>& numbers) -> vector<pair<ll, int>> {
+            vector<int> remainders;
+            for (int v : numbers) remainders.push_back(v % k);
+            FenwickMedianSet fw(k);
+            for (int v : remainders) fw.add(v);
 
-class Solution:
-    def minOperations(self, nums: list[int], k: int) -> int:
-        
-        def process(numbers):
-            remainders = [num % k for num in numbers]
-            fw = FenwickMedianSet(k)
-            for v in remainders:
-                fw.add(v)
-            
-            options = [] # holds (cost, value) which is the cost to set all numbers to that value
-            halfL = k // 2
-            halfR = (k - 1) // 2
+            vector<pair<ll, int>> options;
+            int halfL = k / 2;
+            int halfR = (k - 1) / 2;
 
-            for x in range(k):
-                cost = 0
+            for (int x = 0; x < k; x++) {
+                ll cost = 0;
 
-                # direct left [max(0, x-halfL) ... x - 1]
-                lo = max(0, x - halfL)
-                if lo <= x - 1:
-                    c = fw.countInRange(lo, x - 1)
-                    s = fw.sumInRange(lo, x - 1)
-                    cost += x * c - s
+                // direct left [max(0, x-halfL) ... x - 1]
+                int lo = max(0, x - halfL);
+                if (lo <= x - 1) {
+                    ll c = fw.countInRange(lo, x - 1);
+                    ll s = fw.sumInRange(lo, x - 1);
+                    cost += (ll)x * c - s;
+                }
 
-                # direct right, [x+1 ... min(k - 1, x + halfR)]
-                hi = min(k - 1, x + halfR)
-                if x + 1 <= hi:
-                    c = fw.countInRange(x + 1, hi)
-                    s = fw.sumInRange(x + 1, hi)
-                    cost += s - x * c
+                // direct right [x+1 ... min(k-1, x+halfR)]
+                int hi = min(k - 1, x + halfR);
+                if (x + 1 <= hi) {
+                    ll c = fw.countInRange(x + 1, hi);
+                    ll s = fw.sumInRange(x + 1, hi);
+                    cost += s - (ll)x * c;
+                }
 
-                # left wrap: if x - halfL < 0, elements [k + x - halfL, k-1]
-                if x - halfL < 0:
-                    c = fw.countInRange(k + x - halfL, k - 1)
-                    s = fw.sumInRange(k + x - halfL, k - 1)
-                    cost += (k + x) * c - s
+                // left wrap
+                if (x - halfL < 0) {
+                    ll c = fw.countInRange(k + x - halfL, k - 1);
+                    ll s = fw.sumInRange(k + x - halfL, k - 1);
+                    cost += (ll)(k + x) * c - s;
+                }
 
-                # right wrap: if x + halfR > k-1, elements [0, x + halfR - k]
-                if x + halfR > k - 1:
-                    c = fw.countInRange(0, x + halfR - k)
-                    s = fw.sumInRange(0, x + halfR - k)
-                    cost += (k - x) * c + s
+                // right wrap
+                if (x + halfR > k - 1) {
+                    ll c = fw.countInRange(0, x + halfR - k);
+                    ll s = fw.sumInRange(0, x + halfR - k);
+                    cost += (ll)(k - x) * c + s;
+                }
 
-                options.append((cost, x))
-            options.sort()
-            return options
-        
-        evenNums = [nums[i] for i in range(len(nums)) if i % 2 == 0]
-        oddNums = [nums[i] for i in range(len(nums)) if i % 2 == 1]
-        
-        evenOpts = process(evenNums)
-        oddOpts = process(oddNums)
+                options.push_back({cost, x});
+            }
+            sort(options.begin(), options.end());
+            return options;
+        };
 
-        if evenOpts[0][1] != oddOpts[0][1]:
-            return evenOpts[0][0] + oddOpts[0][0]
-        v1 = evenOpts[1][0] + oddOpts[0][0]
-        v2 = evenOpts[0][0] + oddOpts[1][0]
-        return min(v1, v2)
+        vector<int> evenNums, oddNums;
+        for (int i = 0; i < (int)nums.size(); i++) {
+            if (i % 2 == 0) evenNums.push_back(nums[i]);
+            else oddNums.push_back(nums[i]);
+        }
+
+        auto evenOpts = process(evenNums);
+        auto oddOpts = process(oddNums);
+
+        if (evenOpts[0].second != oddOpts[0].second) {
+            return evenOpts[0].first + oddOpts[0].first;
+        }
+        ll v1 = evenOpts[1].first + oddOpts[0].first;
+        ll v2 = evenOpts[0].first + oddOpts[1].first;
+        return min(v1, v2);
+    }
+};
