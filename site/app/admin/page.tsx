@@ -248,6 +248,7 @@ function CreateProblemForm({ onSuccess }: { onSuccess: () => void }) {
 
   const createProblem = trpc.problem.create.useMutation({
     onSuccess: () => {
+      utils.problem.listPaged.invalidate();
       utils.problem.list.invalidate();
       onSuccess();
     },
@@ -696,6 +697,7 @@ function CreateLeetcodeProblemForm({ onSuccess }: { onSuccess: () => void }) {
 
   const createProblem = trpc.problem.create.useMutation({
     onSuccess: () => {
+      utils.problem.listPaged.invalidate();
       utils.problem.list.invalidate();
       onSuccess();
     },
@@ -1150,6 +1152,7 @@ function CreateCodeforcesProblemForm({ onSuccess }: { onSuccess: () => void }) {
 
   const createProblem = trpc.problem.create.useMutation({
     onSuccess: () => {
+      utils.problem.listPaged.invalidate();
       utils.problem.list.invalidate();
       onSuccess();
     },
@@ -1610,6 +1613,7 @@ function CreateCsesProblemForm({ onSuccess }: { onSuccess: () => void }) {
 
   const createProblem = trpc.problem.create.useMutation({
     onSuccess: () => {
+      utils.problem.listPaged.invalidate();
       utils.problem.list.invalidate();
       onSuccess();
     },
@@ -2064,6 +2068,7 @@ function CreateQuantQuestionsProblemForm({ onSuccess }: { onSuccess: () => void 
 
   const createProblem = trpc.problem.create.useMutation({
     onSuccess: () => {
+      utils.problem.listPaged.invalidate();
       utils.problem.list.invalidate();
       onSuccess();
     },
@@ -2424,6 +2429,7 @@ function CreateDatabaseLeetcodeProblemForm({ onSuccess }: { onSuccess: () => voi
 
   const createProblem = trpc.problem.create.useMutation({
     onSuccess: () => {
+      utils.problem.listPaged.invalidate();
       utils.problem.list.invalidate();
       onSuccess();
     },
