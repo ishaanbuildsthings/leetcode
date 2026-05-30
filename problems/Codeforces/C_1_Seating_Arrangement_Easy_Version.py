@@ -91,7 +91,7 @@
 
 #         char c = s[i];
 
-#         // always an option: kick person i
+#         // always an option, kick person i
 #         res = self(self, i - 1, open);
 
 #         if (c == 'I') {
