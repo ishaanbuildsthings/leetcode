@@ -1,5 +1,4 @@
  
-// WITH PATH COMPRESSION
 #include <bits/stdc++.h>
 using namespace std;
 
