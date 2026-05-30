@@ -168,18 +168,18 @@ struct BitTrie {
         return countXorLTE(x, hi) - countXorLT(x, lo);
     }
 
-    // max XOR of x, but only against numbers y where (x ^ y) >= threshold. -1 if none.
-    ll maxXorGTE(ll x, ll threshold) {
-        int cnt = countXorGTE(x, threshold);
-        if (cnt == 0) return -1;
-        return kthLargestXor(x, 1);
-    }
-
     // min XOR of x, but only against numbers y where (x ^ y) >= threshold. -1 if none.
     ll minXorGTE(ll x, ll threshold) {
         int cnt = countXorGTE(x, threshold);
         if (cnt == 0) return -1;
         int rank = size() - cnt + 1; // smallest among those >= threshold
         return kthSmallestXor(x, rank);
+    }
+
+    // max XOR of x against y where (x ^ y) <= threshold. -1 if none.
+    ll maxXorLTE(ll x, ll threshold) {
+        int cnt = countXorLTE(x, threshold);
+        if (cnt == 0) return -1;
+        return kthLargestXor(x, size() - cnt + 1); // largest among those <= threshold
     }
 };

@@ -146,3 +146,15 @@ class BitTrie:
         if lo > hi:
             return 0
         return self.countXorLTE(x, hi) - self.countXorLT(x, lo)
+
+    # min XOR of x against y where (x ^ y) >= threshold. -1 if none.
+    def minXorGTE(self, x, threshold):
+        rank = self.countXorLT(x, threshold) + 1
+        return self.kthSmallestXor(x, rank)  # -1 automatically if rank > size
+
+    # max XOR of x against y where (x ^ y) <= threshold. -1 if none.
+    def maxXorLTE(self, x, threshold):
+        cnt = self.countXorLTE(x, threshold)
+        if cnt == 0:
+            return -1
+        return self.kthLargestXor(x, self.size() - cnt + 1)
