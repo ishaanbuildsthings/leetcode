@@ -190,7 +190,7 @@ def solve():
         # shorter
         ntot = tot + v
         width = i + 1
-        height = ntot // width
+        height = min(ntot // width, res[i - 1])
         res[i] = height
         tot = ntot
     
