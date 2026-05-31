@@ -189,4 +189,32 @@ struct FenwickMedianSet {
     ll costToMedian() {
         return costToTarget(median());
     }
+
+    // smallest value >= x present in the set, or -1 if none
+    int smallestValGTE(int x) {
+        ll below = countLT(x);            // elements strictly < x
+        if (below >= size_) return -1;    // everything is < x
+        return kthSmallest(below);        // first element at or above x
+    }
+
+    // smallest value > x present in the set, or -1 if none
+    int smallestValGT(int x) {
+        ll belowOrEq = countLTE(x);       // elements <= x
+        if (belowOrEq >= size_) return -1;
+        return kthSmallest(belowOrEq);    // first element strictly above x
+    }
+
+    // largest value <= x present in the set, or -1 if none
+    int largestValLTE(int x) {
+        ll c = countLTE(x);               // elements <= x
+        if (c == 0) return -1;
+        return kthSmallest(c - 1);        // the largest among them
+    }
+
+    // largest value < x present in the set, or -1 if none
+    int largestValLT(int x) {
+        ll c = countLT(x);                // elements < x
+        if (c == 0) return -1;
+        return kthSmallest(c - 1);
+    }
 };

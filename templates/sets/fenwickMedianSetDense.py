@@ -162,3 +162,31 @@ class FenwickMedianSet:
     # Total cost to make every element equal to the median
     def costToMedian(self):
         return self.costToTarget(self.median())
+
+    # Smallest value >= x present in the set, or -1 if none
+    def smallestValGTE(self, x):
+        below = self.countLT(x)          # elements strictly < x
+        if below >= self.size:
+            return -1
+        return self.kthSmallest(below)
+
+    # Smallest value > x present in the set, or -1 if none
+    def smallestValGT(self, x):
+        belowOrEq = self.countLTE(x)     # elements <= x
+        if belowOrEq >= self.size:
+            return -1
+        return self.kthSmallest(belowOrEq)
+
+    # Largest value <= x present in the set, or -1 if none
+    def largestValLTE(self, x):
+        c = self.countLTE(x)             # elements <= x
+        if c == 0:
+            return -1
+        return self.kthSmallest(c - 1)
+
+    # Largest value < x present in the set, or -1 if none
+    def largestValLT(self, x):
+        c = self.countLT(x)              # elements < x
+        if c == 0:
+            return -1
+        return self.kthSmallest(c - 1)
