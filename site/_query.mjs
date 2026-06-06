@@ -4,16 +4,14 @@ const conn = process.env.POSTGRES_URL_NON_POOLING.replace('?sslmode=require', '?
 const c = new Client({ connectionString: conn });
 await c.connect();
 
-const total = await c.query(`SELECT COUNT(*)::int AS n FROM problems`);
-const byPlatform = await c.query(`
-  SELECT pl.name AS platform, COUNT(*)::int AS n
+const r = await c.query(`
+  SELECT p.title, p.normalized_difficulty AS nd, p.platform_difficulty AS pd
   FROM problems p
   JOIN platforms pl ON pl.id = p.platform_id
-  GROUP BY pl.name
-  ORDER BY n DESC, pl.name
+  WHERE pl.slug = 'leetcode'
+  ORDER BY p.normalized_difficulty DESC NULLS LAST, p.title
+  LIMIT 10
 `);
 
-console.log('TOTAL:', total.rows[0].n);
-console.log('BY_PLATFORM:', JSON.stringify(byPlatform.rows));
-
+console.log(JSON.stringify(r.rows));
 await c.end();
