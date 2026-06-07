@@ -1,3 +1,4 @@
+from math import inf
 class MaxSegTree:
     def __init__(self, arr):
         self.arr = list(arr)
@@ -6,7 +7,7 @@ class MaxSegTree:
         while size < self.n:
             size <<= 1
         self.size = size
-        tree = [0] * (2 * size)
+        tree = [-inf] * (2 * size)
         base = size
         for i, v in enumerate(arr):
             tree[base + i] = v
@@ -18,7 +19,7 @@ class MaxSegTree:
         tree = self.tree
         l += self.size
         r += self.size
-        ans = 0
+        ans = -inf
         while l < r:
             if l & 1:
                 if tree[l] > ans: ans = tree[l]
@@ -30,6 +31,7 @@ class MaxSegTree:
             r >>= 1
         return ans
 
+    # 0 if l>r
     def queryMax(self, l, r):
         if l > r: return 0
         return self._queryHalfOpen(l, r + 1)
