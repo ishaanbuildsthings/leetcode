@@ -1,5 +1,5 @@
 -- Write your PostgreSQL query statement below
-WITH bus AS (
+WITH bus AS MATERIALIZED (
 SELECT
 b.bus_id,
 b.arrival_time,
