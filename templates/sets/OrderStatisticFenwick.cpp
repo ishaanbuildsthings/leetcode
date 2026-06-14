@@ -219,4 +219,12 @@ struct OrderStatisticFenwick {
         totalCount = 0;
         totalSum = 0;
     }
+
+    // Sum of the largest k elements (counting duplicates). k can be 0...totalCount.
+    // O(log N)
+    long long sumLargest(long long k) const {
+        if (k <= 0) return 0;
+        if (k >= totalCount) return totalSum;
+        return totalSum - sumSmallest(totalCount - k);
+    }
 };
