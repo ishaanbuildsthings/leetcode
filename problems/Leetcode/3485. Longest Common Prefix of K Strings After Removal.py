@@ -1,67 +1,52 @@
-class TrieNode:
-    def __init__(self):
-        self.children = {}
-        self.count = 0
-        self.maxDepth = 0
-        self.parent = None
-
 class Trie:
-    def __init__(self, k):
-        self.root = TrieNode()
-        self.k = k
+    def __init__(self, NODES, K):
+        NODES += 1 # include root
+        # children[nodeIdx][charIdx] -> next id if it exists
+        self.children = [
+            defaultdict(dict) for _ in range(NODES)
+        ]
+        self.K = K
+        self.passed = [0] * NODES
+        self.nextId = 1
+        self.goodDepths = SortedList() # whenever a depth becomes good we add that depth to this container, also holding 0-indexed in here
+    
+    def insert(self, w):
+        curr = 0
+        for i, c in enumerate(w):
+            self.passed[curr] += 1
+            c_id = ord(c) - ord('a')
+            if self.passed[curr] == self.K:
+                self.goodDepths.add(i)
+            if c_id not in self.children[curr]:
+                self.children[curr][c_id] = self.nextId
+                self.nextId += 1
+            curr = self.children[curr][c_id]
+        self.passed[curr] += 1
+        if self.passed[curr] == self.K:
+            self.goodDepths.add(len(w))
+    
+    def remove(self, w):
+        curr = 0
+        for i, c in enumerate(w):
+            self.passed[curr] -= 1
+            if self.passed[curr] == self.K - 1:
+                self.goodDepths.remove(i)
+            c_id = ord(c) - ord('a')
+            curr = self.children[curr][c_id]
+        self.passed[curr] -= 1
+        if self.passed[curr] == self.K - 1:
+            self.goodDepths.remove(len(w))
+    
 
-    def insert(self, word):
-        self.root.count += 1
-        node = self.root
-        for char in word:
-            if char not in node.children:
-                newChild = TrieNode()
-                newChild.parent = node
-                node.children[char] = newChild
-            node = node.children[char]
-            node.count += 1
-        self._update(node)
-
-    def remove(self, word):
-        self.root.count -= 1
-        node = self.root
-        for char in word:
-            if char not in node.children:
-                return
-            node = node.children[char]
-            node.count -= 1
-        self._update(node)
-
-    def _update(self, node):
-        while node is not None:
-            oldMax = node.maxDepth
-            if node.count < self.k:
-                node.maxDepth = 0
-            else:
-                bestChildDepth = 0
-                for child in node.children.values():
-                    if child.count >= self.k and child.maxDepth > bestChildDepth:
-                        bestChildDepth = child.maxDepth
-                node.maxDepth = 1 + bestChildDepth
-            # if node.maxDepth == oldMax:
-            #     break
-            node = node.parent
-
-    def getRootMaxDepth(self):
-        return self.root.maxDepth
-
-
-            
 class Solution:
     def longestCommonPrefix(self, words: List[str], k: int) -> List[int]:
-        t = Trie(k)
+        INSERTS = sum(len(w) for w in words)
+        t = Trie(INSERTS, k)
         for w in words:
             t.insert(w)
-            
-        res = [0] * len(words)
-        for i in range(len(words)):
-            t.remove(words[i])
-            res[i] = max(t.getRootMaxDepth() - 1, 0)
-            t.insert(words[i])
+        res = []
+        for i, w in enumerate(words):
+            t.remove(w)
+            res.append(t.goodDepths[-1] if t.goodDepths else 0)
+            t.insert(w)
         return res
-        
