@@ -22,7 +22,7 @@ var MyLinkedList = function () {
 DONE
  * @param {number} index
  * @return {number}
- */
+*/
 // normal indexing
 MyLinkedList.prototype.get = function (index) {
   let tail = this.dummy.next;
