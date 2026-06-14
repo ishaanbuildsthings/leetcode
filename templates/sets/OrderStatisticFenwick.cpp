@@ -211,4 +211,12 @@ struct OrderStatisticFenwick {
         if (below >= totalCount) return -1;
         return kth(below + 1);
     }
+
+    // helps for rebuilding things
+    void clear() {
+        fill(bitCnt.begin(), bitCnt.end() ,0);
+        fill(bitSum.begin(), bitSum.end(), 0);
+        totalCount = 0;
+        totalSum = 0;
+    }
 };
