@@ -1,3 +1,19 @@
+# https://leetcode.com/problems/reach-a-number/description/
+# Difficulty: Medium
+# Tags: Math
+
+# Problem
+# You are standing at position 0 on an infinite number line. There is a destination at position target.
+
+# You can make some number of moves numMoves so that:
+
+# On each move, you can either go left or right.
+# During the ith move (starting from i == 1 to i == numMoves), you take i steps in the chosen direction.
+# Given the integer target, return the minimum number of moves required (i.e., the minimum numMoves) to reach the destination.
+
+# Solution, O(sqrt(target)) time, O(1) space
+# Sum triangle numbers until we >= the target. Then, we can determine if we need to flip 0, 1, or 2 directions to exactly hit it.
+
 class Solution:
     def reachNumber(self, target: int) -> int:
         runningSum = 0
