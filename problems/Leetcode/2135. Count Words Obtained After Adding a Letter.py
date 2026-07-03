@@ -15,11 +15,22 @@ class Solution:
 
         for w in targetWords:
             mask = wToMask(w)
-            for bit in range(26):
-                if (1 << bit) & mask:
-                    nmask = mask ^ (1 << bit)
-                    if nmask in masks:
-                        res += 1
-                        break
+            m = mask
+            # Kernighan's trick
+            while m:
+                lsb = m & (-m)
+                nmask = mask ^ lsb
+                if nmask in masks:
+                    res += 1
+                    break
+                m ^= lsb
+                
+            # 26n style
+            # for bit in range(26):
+            #     if (1 << bit) & mask:
+            #         nmask = mask ^ (1 << bit)
+            #         if nmask in masks:
+            #             res += 1
+            #             break
         
         return res
