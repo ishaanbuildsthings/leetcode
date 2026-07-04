@@ -1,6 +1,13 @@
+# root = the root node (usually 0 or 1), separate from if the nodes are 0...n-1 or 1...n
+# edges = [[a, b], [c, d], ...]
+# vals = list of raw node values, if zeroIndexed=False, then vals[0] can be any dummy value
+# base = (rawVal) -> mapped val
+# merge(nodeVal1, nodeVal2) -> nodeVal3
+# zeroIndexed=True means nodes are from 0...n-1, otherwise 1...n
 class Lift:
-    def __init__(self, root, edges, vals, base, merge):
-        self.n = len(edges) + 1
+    # O(n log n) build time and space
+    def __init__(self, root, edges, vals, base, merge, zeroIndexed=True):
+        self.n = len(edges) + (1 if zeroIndexed else 2)
         self.LOG = max(1, self.n.bit_length())
         self.vals = vals
         self.base = base
@@ -40,12 +47,16 @@ class Lift:
                 if child != parent:
                     stack.append((child, node, False))
 
-    def kthAncestor(self, a, kth):
+    # kth steps above `node`
+    # always returns root if k steps shoots past the root
+    # O(log N)
+    def kthAncestor(self, node, kth):
         for k in range(self.LOG):
             if (kth >> k) & 1:
-                a = self.up[k][a]
-        return a
+                node = self.up[k][node]
+        return node
 
+    # O(log N)
     def lca(self, a, b):
         if self.depths[a] < self.depths[b]:
             a, b = b, a
@@ -61,13 +72,20 @@ class Lift:
                 b = self.up[k][b]
         return self.up[0][a]
 
+    # unweighted path distance from A<>B
+    # O(log N)
     def pathDist(self, a, b):
         ab = self.lca(a, b)
         return self.depths[a] + self.depths[b] - 2 * self.depths[ab]
 
-    def geodesic(self, a, b, c):
+    # the median node, which is the only node on all three paths: A<>B, B<>C, A<>C
+    # O(log N)
+    def median(self, a, b, c):
         return self.lca(a, b) ^ self.lca(a, c) ^ self.lca(b, c)
 
+    # k-th node on the A->B path, 1-indexed
+    # -1 if OOB
+    # O(log N)
     def kthOnPath(self, a, b, kth):
         ab = self.lca(a, b)
         distA = self.depths[a] - self.depths[ab]
@@ -79,27 +97,34 @@ class Lift:
             return self.kthAncestor(a, kth - 1)
         return self.kthAncestor(b, distB - (kth - distA - 1))
 
-    def distToPath(self, a, b, x):
-        return self.pathDist(self.geodesic(a, b, x), x)
+    # how many edges to cross to get from `node` onto any node on the A<>B path
+    # O(log N)
+    def distToPath(self, a, b, node):
+        return self.pathDist(self.median(a, b, node), node)
 
-    def inPath(self, a, b, x):
-        return self.geodesic(a, b, x) == x
+    # returns a bool if `node` is on the path A<>B
+    # O(log N)
+    def inPath(self, a, b, node):
+        return self.median(a, b, node) == node
 
-    def liftQuery(self, v, cnt):
-        acc = self.base(self.vals[v])
-        rem = cnt - 1
-        for k in range(self.LOG - 1, -1, -1):
-            if rem >= (1 << k):
-                d = self.upData[k][v]
+    # gives us the aggregated nodeValue for the upwards path k nodes long, so k=1 means just node
+    # O(log N)
+    def liftQuery(self, node, k):
+        acc = self.base(self.vals[node])
+        rem = k - 1
+        for b in range(self.LOG - 1, -1, -1):
+            if rem >= (1 << b):
+                d = self.upData[b][node]
                 if d is not None:
                     acc = self.merge(acc, d)
-                v = self.up[k][v]
-                rem -= (1 << k)
+                node = self.up[b][node]
+                rem -= (1 << b)
         return acc
 
-    def pathQuery(self, a, b, l=None):
-        if l is None:
-            l = self.lca(a, b)
+    # gives us the aggregated nodeValue for the A<>B path
+    # O(log N)
+    def pathQuery(self, a, b):
+        l = self.lca(a, b)
         da = self.depths[a] - self.depths[l]
         db = self.depths[b] - self.depths[l]
         res = self.base(self.vals[l])
@@ -108,3 +133,8 @@ class Lift:
         if db > 0:
             res = self.merge(res, self.liftQuery(b, db))
         return res
+
+    # lca of a and b if the tree were rooted at r instead of the build root
+    # O(log N)
+    def lcaUnderR(self, r, a, b):
+        return self.median(a, b, r)

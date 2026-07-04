@@ -1,34 +1,34 @@
 #include <bits/stdc++.h>
 using namespace std;
+ 
+// struct EdgeData {
+//     long long sum;
+//     long long mx;
+// };
+// vector<pair<int,int>> edges = {{0,1},{0,2},{1,3}};
 
-// EXAMPLE
-// struct NodeData {
-//     int sum;
-//     bitset<2001> mask;
+// vals[node] stores the raw edge data above that node
+// vector<long long> vals = {0, 5, 7, 3};  // vals[0]=dummy(root); edge(1->0)=5, edge(2->0)=7, edge(3->1)=3
+// auto base = [&](long long w) -> EdgeData {
+//     return {w, w};
 // };
-// auto base = [&](int v) -> NodeData {
-//     NodeData nd;
-//     nd.sum = v;
-//     nd.mask.set(v + 1000);
-//     return nd;
+// auto merge = [&](EdgeData a, EdgeData b) -> EdgeData {
+//     return {a.sum + b.sum, max(a.mx, b.mx)};
 // };
-// auto merge = [&](NodeData n1, NodeData n2) -> NodeData {
-//     NodeData agg;
-//     agg.sum = n1.sum + n2.sum;
-//     agg.mask = n1.mask | n2.mask;
-//     return agg;
-// };
-// auto lifter  = makeLift(0, edges, vals, base, merge);          // 0-indexed nodes
-// auto lifter1 = makeLift(1, edges, vals, base, merge, false);   // 1-indexed nodes
-
+// auto lifter  = makeLiftEdge(0, edges, vals, base, merge);          // 0-indexed nodes
+// auto lifter1 = makeLiftEdge(1, edges, vals, base, merge, false);   // 1-indexed nodes
+// lifter.pathQuery(3, 2)  ->  optional<EdgeData>{ sum=15, mx=7 }     // edges 3 + 5 + 7
+ 
 // root = the root node (usually 0 or 1), separate from if the nodes are 0...n-1 or 1...n
 // edges = {{a, b}, {c, d}, ...}
-// vals = list of raw node values, if zeroIndexed=false, then vals[0] can be any dummy value
-// base = (rawVal) -> mapped val
-// merge(nodeVal1, nodeVal2) -> nodeVal3
+// vals = raw data for the edge ABOVE each node (the edge from that node to its parent)
+// vals[root] is a dummy and is never read
+// if zeroIndexed=false then vals[0] is also a dummy (padding; no node has id 0)
+// base = (rawEdge) -> mapped val
+// merge(edgeVal1, edgeVal2) -> edgeVal3
 // zeroIndexed=true means nodes are from 0...n-1, otherwise 1...n
 template<typename T, typename V, typename BaseFn, typename MergeFn>
-struct Lift {
+struct LiftEdge {
     int n, LOG;
     vector<int> dep;
     vector<vector<int>> up;
@@ -43,9 +43,9 @@ struct Lift {
         return mergeFn(*a, *b);
     }
 
-    // build lifting + node-monoid tables.  O(n log n) time & space
-    Lift(int root, vector<pair<int,int>>& edges, vector<V>& vals,
-         BaseFn baseFn, MergeFn mergeFn, bool zeroIndexed = true)
+    // O(n log n) build time and space
+    LiftEdge(int root, vector<pair<int,int>>& edges, vector<V>& vals,
+             BaseFn baseFn, MergeFn mergeFn, bool zeroIndexed = true)
         : baseFn(baseFn), mergeFn(mergeFn), vals(vals) {
         n = edges.size() + (zeroIndexed ? 1 : 2);
         LOG = max(1, __lg(n) + 1);
@@ -69,7 +69,7 @@ struct Lift {
                 vis[u] = true;
                 dep[u] = dep[v] + 1;
                 up[0][u] = v;
-                upData[0][u] = baseFn(vals[v]);
+                upData[0][u] = baseFn(vals[u]);   // edge above u
                 q.push(u);
             }
         }
@@ -79,8 +79,6 @@ struct Lift {
                 upData[k][v] = mergeOpt(upData[k-1][v], upData[k-1][up[k-1][v]]);
             }
     }
-
-    T applyBase(int v) { return baseFn(vals[v]); }
 
     // kth steps above `node`
     // always returns root if k steps shoots past the root
@@ -136,29 +134,28 @@ struct Lift {
         return median(a, b, node) == node;
     }
 
-    // gives us the aggregated nodeValue for the upwards path k nodes long, so k=1 means just node
+    // aggregated edgeValue for the k edges going up from `node` (edge above node first), nullopt if k==0
     // O(log N)
-    T liftQuery(int node, int k) {
-        T acc = applyBase(node);
-        int rem = k - 1;
+    optional<T> liftQuery(int node, int k) {
+        optional<T> acc = nullopt;
+        int rem = k;
         for (int i = LOG - 1; i >= 0; i--)
             if (rem >= (1 << i)) {
-                if (upData[i][node]) acc = mergeFn(acc, *upData[i][node]);
+                acc = mergeOpt(acc, upData[i][node]);
                 node = up[i][node];
                 rem -= (1 << i);
             }
         return acc;
     }
 
-    // gives us the aggregated nodeValue for the A<>B path
+    // aggregated edgeValue for the A<>B path (edge above the LCA is NOT on the path); nullopt if A==B
     // O(log N)
-    T pathQuery(int a, int b) {
+    optional<T> pathQuery(int a, int b) {
         int l = lca(a, b);
         int da = dep[a] - dep[l], db = dep[b] - dep[l];
-        T res = applyBase(l);
-        if (da > 0) res = mergeFn(liftQuery(a, da), res);
-        if (db > 0) res = mergeFn(res, liftQuery(b, db));
-        return res;
+        optional<T> left  = da > 0 ? liftQuery(a, da) : nullopt;
+        optional<T> right = db > 0 ? liftQuery(b, db) : nullopt;
+        return mergeOpt(left, right);
     }
 
     // lca of a and b if the tree were rooted at r instead of the build root
@@ -169,8 +166,8 @@ struct Lift {
 };
 
 template<typename V, typename BaseFn, typename MergeFn>
-auto makeLift(int root, vector<pair<int,int>>& edges, vector<V>& vals,
-              BaseFn base, MergeFn merge, bool zeroIndexed = true) {
+auto makeLiftEdge(int root, vector<pair<int,int>>& edges, vector<V>& vals,
+                  BaseFn base, MergeFn merge, bool zeroIndexed = true) {
     using T = invoke_result_t<BaseFn, V>;
-    return Lift<T, V, BaseFn, MergeFn>(root, edges, vals, base, merge, zeroIndexed);
+    return LiftEdge<T, V, BaseFn, MergeFn>(root, edges, vals, base, merge, zeroIndexed);
 }
