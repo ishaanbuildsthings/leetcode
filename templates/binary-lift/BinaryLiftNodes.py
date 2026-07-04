@@ -1,3 +1,4 @@
+# TEMPLATE BY ISHAANBUILDSTHINGS
 # root = the root node (usually 0 or 1), separate from if the nodes are 0...n-1 or 1...n
 # edges = [[a, b], [c, d], ...]
 # vals = list of raw node values, if zeroIndexed=False, then vals[0] can be any dummy value
@@ -138,3 +139,28 @@ class Lift:
     # O(log N)
     def lcaUnderR(self, r, a, b):
         return self.median(a, b, r)
+
+
+    # intersection of path a<>b and path x<>y.
+    # returns (p, q) endpoints of the shared subpath (p==q if single node), or None if disjoint.
+    # O(log N)
+    def pathIntersection(self, a, b, x, y):
+        # candidate endpoints: project each path's "corners" onto the other path
+        cands = [
+            self.median(a, b, x), self.median(a, b, y),
+            self.median(x, y, a), self.median(x, y, b),
+        ]
+        # keep only nodes lying on BOTH paths
+        onBoth = [c for c in cands if self.inPath(a, b, c) and self.inPath(x, y, c)]
+        if not onBoth:
+            return None
+        # the intersection is a subpath; its endpoints are the two farthest-apart survivors
+        p = q = onBoth[0]
+        best = -1
+        for i in range(len(onBoth)):
+            for j in range(i, len(onBoth)):
+                d = self.pathDist(onBoth[i], onBoth[j])
+                if d > best:
+                    best = d
+                    p, q = onBoth[i], onBoth[j]
+        return (p, q)

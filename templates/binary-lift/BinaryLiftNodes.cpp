@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+// TEMPLATE BY ISHAANBUILDSTHINGS
 // EXAMPLE
 // struct NodeData {
 //     int sum;
@@ -165,6 +166,27 @@ struct Lift {
     // O(log N)
     int lcaUnderR(int r, int a, int b) {
         return median(a, b, r);
+    }
+
+    // intersection of path a<>b and path x<>y (endpoint order doesn't matter).
+    // returns {p, q}, the endpoints of the shared subpath (p == q if a single node),
+    // or {-1, -1} if the two paths are disjoint.
+    // O(log N)
+    pair<int,int> pathIntersection(int a, int b, int x, int y) {
+        int cand[4] = { median(a, b, x), median(a, b, y),
+                        median(x, y, a), median(x, y, b) };
+        int onBoth[4], m = 0;
+        for (int i = 0; i < 4; i++)
+            if (inPath(a, b, cand[i]) && inPath(x, y, cand[i]))
+                onBoth[m++] = cand[i];
+        if (m == 0) return {-1, -1};
+        int p = onBoth[0], q = onBoth[0], best = -1;
+        for (int i = 0; i < m; i++)
+            for (int j = i; j < m; j++) {
+                int d = pathDist(onBoth[i], onBoth[j]);
+                if (d > best) { best = d; p = onBoth[i]; q = onBoth[j]; }
+            }
+        return {p, q};
     }
 };
 

@@ -1,3 +1,4 @@
+# TEMPLATE BY ISHAANBUILDSTHINGS
 # root = the root node (usually 0 or 1), separate from if the nodes are 0...n-1 or 1...n
 # edges = [[a, b], [c, d], ...]
 # vals = raw data for the edge ABOVE each node (the edge from that node to its parent)
@@ -141,3 +142,26 @@ class LiftEdge:
     # O(log N)
     def lcaUnderR(self, r, a, b):
         return self.median(a, b, r)
+
+    # intersection of path a<>b and path x<>y (endpoint order doesn't matter).
+    # returns (p, q), the endpoints of the shared subpath (p == q if a single node),
+    # or None if the two paths are disjoint.
+    # O(log N)
+    def pathIntersection(self, a, b, x, y):
+        cands = [
+            self.median(a, b, x), self.median(a, b, y),
+            self.median(x, y, a), self.median(x, y, b),
+        ]
+        onBoth = [c for c in cands
+                  if self.inPath(a, b, c) and self.inPath(x, y, c)]
+        if not onBoth:
+            return None
+        p = q = onBoth[0]
+        best = -1
+        for i in range(len(onBoth)):
+            for j in range(i, len(onBoth)):
+                d = self.pathDist(onBoth[i], onBoth[j])
+                if d > best:
+                    best = d
+                    p, q = onBoth[i], onBoth[j]
+        return (p, q)
