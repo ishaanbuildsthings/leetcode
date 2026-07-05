@@ -13,20 +13,20 @@ using namespace std;
 //     nd.mask.set(v + 1000);
 //     return nd;
 // };
-// auto merge = [&](NodeData n1, NodeData n2) -> NodeData {
+// auto mergeFn = [&](NodeData n1, NodeData n2) -> NodeData {
 //     NodeData agg;
 //     agg.sum = n1.sum + n2.sum;
 //     agg.mask = n1.mask | n2.mask;
 //     return agg;
 // };
-// auto lifter  = makeLift(0, edges, vals, base, merge);          // 0-indexed nodes
-// auto lifter1 = makeLift(1, edges, vals, base, merge, false);   // 1-indexed nodes
+// auto lifter  = makeLift(0, edges, vals, base, mergeFn, true);          // 0-indexed nodes
+// auto lifter1 = makeLift(1, edges, vals, base, mergeFn, false);   // 1-indexed nodes
 
 // root = the root node (usually 0 or 1), separate from if the nodes are 0...n-1 or 1...n
 // edges = {{a, b}, {c, d}, ...}
 // vals = list of raw node values, if zeroIndexed=false, then vals[0] can be any dummy value
 // base = (rawVal) -> mapped val
-// merge(nodeVal1, nodeVal2) -> nodeVal3
+// mergeFn(nodeVal1, nodeVal2) -> nodeVal3
 // zeroIndexed=true means nodes are from 0...n-1, otherwise 1...n
 template<typename T, typename V, typename BaseFn, typename MergeFn>
 struct Lift {
@@ -46,7 +46,7 @@ struct Lift {
 
     // build lifting + node-monoid tables.  O(n log n) time & space
     Lift(int root, vector<pair<int,int>>& edges, vector<V>& vals,
-         BaseFn baseFn, MergeFn mergeFn, bool zeroIndexed = true)
+         BaseFn baseFn, MergeFn mergeFn, bool zeroIndexed)
         : baseFn(baseFn), mergeFn(mergeFn), vals(vals) {
         n = edges.size() + (zeroIndexed ? 1 : 2);
         LOG = max(1, __lg(n) + 1);

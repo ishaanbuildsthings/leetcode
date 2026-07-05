@@ -13,11 +13,11 @@ using namespace std;
 // auto base = [&](long long w) -> EdgeData {
 //     return {w, w};
 // };
-// auto merge = [&](EdgeData a, EdgeData b) -> EdgeData {
+// auto mergeFn = [&](EdgeData a, EdgeData b) -> EdgeData {
 //     return {a.sum + b.sum, max(a.mx, b.mx)};
 // };
-// auto lifter  = makeLiftEdge(0, edges, vals, base, merge);          // 0-indexed nodes
-// auto lifter1 = makeLiftEdge(1, edges, vals, base, merge, false);   // 1-indexed nodes
+// auto lifter  = makeLiftEdge(0, edges, vals, base, mergeFn, true);          // 0-indexed nodes
+// auto lifter1 = makeLiftEdge(1, edges, vals, base, mergeFn, false);   // 1-indexed nodes
 // lifter.pathQuery(3, 2)  ->  optional<EdgeData>{ sum=15, mx=7 }     // edges 3 + 5 + 7
  
 // root = the root node (usually 0 or 1), separate from if the nodes are 0...n-1 or 1...n
@@ -26,7 +26,7 @@ using namespace std;
 // vals[root] is a dummy and is never read
 // if zeroIndexed=false then vals[0] is also a dummy (padding; no node has id 0)
 // base = (rawEdge) -> mapped val
-// merge(edgeVal1, edgeVal2) -> edgeVal3
+// mergeFn(edgeVal1, edgeVal2) -> edgeVal3
 // zeroIndexed=true means nodes are from 0...n-1, otherwise 1...n
 template<typename T, typename V, typename BaseFn, typename MergeFn>
 struct LiftEdge {
@@ -46,7 +46,7 @@ struct LiftEdge {
 
     // O(n log n) build time and space
     LiftEdge(int root, vector<pair<int,int>>& edges, vector<V>& vals,
-             BaseFn baseFn, MergeFn mergeFn, bool zeroIndexed = true)
+             BaseFn baseFn, MergeFn mergeFn, bool zeroIndexed)
         : baseFn(baseFn), mergeFn(mergeFn), vals(vals) {
         n = edges.size() + (zeroIndexed ? 1 : 2);
         LOG = max(1, __lg(n) + 1);

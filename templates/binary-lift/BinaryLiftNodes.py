@@ -7,7 +7,7 @@
 # zeroIndexed=True means nodes are from 0...n-1, otherwise 1...n
 class Lift:
     # O(n log n) build time and space
-    def __init__(self, root, edges, vals, base, merge, zeroIndexed=True):
+    def __init__(self, root, edges, vals, base, merge, zeroIndexed):
         self.n = len(edges) + (1 if zeroIndexed else 2)
         self.LOG = max(1, self.n.bit_length())
         self.vals = vals
