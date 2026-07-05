@@ -201,7 +201,7 @@ auto mergeFn = [](Node L, Node R) -> Node {
     ll npfMin = min(L.pfMin, L.tot + R.pfMin);
     ll nsuffMin = min(R.suffMin, R.tot + L.suffMin);
 
-    ll nsubMax = max({L.subMax, R.subMax, L.suffMax + R.pfMax});
+ll nsubMax = max({L.subMax, R.subMax, L.suffMax + R.pfMax});
     ll nsubMin = min({L.subMin, R.subMin, L.suffMin + R.pfMin});
 
     return Node{npfMax, nsuffMax, nsubMax, npfMin, nsuffMin, nsubMin, ntot};
