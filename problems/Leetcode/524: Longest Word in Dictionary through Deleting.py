@@ -18,7 +18,7 @@ class Solution:
                 if j == len(small):
                     return True
                 i += 1
-            return False
+        return False
 
         res = ''
         for sub in dictionary:
