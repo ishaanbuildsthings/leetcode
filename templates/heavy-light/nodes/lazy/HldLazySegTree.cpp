@@ -1,57 +1,79 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
-// 0-INDEXED, ALL INTERFACES OPERATE ON 0-indexed data, WORKS WITH ANY DATA TYPE
-// N = number of nodes
-// edges = vector of PAIRS like {a, b}, {c, d}, ...
-// vals[node] -> raw value, like a letter or number
-// base(rawVal) -> stored data (e.g. v -> {v, v} to track min and max)
-// combine(data1, data2) -> aggregated data
-// applyLazy(lazy, data, segLen) -> data after applying lazy over segLen positions
-//   segLen is # of underlying positions covered by data, I just exposed it here
-// composeLazies(oldLazy, newLazy) -> combined lazy
 
-// pointSet(node, rawVal)
-// pointApply(node, lazyVal)
-// pathApply(a, b, lazyVal) - applies lazyVal to all nodes on path a..b
-// subtreeApply(node, lazyVal) - applies lazyVal to entire subtree rooted at node
-// pathQuery(a, b) -> aggregated data over path
-// subtreeQuery(node) -> aggregated data over subtree
-// we don't need a baseLazy() or anything like that, because initially all lazy tags are nullopt, and if we apply a lazy to that it just uses the new lazy entirely
+// EXAMPLE
+// using RawVal = ll; // the raw node value input, could also be a struct
 
-// using RawT = long long;       // the input value at each node
-// using NodeData = long long;   // what we store in seg tree (just the max)
-// or can do struct NodeData {...};
-// using LazyTag = long long;    // pending +d to add to every position
-//
-// auto base = [](RawT v) -> NodeData {
-//     return v;
-// };
-// auto combine = [](NodeData a, NodeData b) -> NodeData {
-//     return max(a, b);
+// // Accumulated node data
+// struct NodeData {
+//     ll mx;
 // };
 
-// we expose segLen in the class so it's used in the apply lazy
-// auto applyLazy = [](LazyTag lz, NodeData d, int segLen) -> NodeData {
-//     // adding lz to every element shifts the max by lz (segLen unused for max)
-//     return d + lz;
+// // Maps the raw node value to our NodeData
+// auto base = [](RawVal v) -> NodeData {
+//     return NodeData{v};
 // };
 
-// auto composeLazies = [](LazyTag oldL, LazyTag newL) -> LazyTag {
-//     // pending +oldL then +newL collapses to +(oldL+newL)
-//     return oldL + newL;
+// // How to aggregate two NodeData nodes
+// auto mergeFn = [](NodeData A, NodeData B) -> NodeData {
+//     return NodeData{max(A.mx, B.mx)};
 // };
-//
-// LazyHLD<RawT, NodeData, LazyTag> hld(n, edges, arr, base, combine, applyLazy, composeLazies);
-// hld.pathApply(u, v, 5);          // add 5 to every node on path u..v
-// NodeData mx = hld.pathQuery(u, v);  // max along path
+
+// // The lazy data each node stores, could be a `using` too
+// struct LazyTag {
+//     ll pendingAdd;
+// };
+
+// // How to apply a lazy update to a NodeData
+// auto applyLazy = [](LazyTag lazy, NodeData nodeData) -> NodeData {
+//     return NodeData{nodeData.mx + lazy.pendingAdd};
+// };
+
+// // How to combine two lazies
+// auto composeLazies = [](LazyTag a, LazyTag b) -> LazyTag {
+//     return LazyTag{a.pendingAdd + b.pendingAdd};
+// };
+
+
+// TO CREATE THE HLD (O(n) build time)
+// RawVal, NodeData, LazyTag are the types
+// edges should be vector<pair<int,int>> with node labels (either 0...n-1, or 1...n)
+// vals[node] is the value AT that node, if the nodes are 1...n then vals[0] can be whatever dummy value
+// 1 at the end is the root, it can be any value in the tree, separate from if the nodes are 0...n-1 or 1...n
+// last param is `zeroIndexed`, so false means the nodes are 1...n
+// HldLazySegTree<RawVal, NodeData, LazyTag> hld(edges, vals, base, mergeFn, applyLazy, composeLazies, 1, false);
+
+
+// METHODS
+
+// O(logN)
+// pointSet(nodeLabel, RawVal), overwrites the value at `nodeLabel` with this new raw value
+
+// O(logN)
+// pointApply(nodeLabel, LazyTag), directly apply a lazy update to `nodeLabel`
+
+// O(log^2 N)
+// pathApply(a, b, LazyTag), applies this lazy update to the entire path a...b
+
+// O(log^2 N)
+// pathQuery(a, b) -> NodeData, gives us the aggregated data on the path a...b, includes both endpoints
+
+// O(log N)
+// subtreeApply(nodeLabel, LazyTag), applies this update to all nodes in the subtree of nodeLabel, includes nodeLabel itself
+
+// O(log N)
+// subtreeQuery(nodeLabel) -> NodeData, aggregated data of all nodes in the subtree, includes nodeLabel itself
+
 
 template <typename RawT, typename StoredT, typename LazyT>
-struct LazyHLD {
-    int n;
+struct HldLazySegTree {
+    int n, root, arrSize;
+    bool zeroIndexed;
     function<StoredT(RawT)> base;
     function<StoredT(StoredT, StoredT)> combine;
-    function<StoredT(LazyT, StoredT, int)> applyLazy;
+    function<StoredT(LazyT, StoredT)> applyLazy;
     function<LazyT(LazyT, LazyT)> composeLazies;
     vector<vector<int>> adj;
     vector<int> par, depth, sz, heavy, head, pos;
@@ -59,17 +81,22 @@ struct LazyHLD {
     vector<optional<StoredT>> tree;
     vector<optional<LazyT>> lazy;
 
-    LazyHLD(int n,
+    HldLazySegTree(
         const vector<pair<int,int>>& edges,
         const vector<RawT>& vals,
         function<StoredT(RawT)> base,
         function<StoredT(StoredT, StoredT)> combine,
-        function<StoredT(LazyT, StoredT, int)> applyLazy,
-        function<LazyT(LazyT, LazyT)> composeLazies)
-        : n(n), base(base), combine(combine), applyLazy(applyLazy), composeLazies(composeLazies),
-          adj(n), par(n, -1), depth(n, 0), sz(n, 1),
-          heavy(n, -1), head(n, 0), pos(n, 0)
+        function<StoredT(LazyT, StoredT)> applyLazy,
+        function<LazyT(LazyT, LazyT)> composeLazies,
+        int root,
+        bool zeroIndexed)
+        : n((int)edges.size() + 1), root(root),
+          arrSize(zeroIndexed ? (int)edges.size() + 1 : (int)edges.size() + 2), zeroIndexed(zeroIndexed),
+          base(base), combine(combine), applyLazy(applyLazy), composeLazies(composeLazies),
+          adj(arrSize), par(arrSize, -1), depth(arrSize, 0), sz(arrSize, 1),
+          heavy(arrSize, -1), head(arrSize, 0), pos(arrSize, 0)
     {
+        assert(zeroIndexed ? (root >= 0 && root < n) : (root >= 1 && root <= n));
         for (auto& [u, v] : edges) {
             adj[u].push_back(v);
             adj[v].push_back(u);
@@ -81,7 +108,9 @@ struct LazyHLD {
         LOG = max(1, __lg(segN));
         tree.assign(2 * segN, nullopt);
         lazy.assign(segN, nullopt);
-        for (int i = 0; i < n; i++) {
+        int lo = zeroIndexed ? 0 : 1;
+        int hi = zeroIndexed ? n : n + 1;
+        for (int i = lo; i < hi; i++) {
             tree[segN + pos[i]] = base(vals[i]);
         }
         for (int i = segN - 1; i >= 1; i--) {
@@ -99,7 +128,7 @@ struct LazyHLD {
         vector<int> order;
         order.reserve(n);
         vector<tuple<int,int,int>> stack;
-        stack.push_back({0, -1, 0});
+        stack.push_back({root, -1, 0});
         while (!stack.empty()) {
             auto [node, parent, d] = stack.back();
             stack.pop_back();
@@ -127,7 +156,7 @@ struct LazyHLD {
     void _dfsDecompose() {
         int timer = 0;
         vector<pair<int,int>> stack;
-        stack.push_back({0, 0});
+        stack.push_back({root, root});
         while (!stack.empty()) {
             auto [node, h] = stack.back();
             stack.pop_back();
@@ -143,12 +172,9 @@ struct LazyHLD {
         }
     }
 
-    int _segLenAt(int p) {
-        return segN >> (__lg(p));
-    }
-
-    void _apply(int p, const LazyT& lazyVal, int segLen) {
-        tree[p] = applyLazy(lazyVal, *tree[p], segLen);
+    void _apply(int p, const LazyT& lazyVal) {
+        if (!tree[p].has_value()) return;
+        tree[p] = applyLazy(lazyVal, *tree[p]);
         if (p < segN) {
             if (!lazy[p].has_value()) lazy[p] = lazyVal;
             else lazy[p] = composeLazies(*lazy[p], lazyVal);
@@ -157,9 +183,8 @@ struct LazyHLD {
 
     void _push(int p) {
         if (p < segN && lazy[p].has_value()) {
-            int childSegLen = _segLenAt(2*p);
-            _apply(2*p, *lazy[p], childSegLen);
-            _apply(2*p+1, *lazy[p], childSegLen);
+            _apply(2*p, *lazy[p]);
+            _apply(2*p+1, *lazy[p]);
             lazy[p] = nullopt;
         }
     }
@@ -172,7 +197,7 @@ struct LazyHLD {
         for (p >>= 1; p > 0; p >>= 1) {
             auto newVal = _combineOpt(tree[2*p], tree[2*p+1]);
             if (lazy[p].has_value() && newVal.has_value()) {
-                newVal = applyLazy(*lazy[p], *newVal, _segLenAt(p));
+                newVal = applyLazy(*lazy[p], *newVal);
             }
             tree[p] = newVal;
         }
@@ -185,13 +210,11 @@ struct LazyHLD {
         int l0 = l, r0 = r;
         _pushTo(l0);
         _pushTo(r0 - 1);
-        int segLen = 1;
         int ll = l, rr = r;
         while (ll < rr) {
-            if (ll & 1) { _apply(ll, lazyVal, segLen); ll++; }
-            if (rr & 1) { rr--; _apply(rr, lazyVal, segLen); }
+            if (ll & 1) { _apply(ll, lazyVal); ll++; }
+            if (rr & 1) { rr--; _apply(rr, lazyVal); }
             ll >>= 1; rr >>= 1;
-            segLen <<= 1;
         }
         _pullFrom(l0);
         _pullFrom(r0 - 1);
@@ -212,14 +235,14 @@ struct LazyHLD {
         return _combineOpt(resL, resR);
     }
 
-    void _segPointSet(int idx, const StoredT& newData) {
+    void _segPointSet(int idx, const optional<StoredT>& newData) {
         int p = idx + segN;
         _pushTo(p);
         tree[p] = newData;
         for (p >>= 1; p > 0; p >>= 1) {
             auto newVal = _combineOpt(tree[2*p], tree[2*p+1]);
             if (lazy[p].has_value() && newVal.has_value()) {
-                newVal = applyLazy(*lazy[p], *newVal, _segLenAt(p));
+                newVal = applyLazy(*lazy[p], *newVal);
             }
             tree[p] = newVal;
         }
@@ -252,13 +275,11 @@ struct LazyHLD {
         optional<StoredT> res = nullopt;
         while (head[a] != head[b]) {
             if (depth[head[a]] < depth[head[b]]) swap(a, b);
-            auto chain = _segQuery(pos[head[a]], pos[a]);
-            res = _combineOpt(res, chain);
+            res = _combineOpt(res, _segQuery(pos[head[a]], pos[a]));
             a = par[head[a]];
         }
         if (depth[a] > depth[b]) swap(a, b);
-        auto last = _segQuery(pos[a], pos[b]);
-        res = _combineOpt(res, last);
+        res = _combineOpt(res, _segQuery(pos[a], pos[b]));
         return *res;
     }
 
