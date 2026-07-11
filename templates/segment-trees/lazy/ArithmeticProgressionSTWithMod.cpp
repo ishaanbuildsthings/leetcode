@@ -1,33 +1,38 @@
 #include <vector>
 #include <algorithm>
 
-// Iterative segment tree: range arithmetic-progression add, range sum.
+// Iterative segment tree: range arithmetic-progression add, range sum, all mod MOD.
 //
 // Lazy tag: (constPart, idxPart) means "add constPart + idxPart * i to every
 // underlying position i". Tags compose by addition, so no pushdown-before-
 // compose dance is needed.
-// EXAMPLE APSegTree seg((int)strength.size());
 //
-// Per-node metadata (length_, sumIdx_) is precomputed at construction to
-// avoid any range arithmetic in the hot path.
+// Per-node metadata (length_, sumIdx_) is precomputed at construction and kept
+// reduced mod MOD to avoid any range arithmetic or overflow in the hot path.
+//
+// start and step may be negative; they get reduced into [0, MOD).
+// All returned values are in [0, MOD).
+// EXMAPLE: APSegTreeMod seg((int)strength.size(), MOD);
 //
 // Public operations:
-//   APSegTree(int n)                    O(n)
-//   APSegTree(vector<long long>& a)     O(n)
+//   APSegTreeMod(int n, long long mod = 1e9+7)                   O(n)
+//   APSegTreeMod(vector<long long>& a, long long mod = 1e9+7)    O(n)
 //   rangeAddAP(l, r, start, step)       O(log n)
 //   rangeSum(l, r)                      O(log n)
 //   pointQuery(i)                       O(log n)
 //   pushAllDown()                       O(n)  -- call before batch leafValue reads
 //   leafValue(i)                        O(1)  -- only valid after pushAllDown
-class APSegTree {
+class APSegTreeMod {
 public:
-    explicit APSegTree(int n) { build(n, nullptr); }
-    explicit APSegTree(const std::vector<long long>& a) { build((int)a.size(), &a); }
+    explicit APSegTreeMod(int n, long long mod = 1000000007LL) : MOD_(mod) { build(n, nullptr); }
+    explicit APSegTreeMod(const std::vector<long long>& a, long long mod = 1000000007LL) : MOD_(mod) { build((int)a.size(), &a); }
 
     void rangeAddAP(int l, int r, long long start, long long step) {
         if (l > r) return;
-        long long constPart = start - step * (long long)l;
-        long long idxPart = step;
+        long long s = norm(start);
+        long long d = norm(step);
+        long long constPart = ((s - d * (long long)l) % MOD_ + MOD_) % MOD_;
+        long long idxPart = d;
         int l0 = l + size_, r0 = r + size_;
         pushToRoot(l0);
         pushToRoot(r0);
@@ -50,8 +55,8 @@ public:
         long long result = 0;
         int lIdx = l0, rIdx = r0 + 1;
         while (lIdx < rIdx) {
-            if (lIdx & 1) { result += sum_[lIdx]; lIdx++; }
-            if (rIdx & 1) { rIdx--; result += sum_[rIdx]; }
+            if (lIdx & 1) { result += sum_[lIdx]; if (result >= MOD_) result -= MOD_; lIdx++; }
+            if (rIdx & 1) { rIdx--; result += sum_[rIdx]; if (result >= MOD_) result -= MOD_; }
             lIdx >>= 1;
             rIdx >>= 1;
         }
@@ -75,9 +80,16 @@ public:
     long long leafValue(int i) const { return sum_[i + size_]; }
 
 private:
+    long long MOD_;
     int n_, size_, H_;
     std::vector<long long> sum_, lazyConst_, lazyIdx_;
     std::vector<long long> length_, sumIdx_;
+
+    inline long long norm(long long x) const {
+        x %= MOD_;
+        if (x < 0) x += MOD_;
+        return x;
+    }
 
     void build(int n, const std::vector<long long>* init) {
         n_ = n;
@@ -93,23 +105,23 @@ private:
 
         for (int i = 0; i < size_; i++) {
             length_[size_ + i] = 1;
-            sumIdx_[size_ + i] = i;
+            sumIdx_[size_ + i] = (long long)i % MOD_;
         }
         for (int node = size_ - 1; node >= 1; node--) {
-            length_[node] = length_[2 * node] + length_[2 * node + 1];
-            sumIdx_[node] = sumIdx_[2 * node] + sumIdx_[2 * node + 1];
+            length_[node] = (length_[2 * node] + length_[2 * node + 1]) % MOD_;
+            sumIdx_[node] = (sumIdx_[2 * node] + sumIdx_[2 * node + 1]) % MOD_;
         }
 
         if (init) {
-            for (int i = 0; i < n_; i++) sum_[size_ + i] = (*init)[i];
-            for (int i = size_ - 1; i >= 1; i--) sum_[i] = sum_[2 * i] + sum_[2 * i + 1];
+            for (int i = 0; i < n_; i++) sum_[size_ + i] = norm((*init)[i]);
+            for (int i = size_ - 1; i >= 1; i--) sum_[i] = (sum_[2 * i] + sum_[2 * i + 1]) % MOD_;
         }
     }
 
     inline void applyNode(int node, long long constPart, long long idxPart) {
-        sum_[node] += constPart * length_[node] + idxPart * sumIdx_[node];
-        lazyConst_[node] += constPart;
-        lazyIdx_[node] += idxPart;
+        sum_[node] = (sum_[node] + constPart * length_[node] % MOD_ + idxPart * sumIdx_[node] % MOD_) % MOD_;
+        lazyConst_[node] += constPart; if (lazyConst_[node] >= MOD_) lazyConst_[node] -= MOD_;
+        lazyIdx_[node]   += idxPart;   if (lazyIdx_[node]   >= MOD_) lazyIdx_[node]   -= MOD_;
     }
 
     inline void pushDown(int node) {
@@ -130,8 +142,8 @@ private:
         i >>= 1;
         while (i > 0) {
             long long c = lazyConst_[i], d = lazyIdx_[i];
-            long long baseSum = sum_[2 * i] + sum_[2 * i + 1];
-            sum_[i] = baseSum + c * length_[i] + d * sumIdx_[i];
+            long long baseSum = (sum_[2 * i] + sum_[2 * i + 1]) % MOD_;
+            sum_[i] = (baseSum + c * length_[i] % MOD_ + d * sumIdx_[i] % MOD_) % MOD_;
             i >>= 1;
         }
     }
