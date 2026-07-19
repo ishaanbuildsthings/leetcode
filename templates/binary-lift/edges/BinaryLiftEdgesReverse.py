@@ -11,46 +11,46 @@
 # def reverseFn(d):              # swap pref <-> suf
 #     total, best, pref, suf = d
 #     return (total, best, suf, pref)
-# lifter = LiftEdgeReverse(0, edges, vals, base, mergeFn, reverseFn, False)
+# lifter = LiftEdgeReverse(0, edges, base, mergeFn, reverseFn)
 # lifter.pathQuery(a, b)[1]   ->  max subsegment sum reading A -> B  (None if a == b)
 
-# root = the root node (usually 0 or 1), separate from if the nodes are 0...n-1 or 1...n
-# edges = [[a, b], [c, d], ...]
-# vals = raw data for the edge ABOVE each node (the edge from that node to its parent)
-#   vals[root] is a dummy and is never read; if zeroIndexed=False then vals[0] is also a dummy
+# root = the root node (usually 0 or 1), exists since some utility functions are based on having a root
+# edges = [[a, b, rawVal], [c, d, rawVal], ...] where rawVal is the raw data for the edge a<>b
+# a and b (the node IDs) must be reasonably ranged, if they go up to 1e9 then we should compress outside
 # base = (rawEdge) -> mapped val
 # merge(leftData, rightData) -> data   (NON-commutative; left is closer to A on the path)
 # reverse(data) -> data as if its underlying segment were traversed the other way
 #   (max-subsegment: swap pref<->suf ; plain sum/min/max: return data unchanged)
-# zeroIndexed=True means nodes are from 0...n-1, otherwise 1...n
 class LiftEdgeReverse:
     # O(n log n) build time and space
-    def __init__(self, root, edges, vals, base, merge, reverse, zeroIndexed):
-        self.n = len(edges) + (1 if zeroIndexed else 2)
+    def __init__(self, root, edges, base, merge, reverse):
+        self.n = root
+        for u, v, w in edges:
+            self.n = max(self.n, u, v)
+        self.n += 1
         self.LOG = max(1, self.n.bit_length())
-        self.vals = vals
         self.base = base
         self.merge = merge
         self.reverse = reverse
 
         g = [[] for _ in range(self.n)]
-        for u, v in edges:
-            g[u].append(v)
-            g[v].append(u)
+        for u, v, w in edges:
+            g[u].append((v, w))
+            g[v].append((u, w))
 
         self.depths = [0] * self.n
         self.up = [[0] * self.n for _ in range(self.LOG)]
         self.upData = [[None] * self.n for _ in range(self.LOG)]
 
-        stack = [(root, root, False)]
+        stack = [(root, root, None, False)]
         while stack:
-            node, parent, visited = stack.pop()
+            node, parent, valAbove, visited = stack.pop()
             if visited:
                 continue
             self.depths[node] = 0 if node == root else self.depths[parent] + 1
             self.up[0][node] = parent
             if node != root:
-                self.upData[0][node] = base(vals[node])   # edge ABOVE node (directional keying)
+                self.upData[0][node] = base(valAbove)   # edge ABOVE node (directional keying)
             for k in range(1, self.LOG):
                 mid = self.up[k - 1][node]
                 self.up[k][node] = self.up[k - 1][mid]
@@ -63,10 +63,10 @@ class LiftEdgeReverse:
                     self.upData[k][node] = a
                 else:
                     self.upData[k][node] = merge(a, b)
-            stack.append((node, parent, True))
-            for child in g[node]:
+            stack.append((node, parent, valAbove, True))
+            for child, childVal in g[node]:
                 if child != parent:
-                    stack.append((child, node, False))
+                    stack.append((child, node, childVal, False))
 
     # kth steps above `node`
     # always returns root if k steps shoots past the root

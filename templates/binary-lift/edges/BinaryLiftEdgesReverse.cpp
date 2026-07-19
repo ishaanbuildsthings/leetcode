@@ -4,6 +4,7 @@ using namespace std;
 // TEMPLATE BY ISHAANBUILDSTHINGS  (edges, NON-COMMUTATIVE path queries via a reverse hook)
 // EXAMPLE  (max-subsegment sum along a path, over edge values)
 // struct Sub { long long total, best, pref, suf; };
+// vector<tuple<int,int,long long>> edges = {{0,1,5},{0,2,7},{1,3,3}};
 // auto base = [&](long long v) -> Sub {
 //     long long e = max(0LL, v);
 //     return {v, e, e, e};
@@ -15,18 +16,16 @@ using namespace std;
 //              max(R.suf, R.total + L.suf) };
 // };
 // auto reverse = [&](Sub d) -> Sub { return {d.total, d.best, d.suf, d.pref}; };  // swap pref<->suf
-// auto lifter = makeLiftEdgeReverse(0, edges, vals, base, mergeFn, reverse, false);
+// auto lifter = makeLiftEdgeReverse(0, edges, base, mergeFn, reverse);
 // lifter.pathQuery(a, b)->best   ->  max subsegment sum reading A -> B  (nullopt if a == b)
 
-// root = the root node (usually 0 or 1), separate from if the nodes are 0...n-1 or 1...n
-// edges = {{a, b}, {c, d}, ...}
-// vals = raw data for the edge ABOVE each node (the edge from that node to its parent)
-//   vals[root] is a dummy and is never read; if zeroIndexed=false then vals[0] is also a dummy
+// root = the root node (usually 0 or 1), exists since some utility functions are based on having a root
+// edges = {{a, b, rawVal}, {c, d, rawVal}, ...} where rawVal is the raw data for the edge a<>b
+// a and b (the node IDs) must be reasonably ranged, if they go up to 1e9 then we should compress outside
 // base = (rawEdge) -> mapped val
 // mergeFn(leftData, rightData) -> data   (NON-commutative; left is closer to A on the path)
 // reverse(data) -> data as if its underlying segment were traversed the other way
 //   (max-subsegment: swap pref<->suf ; plain sum/min/max: return data unchanged)
-// zeroIndexed=true means nodes are from 0...n-1, otherwise 1...n
 template<typename T, typename V, typename BaseFn, typename MergeFn, typename ReverseFn>
 struct LiftEdgeReverse {
     int n, LOG;
@@ -36,7 +35,6 @@ struct LiftEdgeReverse {
     BaseFn baseFn;
     MergeFn mergeFn;
     ReverseFn reverseFn;
-    vector<V> vals;
 
     optional<T> mergeOpt(optional<T> a, optional<T> b) {   // a is LEFT of b
         if (!a) return b;
@@ -45,18 +43,20 @@ struct LiftEdgeReverse {
     }
 
     // build lifting + edge-monoid tables.  O(n log n) time & space
-    LiftEdgeReverse(int root, vector<pair<int,int>>& edges, vector<V>& vals,
-                    BaseFn baseFn, MergeFn mergeFn, ReverseFn reverseFn, bool zeroIndexed)
-        : baseFn(baseFn), mergeFn(mergeFn), reverseFn(reverseFn), vals(vals) {
-        n = edges.size() + (zeroIndexed ? 1 : 2);
+    LiftEdgeReverse(int root, vector<tuple<int,int,V>>& edges,
+                    BaseFn baseFn, MergeFn mergeFn, ReverseFn reverseFn)
+        : baseFn(baseFn), mergeFn(mergeFn), reverseFn(reverseFn) {
+        n = root;
+        for (auto [u, v, w] : edges) n = max({n, u, v});
+        n++;
         LOG = max(1, __lg(n) + 1);
         dep.assign(n, 0);
         up.assign(LOG, vector<int>(n));
         upData.assign(LOG, vector<optional<T>>(n, nullopt));
-        vector<vector<int>> g(n);
-        for (auto [u, v] : edges) {
-            g[u].push_back(v);
-            g[v].push_back(u);
+        vector<vector<pair<int,V>>> g(n);
+        for (auto [u, v, w] : edges) {
+            g[u].push_back({v, w});
+            g[v].push_back({u, w});
         }
         vector<bool> vis(n, false);
         queue<int> q;
@@ -65,12 +65,12 @@ struct LiftEdgeReverse {
         up[0][root] = root;
         while (!q.empty()) {
             int v = q.front(); q.pop();
-            for (int u : g[v]) {
+            for (auto [u, w] : g[v]) {
                 if (vis[u]) continue;
                 vis[u] = true;
                 dep[u] = dep[v] + 1;
                 up[0][u] = v;
-                upData[0][u] = baseFn(vals[u]);          // edge ABOVE u (directional keying)
+                upData[0][u] = baseFn(w);                // edge ABOVE u (directional keying)
                 q.push(u);
             }
         }
@@ -168,8 +168,8 @@ struct LiftEdgeReverse {
 };
 
 template<typename V, typename BaseFn, typename MergeFn, typename ReverseFn>
-auto makeLiftEdgeReverse(int root, vector<pair<int,int>>& edges, vector<V>& vals,
-                         BaseFn base, MergeFn merge, ReverseFn reverse, bool zeroIndexed = true) {
+auto makeLiftEdgeReverse(int root, vector<tuple<int,int,V>>& edges,
+                         BaseFn base, MergeFn merge, ReverseFn reverse) {
     using T = invoke_result_t<BaseFn, V>;
-    return LiftEdgeReverse<T, V, BaseFn, MergeFn, ReverseFn>(root, edges, vals, base, merge, reverse, zeroIndexed);
+    return LiftEdgeReverse<T, V, BaseFn, MergeFn, ReverseFn>(root, edges, base, merge, reverse);
 }

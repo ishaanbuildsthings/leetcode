@@ -24,7 +24,8 @@ using ll = long long;
 // h.swapCharAt(i, c) -> void  replace char at index i, O(1) (std::deque has O(1) random access)
 // h.getCurrentWindow() -> string   the current window as a string, O(n)
 // h.length() -> int           current window length, O(1)
-
+// h.rotateRight() -> void    move rightmost char to the front (ABC -> CAB), O(1)
+// h.rotateLeft() -> void     move leftmost char to the end (ABC -> BCA), O(1)
 
 class IncrementalHashing {
 public:
@@ -131,6 +132,29 @@ public:
     // Returns the length of the current window
     // O(1) time
     int length() const { return (int)window.size(); }
+
+    // moves rightmost letter to front, like ABC -> CAB
+    // O(1) time
+    void rotateRight() {
+        if (window.size() < 2) return;
+        char c = window.back();
+        window.pop_back();
+        window.push_front(c);
+        // divide out c from the right, then re-add it at power n-1
+        ll hv = norm((hashValue - (ll)c) * baseInv);
+        hashValue = norm((ll)c * basePow[(int)window.size() - 1] + hv);
+    }
+
+    // moves leftmost letter to the end, like ABC -> BCA
+    // O(1) time
+    void rotateLeft() {
+        if (window.size() < 2) return;
+        char c = window.front();
+        window.pop_front();
+        window.push_back(c);
+        // subtract c from the top power, shift left, re-add at power 0
+        hashValue = norm(hashValue * base + (ll)c * (1 - basePow[(int)window.size()]));
+    }
 
 private:
     deque<char> window;

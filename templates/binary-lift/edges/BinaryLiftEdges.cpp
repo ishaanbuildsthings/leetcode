@@ -6,28 +6,21 @@ using namespace std;
 //     long long sum;
 //     long long mx;
 // };
-// vector<pair<int,int>> edges = {{0,1},{0,2},{1,3}};
-
-// vals[node] stores the raw edge data above that node
-// vector<long long> vals = {0, 5, 7, 3};  // vals[0]=dummy(root); edge(1->0)=5, edge(2->0)=7, edge(3->1)=3
+// vector<tuple<int,int,long long>> edges = {{0,1,5},{0,2,7},{1,3,3}};
 // auto base = [&](long long w) -> EdgeData {
 //     return {w, w};
 // };
 // auto mergeFn = [&](EdgeData a, EdgeData b) -> EdgeData {
 //     return {a.sum + b.sum, max(a.mx, b.mx)};
 // };
-// auto lifter  = makeLiftEdge(0, edges, vals, base, mergeFn, true);          // 0-indexed nodes
-// auto lifter1 = makeLiftEdge(1, edges, vals, base, mergeFn, false);   // 1-indexed nodes
+// auto lifter = makeLiftEdge(0, edges, base, mergeFn);
 // lifter.pathQuery(3, 2)  ->  optional<EdgeData>{ sum=15, mx=7 }     // edges 3 + 5 + 7
  
-// root = the root node (usually 0 or 1), separate from if the nodes are 0...n-1 or 1...n
-// edges = {{a, b}, {c, d}, ...}
-// vals = raw data for the edge ABOVE each node (the edge from that node to its parent)
-// vals[root] is a dummy and is never read
-// if zeroIndexed=false then vals[0] is also a dummy (padding; no node has id 0)
+// root = the root node (usually 0 or 1), exists since some utility functions are based on having a root
+// edges = {{a, b, rawVal}, {c, d, rawVal}, ...} where rawVal is the raw data for the edge a<>b
+// a and b (the node IDs) must be reasonably ranged, if they go up to 1e9 then we should compress outside
 // base = (rawEdge) -> mapped val
 // mergeFn(edgeVal1, edgeVal2) -> edgeVal3
-// zeroIndexed=true means nodes are from 0...n-1, otherwise 1...n
 template<typename T, typename V, typename BaseFn, typename MergeFn>
 struct LiftEdge {
     int n, LOG;
@@ -36,7 +29,6 @@ struct LiftEdge {
     vector<vector<optional<T>>> upData;
     BaseFn baseFn;
     MergeFn mergeFn;
-    vector<V> vals;
 
     optional<T> mergeOpt(optional<T> a, optional<T> b) {
         if (!a) return b;
@@ -45,18 +37,20 @@ struct LiftEdge {
     }
 
     // O(n log n) build time and space
-    LiftEdge(int root, vector<pair<int,int>>& edges, vector<V>& vals,
-             BaseFn baseFn, MergeFn mergeFn, bool zeroIndexed)
-        : baseFn(baseFn), mergeFn(mergeFn), vals(vals) {
-        n = edges.size() + (zeroIndexed ? 1 : 2);
+    LiftEdge(int root, vector<tuple<int,int,V>>& edges,
+             BaseFn baseFn, MergeFn mergeFn)
+        : baseFn(baseFn), mergeFn(mergeFn) {
+        n = root;
+        for (auto [u, v, w] : edges) n = max({n, u, v});
+        n++;
         LOG = max(1, __lg(n) + 1);
         dep.assign(n, 0);
         up.assign(LOG, vector<int>(n));
         upData.assign(LOG, vector<optional<T>>(n, nullopt));
-        vector<vector<int>> g(n);
-        for (auto [u, v] : edges) {
-            g[u].push_back(v);
-            g[v].push_back(u);
+        vector<vector<pair<int,V>>> g(n);
+        for (auto [u, v, w] : edges) {
+            g[u].push_back({v, w});
+            g[v].push_back({u, w});
         }
         vector<bool> vis(n, false);
         queue<int> q;
@@ -65,12 +59,12 @@ struct LiftEdge {
         up[0][root] = root;
         while (!q.empty()) {
             int v = q.front(); q.pop();
-            for (int u : g[v]) {
+            for (auto [u, w] : g[v]) {
                 if (vis[u]) continue;
                 vis[u] = true;
                 dep[u] = dep[v] + 1;
                 up[0][u] = v;
-                upData[0][u] = baseFn(vals[u]);   // edge above u
+                upData[0][u] = baseFn(w);   // edge above u
                 q.push(u);
             }
         }
@@ -188,8 +182,8 @@ struct LiftEdge {
 };
 
 template<typename V, typename BaseFn, typename MergeFn>
-auto makeLiftEdge(int root, vector<pair<int,int>>& edges, vector<V>& vals,
-                  BaseFn base, MergeFn merge, bool zeroIndexed = true) {
+auto makeLiftEdge(int root, vector<tuple<int,int,V>>& edges,
+                  BaseFn base, MergeFn merge) {
     using T = invoke_result_t<BaseFn, V>;
-    return LiftEdge<T, V, BaseFn, MergeFn>(root, edges, vals, base, merge, zeroIndexed);
+    return LiftEdge<T, V, BaseFn, MergeFn>(root, edges, base, merge);
 }

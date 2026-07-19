@@ -136,3 +136,26 @@ class IncrementalHashing:
     # O(1) time
     def length(self) -> int:
         return len(self.window)
+
+    # moves rightmost letter to front, like ABC -> CAB
+    # O(1) time
+    def rotateRight(self):
+        w = self.window
+        if len(w) < 2:
+            return
+        c = w[-1]
+        w.rotate(1)
+        # divide out c from the right, then re-add it at power n-1
+        hv = (self.hashValue - ord(c)) * self.baseInv
+        self.hashValue = (ord(c) * self.basePow[len(w) - 1] + hv) % self.mod
+
+    # moves leftmost letter to the end, like ABC -> BCA
+    # O(1) time
+    def rotateLeft(self):
+        w = self.window
+        if len(w) < 2:
+            return
+        c = w[0]
+        w.rotate(-1)
+        # subtract c from the top power, shift left, re-add at power 0
+        self.hashValue = (self.hashValue * self.base + ord(c) * (1 - self.basePow[len(w)])) % self.mod

@@ -20,6 +20,8 @@ from collections import deque
 # h.popCharLeft() -> None     drop the leftmost value, O(1)
 # h.slideRight(v) -> None     popCharLeft + addChar (slide a fixed window right), O(1)
 # h.slideLeft(v) -> None      popChar + addCharLeft (slide a fixed window left), O(1)
+# h.rotateRight() -> None     move rightmost value to the front ([1,2,3] -> [3,1,2]), O(1)
+# h.rotateLeft() -> None      move leftmost value to the end ([1,2,3] -> [2,3,1]), O(1)
 
 # NOTE THIS IS O(i) NOT O(1) BECAUSE PYTHON DEQUE DOES NOT HAVE O(1) ACCESS, WE WOULD NEED A CUSTOM DEQUE TO FIX THAT
 # h.swapCharAt(i, v) -> None  replace value at index i, O(i) for the deque index + O(1) hash update
@@ -140,3 +142,26 @@ class IncrementalHashing:
     # O(1) time
     def length(self) -> int:
         return len(self.window)
+
+    # moves rightmost value to front, like [1,2,3] -> [3,1,2]
+    # O(1) time
+    def rotateRight(self):
+        w = self.window
+        if len(w) < 2:
+            return
+        v = w[-1]
+        w.rotate(1)
+        # divide out v from the right, then re-add it at power n-1
+        hv = (self.hashValue - v) * self.baseInv
+        self.hashValue = (v * self.basePow[len(w) - 1] + hv) % self.mod
+
+    # moves leftmost value to the end, like [1,2,3] -> [2,3,1]
+    # O(1) time
+    def rotateLeft(self):
+        w = self.window
+        if len(w) < 2:
+            return
+        v = w[0]
+        w.rotate(-1)
+        # subtract v from the top power, shift left, re-add at power 0
+        self.hashValue = (self.hashValue * self.base + v * (1 - self.basePow[len(w)])) % self.mod
