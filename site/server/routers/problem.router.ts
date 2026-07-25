@@ -18,6 +18,7 @@ export const problemRouter = router({
         fullView: z.boolean().optional(),
         greatOnly: z.boolean().optional(),
         platformId: z.string().optional(),
+        platformDifficulty: z.string().optional(),
         tagId: z.string().optional(),
         tagRoles: z
           .object({

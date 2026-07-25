@@ -106,12 +106,14 @@ export async function unsafe_listProblemsPaged(opts: {
   fullView?: boolean;
   greatOnly?: boolean;
   platformId?: string;
+  platformDifficulty?: string;
   tagId?: string;
   tagRoles?: { core?: boolean; secondary?: boolean; mention?: boolean };
 }) {
   const where: Prisma.problemsWhereInput = {};
   if (opts.greatOnly) where.is_great_problem = true;
   if (opts.platformId) where.platform_id = opts.platformId;
+  if (opts.platformDifficulty) where.platform_difficulty = opts.platformDifficulty;
   if (opts.tagId) {
     const roles = opts.tagRoles ?? { core: true, secondary: true, mention: true };
     const enabledRoles: tag_role[] = [];

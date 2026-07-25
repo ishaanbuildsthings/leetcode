@@ -2910,6 +2910,7 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
     mention: true,
   });
   const [platformFilterId, setPlatformFilterId] = useState<string>("");
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("");
 
   const listInput = {
     page,
@@ -2917,6 +2918,7 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
     fullView,
     greatOnly,
     platformId: platformFilterId || undefined,
+    platformDifficulty: difficultyFilter || undefined,
     tagId: tagFilterId || undefined,
     tagRoles: tagFilterId ? tagFilterRoles : undefined,
   };
@@ -2975,6 +2977,11 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
             (platform: {activePlatformName})
           </span>
         )}
+        {difficultyFilter && (
+          <span className="ml-2 text-emerald-700">
+            (difficulty: {difficultyFilter})
+          </span>
+        )}
         {activeTagName && (
           <span className="ml-2 text-blue-700">
             (tag: {activeTagName}{!allRolesOn ? `, ${enabledRoleLabels.join("/") || "none"}` : ""})
@@ -3001,6 +3008,17 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
           {sortedPlatforms.map((p) => (
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
+        </select>
+        <select
+          value={difficultyFilter}
+          onChange={(e) => { setDifficultyFilter(e.target.value); setPage(1); }}
+          className="px-2 py-1 text-sm border border-gray-300 rounded bg-white text-gray-700 mr-1 max-w-[180px]"
+          title="Filter by difficulty (Leetcode: Easy/Medium/Hard)"
+        >
+          <option value="">All difficulties</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
         </select>
         <select
           value={tagFilterId}
