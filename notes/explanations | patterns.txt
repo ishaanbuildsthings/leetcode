@@ -21,15 +21,6 @@ for (...) {
 
 
 
-********** ANAGRAMS **********
-
-Problem: 483 / 567
-Matching character frequencies, we can use a have and a need counter and increment and decrement when needed.
-
-
-
-
-
 ********** TREES / BST **********
 104: Maximum Depth of Binary Tree has good writeups on using different searches in very elegant ways.
 
@@ -154,14 +145,6 @@ todo: eventually redo construct binary tree from preorder and postorder traversa
 // learn bit
 https://cs.stackexchange.com/questions/10538/bit-what-is-the-intuition-behind-a-binary-indexed-tree-and-how-was-it-thought-a
 
-learn avl tree
-
-
-mini processed:
-binary search
-
-processed:
-sorting
 
 
 ********** TODO PROBLEMS **********
@@ -305,15 +288,3 @@ https://leetcode.com/problems/largest-divisible-subset/description/
 2338
 311
 2071
-
-TODO:
-reason why binary lift max jump needs to be LOG floor, is it just one edge case with n=1?
-get space efficient segment tree understanding
-
-TODO:
-djikstras time, FW time, normal bfs and dfs, read dfs time from editorial: https://leetcode.com/problems/network-delay-time/description/ and djikstra time
-also get more FW experience, understand which conditions it can be used, look at more patterns like the trick lee did to reuse array, etc
-TODO: find shortest from one node to all others, djikstra, bfs? repeat that subroutine for all nodes instead of using FW for contest problem
-todo: add larry bitmask trick for 1 << n iterate subsets
-TODO: numb3r5 method for intervals from left to right, and his interval merging alg
-todo: rjmc comment about djikstras
