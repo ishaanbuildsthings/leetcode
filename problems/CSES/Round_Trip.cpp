@@ -34,14 +34,7 @@ int main() {
                 if (ans.size()) return;
             } else {
                 // found an answer
-                int i = 0;
-                while (i < pathStack.size()) {
-                    if (pathStack[i] != adjN) {
-                        i++;
-                    } else {
-                        break;
-                    }
-                }
+                int i = find(pathStack.begin(), pathStack.end(), adjN) - pathStack.begin();
                 for (int j = i; j < pathStack.size(); j++) {
                     ans.push_back(pathStack[j]);
                 }
