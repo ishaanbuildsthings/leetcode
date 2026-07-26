@@ -2,18 +2,8 @@
 class Solution:
     def hasGroupsSizeX(self, deck: List[int]) -> bool:
         c = Counter(deck)
-        # maybe factorizing ahead of time is faster
-
-        for size in range(2, len(deck) + 1):
-            failFound = False
-            for key in c:
-                if c[key] % size:
-                    failFound = True
-                    break
-            if not failFound:
-                return True
-            
-        return False
-
-
+        g = c[deck[0]]
+        for k, v in c.items():
+            g = gcd(g, v)
+        return g > 1
             
