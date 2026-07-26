@@ -1,6 +1,4 @@
 # gets the area of a convex hull, points dont need to be ordered
-# pass a list of tuples [(x, y), (x, y), ...]
-# returns DOUBLE the area
 def polygonAreaUnordered(points):
     points = sorted(set(points))
     if len(points) <= 2:
@@ -31,3 +29,11 @@ def polygonAreaUnordered(points):
         area2 += x1*y2 - y1*x2
 
     return abs(area2)
+
+
+class Solution:
+    def largestTriangleArea(self, points: List[List[int]]) -> float:
+        res = 0
+        for p1, p2, p3 in itertools.combinations(points, 3):
+            res = max(res, polygonAreaUnordered([tuple(p1), tuple(p2), tuple(p3)]))
+        return res / 2
