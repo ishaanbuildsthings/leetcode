@@ -109,6 +109,8 @@ export async function unsafe_listProblemsPaged(opts: {
   platformDifficulty?: string;
   tagId?: string;
   tagRoles?: { core?: boolean; secondary?: boolean; mention?: boolean };
+  sortBy?: "createdAt" | "problemId";
+  sortDir?: "asc" | "desc";
 }) {
   const where: Prisma.problemsWhereInput = {};
   if (opts.greatOnly) where.is_great_problem = true;
@@ -136,6 +138,35 @@ export async function unsafe_listProblemsPaged(opts: {
     mindsolve_groups: true,
   } as const;
 
+  const page = Math.max(1, opts.page ?? 1);
+  const pageSize = Math.min(200, Math.max(1, opts.pageSize ?? 20));
+
+  if (opts.sortBy === "problemId") {
+    const dir = opts.sortDir ?? "asc";
+    const matches = await prisma.problems.findMany({
+      where,
+      select: { id: true, platform_problem_id: true },
+    });
+    const parsed = matches.map((m) => ({
+      id: m.id,
+      num: m.platform_problem_id ? parseInt(m.platform_problem_id, 10) : NaN,
+    }));
+    parsed.sort((a, b) => {
+      const aNum = Number.isNaN(a.num) ? Infinity : a.num;
+      const bNum = Number.isNaN(b.num) ? Infinity : b.num;
+      return dir === "asc" ? aNum - bNum : bNum - aNum;
+    });
+    const total = parsed.length;
+    const orderedIds = (
+      opts.fullView ? parsed : parsed.slice((page - 1) * pageSize, page * pageSize)
+    ).map((p) => p.id);
+    if (orderedIds.length === 0) return { items: [], total };
+    const items = await prisma.problems.findMany({ where: { id: { in: orderedIds } }, include });
+    const byId = new Map(items.map((it) => [it.id, it]));
+    const ordered = orderedIds.map((id) => byId.get(id)).filter((it): it is NonNullable<typeof it> => !!it);
+    return { items: ordered, total };
+  }
+
   if (opts.fullView) {
     const items = await prisma.problems.findMany({
       where,
@@ -145,8 +176,6 @@ export async function unsafe_listProblemsPaged(opts: {
     return { items, total: items.length };
   }
 
-  const page = Math.max(1, opts.page ?? 1);
-  const pageSize = Math.min(200, Math.max(1, opts.pageSize ?? 20));
   const [items, total] = await Promise.all([
     prisma.problems.findMany({
       where,

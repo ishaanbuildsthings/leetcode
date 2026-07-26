@@ -2911,6 +2911,7 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
   });
   const [platformFilterId, setPlatformFilterId] = useState<string>("");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("");
+  const [sortMode, setSortMode] = useState<"newest" | "idAsc" | "idDesc">("newest");
 
   const listInput = {
     page,
@@ -2921,6 +2922,8 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
     platformDifficulty: difficultyFilter || undefined,
     tagId: tagFilterId || undefined,
     tagRoles: tagFilterId ? tagFilterRoles : undefined,
+    sortBy: sortMode === "newest" ? undefined : ("problemId" as const),
+    sortDir: sortMode === "idDesc" ? ("desc" as const) : ("asc" as const),
   };
   const { data: pageData, isLoading } = trpc.problem.listPaged.useQuery(listInput);
 
@@ -2982,6 +2985,11 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
             (difficulty: {difficultyFilter})
           </span>
         )}
+        {sortMode !== "newest" && (
+          <span className="ml-2 text-emerald-700">
+            (sorted by problem ID {sortMode === "idAsc" ? "↑" : "↓"})
+          </span>
+        )}
         {activeTagName && (
           <span className="ml-2 text-blue-700">
             (tag: {activeTagName}{!allRolesOn ? `, ${enabledRoleLabels.join("/") || "none"}` : ""})
@@ -3019,6 +3027,16 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
           <option value="Easy">Easy</option>
           <option value="Medium">Medium</option>
           <option value="Hard">Hard</option>
+        </select>
+        <select
+          value={sortMode}
+          onChange={(e) => { setSortMode(e.target.value as typeof sortMode); setPage(1); }}
+          className="px-2 py-1 text-sm border border-gray-300 rounded bg-white text-gray-700 mr-1 max-w-[180px]"
+          title="Sort order"
+        >
+          <option value="newest">Newest first</option>
+          <option value="idAsc">Problem ID ↑</option>
+          <option value="idDesc">Problem ID ↓</option>
         </select>
         <select
           value={tagFilterId}
