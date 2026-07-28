@@ -24,4 +24,4 @@ class Solution:
         if not year % 100:
             return 28
         return 29
-        
+    
