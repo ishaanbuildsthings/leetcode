@@ -1,12 +1,3 @@
-# https://leetcode.com/problems/two-sum-less-than-k/description/
-# difficulty: easy
-# tags: two pointers, segment tree, fractional cascading, merge sort tree
-
-# Problem
-# Given an array nums of integers and integer k, return the maximum sum such that there exists i < j with nums[i] + nums[j] = sum and sum < k. If no i, j exist satisfying this equation, return -1.
-
-# Solution, we can solve this with two pointers, but I built a merge sort tree that solves the "largest number <= a threhsold in a subarray" and did a log^2n query. We can speed this up with fractional cascading.
-
 IDENTITY = float('-inf') # combine(a, IDENTITY) is always a
 class LargestLTEThreshold:
 
