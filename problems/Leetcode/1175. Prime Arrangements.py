@@ -15,7 +15,7 @@ class PrimeSieve:
         return self.sieve[n]
 
     def getPrimeList(self):
-        return self.primeList
+    return self.primeList
 
 
 
