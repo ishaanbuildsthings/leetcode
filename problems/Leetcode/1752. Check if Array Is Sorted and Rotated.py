@@ -1,12 +1,11 @@
 class Solution:
     def check(self, nums: List[int]) -> bool:
-        increments = 1
-        for i in range(1, len(nums)):
-            if nums[i] < nums[i - 1]:
-                increments += 1
-                
-        if increments > 2:
+        drops = 0
+        for i in range(len(nums) - 1):
+            if nums[i] > nums[i + 1]:
+                drops += 1
+        if drops > 1:
             return False
-        if increments == 1:
+        if drops == 0:
             return True
-        return nums[-1] <= nums[0]
+        return nums[0] >= nums[-1]
