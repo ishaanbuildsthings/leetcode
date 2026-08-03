@@ -1,12 +1,11 @@
 class Solution:
-    def rec(self, nums, i, curr, ans):
-        if i >= len(nums):
-            ans[0] += curr
-            return
-        self.rec(nums, i + 1, curr, ans)
-        self.rec(nums, i + 1, curr ^ nums[i], ans)
-        
     def subsetXORSum(self, nums: List[int]) -> int:
-        ans = [0]
-        self.rec(nums, 0, 0, ans)
-        return ans[0]
+        seenBits = 0
+        for v in nums:
+            seenBits |= v
+        res = 0
+        ss = 2**len(nums) // 2
+        for offset in range(32):
+            if (1 << offset) & seenBits:
+                res += (1 << offset) * ss
+        return res
