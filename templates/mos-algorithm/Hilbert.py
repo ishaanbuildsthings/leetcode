@@ -3,7 +3,8 @@
 # 2^pow must be > max(R)
 # 21: 2e6, 22: 4e6, etc.
 # Use like:
-# queries.sort(key=lambda q: hilbertOrder(q[0], q[1])), safe as the hilbert is computed once and cached, not re-ran per sort comparison
+# THIS ONLY RUNS ONCE PER KEY, so 21n + n log n
+# queries.sort(key=lambda q: hilbertOrder(q[0], q[1]))
 # Using mo's on hilbert order gives O(N * root Q) which is always better than O(N + Q) root N from normal Mo's. O(N * root Q) is also doable with normal Mo's using some other techniques.
 # ⚠️ Not optimized
 def hilbertOrder(l: int, r: int, pow: int = 21, rot: int = 0) -> int:
