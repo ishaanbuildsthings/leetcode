@@ -19,3 +19,17 @@ def countInRange(sl, l, r):
     if l > r:
         return 0
     return sl.bisect_right(r) - sl.bisect_left(l)
+
+def largestLtX(sl, x):
+    i = sl.bisect_left(x)
+    return sl[i - 1] if i else None
+
+def largestLteX(sl, x):
+    i = sl.bisect_right(x)
+    return sl[i - 1] if i else None
+
+def largestGteX(sl, x):
+    return sl[-1] if sl and sl[-1] >= x else None
+
+def largestGtX(sl, x):
+    return sl[-1] if sl and sl[-1] > x else None
