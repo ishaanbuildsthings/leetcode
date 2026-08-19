@@ -5,7 +5,7 @@
 # Problem
 # Given two integers num1 and num2, return the sum of the two integers.
 
-# Solution, O(1) space and time, the easiest question on leetcide!
+# Solution, O(1) space and time, the easiest question on leetcode!
 
 class Solution:
     def sum(self, num1: int, num2: int) -> int:
