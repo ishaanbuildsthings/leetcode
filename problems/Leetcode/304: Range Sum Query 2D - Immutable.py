@@ -25,7 +25,7 @@ class NumMatrix:
         sum_for_region += self.prefix_sums[row2][col2]
         if row1 > 0 and col1 > 0:
             sum_for_region += self.prefix_sums[row1 - 1][col1 - 1]
-        if col1 > 0:
+       363 if col1 > 0:
             sum_for_region -= self.prefix_sums[row2][col1 - 1]
         if row1 > 0:
             sum_for_region -= self.prefix_sums[row1 - 1][col2]
