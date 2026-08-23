@@ -35,33 +35,30 @@ def hilbertOrder(l: int, r: int, pow: int = 21, rot: int = 0) -> int:
 
 L = 0
 R = -1
-# Total: O((N + Q) * sqrt(Q) * F), F = cost of one add/rem.
-
-# Each moves exactly ONE index across a boundary. i is always the index
-# being added/removed; the comment gives the window AFTER the call.
-def addL(i):  # -> [i, r]     (i == l - 1 before the call)
+# O((N + Q) * sqrt(Q) * F), F = cost of one add/rem
+def addL(i):
     pass
 
-def addR(i):  # -> [l, i]     (i == r + 1 before the call)
+def addR(i):
     pass
 
-def remL(i):  # -> [i + 1, r] (i == l before the call)
+def remL(i):
     pass
 
-def remR(i):  # -> [l, i - 1] (i == r before the call)
+def remR(i):
     pass
 
 
-# Grow before shrink, or the window can pass through l > r + 1.
-while l > L:
-    l -= 1
-    addL(l)
-while r < R:
-    r += 1
-    addR(r)
-while l < L:
-    remL(l)
-    l += 1
-while r > R:
-    remR(r)
-    r -= 1
+for l, r in queries:
+    while L > l:
+        L -= 1
+        addL(L)
+    while R < r:
+        R += 1
+        addR(R)
+    while L < l:
+        remL(L)
+        L += 1
+    while R > r:
+        remR(R)
+        R -= 1

@@ -25,3 +25,12 @@ def knightDistanceFromCorner(x, y):
     if (x, y) == (1, 1):
         return 4
     return knightDistanceFullyInfiniteChessboard(0, 0, x, y)
+
+    
+n = int(input())
+for _ in range(n):
+    x, y = map(int, input().split())
+    diffX = x - 1
+    diffY = y - 1
+    dist = knightDistanceFromCorner(diffX, diffY)
+    print(dist)
