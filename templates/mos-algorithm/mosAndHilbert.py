@@ -30,3 +30,38 @@ def hilbertOrder(l: int, r: int, pow: int = 21, rot: int = 0) -> int:
     add = hilbertOrder(nx, ny, pow - 1, nrot)
     ordv += add if (seg == 1 or seg == 2) else (subSize - add - 1)
     return ordv
+
+
+
+L = 0
+R = -1
+# Total: O((N + Q) * sqrt(Q) * F), F = cost of one add/rem.
+
+# Each moves exactly ONE index across a boundary. i is always the index
+# being added/removed; the comment gives the window AFTER the call.
+def addL(i):  # -> [i, r]     (i == l - 1 before the call)
+    pass
+
+def addR(i):  # -> [l, i]     (i == r + 1 before the call)
+    pass
+
+def remL(i):  # -> [i + 1, r] (i == l before the call)
+    pass
+
+def remR(i):  # -> [l, i - 1] (i == r before the call)
+    pass
+
+
+# Grow before shrink, or the window can pass through l > r + 1.
+while l > L:
+    l -= 1
+    addL(l)
+while r < R:
+    r += 1
+    addR(r)
+while l < L:
+    remL(l)
+    l += 1
+while r > R:
+    remR(r)
+    r -= 1

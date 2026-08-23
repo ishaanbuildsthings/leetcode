@@ -26,3 +26,31 @@ long long hilbertOrder(int l, int r, int pow = 21, int rot = 0) {
     ord += (seg == 1 || seg == 2) ? add : (subSize - add - 1);
     return ord;
 }
+
+int L = 0, R = -1;
+// Total: O((N + Q) * sqrt(Q) * F), F = cost of one add/rem.
+
+// Each moves exactly ONE index across a boundary. i is always the index
+// being added/removed; the comment gives the window AFTER the call.
+void addL(int i) {}  // -> [i, R]     (i == L - 1 before the call)
+void addR(int i) {}  // -> [L, i]     (i == R + 1 before the call)
+void remL(int i) {}  // -> [i + 1, R] (i == L before the call)
+void remR(int i) {}  // -> [L, i - 1] (i == R before the call)
+
+// Grow before shrink, or the window can pass through L > R + 1.
+while (L > l) {
+    L--;
+    addL(L);
+}
+while (R < r) {
+    R++;
+    addR(R);
+}
+while (L < l) {
+    remL(L);
+    L++;
+}
+while (R > r) {
+    remR(R);
+    R--;
+}
