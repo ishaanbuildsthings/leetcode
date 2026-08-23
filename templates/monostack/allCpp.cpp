@@ -1,3 +1,5 @@
+#include<bits/stdc++.h>
+using namespace std;
 // nearest index to the left that is strictly smaller than arr[i]
 // -1 if none, pop while arr[st.back()] >= arr[i]
 template <typename T>
