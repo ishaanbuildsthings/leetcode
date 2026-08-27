@@ -1,12 +1,9 @@
 # TEMPLATE BY ISHAAN AGRAWAL, github: ishaanbuildsthings
-
 # edgeList = [[a, b], [c, d], ...]
-# if zeroIndex is true, assumes the root is 0, returns an array `children` that goes up to `children[n-1]` (n-1 is inferred from the edgeList)
-# if zeroIndex is false, assumes the root is 1, returns an array `children` that goes up to `children[n]`, children[0] is empty and unused
-def edgeListToTree(edgeList, zeroIndexed=True):
-    n = len(edgeList) + 1
-    size = n if zeroIndexed else n + 1
-    root = 0 if zeroIndexed else 1
+# roots the tree at `root` (any node id) and returns `children`, sized to fit the largest label
+# 0-indexed input -> children goes up to children[n-1]; 1-indexed -> up to children[n], children[0] empty and unused
+def edgeListToTree(edgeList, root):
+    size = max(max(a, b) for a, b in edgeList) + 1
     edgeMap = [[] for _ in range(size)]
     for a, b in edgeList:
         edgeMap[a].append(b)

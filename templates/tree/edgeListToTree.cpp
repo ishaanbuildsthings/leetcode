@@ -1,12 +1,13 @@
-// TEMPLATE BY ISHAAN AGRAWAL, github: ishaanbuildsthings
+#include <bits/stdc++.h>
+using namespace std;
 
+// TEMPLATE BY ISHAAN AGRAWAL, github: ishaanbuildsthings
 // edgeList = {{a, b}, {c, d}, ...}
-// if zeroIndex is true, assumes the root is 0, returns a vector `children` that goes up to `children[n-1]` (n-1 is inferred from the edgeList)
-// if zeroIndex is false, assumes the root is 1, returns a vector `children` that goes up to `children[n]`, children[0] is empty and unused
-vector<vector<int>> edgeListToTree(const vector<pair<int, int>>& edgeList, bool zeroIndexed = true) {
-    int n = (int)edgeList.size() + 1;
-    int size = zeroIndexed ? n : n + 1;
-    int root = zeroIndexed ? 0 : 1;
+// roots the tree at `root` (any node id) and returns `children`, sized to fit the largest label
+// 0-indexed input -> children goes up to children[n-1]; 1-indexed -> up to children[n], children[0] empty and unused
+vector<vector<int>> edgeListToTree(const vector<pair<int, int>>& edgeList, int root) {
+    int size = 0;
+    for (auto& [a, b] : edgeList) size = max({size, a + 1, b + 1});
     vector<vector<int>> edgeMap(size);
     for (auto& [a, b] : edgeList) {
         edgeMap[a].push_back(b);
