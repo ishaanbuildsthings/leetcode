@@ -1,0 +1,325 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// Takes an array of vals (can be strings, tuples, etc) since it operates based on indices
+// DSU<int> dsu(vals);
+template <typename T>
+struct DSU {
+    vector<T> vals;
+    vector<int> par, sz;
+    int comps, mx;
+
+    // O(n), every element starts in its own component
+    DSU(const vector<T>& vals) : vals(vals), par(vals.size()), sz(vals.size(), 1),
+                                 comps(vals.size()), mx(vals.empty() ? 0 : 1) {
+        iota(par.begin(), par.end(), 0);
+    }
+
+    // O(1), index of the representative of i's component
+    int find(int i) {
+        while (par[i] != i) {
+            par[i] = par[par[i]];
+            i = par[i];
+        }
+        return i;
+    }
+
+    // O(1), merges the two components, false if i and j were already together
+    bool unite(int i, int j) {
+        i = find(i), j = find(j);
+        if (i == j) return false;
+        if (sz[i] < sz[j]) swap(i, j);
+        par[j] = i;
+        sz[i] += sz[j];
+        comps--;
+        mx = max(mx, sz[i]);
+        return true;
+    }
+
+    // O(1), true if i and j are in the same component
+    bool areUnioned(int i, int j) { return find(i) == find(j); }
+
+    // O(1), how many elements are in i's component
+    int size(int i) { return sz[find(i)]; }
+
+    // O(1), how many components exist right now
+    int numComponents() { return comps; }
+
+    // O(1), size of the biggest component, maintained in unite
+    int largestSize() { return mx; }
+
+    // O(n), one index per component: the representative each member's find returns
+    vector<int> roots() {
+        vector<int> res;
+        for (int i = 0; i < (int)par.size(); i++)
+            if (par[i] == i) res.push_back(i);
+        return res;
+    }
+
+    // O(n log n), the sizes of all components, biggest first, e.g. [4, 2, 1]
+    vector<int> sizes() {
+        vector<int> res;
+        for (int i = 0; i < (int)par.size(); i++)
+            if (par[i] == i) res.push_back(sz[i]);
+        sort(res.rbegin(), res.rend());
+        return res;
+    }
+
+    // O(n), groupsArr[rt] = values whose root is rt, empty if rt is not a root
+    vector<vector<T>> groups() {
+        int n = par.size();
+        vector<vector<T>> groupsArr(n);
+        for (int i = 0; i < n; i++) groupsArr[find(i)].push_back(vals[i]);
+        return groupsArr;
+    }
+
+    // O(n), the values of every element sitting in the same group as index i
+    vector<T> elementsInGroup(int i) {
+        int rt = find(i);
+        vector<T> res;
+        for (int j = 0; j < (int)par.size(); j++)
+            if (find(j) == rt) res.push_back(vals[j]);
+        return res;
+    }
+};
+
+#include <bits/stdc++.h>
+using namespace std;
+ 
+// TEMPLATE BY ISHAANBUILDSTHINGS
+// struct EdgeData {
+//     long long sum;
+//     long long mx;
+// };
+// vector<tuple<int,int,long long>> edges = {{0,1,5},{0,2,7},{1,3,3}};
+// auto base = [&](long long w) -> EdgeData {
+//     return {w, w};
+// };
+// auto mergeFn = [&](EdgeData a, EdgeData b) -> EdgeData {
+//     return {a.sum + b.sum, max(a.mx, b.mx)};
+// };
+// auto lifter = makeLiftEdge(0, edges, base, mergeFn);
+// lifter.pathQuery(3, 2)  ->  optional<EdgeData>{ sum=15, mx=7 }     // edges 3 + 5 + 7
+ 
+// root = the root node (usually 0 or 1), exists since some utility functions are based on having a root
+// edges = {{a, b, rawVal}, {c, d, rawVal}, ...} where rawVal is the raw data for the edge a<>b
+// a and b (the node IDs) must be reasonably ranged, if they go up to 1e9 then we should compress outside
+// base = (rawEdge) -> mapped val
+// mergeFn(edgeVal1, edgeVal2) -> edgeVal3
+template<typename T, typename V, typename BaseFn, typename MergeFn>
+struct LiftEdge {
+    int n, LOG;
+    vector<int> dep;
+    vector<vector<int>> up;
+    vector<vector<optional<T>>> upData;
+    BaseFn baseFn;
+    MergeFn mergeFn;
+
+    optional<T> mergeOpt(optional<T> a, optional<T> b) {
+        if (!a) return b;
+        if (!b) return a;
+        return mergeFn(*a, *b);
+    }
+
+    // O(n log n) build time and space
+    LiftEdge(int root, vector<tuple<int,int,V>>& edges,
+             BaseFn baseFn, MergeFn mergeFn)
+        : baseFn(baseFn), mergeFn(mergeFn) {
+        n = root;
+        for (auto [u, v, w] : edges) n = max({n, u, v});
+        n++;
+        LOG = max(1, __lg(n) + 1);
+        dep.assign(n, 0);
+        up.assign(LOG, vector<int>(n));
+        upData.assign(LOG, vector<optional<T>>(n, nullopt));
+        vector<vector<pair<int,V>>> g(n);
+        for (auto [u, v, w] : edges) {
+            g[u].push_back({v, w});
+            g[v].push_back({u, w});
+        }
+        vector<bool> vis(n, false);
+        queue<int> q;
+        q.push(root);
+        vis[root] = true;
+        up[0][root] = root;
+        while (!q.empty()) {
+            int v = q.front(); q.pop();
+            for (auto [u, w] : g[v]) {
+                if (vis[u]) continue;
+                vis[u] = true;
+                dep[u] = dep[v] + 1;
+                up[0][u] = v;
+                upData[0][u] = baseFn(w);   // edge above u
+                q.push(u);
+            }
+        }
+        for (int k = 1; k < LOG; k++)
+            for (int v = 0; v < n; v++) {
+                up[k][v] = up[k-1][up[k-1][v]];
+                upData[k][v] = mergeOpt(upData[k-1][v], upData[k-1][up[k-1][v]]);
+            }
+    }
+
+    // kth steps above `node`
+    // always returns root if k steps shoots past the root
+    // O(log N)
+    int kthAncestor(int node, int kth) {
+        for (int k = 0; k < LOG; k++)
+            if ((kth >> k) & 1) node = up[k][node];
+        return node;
+    }
+
+    // O(log N)
+    int lca(int a, int b) {
+        if (dep[a] < dep[b]) swap(a, b);
+        a = kthAncestor(a, dep[a] - dep[b]);
+        if (a == b) return a;
+        for (int k = LOG - 1; k >= 0; k--)
+            if (up[k][a] != up[k][b]) { a = up[k][a]; b = up[k][b]; }
+        return up[0][a];
+    }
+
+    // unweighted path distance from A<>B
+    // O(log N)
+    int pathDist(int a, int b) {
+        return dep[a] + dep[b] - 2 * dep[lca(a, b)];
+    }
+
+    // the median node, which is the only node on all three paths: A<>B, B<>C, A<>C
+    // O(log N)
+    int median(int a, int b, int c) {
+        return lca(a, b) ^ lca(a, c) ^ lca(b, c);
+    }
+
+    // k-th node on the A->B path, 1-indexed
+    // -1 if OOB
+    // O(log N)
+    int kthOnPath(int a, int b, int kth) {
+        int l = lca(a, b);
+        int da = dep[a] - dep[l], db = dep[b] - dep[l];
+        if (kth < 1 || kth > da + db + 1) return -1;
+        if (kth <= da + 1) return kthAncestor(a, kth - 1);
+        return kthAncestor(b, db - (kth - da - 1));
+    }
+
+    // how many edges to cross to get from `node` onto any node on the A<>B path
+    // O(log N)
+    int distToPath(int a, int b, int node) {
+        return pathDist(median(a, b, node), node);
+    }
+
+    // returns a bool if `node` is on the path A<>B
+    // O(log N)
+    bool inPath(int a, int b, int node) {
+        return median(a, b, node) == node;
+    }
+
+    // aggregated edgeValue for the k edges going up from `node` (edge above node first), nullopt if k==0
+    // O(log N)
+    optional<T> liftQuery(int node, int k) {
+        optional<T> acc = nullopt;
+        int rem = k;
+        for (int i = LOG - 1; i >= 0; i--)
+            if (rem >= (1 << i)) {
+                acc = mergeOpt(acc, upData[i][node]);
+                node = up[i][node];
+                rem -= (1 << i);
+            }
+        return acc;
+    }
+
+    // aggregated edgeValue for the A<>B path (edge above the LCA is NOT on the path); nullopt if A==B
+    // O(log N)
+    optional<T> pathQuery(int a, int b) {
+        int l = lca(a, b);
+        int da = dep[a] - dep[l], db = dep[b] - dep[l];
+        optional<T> left  = da > 0 ? liftQuery(a, da) : nullopt;
+        optional<T> right = db > 0 ? liftQuery(b, db) : nullopt;
+        return mergeOpt(left, right);
+    }
+
+    // lca of a and b if the tree were rooted at r instead of the build root
+    // O(log N)
+    int lcaUnderR(int r, int a, int b) {
+        return median(a, b, r);
+    }
+
+    // intersection of path a<>b and path x<>y (endpoint order doesn't matter).
+    // returns {p, q}, the endpoints of the shared subpath (p == q if a single node),
+    // or {-1, -1} if the two paths are disjoint.
+    // O(log N)
+    pair<int,int> pathIntersection(int a, int b, int x, int y) {
+        int cand[4] = { median(a, b, x), median(a, b, y),
+                        median(x, y, a), median(x, y, b) };
+        int onBoth[4], m = 0;
+        for (int i = 0; i < 4; i++)
+            if (inPath(a, b, cand[i]) && inPath(x, y, cand[i]))
+                onBoth[m++] = cand[i];
+        if (m == 0) return {-1, -1};
+        int p = onBoth[0], q = onBoth[0], best = -1;
+        for (int i = 0; i < m; i++)
+            for (int j = i; j < m; j++) {
+                int d = pathDist(onBoth[i], onBoth[j]);
+                if (d > best) { best = d; p = onBoth[i]; q = onBoth[j]; }
+            }
+        return {p, q};
+    }
+};
+
+template<typename V, typename BaseFn, typename MergeFn>
+auto makeLiftEdge(int root, vector<tuple<int,int,V>>& edges,
+                  BaseFn base, MergeFn merge) {
+    using T = invoke_result_t<BaseFn, V>;
+    return LiftEdge<T, V, BaseFn, MergeFn>(root, edges, base, merge);
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n, m; cin >> n >> m;
+    vector<tuple<int,int,int>> edges;
+    vector<tuple<int,int,int>> queries;
+    for (int i = 0; i < m; i++) {
+        int a, b, w; cin >> a >> b >> w;
+        edges.push_back({a, b, w});
+        queries.push_back({a, b, w});
+    }
+    sort(edges.begin(), edges.end(), [](const auto& x, const auto& y) {
+        return get<2>(x) < get<2>(y);
+    });
+
+    vector<int> nodes;
+    for (int i = 1; i <= n; i++) {
+        nodes.push_back(i);
+    }
+    DSU<int> dsu(nodes);
+
+    vector<tuple<int,int,int>> mst; // all edges in mst
+    for (auto [a, b, w] : edges) {
+        if (dsu.unite(a - 1, b - 1)) {
+            mst.push_back({a, b, w});
+        }
+    }
+
+    struct EdgeData {
+        long long mx;
+    };
+    auto base = [&](long long w) -> EdgeData {
+        return {w};
+    };
+    auto mergeFn = [&](EdgeData a, EdgeData b) -> EdgeData {
+        return {max(a.mx, b.mx)};
+    };
+    auto lifter = makeLiftEdge(1, mst, base, mergeFn);
+
+    for (auto [a, b, w] : queries) {
+       auto mxOnPath = lifter.pathQuery(a, b);
+       if (mxOnPath->mx == w) {
+        cout << "YES" << '\n';
+       } else {
+        cout << "NO" << '\n';
+       }
+    }
+
+}
