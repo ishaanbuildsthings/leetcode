@@ -23,7 +23,7 @@ def strictlyIncreasingLisAndSequence(nums):
         if pos > 0:
             prevIndex[i] = tailsIndex[pos - 1]
 
-    length = len(tails)
+length = len(tails)
     seq = []
     idx = tailsIndex[-1]
     while idx != -1:
