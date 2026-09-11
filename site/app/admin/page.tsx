@@ -2950,6 +2950,8 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
   const [page, setPage] = useState(1);
   const [fullView, setFullView] = useState(false);
   const [greatOnly, setGreatOnly] = useState(false);
+  const [leetgoat222Only, setLeetgoat222Only] = useState(false);
+  const [leetgoatAdvancedOnly, setLeetgoatAdvancedOnly] = useState(false);
   const [tagFilterId, setTagFilterId] = useState<string>("");
   const [tagFilterRoles, setTagFilterRoles] = useState<{ core: boolean; secondary: boolean; mention: boolean }>({
     core: true,
@@ -2965,6 +2967,8 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
     pageSize: PROBLEMS_PER_PAGE,
     fullView,
     greatOnly,
+    leetgoat222Only,
+    leetgoatAdvancedOnly,
     platformId: platformFilterId || undefined,
     platformDifficulty: difficultyFilter || undefined,
     tagId: tagFilterId || undefined,
@@ -3022,6 +3026,8 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
           ? `Showing all ${totalProblems}`
           : `Showing ${totalProblems === 0 ? 0 : startIdx + 1}–${Math.min(startIdx + PROBLEMS_PER_PAGE, totalProblems)} of ${totalProblems}`}
         {greatOnly && <span className="ml-2 text-yellow-700">(great only)</span>}
+        {leetgoat222Only && <span className="ml-2 text-indigo-700">(LeetGoat 222 only)</span>}
+        {leetgoatAdvancedOnly && <span className="ml-2 text-indigo-700">(LeetGoat Advanced only)</span>}
         {activePlatformName && (
           <span className="ml-2 text-emerald-700">
             (platform: {activePlatformName})
@@ -3052,6 +3058,24 @@ function ProblemsList({ editingProblem, onEdit, onCloseEdit }: { editingProblem:
             className="w-3.5 h-3.5 text-yellow-600 border-gray-300 rounded"
           />
           <span className={greatOnly ? "text-yellow-800 font-medium" : "text-gray-700"}>Great only</span>
+        </label>
+        <label className="flex items-center gap-1 text-sm mr-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={leetgoat222Only}
+            onChange={(e) => { setLeetgoat222Only(e.target.checked); setPage(1); }}
+            className="w-3.5 h-3.5 text-indigo-600 border-gray-300 rounded"
+          />
+          <span className={leetgoat222Only ? "text-indigo-800 font-medium" : "text-gray-700"}>LeetGoat 222</span>
+        </label>
+        <label className="flex items-center gap-1 text-sm mr-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={leetgoatAdvancedOnly}
+            onChange={(e) => { setLeetgoatAdvancedOnly(e.target.checked); setPage(1); }}
+            className="w-3.5 h-3.5 text-indigo-600 border-gray-300 rounded"
+          />
+          <span className={leetgoatAdvancedOnly ? "text-indigo-800 font-medium" : "text-gray-700"}>LeetGoat Advanced</span>
         </label>
         <select
           value={platformFilterId}

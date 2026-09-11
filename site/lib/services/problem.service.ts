@@ -105,6 +105,8 @@ export async function unsafe_listProblemsPaged(opts: {
   pageSize?: number;
   fullView?: boolean;
   greatOnly?: boolean;
+  leetgoat222Only?: boolean;
+  leetgoatAdvancedOnly?: boolean;
   platformId?: string;
   platformDifficulty?: string;
   tagId?: string;
@@ -114,6 +116,8 @@ export async function unsafe_listProblemsPaged(opts: {
 }) {
   const where: Prisma.problemsWhereInput = {};
   if (opts.greatOnly) where.is_great_problem = true;
+  if (opts.leetgoat222Only) where.is_leetgoat_222 = true;
+  if (opts.leetgoatAdvancedOnly) where.is_leetgoat_advanced = true;
   if (opts.platformId) where.platform_id = opts.platformId;
   if (opts.platformDifficulty) where.platform_difficulty = opts.platformDifficulty;
   if (opts.tagId) {

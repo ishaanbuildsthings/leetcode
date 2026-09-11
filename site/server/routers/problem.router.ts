@@ -17,6 +17,8 @@ export const problemRouter = router({
         pageSize: z.number().int().min(1).max(200).optional(),
         fullView: z.boolean().optional(),
         greatOnly: z.boolean().optional(),
+        leetgoat222Only: z.boolean().optional(),
+        leetgoatAdvancedOnly: z.boolean().optional(),
         platformId: z.string().optional(),
         platformDifficulty: z.string().optional(),
         tagId: z.string().optional(),
