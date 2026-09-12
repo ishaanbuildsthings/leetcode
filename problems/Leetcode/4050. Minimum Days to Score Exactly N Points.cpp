@@ -1,3 +1,5 @@
+#include <bits/stdc++.h>
+using namespace std;
 short memo[100001][740];
 const short INF = 32000;
 
