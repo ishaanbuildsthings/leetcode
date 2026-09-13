@@ -1,162 +1,255 @@
 #include <bits/stdc++.h>
 using namespace std;
-
+// Merge sort tree with fractional cascading.
+// Build: O(n log n) time, ceil(log2 n) * n ints of space.
+// Every query: O(log n) — one binary search at the root, then an iterative
+// top-down walk, O(1) per level, no recursion and no per-node vectors.
+//
+// Two representational changes vs the straightforward version:
+//   * Nodes do not store their sorted values. Fractional cascading only ever
+//     binary searches the root, so only sortedVals is kept. A node's element
+//     count is tr - tl + 1, which the walk already tracks.
+//   * cntL is one flat array instead of 4n vectors. At any depth the segment
+//     tree nodes partition [0, n-1], and a node covering [tl, tr] owns exactly
+//     working-array slots tl..tr, so (depth, tl) addresses a node's prefix data
+//     with no offset table and no node index at all.
 struct MergeSortTree {
-    int n;
-    vector<vector<int>> tree; // each node stores a sorted vector of its elements
-    vector<vector<int>> cntL; // cntL[nodeI][j] = # of first j elements in tree[nodeI] from left child, meaning j=0 considers NO elements, so exclusive prefix
+    int n = 0, levels = 0;
+    vector<int> sortedVals;  // root's sorted values — the only array ever binary-searched
+    vector<int> cnt;         // cnt[d * n + tl + j] = # of the first (j+1) elements of the depth-d node starting at tl that live in its left child
 
     MergeSortTree() {}
+
     MergeSortTree(const vector<int>& arr) {
-        n = arr.size();
-        tree.resize(4 * n);
-        cntL.resize(4 * n);
-        build(arr, 1, 0, n - 1);
-    }
+        n = (int)arr.size();
+        if (n == 0) return;
+        for (int w = 1; w < n; w <<= 1) levels++;
+        if (levels) cnt.assign((size_t)levels * n, 0);
+        sortedVals.resize(n);
 
-    void build(const vector<int>& arr, int nodeI, int tl, int tr) {
-        if (tl == tr) {
-            tree[nodeI] = {arr[tl]};
-            cntL[nodeI] = {0, 1};
-            return;
-        }
-        int mid = (tl + tr) / 2;
-        build(arr, 2 * nodeI, tl, mid);
-        build(arr, 2 * nodeI + 1, mid + 1, tr);
-
-        // merging with two pointers
-        auto& L = tree[2 * nodeI];
-        auto& R = tree[2 * nodeI + 1];
-        int sz = L.size() + R.size();
-        tree[nodeI].resize(sz);
-        cntL[nodeI].resize(sz + 1);
-        cntL[nodeI][0] = 0;
-        int li = 0, ri = 0, idx = 0;
-        while (li < (int)L.size() && ri < (int)R.size()) {
-            if (L[li] <= R[ri]) {
-                tree[nodeI][idx] = L[li++];
-                cntL[nodeI][idx + 1] = cntL[nodeI][idx] + 1;
-            } else {
-                tree[nodeI][idx] = R[ri++];
-                cntL[nodeI][idx + 1] = cntL[nodeI][idx];
+        // Indices ordered by value, ties by index — same tie rule as L[li] <= R[ri].
+        // Value and index are packed into one 64-bit word and LSD-radix sorted on
+        // the 32 value bits; the sort is stable, so equal values keep index order,
+        // and the sorted keys hand back sortedVals for free (no second sort).
+        vector<int> cur(n), buf(n);
+        {
+            vector<unsigned long long> src(n), dst(n);
+            for (int i = 0; i < n; i++)
+                src[i] = ((unsigned long long)(unsigned int)(arr[i] ^ 0x80000000u) << 32) | (unsigned int)i;
+            int histogram[4][256] = {};
+            for (int i = 0; i < n; i++) {
+                unsigned int key = (unsigned int)(src[i] >> 32);
+                histogram[0][key & 255]++;
+                histogram[1][(key >> 8) & 255]++;
+                histogram[2][(key >> 16) & 255]++;
+                histogram[3][key >> 24]++;
             }
-            idx++;
+            for (int pass = 0; pass < 4; pass++) {
+                int start[256], running = 0;
+                for (int b = 0; b < 256; b++) { start[b] = running; running += histogram[pass][b]; }
+                int shift = pass * 8;
+                for (int i = 0; i < n; i++) {
+                    unsigned int key = (unsigned int)(src[i] >> 32);
+                    dst[start[(key >> shift) & 255]++] = src[i];
+                }
+                src.swap(dst);
+            }
+            for (int i = 0; i < n; i++) {
+                sortedVals[i] = (int)((unsigned int)(src[i] >> 32) ^ 0x80000000u);
+                cur[i] = (int)(unsigned int)src[i];
+            }
         }
-        while (li < (int)L.size()) {
-            tree[nodeI][idx] = L[li++];
-            cntL[nodeI][idx + 1] = cntL[nodeI][idx] + 1;
-            idx++;
-        }
-        while (ri < (int)R.size()) {
-            tree[nodeI][idx] = R[ri++];
-            cntL[nodeI][idx + 1] = cntL[nodeI][idx];
-            idx++;
+
+        // Splitting a value-ordered index list on "index <= mid" preserves the
+        // ordering, so each level is one stable partition per node — a linear
+        // sequential pass, no merging and no allocation.
+        vector<pair<int, int>> nodes, next;
+        nodes.push_back({0, n - 1});
+        for (int d = 0; d < levels; d++) {
+            int* C = cnt.data() + (size_t)d * n;
+            next.clear();
+            for (auto [tl, tr] : nodes) {
+                if (tl == tr) continue;
+                int mid = (tl + tr) >> 1;
+                int lp = tl, rp = mid + 1, run = 0;
+                for (int j = tl; j <= tr; j++) {
+                    int id = cur[j];
+                    if (id <= mid) { buf[lp++] = id; run++; }
+                    else            { buf[rp++] = id; }
+                    C[j] = run;
+                }
+                next.push_back({tl, mid});
+                next.push_back({mid + 1, tr});
+            }
+            cur.swap(buf);
+            nodes.swap(next);
         }
     }
 
-    // --- count >= x ---
-
-    // p = number of elements < x in this node (cascaded from parent)
-    int _countGteX(int nodeI, int tl, int tr, int ql, int qr, int p) {
-        if (ql > tr || qr < tl) return 0;
-        if (ql <= tl && tr <= qr) return (int)tree[nodeI].size() - p;
-        int mid = (tl + tr) / 2;
-        int leftP = cntL[nodeI][p], rightP = p - leftP;
-        return _countGteX(2 * nodeI, tl, mid, ql, qr, leftP) +
-               _countGteX(2 * nodeI + 1, mid + 1, tr, ql, qr, rightP);
+    // # of the first p elements (in global sorted order) of the depth-d node
+    // starting at tl that live in that node's left child
+    inline int leftCount(int d, int tl, int p) const {
+        return p ? cnt[(size_t)d * n + tl + p - 1] : 0;
     }
+
+    // Sums, over the canonical nodes covering [ql, qr], how many of the p
+    // globally-smallest elements live in each. Descends from the root updating
+    // the cascaded p until [ql, qr] either covers the node or straddles its
+    // midpoint, then walks the two boundary paths down, adding whole sibling
+    // subtrees as it peels them off. Each boundary walk stops as soon as the
+    // node it is standing on is itself fully covered.
+    int countPrefix(int ql, int qr, int p) const {
+        int tl = 0, tr = n - 1, d = 0, mid, leftP;
+        for (;;) {
+            if (ql <= tl && tr <= qr) return p;
+            mid = (tl + tr) >> 1;
+            leftP = leftCount(d, tl, p);
+            if (qr <= mid)      { tr = mid;     p = leftP;     d++; }
+            else if (ql > mid)  { tl = mid + 1; p -= leftP;    d++; }
+            else break;
+        }
+        int res = 0;
+
+        // left boundary: cover [ql, mid] inside the left child
+        int a = tl, b = mid, pa = leftP, da = d + 1;
+        while (a < b && ql > a) {
+            int m = (a + b) >> 1;
+            int lp = leftCount(da, a, pa);
+            if (ql <= m) { res += pa - lp; b = m; pa = lp; }   // entire right child is inside [ql, qr]
+            else         { a = m + 1; pa -= lp; }
+            da++;
+        }
+        res += pa;
+
+        // right boundary: cover [mid + 1, qr] inside the right child
+        a = mid + 1; b = tr; pa = p - leftP; da = d + 1;
+        while (a < b && qr < b) {
+            int m = (a + b) >> 1;
+            int lp = leftCount(da, a, pa);
+            if (qr > m) { res += lp; a = m + 1; pa -= lp; }    // entire left child is inside [ql, qr]
+            else        { b = m; pa = lp; }
+            da++;
+        }
+        return res + pa;
+    }
+
+    // --- count ---
+
     // O(log n) — count elements >= x in [ql, qr]
-    // One binary search at the root for lower_bound(x), then fractional cascading passes p down in O(1) per level
-    int countGteX(int ql, int qr, int x) {
-        int p = (int)(lower_bound(tree[1].begin(), tree[1].end(), x) - tree[1].begin()); // # elements < x in entire tree
-        return _countGteX(1, 0, n - 1, ql, qr, p);
+    // Seeded with lower_bound(x) (elements < x) and complemented against the range size
+    int countGteX(int ql, int qr, int x) const {
+        if (ql < 0) ql = 0;
+        if (qr > n - 1) qr = n - 1;
+        if (ql > qr) return 0;
+        int p = (int)(lower_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin());
+        return (qr - ql + 1) - countPrefix(ql, qr, p);
     }
 
-    // --- count <= x ---
-
-    // p = number of elements <= x in this node (cascaded from parent)
-    int _countLteX(int nodeI, int tl, int tr, int ql, int qr, int p) {
-        if (ql > tr || qr < tl) return 0;
-        if (ql <= tl && tr <= qr) return p;
-        int mid = (tl + tr) / 2;
-        int leftP = cntL[nodeI][p], rightP = p - leftP;
-        return _countLteX(2 * nodeI, tl, mid, ql, qr, leftP) +
-               _countLteX(2 * nodeI + 1, mid + 1, tr, ql, qr, rightP);
-    }
     // O(log n) — count elements <= x in [ql, qr]
-    // One binary search at the root for upper_bound(x), then fractional cascading passes p down in O(1) per level
-    int countLteX(int ql, int qr, int x) {
-        int p = (int)(upper_bound(tree[1].begin(), tree[1].end(), x) - tree[1].begin()); // # elements <= x in entire tree
-        return _countLteX(1, 0, n - 1, ql, qr, p);
+    int countLteX(int ql, int qr, int x) const {
+        if (ql < 0) ql = 0;
+        if (qr > n - 1) qr = n - 1;
+        if (ql > qr) return 0;
+        int p = (int)(upper_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin());
+        return countPrefix(ql, qr, p);
     }
 
     // O(log n) — count elements in value range [valLow, valHigh] (inclusive) in index range [ql, qr]
-    // Computed as countLteX(valHigh) - countLteX(valLow - 1)
-    int countInRange(int ql, int qr, int valLow, int valHigh) {
+    int countInRange(int ql, int qr, int valLow, int valHigh) const {
         return countLteX(ql, qr, valHigh) - countLteX(ql, qr, valLow - 1);
     }
 
-    // --- find k-th element >= x by position ---
+    // --- find k-th by position ---
 
-    // returns {position, gteCount} where:
-    //   position = array index of the k-th element >= x found in this subtree's overlap with [ql,qr], or -1 if not enough
-    //   gteCount = how many elements >= x were found in this subtree's overlap with [ql,qr] (only meaningful when position == -1, used to adjust kRemaining for the right subtree)
-    // p = number of elements < x in this node (cascaded)
-    // kRemaining = how many more elements >= x we still need to find (decreases as left subtrees contribute partial counts)
-    pair<int, int> _findKthGteX(int nodeI, int tl, int tr, int ql, int qr, int kRemaining, int p) {
-        if (ql > tr || qr < tl) return {-1, 0};
-        int gteInNode = (int)tree[nodeI].size() - p;
-        if (ql <= tl && tr <= qr) {
-            if (gteInNode < kRemaining) return {-1, gteInNode}; // not enough in this entire subtree, pass count up
-            // enough elements exist in this subtree, but we don't know the exact index yet — must recurse to a leaf
-            if (tl == tr) return {tl, 1}; // reached a leaf, this is the exact position
+    struct Part { int d, tl, tr, p; };
+
+    // Same decomposition as countPrefix, but writes the canonical nodes out in
+    // LEFT-TO-RIGHT order. At most 2 * levels + 2 of them, so it fits in a
+    // caller-supplied stack buffer — the counting path stays allocation-free too.
+    int decompose(int ql, int qr, int p, Part* out) const {
+        int tl = 0, tr = n - 1, d = 0, mid, leftP;
+        for (;;) {
+            if (ql <= tl && tr <= qr) { out[0] = {d, tl, tr, p}; return 1; }
+            mid = (tl + tr) >> 1;
+            leftP = leftCount(d, tl, p);
+            if (qr <= mid)      { tr = mid;     p = leftP;  d++; }
+            else if (ql > mid)  { tl = mid + 1; p -= leftP; d++; }
+            else break;
         }
-        int mid = (tl + tr) / 2;
-        int leftP = cntL[nodeI][p], rightP = p - leftP;
-        auto [leftPos, leftGteCount] = _findKthGteX(2 * nodeI, tl, mid, ql, qr, kRemaining, leftP);
-        if (leftPos != -1) return {leftPos, 0}; // found answer in left subtree, 0 is a dummy — doesn't matter since position != -1
-        auto [rightPos, rightGteCount] = _findKthGteX(2 * nodeI + 1, mid + 1, tr, ql, qr, kRemaining - leftGteCount, rightP);
-        if (rightPos != -1) return {rightPos, 0}; // found answer in right subtree, 0 is a dummy
-        return {-1, leftGteCount + rightGteCount}; // answer not in this subtree, pass total count up so parent can adjust
-    }
-    // O(log n) — find the array index (position) of the k-th element >= x in [ql, qr] (1-indexed k, scanning left to right)
-    // Returns -1 if fewer than k elements >= x exist in range
-    // Note: this returns a POSITION (array index), not a VALUE
-    // One binary search at root, then walks down with fractional cascading, going left first to find the earliest position
-    int findKthGteX(int ql, int qr, int k, int x) {
-        int p = (int)(lower_bound(tree[1].begin(), tree[1].end(), x) - tree[1].begin()); // # elements < x in entire tree
-        return _findKthGteX(1, 0, n - 1, ql, qr, k, p).first;
-    }
+        int cntOut = 0;
 
-    // --- find k-th element <= x by position ---
-
-    // returns {position, lteCount} where:
-    //   position = array index of the k-th element <= x found in this subtree's overlap with [ql,qr], or -1 if not enough
-    //   lteCount = how many elements <= x were found in this subtree's overlap with [ql,qr] (only meaningful when position == -1, used to adjust kRemaining for the right subtree)
-    // p = number of elements <= x in this node (cascaded)
-    // kRemaining = how many more elements <= x we still need to find (decreases as left subtrees contribute partial counts)
-    pair<int, int> _findKthLteX(int nodeI, int tl, int tr, int ql, int qr, int kRemaining, int p) {
-        if (ql > tr || qr < tl) return {-1, 0};
-        int lteInNode = p;
-        if (ql <= tl && tr <= qr) {
-            if (lteInNode < kRemaining) return {-1, lteInNode}; // not enough in this entire subtree, pass count up
-            // enough elements exist in this subtree, but we don't know the exact index yet — must recurse to a leaf
-            if (tl == tr) return {tl, 1}; // reached a leaf, this is the exact position
+        // left walk collects right-to-left (the node it lands on is the leftmost), so reverse after
+        int a = tl, b = mid, pa = leftP, da = d + 1;
+        while (a < b && ql > a) {
+            int m = (a + b) >> 1;
+            int lp = leftCount(da, a, pa);
+            if (ql <= m) { out[cntOut++] = {da + 1, m + 1, b, pa - lp}; b = m; pa = lp; }
+            else         { a = m + 1; pa -= lp; }
+            da++;
         }
-        int mid = (tl + tr) / 2;
-        int leftP = cntL[nodeI][p], rightP = p - leftP;
-        auto [leftPos, leftLteCount] = _findKthLteX(2 * nodeI, tl, mid, ql, qr, kRemaining, leftP);
-        if (leftPos != -1) return {leftPos, 0}; // found answer in left subtree, 0 is a dummy — doesn't matter since position != -1
-        auto [rightPos, rightLteCount] = _findKthLteX(2 * nodeI + 1, mid + 1, tr, ql, qr, kRemaining - leftLteCount, rightP);
-        if (rightPos != -1) return {rightPos, 0}; // found answer in right subtree, 0 is a dummy
-        return {-1, leftLteCount + rightLteCount}; // answer not in this subtree, pass total count up so parent can adjust
+        out[cntOut++] = {da, a, b, pa};
+        reverse(out, out + cntOut);
+
+        // right walk already collects left-to-right
+        a = mid + 1; b = tr; pa = p - leftP; da = d + 1;
+        while (a < b && qr < b) {
+            int m = (a + b) >> 1;
+            int lp = leftCount(da, a, pa);
+            if (qr > m) { out[cntOut++] = {da + 1, a, m, lp}; a = m + 1; pa -= lp; }
+            else        { b = m; pa = lp; }
+            da++;
+        }
+        out[cntOut++] = {da, a, b, pa};
+        return cntOut;
     }
-    // O(log n) — find the array index (position) of the k-th element <= x in [ql, qr] (1-indexed k, scanning left to right)
-    // Returns -1 if fewer than k elements <= x exist in range
-    // Note: this returns a POSITION (array index), not a VALUE
-    // One binary search at root, then walks down with fractional cascading, going left first to find the earliest position
-    int findKthLteX(int ql, int qr, int k, int x) {
-        int p = (int)(upper_bound(tree[1].begin(), tree[1].end(), x) - tree[1].begin()); // # elements <= x in entire tree
-        return _findKthLteX(1, 0, n - 1, ql, qr, k, p).first;
+
+    // O(log n) — array index (POSITION, not value) of the k-th element >= x in
+    // [ql, qr], 1-indexed k, scanning left to right. Returns -1 if fewer than k exist.
+    int findKthGteX(int ql, int qr, int k, int x) const {
+        if (ql < 0) ql = 0;
+        if (qr > n - 1) qr = n - 1;
+        if (ql > qr || k <= 0) return -1;
+        int p0 = (int)(lower_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin());
+        Part parts[80];
+        int m = decompose(ql, qr, p0, parts);
+        for (int i = 0; i < m; i++) {
+            int d = parts[i].d, tl = parts[i].tl, tr = parts[i].tr, p = parts[i].p;
+            int gteInNode = (tr - tl + 1) - p;
+            if (k > gteInNode) { k -= gteInNode; continue; }
+            while (tl < tr) {
+                int mid = (tl + tr) >> 1;
+                int lp = leftCount(d, tl, p);
+                int leftGte = (mid - tl + 1) - lp;
+                if (k <= leftGte) { tr = mid; p = lp; }
+                else              { k -= leftGte; tl = mid + 1; p -= lp; }
+                d++;
+            }
+            return tl;
+        }
+        return -1;
+    }
+
+    // O(log n) — array index (POSITION, not value) of the k-th element <= x in
+    // [ql, qr], 1-indexed k, scanning left to right. Returns -1 if fewer than k exist.
+    int findKthLteX(int ql, int qr, int k, int x) const {
+        if (ql < 0) ql = 0;
+        if (qr > n - 1) qr = n - 1;
+        if (ql > qr || k <= 0) return -1;
+        int p0 = (int)(upper_bound(sortedVals.begin(), sortedVals.end(), x) - sortedVals.begin());
+        Part parts[80];
+        int m = decompose(ql, qr, p0, parts);
+        for (int i = 0; i < m; i++) {
+            int d = parts[i].d, tl = parts[i].tl, tr = parts[i].tr, p = parts[i].p;
+            if (k > p) { k -= p; continue; }
+            while (tl < tr) {
+                int mid = (tl + tr) >> 1;
+                int lp = leftCount(d, tl, p);
+                if (k <= lp) { tr = mid; p = lp; }
+                else         { k -= lp; tl = mid + 1; p -= lp; }
+                d++;
+            }
+            return tl;
+        }
+        return -1;
     }
 };
