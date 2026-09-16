@@ -21,7 +21,9 @@ HOW DO POTENTIALS WORK? (rangeMod example)
 
 First when we do A%B with A>=B, A always falls by at least half. If B is < half of A, then obviously A is halved. If it is bigger, it is obviously halved too.
 
-Consider all the values in the array. Each one can be halved at most logC times. There are N of them, so we have NlogC halvings.
+Think about the "potential" of the entire segment tree. There are N values in logN layers, so N log N values are captured across all segment tree nodes.
+Each value can be halved at most logC times, so the potential across the whole tree is N logN log C.
+
 
 There are 3 types of nodes in a seg tree:
 
@@ -36,17 +38,12 @@ in a normal segment tree we stop as soon as we hit one, here we do not
 We must show the # of fully covered nodes we visit is bounded, as the others are bounded, then our total visits is bounded
 
 When we visit a fully covered node and the max is < our mod, we terminate immediately (this falls into case 2)
-If it is not, there is at least one value in this range that is going to halve. We recurse to the children.
-
-Eventually that leaf gets halved, we can do NlogC halvings in total, and each time we do a halving,
-we visit logN nodes that contain that leaf.
+If it is not, there is at least one value in this range that is going to halve, dropping the potential of our entire tree. We recurse to the children.
 
 So at most we visit O(N logN logC) nodes in our rangeMod.
 
 POINT SET:
-This increases the potential of a node by adding up to logC halvings. Since we can call pointSet at most Q times, we increase potential
-by QlogC which is fine as that adds Q*logN*logC total work to rangeMod.
-
+This increases the potential of a logN nodes by logC each, so across Q point sets we increase potential by Q logN logC.
 
 */
 
@@ -183,3 +180,207 @@ struct SegTree_PERFORMANT {
 
 template <typename T>
 SegTree_PERFORMANT(const std::vector<T>&) -> SegTree_PERFORMANT<T>;
+
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// C = largest value in the array
+// O(n)                  build
+// O(logN)               pointSet(pos, newVal)  -- OVERWRITE, may RAISE the value
+// O(logN)               rangeSum(l, r)
+// O(logN * logC)        rangeMod(l, r, mod)    amortized
+// O(logN * logC)        rangeDiv(l, r, div)    amortized, floor division, needs div >= 2
+// O(logN * log(logC))   rangeSqrt(l, r)        amortized, floor sqrt
+// O(n) space
+
+struct Node {
+    int mx;
+    ll tot;
+};
+
+struct SegTree_INSTRUCTIVE {
+  vector<Node> tree;
+  int n;
+  
+  SegTree_INSTRUCTIVE(const vector<int>& arr) {
+    n = arr.size();
+    tree.resize(4 * n);
+    _build(1, 0, n - 1, arr);
+  }
+
+  Node _makeLeaf(int v) {
+    return Node{v, v};
+  }
+
+  Node _agg(Node left, Node right) {
+    return Node{max(left.mx, right.mx), left.tot + right.tot};
+  }
+
+  void _build(int nodeI, int tl, int tr, const vector<int>& arr) {
+    if (tl == tr) {
+        tree[nodeI] = _makeLeaf(arr[tl]);
+        return;
+    }
+    int tm = (tl + tr) / 2;
+    _build(2 * nodeI, tl, tm, arr);
+    _build(2 * nodeI + 1, tm + 1, tr, arr);
+    tree[nodeI] = _agg(tree[2 * nodeI], tree[2 * nodeI + 1]);
+  }
+
+  // floor of the square root, corrected since sqrt() can drift by one
+  int _isqrt(int v) {
+    if (v <= 0) return 0;
+    int r = (int)sqrt((double)v);
+    while (r > 0 && r > v / r) r--;
+    while ((r + 1) <= v / (r + 1)) r++;
+    return r;
+  }
+
+  void _rangeMod(int nodeI, int tl, int tr, int ql, int qr, int mod) {
+    // oob
+    if (qr < tl || ql > tr) return;
+
+    // leaf
+    if (tl == tr) {
+        int oldVal = tree[nodeI].mx;
+        int newVal = oldVal % mod;
+        tree[nodeI] = _makeLeaf(newVal);
+        return;
+    }
+
+    Node& node = tree[nodeI];
+    int tm = (tl + tr) / 2;
+
+    // fully inside
+    if (ql <= tl && qr >= tr) {
+        // everything here is already below mod, so a % mod == a
+        if (node.mx < mod) return;
+        _rangeMod(2 * nodeI, tl, tm, ql, qr, mod);
+        _rangeMod(2 * nodeI + 1, tm + 1, tr, ql, qr, mod);
+        tree[nodeI] = _agg(tree[2 * nodeI], tree[2 * nodeI + 1]);
+        return;
+    }
+
+    // partial
+    _rangeMod(2 * nodeI, tl, tm, ql, qr, mod);
+    _rangeMod(2 * nodeI + 1, tm + 1, tr, ql, qr, mod);
+    tree[nodeI] = _agg(tree[2 * nodeI], tree[2 * nodeI + 1]);
+  }
+
+  void rangeMod(int l, int r, int mod) {
+    _rangeMod(1, 0, n - 1, l, r, mod);
+  }
+
+  void _rangeDiv(int nodeI, int tl, int tr, int ql, int qr, int div) {
+    // oob
+    if (qr < tl || ql > tr) return;
+
+    // leaf
+    if (tl == tr) {
+        int oldVal = tree[nodeI].mx;
+        int newVal = oldVal / div;
+        tree[nodeI] = _makeLeaf(newVal);
+        return;
+    }
+
+    Node& node = tree[nodeI];
+    int tm = (tl + tr) / 2;
+
+    // fully inside
+    if (ql <= tl && qr >= tr) {
+        // only zeros left down here, and 0 / div == 0
+        if (node.mx < 1) return;
+        _rangeDiv(2 * nodeI, tl, tm, ql, qr, div);
+        _rangeDiv(2 * nodeI + 1, tm + 1, tr, ql, qr, div);
+        tree[nodeI] = _agg(tree[2 * nodeI], tree[2 * nodeI + 1]);
+        return;
+    }
+
+    // partial
+    _rangeDiv(2 * nodeI, tl, tm, ql, qr, div);
+    _rangeDiv(2 * nodeI + 1, tm + 1, tr, ql, qr, div);
+    tree[nodeI] = _agg(tree[2 * nodeI], tree[2 * nodeI + 1]);
+  }
+
+  void rangeDiv(int l, int r, int div) {
+    // div == 1 never shrinks anything, so the potential argument dies
+    if (div < 2) return;
+    _rangeDiv(1, 0, n - 1, l, r, div);
+  }
+
+  void _rangeSqrt(int nodeI, int tl, int tr, int ql, int qr) {
+    // oob
+    if (qr < tl || ql > tr) return;
+
+    // leaf
+    if (tl == tr) {
+        int oldVal = tree[nodeI].mx;
+        int newVal = _isqrt(oldVal);
+        tree[nodeI] = _makeLeaf(newVal);
+        return;
+    }
+
+    Node& node = tree[nodeI];
+    int tm = (tl + tr) / 2;
+
+    // fully inside
+    if (ql <= tl && qr >= tr) {
+        // 0 and 1 are fixed points, nothing under here can change
+        if (node.mx < 2) return;
+        _rangeSqrt(2 * nodeI, tl, tm, ql, qr);
+        _rangeSqrt(2 * nodeI + 1, tm + 1, tr, ql, qr);
+        tree[nodeI] = _agg(tree[2 * nodeI], tree[2 * nodeI + 1]);
+        return;
+    }
+
+    // partial
+    _rangeSqrt(2 * nodeI, tl, tm, ql, qr);
+    _rangeSqrt(2 * nodeI + 1, tm + 1, tr, ql, qr);
+    tree[nodeI] = _agg(tree[2 * nodeI], tree[2 * nodeI + 1]);
+  }
+
+  void rangeSqrt(int l, int r) {
+    _rangeSqrt(1, 0, n - 1, l, r);
+  }
+
+  void _pointSet(int nodeI, int tl, int tr, int pos, int val) {
+    if (tl == tr) {
+        tree[nodeI] = _makeLeaf(val);
+        return;
+    }
+    int tm = (tl + tr) / 2;
+    if (pos <= tm) {
+        _pointSet(2 * nodeI, tl, tm, pos, val);
+    } else {
+        _pointSet(2 * nodeI + 1, tm + 1, tr, pos, val);
+    }
+    tree[nodeI] = _agg(tree[2 * nodeI], tree[2 * nodeI + 1]);
+  }
+
+  void pointSet(int pos, int val) {
+    _pointSet(1, 0, n - 1, pos, val);
+  }
+
+  ll _rangeSum(int nodeI, int tl, int tr, int ql, int qr) {
+    // oob
+    if (ql > tr || qr < tl) return 0;
+    // full
+    if (ql <= tl && qr >= tr) {
+        return tree[nodeI].tot;
+    }
+    int tm = (tl + tr) / 2;
+    ll left = _rangeSum(2 * nodeI, tl, tm, ql, qr);
+    ll right = _rangeSum(2 * nodeI + 1, tm + 1, tr, ql, qr);
+    return left + right;
+  }
+
+  ll rangeSum(int l, int r) {
+    return _rangeSum(1, 0, n - 1, l, r);
+  }
+};
