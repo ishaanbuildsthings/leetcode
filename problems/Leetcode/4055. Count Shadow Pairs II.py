@@ -468,3 +468,101 @@ class Solution:
             sl.add(v)
 
         return totalPairs - beatenPairs - beatenByGte
+
+
+
+
+
+
+
+# SOLUTION 2, CDQ DIVIDE AND CONQUER
+# LEARNED FROM https://leetcode.com/problems/count-shadow-pairs-ii/solutions/8521241/pairs-as-rectangles-explained-bruteforce-svzg/
+# (thanks)
+
+def smallestGtX(sl, x):
+    i = sl.bisect_right(x)
+    return sl[i] if i < len(sl) else None
+
+def largestLtX(sl, x):
+    i = sl.bisect_left(x)
+    return sl[i - 1] if i else None
+
+# count of elements in value range L...R
+def countInRange(sl, l, r):
+    if l > r:
+        return 0
+    return sl.bisect_right(r) - sl.bisect_left(l)
+
+class Solution:
+    def shadowPairs(self, nums: list[int]) -> int:
+        
+        def countCrossPairs(left, right):
+            # for everything in left, we want to know the smallest value, to the right of it (but still in left) that is bigger, basically creating a ceiling
+            leftCeils = [inf] * len(left)
+            sl = SortedList()
+
+            events = [] # stores (eventType, value, payload)
+            # value is like where we open or close the event, payload is what that number was so we know to remove it
+            OPEN = 1
+            CLOSE = 2
+            ASK = 3
+
+            for i in range(len(left) - 1, -1, -1):
+                v = left[i]
+                smallestBigger = smallestGtX(sl, v)
+                if smallestBigger is not None:
+                    leftCeils[i] = smallestBigger
+                events.append((OPEN, v, v))
+                events.append((CLOSE, leftCeils[i], v))
+                sl.add(v)
+            
+            rightFloors = [-inf] * len(right)
+            sl = SortedList()
+            for i, v in enumerate(right):
+                largestSmaller = largestLtX(sl, v)
+                if largestSmaller is not None:
+                    rightFloors[i] = largestSmaller
+                events.append((ASK, v, rightFloors[i]))
+                sl.add(v)
+            
+
+            def compare(a, b):
+                aType, aValue, aPayload = a
+                bType, bValue, bPayload = b
+                if aValue < bValue:
+                    return -1
+                if bValue < aValue:
+                    return 1
+                if aType == ASK:
+                    return -1
+                if bType == ASK:
+                    return 1
+                return -1
+
+            events.sort(key=cmp_to_key(compare))
+
+            resHere = 0
+
+            active = SortedList() # open lefts
+
+            for e in events:
+                eType = e[0]
+                if eType == OPEN:
+                    active.add(e[2])
+                elif eType == CLOSE:
+                    active.remove(e[2])
+                else:
+                    high, low = e[1:]
+                    resHere += countInRange(active, low, high)
+
+            return resHere
+
+        def solve(arr):
+            if len(arr) <= 1:
+                return 0
+            n = len(arr)
+            left = arr[:n//2]
+            right = arr[n//2:]
+            return solve(left) + solve(right) + countCrossPairs(left, right)
+        
+        return solve(nums)

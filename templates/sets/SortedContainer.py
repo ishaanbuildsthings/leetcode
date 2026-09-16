@@ -33,3 +33,17 @@ def largestGteX(sl, x):
 
 def largestGtX(sl, x):
     return sl[-1] if sl and sl[-1] > x else None
+
+def smallestGtX(sl, x):
+    i = sl.bisect_right(x)
+    return sl[i] if i < len(sl) else None
+
+def smallestGteX(sl, x):
+    i = sl.bisect_left(x)
+    return sl[i] if i < len(sl) else None
+
+def smallestLteX(sl, x):
+    return sl[0] if sl and sl[0] <= x else None
+
+def smallestLtX(sl, x):
+    return sl[0] if sl and sl[0] < x else None
