@@ -51,5 +51,3 @@ class Solution:
         powed = matPow(T, n-1)
         finalVec = matVecMul(powed, vec)
         return sum(finalVec) % MOD
-
-
