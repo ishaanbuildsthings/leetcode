@@ -133,6 +133,7 @@ BRUTE_QUERIES = {
     "maxPrefixSum": ("lr", lambda a, l, r, c: max(sum(a[l:i + 1]) for i in range(l, r + 1))),
     "maxSuffixSum": ("lr", lambda a, l, r, c: max(sum(a[i:r + 1]) for i in range(l, r + 1))),
     "countValue": ("lr", lambda a, l, r, c: a[l:r + 1].count(c["number"])),
+    "countOccurrences": ("lrx", lambda a, l, r, x, c: a[l:r + 1].count(x)),
     "countDistinct": ("lr", lambda a, l, r, c: len(set(a[l:r + 1]))),
     "allDistinct": ("lr", lambda a, l, r, c: len(set(a[l:r + 1])) == r - l + 1),
     "rangeMode": ("lr", None),  # ties may return any mode: checked by _check_mode
@@ -220,7 +221,7 @@ def domain(folder, ops):
         return (lambda r: r.randint(0, 200)), nonneg_small, [], ctx
     if "rangeGcd" in ops:
         return (lambda r: r.randint(0, 60)), nonneg_small, [], ctx
-    if {"countDistinct", "allDistinct", "rangeMode", "doAllElementsAppearEvenFrequency"} & set(ops):
+    if {"countDistinct", "allDistinct", "rangeMode", "doAllElementsAppearEvenFrequency", "countOccurrences"} & set(ops):
         return (lambda r: r.randint(0, 6)), nonneg_small, [], ctx
     if "countValue" in ops:
         ctx["number"] = 3

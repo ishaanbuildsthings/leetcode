@@ -577,6 +577,166 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MaxAndMinAndCountsAndGteLteIndexSegmentTree.py"
   },
   {
+    "folder": "countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countOccurrences",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet"
+    ],
+    "dataStructureType": "positions",
+    "complexities": {
+      "countOccurrences": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "pos",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "a",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "note": "pos maps each value to its sorted indices (C++: an order-statistics tree per value; Python: plain sorted lists, so an assign is a memmove over that value's occurrences)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countOccurrences",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign"
+    ],
+    "dataStructureType": "sqrt",
+    "complexities": {
+      "countOccurrences": "sqrt(N)",
+      "pointAdd": "sqrt(N)",
+      "pointAssign": "sqrt(N)",
+      "pointChmax": "sqrt(N)",
+      "pointChmin": "sqrt(N)",
+      "pointGet": "1",
+      "rangeAdd": "sqrt(N)",
+      "rangeAssign": "sqrt(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "vals",
+            "size": "1*N"
+          },
+          {
+            "name": "cnt",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "add",
+            "size": "1*sqrt(N)"
+          },
+          {
+            "name": "asg",
+            "size": "1*sqrt(N)"
+          }
+        ],
+        "total": "2*sqrt(N)"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "sqrt(N) blocks; cnt[b] counts the block's stored values, and the block tag (assign, then add) is applied on read",
+      "total": "2*N+2*sqrt(N)"
+    }
+  },
+  {
+    "folder": "countOccurrences-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countOccurrences",
+      "pointGet"
+    ],
+    "dataStructureType": "positions",
+    "complexities": {
+      "countOccurrences": "log(N)",
+      "pointGet": "1"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "pos",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "arr",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "note": "pos maps each value to the sorted list of indices holding it",
+      "total": "2*N"
+    }
+  },
+  {
     "folder": "countValue-kthOccurrence-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
     "langs": [
       "py",
@@ -1051,6 +1211,171 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "each node is (sum, best prefix, best suffix, best subarray); the merge is not commutative, so a query folds a left and a right accumulator",
       "total": "8*N"
+    }
+  },
+  {
+    "folder": "maxPrefixSum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "maxPrefixSum",
+      "maxSuffixSum",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeSum"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "maxPrefixSum": "log(N)",
+      "maxSuffixSum": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "pre",
+            "size": "2*N"
+          },
+          {
+            "name": "suf",
+            "size": "2*N"
+          }
+        ],
+        "total": "6*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "each node is (sum, best prefix, best suffix); the merge is not commutative, so a query folds a left and a right accumulator",
+      "total": "6*N"
+    }
+  },
+  {
+    "folder": "maxPrefixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "maxPrefixSum",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeSum"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "maxPrefixSum": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "pre",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "each node is (sum, best prefix); the merge is not commutative, so a query folds a left and a right accumulator",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "maxSuffixSum",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeSum"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "maxSuffixSum": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "suf",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "each node is (sum, best suffix); the merge is not commutative, so a query folds a left and a right accumulator",
+      "total": "4*N"
     }
   },
   {

@@ -77,9 +77,9 @@ class AffineTree:
             l >>= 1
             r >>= 1
 
-    # O(logN) -- a[i] = a[i] * m + b (mod p) for i in [l, r]
-    def rangeAffineMod(self, l, r, m, b):
-        self._update(l, r, m % self.mod, b % self.mod)
+    # O(logN) -- a[i] = a[i] * mult + add (mod p) for i in [l, r]
+    def rangeAffineMod(self, l, r, mult, add):
+        self._update(l, r, mult % self.mod, add % self.mod)
 
     # O(logN) -- a[i] = a[i] * m (mod p) for i in [l, r]
     def rangeMultMod(self, l, r, m):

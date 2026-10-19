@@ -69,8 +69,8 @@ struct AffineTree {
         }
     }
 
-    // O(logN) -- a[i] = a[i] * m + b (mod p) for i in [l, r]
-    void rangeAffineMod(int l, int r, T m, T b) { update(l, r, norm(m), norm(b)); }
+    // O(logN) -- a[i] = a[i] * mult + add (mod p) for i in [l, r]
+    void rangeAffineMod(int l, int r, T mult, T add) { update(l, r, norm(mult), norm(add)); }
 
     // O(logN) -- a[i] = a[i] * m (mod p) for i in [l, r]
     void rangeMultMod(int l, int r, T m) { update(l, r, norm(m), 0); }

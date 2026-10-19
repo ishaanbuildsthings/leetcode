@@ -65,10 +65,10 @@ struct AffineSegTree {
         for (p >>= 1; p; p >>= 1, len <<= 1) tot[p] = norm((W(tot[2 * p]) + tot[2 * p + 1]) * mult[p] + W(add[p]) * len % mod);
     }
 
-    // O(logN) -- a[i] = a[i] * m + x (mod p) for i in [l, r]; every other range update is this one
-    void rangeAffineMod(int l, int r, T m, T x) {
+    // O(logN) -- a[i] = a[i] * mult + add (mod p) for i in [l, r]; every other range update is this one
+    void rangeAffineMod(int l, int r, T mult, T add) {
         if (l > r) return;
-        m = norm(m), x = norm(x);
+        T m = norm(mult), x = norm(add);
         int l0 = l + size, r0 = r + size;
         pushToRoot(l0), pushToRoot(r0);
         for (int lo = l0, hi = r0 + 1, len = 1; lo < hi; lo >>= 1, hi >>= 1, len <<= 1) {

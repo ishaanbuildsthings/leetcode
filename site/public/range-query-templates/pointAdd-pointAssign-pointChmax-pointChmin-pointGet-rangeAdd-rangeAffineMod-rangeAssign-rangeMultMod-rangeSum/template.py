@@ -137,13 +137,13 @@ class AffineSeg_PERFORMANT:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # O(log n) -- a[i] = a[i]*m + x for every i in l...r. every other update is this one
-    def rangeAffineMod(self, l, r, m, x):
+    # O(log n) -- a[i] = a[i]*mult + add for every i in l...r. every other update is this one
+    def rangeAffineMod(self, l, r, mult, add):
         if l > r:
             return
         mod = self.mod
-        m %= mod
-        x %= mod
+        m = mult % mod
+        x = add % mod
         l0, r0 = l + self.size, r + self.size
         self._pushToRoot(l0)
         self._pushToRoot(r0)

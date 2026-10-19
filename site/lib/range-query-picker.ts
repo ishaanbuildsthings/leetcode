@@ -31,6 +31,7 @@ export type OpId =
   | "rangeAndQuery"
   | "rangeOrQuery"
   | "countValue"
+  | "countOccurrences"
   | "countDistinct"
   | "allDistinct"
   | "rangeMode"
@@ -126,7 +127,7 @@ export const OP_GROUPS: OpGroup[] = [
         label: "Other",
         ops: [
           { id: "rangeMultMod", signature: "rangeMultMod(l, r, m)", description: "a[i] = a[i] · m  (mod p)" },
-          { id: "rangeAffineMod", signature: "rangeAffineMod(l, r, m, b)", description: "Multiply then add: a[i] = a[i] · m + b  (mod p)", showArgs: true },
+          { id: "rangeAffineMod", signature: "rangeAffineMod(l, r, mult, add)", description: "Multiply then add: a[i] = a[i] · mult + add  (mod p)", showArgs: true },
           { id: "rangeAddArithSeq", signature: "rangeAddArithSeq(l, r, start, step)", description: "a[l] += start, a[l+1] += start+step, …", showArgs: true },
           { id: "rangeAddArithSeqMod", signature: "rangeAddArithSeqMod(l, r, start, step)", description: "Same, under mod p", showArgs: true },
           { id: "rangeMod", signature: "rangeMod(l, r, mod)", description: "a[i] %= mod", showArgs: true },
@@ -172,6 +173,7 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "rangeLcm", signature: "rangeLcm(l, r)", description: "lcm of a[l]…a[r]" },
           { id: "rangeMode", signature: "rangeMode(l, r)", description: "(mode, frequency) of a[l]…a[r]" },
           { id: "allDistinct", signature: "allDistinct(l, r)", description: "Are all values in a[l]…a[r] distinct?" },
+          { id: "countOccurrences", signature: "countOccurrences(l, r, x)", description: "# of i in [l, r] with a[i] = x" },
           { id: "countValue", signature: "countValue(l, r)", description: "# of times the value set at build appears in a[l]…a[r]" },
         ],
       },
@@ -233,6 +235,7 @@ export const OP_GROUPS: OpGroup[] = [
 
 // Ordered lightest to heaviest constant factor; used to break ties between templates.
 export const DATA_STRUCTURE_TYPES = [
+  "positions",
   "sparse-table",
   "BIT",
   "seg-tree",
@@ -246,6 +249,7 @@ export const DATA_STRUCTURE_TYPES = [
 export type DataStructureType = (typeof DATA_STRUCTURE_TYPES)[number];
 
 export const DATA_STRUCTURE_TYPE_LABELS: Record<DataStructureType, string> = {
+  positions: "Position lists",
   "sparse-table": "Sparse table",
   BIT: "BIT",
   "seg-tree": "Seg tree",
@@ -276,17 +280,10 @@ export interface RangeQueryTemplate {
 export type TreeLayout = "2n-iterative" | "pow2-iterative" | "4n-recursive" | "none";
 
 export const TREE_LAYOUT_LABELS: Record<TreeLayout, string> = {
-  "2n-iterative": "2N iterative tree (n leaves, bottom-up)",
-  "pow2-iterative": "Iterative tree, 2·size with size the next power of two (2N to 4N)",
+  "2n-iterative": "2N iterative tree",
+  "pow2-iterative": "4N iterative tree",
   "4n-recursive": "4N recursive tree",
-  none: "Not a segment tree",
-};
-
-export const TREE_LAYOUT_SHORT: Record<TreeLayout, string | null> = {
-  "2n-iterative": "2N iterative",
-  "pow2-iterative": "2N–4N iterative",
-  "4n-recursive": "4N recursive",
-  none: null,
+  none: "not a segment tree",
 };
 
 // Every array a template allocates, with its length (e.g. "4*N"), grouped by role. Totals are computed by the generator.

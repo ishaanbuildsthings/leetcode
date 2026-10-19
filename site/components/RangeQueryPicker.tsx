@@ -9,8 +9,6 @@ import {
   formatCost,
   formatMemory,
   TREE_LAYOUT_LABELS,
-  TREE_LAYOUT_SHORT,
-  type MemoryBreakdown,
   type Op,
   type OpId,
   type RangeQueryTemplate,
@@ -55,35 +53,46 @@ function matchTemplates(selected: Set<OpId>) {
     );
 }
 
-const MEMORY_GROUP_LABELS = { node: "Node data", tags: "Lazy tags", other: "Other" } as const;
-const MEMORY_GROUPS = ["node", "tags", "other"] as const;
+type MemoryGroupId = "node" | "tags" | "other";
 
-// "32N node + 20N tags": the non-empty groups, for the card line.
-function memorySplit(memory: MemoryBreakdown): string | null {
-  const parts = MEMORY_GROUPS.filter((g) => memory[g].arrays.length).map((g) => {
-    const size = formatMemory(memory[g].total);
-    return `${size.includes(" + ") ? `(${size})` : size} ${g}`;
-  });
-  return parts.length > 1 ? parts.join(" + ") : null;
+// The memory lines a template shows, named for its kind of structure: a sparse table has a table, not nodes,
+// and only segment trees (and sqrt blocks) carry lazy tags. "other" is anything outside the main structure,
+// like a copy of the input or prefix sums.
+function memoryGroups(template: RangeQueryTemplate): { id: MemoryGroupId; label: string }[] {
+  const { memory, dataStructureType: type } = template;
+  const groups: { id: MemoryGroupId; label: string }[] = [
+    { id: "node", label: type === "sparse-table" ? "Table" : type === "sqrt" ? "Blocks" : type === "positions" ? "Lists" : "Node data" },
+  ];
+  if (memory.layout !== "none" || memory.tags.arrays.length > 0) groups.push({ id: "tags", label: "Lazy tags" });
+  if (memory.other.arrays.length > 0) groups.push({ id: "other", label: "Extra arrays" });
+  return groups;
 }
 
-function MemoryPanel({ memory }: { memory: MemoryBreakdown }) {
+// "1 field" / "3 fields" / "none", for the card's memory lines.
+function fieldCount(n: number): string {
+  return n === 0 ? "none" : `${n} ${n === 1 ? "field" : "fields"}`;
+}
+
+function MemoryPanel({ template }: { template: RangeQueryTemplate }) {
+  const { memory } = template;
   return (
     <div className="border-b border-border px-4 py-3 text-xs">
       <p className="mb-1.5 font-semibold text-foreground">
         Memory {formatMemory(memory.total)}
-        <span className="ml-2 font-normal text-muted-foreground">{TREE_LAYOUT_LABELS[memory.layout]}</span>
+        {memory.layout !== "none" && (
+          <span className="ml-2 font-normal text-muted-foreground">{TREE_LAYOUT_LABELS[memory.layout]}</span>
+        )}
       </p>
       <div className="grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-1">
-        {MEMORY_GROUPS.map((g) => {
-          const { arrays, total } = memory[g];
+        {memoryGroups(template).map(({ id, label }) => {
+          const { arrays, total } = memory[id];
           const uniform = arrays.every((a) => a.size === arrays[0].size);
           const count = arrays.length;
           return (
-            <div key={g} className="contents">
+            <div key={id} className="contents">
               <span className="text-muted-foreground">
-                {MEMORY_GROUP_LABELS[g]}
-                {count > 0 && ` (${count} ${count === 1 ? "field" : "fields"})`}
+                {label}
+                {count > 0 && id !== "other" && ` (${fieldCount(count)})`}
               </span>
               <span className="text-foreground">{count ? formatMemory(total) : "0"}</span>
               <span className="font-mono text-muted-foreground">
@@ -234,7 +243,7 @@ function CodeDrawer({
           <span className="font-mono text-muted-foreground">build</span>
           <span className="text-muted-foreground">{formatCost(template.build)}</span>
         </div>
-        <MemoryPanel memory={template.memory} />
+        <MemoryPanel template={template} />
         <pre className="flex-1 overflow-auto bg-card p-4 font-mono text-xs leading-relaxed text-foreground">
           {failed ? "Couldn't load this template." : (code ?? "Loading…")}
         </pre>
@@ -283,10 +292,18 @@ export function RangeQueryPicker() {
 
   return (
     <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-24 font-[family-name:var(--font-dm-sans)]">
-      <header className="mb-6">
+      <header className="mb-6 flex items-center justify-between gap-4">
         <h1 className="font-[family-name:var(--font-playfair)] text-3xl font-bold text-foreground">
           Range Query Picker
         </h1>
+        <button
+          type="button"
+          onClick={() => setSelected(new Set())}
+          disabled={selectedOps.length === 0}
+          className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent"
+        >
+          Unselect all
+        </button>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -417,16 +434,11 @@ export function RangeQueryPicker() {
                           <span className="text-xs font-medium text-foreground">
                             {DATA_STRUCTURE_TYPE_LABELS[template.dataStructureType]}
                           </span>
-                          <span className="flex items-center gap-1.5">
-                            {i === 0 && (
-                              <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                                Best match
-                              </span>
-                            )}
-                            <span className="font-mono text-[10px] uppercase text-muted-foreground">
-                              {template.langs.map((l) => (l === "cpp" ? "C++" : "PY")).join(" · ")}
+                          {i === 0 && (
+                            <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                              Best match
                             </span>
-                          </span>
+                          )}
                         </span>
                         <span className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px] leading-snug">
                           {costs.map((c) => (
@@ -435,18 +447,22 @@ export function RangeQueryPicker() {
                               <span className="text-foreground">{formatCost(c.cost)}</span>
                             </span>
                           ))}
+                          <span className="font-mono text-muted-foreground">build</span>
+                          <span className="text-foreground">{formatCost(template.build)}</span>
                         </span>
-                        <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] leading-snug text-muted-foreground">
-                          <span>
+                        <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
+                          <span className="block">
                             Memory <span className="text-foreground">{formatMemory(template.memory.total)}</span>
-                            {memorySplit(template.memory) && <span> ({memorySplit(template.memory)})</span>}
+                            {template.memory.layout !== "none" && ` (${TREE_LAYOUT_LABELS[template.memory.layout]})`}
                           </span>
-                          {TREE_LAYOUT_SHORT[template.memory.layout] && (
-                            <span>· {TREE_LAYOUT_SHORT[template.memory.layout]}</span>
-                          )}
-                          <span>
-                            · Build <span className="text-foreground">{formatCost(template.build)}</span>
-                          </span>
+                          {memoryGroups(template).map(({ id, label }) => (
+                            <span key={id} className="block pl-3">
+                              {label} —{" "}
+                              {id === "other"
+                                ? template.memory.other.arrays.map((a) => a.name).join(", ")
+                                : fieldCount(template.memory[id].arrays.length)}
+                            </span>
+                          ))}
                         </span>
                         {extra.length > 0 && (
                           <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
