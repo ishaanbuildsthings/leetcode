@@ -300,6 +300,10 @@ def expected_outputs(trials, ctx):
 
 
 def matches(got_text, want, wrap64=False):
+    if isinstance(want, tuple) and want and want[0] == "modecounts":
+        parts = got_text.split()
+        tot = want[1]
+        return len(parts) == 2 and int(parts[1]) == max(tot.values()) == tot.get(int(parts[0]), -1)
     if wrap64 and type(want) is int and not -2**63 <= want < 2**63:
         want = (want + 2**63) % 2**64 - 2**63  # C++ sums wrap: exact whenever the true value fits in 64 bits
     if isinstance(want, tuple) and want and want[0] == "mode":
@@ -445,12 +449,57 @@ def sparse_query(op, R, args, ctx):
                 order = runs if side == "leftmost" else runs[::-1]
                 hit = next(((s_, e) for s_, e, v in order if cmp(v, xs[0])), None)
                 return R.lo - 1 if hit is None else (hit[0] if side == "leftmost" else hit[1])
+    n_of = lambda run: run[1] - run[0] + 1  # noqa: E731
+    if op == "countValue": return sum(n_of(x) for x in runs if x[2] == ctx["number"])
+    if op == "countOccurrences": return sum(n_of(x) for x in runs if x[2] == xs[0])
+    if op == "countDistinct": return len(set(vals))
+    if op == "allDistinct": return all(n_of(x) == 1 for x in runs) and len(set(vals)) == len(vals)
+    if op == "doAllElementsAppearEvenFrequency":
+        tot = Counter()
+        for x in runs:
+            tot[x[2]] += n_of(x)
+        return all(c % 2 == 0 for c in tot.values())
+    if op == "rangeMode":
+        tot = Counter()
+        for x in runs:
+            tot[x[2]] += n_of(x)
+        return ("modecounts", tot)
+    if op == "rangeLIS": return _lis(vals)
+    if op == "countInValRange": return sum(n_of(x) for x in runs if xs[0] <= x[2] <= xs[1])
+    if op == "sumInValRange": return sum(n_of(x) * x[2] for x in runs if xs[0] <= x[2] <= xs[1])
+    if op == "costMonoIncreasing": return _cost_pieces([(v, e - s_ + 1, 0) for s_, e, v in runs])
+    if op == "costMonoDecreasing": return _cost_pieces([(v, e - s_ + 1, 0) for s_, e, v in runs[::-1]])
+    if op == "costStrictIncreasing": return _cost_pieces([(v - (s_ - l), e - s_ + 1, -1) for s_, e, v in runs])
+    if op == "costStrictDecreasing": return _cost_pieces([(v + (e - l), e - s_ + 1, -1) for s_, e, v in runs[::-1]])
+    if op == "kthOccurrence": return _runs_kth(runs, xs[0], lambda v: v == ctx["number"], R.lo)
+    for name, cmp in CMP.items():
+        if op == f"kth{name}X":
+            return _runs_kth(runs, xs[0], lambda v, cmp=cmp: cmp(v, xs[1]), R.lo)
     raise KeyError(f"no sparse brute force for {op}")
 
 
-SPARSE_QUERY_OPS = {"rangeSum", "rangeSumMod", "rangeMin", "rangeMax", "rangeGcd", "rangeAndQuery", "rangeOrQuery",
-                    "maxSubarraySum", "maxPrefixSum", "maxSuffixSum", "longestEqualRun", "maxAltSubseqSum",
-                    "leftmostPrefixSumGteX", "leftmostPrefixSumGtX"} | {f"{s_}{c}X" for s_ in SIDE for c in CMP}
+def _runs_kth(runs, k, pred, lo):  # index of the k-th i (1-indexed) whose value passes pred, or lo - 1
+    if k <= 0:
+        return lo - 1
+    for s_, e, v in runs:
+        if pred(v):
+            n = e - s_ + 1
+            if k <= n:
+                return s_ + k - 1
+            k -= n
+    return lo - 1
+
+
+def _cost_pieces(pieces):
+    """min +1 increments to make a sequence non-decreasing, given as pieces (start value, length, slope) whose
+    values are start + slope * t with slope 0 or -1 (so a piece's own max is its first value)."""
+    mx, cost = None, 0
+    for sv, n, slope in pieces:
+        mx = sv if mx is None else max(mx, sv)
+        cost += n * (mx - sv) - slope * n * (n - 1) // 2
+    return cost
+
+
 AP_OPS = {"rangeAddArithSeq", "rangeAddArithSeqMod"}
 
 
@@ -478,8 +527,11 @@ def sparse_expected(trials, ctx, ops):
     linear = bool(AP_OPS & set(ops))
     mod, full = ctx["mod"], ctx["full"]
     exp = []
-    for (lo, hi), seq in trials:
+    for head, seq in trials:
+        lo, hi = head[:2]
         R = Linear() if linear else Runs(lo, hi)
+        for i, v in (head[2] if len(head) > 2 else []):
+            R.update(i, i, lambda _v, v=v: v)
         get = (lambda i: R.get(i) % mod) if (linear and mod) else R.get
         for op, args in seq:
             if op == "pointGet":
@@ -530,6 +582,9 @@ def make_sparse_trials(folder, ops, trials):
         pool = {lo, hi} | {rng.randint(lo, hi) for _ in range(rng.randint(1, 12))}
         pool |= {min(hi, p + 1) for p in list(pool)[:4]}  # neighbours, to hit run boundaries
         pool = sorted(pool)
+        head = (lo, hi)
+        if not updates:  # static: built from (index, value) points, every other index 0
+            head = (lo, hi, [(i, gen(rng)) for i in sorted(rng.sample(pool, rng.randint(0, len(pool))))])
         seq = []
         for _ in range(OPS_PER_TRIAL):
             op = rng.choice(updates) if updates and rng.random() < 0.5 else rng.choice(queries or updates)
@@ -541,21 +596,32 @@ def make_sparse_trials(folder, ops, trials):
                 l, r = sorted((rng.choice(pool), rng.choice(pool)))
                 if op in RANGE_UPDATES:
                     args = [l, r] + update_args(op, rng, gen, ctx["mod"])
-                elif BRUTE_QUERIES.get(op, ("lr",))[0] == "lrx":
-                    args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op else gen(rng)]
                 else:
-                    args = [l, r]
+                    kind = BRUTE_QUERIES.get(op, ("lr",))[0]
+                    k = rng.choice([rng.randint(0, 5), rng.randint(1, 10**12)])
+                    if kind == "lrx":
+                        args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op else gen(rng)]
+                    elif kind == "lrkx":
+                        args = [l, r, k, gen(rng)]
+                    elif kind == "lrk":
+                        args = [l, r, k]
+                    elif kind == "lrlohi":
+                        args = [l, r, *sorted((gen(rng), gen(rng)))]
+                    else:
+                        args = [l, r]
             seq.append((op, args))
-        out.append(((lo, hi), seq))
+        out.append((head, seq))
     return out, ctx
 
 
 # ------------------------------------------------------------------------------------------------ Python side
 
 def owner(op, table):
-    """The class/struct implementing op, preferring the one implementing the most ops overall."""
+    """The class/struct implementing op, preferring the one implementing the most ops overall, then the one defined
+    last in the file (a wrapper is defined after the class it wraps). table is in file order."""
+    order = {n: k for k, n in enumerate(table)}
     cands = [n for n, ms in table.items() if op in ms]
-    return max(cands, key=lambda n: (len(table[n]), n)) if cands else None
+    return max(cands, key=lambda n: (len(table[n]), order[n])) if cands else None
 
 
 def run_python(folder, ops, trials, ctor_extra, stem="template"):
@@ -564,6 +630,8 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     classes = {n: c for n, c in inspect.getmembers(mod, inspect.isclass) if c.__module__ == mod.__name__}
+    src = open(path).read()
+    classes = dict(sorted(classes.items(), key=lambda kv: src.find(f"class {kv[0]}")))  # file order
     table = {n: {o for o in ops if hasattr(c, o)} for n, c in classes.items()}
     missing = [o for o in ops if owner(o, table) is None]
     if missing:
@@ -620,7 +688,8 @@ def cpp_structs(path):
 
 
 def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
-    owners = {op: owner(op, structs) for op in ops}
+    table = {n: ms & set(ops) for n, ms in structs.items()}  # rank structs by the operations they implement
+    owners = {op: owner(op, table) for op in ops}
     missing = [op for op, o in owners.items() if o is None]
     if missing:
         raise RuntimeError(f"{stem}.cpp has no method for {missing}")
@@ -637,7 +706,11 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
         "  int cases; cin >> cases;",
         "  while (cases--) {",
     ]
-    if stem == "sparse":
+    if stem == "sparse" and not any(o in POINT_UPDATES or o in RANGE_UPDATES for o in ops):
+        lines += ["    long long lo, hi; cin >> lo >> hi;", "    int np; cin >> np; vector<pair<long long, long long>> pts(np);",
+                  "    for (auto& [i, v] : pts) cin >> i >> v;", "    int q; cin >> q;"]
+        lines += [f"    {s}<long long> s_{s}(lo, hi, pts{extra});" for s in used]
+    elif stem == "sparse":
         lines += ["    long long lo, hi; cin >> lo >> hi;", "    int q; cin >> q;"]
         lines += [f"    {s}<long long> s_{s}(lo, hi{extra});" for s in used]
     else:
@@ -684,7 +757,11 @@ def run_cpp(folder, ops, trials, ctor_extra, cxx, stem="template"):
         raise RuntimeError("compile error:\n" + comp.stderr[:3000])
     inp = [str(len(trials))]
     for a0, seq in trials:
-        inp += ([f"{a0[0]} {a0[1]}"] if stem == "sparse" else [str(len(a0)), " ".join(map(str, a0))]) + [str(len(seq))]
+        if stem == "sparse":
+            inp += [f"{a0[0]} {a0[1]}"] + ([f"{len(a0[2])} " + " ".join(f"{i} {v}" for i, v in a0[2])] if len(a0) > 2 else [])
+        else:
+            inp += [str(len(a0)), " ".join(map(str, a0))]
+        inp += [str(len(seq))]
         inp += [f"{op} {' '.join(map(str, args))}" for op, args in seq]
     run = subprocess.run([exe], input="\n".join(inp) + "\n", capture_output=True, text=True, timeout=300)
     if run.returncode:

@@ -2,9 +2,10 @@
 //   - lib/generated/range-query-templates.ts  (typed manifest; tsc rejects unknown operations or data structure types)
 //   - public/range-query-templates/<folder>/{template,sparse}.{py,cpp}  (static copies the picker fetches on click)
 //
-// A folder may also hold sparse.py / sparse.cpp: the same operations on a dynamic tree over any index range
-// [lo, hi] where every position starts at 0. Their header has the same format, with layout "sparse" and memory
-// sizes counted per update (e.g. node: sum[1*log(U)]); U there is the size of the index range [lo, hi].
+// A folder may also hold sparse.py / sparse.cpp: the same operations over any index range [lo, hi]. Their header
+// has the same format, with layout "sparse". For a template with updates every position starts at 0, memory sizes
+// are counted per update (e.g. node: sum[1*log(U)]) and U is the size of the index range; a static template's
+// sparse version is built from N (index, value) points instead (every other index 0), with costs and memory in N.
 // Run with: npm run gen:range-queries
 //
 // Header format (Python shown; C++ uses //):

@@ -283,8 +283,9 @@ export interface RangeQueryTemplate {
   build: string;
   memory: MemoryBreakdown;
   originalFileUrl?: string;
-  // The same operations on a dynamic tree over any index range [lo, hi], every position starting at 0.
-  // Its costs use U = size of that range (log U <= 64), and its memory sizes are per update.
+  // The same operations over any index range [lo, hi]: a dynamic structure where every position starts at 0 (costs
+  // use U = size of that range, log U <= 64, and memory sizes are per update), or, for a static template, one built
+  // from N (index, value) points with every other index 0 (costs and memory in N).
   sparse?: SparseVariant;
 }
 

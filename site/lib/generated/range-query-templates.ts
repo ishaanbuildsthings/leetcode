@@ -56,6 +56,60 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tree is a min tree over nxt[i]; chains maps each value to its sorted positions (C++: std::set; Python: a bucketed SortedList (below), so each change is a few binary searches plus a C-level shift of at most 1024 elements)",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "allDistinct": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "1"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "3*log(U)"
+            },
+            {
+              "name": "cnt",
+              "size": "3*log(U)"
+            }
+          ],
+          "total": "6*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "6*log(U)"
+            },
+            {
+              "name": "chains",
+              "size": "1"
+            },
+            {
+              "name": "vals",
+              "size": "1"
+            }
+          ],
+          "total": "2+6*log(U)"
+        },
+        "note": "per point write, at most 3 root paths (i, its old and new predecessor); each node keeps the min nxt and the number of nonzero positions below it; chains maps each nonzero value to its sorted positions (C++: std::set; Python: a bucketed SortedList, below). C++: one shared node pool (node 0 = untouched), call resetPool() between test cases; Python: dicts keyed by heap index",
+        "total": "2+12*log(U)"
+      }
     }
   },
   {
@@ -117,7 +171,77 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "four MonoIncreaseCost views (a, reversed a, a[i] - i, reversed a[i] + i); every view but the first is built on its first query, so you only pay for the ones you call",
       "total": "4*N*log(N)+12*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/costToMakeSubarrayMonoIncreasing.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/costToMakeSubarrayMonoIncreasing.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "costMonoDecreasing": "log(N)",
+        "costMonoIncreasing": "log(N)",
+        "costStrictDecreasing": "log(N)",
+        "costStrictIncreasing": "log(N)",
+        "pointGet": "log(N)",
+        "rangeSum": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sp",
+              "size": "8*N*log(N)"
+            }
+          ],
+          "total": "8*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "starts",
+              "size": "8*N"
+            },
+            {
+              "name": "v",
+              "size": "8*N"
+            },
+            {
+              "name": "w",
+              "size": "8*N"
+            },
+            {
+              "name": "W",
+              "size": "8*N"
+            },
+            {
+              "name": "B",
+              "size": "8*N"
+            },
+            {
+              "name": "suff",
+              "size": "8*N"
+            }
+          ],
+          "total": "50*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query. C++ sums wrap mod 2^64 (exact whenever the answer fits in long long)",
+        "total": "8*N*log(N)+50*N"
+      }
+    }
   },
   {
     "folder": "costMonoIncreasing-pointGet-rangeSum",
@@ -172,7 +296,74 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "sp is a sparse table of argmax indices; arr is a private copy of the input",
       "total": "1*N*log(N)+3*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/costToMakeSubarrayMonoIncreasing.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/costToMakeSubarrayMonoIncreasing.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "costMonoIncreasing": "log(N)",
+        "pointGet": "log(N)",
+        "rangeSum": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sp",
+              "size": "2*N*log(N)"
+            }
+          ],
+          "total": "2*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "starts",
+              "size": "2*N"
+            },
+            {
+              "name": "v",
+              "size": "2*N"
+            },
+            {
+              "name": "w",
+              "size": "2*N"
+            },
+            {
+              "name": "W",
+              "size": "2*N"
+            },
+            {
+              "name": "B",
+              "size": "2*N"
+            },
+            {
+              "name": "suff",
+              "size": "2*N"
+            }
+          ],
+          "total": "14*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; C++ sums wrap mod 2^64 (exact whenever the answer fits in long long)",
+        "total": "2*N*log(N)+14*N"
+      }
+    }
   },
   {
     "folder": "countDistinct-countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet",
@@ -231,7 +422,66 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "two flat merge sort trees (one row of N prefix counts per level): one over the values for count / kth, one over nxt[i] for countDistinct",
       "total": "2*N*log(N)+3*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/merge/rangeDistinct_LogN_NoUpdates.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/merge/rangeDistinct_LogN_NoUpdates.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countDistinct": "log(N)",
+        "countInValRange": "log(N)",
+        "kthGtX": "log^2(N)",
+        "kthGteX": "log^2(N)",
+        "kthLtX": "log^2(N)",
+        "kthLteX": "log^2(N)",
+        "pointGet": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "cnt",
+              "size": "2*N*log(N)"
+            }
+          ],
+          "total": "2*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "sortedVals",
+              "size": "2*N"
+            },
+            {
+              "name": "nxt",
+              "size": "1*N"
+            },
+            {
+              "name": "zc",
+              "size": "1*N"
+            }
+          ],
+          "total": "6*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; both merge sort trees are over the points only; zeros add one distinct value when [l, r] has a zero and no point holding 0 (zc counts those points)",
+        "total": "2*N*log(N)+6*N"
+      }
+    }
   },
   {
     "folder": "countDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
@@ -295,6 +545,60 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "Fenwick node j keeps an ordered set of the nxt values in its lowbit(j) positions, about N*log(N)/2 keys in all; those are balanced-tree / bucket entries, several times heavier than a plain int (measured ~100 MB peak in C++ at N = 2e5)",
       "total": "1*N*log(N)+4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countDistinct": "log(U)*log(U)",
+        "pointAdd": "log(U)*log(U)",
+        "pointAssign": "log(U)*log(U)",
+        "pointChmax": "log(U)*log(U)",
+        "pointChmin": "log(U)*log(U)",
+        "pointGet": "1"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sets",
+              "size": "3*log(U)"
+            },
+            {
+              "name": "last",
+              "size": "3*log(U)"
+            }
+          ],
+          "total": "6*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "nxt",
+              "size": "1"
+            },
+            {
+              "name": "chains",
+              "size": "1"
+            },
+            {
+              "name": "vals",
+              "size": "1"
+            }
+          ],
+          "total": "3"
+        },
+        "note": "per point write, at most 3 nxt changes, each touching the O(logU) Fenwick nodes above its position; node j keeps an ordered set of the nxt values below it (C++: pb_ds trees in a hash map; Python: bucketed SortedLists, below, in a dict). No shared pool: every tree owns its memory",
+        "total": "3+6*log(U)"
+      }
     }
   },
   {
@@ -348,7 +652,57 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "one row of N prefix counts per level (wavelet style), no per-node lists",
       "total": "1*N*log(N)+1*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/merge/MergeSortTreeFC.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/merge/MergeSortTreeFC.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countInValRange": "log(N)",
+        "kthGtX": "log^2(N)",
+        "kthGteX": "log^2(N)",
+        "kthLtX": "log^2(N)",
+        "kthLteX": "log^2(N)",
+        "pointGet": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "cnt",
+              "size": "1*N*log(N)"
+            }
+          ],
+          "total": "1*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "sortedVals",
+              "size": "1*N"
+            }
+          ],
+          "total": "3*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the merge sort tree is over the points only; a k-th whose test 0 passes binary-searches the gap it falls in",
+        "total": "1*N*log(N)+3*N"
+      }
+    }
   },
   {
     "folder": "countInValRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeSum",
@@ -495,7 +849,70 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count",
       "total": "4*N*log(N)+2*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/persistent/persistent-sum-denseOfflineWithCompressionLogN.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/persistent/persistent-sum-denseOfflineWithCompressionLogN.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countInValRange": "log(N)",
+        "pointGet": "log(N)",
+        "sumInValRange": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "L",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "R",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "S",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "C",
+              "size": "1*N*log(N)"
+            }
+          ],
+          "total": "4*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "root",
+              "size": "1*N"
+            },
+            {
+              "name": "srt",
+              "size": "1*N"
+            }
+          ],
+          "total": "4*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the persistent tree is over the points only; zeros add to counts (never to sums)",
+        "total": "4*N*log(N)+4*N"
+      }
+    }
   },
   {
     "folder": "countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
@@ -547,6 +964,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "pos maps each value to its sorted indices (C++: an order-statistics tree per value; Python: a bucketed SortedList (below), so each change is a few binary searches plus a C-level shift of at most 1024 elements)",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countOccurrences": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "1"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "pos",
+              "size": "2"
+            }
+          ],
+          "total": "2"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "vals",
+              "size": "1"
+            }
+          ],
+          "total": "1"
+        },
+        "note": "per point write, one index in its value's sorted list and one in the list of nonzero positions (C++: order-statistics trees; Python: bucketed SortedLists, below); zeros are counted as the range length minus the nonzero positions in it. No shared pool: every tree owns its memory",
+        "total": "3"
+      }
     }
   },
   {
@@ -655,6 +1114,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "pos maps each value to the sorted list of indices holding it",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countOccurrences": "log(N)",
+        "pointGet": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "pos",
+              "size": "1*N"
+            }
+          ],
+          "total": "1*N"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            }
+          ],
+          "total": "2*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the points inside)",
+        "total": "3*N"
+      }
     }
   },
   {
@@ -710,7 +1211,54 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "a Fenwick tree over the 0/1 array [a[i] == number]; kthOccurrence binary-lifts over it",
       "total": "2*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/CountAndKthIndexSegmentTree.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/CountAndKthIndexSegmentTree.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countValue": "log(U)",
+        "kthOccurrence": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "1"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "cnt",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "1*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "vals",
+              "size": "1"
+            }
+          ],
+          "total": "1+2*log(U)"
+        },
+        "note": "per point write, the O(logU) entries above it; position i stores [a[i] == number] - [0 == number], so the untouched store nothing; kthOccurrence descends / binary-lifts. Python: a Fenwick tree in a dict; C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases",
+        "total": "1+3*log(U)"
+      }
+    }
   },
   {
     "folder": "doAllElementsAppearEvenFrequency-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
@@ -771,7 +1319,57 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "a holds each index's random hash; tag maps each distinct value to its hash",
       "total": "4*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/xorHashing_allEven_withUpdates.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/xorHashing_allEven_withUpdates.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "doAllElementsAppearEvenFrequency": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "1"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "h",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "1*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "vals",
+              "size": "1"
+            },
+            {
+              "name": "tag",
+              "size": "1"
+            }
+          ],
+          "total": "2+2*log(U)"
+        },
+        "note": "per point write, the O(logU) entries above it; every value has a random 64-bit tag and position i stores tag(a[i]) ^ tag(0), so untouched positions store nothing and a range adds tag(0) once per odd length. Python: a Fenwick tree in a dict; C++: a dynamic prefix-xor tree in one shared node pool, call resetPool() between test cases",
+        "total": "2+3*log(U)"
+      }
+    }
   },
   {
     "folder": "leftmostGtX-leftmostGteX-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rangeMin-rightmostGtX-rightmostGteX-rightmostLtX-rightmostLteX",
@@ -2538,7 +3136,84 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "4n slots per array; every node field and tag is its own flat list",
       "total": "36*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-Gcd-PointSet.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-Gcd-PointSet.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)*log(U)*log(U) amortized ?",
+        "pointAssign": "log(U)*log(U)*log(U) amortized ?",
+        "pointChmax": "log(U)*log(U)*log(U) amortized ?",
+        "pointChmin": "log(U)*log(U)*log(U) amortized ?",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)*log(U)*log(U) amortized ?",
+        "rangeAssign": "log(U)*log(U)*log(U) amortized ?",
+        "rangeChmax": "log(U)*log(U)*log(U) amortized ?",
+        "rangeChmin": "log(U)*log(U)*log(U) amortized ?",
+        "rangeGcd": "log(U)*log(U) ?",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx2",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "cntMx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn2",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "cntMn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "diffGcd",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "32*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "addTag",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow",
+        "total": "36*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMax",
@@ -2912,7 +3587,99 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "4n slots per array; every node field and tag is its own flat list",
       "total": "52*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-PointSet-Beats-Log2NAdd.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-PointSet-Beats-Log2NAdd.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)*log(U) amortized",
+        "pointAssign": "log(U)*log(U) amortized",
+        "pointChmax": "log(U)*log(U) amortized",
+        "pointChmin": "log(U)*log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)*log(U) amortized",
+        "rangeAssign": "log(U)*log(U) amortized",
+        "rangeChmax": "log(U)*log(U) amortized",
+        "rangeChmin": "log(U)*log(U) amortized",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx2",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "cntMx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn2",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "cntMn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "sz",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "32*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "addMx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "addMn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "addOther",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAssign",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "assignVal",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "20*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow",
+        "total": "52*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMin",
@@ -3128,7 +3895,81 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "4n slots per array; every node field and tag is its own flat list",
       "total": "36*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmax-Add-Assign-Sum-Min-PointSet-Beats.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmax-Add-Assign-Sum-Min-PointSet-Beats.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)*log(U) amortized",
+        "pointAssign": "log(U)*log(U) amortized",
+        "pointChmax": "log(U)*log(U) amortized",
+        "pointChmin": "log(U)*log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)*log(U) amortized",
+        "rangeAssign": "log(U)*log(U) amortized",
+        "rangeChmax": "log(U)*log(U) amortized",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn2",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "cntMn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "sz",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "20*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "addMn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "addOther",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAssign",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "assignVal",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "16*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow",
+        "total": "36*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmin-rangeMax-rangeSum",
@@ -3217,7 +4058,81 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "4n slots per array; every node field and tag is its own flat list",
       "total": "36*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Add-Assign-Sum-Max-PointSet-Beats.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Add-Assign-Sum-Max-PointSet-Beats.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)*log(U) amortized",
+        "pointAssign": "log(U)*log(U) amortized",
+        "pointChmax": "log(U)*log(U) amortized",
+        "pointChmin": "log(U)*log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)*log(U) amortized",
+        "rangeAssign": "log(U)*log(U) amortized",
+        "rangeChmin": "log(U)*log(U) amortized",
+        "rangeMax": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx2",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "cntMx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "sz",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "20*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "addMx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "addOther",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAssign",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "assignVal",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "16*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow",
+        "total": "36*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeMin-rangeSum",
@@ -5501,7 +6416,79 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
       "total": "32*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAndApply": "log(U)*log(U) amortized",
+        "rangeAndQuery": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeOrApply": "log(U)*log(U) amortized",
+        "rangeOrQuery": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "sz",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "andAll",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "orAll",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "24*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tagAnd",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tagXor",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow",
+        "total": "32*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply",
@@ -6167,7 +7154,73 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "no tag arrays: on push, children are clamped to the parent's max/min (the beats tag is implicit)",
       "total": "28*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Assign-Sum-Min-Max-PointSet-Beats-LogN.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Assign-Sum-Min-Max-PointSet-Beats-LogN.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U) amortized",
+        "rangeChmax": "log(U) amortized",
+        "rangeChmin": "log(U) amortized",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx2",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "cntMx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn2",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "cntMn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "28*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow",
+        "total": "28*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeChmax-rangeChmin-rangeMin",
@@ -6348,6 +7401,58 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "no tag arrays: a node's mn is its pending chmax, and a node with one distinct value (mn2 = sentinel) is a pending assign",
       "total": "16*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U) amortized",
+        "rangeChmax": "log(U) amortized",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn2",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "cnt",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "16*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow",
+        "total": "16*log(U)"
+      }
     }
   },
   {
@@ -6413,6 +7518,58 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "no tag arrays: a node's mx is its pending chmin, and a node with one distinct value (mx2 = sentinel) is a pending assign",
       "total": "16*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U) amortized",
+        "rangeChmin": "log(U) amortized",
+        "rangeMax": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx2",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "cnt",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "16*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow",
+        "total": "16*log(U)"
+      }
     }
   },
   {
@@ -6481,7 +7638,58 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "no tag arrays: an assigned range is a uniform node (max == min) and is pushed to children as such",
       "total": "12*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-Mod-Sum-FloorDiv-Sqrt-Min-Max-Assign.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-Mod-Sum-FloorDiv-Sqrt-Min-Max-Assign.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U) amortized",
+        "rangeFloorDiv": "log(U)*log(U) amortized",
+        "rangeFloorSqrt": "log(U)*log(log(U)) amortized",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeMod": "log(U)*log(U) amortized",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow",
+        "total": "12*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeGcd",
@@ -8051,7 +9259,52 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "no lazy tags: updates walk down to the leaves that still shrink",
       "total": "8*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-Mod-Sum-FloorDiv-Sqrt-pointAssign.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-Mod-Sum-FloorDiv-Sqrt-pointAssign.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeFloorDiv": "log(U)*log(U) amortized",
+        "rangeFloorSqrt": "log(U)*log(log(U)) amortized",
+        "rangeMax": "log(U)",
+        "rangeMod": "log(U)*log(U) amortized",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow",
+        "total": "8*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorSqrt",
@@ -9427,7 +10680,53 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "log(N) levels of N values each; level 0 is the array itself",
       "total": "1*N*log(N)"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseAND.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseAND.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointGet": "log(N)",
+        "rangeAndQuery": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sparse",
+              "size": "2*N*log(N)"
+            }
+          ],
+          "total": "2*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "starts",
+              "size": "2*N"
+            }
+          ],
+          "total": "4*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "total": "2*N*log(N)+4*N"
+      }
+    }
   },
   {
     "folder": "pointGet-rangeGcd",
@@ -9467,7 +10766,53 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "log(N) levels of N values each; level 0 is the array itself",
       "total": "1*N*log(N)"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseGCD.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseGCD.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointGet": "log(N)",
+        "rangeGcd": "log(N)+log(U) ?"
+      },
+      "build": "N*log(N)*log(U) ?",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sparse",
+              "size": "2*N*log(N)"
+            }
+          ],
+          "total": "2*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "starts",
+              "size": "2*N"
+            }
+          ],
+          "total": "4*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "total": "2*N*log(N)+4*N"
+      }
+    }
   },
   {
     "folder": "pointGet-rangeLIS",
@@ -9519,6 +10864,60 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "the build is Tiskin's seaweed algorithm (permutations of size 2N per recursion level, freed after); queries count points in a flat merge sort tree over E",
       "total": "1*N*log(N)+3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointGet": "log(N)",
+        "rangeLIS": "log(N)"
+      },
+      "build": "N*log^2(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "cnt",
+              "size": "2*N*log(N)"
+            }
+          ],
+          "total": "2*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "starts",
+              "size": "2*N"
+            },
+            {
+              "name": "E",
+              "size": "2*N"
+            },
+            {
+              "name": "sortedVals",
+              "size": "2*N"
+            }
+          ],
+          "total": "8*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the seaweed LIS structure runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "total": "2*N*log(N)+8*N"
+      }
     }
   },
   {
@@ -9559,7 +10958,53 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "log(N) levels of N values each; level 0 is the array itself",
       "total": "1*N*log(N)"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseMax.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseMax.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointGet": "log(N)",
+        "rangeMax": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sparse",
+              "size": "2*N*log(N)"
+            }
+          ],
+          "total": "2*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "starts",
+              "size": "2*N"
+            }
+          ],
+          "total": "4*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "total": "2*N*log(N)+4*N"
+      }
+    }
   },
   {
     "folder": "pointGet-rangeMin",
@@ -9599,7 +11044,53 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "log(N) levels of N values each; level 0 is the array itself",
       "total": "1*N*log(N)"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseMin.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseMin.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointGet": "log(N)",
+        "rangeMin": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sparse",
+              "size": "2*N*log(N)"
+            }
+          ],
+          "total": "2*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "starts",
+              "size": "2*N"
+            }
+          ],
+          "total": "4*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "total": "2*N*log(N)+4*N"
+      }
+    }
   },
   {
     "folder": "pointGet-rangeMode",
@@ -9660,7 +11151,69 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "blockMode/blockCnt are (N/B)^2 = N tables with B = sqrt(N); vals is the distinct values",
       "total": "6*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeMode-online.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeMode-online.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointGet": "log(N)",
+        "rangeMode": "sqrt(N)"
+      },
+      "build": "N*sqrt(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "blockMode",
+              "size": "1*N"
+            },
+            {
+              "name": "blockCnt",
+              "size": "1*N"
+            }
+          ],
+          "total": "2*N"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "zc",
+              "size": "1*N"
+            },
+            {
+              "name": "comp",
+              "size": "1*N"
+            },
+            {
+              "name": "positions",
+              "size": "1*N"
+            },
+            {
+              "name": "posIdx",
+              "size": "1*N"
+            }
+          ],
+          "total": "6*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sqrt mode structure is over the points only; 0's frequency is the zeros of [l, r] plus the points holding 0 (zc), and it wins whenever it is at least the points' mode frequency",
+        "total": "8*N"
+      }
+    }
   },
   {
     "folder": "pointGet-rangeOrQuery",
@@ -9700,6 +11253,52 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "log(N) levels of N values each; level 0 is the array itself",
       "total": "1*N*log(N)"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseOR.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseOR.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointGet": "log(N)",
+        "rangeOrQuery": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sparse",
+              "size": "2*N*log(N)"
+            }
+          ],
+          "total": "2*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "starts",
+              "size": "2*N"
+            }
+          ],
+          "total": "4*N"
+        },
+        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "total": "2*N*log(N)+4*N"
+      }
+    }
   }
 ];

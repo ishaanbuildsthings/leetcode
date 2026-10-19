@@ -74,9 +74,25 @@ function memoryGroups(template: RangeQueryTemplate): { id: MemoryGroupId; label:
   const groups: { id: MemoryGroupId; label: string }[] = [
     { id: "node", label: type === "sparse-table" ? "Table" : type === "sqrt" ? "Blocks" : type === "positions" ? "Lists" : "Node data" },
   ];
-  if (memory.layout !== "none" || memory.tags.arrays.length > 0) groups.push({ id: "tags", label: "Lazy tags" });
+  const tree = memory.layout !== "none" && (memory.layout !== "sparse" || ["seg-tree", "lazy-seg-tree", "beats"].includes(type));
+  if (tree || memory.tags.arrays.length > 0) groups.push({ id: "tags", label: "Lazy tags" });
   if (memory.other.arrays.length > 0) groups.push({ id: "other", label: "Extra arrays" });
   return groups;
+}
+
+// A static template's sparse version is built from N (index, value) points, so its memory is a total in N; a
+// dynamic one starts all zeros and its memory is counted per update.
+function builtFromPoints(memory: RangeQueryTemplate["memory"]): boolean {
+  return memory.layout === "sparse" && /\bN\b/.test(memory.total);
+}
+
+// What follows "Memory <total>": " per update" for a dynamic sparse version, and the layout's label (if any).
+function memorySuffix(memory: RangeQueryTemplate["memory"]): { perUpdate: string; layout: string | null } {
+  const fromPoints = builtFromPoints(memory);
+  return {
+    perUpdate: memory.layout === "sparse" && !fromPoints ? " per update" : "",
+    layout: memory.layout === "none" ? null : fromPoints ? "built from N points, any index range" : TREE_LAYOUT_LABELS[memory.layout],
+  };
 }
 
 // "1 field" / "3 fields" / "none", for the card's memory lines.
@@ -90,9 +106,9 @@ function MemoryPanel({ template }: { template: RangeQueryTemplate }) {
     <div className="border-b border-border px-4 py-3 text-xs">
       <p className="mb-1.5 font-semibold text-foreground">
         Memory {formatMemory(memory.total)}
-        {memory.layout === "sparse" && " per update"}
-        {memory.layout !== "none" && (
-          <span className="ml-2 font-normal text-muted-foreground">{TREE_LAYOUT_LABELS[memory.layout]}</span>
+        {memorySuffix(memory).perUpdate}
+        {memorySuffix(memory).layout && (
+          <span className="ml-2 font-normal text-muted-foreground">{memorySuffix(memory).layout}</span>
         )}
       </p>
       <div className="grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-1">
@@ -342,7 +358,7 @@ export function RangeQueryPicker() {
           type="button"
           onClick={toggleSparse}
           aria-pressed={sparse}
-          title="Sparse: a dynamic tree over any index range [lo, hi] (e.g. up to 1e18), every position starting at 0"
+          title="Sparse: any index range [lo, hi] (e.g. up to 1e18), every position starting at 0 (static templates: built from (index, value) points, every other index 0)"
           className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
             sparse ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground hover:bg-muted"
           }`}
@@ -507,8 +523,8 @@ export function RangeQueryPicker() {
                         <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
                           <span className="block">
                             Memory <span className="text-foreground">{formatMemory(template.memory.total)}</span>
-                            {template.memory.layout === "sparse" && " per update"}
-                            {template.memory.layout !== "none" && ` (${TREE_LAYOUT_LABELS[template.memory.layout]})`}
+                            {memorySuffix(template.memory).perUpdate}
+                            {memorySuffix(template.memory).layout && ` (${memorySuffix(template.memory).layout})`}
                           </span>
                           {memoryGroups(template).map(({ id, label }) => (
                             <span key={id} className="block pl-3">
