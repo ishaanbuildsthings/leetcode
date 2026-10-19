@@ -3,256 +3,1219 @@ import type { RangeQueryTemplate } from "../range-query-picker";
 
 export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
   {
-    "file": "costMonoIncreasing-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "folder": "allDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "allDistinct",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "allDistinct": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "a",
+            "size": "1*N"
+          },
+          {
+            "name": "chains",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "note": "tree is a min tree over nxt[i]; chains maps each value to its sorted positions (Python: plain lists, so an insert is a memmove over that value's occurrences)",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "costMonoIncreasing-pointGet-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
       "costMonoIncreasing",
+      "pointGet",
       "rangeSum"
     ],
-    "kind": "sparse-table",
-    "complexity": {
+    "dataStructureType": "sparse-table",
+    "complexities": {
       "costMonoIncreasing": "1",
+      "pointGet": "1",
       "rangeSum": "1"
     },
-    "build": "NlogN",
-    "source": "segment-trees/normal/costToMakeSubarrayMonoIncreasing.py"
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "sp",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "1*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "pf",
+            "size": "1*N"
+          },
+          {
+            "name": "suff",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "sp is a sparse table of argmax indices; arr is a private copy of the input",
+      "total": "1*N*log(N)+3*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/costToMakeSubarrayMonoIncreasing.py"
   },
   {
-    "file": "countDistinct-countInValRange-kthGteX-kthLteX.py",
-    "lang": "py",
-    "ops": [
+    "folder": "countDistinct-countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
       "countDistinct",
       "countInValRange",
+      "kthGtX",
       "kthGteX",
-      "kthLteX"
+      "kthLtX",
+      "kthLteX",
+      "pointGet"
     ],
-    "kind": "merge-sort-tree",
-    "complexity": {
-      "countDistinct": "logN",
-      "countInValRange": "logN",
-      "kthGteX": "logN",
-      "kthLteX": "logN"
+    "dataStructureType": "merge-sort-tree",
+    "complexities": {
+      "countDistinct": "log(N)",
+      "countInValRange": "log(N)",
+      "kthGtX": "log(N)",
+      "kthGteX": "log(N)",
+      "kthLtX": "log(N)",
+      "kthLteX": "log(N)",
+      "pointGet": "1"
     },
-    "build": "NlogN",
-    "source": "segment-trees/merge/rangeDistinct_LogN_NoUpdates.py"
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "cnt",
+            "size": "2*N*log(N)"
+          }
+        ],
+        "total": "2*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "sortedVals",
+            "size": "2*N"
+          },
+          {
+            "name": "nxt",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "two flat merge sort trees (one row of N prefix counts per level): one over the values for count / kth, one over nxt[i] for countDistinct",
+      "total": "2*N*log(N)+3*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/merge/rangeDistinct_LogN_NoUpdates.py"
   },
   {
-    "file": "countDistinct-pointSet.py",
-    "lang": "py",
-    "ops": [
+    "folder": "countDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
       "countDistinct",
-      "pointSet"
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet"
     ],
-    "kind": "sqrt",
-    "complexity": {
-      "countDistinct": "sqrtN",
-      "pointSet": "sqrtN"
+    "dataStructureType": "sqrt",
+    "complexities": {
+      "countDistinct": "sqrt(N)",
+      "pointAdd": "sqrt(N)",
+      "pointAssign": "sqrt(N)",
+      "pointChmax": "sqrt(N)",
+      "pointChmin": "sqrt(N)",
+      "pointGet": "1"
     },
-    "build": "NlogN",
-    "source": "segment-trees/other-range-queries/rangeDistinctWithPointUpdateSqrtDecomp.py"
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "blocks",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "a",
+            "size": "1*N"
+          },
+          {
+            "name": "nxt",
+            "size": "1*N"
+          },
+          {
+            "name": "chains",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "blocks are sqrt(N) sorted lists of next-occurrence indices; chains maps each value to its sorted positions",
+      "total": "4*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeDistinctWithPointUpdateSqrtDecomp.py"
   },
   {
-    "file": "countInValRange-kthGteX-kthLteX.py",
-    "lang": "py",
-    "ops": [
+    "folder": "countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
       "countInValRange",
+      "kthGtX",
       "kthGteX",
-      "kthLteX"
+      "kthLtX",
+      "kthLteX",
+      "pointGet"
     ],
-    "kind": "merge-sort-tree",
-    "complexity": {
-      "countInValRange": "logN",
-      "kthGteX": "logN",
-      "kthLteX": "logN"
+    "dataStructureType": "merge-sort-tree",
+    "complexities": {
+      "countInValRange": "log(N)",
+      "kthGtX": "log(N)",
+      "kthGteX": "log(N)",
+      "kthLtX": "log(N)",
+      "kthLteX": "log(N)",
+      "pointGet": "1"
     },
-    "build": "NlogN",
-    "source": "segment-trees/merge/MergeSortTreeFC.py"
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "cnt",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "1*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "sortedVals",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "note": "one row of N prefix counts per level (wavelet style), no per-node lists",
+      "total": "1*N*log(N)+1*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/merge/MergeSortTreeFC.py"
   },
   {
-    "file": "countInValRange-pointGet-pointSet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "folder": "countInValRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
       "countInValRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "pointSet",
       "rangeAdd",
       "rangeAssign",
       "rangeChmax",
       "rangeChmin",
       "rangeSum"
     ],
-    "kind": "sqrt",
-    "complexity": {
-      "countInValRange": "sqrtN*logN",
+    "dataStructureType": "sqrt",
+    "complexities": {
+      "countInValRange": "sqrt(N)*log(N)",
+      "pointAdd": "sqrt(N)",
+      "pointAssign": "sqrt(N)",
+      "pointChmax": "sqrt(N)",
+      "pointChmin": "sqrt(N)",
       "pointGet": "1",
-      "pointSet": "sqrtN",
-      "rangeAdd": "sqrtN*logN",
-      "rangeAssign": "sqrtN*logN",
-      "rangeChmax": "sqrtN*logN",
-      "rangeChmin": "sqrtN*logN",
-      "rangeSum": "sqrtN*logN"
+      "rangeAdd": "sqrt(N)*log(N)",
+      "rangeAssign": "sqrt(N)*log(N)",
+      "rangeChmax": "sqrt(N)*log(N)",
+      "rangeChmin": "sqrt(N)*log(N)",
+      "rangeSum": "sqrt(N)*log(N)"
     },
-    "build": "NlogN",
-    "source": "segment-trees/other-range-queries/rangeChmin-Chmax-Add-Assign-Sum-CountValRange-SqrtDecomp-RootNLogN.py"
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "sortedBeforeTags",
+            "size": "1*N"
+          },
+          {
+            "name": "pfSum",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "lazyAdd",
+            "size": "1*sqrt(N)"
+          },
+          {
+            "name": "lazyChmin",
+            "size": "1*sqrt(N)"
+          },
+          {
+            "name": "lazyChmax",
+            "size": "1*sqrt(N)"
+          }
+        ],
+        "total": "3*sqrt(N)"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "valsBeforeTags",
+            "size": "1*N"
+          },
+          {
+            "name": "blockEnd",
+            "size": "1*sqrt(N)"
+          }
+        ],
+        "total": "1*N+1*sqrt(N)"
+      },
+      "note": "sqrt(N) blocks, each with a sorted copy and prefix sums; describes SqrtBlocks_PERFORMANT",
+      "total": "3*N+4*sqrt(N)"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeChmin-Chmax-Add-Assign-Sum-CountValRange-SqrtDecomp-RootNLogN.py"
   },
   {
-    "file": "countInValRange-sumInValRange.py",
-    "lang": "py",
-    "ops": [
+    "folder": "countInValRange-pointGet-sumInValRange",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
       "countInValRange",
+      "pointGet",
       "sumInValRange"
     ],
-    "kind": "persistent",
-    "complexity": {
-      "countInValRange": "logN",
-      "sumInValRange": "logN"
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countInValRange": "log(N)",
+      "pointGet": "1",
+      "sumInValRange": "log(N)"
     },
-    "build": "NlogN",
-    "source": "segment-trees/persistent/persistent-sum-denseOfflineWithCompressionLogN.py"
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "S",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "4*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "note": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count",
+      "total": "4*N*log(N)+2*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/persistent/persistent-sum-denseOfflineWithCompressionLogN.py"
   },
   {
-    "file": "countMax-countMin-leftmostGteX-leftmostLteX-pointSet-rangeMax-rangeMin-rightmostGteX-rightmostLteX.py",
-    "lang": "py",
-    "ops": [
+    "folder": "countMax-countMin-leftmostGtX-leftmostGteX-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rangeMin-rightmostGtX-rightmostGteX-rightmostLtX-rightmostLteX",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
       "countMax",
       "countMin",
+      "leftmostGtX",
       "leftmostGteX",
+      "leftmostLtX",
       "leftmostLteX",
-      "pointSet",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeMax",
       "rangeMin",
+      "rightmostGtX",
       "rightmostGteX",
+      "rightmostLtX",
       "rightmostLteX"
     ],
-    "kind": "seg-tree",
-    "complexity": {
-      "countMax": "logN",
-      "countMin": "logN",
-      "leftmostGteX": "logN",
-      "leftmostLteX": "logN",
-      "pointSet": "logN",
-      "rangeMax": "logN",
-      "rangeMin": "logN",
-      "rightmostGteX": "logN",
-      "rightmostLteX": "logN"
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "countMax": "log(N)",
+      "countMin": "log(N)",
+      "leftmostGtX": "log(N)",
+      "leftmostGteX": "log(N)",
+      "leftmostLtX": "log(N)",
+      "leftmostLteX": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rightmostGtX": "log(N)",
+      "rightmostGteX": "log(N)",
+      "rightmostLtX": "log(N)",
+      "rightmostLteX": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/normal/MaxAndMinAndCountsAndGteLteIndexSegmentTree.py"
+    "memory": {
+      "layout": "pow2-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "cntMx",
+            "size": "4*N"
+          },
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "cntMn",
+            "size": "4*N"
+          }
+        ],
+        "total": "16*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "four flat arrays of 2*size slots (size = next power of two >= n); padding leaves are -inf/+inf with count 0",
+      "total": "16*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MaxAndMinAndCountsAndGteLteIndexSegmentTree.py"
   },
   {
-    "file": "countValue-pointSet.py",
-    "lang": "py",
-    "ops": [
+    "folder": "countValue-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
       "countValue",
-      "pointSet"
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet"
     ],
-    "kind": "seg-tree",
-    "complexity": {
-      "countValue": "logN",
-      "pointSet": "logN"
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "countValue": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1"
     },
     "build": "N",
-    "source": "segment-trees/normal/CountAndKthIndexSegmentTree.py"
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "vals",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "note": "tree[n + i] is 1 when a[i] equals the value fixed at build, internal nodes sum their children",
+      "total": "3*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/CountAndKthIndexSegmentTree.py"
   },
   {
-    "file": "doAllElementsAppearEvenFrequency-pointSet.py",
-    "lang": "py",
-    "ops": [
+    "folder": "doAllElementsAppearEvenFrequency-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
       "doAllElementsAppearEvenFrequency",
-      "pointSet"
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet"
     ],
-    "kind": "BIT",
-    "complexity": {
-      "doAllElementsAppearEvenFrequency": "logN",
-      "pointSet": "logN"
+    "dataStructureType": "BIT",
+    "complexities": {
+      "doAllElementsAppearEvenFrequency": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1"
     },
     "build": "N",
-    "source": "segment-trees/normal/xorHashing_allEven_withUpdates.py"
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "bit",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "vals",
+            "size": "1*N"
+          },
+          {
+            "name": "a",
+            "size": "1*N"
+          },
+          {
+            "name": "tag",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "a holds each index's random hash; tag maps each distinct value to its hash",
+      "total": "4*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/xorHashing_allEven_withUpdates.py"
   },
   {
-    "file": "leftmostGteX-pointSet-rangeMax-rightmostGteX.py",
-    "lang": "py",
-    "ops": [
+    "folder": "leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rightmostGtX-rightmostGteX",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "leftmostGtX",
       "leftmostGteX",
-      "pointSet",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeMax",
+      "rightmostGtX",
       "rightmostGteX"
     ],
-    "kind": "seg-tree",
-    "complexity": {
-      "leftmostGteX": "logN",
-      "pointSet": "logN",
-      "rangeMax": "logN",
-      "rightmostGteX": "logN"
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "leftmostGtX": "log(N)",
+      "leftmostGteX": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeMax": "log(N)",
+      "rightmostGtX": "log(N)",
+      "rightmostGteX": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/normal/MaxSeg.py"
+    "memory": {
+      "layout": "pow2-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "4*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree holds each node's max; tree is 2*size where size is the next power of two >= n, so between 2N and 4N slots; arr is a reference",
+      "total": "4*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MaxSeg.py"
   },
   {
-    "file": "leftmostLteX-pointSet-rangeMin-rightmostLteX.py",
-    "lang": "py",
-    "ops": [
+    "folder": "leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMin-rightmostLtX-rightmostLteX",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "leftmostLtX",
       "leftmostLteX",
-      "pointSet",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeMin",
+      "rightmostLtX",
       "rightmostLteX"
     ],
-    "kind": "seg-tree",
-    "complexity": {
-      "leftmostLteX": "logN",
-      "pointSet": "logN",
-      "rangeMin": "logN",
-      "rightmostLteX": "logN"
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "leftmostLtX": "log(N)",
+      "leftmostLteX": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeMin": "log(N)",
+      "rightmostLtX": "log(N)",
+      "rightmostLteX": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/normal/MinSeg.py"
+    "memory": {
+      "layout": "pow2-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "4*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree holds each node's min; tree is 2*size where size is the next power of two >= n, so between 2N and 4N slots; arr is a reference",
+      "total": "4*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MinSeg.py"
   },
   {
-    "file": "pointAdd-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "folder": "leftmostPrefixSumGtX-leftmostPrefixSumGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "leftmostPrefixSumGtX",
+      "leftmostPrefixSumGteX",
       "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeSum"
     ],
-    "kind": "BIT",
-    "complexity": {
-      "pointAdd": "logN",
-      "rangeSum": "logN"
+    "dataStructureType": "BIT",
+    "complexities": {
+      "leftmostPrefixSumGtX": "log(N)",
+      "leftmostPrefixSumGteX": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeSum": "log(N)"
     },
-    "build": "NlogN",
-    "source": "segment-trees/normal/pointAddRangeSumBIT.py"
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "the prefix-sum searches binary-lift over the tree, so they need every a[i] >= 0",
+      "total": "1*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAddRangeSumBIT.py"
   },
   {
-    "file": "pointGet-pointSet-rangeAdd-rangeAffineMod-rangeAssign-rangeMultMod-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "folder": "maxPrefixSum-maxSubarraySum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "maxPrefixSum",
+      "maxSubarraySum",
+      "maxSuffixSum",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "pointSet",
+      "rangeSum"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "maxPrefixSum": "log(N)",
+      "maxSubarraySum": "log(N)",
+      "maxSuffixSum": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "pre",
+            "size": "2*N"
+          },
+          {
+            "name": "suf",
+            "size": "2*N"
+          },
+          {
+            "name": "best",
+            "size": "2*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "each node is (sum, best prefix, best suffix, best subarray); the merge is not commutative, so a query folds a left and a right accumulator",
+      "total": "8*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd"
+    ],
+    "dataStructureType": "BIT",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "a Fenwick tree over the difference array; a[i] is the prefix sum of differences up to i",
+      "total": "1*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAddArithSeq",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAddArithSeq"
+    ],
+    "dataStructureType": "BIT",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAddArithSeq": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "c",
+            "size": "1*N"
+          },
+          {
+            "name": "s",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "two Fenwick trees over differences; a[i] = prefix(c, i) + i * prefix(s, i)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAddArithSeqMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAddArithSeqMod"
+    ],
+    "dataStructureType": "BIT",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAddArithSeqMod": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "c",
+            "size": "1*N"
+          },
+          {
+            "name": "s",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "two Fenwick trees over differences, everything mod p; a[i] = prefix(c, i) + i * prefix(s, i)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAffineMod-rangeAssign-rangeMultMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAffineMod",
+      "rangeAssign",
+      "rangeMultMod"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAffineMod": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeMultMod": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "M",
+            "size": "1*N"
+          },
+          {
+            "name": "K",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "note": "each internal node holds one pending affine map x -> x * M + K (mod p); val holds the leaf values",
+      "total": "3*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAffineMod-rangeAssign-rangeMultMod-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeAdd",
       "rangeAffineMod",
       "rangeAssign",
       "rangeMultMod",
       "rangeSum"
     ],
-    "kind": "lazy-seg-tree",
-    "complexity": {
-      "pointGet": "logN",
-      "pointSet": "logN",
-      "rangeAdd": "logN",
-      "rangeAffineMod": "logN",
-      "rangeAssign": "logN",
-      "rangeMultMod": "logN",
-      "rangeSum": "logN"
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAffineMod": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeMultMod": "log(N)",
+      "rangeSum": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/lazy/Range-Add-Assign-Sum-MultFixedMod-AffineFixedMod-PointSet.py"
+    "memory": {
+      "layout": "pow2-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tot",
+            "size": "4*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "mult",
+            "size": "2*N"
+          },
+          {
+            "name": "add",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "one affine tag (mult, add) per node: x -> x*mult + add (mod p)",
+      "total": "8*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/Range-Add-Assign-Sum-MultFixedMod-AffineFixedMod-PointSet.py"
   },
   {
-    "file": "pointGet-pointSet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeGcd-rangeMax-rangeMin-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "pointSet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeChmax",
+      "rangeChmin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeChmin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "A",
+            "size": "1*N"
+          },
+          {
+            "name": "B",
+            "size": "1*N"
+          },
+          {
+            "name": "C",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "note": "each internal node holds one pending clamp x -> min(A, max(B, x + C)); val holds the leaf values",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeGcd-rangeMax-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeAdd",
       "rangeAssign",
       "rangeChmax",
@@ -262,57 +1225,92 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "rangeMin",
       "rangeSum"
     ],
-    "kind": "beats",
-    "complexity": {
-      "pointGet": "logN",
-      "pointSet": "log2N~",
-      "rangeAdd": "log2N~",
-      "rangeAssign": "log2N~",
-      "rangeChmax": "log2N~",
-      "rangeChmin": "log2N~",
-      "rangeGcd": "logN*logV",
-      "rangeMax": "logN",
-      "rangeMin": "logN",
-      "rangeSum": "logN"
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log^2(N)*log(U) amortized",
+      "pointAssign": "log^2(N)*log(U) amortized",
+      "pointChmax": "log^2(N)*log(U) amortized",
+      "pointChmin": "log^2(N)*log(U) amortized",
+      "pointGet": "log(N)",
+      "rangeAdd": "log^2(N)*log(U) amortized",
+      "rangeAssign": "log^2(N)*log(U) amortized",
+      "rangeChmax": "log^2(N)*log(U) amortized",
+      "rangeChmin": "log^2(N)*log(U) amortized",
+      "rangeGcd": "log(N)*log(U)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-Gcd-PointSet.py"
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "mx2",
+            "size": "4*N"
+          },
+          {
+            "name": "cntMx",
+            "size": "4*N"
+          },
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "mn2",
+            "size": "4*N"
+          },
+          {
+            "name": "cntMn",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          },
+          {
+            "name": "diffGcd",
+            "size": "4*N"
+          }
+        ],
+        "total": "32*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "addTag",
+            "size": "4*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "4n slots per array; every node field and tag is its own flat list",
+      "total": "36*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-Gcd-PointSet.py"
   },
   {
-    "file": "pointGet-pointSet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin-rangeSum.py",
-    "lang": "py",
-    "ops": [
-      "pointGet",
-      "pointSet",
-      "rangeAdd",
-      "rangeAssign",
-      "rangeChmax",
-      "rangeChmin",
-      "rangeMax",
-      "rangeMin",
-      "rangeSum"
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
     ],
-    "kind": "beats",
-    "complexity": {
-      "pointGet": "logN",
-      "pointSet": "log2N~",
-      "rangeAdd": "log2N~",
-      "rangeAssign": "log2N~",
-      "rangeChmax": "log2N~",
-      "rangeChmin": "log2N~",
-      "rangeMax": "logN",
-      "rangeMin": "logN",
-      "rangeSum": "logN"
-    },
-    "build": "N",
-    "source": "segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-PointSet-Beats-Log2NAdd.py"
-  },
-  {
-    "file": "pointGet-pointSet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin.py",
-    "lang": "py",
-    "ops": [
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "pointSet",
       "rangeAdd",
       "rangeAssign",
       "rangeChmax",
@@ -320,76 +1318,666 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "rangeMax",
       "rangeMin"
     ],
-    "kind": "lazy-seg-tree",
-    "complexity": {
-      "pointGet": "logN",
-      "pointSet": "logN",
-      "rangeAdd": "logN",
-      "rangeAssign": "logN",
-      "rangeChmax": "logN",
-      "rangeChmin": "logN",
-      "rangeMax": "logN",
-      "rangeMin": "logN"
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/beats/rangeChmin-Chmax-Add-Assign-Min-Max-PointSet-NO-BEATS.py"
+    "memory": {
+      "layout": "pow2-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "mx",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "A",
+            "size": "2*N"
+          },
+          {
+            "name": "B",
+            "size": "2*N"
+          },
+          {
+            "name": "C",
+            "size": "2*N"
+          }
+        ],
+        "total": "6*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "one clamp tag per node: x -> min(A, max(B, x + C))",
+      "total": "14*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Min-Max-PointSet-NO-BEATS.py"
   },
   {
-    "file": "pointGet-pointSet-rangeAdd-rangeAssign-rangeChmax-rangeMin-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "pointSet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeChmax",
+      "rangeChmin",
+      "rangeMax",
+      "rangeMin",
+      "rangeSum"
+    ],
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log^2(N) amortized",
+      "pointAssign": "log^2(N) amortized",
+      "pointChmax": "log^2(N) amortized",
+      "pointChmin": "log^2(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAdd": "log^2(N) amortized",
+      "rangeAssign": "log^2(N) amortized",
+      "rangeChmax": "log^2(N) amortized",
+      "rangeChmin": "log^2(N) amortized",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "mx2",
+            "size": "4*N"
+          },
+          {
+            "name": "cntMx",
+            "size": "4*N"
+          },
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "mn2",
+            "size": "4*N"
+          },
+          {
+            "name": "cntMn",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          },
+          {
+            "name": "sz",
+            "size": "4*N"
+          }
+        ],
+        "total": "32*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "addMx",
+            "size": "4*N"
+          },
+          {
+            "name": "addMn",
+            "size": "4*N"
+          },
+          {
+            "name": "addOther",
+            "size": "4*N"
+          },
+          {
+            "name": "hasAssign",
+            "size": "4*N"
+          },
+          {
+            "name": "assignVal",
+            "size": "4*N"
+          }
+        ],
+        "total": "20*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "4n slots per array; every node field and tag is its own flat list",
+      "total": "52*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-PointSet-Beats-Log2NAdd.py"
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeAdd",
       "rangeAssign",
       "rangeChmax",
       "rangeMin",
       "rangeSum"
     ],
-    "kind": "beats",
-    "complexity": {
-      "pointGet": "logN",
-      "pointSet": "log2N~",
-      "rangeAdd": "log2N~",
-      "rangeAssign": "log2N~",
-      "rangeChmax": "log2N~",
-      "rangeMin": "logN",
-      "rangeSum": "logN"
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log^2(N) amortized",
+      "pointAssign": "log^2(N) amortized",
+      "pointChmax": "log^2(N) amortized",
+      "pointChmin": "log^2(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAdd": "log^2(N) amortized",
+      "rangeAssign": "log^2(N) amortized",
+      "rangeChmax": "log^2(N) amortized",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/beats/rangeChmax-Add-Assign-Sum-Min-PointSet-Beats.py"
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "mn2",
+            "size": "4*N"
+          },
+          {
+            "name": "cntMn",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          },
+          {
+            "name": "sz",
+            "size": "4*N"
+          }
+        ],
+        "total": "20*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "addMn",
+            "size": "4*N"
+          },
+          {
+            "name": "addOther",
+            "size": "4*N"
+          },
+          {
+            "name": "hasAssign",
+            "size": "4*N"
+          },
+          {
+            "name": "assignVal",
+            "size": "4*N"
+          }
+        ],
+        "total": "16*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "4n slots per array; every node field and tag is its own flat list",
+      "total": "36*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmax-Add-Assign-Sum-Min-PointSet-Beats.py"
   },
   {
-    "file": "pointGet-pointSet-rangeAdd-rangeAssign-rangeChmin-rangeMax-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmin-rangeMax-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "pointSet",
       "rangeAdd",
       "rangeAssign",
       "rangeChmin",
       "rangeMax",
       "rangeSum"
     ],
-    "kind": "beats",
-    "complexity": {
-      "pointGet": "logN",
-      "pointSet": "log2N~",
-      "rangeAdd": "log2N~",
-      "rangeAssign": "log2N~",
-      "rangeChmin": "log2N~",
-      "rangeMax": "logN",
-      "rangeSum": "logN"
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log^2(N) amortized",
+      "pointAssign": "log^2(N) amortized",
+      "pointChmax": "log^2(N) amortized",
+      "pointChmin": "log^2(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAdd": "log^2(N) amortized",
+      "rangeAssign": "log^2(N) amortized",
+      "rangeChmin": "log^2(N) amortized",
+      "rangeMax": "log(N)",
+      "rangeSum": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/beats/rangeChmin-Add-Assign-Sum-Max-PointSet-Beats.py"
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "mx2",
+            "size": "4*N"
+          },
+          {
+            "name": "cntMx",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          },
+          {
+            "name": "sz",
+            "size": "4*N"
+          }
+        ],
+        "total": "20*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "addMx",
+            "size": "4*N"
+          },
+          {
+            "name": "addOther",
+            "size": "4*N"
+          },
+          {
+            "name": "hasAssign",
+            "size": "4*N"
+          },
+          {
+            "name": "assignVal",
+            "size": "4*N"
+          }
+        ],
+        "total": "16*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "4n slots per array; every node field and tag is its own flat list",
+      "total": "36*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Add-Assign-Sum-Max-PointSet-Beats.py"
   },
   {
-    "file": "pointGet-pointSet-rangeAndApply-rangeAndQuery-rangeMax-rangeMin-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "pointSet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "pow2-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "4*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "add",
+            "size": "2*N"
+          },
+          {
+            "name": "asg",
+            "size": "2*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "2*N"
+          }
+        ],
+        "total": "6*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "arrays are 2*size, size the next power of two >= n; a node's tag is either \"assign v\" (later adds fold into v) or \"add d\"",
+      "total": "10*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/RangeAddRangeAssignRangeSum.cpp"
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeGcd"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)*log(U)",
+      "pointAssign": "log(N)*log(U)",
+      "pointChmax": "log(N)*log(U)",
+      "pointChmin": "log(N)*log(U)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)*log(U)",
+      "rangeGcd": "log(N)+log(U)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "seg",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "fen",
+            "size": "1*N"
+          },
+          {
+            "name": "diff",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "note": "seg is a gcd tree over adjacent differences; fen (a BIT over the differences) gives point values",
+      "total": "4*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/rangeAddRangeGcd.py"
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAddArithSeq-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAddArithSeq",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAddArithSeq": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "pow2-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sum",
+            "size": "4*N"
+          },
+          {
+            "name": "length",
+            "size": "4*N"
+          },
+          {
+            "name": "sumIdx",
+            "size": "4*N"
+          }
+        ],
+        "total": "12*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "lazyConst",
+            "size": "4*N"
+          },
+          {
+            "name": "lazyIdx",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "each tag is a pending line const + idx*i; arrays are 2*size, size the next power of two >= n",
+      "total": "20*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/ArithmeticProgressionST.py"
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAddArithSeqMod-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAddArithSeqMod",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAddArithSeqMod": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "pow2-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sum",
+            "size": "4*N"
+          },
+          {
+            "name": "length",
+            "size": "4*N"
+          },
+          {
+            "name": "sumIdx",
+            "size": "4*N"
+          }
+        ],
+        "total": "12*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "lazyConst",
+            "size": "4*N"
+          },
+          {
+            "name": "lazyIdx",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "each tag is a pending line const + idx*i (mod p); arrays are 2*size, size the next power of two >= n",
+      "total": "20*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/ArithmeticProgressionSTWithMod.py"
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAndApply"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAndApply": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeAndApply tag (no aggregates)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeMin-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeAndApply",
       "rangeAndQuery",
       "rangeMax",
@@ -399,28 +1987,199 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "rangeSum",
       "rangeXorApply"
     ],
-    "kind": "beats",
-    "complexity": {
-      "pointGet": "logN",
-      "pointSet": "logN~",
-      "rangeAndApply": "logN*logV~",
-      "rangeAndQuery": "logN",
-      "rangeMax": "logN",
-      "rangeMin": "logN",
-      "rangeOrApply": "logN*logV~",
-      "rangeOrQuery": "logN",
-      "rangeSum": "logN",
-      "rangeXorApply": "logN*logV~"
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAndApply": "log(N)*log(U) amortized",
+      "rangeAndQuery": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeOrApply": "log(N)*log(U) amortized",
+      "rangeOrQuery": "log(N)",
+      "rangeSum": "log(N)",
+      "rangeXorApply": "log(N)*log(U) amortized"
     },
     "build": "N",
-    "source": "segment-trees/beats/range-AndApply-OrApply-XorApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py"
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          },
+          {
+            "name": "sz",
+            "size": "4*N"
+          },
+          {
+            "name": "andAll",
+            "size": "4*N"
+          },
+          {
+            "name": "orAll",
+            "size": "4*N"
+          }
+        ],
+        "total": "24*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tagAnd",
+            "size": "4*N"
+          },
+          {
+            "name": "tagXor",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "the and/or/xor tags compose into one (and, xor) pair per node",
+      "total": "32*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-XorApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py"
   },
   {
-    "file": "pointGet-pointSet-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeOrApply-rangeXorApply",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "pointSet",
+      "rangeAndApply",
+      "rangeOrApply",
+      "rangeXorApply"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAndApply": "log(N)",
+      "rangeOrApply": "log(N)",
+      "rangeXorApply": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "AND",
+            "size": "1*N"
+          },
+          {
+            "name": "XOR",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "note": "each internal node holds one pending bit map x -> (x & AND) ^ XOR; val holds the leaf values",
+      "total": "3*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "1",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "stamp",
+            "size": "2*N"
+          },
+          {
+            "name": "val",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "every node remembers the last assignment that covered it and when; a point takes the newest one on its path",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeAssign",
       "rangeChmax",
       "rangeChmin",
@@ -428,26 +2187,81 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "rangeMin",
       "rangeSum"
     ],
-    "kind": "beats",
-    "complexity": {
-      "pointGet": "logN",
-      "pointSet": "logN~",
-      "rangeAssign": "logN~",
-      "rangeChmax": "logN~",
-      "rangeChmin": "logN~",
-      "rangeMax": "logN",
-      "rangeMin": "logN",
-      "rangeSum": "logN"
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N) amortized",
+      "rangeChmax": "log(N) amortized",
+      "rangeChmin": "log(N) amortized",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/beats/rangeChmin-Chmax-Assign-Sum-Min-Max-PointSet-Beats-LogN.py"
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "mx2",
+            "size": "4*N"
+          },
+          {
+            "name": "cntMx",
+            "size": "4*N"
+          },
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "mn2",
+            "size": "4*N"
+          },
+          {
+            "name": "cntMn",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          }
+        ],
+        "total": "28*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "no tag arrays: on push, children are clamped to the parent's max/min (the beats tag is implicit)",
+      "total": "28*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Assign-Sum-Min-Max-PointSet-Beats-LogN.py"
   },
   {
-    "file": "pointGet-pointSet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "pointSet",
       "rangeAssign",
       "rangeFloorDiv",
       "rangeFloorSqrt",
@@ -456,235 +2270,952 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "rangeMod",
       "rangeSum"
     ],
-    "kind": "beats",
-    "complexity": {
-      "pointGet": "logN",
-      "pointSet": "logN~",
-      "rangeAssign": "logN~",
-      "rangeFloorDiv": "logN*logV~",
-      "rangeFloorSqrt": "logN*loglogV~",
-      "rangeMax": "logN",
-      "rangeMin": "logN",
-      "rangeMod": "logN*logV~",
-      "rangeSum": "logN"
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N) amortized",
+      "rangeFloorDiv": "log(N)*log(U) amortized",
+      "rangeFloorSqrt": "log(N)*log(log(U)) amortized",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeMod": "log(N)*log(U) amortized",
+      "rangeSum": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/beats/range-Mod-Sum-FloorDiv-Sqrt-Min-Max-Assign.py"
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          }
+        ],
+        "total": "12*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "no tag arrays: an assigned range is a uniform node (max == min) and is pushed to children as such",
+      "total": "12*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-Mod-Sum-FloorDiv-Sqrt-Min-Max-Assign.py"
   },
   {
-    "file": "pointGet-pointSet-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMod-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmax",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "pointSet",
+      "rangeChmax"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "1",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeChmax": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeChmax tag (no aggregates)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeChmin"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "1",
+      "pointGet": "log(N)",
+      "rangeChmin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeChmin tag (no aggregates)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorDiv",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeFloorDiv"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeFloorDiv": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending divisor (product of divisions, capped)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMod-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeFloorDiv",
       "rangeFloorSqrt",
       "rangeMax",
       "rangeMod",
       "rangeSum"
     ],
-    "kind": "beats",
-    "complexity": {
-      "pointGet": "logN",
-      "pointSet": "logN",
-      "rangeFloorDiv": "logN*logV~",
-      "rangeFloorSqrt": "logN*loglogV~",
-      "rangeMax": "logN",
-      "rangeMod": "logN*logV~",
-      "rangeSum": "logN"
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeFloorDiv": "log(N)*log(U) amortized",
+      "rangeFloorSqrt": "log(N)*log(log(U)) amortized",
+      "rangeMax": "log(N)",
+      "rangeMod": "log(N)*log(U) amortized",
+      "rangeSum": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/beats/range-Mod-Sum-FloorDiv-Sqrt-pointAssign.py"
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "no lazy tags: updates walk down to the leaves that still shrink",
+      "total": "8*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-Mod-Sum-FloorDiv-Sqrt-pointAssign.py"
   },
   {
-    "file": "pointGet-rangeAdd-rangeGcd.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorSqrt",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "rangeAdd",
+      "rangeFloorSqrt"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)+log(log(U))",
+      "pointAssign": "log(N)+log(log(U))",
+      "pointChmax": "log(N)+log(log(U))",
+      "pointChmin": "log(N)+log(log(U))",
+      "pointGet": "log(N)+log(log(U))",
+      "rangeFloorSqrt": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree[n:] holds the values, tree[1:n] holds how many floor-sqrts are pending at each node (capped at 6)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeGcd"
     ],
-    "kind": "seg-tree",
-    "complexity": {
-      "pointGet": "logN",
-      "rangeAdd": "logN*logV",
-      "rangeGcd": "logN+logV"
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)*log(U)",
+      "pointAssign": "log(N)*log(U)",
+      "pointChmax": "log(N)*log(U)",
+      "pointChmin": "log(N)*log(U)",
+      "pointGet": "1",
+      "rangeGcd": "log(N)*log(U)"
     },
-    "build": "N",
-    "source": "segment-trees/lazy/rangeAddRangeGcd.py"
+    "build": "N*log(U)",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree holds each node's gcd; arr is a reference",
+      "total": "2*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/GcdSegTree.py"
   },
   {
-    "file": "pointGet-rangeAddArithSeq-rangeSum.py",
-    "lang": "py",
-    "ops": [
-      "pointGet",
-      "rangeAddArithSeq",
-      "rangeSum"
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd-rangeLcm",
+    "langs": [
+      "py",
+      "cpp"
     ],
-    "kind": "lazy-seg-tree",
-    "complexity": {
-      "pointGet": "logN",
-      "rangeAddArithSeq": "logN",
-      "rangeSum": "logN"
-    },
-    "build": "N",
-    "source": "segment-trees/lazy/ArithmeticProgressionST.py"
-  },
-  {
-    "file": "pointGet-rangeAddArithSeqMod-rangeSum.py",
-    "lang": "py",
-    "ops": [
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
       "pointGet",
-      "rangeAddArithSeqMod",
-      "rangeSum"
-    ],
-    "kind": "lazy-seg-tree",
-    "complexity": {
-      "pointGet": "logN",
-      "rangeAddArithSeqMod": "logN",
-      "rangeSum": "logN"
-    },
-    "build": "N",
-    "source": "segment-trees/lazy/ArithmeticProgressionSTWithMod.py"
-  },
-  {
-    "file": "pointSet-rangeGcd-rangeLcm.py",
-    "lang": "py",
-    "ops": [
-      "pointSet",
       "rangeGcd",
       "rangeLcm"
     ],
-    "kind": "seg-tree",
-    "complexity": {
-      "pointSet": "?",
-      "rangeGcd": "logN*logV",
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "?",
+      "pointAssign": "?",
+      "pointChmax": "?",
+      "pointChmin": "?",
+      "pointGet": "1",
+      "rangeGcd": "log(N)*log(U)",
       "rangeLcm": "?"
     },
     "build": "?",
-    "source": "segment-trees/normal/GcdLcmSegmentTree.py"
-  },
-  {
-    "file": "pointSet-rangeGcd.py",
-    "lang": "py",
-    "ops": [
-      "pointSet",
-      "rangeGcd"
-    ],
-    "kind": "seg-tree",
-    "complexity": {
-      "pointSet": "logN*logV",
-      "rangeGcd": "logN*logV"
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "g",
+            "size": "2*N"
+          },
+          {
+            "name": "lcm",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "vals",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "note": "lcm values grow without bound (Python big ints; in C++ they overflow past 2^63), so lcm costs are unknown",
+      "total": "5*N"
     },
-    "build": "N*logV",
-    "source": "segment-trees/normal/GcdSegTree.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/GcdLcmSegmentTree.py"
   },
   {
-    "file": "pointSet-rangeMax.py",
-    "lang": "py",
-    "ops": [
-      "pointSet",
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeMax"
     ],
-    "kind": "seg-tree",
-    "complexity": {
-      "pointSet": "logN",
-      "rangeMax": "logN"
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeMax": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/normal/pointAssignRangeMax.py"
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree holds each node's max; leaves are tree[n..2n), no power-of-two padding; arr is a reference",
+      "total": "2*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAssignRangeMax.py"
   },
   {
-    "file": "pointSet-rangeSum.py",
-    "lang": "py",
-    "ops": [
-      "pointSet",
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeMod"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeMod": "log(N)*log(U) amortized"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "mx[n:] holds the values, mx[1:n] the max of each node's subtree; there are no tags at all",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMultMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeMultMod"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeMultMod": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeMultMod tag (no aggregates)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeOrApply",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeOrApply"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeOrApply": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [],
+        "total": "0"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeOrApply tag (no aggregates)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum__seg-tree",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
       "rangeSum"
     ],
-    "kind": "seg-tree",
-    "complexity": {
-      "pointSet": "logN",
-      "rangeSum": "logN"
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeSum": "log(N)"
     },
     "build": "N",
-    "source": "segment-trees/normal/pointAssignRangeSum.py"
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree holds each node's sum; leaves are tree[n..2n), no power-of-two padding; arr is a reference",
+      "total": "2*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAssignRangeSum.py"
   },
   {
-    "file": "rangeAndQuery.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeXorApply",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeXorApply"
+    ],
+    "dataStructureType": "BIT",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeXorApply": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "a Fenwick tree over the xor-difference array; a[i] is the prefix xor of differences up to i",
+      "total": "1*N"
+    }
+  },
+  {
+    "folder": "pointGet-rangeAndQuery",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointGet",
       "rangeAndQuery"
     ],
-    "kind": "sparse-table",
-    "complexity": {
+    "dataStructureType": "sparse-table",
+    "complexities": {
+      "pointGet": "1",
       "rangeAndQuery": "1"
     },
-    "build": "NlogN",
-    "source": "sparse-tables/SparseAND.py"
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "sparse",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "1*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "log(N) levels of N values each; level 0 is the array itself",
+      "total": "1*N*log(N)"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseAND.py"
   },
   {
-    "file": "rangeGcd.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointGet-rangeGcd",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointGet",
       "rangeGcd"
     ],
-    "kind": "sparse-table",
-    "complexity": {
-      "rangeGcd": "logV"
+    "dataStructureType": "sparse-table",
+    "complexities": {
+      "pointGet": "1",
+      "rangeGcd": "log(U)"
     },
-    "build": "NlogN*logV",
-    "source": "sparse-tables/SparseGCD.py"
+    "build": "N*log(N)*log(U)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "sparse",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "1*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "log(N) levels of N values each; level 0 is the array itself",
+      "total": "1*N*log(N)"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseGCD.py"
   },
   {
-    "file": "rangeMax.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointGet-rangeMax",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointGet",
       "rangeMax"
     ],
-    "kind": "sparse-table",
-    "complexity": {
+    "dataStructureType": "sparse-table",
+    "complexities": {
+      "pointGet": "1",
       "rangeMax": "1"
     },
-    "build": "NlogN",
-    "source": "sparse-tables/SparseMax.py"
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "sparse",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "1*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "log(N) levels of N values each; level 0 is the array itself",
+      "total": "1*N*log(N)"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseMax.py"
   },
   {
-    "file": "rangeMin.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointGet-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointGet",
       "rangeMin"
     ],
-    "kind": "sparse-table",
-    "complexity": {
+    "dataStructureType": "sparse-table",
+    "complexities": {
+      "pointGet": "1",
       "rangeMin": "1"
     },
-    "build": "NlogN",
-    "source": "sparse-tables/SparseMin.py"
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "sparse",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "1*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "log(N) levels of N values each; level 0 is the array itself",
+      "total": "1*N*log(N)"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseMin.py"
   },
   {
-    "file": "rangeMode.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointGet-rangeMode",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointGet",
       "rangeMode"
     ],
-    "kind": "sqrt",
-    "complexity": {
-      "rangeMode": "sqrtN"
+    "dataStructureType": "sqrt",
+    "complexities": {
+      "pointGet": "1",
+      "rangeMode": "sqrt(N)"
     },
-    "build": "NsqrtN",
-    "source": "segment-trees/other-range-queries/rangeMode-online.py"
+    "build": "N*sqrt(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "blockMode",
+            "size": "1*N"
+          },
+          {
+            "name": "blockCnt",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "comp",
+            "size": "1*N"
+          },
+          {
+            "name": "positions",
+            "size": "1*N"
+          },
+          {
+            "name": "posIdx",
+            "size": "1*N"
+          },
+          {
+            "name": "vals",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "note": "blockMode/blockCnt are (N/B)^2 = N tables with B = sqrt(N); vals is the distinct values",
+      "total": "6*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeMode-online.py"
   },
   {
-    "file": "rangeOrQuery.py",
-    "lang": "py",
-    "ops": [
+    "folder": "pointGet-rangeOrQuery",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointGet",
       "rangeOrQuery"
     ],
-    "kind": "sparse-table",
-    "complexity": {
+    "dataStructureType": "sparse-table",
+    "complexities": {
+      "pointGet": "1",
       "rangeOrQuery": "1"
     },
-    "build": "NlogN",
-    "source": "sparse-tables/SparseOR.py"
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "sparse",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "1*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "log(N) levels of N values each; level 0 is the array itself",
+      "total": "1*N*log(N)"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseOR.py"
   }
 ];

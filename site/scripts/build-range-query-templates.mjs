@@ -1,7 +1,22 @@
 // Reads the tagged templates in ../templates/range-queries and generates:
-//   - lib/generated/range-query-templates.ts  (typed manifest; tsc rejects unknown op ids or kinds)
-//   - public/range-query-templates/<file>     (static copies the picker fetches on click)
+//   - lib/generated/range-query-templates.ts  (typed manifest; tsc rejects unknown operations or data structure types)
+//   - public/range-query-templates/<folder>/template.{py,cpp}  (static copies the picker fetches on click)
 // Run with: npm run gen:range-queries
+//
+// Header format (Python shown; C++ uses //):
+//   # @operations: pointAssign rangeMin
+//   # @data-structure-type: seg-tree
+//   # @complexities:
+//   #   pointAssign: log(N)
+//   #   rangeMin: log(N)
+//   #   build: N
+//   # @memory:
+//   #   layout: pow2-iterative
+//   #   node: tree[4*N]
+//   #   tags: none
+//   #   other: none
+//   #   note: optional free text
+//   # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MinSeg.py
 
 import fs from "node:fs";
 import path from "node:path";
@@ -13,67 +28,163 @@ const publicDir = path.join(siteDir, "public/range-query-templates");
 const manifestPath = path.join(siteDir, "lib/generated/range-query-templates.ts");
 
 const LANGS = { ".py": "py", ".cpp": "cpp" };
-const TAG_RE = /^\s*(?:#|\/\/)\s*@(\w+):\s*(.*?)\s*$/;
-const FACTORS = new Set(["1", "logN", "log2N", "sqrtN", "N", "NlogN", "NsqrtN", "logV", "loglogV"]);
+// @original-file-url is optional: templates written fresh in this folder have no original.
+const TAGS = ["operations", "data-structure-type", "complexities", "memory", "original-file-url"];
+const OPTIONAL_TAGS = ["original-file-url"];
+const TAG_RE = /^\s*(?:#|\/\/) @([a-z-]+):\s*(.*?)\s*$/;
+const ENTRY_RE = /^\s*(?:#|\/\/)\s+([A-Za-z]\w*):\s*(.+?)\s*$/;
 
-// A cost is "?" or terms joined by "+", each term factors joined by "*", optionally ending in "~" (amortized).
+// N = number of elements, U = largest value (gcd, bit ops, floor div/sqrt depend on it).
+const FACTORS = new Set(["1", "N", "log(N)", "log^2(N)", "sqrt(N)", "log(U)", "log(log(U))"]);
+
+// A cost is "?" or terms joined by "+", each term factors joined by "*" (a factor may be a positive integer
+// constant, e.g. 36*N), optionally followed by " amortized".
+const isValidFactor = (f) => FACTORS.has(f) || /^[1-9]\d*$/.test(f);
 function isValidCost(cost) {
   if (cost === "?") return true;
-  const body = cost.endsWith("~") ? cost.slice(0, -1) : cost;
-  return body.split("+").every((term) => term.split("*").every((f) => FACTORS.has(f)));
+  const body = cost.replace(/ amortized$/, "");
+  return body.split("+").every((term) => term.split("*").every(isValidFactor));
 }
 
-function parseComplexity(file, raw, ops, errors) {
-  const map = {};
-  for (const pair of (raw ?? "").split(/\s+/).filter(Boolean)) {
-    const [key, cost] = pair.split("=");
-    if (!cost || !isValidCost(cost)) errors.push(`${file}: bad @complexity entry "${pair}"`);
-    else if (key !== "*" && key !== "build" && !ops.includes(key)) errors.push(`${file}: @complexity names "${key}", not in @ops`);
-    else map[key] = cost;
-  }
-  if (!map.build) errors.push(`${file}: @complexity needs build=`);
-  const perOp = {};
-  for (const op of ops) {
-    perOp[op] = map[op] ?? map["*"];
-    if (!perOp[op]) errors.push(`${file}: no complexity for ${op} (and no *= default)`);
-  }
-  return { complexity: perOp, build: map.build };
-}
-
-function parseTags(text) {
+// Reads the header block: "@tag: value" lines; "@complexities:" and "@memory:" are followed by indented "key: value" lines.
+const BLOCK_TAGS = ["complexities", "memory"];
+function parseHeader(text) {
   const tags = {};
+  const blocks = { complexities: {}, memory: {} };
+  let block = null;
   for (const line of text.split("\n")) {
-    const m = line.match(TAG_RE);
-    if (!m) break;
-    tags[m[1]] = m[2];
+    const tag = line.match(TAG_RE);
+    if (tag) {
+      tags[tag[1]] = tag[2];
+      block = BLOCK_TAGS.includes(tag[1]) ? tag[1] : null;
+      continue;
+    }
+    const entry = block && line.match(ENTRY_RE);
+    if (!entry) break;
+    blocks[block][entry[1]] = entry[2];
   }
-  return tags;
+  return { tags, complexities: blocks.complexities, memory: blocks.memory };
+}
+
+const LAYOUTS = ["2n-iterative", "pow2-iterative", "4n-recursive", "none"];
+const MEMORY_GROUPS = ["node", "tags", "other"];
+const ARRAY_RE = /^([A-Za-z_]\w*)\[([^\]]+)\]$/;
+
+// "a[4*N] b[1*N*log(N)]" -> [{ name, size }], or null if malformed
+function parseArrays(value) {
+  if (value === "none") return [];
+  const out = [];
+  for (const item of value.split(/\s+/)) {
+    const m = item.match(ARRAY_RE);
+    if (!m || !isValidCost(m[2]) || m[2].endsWith(" amortized") || m[2] === "?") return null;
+    out.push({ name: m[1], size: m[2] });
+  }
+  return out;
+}
+
+// Sums sizes like 4*N + 4*N + 1*N*log(N) into "8*N+1*N*log(N)", largest terms first.
+const TERM_ORDER = ["N*log(N)", "N", "sqrt(N)", ""];
+function sumSizes(sizes) {
+  const byShape = new Map();
+  for (const size of sizes) {
+    for (const term of size.split("+")) {
+      const factors = term.split("*");
+      const coef = factors.filter((f) => /^\d+$/.test(f)).reduce((p, f) => p * Number(f), 1);
+      const shape = factors.filter((f) => !/^\d+$/.test(f) && f !== "1").join("*");
+      byShape.set(shape, (byShape.get(shape) ?? 0) + coef);
+    }
+  }
+  const shapes = [...byShape.keys()].sort((a, b) => (TERM_ORDER.indexOf(a) + 99) % 99 - (TERM_ORDER.indexOf(b) + 99) % 99);
+  return shapes.map((shape) => (shape ? `${byShape.get(shape)}*${shape}` : String(byShape.get(shape)))).join("+") || "0";
 }
 
 const errors = [];
 const entries = [];
 
-for (const file of fs.readdirSync(srcDir).sort()) {
-  const ext = path.extname(file);
-  const lang = LANGS[ext];
-  if (!lang) {
-    errors.push(`${file}: unsupported extension`);
+// Parses and validates one language file's header. `where` prefixes error messages.
+function readTemplateFile(where, filePath) {
+  const { tags, complexities, memory } = parseHeader(fs.readFileSync(filePath, "utf8"));
+  const errs = [];
+  for (const t of TAGS) if (!(t in tags) && !OPTIONAL_TAGS.includes(t)) errs.push(`${where}: missing @${t}`);
+  for (const t of Object.keys(tags)) if (!TAGS.includes(t)) errs.push(`${where}: unknown tag @${t}`);
+
+  const operations = (tags.operations ?? "").split(/\s+/).filter(Boolean);
+  if (!operations.length) errs.push(`${where}: @operations is empty`);
+  if (operations.join(" ") !== [...operations].sort().join(" ")) errs.push(`${where}: @operations not alphabetical`);
+  if (new Set(operations).size !== operations.length) errs.push(`${where}: duplicate in @operations`);
+
+  if (!LAYOUTS.includes(memory.layout)) errs.push(`${where}: @memory layout must be one of ${LAYOUTS.join(", ")}`);
+  for (const k of Object.keys(memory))
+    if (![...MEMORY_GROUPS, "layout", "note"].includes(k)) errs.push(`${where}: unknown @memory key "${k}"`);
+  const memoryGroups = {};
+  for (const g of MEMORY_GROUPS) {
+    const arrays = memory[g] === undefined ? null : parseArrays(memory[g]);
+    if (!arrays) errs.push(`${where}: @memory ${g} must be "none" or name[size] entries`);
+    memoryGroups[g] = { arrays: arrays ?? [], total: sumSizes((arrays ?? []).map((a) => a.size)) };
+  }
+  const allSizes = MEMORY_GROUPS.flatMap((g) => memoryGroups[g].arrays.map((a) => a.size));
+  if (!allSizes.length) errs.push(`${where}: @memory lists no arrays`);
+
+  for (const [name, cost] of Object.entries(complexities)) {
+    if (name !== "build" && !operations.includes(name)) errs.push(`${where}: @complexities lists "${name}", not in @operations`);
+    if (!isValidCost(cost)) errs.push(`${where}: bad cost "${cost}" for ${name}`);
+  }
+  for (const op of operations) if (!(op in complexities)) errs.push(`${where}: @complexities is missing ${op}`);
+  if (!("build" in complexities)) errs.push(`${where}: @complexities is missing build`);
+
+  const { build, ...perOperation } = complexities;
+  return {
+    errs,
+    data: {
+      operations,
+      dataStructureType: tags["data-structure-type"],
+      complexities: perOperation,
+      build,
+      memory: {
+        layout: memory.layout,
+        ...memoryGroups,
+        ...(memory.note ? { note: memory.note } : {}),
+        total: sumSizes(allSizes),
+      },
+      ...(tags["original-file-url"] ? { originalFileUrl: tags["original-file-url"] } : {}),
+    },
+  };
+}
+
+// Each template is a folder holding template.py and/or template.cpp. The folder is named by its operations
+// (alphabetical, "-" joined), with a __<data-structure-type> suffix when two templates share operations.
+// Both language files carry the same header; the C++ one may differ only in the original-file-url.
+for (const folder of fs.readdirSync(srcDir).sort()) {
+  const folderPath = path.join(srcDir, folder);
+  if (!fs.statSync(folderPath).isDirectory()) {
+    errors.push(`${folder}: expected a folder per template`);
     continue;
   }
-  const tags = parseTags(fs.readFileSync(path.join(srcDir, file), "utf8"));
-  const ops = (tags.ops ?? "").split(/\s+/).filter(Boolean);
-  if (!ops.length) errors.push(`${file}: missing @ops`);
-  if (!tags.kind) errors.push(`${file}: missing @kind`);
-  if (!tags.source) errors.push(`${file}: missing @source`);
-
-  const sorted = [...ops].sort();
-  if (ops.join(" ") !== sorted.join(" ")) errors.push(`${file}: @ops not alphabetical`);
-  if (new Set(ops).size !== ops.length) errors.push(`${file}: duplicate op in @ops`);
-  const expectedName = sorted.join("-") + ext;
-  if (file !== expectedName) errors.push(`${file}: name should be ${expectedName}`);
-
-  const { complexity, build } = parseComplexity(file, tags.complexity, ops, errors);
-  entries.push({ file, lang, ops, kind: tags.kind, complexity, build, source: tags.source });
+  const langs = [];
+  let data = null;
+  for (const [ext, lang] of Object.entries(LANGS)) {
+    const filePath = path.join(folderPath, `template${ext}`);
+    if (!fs.existsSync(filePath)) continue;
+    const { errs, data: d } = readTemplateFile(`${folder}/template${ext}`, filePath);
+    errors.push(...errs);
+    langs.push(lang);
+    if (!data) {
+      data = d;
+    } else {
+      const strip = (x) => JSON.stringify({ ...x, originalFileUrl: undefined });
+      if (strip(data) !== strip(d)) errors.push(`${folder}: template${ext} header disagrees with the other language's`);
+    }
+  }
+  for (const f of fs.readdirSync(folderPath))
+    if (!Object.keys(LANGS).some((ext) => f === `template${ext}`)) errors.push(`${folder}: unexpected file ${f}`);
+  if (!data) {
+    errors.push(`${folder}: no template.py or template.cpp`);
+    continue;
+  }
+  const base = data.operations.join("-");
+  const allowed = [base, `${base}__${data.dataStructureType}`];
+  if (!allowed.includes(folder)) errors.push(`${folder}: folder should be ${allowed[0]} (or ${allowed[1]} if it collides)`);
+  entries.push({ folder, langs, ...data });
 }
 
 if (errors.length) {
@@ -83,7 +194,13 @@ if (errors.length) {
 
 fs.rmSync(publicDir, { recursive: true, force: true });
 fs.mkdirSync(publicDir, { recursive: true });
-for (const { file } of entries) fs.copyFileSync(path.join(srcDir, file), path.join(publicDir, file));
+for (const { folder, langs } of entries) {
+  fs.mkdirSync(path.join(publicDir, folder), { recursive: true });
+  for (const lang of langs) {
+    const name = `template.${lang}`;
+    fs.copyFileSync(path.join(srcDir, folder, name), path.join(publicDir, folder, name));
+  }
+}
 
 const manifest = `// Generated by scripts/build-range-query-templates.mjs from templates/range-queries. Do not edit.
 import type { RangeQueryTemplate } from "../range-query-picker";

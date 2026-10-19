@@ -242,7 +242,3 @@ class BeatsChmax_PERFORMANT:
 
     def pointGet(self, pos):
         return self.rangeMin(pos, pos)
-
-
-dict_values([-inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, 4, -inf, -inf, -inf, -inf, -inf, 7, -inf, -inf, -inf, 9, -inf, 10, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf])©leetcode
-    dict_values([0, 0, 7, 7, 7, 7, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15])©leetcode
