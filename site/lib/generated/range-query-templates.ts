@@ -5385,22 +5385,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "pointAddMod-pointAssignMod-pointGet-rangeAddArithSeqMod-rangeAddMod",
+    "folder": "pointAdd-pointAssign-pointGet-rangeAddArithSeqMod-rangeAddMod",
     "langs": [
       "py",
       "cpp"
     ],
     "operations": [
-      "pointAddMod",
-      "pointAssignMod",
+      "pointAdd",
+      "pointAssign",
       "pointGet",
       "rangeAddArithSeqMod",
       "rangeAddMod"
     ],
     "dataStructureType": "BIT",
     "complexities": {
-      "pointAddMod": "log(N)",
-      "pointAssignMod": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
       "pointGet": "log(N)",
       "rangeAddArithSeqMod": "log(N)",
       "rangeAddMod": "log(N)"
@@ -5434,14 +5434,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "pointAddMod-pointAssignMod-pointGet-rangeAddArithSeqMod-rangeAddMod-rangeSumMod",
+    "folder": "pointAdd-pointAssign-pointGet-rangeAddArithSeqMod-rangeAddMod-rangeSumMod",
     "langs": [
       "py",
       "cpp"
     ],
     "operations": [
-      "pointAddMod",
-      "pointAssignMod",
+      "pointAdd",
+      "pointAssign",
       "pointGet",
       "rangeAddArithSeqMod",
       "rangeAddMod",
@@ -5449,8 +5449,8 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     ],
     "dataStructureType": "BIT",
     "complexities": {
-      "pointAddMod": "log(N)",
-      "pointAssignMod": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
       "pointGet": "log(N)",
       "rangeAddArithSeqMod": "log(N)",
       "rangeAddMod": "log(N)",
@@ -5489,14 +5489,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "pointAddMod-pointAssignMod-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod",
+    "folder": "pointAdd-pointAssign-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod",
     "langs": [
       "py",
       "cpp"
     ],
     "operations": [
-      "pointAddMod",
-      "pointAssignMod",
+      "pointAdd",
+      "pointAssign",
       "pointGet",
       "rangeAddMod",
       "rangeAffineMod",
@@ -5505,8 +5505,8 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     ],
     "dataStructureType": "lazy-seg-tree",
     "complexities": {
-      "pointAddMod": "log(N)",
-      "pointAssignMod": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
       "pointGet": "log(N)",
       "rangeAddMod": "log(N)",
       "rangeAffineMod": "log(N)",
@@ -5547,14 +5547,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "pointAddMod-pointAssignMod-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod-rangeSumMod",
+    "folder": "pointAdd-pointAssign-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod-rangeSumMod",
     "langs": [
       "py",
       "cpp"
     ],
     "operations": [
-      "pointAddMod",
-      "pointAssignMod",
+      "pointAdd",
+      "pointAssign",
       "pointGet",
       "rangeAddMod",
       "rangeAffineMod",
@@ -5564,8 +5564,8 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     ],
     "dataStructureType": "lazy-seg-tree",
     "complexities": {
-      "pointAddMod": "log(N)",
-      "pointAssignMod": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
       "pointGet": "log(N)",
       "rangeAddMod": "log(N)",
       "rangeAffineMod": "log(N)",
@@ -5607,22 +5607,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "pointAddMod-pointAssignMod-pointGet-rangeAddMod-rangeSumMod",
+    "folder": "pointAdd-pointAssign-pointGet-rangeAddMod-rangeSumMod",
     "langs": [
       "py",
       "cpp"
     ],
     "operations": [
-      "pointAddMod",
-      "pointAssignMod",
+      "pointAdd",
+      "pointAssign",
       "pointGet",
       "rangeAddMod",
       "rangeSumMod"
     ],
     "dataStructureType": "BIT",
     "complexities": {
-      "pointAddMod": "log(N)",
-      "pointAssignMod": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
       "pointGet": "log(N)",
       "rangeAddMod": "log(N)",
       "rangeSumMod": "log(N)"
@@ -5656,21 +5656,21 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "pointAddMod-pointAssignMod-pointGet-rangeMultMod",
+    "folder": "pointAdd-pointAssign-pointGet-rangeMultMod",
     "langs": [
       "py",
       "cpp"
     ],
     "operations": [
-      "pointAddMod",
-      "pointAssignMod",
+      "pointAdd",
+      "pointAssign",
       "pointGet",
       "rangeMultMod"
     ],
     "dataStructureType": "seg-tree",
     "complexities": {
-      "pointAddMod": "log(N)",
-      "pointAssignMod": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
       "pointGet": "log(N)",
       "rangeMultMod": "log(N)"
     },
@@ -5704,22 +5704,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "pointAddMod-pointAssignMod-pointGet-rangeMultMod-rangeSumMod",
+    "folder": "pointAdd-pointAssign-pointGet-rangeMultMod-rangeSumMod",
     "langs": [
       "py",
       "cpp"
     ],
     "operations": [
-      "pointAddMod",
-      "pointAssignMod",
+      "pointAdd",
+      "pointAssign",
       "pointGet",
       "rangeMultMod",
       "rangeSumMod"
     ],
     "dataStructureType": "lazy-seg-tree",
     "complexities": {
-      "pointAddMod": "log(N)",
-      "pointAssignMod": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
       "pointGet": "log(N)",
       "rangeMultMod": "log(N)",
       "rangeSumMod": "log(N)"

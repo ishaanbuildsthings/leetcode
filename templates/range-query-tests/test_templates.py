@@ -38,14 +38,13 @@ OPS_PER_TRIAL = 60
 
 # ------------------------------------------------------------------------------------------------ brute force
 
-POINT_UPDATES = ("pointAssign", "pointAdd", "pointChmax", "pointChmin", "pointAssignMod", "pointAddMod")
+POINT_UPDATES = ("pointAssign", "pointAdd", "pointChmax", "pointChmin")
 RANGE_UPDATES = {  # op -> number of args after (l, r)
     "rangeAdd": 1, "rangeAssign": 1, "rangeAddMod": 1, "rangeAssignMod": 1, "rangeChmax": 1, "rangeChmin": 1, "rangeMultMod": 1, "rangeAffineMod": 2,
     "rangeAddArithSeq": 2, "rangeAddArithSeqMod": 2, "rangeMod": 1, "rangeFloorDiv": 1, "rangeFloorSqrt": 0,
     "rangeAndApply": 1, "rangeOrApply": 1, "rangeXorApply": 1,
 }
-MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod", "rangeAssignMod", "rangeSumMod",
-           "pointAddMod", "pointAssignMod"}  # any of these: every value lives mod p
+MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod", "rangeAssignMod", "rangeSumMod"}  # any: values live mod p
 
 
 def _first(a, idxs, pred):
@@ -164,8 +163,7 @@ def brute_update(a, op, args, ctx):
     mod, full = ctx["mod"], ctx["full"]
     if op in POINT_UPDATES:
         i, v = args
-        a[i] = {"pointAssign": v, "pointAdd": a[i] + v, "pointChmax": max(a[i], v), "pointChmin": min(a[i], v),
-                "pointAssignMod": v, "pointAddMod": a[i] + v}[op]
+        a[i] = {"pointAssign": v, "pointAdd": a[i] + v, "pointChmax": max(a[i], v), "pointChmin": min(a[i], v)}[op]
         if full is not None:
             a[i] &= full
         if mod:
@@ -257,7 +255,7 @@ def make_trials(folder, ops, trials):
             if op == "pointGet":
                 args = [rng.randrange(n)]
             elif op in POINT_UPDATES:
-                args = [rng.randrange(n), delta(rng) if op in ("pointAdd", "pointAddMod") else gen(rng)]
+                args = [rng.randrange(n), delta(rng) if op == "pointAdd" else gen(rng)]
             else:
                 l, r = sorted((rng.randrange(n), rng.randrange(n)))
                 kind = "upd" if op in RANGE_UPDATES else BRUTE_QUERIES[op][0]

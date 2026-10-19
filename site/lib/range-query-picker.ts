@@ -4,8 +4,6 @@ export type OpId =
   | "pointAdd"
   | "pointChmax"
   | "pointChmin"
-  | "pointAddMod"
-  | "pointAssignMod"
   | "rangeAdd"
   | "rangeAssign"
   | "rangeChmax"
@@ -106,13 +104,6 @@ export const OP_GROUPS: OpGroup[] = [
         ops: [
           { id: "pointChmax", signature: "pointChmax(i, v)", description: "a[i] = max(a[i], v)" },
           { id: "pointChmin", signature: "pointChmin(i, v)", description: "a[i] = min(a[i], v)" },
-        ],
-      },
-      {
-        kind: "mod",
-        ops: [
-          { id: "pointAssignMod", signature: "pointAssignMod(i, v)", description: "a[i] = v  (mod p)" },
-          { id: "pointAddMod", signature: "pointAddMod(i, v)", description: "a[i] += v  (mod p)" },
         ],
       },
     ],

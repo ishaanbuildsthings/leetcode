@@ -20,6 +20,11 @@ import { RANGE_QUERY_TEMPLATES } from "@/lib/generated/range-query-templates";
 
 const ALL_OPS: Op[] = OP_GROUPS.flatMap((g) => g.tiers.flatMap((t) => t.ops));
 
+// Ops from the "Mod p" tiers. A template with any of them does all its arithmetic mod p, so it is only offered
+// once you pick one of them; otherwise a selection like pointGet + pointAdd could land on a mod template.
+const MOD_P_OPS = new Set<OpId>(OP_GROUPS.flatMap((g) => g.tiers.filter((t) => t.kind === "mod").flatMap((t) => t.ops.map((o) => o.id))));
+const isModP = (t: RangeQueryTemplate) => t.operations.some((op) => MOD_P_OPS.has(op));
+
 const GITHUB_BASE = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/";
 
 const opCost = (t: RangeQueryTemplate, op: OpId) => t.complexities[op] ?? "?";
@@ -30,7 +35,8 @@ const opCost = (t: RangeQueryTemplate, op: OpId) => t.complexities[op] ?? "?";
 function matchTemplates(selected: Set<OpId>) {
   if (selected.size === 0) return [];
   const picked = [...selected];
-  return RANGE_QUERY_TEMPLATES.filter((t) => picked.every((op) => t.operations.includes(op)))
+  const wantsMod = picked.some((op) => MOD_P_OPS.has(op));
+  return RANGE_QUERY_TEMPLATES.filter((t) => picked.every((op) => t.operations.includes(op)) && (wantsMod || !isModP(t)))
     .map((t) => {
       const costs = picked.map((op) => ({ op, cost: opCost(t, op), value: costValue(opCost(t, op)) }));
       const bottleneck = costs.reduce((a, b) => (b.value > a.value ? b : a));
