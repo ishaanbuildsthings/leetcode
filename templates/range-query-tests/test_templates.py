@@ -14,6 +14,7 @@ soon as its ops are in BRUTE_UPDATES / BRUTE_QUERIES.
 C++ needs a GCC with bits/stdc++.h: set CXX, or it tries g++-15 ... g++-11, then g++.
 Each template.cpp is compiled with T = long long and also explicitly instantiated with T = int.
 """
+import bisect
 import importlib.util
 import inspect
 import math
@@ -76,6 +77,36 @@ def _prefix_search(a, l, r, x, strict):
     return -1
 
 
+def _lis(seq):
+    tails = []
+    for v in seq:
+        k = bisect.bisect_left(tails, v)
+        if k == len(tails):
+            tails.append(v)
+        else:
+            tails[k] = v
+    return len(tails)
+
+
+def _cost_mono_dec(seg):
+    return _cost_mono_inc(seg[::-1])
+
+
+def _longest_run(seg):
+    best = run = 1
+    for x, y in zip(seg, seg[1:]):
+        run = run + 1 if x == y else 1
+        best = max(best, run)
+    return best
+
+
+def _max_alt(seg):
+    plus = minus = float("-inf")  # best sum of a non-empty alternating subsequence ending on + / on -
+    for v in seg:
+        plus, minus = max(plus, v, minus + v), max(minus, plus - v)
+    return max(plus, minus)
+
+
 def _cost_mono_inc(seg):
     mx, cost = seg[0], 0
     for v in seg:
@@ -87,7 +118,7 @@ def _cost_mono_inc(seg):
 SIDE = {"leftmost": lambda l, r: range(l, r + 1), "rightmost": lambda l, r: range(r, l - 1, -1)}
 CMP = {"Gte": lambda v, x: v >= x, "Gt": lambda v, x: v > x, "Lte": lambda v, x: v <= x, "Lt": lambda v, x: v < x}
 
-# query op -> (arg kind, brute(a, l, r, *args, ctx)); arg kinds: "lr", "lrx", "lrkx", "lrlohi"
+# query op -> (arg kind, brute(a, l, r, *args, ctx)); arg kinds: "lr", "lrx", "lrk", "lrkx", "lrlohi"
 BRUTE_QUERIES = {
     "rangeSum": ("lr", lambda a, l, r, c: sum(a[l:r + 1]) % c["mod"] if c["mod"] else sum(a[l:r + 1])),
     "rangeMin": ("lr", lambda a, l, r, c: min(a[l:r + 1])),
@@ -105,7 +136,14 @@ BRUTE_QUERIES = {
     "countDistinct": ("lr", lambda a, l, r, c: len(set(a[l:r + 1]))),
     "allDistinct": ("lr", lambda a, l, r, c: len(set(a[l:r + 1])) == r - l + 1),
     "rangeMode": ("lr", None),  # ties may return any mode: checked by _check_mode
+    "rangeLIS": ("lr", lambda a, l, r, c: _lis(a[l:r + 1])),
     "costMonoIncreasing": ("lr", lambda a, l, r, c: _cost_mono_inc(a[l:r + 1])),
+    "costMonoDecreasing": ("lr", lambda a, l, r, c: _cost_mono_dec(a[l:r + 1])),
+    "costStrictIncreasing": ("lr", lambda a, l, r, c: _cost_mono_inc([v - i for i, v in enumerate(a[l:r + 1])])),
+    "costStrictDecreasing": ("lr", lambda a, l, r, c: _cost_mono_dec([v + i for i, v in enumerate(a[l:r + 1])])),
+    "longestEqualRun": ("lr", lambda a, l, r, c: _longest_run(a[l:r + 1])),
+    "maxAltSubseqSum": ("lr", lambda a, l, r, c: _max_alt(a[l:r + 1])),
+    "kthOccurrence": ("lrk", lambda a, l, r, k, c: _kth(a, l, r, k, lambda v: v == c["number"])),
     "doAllElementsAppearEvenFrequency": ("lr", lambda a, l, r, c: all(v % 2 == 0 for v in Counter(a[l:r + 1]).values())),
     "countInValRange": ("lrlohi", lambda a, l, r, lo, hi, c: sum(lo <= v <= hi for v in a[l:r + 1])),
     "sumInValRange": ("lrlohi", lambda a, l, r, lo, hi, c: sum(v for v in a[l:r + 1] if lo <= v <= hi)),
@@ -187,6 +225,8 @@ def domain(folder, ops):
     if "countValue" in ops:
         ctx["number"] = 3
         return (lambda r: r.randint(0, 5)), nonneg_small, [3], ctx
+    if "longestEqualRun" in ops:
+        return (lambda r: r.randint(0, 2)), (lambda r: r.randint(-1, 1)), [], ctx
     if "costMonoIncreasing" in ops:
         return (lambda r: r.randint(0, 50)), small, [], ctx
     return (lambda r: r.randint(-50, 50)), small, [], ctx
@@ -232,6 +272,8 @@ def make_trials(folder, ops, trials):
                     args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op else gen(rng)]
                 elif kind == "lrkx":
                     args = [l, r, rng.randint(1, 5), gen(rng)]
+                elif kind == "lrk":
+                    args = [l, r, rng.randint(0, 6)]
                 elif kind == "lrlohi":
                     args = [l, r, *sorted((gen(rng), gen(rng)))]
                 else:
@@ -409,6 +451,8 @@ def cpp_driver(folder, ops, structs, ctor_extra):
                 body = f"int l, r; long long x; cin >> l >> r >> x; out({s}.{op}(l, r, x));"
             elif kind == "lrkx":
                 body = f"int l, r, k; long long x; cin >> l >> r >> k >> x; out({s}.{op}(l, r, k, x));"
+            elif kind == "lrk":
+                body = f"int l, r, k; cin >> l >> r >> k; out({s}.{op}(l, r, k));"
             else:
                 body = f"int l, r; long long lo, hi; cin >> l >> r >> lo >> hi; out({s}.{op}(l, r, lo, hi));"
         lines.append(f'      else if (op == "{op}") {{ {body} }}')

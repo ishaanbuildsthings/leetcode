@@ -59,6 +59,67 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
+    "folder": "costMonoDecreasing-costMonoIncreasing-costStrictDecreasing-costStrictIncreasing-pointGet-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "costMonoDecreasing",
+      "costMonoIncreasing",
+      "costStrictDecreasing",
+      "costStrictIncreasing",
+      "pointGet",
+      "rangeSum"
+    ],
+    "dataStructureType": "sparse-table",
+    "complexities": {
+      "costMonoDecreasing": "1",
+      "costMonoIncreasing": "1",
+      "costStrictDecreasing": "1",
+      "costStrictIncreasing": "1",
+      "pointGet": "1",
+      "rangeSum": "1"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "sp",
+            "size": "4*N*log(N)"
+          }
+        ],
+        "total": "4*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "arr",
+            "size": "4*N"
+          },
+          {
+            "name": "pf",
+            "size": "4*N"
+          },
+          {
+            "name": "suff",
+            "size": "4*N"
+          }
+        ],
+        "total": "12*N"
+      },
+      "note": "four MonoIncreaseCost views (a, reversed a, a[i] - i, reversed a[i] + i); every view but the first is built on its first query, so you only pay for the ones you call",
+      "total": "4*N*log(N)+12*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/costToMakeSubarrayMonoIncreasing.py"
+  },
+  {
     "folder": "costMonoIncreasing-pointGet-rangeSum",
     "langs": [
       "py",
@@ -516,22 +577,24 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MaxAndMinAndCountsAndGteLteIndexSegmentTree.py"
   },
   {
-    "folder": "countValue-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
+    "folder": "countValue-kthOccurrence-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
     "langs": [
       "py",
       "cpp"
     ],
     "operations": [
       "countValue",
+      "kthOccurrence",
       "pointAdd",
       "pointAssign",
       "pointChmax",
       "pointChmin",
       "pointGet"
     ],
-    "dataStructureType": "seg-tree",
+    "dataStructureType": "BIT",
     "complexities": {
       "countValue": "log(N)",
+      "kthOccurrence": "log(N)",
       "pointAdd": "log(N)",
       "pointAssign": "log(N)",
       "pointChmax": "log(N)",
@@ -540,15 +603,15 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     },
     "build": "N",
     "memory": {
-      "layout": "2n-iterative",
+      "layout": "none",
       "node": {
         "arrays": [
           {
             "name": "tree",
-            "size": "2*N"
+            "size": "1*N"
           }
         ],
-        "total": "2*N"
+        "total": "1*N"
       },
       "tags": {
         "arrays": [],
@@ -563,8 +626,8 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         ],
         "total": "1*N"
       },
-      "note": "tree[n + i] is 1 when a[i] equals the value fixed at build, internal nodes sum their children",
-      "total": "3*N"
+      "note": "a Fenwick tree over the 0/1 array [a[i] == number]; kthOccurrence binary-lifts over it",
+      "total": "2*N"
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/CountAndKthIndexSegmentTree.py"
   },
@@ -792,6 +855,138 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "total": "1*N"
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAddRangeSumBIT.py"
+  },
+  {
+    "folder": "longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "longestEqualRun",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "longestEqualRun": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "ln",
+            "size": "2*N"
+          },
+          {
+            "name": "pre",
+            "size": "2*N"
+          },
+          {
+            "name": "suf",
+            "size": "2*N"
+          },
+          {
+            "name": "best",
+            "size": "2*N"
+          },
+          {
+            "name": "lv",
+            "size": "2*N"
+          },
+          {
+            "name": "rv",
+            "size": "2*N"
+          }
+        ],
+        "total": "12*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "per node: length, equal-run at the left / right end, best run inside, and the end values; queries fold a left and a right accumulator",
+      "total": "12*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/LongestContiguousBlockSeg.cpp"
+  },
+  {
+    "folder": "maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "maxAltSubseqSum",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "maxAltSubseqSum": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "pp",
+            "size": "2*N"
+          },
+          {
+            "name": "pm",
+            "size": "2*N"
+          },
+          {
+            "name": "mp",
+            "size": "2*N"
+          },
+          {
+            "name": "mm",
+            "size": "2*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "vals",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "note": "f[s][e] = best alternating sum inside the node that starts with sign s and ends with sign e; queries fold a left and a right accumulator",
+      "total": "9*N"
+    }
   },
   {
     "folder": "maxPrefixSum-maxSubarraySum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum",
@@ -3036,6 +3231,58 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "total": "1*N*log(N)"
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sparse-tables/SparseGCD.py"
+  },
+  {
+    "folder": "pointGet-rangeLIS",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointGet",
+      "rangeLIS"
+    ],
+    "dataStructureType": "merge-sort-tree",
+    "complexities": {
+      "pointGet": "1",
+      "rangeLIS": "log(N)"
+    },
+    "build": "N*log^2(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "cnt",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "1*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "E",
+            "size": "1*N"
+          },
+          {
+            "name": "sortedVals",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "the build is Tiskin's seaweed algorithm (permutations of size 2N per recursion level, freed after); queries count points in a flat merge sort tree over E",
+      "total": "1*N*log(N)+3*N"
+    }
   },
   {
     "folder": "pointGet-rangeMax",
