@@ -259,6 +259,7 @@ const TIER_STYLES: Record<TierKind, { label: string; badge: string }> = {
   common: { label: "Common", badge: "border-stone-300 bg-stone-100 text-stone-600" },
   uncommon: { label: "Uncommon", badge: "border-emerald-200 bg-emerald-50 text-emerald-700" },
   rare: { label: "Rare", badge: "border-amber-200 bg-amber-50 text-amber-700" },
+  mod: { label: "Mod p", badge: "border-sky-200 bg-sky-50 text-sky-700" },
   bitOps: { label: "Bit ops", badge: "border-violet-200 bg-violet-50 text-violet-700" },
 };
 

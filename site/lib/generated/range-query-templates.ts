@@ -249,7 +249,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     ],
     "dataStructureType": "sqrt",
     "complexities": {
-      "countDistinct": "sqrt(N)",
+      "countDistinct": "sqrt(N)*log(N)",
       "pointAdd": "sqrt(N)",
       "pointAssign": "sqrt(N)",
       "pointChmax": "sqrt(N)",
@@ -289,7 +289,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         ],
         "total": "3*N"
       },
-      "note": "blocks are sqrt(N) sorted lists of next-occurrence indices; chains maps each value to its sorted positions",
+      "note": "blocks are sqrt(N) sorted lists of next-occurrence indices (a query binary-searches each whole block); chains maps each value to its sorted positions (C++: std::set; Python: plain lists, so an assign is a memmove over that value's occurrences)",
       "total": "4*N"
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeDistinctWithPointUpdateSqrtDecomp.py"
@@ -493,88 +493,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "total": "4*N*log(N)+2*N"
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/persistent/persistent-sum-denseOfflineWithCompressionLogN.py"
-  },
-  {
-    "folder": "countMax-countMin-leftmostGtX-leftmostGteX-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rangeMin-rightmostGtX-rightmostGteX-rightmostLtX-rightmostLteX",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "countMax",
-      "countMin",
-      "leftmostGtX",
-      "leftmostGteX",
-      "leftmostLtX",
-      "leftmostLteX",
-      "pointAdd",
-      "pointAssign",
-      "pointChmax",
-      "pointChmin",
-      "pointGet",
-      "rangeMax",
-      "rangeMin",
-      "rightmostGtX",
-      "rightmostGteX",
-      "rightmostLtX",
-      "rightmostLteX"
-    ],
-    "dataStructureType": "seg-tree",
-    "complexities": {
-      "countMax": "log(N)",
-      "countMin": "log(N)",
-      "leftmostGtX": "log(N)",
-      "leftmostGteX": "log(N)",
-      "leftmostLtX": "log(N)",
-      "leftmostLteX": "log(N)",
-      "pointAdd": "log(N)",
-      "pointAssign": "log(N)",
-      "pointChmax": "log(N)",
-      "pointChmin": "log(N)",
-      "pointGet": "1",
-      "rangeMax": "log(N)",
-      "rangeMin": "log(N)",
-      "rightmostGtX": "log(N)",
-      "rightmostGteX": "log(N)",
-      "rightmostLtX": "log(N)",
-      "rightmostLteX": "log(N)"
-    },
-    "build": "N",
-    "memory": {
-      "layout": "pow2-iterative",
-      "node": {
-        "arrays": [
-          {
-            "name": "mx",
-            "size": "4*N"
-          },
-          {
-            "name": "cntMx",
-            "size": "4*N"
-          },
-          {
-            "name": "mn",
-            "size": "4*N"
-          },
-          {
-            "name": "cntMn",
-            "size": "4*N"
-          }
-        ],
-        "total": "16*N"
-      },
-      "tags": {
-        "arrays": [],
-        "total": "0"
-      },
-      "other": {
-        "arrays": [],
-        "total": "0"
-      },
-      "note": "four flat arrays of 2*size slots (size = next power of two >= n); padding leaves are -inf/+inf with count 0",
-      "total": "16*N"
-    },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MaxAndMinAndCountsAndGteLteIndexSegmentTree.py"
   },
   {
     "folder": "countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
@@ -851,6 +769,76 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "total": "4*N"
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/xorHashing_allEven_withUpdates.py"
+  },
+  {
+    "folder": "leftmostGtX-leftmostGteX-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rangeMin-rightmostGtX-rightmostGteX-rightmostLtX-rightmostLteX",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "leftmostGtX",
+      "leftmostGteX",
+      "leftmostLtX",
+      "leftmostLteX",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeMax",
+      "rangeMin",
+      "rightmostGtX",
+      "rightmostGteX",
+      "rightmostLtX",
+      "rightmostLteX"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "leftmostGtX": "log(N)",
+      "leftmostGteX": "log(N)",
+      "leftmostLtX": "log(N)",
+      "leftmostLteX": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rightmostGtX": "log(N)",
+      "rightmostGteX": "log(N)",
+      "rightmostLtX": "log(N)",
+      "rightmostLteX": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "pow2-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "mn",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "two flat arrays of 2*size slots (size = next power of two >= n); padding leaves are -inf / +inf",
+      "total": "8*N"
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MaxAndMinAndCountsAndGteLteIndexSegmentTree.py"
   },
   {
     "folder": "leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rightmostGtX-rightmostGteX",
@@ -1146,6 +1134,82 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "f[s][e] = best alternating sum inside the node that starts with sign s and ends with sign e; queries fold a left and a right accumulator",
       "total": "9*N"
+    }
+  },
+  {
+    "folder": "maxPrefixSum-maxSubarraySum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "maxPrefixSum",
+      "maxSubarraySum",
+      "maxSuffixSum",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "maxPrefixSum": "log(N)",
+      "maxSubarraySum": "log(N)",
+      "maxSuffixSum": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "pow2-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "4*N"
+          },
+          {
+            "name": "pre",
+            "size": "4*N"
+          },
+          {
+            "name": "suf",
+            "size": "4*N"
+          },
+          {
+            "name": "best",
+            "size": "4*N"
+          }
+        ],
+        "total": "16*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "asg",
+            "size": "2*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "node = (sum, best prefix, best suffix, best subarray); the one tag is a pending assign. Range add is not supported: it changes which subarray wins",
+      "total": "20*N"
     }
   },
   {
@@ -1479,7 +1543,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAddArithSeqMod",
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAddArithSeq-rangeSum",
     "langs": [
       "py",
       "cpp"
@@ -1491,7 +1555,8 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmin",
       "pointGet",
       "rangeAdd",
-      "rangeAddArithSeqMod"
+      "rangeAddArithSeq",
+      "rangeSum"
     ],
     "dataStructureType": "BIT",
     "complexities": {
@@ -1501,7 +1566,8 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmin": "log(N)",
       "pointGet": "log(N)",
       "rangeAdd": "log(N)",
-      "rangeAddArithSeqMod": "log(N)"
+      "rangeAddArithSeq": "log(N)",
+      "rangeSum": "log(N)"
     },
     "build": "N",
     "memory": {
@@ -1509,15 +1575,19 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "node": {
         "arrays": [
           {
-            "name": "c",
+            "name": "bA",
             "size": "1*N"
           },
           {
-            "name": "s",
+            "name": "bB",
+            "size": "1*N"
+          },
+          {
+            "name": "bC",
             "size": "1*N"
           }
         ],
-        "total": "2*N"
+        "total": "3*N"
       },
       "tags": {
         "arrays": [],
@@ -1527,136 +1597,9 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "arrays": [],
         "total": "0"
       },
-      "note": "two Fenwick trees over differences, everything mod p; a[i] = prefix(c, i) + i * prefix(s, i)",
-      "total": "2*N"
-    }
-  },
-  {
-    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAffineMod-rangeAssign-rangeMultMod",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "pointAdd",
-      "pointAssign",
-      "pointChmax",
-      "pointChmin",
-      "pointGet",
-      "rangeAdd",
-      "rangeAffineMod",
-      "rangeAssign",
-      "rangeMultMod"
-    ],
-    "dataStructureType": "lazy-seg-tree",
-    "complexities": {
-      "pointAdd": "log(N)",
-      "pointAssign": "log(N)",
-      "pointChmax": "log(N)",
-      "pointChmin": "log(N)",
-      "pointGet": "log(N)",
-      "rangeAdd": "log(N)",
-      "rangeAffineMod": "log(N)",
-      "rangeAssign": "log(N)",
-      "rangeMultMod": "log(N)"
-    },
-    "build": "N",
-    "memory": {
-      "layout": "2n-iterative",
-      "node": {
-        "arrays": [],
-        "total": "0"
-      },
-      "tags": {
-        "arrays": [
-          {
-            "name": "M",
-            "size": "1*N"
-          },
-          {
-            "name": "K",
-            "size": "1*N"
-          }
-        ],
-        "total": "2*N"
-      },
-      "other": {
-        "arrays": [
-          {
-            "name": "val",
-            "size": "1*N"
-          }
-        ],
-        "total": "1*N"
-      },
-      "note": "each internal node holds one pending affine map x -> x * M + K (mod p); val holds the leaf values",
+      "note": "prefix sums are kept as A(x) + B(x) * x + C(x) * x(x+1)/2 with A, B, C three Fenwick trees",
       "total": "3*N"
     }
-  },
-  {
-    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAffineMod-rangeAssign-rangeMultMod-rangeSum",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "pointAdd",
-      "pointAssign",
-      "pointChmax",
-      "pointChmin",
-      "pointGet",
-      "rangeAdd",
-      "rangeAffineMod",
-      "rangeAssign",
-      "rangeMultMod",
-      "rangeSum"
-    ],
-    "dataStructureType": "lazy-seg-tree",
-    "complexities": {
-      "pointAdd": "log(N)",
-      "pointAssign": "log(N)",
-      "pointChmax": "log(N)",
-      "pointChmin": "log(N)",
-      "pointGet": "log(N)",
-      "rangeAdd": "log(N)",
-      "rangeAffineMod": "log(N)",
-      "rangeAssign": "log(N)",
-      "rangeMultMod": "log(N)",
-      "rangeSum": "log(N)"
-    },
-    "build": "N",
-    "memory": {
-      "layout": "pow2-iterative",
-      "node": {
-        "arrays": [
-          {
-            "name": "tot",
-            "size": "4*N"
-          }
-        ],
-        "total": "4*N"
-      },
-      "tags": {
-        "arrays": [
-          {
-            "name": "mult",
-            "size": "2*N"
-          },
-          {
-            "name": "add",
-            "size": "2*N"
-          }
-        ],
-        "total": "4*N"
-      },
-      "other": {
-        "arrays": [],
-        "total": "0"
-      },
-      "note": "one affine tag (mult, add) per node: x -> x*mult + add (mod p)",
-      "total": "8*N"
-    },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/Range-Add-Assign-Sum-MultFixedMod-AffineFixedMod-PointSet.py"
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin",
@@ -1691,8 +1634,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "memory": {
       "layout": "2n-iterative",
       "node": {
-        "arrays": [],
-        "total": "0"
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
       },
       "tags": {
         "arrays": [
@@ -1712,13 +1660,8 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "3*N"
       },
       "other": {
-        "arrays": [
-          {
-            "name": "val",
-            "size": "1*N"
-          }
-        ],
-        "total": "1*N"
+        "arrays": [],
+        "total": "0"
       },
       "note": "each internal node holds one pending clamp x -> min(A, max(B, x + C)); val holds the leaf values",
       "total": "4*N"
@@ -1747,21 +1690,21 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     ],
     "dataStructureType": "beats",
     "complexities": {
-      "pointAdd": "log^2(N)*log(U) amortized",
-      "pointAssign": "log^2(N)*log(U) amortized",
-      "pointChmax": "log^2(N)*log(U) amortized",
-      "pointChmin": "log^2(N)*log(U) amortized",
+      "pointAdd": "log^2(N)*log(U) amortized ?",
+      "pointAssign": "log^2(N)*log(U) amortized ?",
+      "pointChmax": "log^2(N)*log(U) amortized ?",
+      "pointChmin": "log^2(N)*log(U) amortized ?",
       "pointGet": "log(N)",
-      "rangeAdd": "log^2(N)*log(U) amortized",
-      "rangeAssign": "log^2(N)*log(U) amortized",
-      "rangeChmax": "log^2(N)*log(U) amortized",
-      "rangeChmin": "log^2(N)*log(U) amortized",
-      "rangeGcd": "log(N)*log(U)",
+      "rangeAdd": "log^2(N)*log(U) amortized ?",
+      "rangeAssign": "log^2(N)*log(U) amortized ?",
+      "rangeChmax": "log^2(N)*log(U) amortized ?",
+      "rangeChmin": "log^2(N)*log(U) amortized ?",
+      "rangeGcd": "log(N)*log(U) ?",
       "rangeMax": "log(N)",
       "rangeMin": "log(N)",
       "rangeSum": "log(N)"
     },
-    "build": "N",
+    "build": "N*log(U) ?",
     "memory": {
       "layout": "4n-recursive",
       "node": {
@@ -1820,6 +1763,74 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-Gcd-PointSet.py"
   },
   {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMax",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeChmax",
+      "rangeChmin",
+      "rangeMax"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMax": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          },
+          {
+            "name": "lo",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x + add))",
+      "total": "5*N"
+    }
+  },
+  {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin",
     "langs": [
       "py",
@@ -1854,45 +1865,44 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     },
     "build": "N",
     "memory": {
-      "layout": "pow2-iterative",
+      "layout": "2n-iterative",
       "node": {
         "arrays": [
           {
             "name": "mn",
-            "size": "4*N"
+            "size": "2*N"
           },
           {
             "name": "mx",
-            "size": "4*N"
+            "size": "2*N"
           }
         ],
-        "total": "8*N"
+        "total": "4*N"
       },
       "tags": {
         "arrays": [
           {
-            "name": "A",
-            "size": "2*N"
+            "name": "hi",
+            "size": "1*N"
           },
           {
-            "name": "B",
-            "size": "2*N"
+            "name": "lo",
+            "size": "1*N"
           },
           {
-            "name": "C",
-            "size": "2*N"
+            "name": "add",
+            "size": "1*N"
           }
         ],
-        "total": "6*N"
+        "total": "3*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "one clamp tag per node: x -> min(A, max(B, x + C))",
-      "total": "14*N"
-    },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Min-Max-PointSet-NO-BEATS.py"
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x + add))",
+      "total": "7*N"
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin-rangeSum",
@@ -2002,6 +2012,74 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "total": "52*N"
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-PointSet-Beats-Log2NAdd.py"
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeChmax",
+      "rangeChmin",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          },
+          {
+            "name": "lo",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x + add))",
+      "total": "5*N"
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeMin-rangeSum",
@@ -2182,6 +2260,222 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Add-Assign-Sum-Max-PointSet-Beats.py"
   },
   {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeMax",
+      "rangeMin",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "mn",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "6*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)",
+      "total": "9*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeMax",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)",
+      "total": "7*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeMin",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "mn",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)",
+      "total": "7*N"
+    }
+  },
+  {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeSum",
     "langs": [
       "py",
@@ -2210,12 +2504,142 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     },
     "build": "N",
     "memory": {
-      "layout": "pow2-iterative",
+      "layout": "2n-iterative",
       "node": {
         "arrays": [
           {
             "name": "sm",
-            "size": "4*N"
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)",
+      "total": "5*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeChmax-rangeMax",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeChmax",
+      "rangeMax"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeMax": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "lo",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x + add)",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeChmax-rangeMax-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeChmax",
+      "rangeMax",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
           }
         ],
         "total": "4*N"
@@ -2223,28 +2647,269 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "tags": {
         "arrays": [
           {
+            "name": "lo",
+            "size": "1*N"
+          },
+          {
             "name": "add",
-            "size": "2*N"
-          },
-          {
-            "name": "asg",
-            "size": "2*N"
-          },
-          {
-            "name": "hasAsg",
-            "size": "2*N"
+            "size": "1*N"
           }
         ],
-        "total": "6*N"
+        "total": "2*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "arrays are 2*size, size the next power of two >= n; a node's tag is either \"assign v\" (later adds fold into v) or \"add d\"",
-      "total": "10*N"
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x + add)",
+      "total": "6*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeChmax-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeChmax",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeMin": "log(N)"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/RangeAddRangeAssignRangeSum.cpp"
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "lo",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x + add)",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeChmin-rangeMax",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeChmin",
+      "rangeMax"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMax": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x + add)",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeChmin-rangeMax-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeChmin",
+      "rangeMax",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x + add)",
+      "total": "6*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeChmin-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeChmin",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x + add)",
+      "total": "4*N"
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd",
@@ -2263,15 +2928,15 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     ],
     "dataStructureType": "seg-tree",
     "complexities": {
-      "pointAdd": "log(N)*log(U)",
-      "pointAssign": "log(N)*log(U)",
-      "pointChmax": "log(N)*log(U)",
-      "pointChmin": "log(N)*log(U)",
+      "pointAdd": "log(N)*log(U) ?",
+      "pointAssign": "log(N)*log(U) ?",
+      "pointChmax": "log(N)*log(U) ?",
+      "pointChmin": "log(N)*log(U) ?",
       "pointGet": "log(N)",
-      "rangeAdd": "log(N)*log(U)",
-      "rangeGcd": "log(N)+log(U)"
+      "rangeAdd": "log(N)*log(U) ?",
+      "rangeGcd": "log(N)+log(U) ?"
     },
-    "build": "N",
+    "build": "N*log(U) ?",
     "memory": {
       "layout": "2n-iterative",
       "node": {
@@ -2306,7 +2971,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/rangeAddRangeGcd.py"
   },
   {
-    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAddArithSeq-rangeSum",
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeMax",
     "langs": [
       "py",
       "cpp"
@@ -2317,8 +2982,8 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
-      "rangeAddArithSeq",
-      "rangeSum"
+      "rangeAdd",
+      "rangeMax"
     ],
     "dataStructureType": "lazy-seg-tree",
     "complexities": {
@@ -2327,53 +2992,40 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N)",
       "pointChmin": "log(N)",
       "pointGet": "log(N)",
-      "rangeAddArithSeq": "log(N)",
-      "rangeSum": "log(N)"
+      "rangeAdd": "log(N)",
+      "rangeMax": "log(N)"
     },
     "build": "N",
     "memory": {
-      "layout": "pow2-iterative",
+      "layout": "2n-iterative",
       "node": {
         "arrays": [
           {
-            "name": "sum",
-            "size": "4*N"
-          },
-          {
-            "name": "length",
-            "size": "4*N"
-          },
-          {
-            "name": "sumIdx",
-            "size": "4*N"
+            "name": "mx",
+            "size": "2*N"
           }
         ],
-        "total": "12*N"
+        "total": "2*N"
       },
       "tags": {
         "arrays": [
           {
-            "name": "lazyConst",
-            "size": "4*N"
-          },
-          {
-            "name": "lazyIdx",
-            "size": "4*N"
+            "name": "add",
+            "size": "1*N"
           }
         ],
-        "total": "8*N"
+        "total": "1*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "each tag is a pending line const + idx*i; arrays are 2*size, size the next power of two >= n",
-      "total": "20*N"
-    },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/ArithmeticProgressionST.py"
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> x + add",
+      "total": "3*N"
+    }
   },
   {
-    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAddArithSeqMod-rangeSum",
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeMax-rangeMin",
     "langs": [
       "py",
       "cpp"
@@ -2384,7 +3036,69 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
-      "rangeAddArithSeqMod",
+      "rangeAdd",
+      "rangeMax",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> x + add",
+      "total": "5*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeMax-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeMax",
+      "rangeMin",
       "rangeSum"
     ],
     "dataStructureType": "lazy-seg-tree",
@@ -2394,50 +3108,274 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N)",
       "pointChmin": "log(N)",
       "pointGet": "log(N)",
-      "rangeAddArithSeqMod": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
       "rangeSum": "log(N)"
     },
     "build": "N",
     "memory": {
-      "layout": "pow2-iterative",
+      "layout": "2n-iterative",
       "node": {
         "arrays": [
           {
-            "name": "sum",
-            "size": "4*N"
+            "name": "sm",
+            "size": "2*N"
           },
           {
-            "name": "length",
-            "size": "4*N"
+            "name": "mn",
+            "size": "2*N"
           },
           {
-            "name": "sumIdx",
-            "size": "4*N"
+            "name": "mx",
+            "size": "2*N"
           }
         ],
-        "total": "12*N"
+        "total": "6*N"
       },
       "tags": {
         "arrays": [
           {
-            "name": "lazyConst",
-            "size": "4*N"
-          },
-          {
-            "name": "lazyIdx",
-            "size": "4*N"
+            "name": "add",
+            "size": "1*N"
           }
         ],
-        "total": "8*N"
+        "total": "1*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "each tag is a pending line const + idx*i (mod p); arrays are 2*size, size the next power of two >= n",
-      "total": "20*N"
+      "note": "tags live on the N internal nodes only; each holds a pending add",
+      "total": "7*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeMax-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeMax",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeSum": "log(N)"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/ArithmeticProgressionSTWithMod.py"
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds a pending add",
+      "total": "5*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> x + add",
+      "total": "3*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeMin",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "mn",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds a pending add",
+      "total": "5*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeSum"
+    ],
+    "dataStructureType": "BIT",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAdd": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "b1",
+            "size": "1*N"
+          },
+          {
+            "name": "b2",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "two Fenwick trees over the difference array d (d[i] = a[i] - a[i-1]): b1 over d[i], b2 over d[i] * i",
+      "total": "2*N"
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply",
@@ -2466,28 +3404,33 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "memory": {
       "layout": "2n-iterative",
       "node": {
-        "arrays": [],
-        "total": "0"
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
       },
       "tags": {
         "arrays": [
           {
             "name": "tree",
-            "size": "2*N"
+            "size": "1*N"
           }
         ],
-        "total": "2*N"
+        "total": "1*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeAndApply tag (no aggregates)",
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeAndApply tag (no aggregates); leaves count as node data, internal nodes as tags",
       "total": "2*N"
     }
   },
   {
-    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeMin-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply",
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeMin-rangeOrApply-rangeOrQuery-rangeSum",
     "langs": [
       "py",
       "cpp"
@@ -2504,8 +3447,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "rangeMin",
       "rangeOrApply",
       "rangeOrQuery",
-      "rangeSum",
-      "rangeXorApply"
+      "rangeSum"
     ],
     "dataStructureType": "beats",
     "complexities": {
@@ -2520,8 +3462,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "rangeMin": "log(N)",
       "rangeOrApply": "log(N)*log(U) amortized",
       "rangeOrQuery": "log(N)",
-      "rangeSum": "log(N)",
-      "rangeXorApply": "log(N)*log(U) amortized"
+      "rangeSum": "log(N)"
     },
     "build": "N",
     "memory": {
@@ -2572,10 +3513,76 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "arrays": [],
         "total": "0"
       },
-      "note": "the and/or/xor tags compose into one (and, xor) pair per node",
+      "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
       "total": "32*N"
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-XorApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py"
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAndApply",
+      "rangeAndQuery",
+      "rangeOrApply",
+      "rangeOrQuery",
+      "rangeSum",
+      "rangeXorApply"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)*log(U)",
+      "pointAssign": "log(N)*log(U)",
+      "pointChmax": "log(N)*log(U)",
+      "pointChmin": "log(N)*log(U)",
+      "pointGet": "log(N)*log(U)",
+      "rangeAndApply": "log(N)*log(U)",
+      "rangeAndQuery": "log(N)*log(U)",
+      "rangeOrApply": "log(N)*log(U)",
+      "rangeOrQuery": "log(N)*log(U)",
+      "rangeSum": "log(N)*log(U)",
+      "rangeXorApply": "log(N)*log(U)"
+    },
+    "build": "N*log(U)",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "cnt",
+            "size": "2*N*log(U)"
+          }
+        ],
+        "total": "2*N*log(U)"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "andTag",
+            "size": "1*N"
+          },
+          {
+            "name": "xorTag",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "cnt keeps, per node and per bit, how many values below have that bit set (bits = log U, 20 by default); tags live on internal nodes only",
+      "total": "2*N+2*N*log(U)"
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeOrApply-rangeXorApply",
@@ -2608,8 +3615,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "memory": {
       "layout": "2n-iterative",
       "node": {
-        "arrays": [],
-        "total": "0"
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
       },
       "tags": {
         "arrays": [
@@ -2625,13 +3637,8 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "2*N"
       },
       "other": {
-        "arrays": [
-          {
-            "name": "val",
-            "size": "1*N"
-          }
-        ],
-        "total": "1*N"
+        "arrays": [],
+        "total": "0"
       },
       "note": "each internal node holds one pending bit map x -> (x & AND) ^ XOR; val holds the leaf values",
       "total": "3*N"
@@ -2664,28 +3671,167 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "memory": {
       "layout": "2n-iterative",
       "node": {
-        "arrays": [],
-        "total": "0"
+        "arrays": [
+          {
+            "name": "stamp",
+            "size": "1*N"
+          },
+          {
+            "name": "val",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
       },
       "tags": {
         "arrays": [
           {
             "name": "stamp",
-            "size": "2*N"
+            "size": "1*N"
           },
           {
             "name": "val",
-            "size": "2*N"
+            "size": "1*N"
           }
         ],
-        "total": "4*N"
+        "total": "2*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "every node remembers the last assignment that covered it and when; a point takes the newest one on its path",
+      "note": "every node remembers the last assignment that covered it and when; a point takes the newest one on its path; leaves count as node data, internal nodes as tags",
       "total": "4*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeChmax-rangeChmin-rangeMax",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeChmax",
+      "rangeChmin",
+      "rangeMax"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMax": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          },
+          {
+            "name": "lo",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x))",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeChmax",
+      "rangeChmin",
+      "rangeMax",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          },
+          {
+            "name": "lo",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x))",
+      "total": "6*N"
     }
   },
   {
@@ -2771,6 +3917,198 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Assign-Sum-Min-Max-PointSet-Beats-LogN.py"
   },
   {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeChmax-rangeChmin-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeChmax",
+      "rangeChmin",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          },
+          {
+            "name": "lo",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x))",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeChmax-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeChmax",
+      "rangeMin",
+      "rangeSum"
+    ],
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N) amortized",
+      "rangeChmax": "log(N) amortized",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "mn2",
+            "size": "4*N"
+          },
+          {
+            "name": "cnt",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          }
+        ],
+        "total": "16*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "no tag arrays: a node's mn is its pending chmax, and a node with one distinct value (mn2 = sentinel) is a pending assign",
+      "total": "16*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeChmin-rangeMax-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeChmin",
+      "rangeMax",
+      "rangeSum"
+    ],
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N) amortized",
+      "rangeChmin": "log(N) amortized",
+      "rangeMax": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "mx2",
+            "size": "4*N"
+          },
+          {
+            "name": "cnt",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          }
+        ],
+        "total": "16*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "no tag arrays: a node's mx is its pending chmin, and a node with one distinct value (mx2 = sentinel) is a pending assign",
+      "total": "16*N"
+    }
+  },
+  {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod-rangeSum",
     "langs": [
       "py",
@@ -2839,6 +4177,320 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-Mod-Sum-FloorDiv-Sqrt-Min-Max-Assign.py"
   },
   {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeGcd",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeGcd"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)*log(U) ?",
+      "pointAssign": "log(N)*log(U) ?",
+      "pointChmax": "log(N)*log(U) ?",
+      "pointChmin": "log(N)*log(U) ?",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N)*log(U) ?",
+      "rangeGcd": "log(N)+log(U) ?"
+    },
+    "build": "N*log(U) ?",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "t",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "leaves t[n..2n) hold the values, internal nodes the gcd of |values| below; tags live on internal nodes only",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeMax-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeMax",
+      "rangeMin",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "mn",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "6*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds a pending assign",
+      "total": "8*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeMax-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeMax",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds a pending assign",
+      "total": "6*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeMin-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeMin",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          },
+          {
+            "name": "mn",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds a pending assign",
+      "total": "6*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rangeSum"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "sm",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds a pending assign",
+      "total": "4*N"
+    }
+  },
+  {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmax",
     "langs": [
       "py",
@@ -2865,24 +4517,197 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "memory": {
       "layout": "2n-iterative",
       "node": {
-        "arrays": [],
-        "total": "0"
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
       },
       "tags": {
         "arrays": [
           {
             "name": "tree",
-            "size": "2*N"
+            "size": "1*N"
           }
         ],
-        "total": "2*N"
+        "total": "1*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeChmax tag (no aggregates)",
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeChmax tag (no aggregates); leaves count as node data, internal nodes as tags",
       "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmax-rangeMax",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeChmax",
+      "rangeMax"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeMax": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "lo",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x)",
+      "total": "3*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmax-rangeMax-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeChmax",
+      "rangeMax",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "lo",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x)",
+      "total": "5*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmax-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeChmax",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeChmax": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "lo",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x)",
+      "total": "3*N"
     }
   },
   {
@@ -2912,24 +4737,197 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "memory": {
       "layout": "2n-iterative",
       "node": {
-        "arrays": [],
-        "total": "0"
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
       },
       "tags": {
         "arrays": [
           {
             "name": "tree",
-            "size": "2*N"
+            "size": "1*N"
           }
         ],
-        "total": "2*N"
+        "total": "1*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeChmin tag (no aggregates)",
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeChmin tag (no aggregates); leaves count as node data, internal nodes as tags",
       "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmin-rangeMax",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeChmin",
+      "rangeMax"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMax": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x)",
+      "total": "3*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmin-rangeMax-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeChmin",
+      "rangeMax",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          },
+          {
+            "name": "mx",
+            "size": "2*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x)",
+      "total": "5*N"
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmin-rangeMin",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeChmin",
+      "rangeMin"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "log(N)",
+      "rangeChmin": "log(N)",
+      "rangeMin": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "hi",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x)",
+      "total": "3*N"
     }
   },
   {
@@ -2959,23 +4957,28 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "memory": {
       "layout": "2n-iterative",
       "node": {
-        "arrays": [],
-        "total": "0"
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
       },
       "tags": {
         "arrays": [
           {
             "name": "tree",
-            "size": "2*N"
+            "size": "1*N"
           }
         ],
-        "total": "2*N"
+        "total": "1*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending divisor (product of divisions, capped)",
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending divisor (product of divisions, capped); leaves count as node data, internal nodes as tags",
       "total": "2*N"
     }
   },
@@ -3066,23 +5069,28 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "memory": {
       "layout": "2n-iterative",
       "node": {
-        "arrays": [],
-        "total": "0"
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
       },
       "tags": {
         "arrays": [
           {
             "name": "tree",
-            "size": "2*N"
+            "size": "1*N"
           }
         ],
-        "total": "2*N"
+        "total": "1*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "tree[n:] holds the values, tree[1:n] holds how many floor-sqrts are pending at each node (capped at 6)",
+      "note": "tree[n:] holds the values, tree[1:n] holds how many floor-sqrts are pending at each node (capped at 6); leaves count as node data, internal nodes as tags",
       "total": "2*N"
     }
   },
@@ -3102,14 +5110,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     ],
     "dataStructureType": "seg-tree",
     "complexities": {
-      "pointAdd": "log(N)*log(U)",
-      "pointAssign": "log(N)*log(U)",
-      "pointChmax": "log(N)*log(U)",
-      "pointChmin": "log(N)*log(U)",
+      "pointAdd": "log(N)*log(U) ?",
+      "pointAssign": "log(N)*log(U) ?",
+      "pointChmax": "log(N)*log(U) ?",
+      "pointChmin": "log(N)*log(U) ?",
       "pointGet": "1",
-      "rangeGcd": "log(N)*log(U)"
+      "rangeGcd": "log(N)+log(U) ?"
     },
-    "build": "N*log(U)",
+    "build": "N*log(U) ?",
     "memory": {
       "layout": "2n-iterative",
       "node": {
@@ -3133,65 +5141,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "total": "2*N"
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/GcdSegTree.py"
-  },
-  {
-    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd-rangeLcm",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "pointAdd",
-      "pointAssign",
-      "pointChmax",
-      "pointChmin",
-      "pointGet",
-      "rangeGcd",
-      "rangeLcm"
-    ],
-    "dataStructureType": "seg-tree",
-    "complexities": {
-      "pointAdd": "?",
-      "pointAssign": "?",
-      "pointChmax": "?",
-      "pointChmin": "?",
-      "pointGet": "1",
-      "rangeGcd": "log(N)*log(U)",
-      "rangeLcm": "?"
-    },
-    "build": "?",
-    "memory": {
-      "layout": "2n-iterative",
-      "node": {
-        "arrays": [
-          {
-            "name": "g",
-            "size": "2*N"
-          },
-          {
-            "name": "lcm",
-            "size": "2*N"
-          }
-        ],
-        "total": "4*N"
-      },
-      "tags": {
-        "arrays": [],
-        "total": "0"
-      },
-      "other": {
-        "arrays": [
-          {
-            "name": "vals",
-            "size": "1*N"
-          }
-        ],
-        "total": "1*N"
-      },
-      "note": "lcm values grow without bound (Python big ints; in C++ they overflow past 2^63), so lcm costs are unknown",
-      "total": "5*N"
-    },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/GcdLcmSegmentTree.py"
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax",
@@ -3289,53 +5238,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMultMod",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "pointAdd",
-      "pointAssign",
-      "pointChmax",
-      "pointChmin",
-      "pointGet",
-      "rangeMultMod"
-    ],
-    "dataStructureType": "seg-tree",
-    "complexities": {
-      "pointAdd": "log(N)",
-      "pointAssign": "log(N)",
-      "pointChmax": "log(N)",
-      "pointChmin": "log(N)",
-      "pointGet": "log(N)",
-      "rangeMultMod": "log(N)"
-    },
-    "build": "N",
-    "memory": {
-      "layout": "2n-iterative",
-      "node": {
-        "arrays": [],
-        "total": "0"
-      },
-      "tags": {
-        "arrays": [
-          {
-            "name": "tree",
-            "size": "2*N"
-          }
-        ],
-        "total": "2*N"
-      },
-      "other": {
-        "arrays": [],
-        "total": "0"
-      },
-      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeMultMod tag (no aggregates)",
-      "total": "2*N"
-    }
-  },
-  {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeOrApply",
     "langs": [
       "py",
@@ -3362,23 +5264,28 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "memory": {
       "layout": "2n-iterative",
       "node": {
-        "arrays": [],
-        "total": "0"
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
       },
       "tags": {
         "arrays": [
           {
             "name": "tree",
-            "size": "2*N"
+            "size": "1*N"
           }
         ],
-        "total": "2*N"
+        "total": "1*N"
       },
       "other": {
         "arrays": [],
         "total": "0"
       },
-      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeOrApply tag (no aggregates)",
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeOrApply tag (no aggregates); leaves count as node data, internal nodes as tags",
       "total": "2*N"
     }
   },
@@ -3478,6 +5385,375 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
+    "folder": "pointAddMod-pointAssignMod-pointGet-rangeAddArithSeqMod-rangeAddMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAddMod",
+      "pointAssignMod",
+      "pointGet",
+      "rangeAddArithSeqMod",
+      "rangeAddMod"
+    ],
+    "dataStructureType": "BIT",
+    "complexities": {
+      "pointAddMod": "log(N)",
+      "pointAssignMod": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAddArithSeqMod": "log(N)",
+      "rangeAddMod": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "c",
+            "size": "1*N"
+          },
+          {
+            "name": "s",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "two Fenwick trees over differences, everything mod p; a[i] = prefix(c, i) + i * prefix(s, i)",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAddMod-pointAssignMod-pointGet-rangeAddArithSeqMod-rangeAddMod-rangeSumMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAddMod",
+      "pointAssignMod",
+      "pointGet",
+      "rangeAddArithSeqMod",
+      "rangeAddMod",
+      "rangeSumMod"
+    ],
+    "dataStructureType": "BIT",
+    "complexities": {
+      "pointAddMod": "log(N)",
+      "pointAssignMod": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAddArithSeqMod": "log(N)",
+      "rangeAddMod": "log(N)",
+      "rangeSumMod": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "bA",
+            "size": "1*N"
+          },
+          {
+            "name": "bB",
+            "size": "1*N"
+          },
+          {
+            "name": "bC",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "prefix sums are kept as A(x) + B(x) * x + C(x) * x(x+1)/2 mod p with A, B, C three Fenwick trees",
+      "total": "3*N"
+    }
+  },
+  {
+    "folder": "pointAddMod-pointAssignMod-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAddMod",
+      "pointAssignMod",
+      "pointGet",
+      "rangeAddMod",
+      "rangeAffineMod",
+      "rangeAssignMod",
+      "rangeMultMod"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAddMod": "log(N)",
+      "pointAssignMod": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAddMod": "log(N)",
+      "rangeAffineMod": "log(N)",
+      "rangeAssignMod": "log(N)",
+      "rangeMultMod": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "M",
+            "size": "1*N"
+          },
+          {
+            "name": "K",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "each internal node holds one pending affine map x -> x * M + K (mod p); val holds the leaf values",
+      "total": "3*N"
+    }
+  },
+  {
+    "folder": "pointAddMod-pointAssignMod-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod-rangeSumMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAddMod",
+      "pointAssignMod",
+      "pointGet",
+      "rangeAddMod",
+      "rangeAffineMod",
+      "rangeAssignMod",
+      "rangeMultMod",
+      "rangeSumMod"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAddMod": "log(N)",
+      "pointAssignMod": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAddMod": "log(N)",
+      "rangeAffineMod": "log(N)",
+      "rangeAssignMod": "log(N)",
+      "rangeMultMod": "log(N)",
+      "rangeSumMod": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tot",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "mul",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each is one affine map x -> x*mul + add (mod p)",
+      "total": "4*N"
+    }
+  },
+  {
+    "folder": "pointAddMod-pointAssignMod-pointGet-rangeAddMod-rangeSumMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAddMod",
+      "pointAssignMod",
+      "pointGet",
+      "rangeAddMod",
+      "rangeSumMod"
+    ],
+    "dataStructureType": "BIT",
+    "complexities": {
+      "pointAddMod": "log(N)",
+      "pointAssignMod": "log(N)",
+      "pointGet": "log(N)",
+      "rangeAddMod": "log(N)",
+      "rangeSumMod": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "b1",
+            "size": "1*N"
+          },
+          {
+            "name": "b2",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "two Fenwick trees over the difference array d (d[i] = a[i] - a[i-1]): b1 over d[i], b2 over d[i] * i, all mod p",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAddMod-pointAssignMod-pointGet-rangeMultMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAddMod",
+      "pointAssignMod",
+      "pointGet",
+      "rangeMultMod"
+    ],
+    "dataStructureType": "seg-tree",
+    "complexities": {
+      "pointAddMod": "log(N)",
+      "pointAssignMod": "log(N)",
+      "pointGet": "log(N)",
+      "rangeMultMod": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tree",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeMultMod tag (no aggregates); leaves count as node data, internal nodes as tags",
+      "total": "2*N"
+    }
+  },
+  {
+    "folder": "pointAddMod-pointAssignMod-pointGet-rangeMultMod-rangeSumMod",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAddMod",
+      "pointAssignMod",
+      "pointGet",
+      "rangeMultMod",
+      "rangeSumMod"
+    ],
+    "dataStructureType": "lazy-seg-tree",
+    "complexities": {
+      "pointAddMod": "log(N)",
+      "pointAssignMod": "log(N)",
+      "pointGet": "log(N)",
+      "rangeMultMod": "log(N)",
+      "rangeSumMod": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "2n-iterative",
+      "node": {
+        "arrays": [
+          {
+            "name": "tot",
+            "size": "2*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "mul",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "tags live on the N internal nodes only; each is a pending multiplier (mod p)",
+      "total": "3*N"
+    }
+  },
+  {
     "folder": "pointGet-rangeAndQuery",
     "langs": [
       "py",
@@ -3530,9 +5806,9 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "dataStructureType": "sparse-table",
     "complexities": {
       "pointGet": "1",
-      "rangeGcd": "log(U)"
+      "rangeGcd": "log(U) ?"
     },
-    "build": "N*log(N)*log(U)",
+    "build": "N*log(N)*log(U) ?",
     "memory": {
       "layout": "none",
       "node": {

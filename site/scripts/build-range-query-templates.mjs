@@ -37,12 +37,12 @@ const ENTRY_RE = /^\s*(?:#|\/\/)\s+([A-Za-z]\w*):\s*(.+?)\s*$/;
 // N = number of elements, U = largest value (gcd, bit ops, floor div/sqrt depend on it).
 const FACTORS = new Set(["1", "N", "log(N)", "log^2(N)", "sqrt(N)", "log(U)", "log(log(U))"]);
 
-// A cost is "?" or terms joined by "+", each term factors joined by "*" (a factor may be a positive integer
-// constant, e.g. 36*N), optionally followed by " amortized".
+// A cost is terms joined by "+", each term factors joined by "*" (a factor may be a positive integer
+// constant, e.g. 36*N), optionally followed by " amortized", then optionally " ?" (a bound we are not sure is
+// tight or right, e.g. anything paying for gcd work).
 const isValidFactor = (f) => FACTORS.has(f) || /^[1-9]\d*$/.test(f);
 function isValidCost(cost) {
-  if (cost === "?") return true;
-  const body = cost.replace(/ amortized$/, "");
+  const body = cost.replace(/ \?$/, "").replace(/ amortized$/, "");
   return body.split("+").every((term) => term.split("*").every(isValidFactor));
 }
 
@@ -76,7 +76,7 @@ function parseArrays(value) {
   const out = [];
   for (const item of value.split(/\s+/)) {
     const m = item.match(ARRAY_RE);
-    if (!m || !isValidCost(m[2]) || m[2].endsWith(" amortized") || m[2] === "?") return null;
+    if (!m || !isValidCost(m[2]) || m[2].endsWith(" amortized") || m[2].endsWith(" ?")) return null;
     out.push({ name: m[1], size: m[2] });
   }
   return out;

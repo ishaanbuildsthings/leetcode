@@ -1,14 +1,14 @@
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
 // @data-structure-type: seg-tree
 // @complexities:
-//   pointAdd: log(N)*log(U)
-//   pointAssign: log(N)*log(U)
-//   pointChmax: log(N)*log(U)
-//   pointChmin: log(N)*log(U)
+//   pointAdd: log(N)*log(U) ?
+//   pointAssign: log(N)*log(U) ?
+//   pointChmax: log(N)*log(U) ?
+//   pointChmin: log(N)*log(U) ?
 //   pointGet: log(N)
-//   rangeAdd: log(N)*log(U)
-//   rangeGcd: log(N)+log(U)
-//   build: N
+//   rangeAdd: log(N)*log(U) ?
+//   rangeGcd: log(N)+log(U) ?
+//   build: N*log(U) ?
 // @memory:
 //   layout: 2n-iterative
 //   node: seg[2*N]

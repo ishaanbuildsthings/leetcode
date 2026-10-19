@@ -10,10 +10,10 @@
 //   build: N
 // @memory:
 //   layout: 2n-iterative
-//   node: none
-//   tags: tree[2*N]
+//   node: tree[1*N]
+//   tags: tree[1*N]
 //   other: none
-//   note: tree[n:] holds the values, tree[1:n] holds how many floor-sqrts are pending at each node (capped at 6)
+//   note: tree[n:] holds the values, tree[1:n] holds how many floor-sqrts are pending at each node (capped at 6); leaves count as node data, internal nodes as tags
 
 // Range floor-sqrt + point ops. All indices 0-based, ranges inclusive [l, r]. T: int, long long, ...
 // Pending sqrts on a node are just a count. Six floor-sqrts take any value below 2^64 down to 0 or 1, which

@@ -38,17 +38,14 @@ OPS_PER_TRIAL = 60
 
 # ------------------------------------------------------------------------------------------------ brute force
 
-POINT_UPDATES = ("pointAssign", "pointAdd", "pointChmax", "pointChmin")
+POINT_UPDATES = ("pointAssign", "pointAdd", "pointChmax", "pointChmin", "pointAssignMod", "pointAddMod")
 RANGE_UPDATES = {  # op -> number of args after (l, r)
-    "rangeAdd": 1, "rangeAssign": 1, "rangeChmax": 1, "rangeChmin": 1, "rangeMultMod": 1, "rangeAffineMod": 2,
+    "rangeAdd": 1, "rangeAssign": 1, "rangeAddMod": 1, "rangeAssignMod": 1, "rangeChmax": 1, "rangeChmin": 1, "rangeMultMod": 1, "rangeAffineMod": 2,
     "rangeAddArithSeq": 2, "rangeAddArithSeqMod": 2, "rangeMod": 1, "rangeFloorDiv": 1, "rangeFloorSqrt": 0,
     "rangeAndApply": 1, "rangeOrApply": 1, "rangeXorApply": 1,
 }
-MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod"}  # any of these: every value lives mod p
-
-
-def _lcm(x, y):
-    return 0 if x == 0 or y == 0 else x // math.gcd(x, y) * y
+MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod", "rangeAssignMod", "rangeSumMod",
+           "pointAddMod", "pointAssignMod"}  # any of these: every value lives mod p
 
 
 def _first(a, idxs, pred):
@@ -120,13 +117,11 @@ CMP = {"Gte": lambda v, x: v >= x, "Gt": lambda v, x: v > x, "Lte": lambda v, x:
 
 # query op -> (arg kind, brute(a, l, r, *args, ctx)); arg kinds: "lr", "lrx", "lrk", "lrkx", "lrlohi"
 BRUTE_QUERIES = {
-    "rangeSum": ("lr", lambda a, l, r, c: sum(a[l:r + 1]) % c["mod"] if c["mod"] else sum(a[l:r + 1])),
+    "rangeSum": ("lr", lambda a, l, r, c: sum(a[l:r + 1])),
+    "rangeSumMod": ("lr", lambda a, l, r, c: sum(a[l:r + 1]) % c["mod"]),
     "rangeMin": ("lr", lambda a, l, r, c: min(a[l:r + 1])),
     "rangeMax": ("lr", lambda a, l, r, c: max(a[l:r + 1])),
-    "countMin": ("lr", lambda a, l, r, c: a[l:r + 1].count(min(a[l:r + 1]))),
-    "countMax": ("lr", lambda a, l, r, c: a[l:r + 1].count(max(a[l:r + 1]))),
     "rangeGcd": ("lr", lambda a, l, r, c: reduce(math.gcd, (abs(v) for v in a[l:r + 1]), 0)),
-    "rangeLcm": ("lr", lambda a, l, r, c: reduce(_lcm, (abs(v) for v in a[l:r + 1]), 1)),
     "rangeAndQuery": ("lr", lambda a, l, r, c: reduce(lambda x, y: x & y, a[l:r + 1])),
     "rangeOrQuery": ("lr", lambda a, l, r, c: reduce(lambda x, y: x | y, a[l:r + 1])),
     "maxSubarraySum": ("lr", lambda a, l, r, c: _max_sub(a[l:r + 1])),
@@ -169,7 +164,8 @@ def brute_update(a, op, args, ctx):
     mod, full = ctx["mod"], ctx["full"]
     if op in POINT_UPDATES:
         i, v = args
-        a[i] = {"pointAssign": v, "pointAdd": a[i] + v, "pointChmax": max(a[i], v), "pointChmin": min(a[i], v)}[op]
+        a[i] = {"pointAssign": v, "pointAdd": a[i] + v, "pointChmax": max(a[i], v), "pointChmin": min(a[i], v),
+                "pointAssignMod": v, "pointAddMod": a[i] + v}[op]
         if full is not None:
             a[i] &= full
         if mod:
@@ -178,8 +174,8 @@ def brute_update(a, op, args, ctx):
     l, r, *xs = args
     for i in range(l, r + 1):
         v = a[i]
-        if op == "rangeAdd": v += xs[0]
-        elif op == "rangeAssign": v = xs[0]
+        if op in ("rangeAdd", "rangeAddMod"): v += xs[0]
+        elif op in ("rangeAssign", "rangeAssignMod"): v = xs[0]
         elif op == "rangeChmax": v = max(v, xs[0])
         elif op == "rangeChmin": v = min(v, xs[0])
         elif op == "rangeMultMod": v *= xs[0]
@@ -211,8 +207,6 @@ def domain(folder, ops):
         return (lambda r: r.randint(0, 63)), nonneg_small, [], ctx
     if "leftmostPrefixSumGteX" in ops:
         return (lambda r: r.randint(0, 6)), nonneg_small, [], ctx
-    if "rangeLcm" in ops:
-        return (lambda r: r.randint(1, 12)), (lambda r: r.randint(0, 3)), [], ctx
     if "rangeFloorSqrt" in ops and "rangeSum" not in ops:
         return (lambda r: r.choice([r.randint(0, 200), r.randint(0, (1 << 62) - 1)])), nonneg_small, [], ctx
     if "rangeFloorDiv" in ops and "rangeSum" not in ops:
@@ -263,7 +257,7 @@ def make_trials(folder, ops, trials):
             if op == "pointGet":
                 args = [rng.randrange(n)]
             elif op in POINT_UPDATES:
-                args = [rng.randrange(n), delta(rng) if op == "pointAdd" else gen(rng)]
+                args = [rng.randrange(n), delta(rng) if op in ("pointAdd", "pointAddMod") else gen(rng)]
             else:
                 l, r = sorted((rng.randrange(n), rng.randrange(n)))
                 kind = "upd" if op in RANGE_UPDATES else BRUTE_QUERIES[op][0]

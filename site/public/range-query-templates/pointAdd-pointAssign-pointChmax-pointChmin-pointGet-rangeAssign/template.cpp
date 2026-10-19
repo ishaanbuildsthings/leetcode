@@ -10,10 +10,10 @@
 //   build: N
 // @memory:
 //   layout: 2n-iterative
-//   node: none
-//   tags: stamp[2*N] val[2*N]
+//   node: stamp[1*N] val[1*N]
+//   tags: stamp[1*N] val[1*N]
 //   other: none
-//   note: every node remembers the last assignment that covered it and when; a point takes the newest one on its path
+//   note: every node remembers the last assignment that covered it and when; a point takes the newest one on its path; leaves count as node data, internal nodes as tags
 
 // Range assign + point ops, no pushing anywhere. All indices 0-based, ranges inclusive [l, r].
 // Assignments are stamped with an increasing counter; pointGet returns the value with the largest stamp

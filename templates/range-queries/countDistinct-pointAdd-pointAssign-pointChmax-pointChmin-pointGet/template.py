@@ -1,7 +1,7 @@
 # @operations: countDistinct pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: sqrt
 # @complexities:
-#   countDistinct: sqrt(N)
+#   countDistinct: sqrt(N)*log(N)
 #   pointAdd: sqrt(N)
 #   pointAssign: sqrt(N)
 #   pointChmax: sqrt(N)
@@ -13,7 +13,7 @@
 #   node: blocks[1*N]
 #   tags: none
 #   other: a[1*N] nxt[1*N] chains[1*N]
-#   note: blocks are sqrt(N) sorted lists of next-occurrence indices; chains maps each value to its sorted positions
+#   note: blocks are sqrt(N) sorted lists of next-occurrence indices (a query binary-searches each whole block); chains maps each value to its sorted positions (C++: std::set; Python: plain lists, so an assign is a memmove over that value's occurrences)
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeDistinctWithPointUpdateSqrtDecomp.py
 
 from bisect import bisect_left, bisect_right, insort
@@ -25,7 +25,7 @@ class DynamicDistinct:
     # A value is counted once per window, at its LAST occurrence: nxt[i] > r.
     # blocks[b] is the sorted multiset of nxt values whose index lies in block b.
     # chains[v] is the sorted list of indices holding value v (pred/succ lookup).
-    # O(n log n) build, O(sqrt n) update, O(sqrt n) query.
+    # O(n log n) build, O(sqrt n) update, O(sqrt n log n) query.
     def __init__(self, arr):
         self.n = n = len(arr)
         self.a = list(arr)
@@ -73,7 +73,7 @@ class DynamicDistinct:
         self._setNxt(i, succ)
         self.a[i] = val
 
-    # O(sqrt n) — # of distinct values in a[l..r], inclusive
+    # O(sqrt n log n) — # of distinct values in a[l..r], inclusive
     def countDistinct(self, l, r):
         lb, rb = l // self.blockSize, r // self.blockSize
         nxt = self.nxt

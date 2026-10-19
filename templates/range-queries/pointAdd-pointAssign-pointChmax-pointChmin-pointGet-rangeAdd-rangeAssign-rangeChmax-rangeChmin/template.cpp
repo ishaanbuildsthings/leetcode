@@ -13,9 +13,9 @@
 //   build: N
 // @memory:
 //   layout: 2n-iterative
-//   node: none
+//   node: val[1*N]
 //   tags: A[1*N] B[1*N] C[1*N]
-//   other: val[1*N]
+//   other: none
 //   note: each internal node holds one pending clamp x -> min(A, max(B, x + C)); val holds the leaf values
 
 // Range add / assign / chmax / chmin + point ops, no range aggregates. All indices 0-based, ranges inclusive.

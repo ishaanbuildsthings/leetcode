@@ -14,135 +14,142 @@
 //   rangeMin: log(N)
 //   build: N
 // @memory:
-//   layout: pow2-iterative
-//   node: mn[4*N] mx[4*N]
-//   tags: A[2*N] B[2*N] C[2*N]
+//   layout: 2n-iterative
+//   node: mn[2*N] mx[2*N]
+//   tags: hi[1*N] lo[1*N] add[1*N]
 //   other: none
-//   note: one clamp tag per node: x -> min(A, max(B, x + C))
-// @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Min-Max-PointSet-NO-BEATS.cpp
+//   note: tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x + add))
 
-// Lazy segment tree with one clamp tag per node: x -> min(A, max(B, x + C)). All indices 0-based, inclusive.
-// add v = (INF, NINF, v), chmax v = (INF, v, 0), chmin v = (v, NINF, 0), assign v = (v, v, 0). Clamps compose into
-// clamps, and a clamp is monotone, so it maps a node's min to the new min and its max to the new max: no beats
-// needed, every op is a plain O(log N). (Range SUM would need beats, since a clamp does not move all values alike.)
-// Composing new (a, b, c) after old (A, B, C): A' = min(a, max(b, A + c)), B' = min(max(b, B + c), A'), C' = C + c.
-// Iterative over a power-of-two layout: push the two boundary paths, tag the covering nodes, recompute the paths.
-// T: int, long long, ...; the INF / NINF sentinels are kept saturated, never shifted.
+// Range add / assign / chmin / chmax with range min / max queries, plus point ops. All indices 0-based, ranges inclusive [l, r].
+// Iterative 2N lazy tree: values on the leaves, a tag on each internal node meaning "applied here, not yet pushed
+// to my children". The tag is the map x -> min(hi, max(lo, x + add)); these maps compose into the same form, and each is
+// monotone, so it sends a node's min / max straight to the new min / max.
+// Assign v is the clamp with hi = lo = v.
+// An update pushes the tags on its two boundary paths, tags the covering nodes, then rebuilds the two paths.
+// T: int, long long, ...; the INF / NEG sentinels in the tags are never shifted.
 template <typename T>
-struct LazyClamp {
-    static constexpr T INF = numeric_limits<T>::max(), NINF = numeric_limits<T>::lowest();
-    int n, size, H;
-    vector<T> mn, mx;  // 2 * size slots; padding leaves are INF / NINF so they never win
-    vector<T> A, B, C; // clamp tags on internal nodes only
+struct ClampMinMaxTree {
+    static constexpr T INF = numeric_limits<T>::max(), NEG = numeric_limits<T>::lowest();
+    int n, h;
+    vector<T> mn, mx;  // 2N: leaves are tree[n..2n)
+    vector<T> hi, lo, add;  // N: tags on internal nodes
 
     // O(N)
-    explicit LazyClamp(const vector<T>& a) : n((int)a.size()), size(1), H(0) {
-        while (size < max(n, 1)) size <<= 1, H++;
-        mn.assign(2 * size, INF), mx.assign(2 * size, NINF);
-        A.assign(size, INF), B.assign(size, NINF), C.assign(size, 0);
-        for (int i = 0; i < n; i++) mn[size + i] = mx[size + i] = a[i];
-        for (int x = size - 1; x > 0; x--) mn[x] = min(mn[2 * x], mn[2 * x + 1]), mx[x] = max(mx[2 * x], mx[2 * x + 1]);
+    explicit ClampMinMaxTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+        mn.assign(2 * n, INF);
+        mx.assign(2 * n, NEG);
+        for (int i = 0; i < n; i++) mn[n + i] = mx[n + i] = a[i];
+        for (int x = n - 1; x > 0; x--) mn[x] = std::min(mn[2 * x], mn[2 * x + 1]), mx[x] = std::max(mx[2 * x], mx[2 * x + 1]);
+        hi.assign(n, INF);
+        lo.assign(n, NEG);
+        add.assign(n, 0);
     }
 
-    bool identity(int i) const { return A[i] == INF && B[i] == NINF && C[i] == 0; }
+    static T clampValue(T v, T h, T l, T c) { v += c; v = max(v, l); v = min(v, h); return v; }
 
-    // only ever called on a real value (a node holding padding never carries a tag), so v + c cannot overflow
-    static T eval(T v, T a, T b, T c) { return min(a, max(b, v + c)); }
-
-    // a clamp is monotone, so it maps the node's min to the new min and its max to the new max
-    void apply(int i, T a, T b, T c) {
-        mn[i] = eval(mn[i], a, b, c), mx[i] = eval(mx[i], a, b, c);
-        if (i < size) {
-            T sA = A[i] == INF ? INF : A[i] + c, sB = B[i] == NINF ? NINF : B[i] + c;
-            A[i] = min(a, max(b, sA));
-            B[i] = min(max(b, sB), A[i]);
-            C[i] += c;
+    // apply the map to node x: to its values now, and (if internal) on top of its pending tag
+    void apply(int x, T hiArg, T loArg, T c) {
+        mn[x] = clampValue(mn[x], hiArg, loArg, c);
+        mx[x] = clampValue(mx[x], hiArg, loArg, c);
+        if (x < n) {
+            T nhi = hi[x] == INF ? INF : hi[x] + c;
+            nhi = std::max(nhi, loArg);
+            hi[x] = std::min(nhi, hiArg);
+            T nlo = lo[x] == NEG ? NEG : lo[x] + c;
+            nlo = std::max(nlo, loArg);
+            nlo = std::min(nlo, hi[x]);
+            lo[x] = nlo;
+            add[x] += c;
         }
     }
 
-    void push(int i) {
-        if (identity(i)) return;
-        apply(2 * i, A[i], B[i], C[i]), apply(2 * i + 1, A[i], B[i], C[i]);
-        A[i] = INF, B[i] = NINF, C[i] = 0;
-    }
-
-    void pushToRoot(int p) {
-        for (int s = H; s > 0; s--) push(p >> s);
-    }
-
-    // a node tagged during this update keeps its own clamp on top of its children
-    void recomputeToRoot(int p) {
-        for (p >>= 1; p; p >>= 1) {
-            T lo = min(mn[2 * p], mn[2 * p + 1]), hi = max(mx[2 * p], mx[2 * p + 1]);
-            if (identity(p)) mn[p] = lo, mx[p] = hi;
-            else mn[p] = eval(lo, A[p], B[p], C[p]), mx[p] = eval(hi, A[p], B[p], C[p]);
+    // push every tag on the root-to-leaf path of leaf p down one level
+    void push(int p) {
+        for (int s = h; s > 0; s--) {
+            int x = p >> s;
+            if (hi[x] != INF || lo[x] != NEG || add[x] != 0) {
+                apply(2 * x, hi[x], lo[x], add[x]), apply(2 * x + 1, hi[x], lo[x], add[x]);
+                hi[x] = INF, lo[x] = NEG, add[x] = 0;
+            }
         }
     }
 
-    void upd(int l, int r, T a, T b, T c) {
+    // recompute the ancestors of leaf p; each keeps the effect of its own pending tag
+    void rebuild(int p) {
+        while (p > 1) {
+            p >>= 1;
+            mn[p] = clampValue(std::min(mn[2 * p], mn[2 * p + 1]), hi[p], lo[p], add[p]);
+            mx[p] = clampValue(std::max(mx[2 * p], mx[2 * p + 1]), hi[p], lo[p], add[p]);
+        }
+    }
+
+    void update(int l, int r, T hi, T lo, T c) {
         if (l > r) return;
-        int l0 = l + size, r0 = r + size;
-        pushToRoot(l0), pushToRoot(r0);
-        for (int lo = l0, hi = r0 + 1; lo < hi; lo >>= 1, hi >>= 1) {
-            if (lo & 1) apply(lo++, a, b, c);
-            if (hi & 1) apply(--hi, a, b, c);
+        int l0 = l + n, r0 = r + n;
+        push(l0), push(r0);
+        for (int i = l0, j = r0 + 1; i < j; i >>= 1, j >>= 1) {
+            if (i & 1) apply(i++, hi, lo, c);
+            if (j & 1) apply(--j, hi, lo, c);
         }
-        recomputeToRoot(l0), recomputeToRoot(r0);
+        rebuild(l0), rebuild(r0);
     }
 
-    // O(logN) -- a[i] = min(a[i], x) for i in [l, r]
-    void rangeChmin(int l, int r, T x) { upd(l, r, x, NINF, 0); }
+    // O(logN) -- a[i] += v for i in [l, r]
+    void rangeAdd(int l, int r, T v) { update(l, r, INF, NEG, v); }
 
-    // O(logN) -- a[i] = max(a[i], x) for i in [l, r]
-    void rangeChmax(int l, int r, T x) { upd(l, r, INF, x, 0); }
+    // O(logN) -- a[i] = min(a[i], v) for i in [l, r]
+    void rangeChmin(int l, int r, T v) { update(l, r, v, NEG, 0); }
 
-    // O(logN) -- a[i] += x for i in [l, r]
-    void rangeAdd(int l, int r, T x) { upd(l, r, INF, NINF, x); }
+    // O(logN) -- a[i] = max(a[i], v) for i in [l, r]
+    void rangeChmax(int l, int r, T v) { update(l, r, INF, v, 0); }
 
-    // O(logN) -- a[i] = x for i in [l, r]
-    void rangeAssign(int l, int r, T x) { upd(l, r, x, x, 0); }
+    // O(logN) -- a[i] = v for i in [l, r]
+    void rangeAssign(int l, int r, T v) { update(l, r, v, v, 0); }
 
     // O(logN) -- min of a[l..r]
     T rangeMin(int l, int r) {
-        if (l > r) return INF;
-        l += size, r += size;
-        pushToRoot(l), pushToRoot(r);
+        l += n, r += n;
+        push(l), push(r);
         T res = INF;
         for (r++; l < r; l >>= 1, r >>= 1) {
-            if (l & 1) res = min(res, mn[l++]);
-            if (r & 1) res = min(res, mn[--r]);
+            if (l & 1) res = std::min(res, mn[l++]);
+            if (r & 1) res = std::min(res, mn[--r]);
         }
         return res;
     }
 
     // O(logN) -- max of a[l..r]
     T rangeMax(int l, int r) {
-        if (l > r) return NINF;
-        l += size, r += size;
-        pushToRoot(l), pushToRoot(r);
-        T res = NINF;
+        l += n, r += n;
+        push(l), push(r);
+        T res = NEG;
         for (r++; l < r; l >>= 1, r >>= 1) {
-            if (l & 1) res = max(res, mx[l++]);
-            if (r & 1) res = max(res, mx[--r]);
+            if (l & 1) res = std::max(res, mx[l++]);
+            if (r & 1) res = std::max(res, mx[--r]);
         }
         return res;
     }
 
     // O(logN) -- a[i]
     T pointGet(int i) {
-        pushToRoot(i + size);
-        return mn[i + size];
+        push(i + n);
+        return mn[i + n];
     }
 
     // O(logN) -- a[i] = v
-    void pointAssign(int i, T v) { rangeAssign(i, i, v); }
-
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { rangeChmax(i, i, v); }
-
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { rangeChmin(i, i, v); }
+    void pointAssign(int i, T v) {
+        int p = i + n;
+        push(p);
+        mn[p] = mx[p] = v;
+        rebuild(p);
+    }
 
     // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { rangeAdd(i, i, delta); }
+    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
+
+    // O(logN) -- a[i] = max(a[i], v)
+    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+
+    // O(logN) -- a[i] = min(a[i], v)
+    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
 };

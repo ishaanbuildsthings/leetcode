@@ -11,148 +11,155 @@
 #   rangeSum: log(N)
 #   build: N
 # @memory:
-#   layout: pow2-iterative
-#   node: sm[4*N]
-#   tags: add[2*N] asg[2*N] hasAsg[2*N]
+#   layout: 2n-iterative
+#   node: sm[2*N]
+#   tags: add[1*N] asg[1*N] hasAsg[1*N]
 #   other: none
-#   note: arrays are 2*size, size the next power of two >= n; a node's tag is either "assign v" (later adds fold into v) or "add d"
-# @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/RangeAddRangeAssignRangeSum.cpp
+#   note: tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)
 
-# Range add + range assign + range sum (no mod), plus point ops. All indices 0-based, ranges inclusive [l, r].
-# Iterative lazy tree over a power-of-two layout. Tags do not commute (add then assign != assign then add), so an
-# update first pushes every tag on the two boundary root-to-leaf paths, then tags the O(log N) covering nodes, then
-# recomputes the boundary paths bottom-up. A tag is either "assign v" or "add d"; an add landing on an assign tag
-# just shifts v.
+# Range add / assign with range sum queries, plus point ops. All indices 0-based, ranges inclusive [l, r].
+# Iterative 2N lazy tree: values on the leaves, and on each internal node a pending assign or add, meaning "applied here, not
+# yet pushed to my children". An update pushes the tags on its two boundary paths, tags the covering nodes, then
+# rebuilds the two paths. A covering node at level s is a perfect subtree of 2^s leaves, so its length is 1 << s.
 
 
 class AddAssignSumTree:
-    __slots__ = ("n", "size", "H", "sm", "add", "asg", "hasAsg")
+    __slots__ = ("n", "h", "sm", "add", "asg", "hasAsg")
 
     # O(N)
     def __init__(self, arr):
         n = self.n = len(arr)
-        size, H = 1, 0
-        while size < max(n, 1):
-            size <<= 1
-            H += 1
-        self.size, self.H = size, H
-        sm = self.sm = [0] * (2 * size)
-        sm[size:size + n] = arr
-        for x in range(size - 1, 0, -1):
-            sm[x] = sm[2 * x] + sm[2 * x + 1]
-        self.add = [0] * size
-        self.asg = [0] * size
-        self.hasAsg = [False] * size
+        self.h = n.bit_length()
+        self.sm = [0] * n + list(arr)
+        for x in range(n - 1, 0, -1):
+            self.sm[x] = self.sm[2 * x] + self.sm[2 * x + 1]
+        self.add = [0] * n
+        self.asg = [0] * n
+        self.hasAsg = [False] * n
 
-    # node x covers `length` slots
-    def _apply(self, x, length, isAsg, v):
-        if isAsg:
-            self.sm[x] = v * length
-            if x < self.size:
-                self.hasAsg[x] = True
-                self.asg[x] = v
-                self.add[x] = 0
-        else:
-            self.sm[x] += v * length
-            if x < self.size:
-                if self.hasAsg[x]:
-                    self.asg[x] += v
-                else:
-                    self.add[x] += v
+    # add c to every slot of node x, which covers k slots
+    def _applyAdd(self, x, k, c):
+        self.sm[x] += c * k
+        if x < self.n:
+            if self.hasAsg[x]:
+                self.asg[x] += c  # still an assign, of a shifted value
+            else:
+                self.add[x] += c
 
-    # push node x's tag into its two children, which cover childLen slots each
-    def _push(self, x, childLen):
-        if self.hasAsg[x]:
-            v = self.asg[x]
-            self._apply(2 * x, childLen, True, v)
-            self._apply(2 * x + 1, childLen, True, v)
-            self.hasAsg[x] = False
-        elif self.add[x]:
-            v = self.add[x]
-            self._apply(2 * x, childLen, False, v)
-            self._apply(2 * x + 1, childLen, False, v)
+    # set every slot of node x (k slots) to v
+    def _applyAssign(self, x, k, v):
+        self.sm[x] = v * k
+        if x < self.n:
+            self.hasAsg[x] = True
+            self.asg[x] = v
             self.add[x] = 0
 
-    def _pushToRoot(self, p):
-        for s in range(self.H, 0, -1):
-            self._push(p >> s, 1 << (s - 1))
+    # push every tag on the root-to-leaf path of leaf p down one level
+    def _push(self, p):
+        for s in range(self.h, 0, -1):
+            x = p >> s
+            k = 1 << (s - 1)
+            if self.hasAsg[x]:
+                self._applyAssign(2 * x, k, self.asg[x])
+                self._applyAssign(2 * x + 1, k, self.asg[x])
+                self.hasAsg[x] = False
+            elif self.add[x]:
+                self._applyAdd(2 * x, k, self.add[x])
+                self._applyAdd(2 * x + 1, k, self.add[x])
+                self.add[x] = 0
 
-    # a node that got tagged during the update keeps its own tag's effect
-    def _recomputeToRoot(self, p):
-        sm, add, asg, hasAsg = self.sm, self.add, self.asg, self.hasAsg
-        p >>= 1
-        length = 2
-        while p:
-            if hasAsg[p]:
-                sm[p] = asg[p] * length
-            else:
-                sm[p] = sm[2 * p] + sm[2 * p + 1] + add[p] * length
+    # recompute the ancestors of leaf p; each keeps the effect of its own pending tag
+    def _rebuild(self, p):
+        k = 1
+        while p > 1:
             p >>= 1
-            length <<= 1
-
-    def _update(self, l, r, isAsg, v):
-        if l > r:
-            return
-        l0, r0 = l + self.size, r + self.size
-        self._pushToRoot(l0)
-        self._pushToRoot(r0)
-        lo, hi, length = l0, r0 + 1, 1
-        while lo < hi:
-            if lo & 1:
-                self._apply(lo, length, isAsg, v)
-                lo += 1
-            if hi & 1:
-                hi -= 1
-                self._apply(hi, length, isAsg, v)
-            lo >>= 1
-            hi >>= 1
-            length <<= 1
-        self._recomputeToRoot(l0)
-        self._recomputeToRoot(r0)
+            k <<= 1
+            if self.hasAsg[p]:
+                v = self.asg[p]
+                self.sm[p] = v * k
+                continue
+            self.sm[p] = self.sm[2 * p] + self.sm[2 * p + 1] + self.add[p] * k
 
     # O(logN) -- a[i] += v for i in [l, r]
     def rangeAdd(self, l, r, v):
-        self._update(l, r, False, v)
+        if l > r:
+            return
+        l0, r0 = l + self.n, r + self.n
+        self._push(l0)
+        self._push(r0)
+        lo, hi, k = l0, r0 + 1, 1
+        while lo < hi:
+            if lo & 1:
+                self._applyAdd(lo, k, v)
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                self._applyAdd(hi, k, v)
+            lo >>= 1
+            hi >>= 1
+            k <<= 1
+        self._rebuild(l0)
+        self._rebuild(r0)
 
     # O(logN) -- a[i] = v for i in [l, r]
     def rangeAssign(self, l, r, v):
-        self._update(l, r, True, v)
+        if l > r:
+            return
+        l0, r0 = l + self.n, r + self.n
+        self._push(l0)
+        self._push(r0)
+        lo, hi, k = l0, r0 + 1, 1
+        while lo < hi:
+            if lo & 1:
+                self._applyAssign(lo, k, v)
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                self._applyAssign(hi, k, v)
+            lo >>= 1
+            hi >>= 1
+            k <<= 1
+        self._rebuild(l0)
+        self._rebuild(r0)
 
     # O(logN) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         if l > r:
             return 0
-        l += self.size
-        r += self.size
-        self._pushToRoot(l)
-        self._pushToRoot(r)
-        sm = self.sm
+        l += self.n
+        r += self.n
+        self._push(l)
+        self._push(r)
+        arr = self.sm
         res = 0
         r += 1
         while l < r:
             if l & 1:
-                res += sm[l]
+                res += arr[l]
                 l += 1
             if r & 1:
                 r -= 1
-                res += sm[r]
+                res += arr[r]
             l >>= 1
             r >>= 1
         return res
 
     # O(logN) -- a[i]
     def pointGet(self, i):
-        p = i + self.size
-        self._pushToRoot(p)
+        p = i + self.n
+        self._push(p)
         return self.sm[p]
 
     # O(logN) -- a[i] = val
     def pointAssign(self, i, val):
-        self._update(i, i, True, val)
+        p = i + self.n
+        self._push(p)
+        self.sm[p] = val
+        self._rebuild(p)
 
     # O(logN) -- a[i] += delta
     def pointAdd(self, i, delta):
-        self._update(i, i, False, delta)
+        self.pointAssign(i, self.pointGet(i) + delta)
 
     # O(logN) -- a[i] = max(a[i], val)
     def pointChmax(self, i, val):

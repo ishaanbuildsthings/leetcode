@@ -1,13 +1,13 @@
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
 // @data-structure-type: seg-tree
 // @complexities:
-//   pointAdd: log(N)*log(U)
-//   pointAssign: log(N)*log(U)
-//   pointChmax: log(N)*log(U)
-//   pointChmin: log(N)*log(U)
+//   pointAdd: log(N)*log(U) ?
+//   pointAssign: log(N)*log(U) ?
+//   pointChmax: log(N)*log(U) ?
+//   pointChmin: log(N)*log(U) ?
 //   pointGet: 1
-//   rangeGcd: log(N)*log(U)
-//   build: N*log(U)
+//   rangeGcd: log(N)+log(U) ?
+//   build: N*log(U) ?
 // @memory:
 //   layout: 2n-iterative
 //   node: tree[2*N]
@@ -46,7 +46,7 @@ struct GcdSegmentTree {
         pointAssign(i, v);
     }
 
-    // O(logN logU) -- gcd of a[l..r]
+    // O(logN + logU) -- gcd of a[l..r]; the gcds telescope, so the whole fold costs one log U
     T rangeGcd(int l, int r) const {
         T res = 0;
         for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {

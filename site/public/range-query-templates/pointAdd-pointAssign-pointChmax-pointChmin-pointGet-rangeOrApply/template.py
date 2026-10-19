@@ -10,10 +10,10 @@
 #   build: N
 # @memory:
 #   layout: 2n-iterative
-#   node: none
-#   tags: tree[2*N]
+#   node: tree[1*N]
+#   tags: tree[1*N]
 #   other: none
-#   note: tree[n:] holds the values, tree[1:n] holds each node's pending rangeOrApply tag (no aggregates)
+#   note: tree[n:] holds the values, tree[1:n] holds each node's pending rangeOrApply tag (no aggregates); leaves count as node data, internal nodes as tags
 
 # rangeOrApply + point ops with no range aggregates. All indices 0-based, ranges inclusive [l, r].
 # rangeOrApply composes with itself in any order, so a range update only tags the O(logN) covering nodes and

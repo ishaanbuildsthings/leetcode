@@ -2,8 +2,8 @@
 // @data-structure-type: sparse-table
 // @complexities:
 //   pointGet: 1
-//   rangeGcd: log(U)
-//   build: N*log(N)*log(U)
+//   rangeGcd: log(U) ?
+//   build: N*log(N)*log(U) ?
 // @memory:
 //   layout: none
 //   node: sparse[1*N*log(N)]

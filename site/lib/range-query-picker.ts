@@ -4,10 +4,14 @@ export type OpId =
   | "pointAdd"
   | "pointChmax"
   | "pointChmin"
+  | "pointAddMod"
+  | "pointAssignMod"
   | "rangeAdd"
   | "rangeAssign"
   | "rangeChmax"
   | "rangeChmin"
+  | "rangeAddMod"
+  | "rangeAssignMod"
   | "rangeMultMod"
   | "rangeAffineMod"
   | "rangeAddArithSeq"
@@ -19,15 +23,13 @@ export type OpId =
   | "rangeOrApply"
   | "rangeXorApply"
   | "rangeSum"
+  | "rangeSumMod"
   | "rangeMin"
   | "rangeMax"
-  | "countMin"
-  | "countMax"
   | "rangeGcd"
   | "maxSubarraySum"
   | "maxPrefixSum"
   | "maxSuffixSum"
-  | "rangeLcm"
   | "rangeAndQuery"
   | "rangeOrQuery"
   | "countValue"
@@ -69,7 +71,7 @@ export interface Op {
   showArgs?: true;
 }
 
-export type TierKind = "common" | "uncommon" | "rare" | "bitOps";
+export type TierKind = "common" | "uncommon" | "rare" | "mod" | "bitOps";
 
 export interface OpTier {
   kind: TierKind;
@@ -106,6 +108,13 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "pointChmin", signature: "pointChmin(i, v)", description: "a[i] = min(a[i], v)" },
         ],
       },
+      {
+        kind: "mod",
+        ops: [
+          { id: "pointAssignMod", signature: "pointAssignMod(i, v)", description: "a[i] = v  (mod p)" },
+          { id: "pointAddMod", signature: "pointAddMod(i, v)", description: "a[i] += v  (mod p)" },
+        ],
+      },
     ],
   },
   {
@@ -126,13 +135,20 @@ export const OP_GROUPS: OpGroup[] = [
         kind: "rare",
         label: "Other",
         ops: [
-          { id: "rangeMultMod", signature: "rangeMultMod(l, r, m)", description: "a[i] = a[i] · m  (mod p)" },
-          { id: "rangeAffineMod", signature: "rangeAffineMod(l, r, mult, add)", description: "Multiply then add: a[i] = a[i] · mult + add  (mod p)", showArgs: true },
           { id: "rangeAddArithSeq", signature: "rangeAddArithSeq(l, r, start, step)", description: "a[l] += start, a[l+1] += start+step, …", showArgs: true },
-          { id: "rangeAddArithSeqMod", signature: "rangeAddArithSeqMod(l, r, start, step)", description: "Same, under mod p", showArgs: true },
           { id: "rangeMod", signature: "rangeMod(l, r, mod)", description: "a[i] %= mod", showArgs: true },
           { id: "rangeFloorDiv", signature: "rangeFloorDiv(l, r, divisor)", description: "a[i] = ⌊a[i] / divisor⌋", showArgs: true },
           { id: "rangeFloorSqrt", signature: "rangeFloorSqrt(l, r)", description: "a[i] = ⌊√a[i]⌋" },
+        ],
+      },
+      {
+        kind: "mod",
+        ops: [
+          { id: "rangeAddMod", signature: "rangeAddMod(l, r, v)", description: "a[i] += v  (mod p)" },
+          { id: "rangeAssignMod", signature: "rangeAssignMod(l, r, v)", description: "a[i] = v  (mod p)" },
+          { id: "rangeMultMod", signature: "rangeMultMod(l, r, m)", description: "a[i] = a[i] · m  (mod p)" },
+          { id: "rangeAffineMod", signature: "rangeAffineMod(l, r, mult, add)", description: "Multiply then add: a[i] = a[i] · mult + add  (mod p)", showArgs: true },
+          { id: "rangeAddArithSeqMod", signature: "rangeAddArithSeqMod(l, r, start, step)", description: "a[l] += start, a[l+1] += start+step, …  (mod p)", showArgs: true },
         ],
       },
       {
@@ -168,9 +184,6 @@ export const OP_GROUPS: OpGroup[] = [
         ops: [
           { id: "maxPrefixSum", signature: "maxPrefixSum(l, r)", description: "Max of a[l] + … + a[i] over i in [l, r]" },
           { id: "maxSuffixSum", signature: "maxSuffixSum(l, r)", description: "Max of a[i] + … + a[r] over i in [l, r]" },
-          { id: "countMin", signature: "countMin(l, r)", description: "# of values in a[l]…a[r] equal to the min" },
-          { id: "countMax", signature: "countMax(l, r)", description: "# of values in a[l]…a[r] equal to the max" },
-          { id: "rangeLcm", signature: "rangeLcm(l, r)", description: "lcm of a[l]…a[r]" },
           { id: "rangeMode", signature: "rangeMode(l, r)", description: "(mode, frequency) of a[l]…a[r]" },
           { id: "allDistinct", signature: "allDistinct(l, r)", description: "Are all values in a[l]…a[r] distinct?" },
           { id: "countOccurrences", signature: "countOccurrences(l, r, x)", description: "# of i in [l, r] with a[i] = x" },
@@ -189,6 +202,10 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "longestEqualRun", signature: "longestEqualRun(l, r)", description: "Longest run of equal adjacent values in a[l]…a[r]" },
           { id: "doAllElementsAppearEvenFrequency", signature: "doAllElementsAppearEvenFrequency(l, r)", description: "Does every value in a[l]…a[r] appear an even # of times? (xor hashing)" },
         ],
+      },
+      {
+        kind: "mod",
+        ops: [{ id: "rangeSumMod", signature: "rangeSumMod(l, r)", description: "(a[l] + … + a[r])  mod p" }],
       },
       {
         kind: "bitOps",
@@ -270,7 +287,7 @@ export interface RangeQueryTemplate {
   langs: TemplateLang[];
   operations: OpId[];
   dataStructureType: DataStructureType;
-  // Per-operation cost from the @complexities tag, e.g. "log(N)", "log^2(N) amortized", "log(N)*log(U)", "?" (unknown).
+  // Per-operation cost from the @complexities tag, e.g. "log(N)", "log^2(N) amortized", "log(N)*log(U)", "log(N)+log(U) ?" (a trailing ? marks a bound we are unsure of).
   complexities: Partial<Record<OpId, string>>;
   build: string;
   memory: MemoryBreakdown;
@@ -314,8 +331,8 @@ const FACTOR_VALUES: Record<string, number> = {
 };
 
 export function costValue(cost: string): number {
-  if (cost === "?") return Infinity;
   return cost
+    .replace(/ \?$/, "")
     .replace(/ amortized$/, "")
     .split("+")
     .reduce((sum, term) => sum + term.split("*").reduce((prod, f) => prod * factorValue(f), 1), 0);
@@ -358,12 +375,13 @@ const PRETTY_FACTORS: Record<string, string> = {
 };
 
 export function formatCost(cost: string): string {
-  if (cost === "?") return "unknown";
-  const amortized = cost.endsWith(" amortized");
-  const body = cost
+  const unsure = cost.endsWith(" ?");
+  const rest = cost.replace(/ \?$/, "");
+  const amortized = rest.endsWith(" amortized");
+  const body = rest
     .replace(/ amortized$/, "")
     .split("+")
     .map(formatTerm)
     .join(" + ");
-  return `O(${body})${amortized ? " amortized" : ""}`;
+  return `O(${body})${unsure ? "?" : ""}${amortized ? " amortized" : ""}`;
 }

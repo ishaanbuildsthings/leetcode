@@ -11,90 +11,99 @@
 //   rangeSum: log(N)
 //   build: N
 // @memory:
-//   layout: pow2-iterative
-//   node: sm[4*N]
-//   tags: add[2*N] asg[2*N] hasAsg[2*N]
+//   layout: 2n-iterative
+//   node: sm[2*N]
+//   tags: add[1*N] asg[1*N] hasAsg[1*N]
 //   other: none
-//   note: arrays are 2*size, size the next power of two >= n; a node's tag is either "assign v" (later adds fold into v) or "add d"
-// @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/RangeAddRangeAssignRangeSum.cpp
+//   note: tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)
 
-// Range add + range assign + range sum (no mod), plus point ops. All indices 0-based, ranges inclusive [l, r].
-// Iterative lazy tree over a power-of-two layout. Tags do not commute (add then assign != assign then add), so an
-// update first pushes every tag on the two boundary root-to-leaf paths, then tags the O(log N) covering nodes, then
-// recomputes the boundary paths bottom-up. A tag is either "assign v" or "add d"; an add landing on an assign tag
-// just shifts v.
+// Range add / assign with range sum queries, plus point ops. All indices 0-based, ranges inclusive [l, r].
+// Iterative 2N lazy tree: values on the leaves, and on each internal node a pending assign or add, meaning "applied here, not
+// yet pushed to my children". An update pushes the tags on its two boundary paths, tags the covering nodes, then
+// rebuilds the two paths. A covering node at level s is a perfect subtree of 2^s leaves, so its length is 1 << s.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct AddAssignSumTree {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    int n, size, H;
-    vector<S> sm;
-    vector<T> add, asg;      // tags, internal nodes only
+    int n, h;
+    vector<S> sm;  // 2N: leaves are sm[n..2n)
+    vector<T> add, asg;  // N: tags on internal nodes
     vector<char> hasAsg;
 
     // O(N)
-    explicit AddAssignSumTree(const vector<T>& a) : n((int)a.size()), size(1), H(0) {
-        while (size < max(n, 1)) size <<= 1, H++;
-        sm.assign(2 * size, 0), add.assign(size, 0), asg.assign(size, 0), hasAsg.assign(size, 0);
-        for (int i = 0; i < n; i++) sm[size + i] = a[i];
-        for (int x = size - 1; x > 0; x--) sm[x] = sm[2 * x] + sm[2 * x + 1];
+    explicit AddAssignSumTree(const vector<T>& a) : n((int)a.size()), h(a.empty() ? 0 : 32 - __builtin_clz((unsigned)a.size())) {
+        sm.assign(2 * n, 0);
+        for (int i = 0; i < n; i++) {
+            sm[n + i] = a[i];
+        }
+        for (int x = n - 1; x > 0; x--) {
+            sm[x] = sm[2 * x] + sm[2 * x + 1];
+        }
+        add.assign(n, 0), asg.assign(n, 0), hasAsg.assign(n, 0);
     }
 
-    // node x covers `len` slots
-    void apply(int x, int len, bool isAsg, T v) {
-        if (isAsg) {
-            sm[x] = S(v) * len;
-            if (x < size) hasAsg[x] = 1, asg[x] = v, add[x] = 0;
-        } else {
-            sm[x] += S(v) * len;
-            if (x < size) (hasAsg[x] ? asg[x] : add[x]) += v;
+    // add c to every slot of node x, which covers k slots
+    void applyAdd(int x, int k, T c) {
+        sm[x] += S(c) * k;
+        if (x < n) (hasAsg[x] ? asg[x] : add[x]) += c;  // an add on an assign shifts the assigned value
+    }
+
+    // set every slot of node x (k slots) to v
+    void applyAssign(int x, int k, T v) {
+        sm[x] = S(v) * k;
+        if (x < n) hasAsg[x] = 1, asg[x] = v, add[x] = 0;
+    }
+
+    // push every tag on the root-to-leaf path of leaf p down one level
+    void push(int p) {
+        for (int s = h; s > 0; s--) {
+            int x = p >> s, k = 1 << (s - 1);
+            if (hasAsg[x]) applyAssign(2 * x, k, asg[x]), applyAssign(2 * x + 1, k, asg[x]), hasAsg[x] = 0;
+            else if (add[x]) applyAdd(2 * x, k, add[x]), applyAdd(2 * x + 1, k, add[x]), add[x] = 0;
         }
     }
 
-    // push node x's tag into its two children, which cover childLen slots each
-    void push(int x, int childLen) {
-        if (hasAsg[x]) {
-            apply(2 * x, childLen, true, asg[x]), apply(2 * x + 1, childLen, true, asg[x]);
-            hasAsg[x] = 0;
-        } else if (add[x]) {
-            apply(2 * x, childLen, false, add[x]), apply(2 * x + 1, childLen, false, add[x]);
-            add[x] = 0;
+    // recompute the ancestors of leaf p; each keeps the effect of its own pending tag
+    void rebuild(int p) {
+        for (int k = 2; p > 1; k <<= 1) {
+            p >>= 1;
+            if (hasAsg[p]) {
+                sm[p] = S(asg[p]) * k;
+                continue;
+            }
+            sm[p] = sm[2 * p] + sm[2 * p + 1] + S(add[p]) * k;
         }
-    }
-
-    void pushToRoot(int p) {
-        for (int s = H; s > 0; s--) push(p >> s, 1 << (s - 1));
-    }
-
-    // a node that got tagged during the update keeps its own tag's effect
-    void recomputeToRoot(int p) {
-        int len = 2;
-        for (p >>= 1; p; p >>= 1, len <<= 1)
-            sm[p] = hasAsg[p] ? S(asg[p]) * len : sm[2 * p] + sm[2 * p + 1] + S(add[p]) * len;
-    }
-
-    void update(int l, int r, bool isAsg, T v) {
-        if (l > r) return;
-        int l0 = l + size, r0 = r + size;
-        pushToRoot(l0), pushToRoot(r0);
-        for (int lo = l0, hi = r0 + 1, len = 1; lo < hi; lo >>= 1, hi >>= 1, len <<= 1) {
-            if (lo & 1) apply(lo++, len, isAsg, v);
-            if (hi & 1) apply(--hi, len, isAsg, v);
-        }
-        recomputeToRoot(l0), recomputeToRoot(r0);
     }
 
     // O(logN) -- a[i] += v for i in [l, r]
-    void rangeAdd(int l, int r, T v) { update(l, r, false, v); }
+    void rangeAdd(int l, int r, T v) {
+        if (l > r) return;
+        int l0 = l + n, r0 = r + n;
+        push(l0), push(r0);
+        for (int i = l0, j = r0 + 1, k = 1; i < j; i >>= 1, j >>= 1, k <<= 1) {
+            if (i & 1) applyAdd(i++, k, v);
+            if (j & 1) applyAdd(--j, k, v);
+        }
+        rebuild(l0), rebuild(r0);
+    }
 
     // O(logN) -- a[i] = v for i in [l, r]
-    void rangeAssign(int l, int r, T v) { update(l, r, true, v); }
+    void rangeAssign(int l, int r, T v) {
+        if (l > r) return;
+        int l0 = l + n, r0 = r + n;
+        push(l0), push(r0);
+        for (int i = l0, j = r0 + 1, k = 1; i < j; i >>= 1, j >>= 1, k <<= 1) {
+            if (i & 1) applyAssign(i++, k, v);
+            if (j & 1) applyAssign(--j, k, v);
+        }
+        rebuild(l0), rebuild(r0);
+    }
 
     // O(logN) -- a[l] + ... + a[r]
     S rangeSum(int l, int r) {
         if (l > r) return 0;
-        l += size, r += size;
-        pushToRoot(l), pushToRoot(r);
+        l += n, r += n;
+        push(l), push(r);
         S res = 0;
         for (r++; l < r; l >>= 1, r >>= 1) {
             if (l & 1) res += sm[l++];
@@ -105,15 +114,20 @@ struct AddAssignSumTree {
 
     // O(logN) -- a[i]
     T pointGet(int i) {
-        pushToRoot(i + size);
-        return T(sm[i + size]);
+        push(i + n);
+        return T(sm[i + n]);
     }
 
     // O(logN) -- a[i] = v
-    void pointAssign(int i, T v) { update(i, i, true, v); }
+    void pointAssign(int i, T v) {
+        int p = i + n;
+        push(p);
+        sm[p] = v;
+        rebuild(p);
+    }
 
     // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { update(i, i, false, delta); }
+    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
 
     // O(logN) -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }

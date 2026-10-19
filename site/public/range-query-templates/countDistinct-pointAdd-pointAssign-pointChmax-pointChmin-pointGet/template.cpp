@@ -1,7 +1,7 @@
 // @operations: countDistinct pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: sqrt
 // @complexities:
-//   countDistinct: sqrt(N)
+//   countDistinct: sqrt(N)*log(N)
 //   pointAdd: sqrt(N)
 //   pointAssign: sqrt(N)
 //   pointChmax: sqrt(N)
@@ -13,7 +13,7 @@
 //   node: blocks[1*N]
 //   tags: none
 //   other: a[1*N] nxt[1*N] chains[1*N]
-//   note: blocks are sqrt(N) sorted lists of next-occurrence indices; chains maps each value to its sorted positions
+//   note: blocks are sqrt(N) sorted lists of next-occurrence indices (a query binary-searches each whole block); chains maps each value to its sorted positions (C++: std::set; Python: plain lists, so an assign is a memmove over that value's occurrences)
 
 // Range count distinct with point updates, sqrt decomposition. All indices 0-based, ranges inclusive.
 // nxt[i] = next j > i with a[j] == a[i], else n. A value is counted once per window, at its LAST occurrence:

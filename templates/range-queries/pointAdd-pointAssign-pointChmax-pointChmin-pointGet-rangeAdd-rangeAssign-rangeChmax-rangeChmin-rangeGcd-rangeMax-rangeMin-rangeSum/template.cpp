@@ -1,20 +1,20 @@
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeGcd rangeMax rangeMin rangeSum
 // @data-structure-type: beats
 // @complexities:
-//   pointAdd: log^2(N)*log(U) amortized
-//   pointAssign: log^2(N)*log(U) amortized
-//   pointChmax: log^2(N)*log(U) amortized
-//   pointChmin: log^2(N)*log(U) amortized
+//   pointAdd: log^2(N)*log(U) amortized ?
+//   pointAssign: log^2(N)*log(U) amortized ?
+//   pointChmax: log^2(N)*log(U) amortized ?
+//   pointChmin: log^2(N)*log(U) amortized ?
 //   pointGet: log(N)
-//   rangeAdd: log^2(N)*log(U) amortized
-//   rangeAssign: log^2(N)*log(U) amortized
-//   rangeChmax: log^2(N)*log(U) amortized
-//   rangeChmin: log^2(N)*log(U) amortized
-//   rangeGcd: log(N)*log(U)
+//   rangeAdd: log^2(N)*log(U) amortized ?
+//   rangeAssign: log^2(N)*log(U) amortized ?
+//   rangeChmax: log^2(N)*log(U) amortized ?
+//   rangeChmin: log^2(N)*log(U) amortized ?
+//   rangeGcd: log(N)*log(U) ?
 //   rangeMax: log(N)
 //   rangeMin: log(N)
 //   rangeSum: log(N)
-//   build: N
+//   build: N*log(U) ?
 // @memory:
 //   layout: 4n-recursive
 //   node: mx[4*N] mx2[4*N] cntMx[4*N] mn[4*N] mn2[4*N] cntMn[4*N] tot[4*N] diffGcd[4*N]

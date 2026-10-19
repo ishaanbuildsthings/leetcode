@@ -12,9 +12,9 @@
 #   build: N
 # @memory:
 #   layout: 2n-iterative
-#   node: none
+#   node: val[1*N]
 #   tags: AND[1*N] XOR[1*N]
-#   other: val[1*N]
+#   other: none
 #   note: each internal node holds one pending bit map x -> (x & AND) ^ XOR; val holds the leaf values
 
 # Range and / or / xor + point ops, no range aggregates. All indices 0-based, ranges inclusive [l, r].
