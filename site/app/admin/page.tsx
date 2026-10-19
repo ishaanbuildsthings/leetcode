@@ -45,6 +45,12 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link
+              href="/templates/range-queries"
+              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg transition-colors"
+            >
+              Range Query Picker
+            </Link>
+            <Link
               href="/admin/drill/implements"
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "gen:range-queries": "node scripts/build-range-query-templates.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
