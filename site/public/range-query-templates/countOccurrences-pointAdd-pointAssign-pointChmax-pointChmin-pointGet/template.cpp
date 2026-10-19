@@ -13,7 +13,7 @@
 //   node: pos[1*N]
 //   tags: none
 //   other: a[1*N]
-//   note: pos maps each value to its sorted indices (C++: an order-statistics tree per value; Python: plain sorted lists, so an assign is a memmove over that value's occurrences)
+//   note: pos maps each value to its sorted indices (C++: an order-statistics tree per value; Python: a bucketed SortedList (below), so each change is a few binary searches plus a C-level shift of at most 1024 elements)
 
 // "How many times does x appear in a[l..r]?" with point updates. All indices 0-based, ranges inclusive.
 // Each value keeps its indices in an order-statistics tree (GCC pb_ds), so a query is two order_of_key calls and an

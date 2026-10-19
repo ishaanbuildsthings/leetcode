@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   OP_GROUPS,
   DATA_STRUCTURE_TYPES,
@@ -12,6 +12,8 @@ import {
   type Op,
   type OpId,
   type RangeQueryTemplate,
+  type TemplateView,
+  viewOf,
   type TierKind,
   type TemplateLang,
   TEMPLATE_LANG_LABELS,
@@ -32,11 +34,14 @@ const opCost = (t: RangeQueryTemplate, op: OpId) => t.complexities[op] ?? "?";
 // Templates covering every selected op, ranked by: slowest selected op, data structure type, total cost
 // of selected ops, memory, then fewest extra ops. Type outranks total because amortized bounds on heavy
 // structures (beats) hide large constants. Ops you didn't select don't count against a template.
-function matchTemplates(selected: Set<OpId>) {
+// In sparse mode only templates with a sparse version are considered, ranked by that version's costs and memory.
+function matchTemplates(selected: Set<OpId>, sparse: boolean) {
   if (selected.size === 0) return [];
   const picked = [...selected];
   const wantsMod = picked.some((op) => MOD_P_OPS.has(op));
-  return RANGE_QUERY_TEMPLATES.filter((t) => picked.every((op) => t.operations.includes(op)) && (wantsMod || !isModP(t)))
+  return RANGE_QUERY_TEMPLATES.map((t) => viewOf(t, sparse))
+    .filter((t): t is TemplateView => t !== null)
+    .filter((t) => picked.every((op) => t.operations.includes(op)) && (wantsMod || !isModP(t)))
     .map((t) => {
       const costs = picked.map((op) => ({ op, cost: opCost(t, op), value: costValue(opCost(t, op)) }));
       const bottleneck = costs.reduce((a, b) => (b.value > a.value ? b : a));
@@ -85,6 +90,7 @@ function MemoryPanel({ template }: { template: RangeQueryTemplate }) {
     <div className="border-b border-border px-4 py-3 text-xs">
       <p className="mb-1.5 font-semibold text-foreground">
         Memory {formatMemory(memory.total)}
+        {memory.layout === "sparse" && " per update"}
         {memory.layout !== "none" && (
           <span className="ml-2 font-normal text-muted-foreground">{TREE_LAYOUT_LABELS[memory.layout]}</span>
         )}
@@ -118,6 +124,30 @@ function MemoryPanel({ template }: { template: RangeQueryTemplate }) {
 }
 
 const LANG_STORAGE_KEY = "rangeQueryPicker.lang";
+const SPARSE_STORAGE_KEY = "rangeQueryPicker.sparse";
+
+// The sparse toggle lives in localStorage so it survives reloads; useSyncExternalStore reads it without a
+// server / client mismatch (the server always renders it off).
+const sparseListeners = new Set<() => void>();
+const subscribeSparse = (onChange: () => void) => {
+  sparseListeners.add(onChange);
+  return () => {
+    sparseListeners.delete(onChange);
+  };
+};
+function readSparse(): boolean {
+  try {
+    return window.localStorage.getItem(SPARSE_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+function writeSparse(on: boolean) {
+  try {
+    window.localStorage.setItem(SPARSE_STORAGE_KEY, on ? "1" : "0");
+  } catch {}
+  sparseListeners.forEach((notify) => notify());
+}
 
 function readPreferredLang(): TemplateLang {
   try {
@@ -132,7 +162,7 @@ function CodeDrawer({
   selected,
   onClose,
 }: {
-  template: RangeQueryTemplate;
+  template: TemplateView;
   selected: Set<OpId>;
   onClose: () => void;
 }) {
@@ -140,21 +170,22 @@ function CodeDrawer({
   const lang = template.langs.includes(preferred) ? preferred : template.langs[0];
   const [loaded, setLoaded] = useState<{ key: string; code: string | null; failed: boolean } | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const path = `${template.folder}/template.${lang}`;
+  const fileName = `${template.file}.${lang}`;
+  const path = `${template.folder}/${fileName}`;
   const code = loaded?.key === path ? loaded.code : null;
   const failed = loaded?.key === path && loaded.failed;
   const copied = copiedKey === path;
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/range-query-templates/${encodeURIComponent(template.folder)}/template.${lang}`)
+    fetch(`/range-query-templates/${encodeURIComponent(template.folder)}/${fileName}`)
       .then((res) => (res.ok ? res.text() : Promise.reject(res.status)))
       .then((text) => !cancelled && setLoaded({ key: path, code: text, failed: false }))
       .catch(() => !cancelled && setLoaded({ key: path, code: null, failed: true }));
     return () => {
       cancelled = true;
     };
-  }, [template.folder, lang, path]);
+  }, [template.folder, fileName, path]);
 
   const chooseLang = (l: TemplateLang) => {
     setPreferred(l);
@@ -183,6 +214,7 @@ function CodeDrawer({
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">
               {DATA_STRUCTURE_TYPE_LABELS[template.dataStructureType]}
+              {template.file === "sparse" && <span className="ml-2 font-normal text-muted-foreground">sparse</span>}
             </p>
             <p className="mt-1 break-all font-mono text-xs text-muted-foreground">{template.folder}</p>
           </div>
@@ -216,7 +248,7 @@ function CodeDrawer({
               {copied ? "Copied" : "Copy"}
             </button>
             <a
-              href={`${GITHUB_BASE}${encodeURIComponent(template.folder)}/template.${lang}`}
+              href={`${GITHUB_BASE}${encodeURIComponent(template.folder)}/${fileName}`}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-md border border-border px-2.5 py-1 text-xs text-foreground hover:bg-muted"
@@ -283,7 +315,9 @@ function TierBadge({ kind, label: labelOverride }: { kind: TierKind; label?: str
 
 export function RangeQueryPicker() {
   const [selected, setSelected] = useState<Set<OpId>>(new Set());
-  const [openTemplate, setOpenTemplate] = useState<RangeQueryTemplate | null>(null);
+  const [openTemplate, setOpenTemplate] = useState<TemplateView | null>(null);
+  const sparse = useSyncExternalStore(subscribeSparse, readSparse, () => false);
+  const toggleSparse = () => writeSparse(!sparse);
 
   const toggle = (id: OpId) => {
     setSelected((prev) => {
@@ -295,7 +329,7 @@ export function RangeQueryPicker() {
   };
 
   const selectedOps = ALL_OPS.filter((op) => selected.has(op.id));
-  const matches = matchTemplates(selected);
+  const matches = matchTemplates(selected, sparse);
 
   return (
     <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-24 font-[family-name:var(--font-dm-sans)]">
@@ -303,6 +337,18 @@ export function RangeQueryPicker() {
         <h1 className="font-[family-name:var(--font-playfair)] text-3xl font-bold text-foreground">
           Range Query Picker
         </h1>
+        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleSparse}
+          aria-pressed={sparse}
+          title="Sparse: a dynamic tree over any index range [lo, hi] (e.g. up to 1e18), every position starting at 0"
+          className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+            sparse ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground hover:bg-muted"
+          }`}
+        >
+          Sparse{sparse ? ": on" : ""}
+        </button>
         <button
           type="button"
           onClick={() => setSelected(new Set())}
@@ -311,6 +357,7 @@ export function RangeQueryPicker() {
         >
           Unselect all
         </button>
+        </div>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -460,6 +507,7 @@ export function RangeQueryPicker() {
                         <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
                           <span className="block">
                             Memory <span className="text-foreground">{formatMemory(template.memory.total)}</span>
+                            {template.memory.layout === "sparse" && " per update"}
                             {template.memory.layout !== "none" && ` (${TREE_LAYOUT_LABELS[template.memory.layout]})`}
                           </span>
                           {memoryGroups(template).map(({ id, label }) => (

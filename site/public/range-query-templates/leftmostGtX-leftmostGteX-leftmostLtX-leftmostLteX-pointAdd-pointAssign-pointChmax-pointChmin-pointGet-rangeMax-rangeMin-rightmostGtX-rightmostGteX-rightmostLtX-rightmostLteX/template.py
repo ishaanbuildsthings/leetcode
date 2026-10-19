@@ -23,7 +23,6 @@
 #   tags: none
 #   other: none
 #   note: two flat arrays of 2*size slots (size = next power of two >= n); padding leaves are -inf / +inf
-# @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MaxAndMinAndCountsAndGteLteIndexSegmentTree.py
 
 # Range max / min and leftmost / rightmost index with a[i] >= x, > x, <= x or < x, with
 # point updates. All indices 0-based, ranges inclusive [l, r]. Searches return -1 when nothing qualifies.

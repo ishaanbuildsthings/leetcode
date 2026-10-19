@@ -30,65 +30,73 @@ struct RangeLIS {
     vector<int> sortedVals;  // sorted E
     vector<int> cnt;         // flat merge sort tree over E: cnt[d * n + tl + j] = # of the first j + 1 that go left
 
-    // distance product: sigma_R(i,k) = min_j sigma_P(i,j) + sigma_Q(j,k), sigma_X(i,k) = #{i' >= i : X[i'] < k}
-    static vector<int> dmul(const vector<int>& P, const vector<int>& Q) {
-        int n = (int)P.size();
-        if (n == 1) return {0};
+    // All scratch memory comes from one arena: a call takes what it needs from the top and gives it back on
+    // return, so the O(N log N) recursive calls do no heap allocation at all.
+    vector<int> arena;
+    size_t top = 0;
+    int* take(size_t k) { int* p = arena.data() + top; top += k; return p; }
+
+    // distance product R = P (.) Q of permutations of size n:
+    // sigma_R(i,k) = min_j sigma_P(i,j) + sigma_Q(j,k), sigma_X(i,k) = #{i' >= i : X[i'] < k}. Steady ant, O(n log n).
+    void dmul(const int* P, const int* Q, int* R, int n) {
+        if (n == 1) { R[0] = 0; return; }
+        size_t mark = top;
         int m = n >> 1;
-        vector<char> isLoCol(n, 0);
-        for (int j = 0; j < m; j++) isLoCol[Q[j]] = 1;
-        vector<int> rank(n), colsLo, colsHi, rowsLo, rowsHi, PLo, PHi, QLo(m), QHi(n - m);
+        int *rank = take(n), *colsLo = take(m), *colsHi = take(n - m), *rowsLo = take(m), *rowsHi = take(n - m);
+        int *PLo = take(m), *PHi = take(n - m), *QLo = take(m), *QHi = take(n - m), *RLo = take(m), *RHi = take(n - m);
+        int *rowCol = take(n), *colRow = take(n), *below = take(n + 2), *flags = take(n);  // flags: bit 0 row is lo, bit 1 col is lo
+        fill(flags, flags + n, 0);
+        for (int j = 0; j < m; j++) flags[Q[j]] |= 2;  // temporarily: column of Q is in the lo half
+        int cl = 0, ch = 0, rl = 0, rh = 0;
         for (int c = 0; c < n; c++) {
-            if (isLoCol[c]) rank[c] = (int)colsLo.size(), colsLo.push_back(c);
-            else rank[c] = (int)colsHi.size(), colsHi.push_back(c);
+            if (flags[c] & 2) rank[c] = cl, colsLo[cl++] = c;
+            else rank[c] = ch, colsHi[ch++] = c;
         }
         for (int i = 0; i < n; i++) {
-            if (P[i] < m) rowsLo.push_back(i), PLo.push_back(P[i]);
-            else rowsHi.push_back(i), PHi.push_back(P[i] - m);
+            if (P[i] < m) rowsLo[rl] = i, PLo[rl++] = P[i];
+            else rowsHi[rh] = i, PHi[rh++] = P[i] - m;
         }
         for (int j = 0; j < m; j++) QLo[j] = rank[Q[j]];
         for (int j = m; j < n; j++) QHi[j - m] = rank[Q[j]];
-        vector<int> RLo = dmul(PLo, QLo), RHi = dmul(PHi, QHi);
-        vector<char> rowIsLo(n, 0), colIsLo(n, 0);
-        vector<int> rowCol(n), colRow(n);
-        for (size_t t = 0; t < rowsLo.size(); t++) {
+        dmul(PLo, QLo, RLo, m), dmul(PHi, QHi, RHi, n - m);
+        fill(flags, flags + n, 0);
+        for (int t = 0; t < m; t++) {
             int i = rowsLo[t], c = colsLo[RLo[t]];
-            rowIsLo[i] = colIsLo[c] = 1, rowCol[i] = c, colRow[c] = i;
+            flags[i] |= 1, flags[c] |= 2, rowCol[i] = c, colRow[c] = i;
         }
-        for (size_t t = 0; t < rowsHi.size(); t++) {
+        for (int t = 0; t < n - m; t++) {
             int i = rowsHi[t], c = colsHi[RHi[t]];
             rowCol[i] = c, colRow[c] = i;
         }
         // delta(i,k) = #lo(row >= i, col >= k) - #hi(row < i, col < k). R keeps lo points where delta >= 0 and hi
         // points where delta < 0; boundary cells are fixed with the 2x2 cross-difference of min(0, delta).
         // bnd(i) = first k with delta(i,k) < 0 (n + 1 if none); walking rows upward it only moves right.
-        vector<int> R(n), below(n + 2, 0);
         int k = 0, d = 0;
         while (d >= 0) {
             if (k == n) { k = n + 1; break; }
-            if (!colIsLo[k]) d--;
+            if (!(flags[k] & 2)) d--;
             k++;
         }
         int bndBelow = k;
         for (int i = n - 1; i >= 0; i--) {
             int k0 = bndBelow, bnd;
+            bool isLo = flags[i] & 1;
             if (k0 == n + 1) {
                 bnd = n + 1;
             } else {
                 int dBelow = below[k0] = -1;
-                int cur = ((rowCol[i] >= k0) == (bool)rowIsLo[i]) ? 0 : -1;
+                int cur = ((rowCol[i] >= k0) == isLo) ? 0 : -1;
                 k = k0;
                 while (cur >= 0) {
                     if (k == n) { k = n + 1; break; }
                     int r = colRow[k];
-                    if (colIsLo[k]) cur -= r >= i, dBelow -= r >= i + 1;
+                    if (flags[k] & 2) cur -= r >= i, dBelow -= r >= i + 1;
                     else cur -= r < i, dBelow -= r < i + 1;
                     below[++k] = dBelow;
                 }
                 bnd = k;
             }
             int p = rowCol[i];
-            bool isLo = rowIsLo[i];
             if ((isLo && p + 1 < k0) || (!isLo && p >= bnd)) {
                 R[i] = p;
             } else {
@@ -101,38 +109,39 @@ struct RangeLIS {
             }
             bndBelow = bnd;
         }
-        return R;
+        top = mark;
     }
 
-    // seaweed braid of the grid (rows = values, cols = positions of permutation a). Size 2n: inputs are
-    // [left rows bottom->top | top cols], outputs are [bottom cols | right rows bottom->top]
-    static vector<int> braid(const vector<int>& a) {
-        int n = (int)a.size();
-        if (n == 1) return {0, 1};
-        int m = n >> 1;
-        vector<int> colsLo, colsHi, subLo, subHi;
+    // seaweed braid of the grid (rows = values, cols = positions of permutation a, size n) into out[0..2n):
+    // inputs are [left rows bottom->top | top cols], outputs are [bottom cols | right rows bottom->top]
+    void braid(const int* a, int n, int* out) {
+        if (n == 1) { out[0] = 0, out[1] = 1; return; }
+        size_t mark = top;
+        int m = n >> 1, k1 = m, k2 = n - m;
+        int *colsLo = take(k1), *colsHi = take(k2), *subLo = take(k1), *subHi = take(k2);
+        int *brLo = take(2 * k1), *brHi = take(2 * k2), *matched = take(n), *Tm = take(2 * n), *Bm = take(2 * n);
+        int cl = 0, ch = 0;
         for (int j = 0; j < n; j++) {
-            if (a[j] < m) colsLo.push_back(j), subLo.push_back(a[j]);
-            else colsHi.push_back(j), subHi.push_back(a[j] - m);
+            if (a[j] < m) colsLo[cl] = j, subLo[cl++] = a[j];
+            else colsHi[ch] = j, subHi[ch++] = a[j] - m;
         }
-        // a k-row strip over all n columns; columns without a match in it pass straight down
-        auto strip = [n](const vector<int>& cols, const vector<int>& sub, int k) {
-            vector<int> pi(k + n), matched(n, -1);
+        braid(subLo, k1, brLo), braid(subHi, k2, brHi);
+        // a k-row strip over all n columns; columns without a match in it pass straight down. Written as pi[0..k+n).
+        auto strip = [&](const int* cols, const int* sub, int k, int* pi) {
+            fill(matched, matched + n, -1);
             for (int t = 0; t < k; t++) matched[cols[t]] = t;
-            auto out = [&](int y) { return y < k ? cols[y] : n + y - k; };
-            for (int x = 0; x < k; x++) pi[x] = out(sub[x]);
-            for (int j = 0; j < n; j++) pi[k + j] = matched[j] < 0 ? j : out(sub[k + matched[j]]);
-            return pi;
+            auto outIdx = [&](int y) { return y < k ? cols[y] : n + y - k; };
+            for (int x = 0; x < k; x++) pi[x] = outIdx(sub[x]);
+            for (int j = 0; j < n; j++) pi[k + j] = matched[j] < 0 ? j : outIdx(sub[k + matched[j]]);
         };
-        int k1 = m, k2 = n - m;
-        vector<int> piT = strip(colsLo, braid(subLo), k1), piB = strip(colsHi, braid(subHi), k2);
         // stack the strips: extend each to all 2n seaweeds, then multiply (top strip first)
-        vector<int> Tm(2 * n), Bm(2 * n);
         for (int r = 0; r < k2; r++) Tm[r] = r;
-        for (int x = 0; x < k1 + n; x++) Tm[k2 + x] = k2 + piT[x];
-        for (int x = 0; x < k2 + n; x++) Bm[x] = piB[x];
+        strip(colsLo, brLo, k1, Tm + k2);
+        for (int x = k2; x < k2 + k1 + n; x++) Tm[x] += k2;
+        strip(colsHi, brHi, k2, Bm);
         for (int t = 0; t < k1; t++) Bm[k2 + n + t] = n + k2 + t;
-        return dmul(Tm, Bm);
+        dmul(Tm, Bm, out, 2 * n);
+        top = mark;
     }
 
     // O(N log^2 N)
@@ -142,7 +151,11 @@ struct RangeLIS {
         iota(order.begin(), order.end(), 0);
         sort(order.begin(), order.end(), [&](int i, int j) { return a[i] < a[j] || (!(a[j] < a[i]) && i > j); });
         for (int r = 0; r < n; r++) perm[order[r]] = r;  // equal values ranked right-to-left => strict LIS
-        vector<int> pi = braid(perm), E(n);
+        // peak scratch use measured at ~51 N ints (the braid levels plus the multiply under them); freed right after
+        arena.assign((size_t)56 * n + 64, 0);
+        vector<int> pi(2 * n), E(n);
+        braid(perm.data(), n, pi.data());
+        vector<int>().swap(arena);
         for (int s = 0; s < n; s++) E[s] = pi[n + s] < n ? pi[n + s] : n;
         // flat merge sort tree over E
         while ((1 << levels) < n) levels++;

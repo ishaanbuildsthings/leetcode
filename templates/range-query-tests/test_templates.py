@@ -11,6 +11,10 @@ soon as its ops are in BRUTE_UPDATES / BRUTE_QUERIES.
     python3 test_templates.py --cpp           # C++ only
     python3 test_templates.py --trials 300    # more random sequences per template (default 120)
 
+A folder's sparse.py / sparse.cpp (dynamic trees over any index range [lo, hi], all positions starting at 0) are
+tested too, as an extra "<folder> [sparse]" line: indices are huge (around +-1e12), and the brute force keeps the
+array as constant runs (or, for arithmetic-progression adds, as a list of linear updates summed in closed form).
+
 C++ needs a GCC with bits/stdc++.h: set CXX, or it tries g++-15 ... g++-11, then g++.
 Each template.cpp is compiled with T = long long and also explicitly instantiated with T = int.
 """
@@ -295,7 +299,9 @@ def expected_outputs(trials, ctx):
     return exp
 
 
-def matches(got_text, want):
+def matches(got_text, want, wrap64=False):
+    if wrap64 and type(want) is int and not -2**63 <= want < 2**63:
+        want = (want + 2**63) % 2**64 - 2**63  # C++ sums wrap: exact whenever the true value fits in 64 bits
     if isinstance(want, tuple) and want and want[0] == "mode":
         _, a, l, r = want
         parts = got_text.split()
@@ -311,11 +317,11 @@ def norm(v):
     return str(v)
 
 
-def first_mismatch(got, exp, trials):
+def first_mismatch(got, exp, trials, wrap64=False):
     if len(got) != len(exp):
         return f"{len(got)} outputs, expected {len(exp)}"
     for k, (g, e) in enumerate(zip(got, exp)):
-        if not matches(g, e):
+        if not matches(g, e, wrap64):
             want = "a mode with its frequency" if isinstance(e, tuple) and e and e[0] == "mode" else norm(e)
             return f"query #{k} ({describe_query(trials, k)}): got {g}, expected {want}"
     return None
@@ -333,6 +339,217 @@ def describe_query(trials, k):
     return "?"
 
 
+
+# ------------------------------------------------------------------------------------------------ sparse brute force
+
+class Runs:
+    """An array over [lo, hi] kept as constant runs: starts[k] .. starts[k+1]-1 all equal vals[k]. Every range update
+    the sparse templates support maps a constant run to a constant run, so a run never has to be split by value."""
+    def __init__(self, lo, hi):
+        self.lo, self.hi, self.starts, self.vals = lo, hi, [lo], [0]
+
+    def _split(self, x):  # make x start a run; returns its index
+        if x > self.hi:
+            return len(self.starts)
+        k = bisect.bisect_right(self.starts, x) - 1
+        if self.starts[k] != x:
+            self.starts.insert(k + 1, x)
+            self.vals.insert(k + 1, self.vals[k])
+            k += 1
+        return k
+
+    def update(self, l, r, f):
+        a = self._split(l)
+        b = self._split(r + 1)
+        for k in range(a, b):
+            self.vals[k] = f(self.vals[k])
+
+    def get(self, i):
+        return self.vals[bisect.bisect_right(self.starts, i) - 1]
+
+    def runs(self, l, r):  # [(start, end, value)] clipped to [l, r]
+        k = bisect.bisect_right(self.starts, l) - 1
+        out = []
+        while k < len(self.starts) and self.starts[k] <= r:
+            end = (self.starts[k + 1] - 1) if k + 1 < len(self.starts) else self.hi
+            out.append((max(l, self.starts[k]), min(r, end), self.vals[k]))
+            k += 1
+        return out
+
+
+def _block(v, n):  # (sum, best prefix, best suffix, best subarray) of n copies of v, pieces non-empty
+    s = v * n
+    b = s if v > 0 else v
+    return s, b, b, b
+
+
+def _merge4(a, b):
+    return a[0] + b[0], max(a[1], a[0] + b[1]), max(b[2], b[0] + a[2]), max(a[3], b[3], a[2] + b[1])
+
+
+def _runs_sub(runs):
+    acc = None
+    for s_, e, v in runs:
+        blk = _block(v, e - s_ + 1)
+        acc = blk if acc is None else _merge4(acc, blk)
+    return acc
+
+
+def _runs_longest(runs):
+    best, cur, prev = 0, 0, object()
+    for s_, e, v in runs:
+        cur = cur + (e - s_ + 1) if v == prev else (e - s_ + 1)
+        prev = v
+        best = max(best, cur)
+    return best
+
+
+def _runs_prefix_search(runs, x, strict):
+    acc = 0
+    for s_, e, v in runs:
+        n = e - s_ + 1
+        if v == 0:
+            if acc > x or (not strict and acc == x):
+                return s_
+            continue
+        need = x - acc  # smallest t >= 1 with acc + v * t >= x (or > x)
+        t = max(1, (need // v + 1) if strict else -(-need // v))
+        if t <= n:
+            return s_ + t - 1
+        acc += v * n
+    return None
+
+
+def sparse_query(op, R, args, ctx):
+    l, r, *xs = args
+    runs = R.runs(l, r)
+    vals = [v for _, _, v in runs]
+    if op == "rangeSum": return sum(v * (e - s_ + 1) for s_, e, v in runs)
+    if op == "rangeSumMod": return sum(v * (e - s_ + 1) for s_, e, v in runs) % ctx["mod"]
+    if op == "rangeMin": return min(vals)
+    if op == "rangeMax": return max(vals)
+    if op == "rangeGcd": return reduce(math.gcd, (abs(v) for v in vals), 0)
+    if op == "rangeAndQuery": return reduce(lambda a, b: a & b, vals)
+    if op == "rangeOrQuery": return reduce(lambda a, b: a | b, vals)
+    if op == "maxSubarraySum": return _runs_sub(runs)[3]
+    if op == "maxPrefixSum": return _runs_sub(runs)[1]
+    if op == "maxSuffixSum": return _runs_sub(runs)[2]
+    if op == "longestEqualRun": return _runs_longest(runs)
+    if op == "maxAltSubseqSum": return _max_alt([v for s_, e, v in runs for _ in range(min(3, e - s_ + 1))])
+    if op in ("leftmostPrefixSumGteX", "leftmostPrefixSumGtX"):  # not found: lo - 1 (-1 when lo = 0)
+        hit = _runs_prefix_search(runs, xs[0], op.endswith("GtX"))
+        return R.lo - 1 if hit is None else hit
+    for side in ("leftmost", "rightmost"):
+        for name, cmp in CMP.items():
+            if op == f"{side}{name}X":
+                order = runs if side == "leftmost" else runs[::-1]
+                hit = next(((s_, e) for s_, e, v in order if cmp(v, xs[0])), None)
+                return R.lo - 1 if hit is None else (hit[0] if side == "leftmost" else hit[1])
+    raise KeyError(f"no sparse brute force for {op}")
+
+
+SPARSE_QUERY_OPS = {"rangeSum", "rangeSumMod", "rangeMin", "rangeMax", "rangeGcd", "rangeAndQuery", "rangeOrQuery",
+                    "maxSubarraySum", "maxPrefixSum", "maxSuffixSum", "longestEqualRun", "maxAltSubseqSum",
+                    "leftmostPrefixSumGteX", "leftmostPrefixSumGtX"} | {f"{s_}{c}X" for s_ in SIDE for c in CMP}
+AP_OPS = {"rangeAddArithSeq", "rangeAddArithSeqMod"}
+
+
+class Linear:
+    """For arithmetic-progression adds: the array is the sum of linear pieces c0 + c1 * i on [l, r]."""
+    def __init__(self):
+        self.ups = []
+
+    def add(self, l, r, c0, c1):
+        self.ups.append((l, r, c0, c1))
+
+    def get(self, i):
+        return sum(c0 + c1 * i for l, r, c0, c1 in self.ups if l <= i <= r)
+
+    def sum(self, l, r):
+        tot = 0
+        for a, b, c0, c1 in self.ups:
+            a, b = max(a, l), min(b, r)
+            if a <= b:
+                tot += c0 * (b - a + 1) + c1 * (a + b) * (b - a + 1) // 2
+        return tot
+
+
+def sparse_expected(trials, ctx, ops):
+    linear = bool(AP_OPS & set(ops))
+    mod, full = ctx["mod"], ctx["full"]
+    exp = []
+    for (lo, hi), seq in trials:
+        R = Linear() if linear else Runs(lo, hi)
+        get = (lambda i: R.get(i) % mod) if (linear and mod) else R.get
+        for op, args in seq:
+            if op == "pointGet":
+                exp.append(get(args[0]))
+            elif op in POINT_UPDATES:
+                i, v = args
+                cur = get(i)
+                new = {"pointAssign": v, "pointAdd": cur + v, "pointChmax": max(cur, v), "pointChmin": min(cur, v)}[op]
+                if full is not None:
+                    new &= full
+                if mod:
+                    new %= mod
+                if linear:
+                    R.add(i, i, new - cur, 0)
+                else:
+                    R.update(i, i, lambda _v, new=new: new)
+            elif op in RANGE_UPDATES:
+                l, r, *xs = args
+                if linear:
+                    if op in AP_OPS:
+                        R.add(l, r, xs[0] - xs[1] * l, xs[1])
+                    else:
+                        R.add(l, r, xs[0], 0)
+                else:
+                    def f(v, op=op, xs=xs):
+                        tmp = [v]
+                        brute_update(tmp, op, [0, 0, *xs], ctx)
+                        return tmp[0]
+                    R.update(l, r, f)
+            elif linear:
+                s_ = R.sum(*args)
+                exp.append(s_ % mod if op == "rangeSumMod" else s_)
+            else:
+                exp.append(sparse_query(op, R, args, ctx))
+    return exp
+
+
+def make_sparse_trials(folder, ops, trials):
+    """[((lo, hi), [(op, args)])] with indices from a small pool of huge coordinates, so updates and queries overlap."""
+    gen, delta, _, ctx = domain(folder, ops)
+    updates = [o for o in ops if o in POINT_UPDATES or o in RANGE_UPDATES]
+    queries = [o for o in ops if o not in updates]
+    out = []
+    for t in range(trials):
+        rng = random.Random(10**6 + t)
+        lo = -rng.randint(1, 10**12)
+        hi = rng.randint(1, 10**12)
+        pool = {lo, hi} | {rng.randint(lo, hi) for _ in range(rng.randint(1, 12))}
+        pool |= {min(hi, p + 1) for p in list(pool)[:4]}  # neighbours, to hit run boundaries
+        pool = sorted(pool)
+        seq = []
+        for _ in range(OPS_PER_TRIAL):
+            op = rng.choice(updates) if updates and rng.random() < 0.5 else rng.choice(queries or updates)
+            if op == "pointGet":
+                args = [rng.choice(pool)]
+            elif op in POINT_UPDATES:
+                args = [rng.choice(pool), delta(rng) if op == "pointAdd" else gen(rng)]
+            else:
+                l, r = sorted((rng.choice(pool), rng.choice(pool)))
+                if op in RANGE_UPDATES:
+                    args = [l, r] + update_args(op, rng, gen, ctx["mod"])
+                elif BRUTE_QUERIES.get(op, ("lr",))[0] == "lrx":
+                    args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op else gen(rng)]
+                else:
+                    args = [l, r]
+            seq.append((op, args))
+        out.append(((lo, hi), seq))
+    return out, ctx
+
+
 # ------------------------------------------------------------------------------------------------ Python side
 
 def owner(op, table):
@@ -341,8 +558,8 @@ def owner(op, table):
     return max(cands, key=lambda n: (len(table[n]), n)) if cands else None
 
 
-def run_python(folder, ops, trials, ctor_extra):
-    path = os.path.join(DIR, folder, "template.py")
+def run_python(folder, ops, trials, ctor_extra, stem="template"):
+    path = os.path.join(DIR, folder, f"{stem}.py")
     spec = importlib.util.spec_from_file_location("t_" + re.sub(r"\W", "_", folder), path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -350,14 +567,14 @@ def run_python(folder, ops, trials, ctor_extra):
     table = {n: {o for o in ops if hasattr(c, o)} for n, c in classes.items()}
     missing = [o for o in ops if owner(o, table) is None]
     if missing:
-        raise RuntimeError(f"template.py has no method for {missing}")
+        raise RuntimeError(f"{stem}.py has no method for {missing}")
     out = []
     for a0, seq in trials:
         objs = {}
         for op, args in seq:
             name = owner(op, table)
             if name not in objs:
-                objs[name] = classes[name](list(a0), *ctor_extra)
+                objs[name] = classes[name](*a0, *ctor_extra) if stem == "sparse" else classes[name](list(a0), *ctor_extra)
             res = getattr(objs[name], op)(*args)
             if not (op in POINT_UPDATES or op in RANGE_UPDATES):
                 out.append(norm(res))
@@ -402,14 +619,14 @@ def cpp_structs(path):
     return out
 
 
-def cpp_driver(folder, ops, structs, ctor_extra):
+def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
     owners = {op: owner(op, structs) for op in ops}
     missing = [op for op, o in owners.items() if o is None]
     if missing:
-        raise RuntimeError(f"template.cpp has no method for {missing}")
+        raise RuntimeError(f"{stem}.cpp has no method for {missing}")
     used = sorted(set(owners.values()))
     extra = "".join(f", {e}" for e in ctor_extra)
-    lines = ["#include <bits/stdc++.h>", "using namespace std;", f'#include "{os.path.join(DIR, folder, "template.cpp")}"']
+    lines = ["#include <bits/stdc++.h>", "using namespace std;", f'#include "{os.path.join(DIR, folder, stem + ".cpp")}"']
     lines += [f"template struct {s}<int>;" for s in used]  # type-check the generic code for int too
     lines += [
         "template <class X> void out(const X& x) { cout << x << '\\n'; }",
@@ -419,52 +636,55 @@ def cpp_driver(folder, ops, structs, ctor_extra):
         "  ios::sync_with_stdio(false); cin.tie(nullptr);",
         "  int cases; cin >> cases;",
         "  while (cases--) {",
-        "    int n; cin >> n; vector<long long> a(n); for (auto& x : a) cin >> x;",
-        "    int q; cin >> q;",
     ]
-    lines += [f"    {s}<long long> s_{s}(a{extra});" for s in used]
+    if stem == "sparse":
+        lines += ["    long long lo, hi; cin >> lo >> hi;", "    int q; cin >> q;"]
+        lines += [f"    {s}<long long> s_{s}(lo, hi{extra});" for s in used]
+    else:
+        lines += ["    int n; cin >> n; vector<long long> a(n); for (auto& x : a) cin >> x;", "    int q; cin >> q;"]
+        lines += [f"    {s}<long long> s_{s}(a{extra});" for s in used]
     lines += ["    while (q--) {", "      string op; cin >> op;", "      if (false) {}"]
     for op in ops:
         s = f"s_{owners[op]}"
         if op == "pointGet":
-            body = f"int i; cin >> i; out({s}.pointGet(i));"
+            body = f"long long i; cin >> i; out({s}.pointGet(i));"
         elif op in POINT_UPDATES:
-            body = f"int i; long long v; cin >> i >> v; {s}.{op}(i, v);"
+            body = f"long long i, v; cin >> i >> v; {s}.{op}(i, v);"
         elif op in RANGE_UPDATES:
             names = ["x", "y"][:RANGE_UPDATES[op]]
             decl = ", ".join(names)
             reads = "".join(f" >> {nm}" for nm in names)
-            body = (f"int l, r; long long {decl}; cin >> l >> r{reads}; {s}.{op}(l, r, {decl});" if names
-                    else f"int l, r; cin >> l >> r; {s}.{op}(l, r);")
+            body = (f"long long l, r, {decl}; cin >> l >> r{reads}; {s}.{op}(l, r, {decl});" if names
+                    else f"long long l, r; cin >> l >> r; {s}.{op}(l, r);")
         else:
             kind = BRUTE_QUERIES[op][0]
             if kind == "lr":
-                body = f"int l, r; cin >> l >> r; out({s}.{op}(l, r));"
+                body = f"long long l, r; cin >> l >> r; out({s}.{op}(l, r));"
             elif kind == "lrx":
-                body = f"int l, r; long long x; cin >> l >> r >> x; out({s}.{op}(l, r, x));"
+                body = f"long long l, r, x; cin >> l >> r >> x; out({s}.{op}(l, r, x));"
             elif kind == "lrkx":
-                body = f"int l, r, k; long long x; cin >> l >> r >> k >> x; out({s}.{op}(l, r, k, x));"
+                body = f"long long l, r, k, x; cin >> l >> r >> k >> x; out({s}.{op}(l, r, k, x));"
             elif kind == "lrk":
-                body = f"int l, r, k; cin >> l >> r >> k; out({s}.{op}(l, r, k));"
+                body = f"long long l, r, k; cin >> l >> r >> k; out({s}.{op}(l, r, k));"
             else:
-                body = f"int l, r; long long lo, hi; cin >> l >> r >> lo >> hi; out({s}.{op}(l, r, lo, hi));"
+                body = f"long long l, r, lo, hi; cin >> l >> r >> lo >> hi; out({s}.{op}(l, r, lo, hi));"
         lines.append(f'      else if (op == "{op}") {{ {body} }}')
     lines += ["      else { cerr << \"unknown op \" << op << '\\n'; return 1; }", "    }", "  }", "}"]
     return "\n".join(lines) + "\n"
 
 
-def run_cpp(folder, ops, trials, ctor_extra, cxx):
-    path = os.path.join(DIR, folder, "template.cpp")
+def run_cpp(folder, ops, trials, ctor_extra, cxx, stem="template"):
+    path = os.path.join(DIR, folder, f"{stem}.cpp")
     os.makedirs(BUILD, exist_ok=True)
-    src = os.path.join(BUILD, folder[:150] + ".cpp")
+    src = os.path.join(BUILD, (folder[:140] + ("__sparse" if stem == "sparse" else "")) + ".cpp")
     exe = src[:-4]
-    open(src, "w").write(cpp_driver(folder, ops, cpp_structs(path), ctor_extra))
+    open(src, "w").write(cpp_driver(folder, ops, cpp_structs(path), ctor_extra, stem))
     comp = subprocess.run([cxx, "-std=c++17", "-O2", "-Wall", "-o", exe, src], capture_output=True, text=True)
     if comp.returncode:
         raise RuntimeError("compile error:\n" + comp.stderr[:3000])
     inp = [str(len(trials))]
     for a0, seq in trials:
-        inp += [str(len(a0)), " ".join(map(str, a0)), str(len(seq))]
+        inp += ([f"{a0[0]} {a0[1]}"] if stem == "sparse" else [str(len(a0)), " ".join(map(str, a0))]) + [str(len(seq))]
         inp += [f"{op} {' '.join(map(str, args))}" for op, args in seq]
     run = subprocess.run([exe], input="\n".join(inp) + "\n", capture_output=True, text=True, timeout=300)
     if run.returncode:
@@ -506,36 +726,40 @@ def main():
             failed.append(folder)
             print(f"FAIL  {folder}\n      no brute force for {unknown}: add it to BRUTE_QUERIES / RANGE_UPDATES")
             continue
-        trials, ctx = make_trials(folder, ops, trials_n)
         ctor_extra = domain(folder, ops)[2]
-        exp = expected_outputs(trials, ctx)
-        total_queries += len(exp)
-        results = []
-        for lang, ok_lang, path in (("py", want_py, py), ("cpp", want_cpp, cpp)):
-            if not ok_lang or not os.path.exists(path):
-                continue
-            try:
-                if lang == "py":
-                    got, warn = run_python(folder, ops, trials, ctor_extra), ""
-                else:
-                    got, warn = run_cpp(folder, ops, trials, ctor_extra, cxx)
-                    if parse_ops(cpp, "//") != ops:
-                        raise RuntimeError("template.cpp @operations differ from template.py")
-                bad = first_mismatch(got, exp, trials)
-                results.append((lang, bad, warn))
-            except Exception as e:  # noqa: BLE001 -- report and keep going
-                results.append((lang, f"{type(e).__name__}: {e}", ""))
-        bad = [(lang, msg) for lang, msg, _ in results if msg]
-        warns = [(lang, w) for lang, _, w in results if w]
-        status = "FAIL" if bad else "PASS"
-        print(f"{status}  {folder}  [{' '.join(lang for lang, _, _ in results)}]")
-        for lang, msg in bad:
-            print(f"      {lang}: {msg}")
-        for lang, w in warns:
-            print(f"      {lang} compiler warnings: {w[:400]}")
-        if bad:
-            failed.append(folder)
-    print(f"\n{len(folders) - len(failed)}/{len(folders)} templates passed ({total_queries} brute-force answers each checked per language)")
+        variants = [("template", *make_trials(folder, ops, trials_n))]
+        if any(os.path.exists(os.path.join(DIR, folder, f"sparse.{x}")) for x in ("py", "cpp")):
+            variants.append(("sparse", *make_sparse_trials(folder, ops, trials_n)))
+        for stem, trials, ctx in variants:
+            exp = expected_outputs(trials, ctx) if stem == "template" else sparse_expected(trials, ctx, ops)
+            total_queries += len(exp)
+            results = []
+            for lang, ok_lang, path in (("py", want_py, os.path.join(DIR, folder, f"{stem}.py")),
+                                        ("cpp", want_cpp, os.path.join(DIR, folder, f"{stem}.cpp"))):
+                if not ok_lang or not os.path.exists(path):
+                    continue
+                try:
+                    if parse_ops(path, "#" if lang == "py" else "//") != ops:
+                        raise RuntimeError(f"{stem}.{lang} @operations differ from template.py")
+                    if lang == "py":
+                        got, warn = run_python(folder, ops, trials, ctor_extra, stem), ""
+                    else:
+                        got, warn = run_cpp(folder, ops, trials, ctor_extra, cxx, stem)
+                    results.append((lang, first_mismatch(got, exp, trials, lang == "cpp" and stem == "sparse"), warn))
+                except Exception as e:  # noqa: BLE001 -- report and keep going
+                    results.append((lang, f"{type(e).__name__}: {e}", ""))
+            bad = [(lang, msg) for lang, msg, _ in results if msg]
+            warns = [(lang, w) for lang, _, w in results if w]
+            label = folder + ("  [sparse]" if stem == "sparse" else "")
+            print(f"{'FAIL' if bad else 'PASS'}  {label}  [{' '.join(lang for lang, _, _ in results)}]")
+            for lang, msg in bad:
+                print(f"      {lang}: {msg}")
+            for lang, w in warns:
+                print(f"      {lang} compiler warnings: {w[:400]}")
+            if bad:
+                failed.append(label)
+    print(f"\n{len(failed)} failed across {len(folders)} templates ({total_queries} brute-force answers each checked per language)" if failed
+          else f"\nall {len(folders)} templates passed, sparse versions included ({total_queries} brute-force answers each checked per language)")
     sys.exit(1 if failed else 0)
 
 

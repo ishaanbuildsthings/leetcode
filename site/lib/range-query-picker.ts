@@ -283,14 +283,34 @@ export interface RangeQueryTemplate {
   build: string;
   memory: MemoryBreakdown;
   originalFileUrl?: string;
+  // The same operations on a dynamic tree over any index range [lo, hi], every position starting at 0.
+  // Its costs use U = size of that range (log U <= 64), and its memory sizes are per update.
+  sparse?: SparseVariant;
 }
 
-export type TreeLayout = "2n-iterative" | "pow2-iterative" | "4n-recursive" | "none";
+export interface SparseVariant {
+  langs: TemplateLang[];
+  complexities: Partial<Record<OpId, string>>;
+  build: string;
+  memory: MemoryBreakdown;
+}
+
+// A template as the picker shows it in the current mode: in sparse mode, its costs / memory / files are the sparse ones.
+export type TemplateView = RangeQueryTemplate & { file: "template" | "sparse" };
+
+export function viewOf(t: RangeQueryTemplate, sparse: boolean): TemplateView | null {
+  if (!sparse) return { ...t, file: "template" };
+  if (!t.sparse) return null;
+  return { ...t, ...t.sparse, file: "sparse" };
+}
+
+export type TreeLayout = "2n-iterative" | "pow2-iterative" | "4n-recursive" | "sparse" | "none";
 
 export const TREE_LAYOUT_LABELS: Record<TreeLayout, string> = {
   "2n-iterative": "2N iterative tree",
   "pow2-iterative": "4N iterative tree",
   "4n-recursive": "4N recursive tree",
+  sparse: "dynamic tree, any index range",
   none: "not a segment tree",
 };
 

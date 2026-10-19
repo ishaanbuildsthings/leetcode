@@ -1,6 +1,10 @@
 // Reads the tagged templates in ../templates/range-queries and generates:
 //   - lib/generated/range-query-templates.ts  (typed manifest; tsc rejects unknown operations or data structure types)
-//   - public/range-query-templates/<folder>/template.{py,cpp}  (static copies the picker fetches on click)
+//   - public/range-query-templates/<folder>/{template,sparse}.{py,cpp}  (static copies the picker fetches on click)
+//
+// A folder may also hold sparse.py / sparse.cpp: the same operations on a dynamic tree over any index range
+// [lo, hi] where every position starts at 0. Their header has the same format, with layout "sparse" and memory
+// sizes counted per update (e.g. node: sum[1*log(U)]); U there is the size of the index range [lo, hi].
 // Run with: npm run gen:range-queries
 //
 // Header format (Python shown; C++ uses //):
@@ -34,7 +38,8 @@ const OPTIONAL_TAGS = ["original-file-url"];
 const TAG_RE = /^\s*(?:#|\/\/) @([a-z-]+):\s*(.*?)\s*$/;
 const ENTRY_RE = /^\s*(?:#|\/\/)\s+([A-Za-z]\w*):\s*(.+?)\s*$/;
 
-// N = number of elements, U = largest value (gcd, bit ops, floor div/sqrt depend on it).
+// N = number of elements, U = largest value (gcd, bit ops, floor div/sqrt depend on it); in sparse files U is the
+// size of the index range instead.
 const FACTORS = new Set(["1", "N", "log(N)", "log^2(N)", "sqrt(N)", "log(U)", "log(log(U))"]);
 
 // A cost is terms joined by "+", each term factors joined by "*" (a factor may be a positive integer
@@ -66,7 +71,7 @@ function parseHeader(text) {
   return { tags, complexities: blocks.complexities, memory: blocks.memory };
 }
 
-const LAYOUTS = ["2n-iterative", "pow2-iterative", "4n-recursive", "none"];
+const LAYOUTS = ["2n-iterative", "pow2-iterative", "4n-recursive", "sparse", "none"];
 const MEMORY_GROUPS = ["node", "tags", "other"];
 const ARRAY_RE = /^([A-Za-z_]\w*)\[([^\]]+)\]$/;
 
@@ -160,23 +165,30 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
     errors.push(`${folder}: expected a folder per template`);
     continue;
   }
-  const langs = [];
-  let data = null;
-  for (const [ext, lang] of Object.entries(LANGS)) {
-    const filePath = path.join(folderPath, `template${ext}`);
-    if (!fs.existsSync(filePath)) continue;
-    const { errs, data: d } = readTemplateFile(`${folder}/template${ext}`, filePath);
-    errors.push(...errs);
-    langs.push(lang);
-    if (!data) {
-      data = d;
-    } else {
-      const strip = (x) => JSON.stringify({ ...x, originalFileUrl: undefined });
-      if (strip(data) !== strip(d)) errors.push(`${folder}: template${ext} header disagrees with the other language's`);
+  // reads one variant ("template" or "sparse") in every language it exists in; both languages must agree
+  const readVariant = (stem) => {
+    const langs = [];
+    let data = null;
+    for (const [ext, lang] of Object.entries(LANGS)) {
+      const filePath = path.join(folderPath, `${stem}${ext}`);
+      if (!fs.existsSync(filePath)) continue;
+      const { errs, data: d } = readTemplateFile(`${folder}/${stem}${ext}`, filePath);
+      errors.push(...errs);
+      langs.push(lang);
+      if (!data) {
+        data = d;
+      } else {
+        const strip = (x) => JSON.stringify({ ...x, originalFileUrl: undefined });
+        if (strip(data) !== strip(d)) errors.push(`${folder}: ${stem}${ext} header disagrees with the other language's`);
+      }
     }
-  }
+    return { langs, data };
+  };
+  const { langs, data } = readVariant("template");
+  const sparse = readVariant("sparse");
+  const STEMS = ["template", "sparse"];
   for (const f of fs.readdirSync(folderPath))
-    if (!Object.keys(LANGS).some((ext) => f === `template${ext}`)) errors.push(`${folder}: unexpected file ${f}`);
+    if (!STEMS.some((stem) => Object.keys(LANGS).some((ext) => f === `${stem}${ext}`))) errors.push(`${folder}: unexpected file ${f}`);
   if (!data) {
     errors.push(`${folder}: no template.py or template.cpp`);
     continue;
@@ -184,7 +196,15 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
   const base = data.operations.join("-");
   const allowed = [base, `${base}__${data.dataStructureType}`];
   if (!allowed.includes(folder)) errors.push(`${folder}: folder should be ${allowed[0]} (or ${allowed[1]} if it collides)`);
-  entries.push({ folder, langs, ...data });
+  if (data.memory.layout === "sparse") errors.push(`${folder}: template files can't use the sparse layout; put it in sparse.py / sparse.cpp`);
+  const entry = { folder, langs, ...data };
+  if (sparse.data) {
+    const s = sparse.data;
+    if (s.operations.join(" ") !== data.operations.join(" ")) errors.push(`${folder}: sparse @operations must match the template's`);
+    if (s.memory.layout !== "sparse") errors.push(`${folder}: sparse files must use layout "sparse"`);
+    entry.sparse = { langs: sparse.langs, complexities: s.complexities, build: s.build, memory: s.memory };
+  }
+  entries.push(entry);
 }
 
 if (errors.length) {
@@ -194,12 +214,10 @@ if (errors.length) {
 
 fs.rmSync(publicDir, { recursive: true, force: true });
 fs.mkdirSync(publicDir, { recursive: true });
-for (const { folder, langs } of entries) {
+for (const { folder, langs, sparse } of entries) {
   fs.mkdirSync(path.join(publicDir, folder), { recursive: true });
-  for (const lang of langs) {
-    const name = `template.${lang}`;
-    fs.copyFileSync(path.join(srcDir, folder, name), path.join(publicDir, folder, name));
-  }
+  const files = [...langs.map((l) => `template.${l}`), ...(sparse?.langs ?? []).map((l) => `sparse.${l}`)];
+  for (const name of files) fs.copyFileSync(path.join(srcDir, folder, name), path.join(publicDir, folder, name));
 }
 
 const manifest = `// Generated by scripts/build-range-query-templates.mjs from templates/range-queries. Do not edit.
@@ -210,4 +228,5 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = ${JSON.stringify(entr
 fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
 fs.writeFileSync(manifestPath, manifest);
 
-console.log(`${entries.length} templates -> ${path.relative(siteDir, manifestPath)} + ${path.relative(siteDir, publicDir)}/`);
+const sparseCount = entries.filter((e) => e.sparse).length;
+console.log(`${entries.length} templates (${sparseCount} with a sparse version) -> ${path.relative(siteDir, manifestPath)} + ${path.relative(siteDir, publicDir)}/`);

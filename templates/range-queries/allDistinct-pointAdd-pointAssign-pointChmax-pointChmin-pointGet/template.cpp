@@ -13,7 +13,7 @@
 //   node: tree[2*N]
 //   tags: none
 //   other: a[1*N] chains[1*N]
-//   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (Python: plain lists, so an insert is a memmove over that value's occurrences)
+//   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (C++: std::set; Python: a bucketed SortedList (below), so each change is a few binary searches plus a C-level shift of at most 1024 elements)
 
 // "Are all values in a[l..r] distinct?" with point updates. All indices 0-based, ranges inclusive [l, r].
 // nxt[i] = next j > i with a[j] == a[i], else n. a[l..r] has a repeat iff some i in [l, r] has nxt[i] <= r,

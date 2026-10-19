@@ -54,7 +54,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         ],
         "total": "2*N"
       },
-      "note": "tree is a min tree over nxt[i]; chains maps each value to its sorted positions (Python: plain lists, so an insert is a memmove over that value's occurrences)",
+      "note": "tree is a min tree over nxt[i]; chains maps each value to its sorted positions (C++: std::set; Python: a bucketed SortedList (below), so each change is a few binary searches plus a C-level shift of at most 1024 elements)",
       "total": "4*N"
     }
   },
@@ -247,26 +247,30 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmin",
       "pointGet"
     ],
-    "dataStructureType": "sqrt",
+    "dataStructureType": "BIT",
     "complexities": {
-      "countDistinct": "sqrt(N)*log(N)",
-      "pointAdd": "sqrt(N)",
-      "pointAssign": "sqrt(N)",
-      "pointChmax": "sqrt(N)",
-      "pointChmin": "sqrt(N)",
+      "countDistinct": "log^2(N)",
+      "pointAdd": "log^2(N)",
+      "pointAssign": "log^2(N)",
+      "pointChmax": "log^2(N)",
+      "pointChmin": "log^2(N)",
       "pointGet": "1"
     },
-    "build": "N*log(N)",
+    "build": "N*log^2(N)",
     "memory": {
       "layout": "none",
       "node": {
         "arrays": [
           {
-            "name": "blocks",
+            "name": "sets",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "last",
             "size": "1*N"
           }
         ],
-        "total": "1*N"
+        "total": "1*N*log(N)+1*N"
       },
       "tags": {
         "arrays": [],
@@ -289,10 +293,9 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         ],
         "total": "3*N"
       },
-      "note": "blocks are sqrt(N) sorted lists of next-occurrence indices (a query binary-searches each whole block); chains maps each value to its sorted positions (C++: std::set; Python: plain lists, so an assign is a memmove over that value's occurrences)",
-      "total": "4*N"
-    },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeDistinctWithPointUpdateSqrtDecomp.py"
+      "note": "Fenwick node j keeps an ordered set of the nxt values in its lowbit(j) positions, about N*log(N)/2 keys in all; those are balanced-tree / bucket entries, several times heavier than a plain int (measured ~100 MB peak in C++ at N = 2e5)",
+      "total": "1*N*log(N)+4*N"
+    }
   },
   {
     "folder": "countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet",
@@ -542,7 +545,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         ],
         "total": "1*N"
       },
-      "note": "pos maps each value to its sorted indices (C++: an order-statistics tree per value; Python: plain sorted lists, so an assign is a memmove over that value's occurrences)",
+      "note": "pos maps each value to its sorted indices (C++: an order-statistics tree per value; Python: a bucketed SortedList (below), so each change is a few binary searches plus a C-level shift of at most 1024 elements)",
       "total": "2*N"
     }
   },
@@ -838,7 +841,61 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "two flat arrays of 2*size slots (size = next power of two >= n); padding leaves are -inf / +inf",
       "total": "8*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MaxAndMinAndCountsAndGteLteIndexSegmentTree.py"
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "leftmostGtX": "log(U)",
+        "leftmostGteX": "log(U)",
+        "leftmostLtX": "log(U)",
+        "leftmostLteX": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)",
+        "rightmostGtX": "log(U)",
+        "rightmostGteX": "log(U)",
+        "rightmostLtX": "log(U)",
+        "rightmostLteX": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path;  C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "4*log(U)"
+      }
+    }
   },
   {
     "folder": "leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rightmostGtX-rightmostGteX",
@@ -894,7 +951,53 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "tree holds each node's max; tree is 2*size where size is the next power of two >= n, so between 2N and 4N slots; arr is a reference",
       "total": "4*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MaxSeg.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MaxSeg.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "leftmostGtX": "log(U)",
+        "leftmostGteX": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeMax": "log(U)",
+        "rightmostGtX": "log(U)",
+        "rightmostGteX": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "1*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path;  C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "3*log(U)"
+      }
+    }
   },
   {
     "folder": "leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMin-rightmostLtX-rightmostLteX",
@@ -950,7 +1053,53 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "tree holds each node's min; tree is 2*size where size is the next power of two >= n, so between 2N and 4N slots; arr is a reference",
       "total": "4*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MinSeg.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MinSeg.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "leftmostLtX": "log(U)",
+        "leftmostLteX": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeMin": "log(U)",
+        "rightmostLtX": "log(U)",
+        "rightmostLteX": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "1*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path;  C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "3*log(U)"
+      }
+    }
   },
   {
     "folder": "leftmostPrefixSumGtX-leftmostPrefixSumGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum",
@@ -1002,7 +1151,51 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "the prefix-sum searches binary-lift over the tree, so they need every a[i] >= 0",
       "total": "1*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAddRangeSumBIT.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAddRangeSumBIT.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "leftmostPrefixSumGtX": "log(U)",
+        "leftmostPrefixSumGteX": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "tree",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "1*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, the O(logU) entries above each changed position; the prefix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases",
+        "total": "3*log(U)"
+      }
+    }
   },
   {
     "folder": "longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
@@ -1070,7 +1263,69 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "per node: length, equal-run at the left / right end, best run inside, and the end values; queries fold a left and a right accumulator",
       "total": "12*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/LongestContiguousBlockSeg.cpp"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/LongestContiguousBlockSeg.cpp",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "longestEqualRun": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "ln",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "pre",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "suf",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "best",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "lv",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "rv",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "6*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path; a block of k zeros is one run of length k, so missing nodes are summarized from their length; C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "8*log(U)"
+      }
+    }
   },
   {
     "folder": "maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
@@ -1134,6 +1389,60 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "f[s][e] = best alternating sum inside the node that starts with sign s and ends with sign e; queries fold a left and a right accumulator",
       "total": "9*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "maxAltSubseqSum": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "pp",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "pm",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "mp",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "mm",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path; pairs (first sign, last sign) of a block of zeros: a single zero can't start + and end -; C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "6*log(U)"
+      }
     }
   },
   {
@@ -1210,6 +1519,73 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "node = (sum, best prefix, best suffix, best subarray); the one tag is a pending assign. Range add is not supported: it changes which subarray wins",
       "total": "20*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "maxPrefixSum": "log(U)",
+        "maxSubarraySum": "log(U)",
+        "maxSuffixSum": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "pre",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "suf",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "best",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "16*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "asg",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAsg",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes",
+        "total": "32*log(U)"
+      }
     }
   },
   {
@@ -1275,6 +1651,63 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "each node is (sum, best prefix, best suffix, best subarray); the merge is not commutative, so a query folds a left and a right accumulator",
       "total": "8*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "maxPrefixSum": "log(U)",
+        "maxSubarraySum": "log(U)",
+        "maxSuffixSum": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "pre",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "suf",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "best",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "6*log(U)"
+      }
     }
   },
   {
@@ -1334,6 +1767,58 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "each node is (sum, best prefix, best suffix); the merge is not commutative, so a query folds a left and a right accumulator",
       "total": "6*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "maxPrefixSum": "log(U)",
+        "maxSuffixSum": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "pre",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "suf",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "3*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "5*log(U)"
+      }
     }
   },
   {
@@ -1387,6 +1872,53 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "each node is (sum, best prefix); the merge is not commutative, so a query folds a left and a right accumulator",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "maxPrefixSum": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "pre",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "4*log(U)"
+      }
     }
   },
   {
@@ -1440,6 +1972,53 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "each node is (sum, best suffix); the merge is not commutative, so a query folds a left and a right accumulator",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "maxSuffixSum": "log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "suf",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "4*log(U)"
+      }
     }
   },
   {
@@ -1487,6 +2066,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "a Fenwick tree over the difference array; a[i] is the prefix sum of differences up to i",
       "total": "1*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "d",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "note": "per update, the O(logU) entries above each changed position; a range add changes two differences. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases",
+        "total": "6*log(U)"
+      }
     }
   },
   {
@@ -1540,6 +2161,53 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "two Fenwick trees over differences; a[i] = prefix(c, i) + i * prefix(s, i)",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeAddArithSeq": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "c",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "s",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "note": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases",
+        "total": "8*log(U)"
+      }
     }
   },
   {
@@ -1599,6 +2267,58 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "prefix sums are kept as A(x) + B(x) * x + C(x) * x(x+1)/2 with A, B, C three Fenwick trees",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeAddArithSeq": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "A",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "B",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "C",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "6*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "note": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases",
+        "total": "10*log(U)"
+      }
     }
   },
   {
@@ -1665,6 +2385,64 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "each internal node holds one pending clamp x -> min(A, max(B, x + C)); val holds the leaf values",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeChmin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "v",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes",
+        "total": "24*log(U)"
+      }
     }
   },
   {
@@ -1828,6 +2606,65 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x + add))",
       "total": "5*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMax": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "24*log(U)"
+      }
     }
   },
   {
@@ -1902,6 +2739,70 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x + add))",
       "total": "7*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "28*log(U)"
+      }
     }
   },
   {
@@ -2079,6 +2980,65 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x + add))",
       "total": "5*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "24*log(U)"
+      }
     }
   },
   {
@@ -2333,6 +3293,73 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)",
       "total": "9*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "asg",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAsg",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "32*log(U)"
+      }
     }
   },
   {
@@ -2403,6 +3430,68 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)",
       "total": "7*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "asg",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAsg",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "28*log(U)"
+      }
     }
   },
   {
@@ -2473,6 +3562,68 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)",
       "total": "7*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "asg",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAsg",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "28*log(U)"
+      }
     }
   },
   {
@@ -2537,6 +3688,63 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)",
       "total": "5*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "asg",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAsg",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "24*log(U)"
+      }
     }
   },
   {
@@ -2597,6 +3805,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x + add)",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeMax": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -2663,6 +3924,64 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x + add)",
       "total": "6*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "24*log(U)"
+      }
     }
   },
   {
@@ -2723,6 +4042,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x + add)",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -2783,6 +4155,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x + add)",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMax": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -2849,6 +4274,64 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x + add)",
       "total": "6*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "24*log(U)"
+      }
     }
   },
   {
@@ -2909,6 +4392,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x + add)",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -2968,7 +4504,54 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "seg is a gcd tree over adjacent differences; fen (a BIT over the differences) gives point values",
       "total": "4*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/rangeAddRangeGcd.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/rangeAddRangeGcd.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)*log(U) ?",
+        "pointAssign": "log(U)*log(U) ?",
+        "pointChmax": "log(U)*log(U) ?",
+        "pointChmin": "log(U)*log(U) ?",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)*log(U) ?",
+        "rangeGcd": "log(U) ?"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sum",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "g",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "note": "per range add, the two root paths of the differences it changes; one tree over the differences keeps their sum (prefix sums are point values) and gcd; the gcd costs' second log is of the largest value. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: dicts keyed by heap index",
+        "total": "8*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeMax",
@@ -3022,6 +4605,54 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> x + add",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeMax": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "16*log(U)"
+      }
     }
   },
   {
@@ -3082,6 +4713,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> x + add",
       "total": "5*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -3148,6 +4832,64 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending add",
       "total": "7*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "24*log(U)"
+      }
     }
   },
   {
@@ -3208,6 +4950,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending add",
       "total": "5*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -3262,6 +5057,54 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> x + add",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "16*log(U)"
+      }
     }
   },
   {
@@ -3322,6 +5165,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending add",
       "total": "5*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -3375,6 +5271,53 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "two Fenwick trees over the difference array d (d[i] = a[i] - a[i-1]): b1 over d[i], b2 over d[i] * i",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAdd": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "A",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "B",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "note": "per update, the O(logU) entries above each changed position; a range add changes two points of A and B. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases",
+        "total": "8*log(U)"
+      }
     }
   },
   {
@@ -3427,6 +5370,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeAndApply tag (no aggregates); leaves count as node data, internal nodes as tags",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAndApply": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [],
+          "total": "0"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tag",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap index",
+        "total": "12*log(U)"
+      }
     }
   },
   {
@@ -3516,7 +5501,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
       "total": "32*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-XorApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py"
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply",
@@ -3582,6 +5567,62 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "cnt keeps, per node and per bit, how many values below have that bit set (bits = log U, 20 by default); tags live on internal nodes only",
       "total": "2*N+2*N*log(U)"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)*log(U)",
+        "pointAssign": "log(U)*log(U)",
+        "pointChmax": "log(U)*log(U)",
+        "pointChmin": "log(U)*log(U)",
+        "pointGet": "log(U)*log(U)",
+        "rangeAndApply": "log(U)*log(U)",
+        "rangeAndQuery": "log(U)*log(U)",
+        "rangeOrApply": "log(U)*log(U)",
+        "rangeOrQuery": "log(U)*log(U)",
+        "rangeSum": "log(U)*log(U)",
+        "rangeXorApply": "log(U)*log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "cnt",
+              "size": "4*log(U)*log(U)"
+            }
+          ],
+          "total": "4*log(U)*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "a",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "x",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. every node keeps BITS counts (BITS = 20, the second log); C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes",
+        "total": "4*log(U)*log(U)+16*log(U)"
+      }
     }
   },
   {
@@ -3642,6 +5683,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "each internal node holds one pending bit map x -> (x & AND) ^ XOR; val holds the leaf values",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAndApply": "log(U)",
+        "rangeOrApply": "log(U)",
+        "rangeXorApply": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "v",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "a",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "x",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -3702,6 +5796,52 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "every node remembers the last assignment that covered it and when; a point takes the newest one on its path; leaves count as node data, internal nodes as tags",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [],
+          "total": "0"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "stamp",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "val",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes a range update visits (at most 4 per level), each remembering the newest assignment covering it; Python stores only the covering nodes (point assign is O(1) there). C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap index",
+        "total": "16*log(U)"
+      }
     }
   },
   {
@@ -3764,6 +5904,60 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x))",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMax": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -3832,6 +6026,65 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x))",
       "total": "6*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "24*log(U)"
+      }
     }
   },
   {
@@ -3976,6 +6229,60 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, max(lo, x))",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -4232,6 +6539,58 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "leaves t[n..2n) hold the values, internal nodes the gcd of |values| below; tags live on internal nodes only",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)*log(U) ?",
+        "pointAssign": "log(U)*log(U) ?",
+        "pointChmax": "log(U)*log(U) ?",
+        "pointChmin": "log(U)*log(U) ?",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U)*log(U) ?",
+        "rangeGcd": "log(U) ?"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "g",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "asg",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAsg",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. the gcd costs' second log is of the largest value. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -4302,6 +6661,68 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending assign",
       "total": "8*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "asg",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAsg",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "28*log(U)"
+      }
     }
   },
   {
@@ -4366,6 +6787,63 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending assign",
       "total": "6*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "asg",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAsg",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "24*log(U)"
+      }
     }
   },
   {
@@ -4430,6 +6908,63 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending assign",
       "total": "6*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "asg",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAsg",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "24*log(U)"
+      }
     }
   },
   {
@@ -4488,6 +7023,58 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds a pending assign",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAssign": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "asg",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "hasAsg",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -4540,6 +7127,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeChmax tag (no aggregates); leaves count as node data, internal nodes as tags",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeChmax": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [],
+          "total": "0"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tag",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap index",
+        "total": "12*log(U)"
+      }
     }
   },
   {
@@ -4594,6 +7223,54 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x)",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeMax": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "16*log(U)"
+      }
     }
   },
   {
@@ -4654,6 +7331,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x)",
       "total": "5*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -4708,6 +7438,54 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> max(lo, x)",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeChmax": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "lo",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "16*log(U)"
+      }
     }
   },
   {
@@ -4760,6 +7538,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeChmin tag (no aggregates); leaves count as node data, internal nodes as tags",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeChmin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [],
+          "total": "0"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tag",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap index",
+        "total": "12*log(U)"
+      }
     }
   },
   {
@@ -4814,6 +7634,54 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x)",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMax": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "16*log(U)"
+      }
     }
   },
   {
@@ -4874,6 +7742,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x)",
       "total": "5*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -4928,6 +7849,54 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each holds one clamp tag x -> min(hi, x)",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeChmin": "log(U)",
+        "rangeMin": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "hi",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists",
+        "total": "16*log(U)"
+      }
     }
   },
   {
@@ -4980,6 +7949,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tree[n:] holds the values, tree[1:n] holds each node's pending divisor (product of divisions, capped); leaves count as node data, internal nodes as tags",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeFloorDiv": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [],
+          "total": "0"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tag",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "a pending divisor is the product of the divisions, capped; per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap index",
+        "total": "12*log(U)"
+      }
     }
   },
   {
@@ -5092,6 +8103,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tree[n:] holds the values, tree[1:n] holds how many floor-sqrts are pending at each node (capped at 6); leaves count as node data, internal nodes as tags",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeFloorSqrt": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [],
+          "total": "0"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tag",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "a pending tag counts floor-sqrts (at most 6 isqrts per point op); per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap index",
+        "total": "12*log(U)"
+      }
     }
   },
   {
@@ -5140,7 +8193,49 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "tree holds each node's gcd; arr is a reference",
       "total": "2*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/GcdSegTree.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/GcdSegTree.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)*log(U) ?",
+        "pointAssign": "log(U)*log(U) ?",
+        "pointChmax": "log(U)*log(U) ?",
+        "pointChmin": "log(U)*log(U) ?",
+        "pointGet": "log(U)",
+        "rangeGcd": "2*log(U) ?"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "v",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "1*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path; leaves hold the signed values, internal nodes the gcd of |values|; C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "3*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax",
@@ -5188,7 +8283,49 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "tree holds each node's max; leaves are tree[n..2n), no power-of-two padding; arr is a reference",
       "total": "2*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAssignRangeMax.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAssignRangeMax.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeMax": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "v",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "1*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path;  C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "3*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMod",
@@ -5235,6 +8372,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "mx[n:] holds the values, mx[1:n] the max of each node's subtree; there are no tags at all",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeMod": "log(U)*log(U) amortized"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "1*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per point write, one node per level of its path (rangeMod creates nothing); rangeMod's second log is of the largest value. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "3*log(U)"
+      }
     }
   },
   {
@@ -5287,6 +8466,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeOrApply tag (no aggregates); leaves count as node data, internal nodes as tags",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeOrApply": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [],
+          "total": "0"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tag",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap index",
+        "total": "12*log(U)"
+      }
     }
   },
   {
@@ -5335,7 +8556,49 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "note": "tree holds each node's sum; leaves are tree[n..2n), no power-of-two padding; arr is a reference",
       "total": "2*N"
     },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAssignRangeSum.py"
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAssignRangeSum.py",
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "1*log(U)"
+            }
+          ],
+          "total": "1*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "note": "per update, one node per level of the touched path;  C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros",
+        "total": "3*log(U)"
+      }
+    }
   },
   {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeXorApply",
@@ -5382,6 +8645,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "a Fenwick tree over the xor-difference array; a[i] is the prefix xor of differences up to i",
       "total": "1*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "log(U)",
+        "rangeXorApply": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "d",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "2*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "note": "per update, the O(logU) entries above each changed position; a range xor changes two xor-differences. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases",
+        "total": "6*log(U)"
+      }
     }
   },
   {
@@ -5431,6 +8736,51 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "two Fenwick trees over differences, everything mod p; a[i] = prefix(c, i) + i * prefix(s, i)",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAddArithSeqMod": "log(U)",
+        "rangeAddMod": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "c",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "s",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "note": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases",
+        "total": "8*log(U)"
+      }
     }
   },
   {
@@ -5486,6 +8836,56 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "prefix sums are kept as A(x) + B(x) * x + C(x) * x(x+1)/2 mod p with A, B, C three Fenwick trees",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAddArithSeqMod": "log(U)",
+        "rangeAddMod": "log(U)",
+        "rangeSumMod": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "A",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "B",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "C",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "6*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "note": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases",
+        "total": "10*log(U)"
+      }
     }
   },
   {
@@ -5544,6 +8944,58 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "each internal node holds one pending affine map x -> x * M + K (mod p); val holds the leaf values",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAddMod": "log(U)",
+        "rangeAffineMod": "log(U)",
+        "rangeAssignMod": "log(U)",
+        "rangeMultMod": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "mul",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is sm (internal nodes keep no aggregate). C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -5604,6 +9056,59 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each is one affine map x -> x*mul + add (mod p)",
       "total": "4*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAddMod": "log(U)",
+        "rangeAffineMod": "log(U)",
+        "rangeAssignMod": "log(U)",
+        "rangeMultMod": "log(U)",
+        "rangeSumMod": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "mul",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "add",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes",
+        "total": "20*log(U)"
+      }
     }
   },
   {
@@ -5653,6 +9158,51 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "two Fenwick trees over the difference array d (d[i] = a[i] - a[i-1]): b1 over d[i], b2 over d[i] * i, all mod p",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointGet": "log(U)",
+        "rangeAddMod": "log(U)",
+        "rangeSumMod": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "A",
+              "size": "2*log(U)"
+            },
+            {
+              "name": "B",
+              "size": "2*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "note": "per update, the O(logU) entries above each changed position; a range add changes two points of A and B. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases",
+        "total": "8*log(U)"
+      }
     }
   },
   {
@@ -5701,6 +9251,46 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tree[n:] holds the values, tree[1:n] holds each node's pending rangeMultMod tag (no aggregates); leaves count as node data, internal nodes as tags",
       "total": "2*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointGet": "log(U)",
+        "rangeMultMod": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [],
+          "total": "0"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tag",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap index",
+        "total": "12*log(U)"
+      }
     }
   },
   {
@@ -5751,6 +9341,52 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       },
       "note": "tags live on the N internal nodes only; each is a pending multiplier (mod p)",
       "total": "3*N"
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointGet": "log(U)",
+        "rangeMultMod": "log(U)",
+        "rangeSumMod": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "sm",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "mul",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "4*log(U)"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "links",
+              "size": "8*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "note": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes",
+        "total": "16*log(U)"
+      }
     }
   },
   {

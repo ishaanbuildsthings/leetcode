@@ -13,9 +13,9 @@
 #   node: tree[2*N]
 #   tags: none
 #   other: a[1*N] chains[1*N]
-#   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (Python: plain lists, so an insert is a memmove over that value's occurrences)
+#   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (C++: std::set; Python: a bucketed SortedList (below), so each change is a few binary searches plus a C-level shift of at most 1024 elements)
 
-from bisect import bisect_left
+from bisect import bisect_left, bisect_right, insort
 
 # "Are all values in a[l..r] distinct?" with point updates. All indices 0-based, ranges inclusive [l, r].
 # nxt[i] = next j > i with a[j] == a[i], else n. a[l..r] has a repeat iff some i in [l, r] has nxt[i] <= r,
@@ -31,16 +31,17 @@ class DistinctTree:
         n = self.n = len(arr)
         self.a = list(arr)
         tree = self.tree = [0] * (2 * n)
-        chains = self.chains = {}
+        positions = {}
         for i, v in enumerate(arr):
-            if v in chains:
-                chains[v].append(i)
+            if v in positions:
+                positions[v].append(i)
             else:
-                chains[v] = [i]
-        for chain in chains.values():
-            for k in range(len(chain) - 1):
-                tree[n + chain[k]] = chain[k + 1]
-            tree[n + chain[-1]] = n
+                positions[v] = [i]
+        for p in positions.values():
+            for k in range(len(p) - 1):
+                tree[n + p[k]] = p[k + 1]
+            tree[n + p[-1]] = n
+        self.chains = {v: SortedList(p) for v, p in positions.items()}
         for x in range(n - 1, 0, -1):
             tree[x] = tree[2 * x] if tree[2 * x] < tree[2 * x + 1] else tree[2 * x + 1]
 
@@ -79,21 +80,20 @@ class DistinctTree:
             return
         n, chains = self.n, self.chains
         chain = chains[old]
-        k = bisect_left(chain, i)
-        if k:
-            self._setNxt(chain[k - 1], chain[k + 1] if k + 1 < len(chain) else n)
-        chain.pop(k)
-        if not chain:
+        p, s = chain.pred(i), chain.succ(i)
+        if p is not None:
+            self._setNxt(p, n if s is None else s)
+        chain.remove(i)
+        if not len(chain):
             del chains[old]
-        if val in chains:
-            chain = chains[val]
-        else:
-            chain = chains[val] = []
-        k = bisect_left(chain, i)
-        chain.insert(k, i)
-        self._setNxt(i, chain[k + 1] if k + 1 < len(chain) else n)
-        if k:
-            self._setNxt(chain[k - 1], i)
+        chain = chains.get(val)
+        if chain is None:
+            chain = chains[val] = SortedList()
+        chain.add(i)
+        p, s = chain.pred(i), chain.succ(i)
+        self._setNxt(i, n if s is None else s)
+        if p is not None:
+            self._setNxt(p, i)
         self.a[i] = val
 
     # O(1) -- a[i]
@@ -113,3 +113,103 @@ class DistinctTree:
     def pointChmin(self, i, val):
         if val < self.a[i]:
             self.pointAssign(i, val)
+
+
+class SortedList:
+    """Sorted list of ints kept in buckets of LOAD..2*LOAD. An add / remove is a binary search over the bucket maxima,
+    one inside a bucket, and a C-level shift of at most 2*LOAD elements; pred / succ are two binary searches. A Fenwick
+    tree over bucket sizes answers countLess in O(log N); a bucket split or an emptied bucket marks it stale and the
+    next countLess rebuilds it in O(#buckets) (at most once per LOAD adds)."""
+    LOAD = 512
+    __slots__ = ("lists", "maxes", "fen", "size")
+
+    # values must already be sorted
+    def __init__(self, values=()):
+        vals = list(values)
+        L = self.LOAD
+        self.lists = [vals[i:i + L] for i in range(0, len(vals), L)]
+        self.maxes = [b[-1] for b in self.lists]
+        self.fen = None
+        self.size = len(vals)
+
+    def __len__(self):
+        return self.size
+
+    def _fenAdd(self, k, d):
+        fen = self.fen
+        if fen is not None:
+            while k < len(fen):
+                fen[k] += d
+                k |= k + 1
+
+    def add(self, x):
+        self.size += 1
+        lists, maxes = self.lists, self.maxes
+        if not lists:
+            lists.append([x])
+            maxes.append(x)
+            self.fen = None
+            return
+        k = bisect_left(maxes, x)
+        if k == len(lists):
+            k -= 1
+        b = lists[k]
+        insort(b, x)
+        maxes[k] = b[-1]
+        if len(b) > 2 * self.LOAD:
+            L = self.LOAD
+            lists[k:k + 1] = [b[:L], b[L:]]
+            maxes[k:k + 1] = [b[L - 1], b[-1]]
+            self.fen = None
+        else:
+            self._fenAdd(k, 1)
+
+    # x must be present
+    def remove(self, x):
+        lists, maxes = self.lists, self.maxes
+        k = bisect_left(maxes, x)
+        b = lists[k]
+        del b[bisect_left(b, x)]
+        self.size -= 1
+        if b:
+            maxes[k] = b[-1]
+            self._fenAdd(k, -1)
+        else:
+            del lists[k], maxes[k]
+            self.fen = None
+
+    # largest element < x, or None
+    def pred(self, x):
+        k = bisect_left(self.maxes, x)
+        if k < len(self.lists):
+            b = self.lists[k]
+            i = bisect_left(b, x)
+            if i:
+                return b[i - 1]
+        return self.maxes[k - 1] if k else None
+
+    # smallest element > x, or None
+    def succ(self, x):
+        k = bisect_right(self.maxes, x)
+        if k == len(self.lists):
+            return None
+        b = self.lists[k]
+        return b[bisect_right(b, x)]
+
+    # number of elements < x
+    def countLess(self, x):
+        k = bisect_left(self.maxes, x)
+        if k == len(self.lists):
+            return self.size
+        fen = self.fen
+        if fen is None:
+            fen = self.fen = [len(b) for b in self.lists]
+            for i in range(len(fen)):
+                j = i | (i + 1)
+                if j < len(fen):
+                    fen[j] += fen[i]
+        s, i = 0, k
+        while i > 0:
+            s += fen[i - 1]
+            i &= i - 1
+        return s + bisect_left(self.lists[k], x)

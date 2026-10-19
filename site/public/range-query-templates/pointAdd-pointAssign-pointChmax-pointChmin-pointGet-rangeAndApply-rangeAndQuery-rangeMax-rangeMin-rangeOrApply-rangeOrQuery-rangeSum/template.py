@@ -20,7 +20,7 @@
 #   tags: tagAnd[4*N] tagXor[4*N]
 #   other: none
 #   note: the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree
-# @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-XorApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py
+# @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py
 
 # TEMPLATE BY https://github.com/agrawalishaan
 #
