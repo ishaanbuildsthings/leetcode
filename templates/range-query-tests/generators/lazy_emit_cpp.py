@@ -1,4 +1,5 @@
 from lazy_common import *
+from note_lang import write_template
 
 CMP = {"min": "<", "max": ">"}
 IDENT = {"min": "INF", "max": "NEG"}
@@ -321,6 +322,6 @@ def write_cpp_all():
     for kind, fields, tags in variants():
         folder = "-".join(ops_of(kind, fields, tags))
         body = cpp_clamp(fields, tags) if kind == "clamp" else cpp_sum(fields, tags)
-        open(os.path.join(DIR, folder, "template.cpp"), "w").write(header("//", kind, fields, tags) + body)
+        write_template(os.path.join(DIR, folder, "template.cpp"), header("//", kind, fields, tags) + body)
     print(len(variants()), "cpp templates written")
 

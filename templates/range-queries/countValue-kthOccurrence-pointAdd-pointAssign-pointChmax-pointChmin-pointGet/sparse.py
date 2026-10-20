@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countValue-kthOccurrence-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/sparse.py
 # @operations: countValue kthOccurrence pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: BIT
 # @complexities:
@@ -7,14 +9,14 @@
 #   pointAssign: log(U)
 #   pointChmax: log(U)
 #   pointChmin: log(U)
-#   pointGet: 1
+#   pointGet: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
 #   node: cnt[1*log(U)]
 #   tags: none
-#   other: links[2*log(U)] vals[1]
-#   note: per point write, the O(logU) entries above it; position i stores [a[i] == number] - [0 == number], so the untouched store nothing; kthOccurrence descends / binary-lifts. Python: a Fenwick tree in a dict; C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
+#   other: children[2*log(U)] vals[1]
+#   note: per point write, the O(logU) entries above it; position i stores [a[i] == number] - [0 == number], so the untouched store nothing; kthOccurrence descends / binary-lifts. A Fenwick tree in a dict
 
 # Count / find the k-th occurrence of one value (fixed at build time) in a range, with point updates, over any index
 # range [lo, hi] (huge or negative is fine); every position starts at 0. An index counts if a[i] == number; untouched

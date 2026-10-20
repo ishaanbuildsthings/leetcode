@@ -11,6 +11,8 @@ Formulas run on offsets x = i - lo in [0, n), n = hi - lo + 1, exactly like the 
 """
 import os
 
+from note_lang import write_template
+
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 PLAIN = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 MOD_POINT = ["pointAdd", "pointAssign", "pointGet"]
@@ -23,7 +25,7 @@ def header(cm, ops, mem, note):
     lines += [f"{cm} @memory:", f"{cm}   layout: sparse", f"{cm}   node: {node}", f"{cm}   tags: none",
               f"{cm}   other: {other}",
               f"{cm}   note: per update, the O(logU) entries above each changed position; {note}. Python: a Fenwick "
-              "tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() "
+              "tree in a dict (no child pointers); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() "
               "between test cases"]
     return "\n".join(lines) + "\n"
 
@@ -33,8 +35,8 @@ def write(ops, mem, note, py, cpp):
     folder = "-".join(ops)
     path = os.path.join(DIR, folder)
     assert os.path.isdir(path), folder
-    open(os.path.join(path, "sparse.py"), "w").write(header("#", ops, mem, note) + py)
-    open(os.path.join(path, "sparse.cpp"), "w").write(header("//", ops, mem, note) + cpp)
+    write_template(os.path.join(path, "sparse.py"), header("#", ops, mem, note) + py)
+    write_template(os.path.join(path, "sparse.cpp"), header("//", ops, mem, note) + cpp)
     print("wrote", folder)
 
 

@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/sparse.py
 # @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: seg-tree
 # @complexities:
@@ -12,8 +14,8 @@
 #   layout: sparse
 #   node: ln[1*log(U)] pre[1*log(U)] suf[1*log(U)] best[1*log(U)] lv[1*log(U)] rv[1*log(U)]
 #   tags: none
-#   other: links[2*log(U)]
-#   note: per update, one node per level of the touched path; a block of k zeros is one run of length k, so missing nodes are summarized from their length; C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros
+#   other: children[2*log(U)]
+#   note: per update, one node per level of the touched path; a block of k zeros is one run of length k, so missing nodes are summarized from their length; a dict keyed by heap index, a missing key is a block of zeros
 
 # Longest run of equal adjacent values with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
 # Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is a block of zeros.

@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/sparse.py
 # @operations: maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: seg-tree
 # @complexities:
@@ -12,8 +14,8 @@
 #   layout: sparse
 #   node: pp[1*log(U)] pm[1*log(U)] mp[1*log(U)] mm[1*log(U)]
 #   tags: none
-#   other: links[2*log(U)]
-#   note: per update, one node per level of the touched path; pairs (first sign, last sign) of a block of zeros: a single zero can't start + and end -; C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros
+#   other: children[2*log(U)]
+#   note: per update, one node per level of the touched path; pairs (first sign, last sign) of a block of zeros: a single zero can't start + and end -; a dict keyed by heap index, a missing key is a block of zeros
 
 NEG = float("-inf")
 # Max alternating subsequence sum +a - b + c ... with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.

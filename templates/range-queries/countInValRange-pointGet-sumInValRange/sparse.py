@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-pointGet-sumInValRange/sparse.py
 # @operations: countInValRange pointGet sumInValRange
 # @data-structure-type: persistent
 # @complexities:
@@ -11,8 +13,6 @@
 #   tags: none
 #   other: idx[1*N] vals[1*N] root[1*N] srt[1*N]
 #   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the persistent tree is over the points only; zeros add to counts (never to sums)
-# TEMPLATE BY ISHAANBUILDSTHINGS (see my github)
-#
 # EXAMPLE
 #   vrs = StaticValueRangeSum(A)
 #   s = vrs.sumInValRange(l, r, lowVal, highVal)  # lowVal <= A[i] <= highVal

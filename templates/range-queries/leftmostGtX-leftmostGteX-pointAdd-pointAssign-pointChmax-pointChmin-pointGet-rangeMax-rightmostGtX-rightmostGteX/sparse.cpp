@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rightmostGtX-rightmostGteX/sparse.cpp
 // @operations: leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rightmostGtX rightmostGteX
 // @data-structure-type: seg-tree
 // @complexities:
@@ -16,8 +18,8 @@
 //   layout: sparse
 //   node: mx[1*log(U)]
 //   tags: none
-//   other: links[2*log(U)]
-//   note: per update, one node per level of the touched path;  C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros
+//   other: children[2*log(U)]
+//   note: per update, one node per level of the touched path;  one shared node pool (node 0 = all zeros), call resetPool() between test cases
 
 // Range max and leftmost / rightmost index with a[i] >= / > x, with point updates, over
 // any index range [lo, hi] (huge or negative is fine); every position starts at 0. Searches return lo - 1 when nothing

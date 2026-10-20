@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeAddArithSeqMod-rangeAddMod-rangeSumMod/sparse.py
 # @operations: pointAdd pointAssign pointGet rangeAddArithSeqMod rangeAddMod rangeSumMod
 # @data-structure-type: BIT
 # @complexities:
@@ -12,8 +14,8 @@
 #   layout: sparse
 #   node: A[2*log(U)] B[2*log(U)] C[2*log(U)]
 #   tags: none
-#   other: links[4*log(U)]
-#   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
+#   other: children[4*log(U)]
+#   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. A Fenwick tree in a dict (no child pointers)
 
 
 def _tri(k):

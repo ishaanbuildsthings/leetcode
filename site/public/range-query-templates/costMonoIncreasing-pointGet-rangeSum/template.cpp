@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/costMonoIncreasing-pointGet-rangeSum/template.cpp
 // @operations: costMonoIncreasing pointGet rangeSum
 // @data-structure-type: sparse-table
 // @complexities:

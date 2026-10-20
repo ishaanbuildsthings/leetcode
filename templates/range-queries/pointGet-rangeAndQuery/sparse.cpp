@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeAndQuery/sparse.cpp
 // @operations: pointGet rangeAndQuery
 // @data-structure-type: sparse-table
 // @complexities:

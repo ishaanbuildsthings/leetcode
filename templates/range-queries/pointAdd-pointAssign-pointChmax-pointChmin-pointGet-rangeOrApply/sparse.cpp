@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeOrApply/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeOrApply
 // @data-structure-type: seg-tree
 // @complexities:
@@ -12,8 +14,8 @@
 //   layout: sparse
 //   node: none
 //   tags: tag[4*log(U)]
-//   other: links[8*log(U)]
-//   note: per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap index
+//   other: children[8*log(U)]
+//   note: per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. One shared node pool, call resetPool() between test cases
 
 // Range or= + point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
 // Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its

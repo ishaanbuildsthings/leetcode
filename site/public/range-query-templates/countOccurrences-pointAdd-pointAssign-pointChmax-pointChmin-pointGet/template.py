@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
 # @operations: countOccurrences pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: positions
 # @complexities:
@@ -13,69 +15,12 @@
 #   node: pos[1*N]
 #   tags: none
 #   other: a[1*N]
-#   note: pos maps each value to its sorted indices (C++: an order-statistics tree per value; Python: a bucketed SortedList (below), so each change is a few binary searches plus a C-level shift of at most 1024 elements)
+#   note: pos maps each value to its sorted indices (a bucketed SortedList, defined at the top of the file, so each change is a few binary searches plus a C-level shift of at most 1024 elements)
 
 from bisect import bisect_left, bisect_right, insort
 
-# "How many times does x appear in a[l..r]?" with point updates. All indices 0-based, ranges inclusive.
-# Each value keeps the sorted list of its indices; a query is two binary searches in x's list, and an assign moves
-# one index from the old value's list to the new one's.
 
-
-class DynamicOccurrenceLists:
-    __slots__ = ("a", "pos")
-
-    # O(N)
-    def __init__(self, arr):
-        self.a = list(arr)
-        pos = {}
-        for i, v in enumerate(arr):
-            if v in pos:
-                pos[v].append(i)
-            else:
-                pos[v] = [i]
-        self.pos = {v: SortedList(p) for v, p in pos.items()}
-
-    # O(logN) -- # of i in [l, r] with a[i] == x
-    def countOccurrences(self, l, r, x):
-        p = self.pos.get(x)
-        return p.countLess(r + 1) - p.countLess(l) if p is not None and l <= r else 0
-
-    # O(logN) -- a[i] = val
-    def pointAssign(self, i, val):
-        old = self.a[i]
-        if old == val:
-            return
-        pos = self.pos
-        p = pos[old]
-        p.remove(i)
-        if not len(p):
-            del pos[old]
-        p = pos.get(val)
-        if p is None:
-            p = pos[val] = SortedList()
-        p.add(i)
-        self.a[i] = val
-
-    # O(1) -- a[i]
-    def pointGet(self, i):
-        return self.a[i]
-
-    # O(logN) -- a[i] += delta
-    def pointAdd(self, i, delta):
-        self.pointAssign(i, self.a[i] + delta)
-
-    # O(logN) -- a[i] = max(a[i], val)
-    def pointChmax(self, i, val):
-        if val > self.a[i]:
-            self.pointAssign(i, val)
-
-    # O(logN) -- a[i] = min(a[i], val)
-    def pointChmin(self, i, val):
-        if val < self.a[i]:
-            self.pointAssign(i, val)
-
-
+# SortedList: a self-contained sorted container (no sortedcontainers import needed), used by the class below.
 class SortedList:
     """Sorted list of ints kept in buckets of LOAD..2*LOAD. An add / remove is a binary search over the bucket maxima,
     one inside a bucket, and a C-level shift of at most 2*LOAD elements; pred / succ are two binary searches. A Fenwick
@@ -174,3 +119,61 @@ class SortedList:
             s += fen[i - 1]
             i &= i - 1
         return s + bisect_left(self.lists[k], x)
+
+# "How many times does x appear in a[l..r]?" with point updates. All indices 0-based, ranges inclusive.
+# Each value keeps the sorted list of its indices; a query is two binary searches in x's list, and an assign moves
+# one index from the old value's list to the new one's.
+
+
+class DynamicOccurrenceLists:
+    __slots__ = ("a", "pos")
+
+    # O(N)
+    def __init__(self, arr):
+        self.a = list(arr)
+        pos = {}
+        for i, v in enumerate(arr):
+            if v in pos:
+                pos[v].append(i)
+            else:
+                pos[v] = [i]
+        self.pos = {v: SortedList(p) for v, p in pos.items()}
+
+    # O(logN) -- # of i in [l, r] with a[i] == x
+    def countOccurrences(self, l, r, x):
+        p = self.pos.get(x)
+        return p.countLess(r + 1) - p.countLess(l) if p is not None and l <= r else 0
+
+    # O(logN) -- a[i] = val
+    def pointAssign(self, i, val):
+        old = self.a[i]
+        if old == val:
+            return
+        pos = self.pos
+        p = pos[old]
+        p.remove(i)
+        if not len(p):
+            del pos[old]
+        p = pos.get(val)
+        if p is None:
+            p = pos[val] = SortedList()
+        p.add(i)
+        self.a[i] = val
+
+    # O(1) -- a[i]
+    def pointGet(self, i):
+        return self.a[i]
+
+    # O(logN) -- a[i] += delta
+    def pointAdd(self, i, delta):
+        self.pointAssign(i, self.a[i] + delta)
+
+    # O(logN) -- a[i] = max(a[i], val)
+    def pointChmax(self, i, val):
+        if val > self.a[i]:
+            self.pointAssign(i, val)
+
+    # O(logN) -- a[i] = min(a[i], val)
+    def pointChmin(self, i, val):
+        if val < self.a[i]:
+            self.pointAssign(i, val)

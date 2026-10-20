@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply
 // @data-structure-type: lazy-seg-tree
 // @complexities:
@@ -17,8 +19,8 @@
 //   layout: sparse
 //   node: cnt[4*log(U)*log(U)]
 //   tags: a[4*log(U)] x[4*log(U)]
-//   other: links[8*log(U)]
-//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. every node keeps BITS counts (BITS = 20, the second log); C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes
+//   other: children[8*log(U)]
+//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. every node keeps BITS counts (BITS = 20, the second log); one shared node pool (node 0 = all zeros), call resetPool() between test cases
 
 // Range and= / or= / xor= with range sum / and / or queries, plus point ops. Values live in [0, 2^BITS).
 // Each node counts, for every bit, how many of its values have that bit set. Every update is a bit map

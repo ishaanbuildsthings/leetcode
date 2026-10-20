@@ -1,4 +1,5 @@
 from lazy_common import *
+from note_lang import write_template
 
 CMP = {"min": "<", "max": ">"}
 IDENT_PY = {"min": "INF", "max": "NEG"}
@@ -347,6 +348,6 @@ def write_py_all():
         folder = "-".join(ops_of(kind, fields, tags))
         body = py_clamp(fields, tags) if kind == "clamp" else py_sum(fields, tags)
         os.makedirs(os.path.join(DIR, folder), exist_ok=True)
-        open(os.path.join(DIR, folder, "template.py"), "w").write(header("#", kind, fields, tags) + body)
+        write_template(os.path.join(DIR, folder, "template.py"), header("#", kind, fields, tags) + body)
     print(len(variants()), "python templates written")
 

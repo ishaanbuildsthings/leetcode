@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet/template.py
 # @operations: countInValRange kthGtX kthGteX kthLtX kthLteX pointGet
 # @data-structure-type: merge-sort-tree
 # @complexities:
@@ -16,7 +18,6 @@
 #   note: one row of N prefix counts per level (wavelet style), no per-node lists
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/merge/MergeSortTreeFC.py
 
-# TEMPLATE BY ishaanbuildsthings github
 from bisect import bisect_left, bisect_right
 from itertools import accumulate, compress
 from operator import not_

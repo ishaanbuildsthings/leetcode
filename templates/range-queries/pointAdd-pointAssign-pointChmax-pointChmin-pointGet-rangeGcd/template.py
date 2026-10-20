@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd/template.py
 # @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
 # @data-structure-type: seg-tree
 # @complexities:
@@ -16,7 +18,6 @@
 #   note: tree holds each node's gcd; arr is a reference
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/GcdSegTree.py
 
-# TEMPLATE BY https://github.com/agrawalishaan
 # You are welcome to use this template. Please keep the link in your contest code to prevent automatic detection of copied content. Templates are allowed. Thanks!
 
 # GCD segment tree, bottom-up iterative.

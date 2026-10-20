@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countDistinct-countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet/template.cpp
 // @operations: countDistinct countInValRange kthGtX kthGteX kthLtX kthLteX pointGet
 // @data-structure-type: merge-sort-tree
 // @complexities:
@@ -189,15 +191,15 @@ struct StaticDistinct {
     vector<T> arr;
     MergeSortTree<int> mst;  // over nxt[i] = next index holding the same value, or n
 
+    // O(N log N) -- sort (value, index) pairs once: equal values end up adjacent, in index order
     static vector<int> nextOccurrence(const vector<T>& a) {
         int n = (int)a.size();
+        vector<pair<T, int>> byValue(n);
+        for (int i = 0; i < n; i++) byValue[i] = {a[i], i};
+        sort(byValue.begin(), byValue.end());
         vector<int> nxt(n, n);
-        unordered_map<T, int> last;
-        for (int i = n - 1; i >= 0; i--) {
-            auto it = last.find(a[i]);
-            if (it != last.end()) nxt[i] = it->second;
-            last[a[i]] = i;
-        }
+        for (int k = 0; k + 1 < n; k++)
+            if (byValue[k].first == byValue[k + 1].first) nxt[byValue[k].second] = byValue[k + 1].second;
         return nxt;
     }
 

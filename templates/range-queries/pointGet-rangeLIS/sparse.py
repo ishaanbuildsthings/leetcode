@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeLIS/sparse.py
 # @operations: pointGet rangeLIS
 # @data-structure-type: merge-sort-tree
 # @complexities:

@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd/template.py
 # @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
 # @data-structure-type: seg-tree
 # @complexities:
@@ -17,12 +19,11 @@
 #   note: seg is a gcd tree over adjacent differences; fen (a BIT over the differences) gives point values
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/lazy/rangeAddRangeGcd.py
 
-# TEMPLATE BY https://github.com/agrawalishaan
 
 # ========================
 # COMPLEXITIES
 
-# O(n) build time, O(n) memory
+# O(n log maxVal) build time (n gcds), O(n) memory
 
 # O(log n * log maxVal) rangeAdd(l, r, x)
 # O(log n) pointGet(i) -> value
@@ -60,7 +61,7 @@ from math import gcd
 class RangeAddRangeGcd:
     __slots__ = ("n", "diff", "fen", "seg")
 
-    # O(n)
+    # O(n log maxVal) -- n gcds, each up to O(log maxVal)
     def __init__(self, arr):
         self.n = n = len(arr)
 

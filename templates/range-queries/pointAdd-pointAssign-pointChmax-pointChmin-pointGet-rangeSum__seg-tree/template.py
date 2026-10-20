@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum__seg-tree/template.py
 # @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
 # @data-structure-type: seg-tree
 # @complexities:

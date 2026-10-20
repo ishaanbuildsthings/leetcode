@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeSum/template.py
 # @operations: countInValRange pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeSum
 # @data-structure-type: sqrt
 # @complexities:
@@ -21,7 +23,6 @@
 #   note: sqrt(N) blocks, each with a sorted copy and prefix sums; describes SqrtBlocks_PERFORMANT
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeChmin-Chmax-Add-Assign-Sum-CountValRange-SqrtDecomp-RootNLogN.py
 
-# TEMPLATE BY https://github.com/agrawalishaan
 
 # ========================
 # COMPLEXITIES

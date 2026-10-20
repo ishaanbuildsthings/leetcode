@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-pointGet-sumInValRange/template.py
 # @operations: countInValRange pointGet sumInValRange
 # @data-structure-type: persistent
 # @complexities:
@@ -13,8 +15,6 @@
 #   note: about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/persistent/persistent-sum-denseOfflineWithCompressionLogN.py
 
-# TEMPLATE BY ISHAANBUILDSTHINGS (see my github)
-#
 # EXAMPLE
 #   vrs = StaticValueRangeSum(A)
 #   s = vrs.sumInValRange(l, r, lowVal, highVal)  # lowVal <= A[i] <= highVal

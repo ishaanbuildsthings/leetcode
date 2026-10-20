@@ -12,6 +12,8 @@ points. Each file embeds the dense class unchanged and wraps it:
   - the costMono family is written fresh: it needs every piece's length, not just its value.
 """
 import os
+
+from note_lang import strip_attribution, write_template
 import re
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -30,7 +32,7 @@ def header(cm, ops, dtype, comp, mem, note):
 
 def dense_body(folder, ext):
     """The dense template file without its @ header."""
-    lines = open(os.path.join(DIR, folder, f"template.{ext}")).read().split("\n")
+    lines = strip_attribution(open(os.path.join(DIR, folder, f"template.{ext}")).read()).split("\n")
     k = 0
     while k < len(lines) and HEADER_LINE.match(lines[k]):
         k += 1
@@ -41,8 +43,8 @@ def write(folder, dtype, comp, mem, note, py, cpp):
     ops = folder.split("-")
     path = os.path.join(DIR, folder)
     assert os.path.isdir(path), folder
-    open(os.path.join(path, "sparse.py"), "w").write(header("#", ops, dtype, comp, mem, note) + py)
-    open(os.path.join(path, "sparse.cpp"), "w").write(header("//", ops, dtype, comp, mem, note) + cpp)
+    write_template(os.path.join(path, "sparse.py"), header("#", ops, dtype, comp, mem, note) + py)
+    write_template(os.path.join(path, "sparse.cpp"), header("//", ops, dtype, comp, mem, note) + cpp)
     print("wrote", folder)
 
 
@@ -749,7 +751,7 @@ COST_NOTE = ("a view is the array cut into pieces (each point, each gap of zeros
 write("costMonoIncreasing-pointGet-rangeSum", "sparse-table",
       {"costMonoIncreasing": "log(N)", "pointGet": "log(N)", "rangeSum": "log(N)", "build": "N*log(N)"},
       ("sp[2*N*log(N)]", "none", "idx[1*N] vals[1*N] starts[2*N] v[2*N] w[2*N] W[2*N] B[2*N] suff[2*N]"),
-      COST_NOTE + "C++ sums wrap mod 2^64 (exact whenever the answer fits in long long)",
+      COST_NOTE + "C++: sums wrap mod 2^64 (exact whenever the answer fits in long long)",
       PY_PIECE + '''
 
 # Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from
@@ -807,7 +809,7 @@ write("costMonoDecreasing-costMonoIncreasing-costStrictDecreasing-costStrictIncr
        "costStrictIncreasing": "log(N)", "pointGet": "log(N)", "rangeSum": "log(N)", "build": "N*log(N)"},
       ("sp[8*N*log(N)]", "none", "idx[1*N] vals[1*N] starts[8*N] v[8*N] w[8*N] W[8*N] B[8*N] suff[8*N]"),
       COST_NOTE + "four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing "
-      "costs on the mirror, strict costs subtract the index); each view is built on its first query. C++ sums wrap "
+      "costs on the mirror, strict costs subtract the index); each view is built on its first query; C++: sums wrap "
       "mod 2^64 (exact whenever the answer fits in long long)",
       PY_PIECE + '''
 

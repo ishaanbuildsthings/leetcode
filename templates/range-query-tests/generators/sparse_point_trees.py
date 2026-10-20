@@ -13,6 +13,8 @@ alternating sum) build a missing node's value from its length.
 """
 import os
 
+from note_lang import write_template
+
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 
@@ -21,7 +23,7 @@ def header(cm, ops, comp, node, note):
     lines = [f"{cm} @operations: {' '.join(ops)}", f"{cm} @data-structure-type: seg-tree", f"{cm} @complexities:"]
     lines += [f"{cm}   {o}: {comp.get(o, 'log(U)')}" for o in ops] + [f"{cm}   build: 1"]
     lines += [f"{cm} @memory:", f"{cm}   layout: sparse", f"{cm}   node: {node}", f"{cm}   tags: none",
-              f"{cm}   other: links[2*log(U)]",
+              f"{cm}   other: children[2*log(U)]",
               f"{cm}   note: per update, one node per level of the touched path; {note} "
               "C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; "
               "Python: a dict keyed by heap index, a missing key is a block of zeros"]
@@ -33,8 +35,8 @@ def write(folder, ops, comp, node, note, py, cpp):
     assert "-".join(ops) == folder.split("__")[0], (folder, ops)
     path = os.path.join(DIR, folder)
     assert os.path.isdir(path), folder
-    open(os.path.join(path, "sparse.py"), "w").write(header("#", ops, comp, node, note) + py)
-    open(os.path.join(path, "sparse.cpp"), "w").write(header("//", ops, comp, node, note) + cpp)
+    write_template(os.path.join(path, "sparse.py"), header("#", ops, comp, node, note) + py)
+    write_template(os.path.join(path, "sparse.cpp"), header("//", ops, comp, node, note) + cpp)
     print("wrote", folder)
 
 

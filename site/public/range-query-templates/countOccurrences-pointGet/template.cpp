@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointGet/template.cpp
 // @operations: countOccurrences pointGet
 // @data-structure-type: positions
 // @complexities:
@@ -9,7 +11,7 @@
 //   node: pos[1*N]
 //   tags: none
 //   other: arr[1*N]
-//   note: pos maps each value to the sorted list of indices holding it
+//   note: pos maps each value to the sorted list of indices holding it; the build sorts the (value, index) pairs, O(N log N)
 
 // Static "how many times does x appear in a[l..r]?". All indices 0-based, ranges inclusive. T: any type with <.
 // All (value, index) pairs sorted once; x's occurrences in [l, r] are one contiguous run, found by two binary searches.
@@ -27,7 +29,7 @@ struct OccurrenceLists {
     // O(logN) -- # of i in [l, r] with a[i] == x
     int countOccurrences(int l, int r, const T& x) const {
         if (l > r) return 0;
-        return int(lower_bound(pos.begin(), pos.end(), make_pair(x, r + 1)) - lower_bound(pos.begin(), pos.end(), make_pair(x, l)));
+        return int(lower_bound(pos.begin(), pos.end(), pair<T, int>{x, r + 1}) - lower_bound(pos.begin(), pos.end(), pair<T, int>{x, l}));
     }
 
     // O(1) -- a[i]

@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet/sparse.py
 # @operations: countInValRange kthGtX kthGteX kthLtX kthLteX pointGet
 # @data-structure-type: merge-sort-tree
 # @complexities:
@@ -14,7 +16,6 @@
 #   tags: none
 #   other: idx[1*N] vals[1*N] sortedVals[1*N]
 #   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the merge sort tree is over the points only; a k-th whose test 0 passes binary-searches the gap it falls in
-# TEMPLATE BY ishaanbuildsthings github
 from bisect import bisect_left, bisect_right
 from itertools import accumulate, compress
 from operator import not_

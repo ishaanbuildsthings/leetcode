@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxPrefixSum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum/template.py
 # @operations: maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
 # @data-structure-type: seg-tree
 # @complexities:

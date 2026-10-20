@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/costMonoIncreasing-pointGet-rangeSum/sparse.py
 # @operations: costMonoIncreasing pointGet rangeSum
 # @data-structure-type: sparse-table
 # @complexities:
@@ -10,7 +12,7 @@
 #   node: sp[2*N*log(N)]
 #   tags: none
 #   other: idx[1*N] vals[1*N] starts[2*N] v[2*N] w[2*N] W[2*N] B[2*N] suff[2*N]
-#   note: built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; C++ sums wrap mod 2^64 (exact whenever the answer fits in long long)
+#   note: built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces
 from bisect import bisect_left, bisect_right
 
 

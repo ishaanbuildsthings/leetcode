@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countDistinct-countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet/template.py
 # @operations: countDistinct countInValRange kthGtX kthGteX kthLtX kthLteX pointGet
 # @data-structure-type: merge-sort-tree
 # @complexities:
@@ -17,7 +19,6 @@
 #   note: two flat merge sort trees (one row of N prefix counts per level): one over the values for count / kth, one over nxt[i] for countDistinct
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/merge/rangeDistinct_LogN_NoUpdates.py
 
-# TEMPLATE BY ishaanbuildsthings github
 from bisect import bisect_left, bisect_right
 from itertools import accumulate, compress
 from operator import not_

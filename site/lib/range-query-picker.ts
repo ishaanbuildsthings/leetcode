@@ -287,6 +287,7 @@ export interface RangeQueryTemplate {
   // use U = size of that range, log U <= 64, and memory sizes are per update), or, for a static template, one built
   // from N (index, value) points with every other index 0 (costs and memory in N).
   sparse?: SparseVariant;
+  usage: Partial<Record<TemplateLang, Usage>>;
 }
 
 export interface SparseVariant {
@@ -294,6 +295,35 @@ export interface SparseVariant {
   complexities: Partial<Record<OpId, string>>;
   build: string;
   memory: MemoryBreakdown;
+  usage: Partial<Record<TemplateLang, Usage>>;
+}
+
+// How to call a template, read from its source by the generator: the classes to construct and, per operation,
+// which class has it, its parameter names, (C++) its return type, and the comment above it.
+export interface UsageParam {
+  name: string;
+  type?: string;
+  default?: string;
+}
+
+export interface UsageClass {
+  className: string;
+  doc: string;
+  ctor: UsageParam[];
+  ctorDoc: string;
+  pool?: boolean;
+}
+
+export interface UsageMethod {
+  cls: number;
+  params: string[];
+  returns?: string;
+  doc: string;
+}
+
+export interface Usage {
+  classes: UsageClass[];
+  methods: Partial<Record<OpId, UsageMethod>>;
 }
 
 // A template as the picker shows it in the current mode: in sparse mode, its costs / memory / files are the sparse ones.
@@ -303,6 +333,21 @@ export function viewOf(t: RangeQueryTemplate, sparse: boolean): TemplateView | n
   if (!sparse) return { ...t, file: "template" };
   if (!t.sparse) return null;
   return { ...t, ...t.sparse, file: "sparse" };
+}
+
+// A static template's sparse version is built from N (index, value) points, so its memory is a total in N; a
+// dynamic one starts all zeros and its memory is counted per update.
+export function isBuiltFromPoints(memory: MemoryBreakdown): boolean {
+  return memory.layout === "sparse" && /\bN\b/.test(memory.total);
+}
+
+// What a card calls the structure: "Lazy seg tree", "Sparse lazy seg tree", "Sparse seg tree beats", or for a
+// static structure built from points, "Sparse table over points".
+export function templateKindLabel(t: TemplateView): string {
+  const label = DATA_STRUCTURE_TYPE_LABELS[t.dataStructureType];
+  if (t.file !== "sparse") return label;
+  if (isBuiltFromPoints(t.memory)) return `${label} over points`;
+  return `Sparse ${label === "BIT" ? label : label[0].toLowerCase() + label.slice(1)}`;
 }
 
 export type TreeLayout = "2n-iterative" | "pow2-iterative" | "4n-recursive" | "sparse" | "none";
@@ -327,11 +372,13 @@ export interface MemoryBreakdown {
   tags: MemoryGroup;
   other: MemoryGroup;
   note?: string;
+  // the note as each language's file has it (they describe different implementations)
+  notes?: Partial<Record<TemplateLang, string>>;
   total: string;
 }
 
-// Typical contest sizes (N elements, values up to U), used to turn a cost string into a number for ranking.
-const SIZES = { N: 2e5, U: 1e9 };
+// Typical contest sizes (N elements, values up to U, Q updates), used to turn a cost string into a number for ranking.
+const SIZES = { N: 2e5, U: 1e9, Q: 2e5 };
 const FACTOR_VALUES: Record<string, number> = {
   "1": 1,
   N: SIZES.N,
@@ -363,27 +410,57 @@ function formatTerm(term: string): string {
 }
 
 // Memory is a count of stored values, shown as a size with an explicit coefficient: "1N", "4N", "1N · log N", "3√N".
+// A dynamic sparse version (starts all zeros) has its memory sizes counted per update: shown as Q · (...) and ranked
+// as Q times that. A static one built from points has plain sizes in N.
+export function isPerUpdate(memory: MemoryBreakdown): boolean {
+  return memory.layout === "sparse" && !isBuiltFromPoints(memory);
+}
+
+// A size from this template's memory breakdown; a per-update size is multiplied by Q (e.g. 2 + 6*log(U) -> "2Q + 6Q log U").
+export function formatMemoryOf(memory: MemoryBreakdown, size: string): string {
+  if (!isPerUpdate(memory) || size === "0") return formatMemory(size);
+  return formatMemory(
+    size
+      .split("+")
+      .map((term) => `${term}*Q`)
+      .join("+")
+  );
+}
+
+// The template's total memory as a number, for ranking.
+export function memoryValue(memory: MemoryBreakdown): number {
+  return costValue(memory.total) * (isPerUpdate(memory) ? SIZES.Q : 1);
+}
+
+// "2*N*log(N)+4*N" -> "2N*logN + 4N": the coefficient and one-letter variables (N, Q, U) form one block ("6Q"),
+// other factors are written without spaces ("logU", "√N") and joined to it by "*"; terms are joined by " + ".
 export function formatMemory(memory: string): string {
   if (memory === "0") return "0";
+  const LETTERS = ["N", "Q", "U"];
   return memory
     .split("+")
     .map((term) => {
       const factors = term.split("*");
       const constant = factors.filter(isConstant).reduce((prod, f) => prod * Number(f), 1);
-      const rest = factors.filter((f) => !isConstant(f) && f !== "1").map((f) => PRETTY_FACTORS[f]);
-      return rest.length ? `${constant}${rest.join(" · ")}` : String(constant);
+      const vars = factors.filter((f) => !isConstant(f) && f !== "1");
+      const letters = LETTERS.filter((v) => vars.includes(v)).join("");
+      const rest = vars.filter((f) => !LETTERS.includes(f)).map((f) => PRETTY_FACTORS[f]);
+      const head = (constant === 1 && (letters || rest.length) ? "" : String(constant)) + letters;
+      return [head, ...rest].filter(Boolean).join("*");
     })
     .join(" + ");
 }
 
+// How a memory factor is written: no inner spaces, so "logU" reads as one thing next to a "*".
 const PRETTY_FACTORS: Record<string, string> = {
   "1": "1",
+  Q: "Q",
   N: "N",
-  "log(N)": "log N",
-  "log^2(N)": "log² N",
+  "log(N)": "logN",
+  "log^2(N)": "log²N",
   "sqrt(N)": "√N",
-  "log(U)": "log U",
-  "log(log(U))": "log log U",
+  "log(U)": "logU",
+  "log(log(U))": "loglogU",
 };
 
 export function formatCost(cost: string): string {

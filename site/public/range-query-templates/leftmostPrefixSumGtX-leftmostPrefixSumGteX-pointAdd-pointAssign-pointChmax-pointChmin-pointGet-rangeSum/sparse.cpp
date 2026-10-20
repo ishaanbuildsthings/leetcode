@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum/sparse.cpp
 // @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
 // @data-structure-type: BIT
 // @complexities:
@@ -14,8 +16,8 @@
 //   layout: sparse
 //   node: tree[1*log(U)]
 //   tags: none
-//   other: links[2*log(U)]
-//   note: per update, the O(logU) entries above each changed position; the prefix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
+//   other: children[2*log(U)]
+//   note: per update, the O(logU) entries above each changed position; the prefix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
 
 // Point add, range sum, and the first index where a running sum from l reaches x.
 // Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic

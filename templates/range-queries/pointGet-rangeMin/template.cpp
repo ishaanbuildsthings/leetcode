@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeMin/template.cpp
 // @operations: pointGet rangeMin
 // @data-structure-type: sparse-table
 // @complexities:

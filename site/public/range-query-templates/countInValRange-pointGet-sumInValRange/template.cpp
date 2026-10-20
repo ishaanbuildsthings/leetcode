@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-pointGet-sumInValRange/template.cpp
 // @operations: countInValRange pointGet sumInValRange
 // @data-structure-type: persistent
 // @complexities:

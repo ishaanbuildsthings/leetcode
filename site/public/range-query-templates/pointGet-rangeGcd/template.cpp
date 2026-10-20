@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeGcd/template.cpp
 // @operations: pointGet rangeGcd
 // @data-structure-type: sparse-table
 // @complexities:
@@ -21,7 +23,7 @@ struct SparseGcd {
 
     static T combine(T a, T b) { return std::gcd(a, b); }
 
-    // O(N log N)
+    // O(N log N log U) -- N log N gcds, each up to O(log U)
     explicit SparseGcd(const vector<T>& a) : n((int)a.size()) {
         int levels = n ? 32 - __builtin_clz(n) : 1;
         sp.assign(levels, vector<T>());

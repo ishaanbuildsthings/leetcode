@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointGet/sparse.cpp
 // @operations: countOccurrences pointGet
 // @data-structure-type: positions
 // @complexities:

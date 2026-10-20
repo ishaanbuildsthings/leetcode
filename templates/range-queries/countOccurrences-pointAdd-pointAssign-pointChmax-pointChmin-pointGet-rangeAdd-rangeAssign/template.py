@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign/template.py
 # @operations: countOccurrences pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign
 # @data-structure-type: sqrt
 # @complexities:

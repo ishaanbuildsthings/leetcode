@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxPrefixSum-maxSubarraySum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum/sparse.cpp
 // @operations: maxPrefixSum maxSubarraySum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum
 // @data-structure-type: lazy-seg-tree
 // @complexities:
@@ -16,8 +18,8 @@
 //   layout: sparse
 //   node: sm[4*log(U)] pre[4*log(U)] suf[4*log(U)] best[4*log(U)]
 //   tags: asg[4*log(U)] hasAsg[4*log(U)]
-//   other: links[8*log(U)]
-//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes
+//   other: children[8*log(U)]
+//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases
 
 // Range assign with range sum and max prefix / suffix / subarray sum (non-empty pieces), plus point ops.
 // A node assigned v over k slots is fully known: sum v * k, and its best prefix / suffix / subarray are

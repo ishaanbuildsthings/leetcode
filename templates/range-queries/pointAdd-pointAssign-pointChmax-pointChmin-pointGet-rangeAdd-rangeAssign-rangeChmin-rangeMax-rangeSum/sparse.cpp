@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmin-rangeMax-rangeSum/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmin rangeMax rangeSum
 // @data-structure-type: beats
 // @complexities:
@@ -17,7 +19,7 @@
 //   node: mx[4*log(U)] mx2[4*log(U)] cntMx[4*log(U)] tot[4*log(U)] sz[4*log(U)]
 //   tags: addMx[4*log(U)] addOther[4*log(U)] hasAssign[4*log(U)] assignVal[4*log(U)]
 //   other: none
-//   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow
+//   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases
 
 // Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root
 // is one block of zeros; children are created on demand as blocks of zeros (every count = their length)

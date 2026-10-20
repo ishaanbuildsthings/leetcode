@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeMin-rangeOrApply-rangeOrQuery-rangeSum/sparse.py
 # @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMax rangeMin rangeOrApply rangeOrQuery rangeSum
 # @data-structure-type: beats
 # @complexities:
@@ -19,15 +21,13 @@
 #   node: mx[4*log(U)] mn[4*log(U)] tot[4*log(U)] sz[4*log(U)] andAll[4*log(U)] orAll[4*log(U)]
 #   tags: tagAnd[4*log(U)] tagXor[4*log(U)]
 #   other: none
-#   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. C++: one shared node pool, call resetPool() between test cases; Python: per-node lists that grow
+#   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow
 
 # Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root
 # is one block of zeros; children are created on demand as blocks of zeros (every count = their length)
 # right before anything descends past a node or pushes its tags. Otherwise the beats logic below is the
 # dense tree's, with children in L / R instead of at 2i / 2i + 1.
 
-# TEMPLATE BY https://github.com/agrawalishaan
-#
 # ========================
 # COMPLEXITIES
 #

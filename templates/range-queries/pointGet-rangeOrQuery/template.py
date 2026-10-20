@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeOrQuery/template.py
 # @operations: pointGet rangeOrQuery
 # @data-structure-type: sparse-table
 # @complexities:

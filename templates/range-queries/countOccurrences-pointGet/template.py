@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointGet/template.py
 # @operations: countOccurrences pointGet
 # @data-structure-type: positions
 # @complexities:
@@ -9,7 +11,7 @@
 #   node: pos[1*N]
 #   tags: none
 #   other: arr[1*N]
-#   note: pos maps each value to the sorted list of indices holding it
+#   note: pos maps each value to the sorted list of indices holding it; the build is O(N): a dict of lists filled left to right
 
 from bisect import bisect_left, bisect_right
 

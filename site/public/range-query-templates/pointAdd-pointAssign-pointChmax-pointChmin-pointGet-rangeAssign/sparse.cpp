@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign
 // @data-structure-type: seg-tree
 // @complexities:
@@ -12,8 +14,8 @@
 //   layout: sparse
 //   node: none
 //   tags: stamp[4*log(U)] val[4*log(U)]
-//   other: links[8*log(U)]
-//   note: per update, the nodes a range update visits (at most 4 per level), each remembering the newest assignment covering it; Python stores only the covering nodes (point assign is O(1) there). C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap index
+//   other: children[8*log(U)]
+//   note: per update, the nodes a range update visits (at most 4 per level), each remembering the newest assignment covering it. One shared node pool, call resetPool() between test cases
 
 // Range assign + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
 // No pushing anywhere: assignments are stamped with an increasing counter, every node remembers the newest one

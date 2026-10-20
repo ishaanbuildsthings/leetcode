@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin-rangeSum/template.py
 # @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeMax rangeMin rangeSum
 # @data-structure-type: beats
 # @complexities:
@@ -22,7 +24,6 @@
 #   note: 4n slots per array; every node field and tag is its own flat list
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmin-Chmax-Add-Assign-Sum-Min-Max-PointSet-Beats-Log2NAdd.py
 
-# TEMPLATE BY https://github.com/agrawalishaan
 
 # ========================
 # COMPLEXITIES

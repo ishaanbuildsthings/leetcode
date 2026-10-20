@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/doAllElementsAppearEvenFrequency-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/sparse.py
 # @operations: doAllElementsAppearEvenFrequency pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: BIT
 # @complexities:
@@ -6,26 +8,30 @@
 #   pointAssign: log(U)
 #   pointChmax: log(U)
 #   pointChmin: log(U)
-#   pointGet: 1
+#   pointGet: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
 #   node: h[1*log(U)]
 #   tags: none
-#   other: links[2*log(U)] vals[1] tag[1]
-#   note: per point write, the O(logU) entries above it; every value has a random 64-bit tag and position i stores tag(a[i]) ^ tag(0), so untouched positions store nothing and a range adds tag(0) once per odd length. Python: a Fenwick tree in a dict; C++: a dynamic prefix-xor tree in one shared node pool, call resetPool() between test cases
+#   other: children[2*log(U)] vals[1]
+#   note: per point write, the O(logU) entries above it; every value's 64-bit tag is splitmix64(value ^ seed) (a keyed hash with a random per-run seed, no table) and position i stores tag(a[i]) ^ tag(0), so untouched positions store nothing and a range adds tag(0) once per odd length. A Fenwick tree in a dict
 
 import random
 
+MASK = (1 << 64) - 1
+
 # Range "does every value appear an even number of times?" via xor hashing, with point updates, over any index
-# range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value gets a random 64-bit
-# tag; xor over a range cancels tags in pairs, so an all-even range hashes to 0 (false positives ~q / 2^64).
+# range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value's 64-bit tag is
+# splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values share a tag,
+# distinct ints never collide, and no table is needed. Xor over a range cancels tags in pairs, so an all-even range
+# hashes to 0 (false positives ~q / 2^64).
 # Sparse: position i stores tag(a[i]) ^ tag(0) in a dict Fenwick tree (0 for the untouched), so the xor of the
 # real tags over [l, r] is the stored xor, plus tag(0) when the length is odd.
 
 
 class SparseXorEven:
-    __slots__ = ("lo", "hi", "n", "d", "vals", "tag", "zero")
+    __slots__ = ("lo", "hi", "n", "d", "vals", "seed", "zero")
 
     # O(1)
     def __init__(self, lo, hi):
@@ -33,15 +39,16 @@ class SparseXorEven:
         self.n = hi - lo + 1
         self.d = {}
         self.vals = {}  # i -> a[i], nonzero values only
-        self.tag = {}
+        self.seed = random.getrandbits(64)
         self.zero = self._tagOf(0)
 
-    # O(1) -- random tag for a value, minted on first sight
+    # O(1) -- the value's tag: splitmix64(v ^ seed). Ints are used as-is (hash(-1) == hash(-2) in CPython)
     def _tagOf(self, v):
-        t = self.tag.get(v)
-        if t is None:
-            t = self.tag[v] = random.getrandbits(64)
-        return t
+        z = ((v if type(v) is int else hash(v)) & MASK) ^ self.seed
+        z = (z + 0x9E3779B97F4A7C15) & MASK
+        z = ((z ^ (z >> 30)) * 0xBF58476D1CE4E5B9) & MASK
+        z = ((z ^ (z >> 27)) * 0x94D049BB133111EB) & MASK
+        return z ^ (z >> 31)
 
     # O(logU) -- the change v at position i, into the Fenwick tree over offsets
     def _add(self, i, v):

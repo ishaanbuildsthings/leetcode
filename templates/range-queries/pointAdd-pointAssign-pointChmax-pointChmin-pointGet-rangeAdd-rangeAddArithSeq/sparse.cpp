@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAddArithSeq/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAddArithSeq
 // @data-structure-type: BIT
 // @complexities:
@@ -13,8 +15,8 @@
 //   layout: sparse
 //   node: c[2*log(U)] s[2*log(U)]
 //   tags: none
-//   other: links[4*log(U)]
-//   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
+//   other: children[4*log(U)]
+//   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
 
 // Range add of an arithmetic sequence (and plain range add), point get. Adding start + (i - l) * step on
 // [l, r] is adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of

@@ -8,6 +8,9 @@ distinct value; a range of length k with c nonzero positions holds k - c zeros).
 """
 import os
 
+from note_lang import write_template
+import re
+
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 PLAIN = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 
@@ -21,20 +24,38 @@ def header(cm, ops, dtype, comp, mem, note):
     return "\n".join(lines) + "\n"
 
 
+NOTE_SL = "# SortedList: a self-contained sorted container (no sortedcontainers import needed), used by the class below.\n"
+
+
+def sortedlist_first(py):
+    """Move the embedded SortedList (appended last) up to just after the bisect import, so it is defined before use."""
+    k = py.find("\nclass SortedList:")
+    if k < 0:
+        return py
+    cls = py[k:].strip("\n") + "\n"
+    rest = py[:k].rstrip("\n") + "\n"
+    at = re.search(r"^from bisect import .*\n", rest, re.M).end()
+    return rest[:at] + "\n\n" + NOTE_SL + cls + rest[at:]
+
+
 def write(ops, dtype, comp, mem, note, py, cpp):
+    py = sortedlist_first(py)
     ops = sorted(ops)
     folder = "-".join(ops)
     path = os.path.join(DIR, folder)
     assert os.path.isdir(path), folder
-    open(os.path.join(path, "sparse.py"), "w").write(header("#", ops, dtype, comp, mem, note) + py)
-    open(os.path.join(path, "sparse.cpp"), "w").write(header("//", ops, dtype, comp, mem, note) + cpp)
+    write_template(os.path.join(path, "sparse.py"), header("#", ops, dtype, comp, mem, note) + py)
+    write_template(os.path.join(path, "sparse.cpp"), header("//", ops, dtype, comp, mem, note) + cpp)
     print("wrote", folder)
 
 
 def sorted_list_src():
     """The bucketed SortedList the dense templates embed (one copy of the code, read from there)."""
     src = open(os.path.join(DIR, "countDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet", "template.py")).read()
-    return src[src.index("class SortedList:"):].rstrip() + "\n"
+    start = src.index("class SortedList:")
+    body = src.index("\n", start) + 1
+    end = re.search(r"^\S", src[body:], re.M)  # the next top-level line ends the class
+    return src[start:body + end.start() if end else len(src)].rstrip() + "\n"
 
 
 PY_POINTS = '''
@@ -58,11 +79,8 @@ PY_POINTS = '''
 '''
 
 CPP_POINTS = '''
-    // O(1) expected -- a[i]
-    T pointGet(long long i) const {
-        auto it = vals.find(i);
-        return it == vals.end() ? T(0) : it->second;
-    }
+    // a[i]
+    T pointGet(long long i) const { return valueAt(i); }
 
     // a[i] += delta
     void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
@@ -75,7 +93,7 @@ CPP_POINTS = '''
 '''
 
 # a dynamic prefix tree over [lo, hi] in a shared pool: add(i, v) adds v at i, prefix(i) = sum over [lo, i]
-CPP_PREFIX_POOL = '''    struct Node {{ {ftype} f; int l, r; }};  // f: total of the stored changes under the node
+CPP_PREFIX_POOL = '''    struct Node {{ {ftype} f; T v; int l, r; }};  // f: total of the stored changes under the node; v: a leaf's value
     static inline vector<Node> pool{{Node{{}}}};  // node 0: all zeros, its children are itself
     long long lo, hi;
     int root = 0;
@@ -110,6 +128,38 @@ CPP_PREFIX_POOL = '''    struct Node {{ {ftype} f; int l, r; }};  // f: total of
             if (right) a = m + 1;
             else b = m;
         }}
+    }}
+
+    // O(logU) -- the leaf of position i, created with its root path if missing
+    int leafOf(long long i) {{
+        if (!root) root = make();
+        int y = root;
+        long long a = lo, b = hi;
+        while (a < b) {{
+            long long m = a + (b - a) / 2;
+            bool right = i > m;
+            int c = right ? pool[y].r : pool[y].l;
+            if (!c) {{
+                c = make();
+                (right ? pool[y].r : pool[y].l) = c;
+            }}
+            y = c;
+            if (right) a = m + 1;
+            else b = m;
+        }}
+        return y;
+    }}
+
+    // O(logU) -- a[i]: its leaf's value (0 if never written)
+    T valueAt(long long i) const {{
+        int y = root;
+        long long a = lo, b = hi;
+        while (y && a < b) {{
+            long long m = a + (b - a) / 2;
+            if (i <= m) y = pool[y].l, b = m;
+            else y = pool[y].r, a = m + 1;
+        }}
+        return pool[y].v;
     }}
 
     // O(logU) -- total of the changes at positions lo..i (0 for i < lo)
@@ -149,23 +199,29 @@ PY_FENWICK = '''
 
 # ------------------------------------------------------------------------------------------------ all even (xor hashing)
 
-write(PLAIN + ["doAllElementsAppearEvenFrequency"], "BIT", {"pointGet": "1"},
-      ("h[1*log(U)]", "none", "links[2*log(U)] vals[1] tag[1]"),
-      "per point write, the O(logU) entries above it; every value has a random 64-bit tag and position i stores "
-      "tag(a[i]) ^ tag(0), so untouched positions store nothing and a range adds tag(0) once per odd length. Python: "
+write(PLAIN + ["doAllElementsAppearEvenFrequency"], "BIT", {"pointGet": "log(U)"},
+      ("h[1*log(U)]", "none", "children[2*log(U)] vals[1]"),
+      "per point write, the O(logU) entries above it; every value's 64-bit tag is splitmix64(value ^ seed) (a keyed hash "
+      "with a random per-run seed, no table) and position i stores "
+      "tag(a[i]) ^ tag(0), so untouched positions store nothing and a range adds tag(0) once per odd length. C++: a "
+      "position's value lives in its tree leaf; Python: "
       "a Fenwick tree in a dict; C++: a dynamic prefix-xor tree in one shared node pool, call resetPool() between "
       "test cases", '''
 import random
 
+MASK = (1 << 64) - 1
+
 # Range "does every value appear an even number of times?" via xor hashing, with point updates, over any index
-# range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value gets a random 64-bit
-# tag; xor over a range cancels tags in pairs, so an all-even range hashes to 0 (false positives ~q / 2^64).
+# range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value's 64-bit tag is
+# splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values share a tag,
+# distinct ints never collide, and no table is needed. Xor over a range cancels tags in pairs, so an all-even range
+# hashes to 0 (false positives ~q / 2^64).
 # Sparse: position i stores tag(a[i]) ^ tag(0) in a dict Fenwick tree (0 for the untouched), so the xor of the
 # real tags over [l, r] is the stored xor, plus tag(0) when the length is odd.
 
 
 class SparseXorEven:
-    __slots__ = ("lo", "hi", "n", "d", "vals", "tag", "zero")
+    __slots__ = ("lo", "hi", "n", "d", "vals", "seed", "zero")
 
     # O(1)
     def __init__(self, lo, hi):
@@ -173,15 +229,16 @@ class SparseXorEven:
         self.n = hi - lo + 1
         self.d = {}
         self.vals = {}  # i -> a[i], nonzero values only
-        self.tag = {}
+        self.seed = random.getrandbits(64)
         self.zero = self._tagOf(0)
 
-    # O(1) -- random tag for a value, minted on first sight
+    # O(1) -- the value's tag: splitmix64(v ^ seed). Ints are used as-is (hash(-1) == hash(-2) in CPython)
     def _tagOf(self, v):
-        t = self.tag.get(v)
-        if t is None:
-            t = self.tag[v] = random.getrandbits(64)
-        return t
+        z = ((v if type(v) is int else hash(v)) & MASK) ^ self.seed
+        z = (z + 0x9E3779B97F4A7C15) & MASK
+        z = ((z ^ (z >> 30)) * 0xBF58476D1CE4E5B9) & MASK
+        z = ((z ^ (z >> 27)) * 0x94D049BB133111EB) & MASK
+        return z ^ (z >> 31)
 ''' + PY_FENWICK.format(op="^") + '''
     # O(logU) -- True iff every value in a[l..r] appears an even number of times
     def doAllElementsAppearEvenFrequency(self, l, r):
@@ -201,30 +258,34 @@ class SparseXorEven:
             self._add(i, d)
 ''' + PY_POINTS, '''
 // Range "does every value appear an even number of times?" via xor hashing, with point updates, over any index
-// range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value gets a random 64-bit
-// tag; xor over a range cancels tags in pairs, so an all-even range hashes to 0 (false positives ~q / 2^64).
+// range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value's 64-bit tag is
+// splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values share a tag,
+// distinct integers never collide, and no table is needed. Xor over a range cancels tags in pairs, so an all-even
+// range hashes to 0 (false positives ~q / 2^64). A position's value lives in its tree leaf.
 // Sparse: position i stores tag(a[i]) ^ tag(0) in a dynamic prefix-xor tree (nothing for the untouched), so the xor
 // of the real tags over [l, r] is the stored xor, plus tag(0) when the length is odd. Nodes live in one pool shared
-// by every SparseXorEven<T>. T: any hashable type with == (0 must be a value).
+// by every SparseXorEven<T>. T: an integer type (or anything std::hash takes).
 template <typename T>
 struct SparseXorEven {
     using U64 = unsigned long long;
 ''' + CPP_PREFIX_POOL.format(ftype="U64", op="^", name="SparseXorEven") + '''
-    unordered_map<long long, T> vals;  // nonzero values only
-    unordered_map<T, U64> tag;
-    mt19937_64 rng;
-    U64 zero;
+    U64 seed, zero;
 
     // O(1) -- all zeros over [lo, hi]. Seeded from the clock: a fixed seed is hackable.
-    SparseXorEven(long long lo, long long hi) : lo(lo), hi(hi), rng(chrono::steady_clock::now().time_since_epoch().count()) {
+    SparseXorEven(long long lo, long long hi) : lo(lo), hi(hi), seed(mt19937_64(chrono::steady_clock::now().time_since_epoch().count())()) {
         zero = tagOf(T(0));
     }
 
-    // O(1) amortized -- random tag for a value, minted on first sight
-    U64 tagOf(const T& v) {
-        auto it = tag.find(v);
-        if (it != tag.end()) return it->second;
-        return tag[v] = rng();
+    // O(1) -- the value's tag: splitmix64(v ^ seed)
+    U64 tagOf(const T& v) const {
+        U64 z;
+        if constexpr (is_integral_v<T>) z = (U64)v;
+        else z = hash<T>{}(v);
+        z ^= seed;
+        z += 0x9e3779b97f4a7c15ULL;
+        z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+        z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+        return z ^ (z >> 31);
     }
 
     // O(logU) -- true iff every value in a[l..r] appears an even number of times
@@ -236,17 +297,16 @@ struct SparseXorEven {
 
     // O(logU) -- a[i] = v
     void pointAssign(long long i, T v) {
-        U64 d = tagOf(pointGet(i)) ^ tagOf(v);
-        if (v != T(0)) vals[i] = v;
-        else vals.erase(i);
+        U64 d = tagOf(valueAt(i)) ^ tagOf(v);
         if (d) add(i, d);
+        pool[leafOf(i)].v = v;
     }
 ''' + CPP_POINTS + "};\n")
 
 # ------------------------------------------------------------------------------------------------ count / k-th occurrence of one value
 
-write(PLAIN + ["countValue", "kthOccurrence"], "BIT", {"pointGet": "1"},
-      ("cnt[1*log(U)]", "none", "links[2*log(U)] vals[1]"),
+write(PLAIN + ["countValue", "kthOccurrence"], "BIT", {"pointGet": "log(U)"},
+      ("cnt[1*log(U)]", "none", "children[2*log(U)] vals[1]"),
       "per point write, the O(logU) entries above it; position i stores [a[i] == number] - [0 == number], so the "
       "untouched store nothing; kthOccurrence descends / binary-lifts. Python: a Fenwick tree in a dict; C++: a "
       "dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases", '''
@@ -314,7 +374,6 @@ struct SparseCountValueBIT {
 ''' + CPP_PREFIX_POOL.format(ftype="long long", op="+", name="SparseCountValueBIT") + '''
     T number;
     long long z;
-    unordered_map<long long, T> vals;  // nonzero values only
 
     // O(1) -- all zeros over [lo, hi]
     SparseCountValueBIT(long long lo, long long hi, T number) : lo(lo), hi(hi), number(number), z(number == T(0)) {}
@@ -340,10 +399,9 @@ struct SparseCountValueBIT {
 
     // O(logU) -- a[i] = v
     void pointAssign(long long i, T v) {
-        long long diff = (long long)(v == number) - (long long)(pointGet(i) == number);
-        if (v != T(0)) vals[i] = v;
-        else vals.erase(i);
+        long long diff = (long long)(v == number) - (long long)(valueAt(i) == number);
         if (diff) add(i, diff);
+        pool[leafOf(i)].v = v;
     }
 ''' + CPP_POINTS + "};\n")
 
@@ -353,7 +411,7 @@ SL = sorted_list_src()
 write(PLAIN + ["countOccurrences"], "positions", {"pointGet": "1"},
       ("pos[2]", "none", "vals[1]"),
       "per point write, one index in its value's sorted list and one in the list of nonzero positions (C++: "
-      "order-statistics trees; Python: bucketed SortedLists, below); zeros are counted as the range length minus the "
+      "order-statistics trees; Python: bucketed SortedLists defined at the top of the file); zeros are counted as the range length minus the "
       "nonzero positions in it. No shared pool: every tree owns its memory", f'''
 from bisect import bisect_left, bisect_right, insort
 
@@ -416,8 +474,24 @@ struct SparseOccurrenceLists {
     using IndexSet = __gnu_pbds::tree<long long, __gnu_pbds::null_type, less<long long>, __gnu_pbds::rb_tree_tag,
                                       __gnu_pbds::tree_order_statistics_node_update>;
     long long lo, hi;
-    unordered_map<long long, T> vals;  // nonzero values only
-    map<T, IndexSet> pos;              // nonzero values only
+    // splitmix64 with a random per-run offset: anti-hash tests can't predict buckets, so the tables stay O(1)
+    struct SafeHash {
+        size_t operator()(long long x) const {
+            static const unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count();
+            unsigned long long z = (unsigned long long)x + seed + 0x9e3779b97f4a7c15ULL;
+            z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+            z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+            return z ^ (z >> 31);
+        }
+    };
+    unordered_map<long long, T, SafeHash> vals;  // nonzero values only
+    map<T, IndexSet> pos;                        // nonzero values only
+
+    // O(1) expected -- a[i]
+    T valueAt(long long i) const {
+        auto it = vals.find(i);
+        return it == vals.end() ? T(0) : it->second;
+    }
     IndexSet nz;                       // indices holding a nonzero value
 
     // O(1) -- all zeros over [lo, hi]
@@ -455,11 +529,11 @@ struct SparseOccurrenceLists {
 
 # ------------------------------------------------------------------------------------------------ all distinct
 
-write(PLAIN + ["allDistinct"], "seg-tree", {"pointGet": "1"},
-      ("mn[3*log(U)] cnt[3*log(U)]", "none", "links[6*log(U)] chains[1] vals[1]"),
+write(PLAIN + ["allDistinct"], "seg-tree", {"pointGet": "log(U)"},
+      ("mn[3*log(U)] cnt[3*log(U)]", "none", "children[6*log(U)] chains[1] vals[1]"),
       "per point write, at most 3 root paths (i, its old and new predecessor); each node keeps the min nxt and the "
       "number of nonzero positions below it; chains maps each nonzero value to its sorted positions (C++: std::set; "
-      "Python: a bucketed SortedList, below). C++: one shared node pool (node 0 = untouched), call resetPool() between "
+      "Python: a bucketed SortedList defined at the top of the file). C++: one shared node pool (node 0 = untouched), call resetPool() between "
       "test cases; Python: dicts keyed by heap index", f'''
 from bisect import bisect_left, bisect_right, insort
 
@@ -544,17 +618,17 @@ class SparseDistinctTree:
 // "Are all values in a[l..r] distinct?" with point updates, over any index range [lo, hi] (huge or negative is fine);
 // every position starts at 0. Two zeros repeat, so a range with >= 2 positions holding 0 is not distinct. Among the
 // nonzero positions, nxt[i] = the next position with the same value (none: INF), and they are distinct iff
-// min(nxt[l..r]) > r. Sparse: a dynamic tree keeps, per node, the min nxt and the number of nonzero positions; nodes
-// live in one pool shared by every SparseDistinctTree<T>, node 0 is the untouched block. T: a std::map key type.
+// min(nxt[l..r]) > r. Sparse: a dynamic tree keeps, per node, the min nxt and the number of nonzero positions (and a
+// leaf keeps its position's value); nodes live in one pool shared by every SparseDistinctTree<T>, node 0 is the
+// untouched block. T: a std::map key type.
 template <typename T>
 struct SparseDistinctTree {
     static constexpr long long INF = numeric_limits<long long>::max();
-    struct Node { long long mn, cnt; int l, r; };
-    static inline vector<Node> pool{Node{INF, 0, 0, 0}};  // node 0: untouched (no nxt, no nonzero), children itself
+    struct Node { long long mn, cnt; T v; int l, r; };  // v: a leaf's value
+    static inline vector<Node> pool{Node{INF, 0, T(0), 0, 0}};  // node 0: untouched (no nxt, no nonzero, 0), children itself
     long long lo, hi;
     int root = 0;
-    unordered_map<long long, T> vals;  // nonzero values only
-    map<T, set<long long>> chains;     // nonzero value -> sorted positions
+    map<T, set<long long>> chains;  // nonzero value -> sorted positions
 
     // O(1) -- all zeros over [lo, hi]
     SparseDistinctTree(long long lo, long long hi) : lo(lo), hi(hi) {}
@@ -566,12 +640,12 @@ struct SparseDistinctTree {
     static void reservePool(size_t nodes) { pool.reserve(nodes); }
 
     static int make() {
-        pool.push_back(Node{INF, 0, 0, 0});
+        pool.push_back(Node{INF, 0, T(0), 0, 0});
         return (int)pool.size() - 1;
     }
 
-    // O(logU) -- position i now has nxt[i] = v and is nonzero (c = 1) or zero (c = 0, v = INF)
-    void setLeaf(long long i, long long v, long long c) {
+    // O(logU) -- position i now has nxt[i] = v and is nonzero (c = 1) or zero (c = 0, v = INF); returns its leaf
+    int setLeaf(long long i, long long v, long long c) {
         if (!root) root = make();
         int path[130], d = 0, y = root;
         long long a = lo, b = hi;
@@ -589,11 +663,25 @@ struct SparseDistinctTree {
             else b = m;
         }
         pool[y].mn = v, pool[y].cnt = c;
+        int leaf = y;
         while (d--) {
             Node& p = pool[path[d]];
             p.mn = min(pool[p.l].mn, pool[p.r].mn);
             p.cnt = pool[p.l].cnt + pool[p.r].cnt;
         }
+        return leaf;
+    }
+
+    // O(logU) -- a[i]: its leaf's value (0 if never written)
+    T valueAt(long long i) const {
+        int y = root;
+        long long a = lo, b = hi;
+        while (y && a < b) {
+            long long m = a + (b - a) / 2;
+            if (i <= m) y = pool[y].l, b = m;
+            else y = pool[y].r, a = m + 1;
+        }
+        return pool[y].v;
     }
 
     // (min nxt, # nonzero) over [max(l, a), min(r, b)] under node x
@@ -635,12 +723,12 @@ struct SparseDistinctTree {
             set<long long>& to = chains[v];
             auto jt = to.insert(i).first;
             auto nx = next(jt);
-            setLeaf(i, nx == to.end() ? INF : *nx, 1);
+            int leaf = setLeaf(i, nx == to.end() ? INF : *nx, 1);
+            pool[leaf].v = v;
             if (jt != to.begin()) setLeaf(*prev(jt), i, 1);
-            vals[i] = v;
         } else {
-            setLeaf(i, INF, 0);
-            vals.erase(i);
+            int leaf = setLeaf(i, INF, 0);
+            pool[leaf].v = T(0);
         }
     }
 ''' + CPP_POINTS + "};\n")
@@ -778,11 +866,27 @@ template <typename T>
 struct SparseDistinctBIT {
     using OrderedSet = __gnu_pbds::tree<long long, __gnu_pbds::null_type, less<long long>, __gnu_pbds::rb_tree_tag,
                                         __gnu_pbds::tree_order_statistics_node_update>;
+    // splitmix64 with a random per-run offset: anti-hash tests can't predict buckets, so the tables stay O(1)
+    struct SafeHash {
+        size_t operator()(long long x) const {
+            static const unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count();
+            unsigned long long z = (unsigned long long)x + seed + 0x9e3779b97f4a7c15ULL;
+            z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+            z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+            return z ^ (z >> 31);
+        }
+    };
     long long lo, hi, n, none;
-    unordered_map<long long, T> vals;          // nonzero values only
-    unordered_map<long long, long long> nxt;   // tracked (nonzero) positions only
-    unordered_map<long long, long long> last;  // Fenwick tree counting positions with nxt == NONE
-    unordered_map<long long, OrderedSet> sets; // Fenwick tree of nxt values < NONE
+    unordered_map<long long, T, SafeHash> vals;          // nonzero values only
+    unordered_map<long long, long long, SafeHash> nxt;   // tracked (nonzero) positions only
+    unordered_map<long long, long long, SafeHash> last;  // Fenwick tree counting positions with nxt == NONE
+    unordered_map<long long, OrderedSet, SafeHash> sets; // Fenwick tree of nxt values < NONE
+
+    // O(1) expected -- a[i]
+    T valueAt(long long i) const {
+        auto it = vals.find(i);
+        return it == vals.end() ? T(0) : it->second;
+    }
     map<T, set<long long>> chains;             // nonzero value -> sorted positions
 
     // O(1) -- all zeros over [lo, hi]

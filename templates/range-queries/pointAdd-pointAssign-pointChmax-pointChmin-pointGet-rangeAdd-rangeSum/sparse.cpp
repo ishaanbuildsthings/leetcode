@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeSum/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum
 // @data-structure-type: BIT
 // @complexities:
@@ -13,8 +15,8 @@
 //   layout: sparse
 //   node: A[2*log(U)] B[2*log(U)]
 //   tags: none
-//   other: links[4*log(U)]
-//   note: per update, the O(logU) entries above each changed position; a range add changes two points of A and B. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
+//   other: children[4*log(U)]
+//   note: per update, the O(logU) entries above each changed position; a range add changes two points of A and B. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
 
 // Range add + range sum: adding v on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[x] by
 //   v * (x - l + 1) for x in [l, r], and the whole v * (r - l + 1) past r,

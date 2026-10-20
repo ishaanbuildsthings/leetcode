@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/doAllElementsAppearEvenFrequency-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
 // @operations: doAllElementsAppearEvenFrequency pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: BIT
 // @complexities:
@@ -12,28 +14,28 @@
 //   layout: none
 //   node: bit[1*N]
 //   tags: none
-//   other: vals[1*N] a[1*N] tag[1*N]
-//   note: a holds each index's random hash; tag maps each distinct value to its hash
+//   other: vals[1*N] a[1*N]
+//   note: a holds each index's tag; a value's tag is splitmix64(value ^ seed), a keyed hash with a random per-run seed, so there is no value -> tag table
 // @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/xorHashing_allEven_withUpdates.cpp
 
 // Range "does every value appear an even number of times?" via xor hashing, with point updates.
-// Each distinct value gets a random 64-bit tag; xor over a range cancels tags in pairs, so an all-even range
-// hashes to 0. False positives have probability ~q / 2^64. Xor is invertible, so a Fenwick tree suffices.
-// All indices 0-based, ranges inclusive. T: any hashable type with ==.
+// Each distinct value gets a 64-bit tag; xor over a range cancels tags in pairs, so an all-even range hashes to 0.
+// A tag is splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values
+// share a tag, distinct integers never collide, and no table is needed. False positives (unequal tags whose xor
+// cancels) have probability ~q / 2^64. Xor is invertible, so a Fenwick tree suffices.
+// All indices 0-based, ranges inclusive. T: an integer type (or anything std::hash takes).
 template <typename T>
 struct XorEven {
     int n;
     vector<T> vals;
     vector<unsigned long long> a;    // a[i] = tag of the value at position i
     vector<unsigned long long> bit;  // 1-indexed Fenwick tree over a
-    unordered_map<T, unsigned long long> tag;
-    mt19937_64 rng;
+    unsigned long long seed;
 
     // O(N). Seeded from the clock: a fixed seed is hackable, since tags could be precomputed to collide.
     explicit XorEven(const vector<T>& arr)
         : n((int)arr.size()), vals(arr), a(arr.size()), bit(arr.size() + 1),
-          rng(chrono::steady_clock::now().time_since_epoch().count()) {
-        tag.reserve(2 * n);
+          seed(mt19937_64(chrono::steady_clock::now().time_since_epoch().count())()) {
         for (int i = 0; i < n; i++) a[i] = bit[i + 1] = tagOf(arr[i]);
         for (int i = 1; i <= n; i++) {
             int j = i + (i & -i);
@@ -41,11 +43,16 @@ struct XorEven {
         }
     }
 
-    // O(1) amortized -- random tag for a value, minted on first sight
-    unsigned long long tagOf(const T& v) {
-        auto it = tag.find(v);
-        if (it != tag.end()) return it->second;
-        return tag[v] = rng();
+    // O(1) -- the value's tag: splitmix64(v ^ seed)
+    unsigned long long tagOf(const T& v) const {
+        unsigned long long z;
+        if constexpr (is_integral_v<T>) z = (unsigned long long)v;
+        else z = hash<T>{}(v);
+        z ^= seed;
+        z += 0x9e3779b97f4a7c15ULL;
+        z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+        z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+        return z ^ (z >> 31);
     }
 
     // O(logN) -- xor of tags over a[0..i]; i may be -1
@@ -62,7 +69,7 @@ struct XorEven {
     bool doAllElementsAppearEvenFrequency(int l, int r) const { return rangeXor(l, r) == 0; }
 
     // O(logN) -- true iff exactly one value appears an odd number of times in a[l..r], and it is v
-    bool oneOdd(int l, int r, const T& v) { return rangeXor(l, r) == tagOf(v); }
+    bool oneOdd(int l, int r, const T& v) const { return rangeXor(l, r) == tagOf(v); }
 
     // O(logN) -- a[i] = v
     void pointAssign(int i, const T& v) {

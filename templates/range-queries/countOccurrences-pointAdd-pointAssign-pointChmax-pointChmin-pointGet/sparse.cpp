@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/sparse.cpp
 // @operations: countOccurrences pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: positions
 // @complexities:
@@ -13,7 +15,7 @@
 //   node: pos[2]
 //   tags: none
 //   other: vals[1]
-//   note: per point write, one index in its value's sorted list and one in the list of nonzero positions (C++: order-statistics trees; Python: bucketed SortedLists, below); zeros are counted as the range length minus the nonzero positions in it. No shared pool: every tree owns its memory
+//   note: per point write, one index in its value's sorted list and one in the list of nonzero positions (order-statistics trees); zeros are counted as the range length minus the nonzero positions in it. No shared pool: every tree owns its memory
 
 // "How many times does x appear in a[l..r]?" with point updates, over any index range [lo, hi] (huge or negative is
 // fine); every position starts at 0. Each nonzero value keeps its indices in an order-statistics tree (GCC pb_ds),
@@ -27,8 +29,24 @@ struct SparseOccurrenceLists {
     using IndexSet = __gnu_pbds::tree<long long, __gnu_pbds::null_type, less<long long>, __gnu_pbds::rb_tree_tag,
                                       __gnu_pbds::tree_order_statistics_node_update>;
     long long lo, hi;
-    unordered_map<long long, T> vals;  // nonzero values only
-    map<T, IndexSet> pos;              // nonzero values only
+    // splitmix64 with a random per-run offset: anti-hash tests can't predict buckets, so the tables stay O(1)
+    struct SafeHash {
+        size_t operator()(long long x) const {
+            static const unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count();
+            unsigned long long z = (unsigned long long)x + seed + 0x9e3779b97f4a7c15ULL;
+            z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+            z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+            return z ^ (z >> 31);
+        }
+    };
+    unordered_map<long long, T, SafeHash> vals;  // nonzero values only
+    map<T, IndexSet> pos;                        // nonzero values only
+
+    // O(1) expected -- a[i]
+    T valueAt(long long i) const {
+        auto it = vals.find(i);
+        return it == vals.end() ? T(0) : it->second;
+    }
     IndexSet nz;                       // indices holding a nonzero value
 
     // O(1) -- all zeros over [lo, hi]
@@ -63,11 +81,8 @@ struct SparseOccurrenceLists {
         }
     }
 
-    // O(1) expected -- a[i]
-    T pointGet(long long i) const {
-        auto it = vals.find(i);
-        return it == vals.end() ? T(0) : it->second;
-    }
+    // a[i]
+    T pointGet(long long i) const { return valueAt(i); }
 
     // a[i] += delta
     void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }

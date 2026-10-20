@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMod/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeMod
 // @data-structure-type: seg-tree
 // @complexities:
@@ -12,8 +14,8 @@
 //   layout: sparse
 //   node: mx[1*log(U)]
 //   tags: none
-//   other: links[2*log(U)]
-//   note: per point write, one node per level of its path (rangeMod creates nothing); rangeMod's second log is of the largest value. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros
+//   other: children[2*log(U)]
+//   note: per point write, one node per level of its path (rangeMod creates nothing); rangeMod's second log is of the largest value. One shared node pool (node 0 = all zeros), call resetPool() between test cases
 
 // Range mod + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
 // Requires a[i] >= 0, mod >= 1. Mods don't compose into one tag, so rangeMod descends into every node in range

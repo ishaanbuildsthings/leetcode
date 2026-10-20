@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeMultMod-rangeSumMod/sparse.py
 # @operations: pointAdd pointAssign pointGet rangeMultMod rangeSumMod
 # @data-structure-type: lazy-seg-tree
 # @complexities:
@@ -11,8 +13,8 @@
 #   layout: sparse
 #   node: sm[4*log(U)]
 #   tags: mul[4*log(U)]
-#   other: links[8*log(U)]
-#   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes
+#   other: children[8*log(U)]
+#   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Lists of nodes
 
 # Range mult with range sum, all mod p, plus point ops. Values are residues in [0, mod). A tag is a pending
 # multiplier; a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a

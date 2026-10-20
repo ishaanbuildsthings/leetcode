@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeAddArithSeqMod-rangeAddMod/template.py
 # @operations: pointAdd pointAssign pointGet rangeAddArithSeqMod rangeAddMod
 # @data-structure-type: BIT
 # @complexities:

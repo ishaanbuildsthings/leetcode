@@ -19,7 +19,7 @@ from sparse_bits_lib import MOD_POINT, PLAIN, cpp_struct, point_ops, py_class, w
 # ---------------------------------------------------------------- range add, point get
 
 pp, cp = point_ops("rangeAdd")
-write(PLAIN + ["rangeAdd"], ("d[2*log(U)]", "links[4*log(U)]"), "a range add changes two differences",
+write(PLAIN + ["rangeAdd"], ("d[2*log(U)]", "children[4*log(U)]"), "a range add changes two differences",
       py_class("SparseRangeAddBIT", "Range add, point get: prefix sums of the difference array d[i] = a[i] - a[i - 1].",
                ["d"], "add", '''
     # O(logU) -- a[i] += v for i in [l, r]
@@ -49,7 +49,7 @@ write(PLAIN + ["rangeAdd"], ("d[2*log(U)]", "links[4*log(U)]"), "a range add cha
 
 # ---------------------------------------------------------------- range xor, point get
 
-write(PLAIN + ["rangeXorApply"], ("d[2*log(U)]", "links[4*log(U)]"), "a range xor changes two xor-differences",
+write(PLAIN + ["rangeXorApply"], ("d[2*log(U)]", "children[4*log(U)]"), "a range xor changes two xor-differences",
       py_class("SparseRangeXorBIT", "Range xor, point get: prefix xors of the xor-difference array d[i] = a[i] ^ a[i - 1].",
                ["d"], "xor", '''
     # O(logU) -- a[i] ^= x for i in [l, r]
@@ -199,7 +199,7 @@ for mod in (False, True):
     // O(logU) -- a[i]
     T pointGet(long long i) const { return T(rangeSum(i, i)); }
 ''' + cp
-    write(ops, ("A[2*log(U)] B[2*log(U)]", "links[4*log(U)]"), "a range add changes two points of A and B",
+    write(ops, ("A[2*log(U)] B[2*log(U)]", "children[4*log(U)]"), "a range add changes two points of A and B",
           py_class(name, ADDSUM_DESC.format(c="#") + (" All mod p." if mod else ""), ["A", "B"], "mod" if mod else "add",
                    py_body),
           cpp_struct(name, ADDSUM_DESC.format(c="//") + (" All mod p." if mod else ""), 2, "mod" if mod else "add",
@@ -279,7 +279,7 @@ for mod in (False, True):
         return T(s[0] + s[1] * W(i - lo));
     }
 ''' + cp
-    write(ops, ("c[2*log(U)] s[2*log(U)]", "links[4*log(U)]"), "an arithmetic-sequence add changes two points of c and s",
+    write(ops, ("c[2*log(U)] s[2*log(U)]", "children[4*log(U)]"), "an arithmetic-sequence add changes two points of c and s",
           py_class(name, AP_DESC.format(c="#", m=", all mod p" if mod else ""), ["c", "s"], "mod" if mod else "add", py_body),
           cpp_struct(name, AP_DESC.format(c="//", m=", all mod p" if mod else ""), 2, "mod" if mod else "add", cpp_body))
 
@@ -397,7 +397,7 @@ for mod in (False, True):
     // O(logU) -- a[i]
     T pointGet(long long i) const { return T(rangeSum(i, i)); }
 ''' + cp
-    write(ops, ("A[2*log(U)] B[2*log(U)] C[2*log(U)]", "links[4*log(U)]"),
+    write(ops, ("A[2*log(U)] B[2*log(U)] C[2*log(U)]", "children[4*log(U)]"),
           "an arithmetic-sequence add changes two points of A, B and C",
           "\n\ndef _tri(k):\n    return k * (k + 1) // 2\n" +
           py_class(name, APSUM_DESC.format(c="#", m=", all mod p" if mod else ""), ["A", "B", "C"], "mod" if mod else "add",
@@ -407,7 +407,7 @@ for mod in (False, True):
 # ---------------------------------------------------------------- point add + range sum + prefix-sum searches
 
 write(["leftmostPrefixSumGtX", "leftmostPrefixSumGteX", "pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet",
-       "rangeSum"], ("tree[1*log(U)]", "links[2*log(U)]"),
+       "rangeSum"], ("tree[1*log(U)]", "children[2*log(U)]"),
       "the prefix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies",
       py_class("SparseBIT", "Point add, range sum, and the first index where a running sum from l reaches x.",
                ["tree"], "add", '''

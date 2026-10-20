@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeOrApply-rangeXorApply/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeOrApply rangeXorApply
 // @data-structure-type: lazy-seg-tree
 // @complexities:
@@ -14,8 +16,8 @@
 //   layout: sparse
 //   node: v[4*log(U)]
 //   tags: a[4*log(U)] x[4*log(U)]
-//   other: links[8*log(U)]
-//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes
+//   other: children[8*log(U)]
+//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). One shared node pool (node 0 = all zeros), call resetPool() between test cases
 
 // Range and= / or= / xor= + point ops. Every update is a bit map v -> (v & a) ^ x (and X = (X, 0),
 // or X = (~X, X), xor X = (all ones, X)), and these maps compose into the same form. Only leaves' values

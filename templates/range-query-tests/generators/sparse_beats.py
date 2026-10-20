@@ -12,6 +12,8 @@ a node or pushes its tags. Queries push like the dense trees do, so they may cre
 The heap arithmetic (2 * i, 2 * i + 1) becomes L[i] / R[i]; indices, lengths and counts become 64-bit.
 """
 import os
+
+from note_lang import strip_attribution, write_template
 import re
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -19,7 +21,7 @@ HEADER_LINE = re.compile(r"^(#|//) (@|  )")
 
 
 def split_header(text):
-    lines = text.split("\n")
+    lines = strip_attribution(text).split("\n")
     k = 0
     while k < len(lines) and HEADER_LINE.match(lines[k]):
         k += 1
@@ -159,12 +161,12 @@ def main():
                  "# right before anything descends past a node or pushes its tags. Otherwise the beats logic below is the\n"
                  "# dense tree's, with children in L / R instead of at 2i / 2i + 1.\n")
         py = "\n".join(sparse_header(head, "#")) + "\n" + intro + convert_py(body, name)
-        open(os.path.join(DIR, folder, "sparse.py"), "w").write(py)
+        write_template(os.path.join(DIR, folder, "sparse.py"), py)
         if not only_py:
             from sparse_beats_cpp import convert_cpp  # noqa: E402
             chead, cbody = split_header(open(os.path.join(DIR, folder, "template.cpp")).read())
             cpp = "\n".join(sparse_header(chead, "//")) + "\n" + convert_cpp(folder, cbody)
-            open(os.path.join(DIR, folder, "sparse.cpp"), "w").write(cpp)
+            write_template(os.path.join(DIR, folder, "sparse.cpp"), cpp)
         print("wrote", folder)
 
 

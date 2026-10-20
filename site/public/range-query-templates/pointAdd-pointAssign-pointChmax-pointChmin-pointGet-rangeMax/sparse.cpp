@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeMax
 // @data-structure-type: seg-tree
 // @complexities:
@@ -12,8 +14,8 @@
 //   layout: sparse
 //   node: v[1*log(U)]
 //   tags: none
-//   other: links[2*log(U)]
-//   note: per update, one node per level of the touched path;  C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a dict keyed by heap index, a missing key is a block of zeros
+//   other: children[2*log(U)]
+//   note: per update, one node per level of the touched path;  one shared node pool (node 0 = all zeros), call resetPool() between test cases
 
 // Point updates + range max, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
 // Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMaxTree; node 0 is the shared

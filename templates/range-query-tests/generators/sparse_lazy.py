@@ -13,6 +13,8 @@ C++: nodes in one pool shared by every tree of the type (resetPool() between tes
 Python: parallel lists (node 0 = zeros, node 1 = root); a tag is a tuple, None for no tag.
 """
 import os
+
+from note_lang import write_template
 import sys
 
 sys.dont_write_bytecode = True
@@ -30,7 +32,7 @@ def header(cm, kind, fields, tags):
         " hasAsg[4*log(U)]" if "assign" in tags and kind == "sum" else "")
     comm = commutes(kind, tags)
     lines += [f"{cm} @memory:", f"{cm}   layout: sparse", f"{cm}   node: {node}", f"{cm}   tags: {tagm}",
-              f"{cm}   other: links[8*log(U)]",
+              f"{cm}   other: children[8*log(U)]",
               f"{cm}   note: per update, the nodes it visits (at most 4 per level{'' if comm else ', counting the children a push creates'}); "
               f"queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test "
               f"cases; Python: parallel lists"]
@@ -492,6 +494,6 @@ if __name__ == "__main__":
         folder = "-".join(ops_of(kind, fields, tags))
         path = os.path.join(DIR, folder)
         assert os.path.isdir(path), folder
-        open(os.path.join(path, "sparse.py"), "w").write(header("#", kind, fields, tags) + py(kind, fields, tags))
-        open(os.path.join(path, "sparse.cpp"), "w").write(header("//", kind, fields, tags) + cpp(kind, fields, tags))
+        write_template(os.path.join(path, "sparse.py"), header("#", kind, fields, tags) + py(kind, fields, tags))
+        write_template(os.path.join(path, "sparse.cpp"), header("//", kind, fields, tags) + cpp(kind, fields, tags))
     print(len(variants()), "sparse lazy templates written")

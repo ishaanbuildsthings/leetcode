@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmax-rangeMax-rangeMin/template.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeChmax rangeMax rangeMin
 // @data-structure-type: lazy-seg-tree
 // @complexities:

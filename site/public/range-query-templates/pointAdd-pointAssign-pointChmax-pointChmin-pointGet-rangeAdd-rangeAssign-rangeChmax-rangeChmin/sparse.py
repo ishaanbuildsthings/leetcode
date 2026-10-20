@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin/sparse.py
 # @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin
 # @data-structure-type: lazy-seg-tree
 # @complexities:
@@ -15,8 +17,8 @@
 #   layout: sparse
 #   node: v[4*log(U)]
 #   tags: hi[4*log(U)] lo[4*log(U)] add[4*log(U)]
-#   other: links[8*log(U)]
-#   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes
+#   other: children[8*log(U)]
+#   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). Lists of nodes
 
 INF = float("inf")
 NEG = float("-inf")

@@ -4,16 +4,18 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   OP_GROUPS,
   DATA_STRUCTURE_TYPES,
-  DATA_STRUCTURE_TYPE_LABELS,
   costValue,
   formatCost,
-  formatMemory,
+  formatMemoryOf,
+  memoryValue,
   TREE_LAYOUT_LABELS,
   type Op,
   type OpId,
   type RangeQueryTemplate,
   type TemplateView,
   viewOf,
+  templateKindLabel,
+  isBuiltFromPoints,
   type TierKind,
   type TemplateLang,
   TEMPLATE_LANG_LABELS,
@@ -34,12 +36,12 @@ const opCost = (t: RangeQueryTemplate, op: OpId) => t.complexities[op] ?? "?";
 // Templates covering every selected op, ranked by: slowest selected op, data structure type, total cost
 // of selected ops, memory, then fewest extra ops. Type outranks total because amortized bounds on heavy
 // structures (beats) hide large constants. Ops you didn't select don't count against a template.
-// In sparse mode only templates with a sparse version are considered, ranked by that version's costs and memory.
-function matchTemplates(selected: Set<OpId>, sparse: boolean) {
+// With includeSparse, every template's sparse version (if it has one) competes too, with its own costs and memory.
+function matchTemplates(selected: Set<OpId>, includeSparse: boolean) {
   if (selected.size === 0) return [];
   const picked = [...selected];
   const wantsMod = picked.some((op) => MOD_P_OPS.has(op));
-  return RANGE_QUERY_TEMPLATES.map((t) => viewOf(t, sparse))
+  return RANGE_QUERY_TEMPLATES.flatMap((t) => [viewOf(t, false), includeSparse ? viewOf(t, true) : null])
     .filter((t): t is TemplateView => t !== null)
     .filter((t) => picked.every((op) => t.operations.includes(op)) && (wantsMod || !isModP(t)))
     .map((t) => {
@@ -58,9 +60,10 @@ function matchTemplates(selected: Set<OpId>, sparse: boolean) {
         a.bottleneck.value - b.bottleneck.value ||
         DATA_STRUCTURE_TYPES.indexOf(a.template.dataStructureType) - DATA_STRUCTURE_TYPES.indexOf(b.template.dataStructureType) ||
         a.total - b.total ||
-        costValue(a.template.memory.total) - costValue(b.template.memory.total) ||
+        memoryValue(a.template.memory) - memoryValue(b.template.memory) ||
         a.extra.length - b.extra.length ||
-        a.template.folder.localeCompare(b.template.folder)
+        a.template.folder.localeCompare(b.template.folder) ||
+        a.template.file.localeCompare(b.template.file)
     );
 }
 
@@ -80,19 +83,10 @@ function memoryGroups(template: RangeQueryTemplate): { id: MemoryGroupId; label:
   return groups;
 }
 
-// A static template's sparse version is built from N (index, value) points, so its memory is a total in N; a
-// dynamic one starts all zeros and its memory is counted per update.
-function builtFromPoints(memory: RangeQueryTemplate["memory"]): boolean {
-  return memory.layout === "sparse" && /\bN\b/.test(memory.total);
-}
-
-// What follows "Memory <total>": " per update" for a dynamic sparse version, and the layout's label (if any).
-function memorySuffix(memory: RangeQueryTemplate["memory"]): { perUpdate: string; layout: string | null } {
-  const fromPoints = builtFromPoints(memory);
-  return {
-    perUpdate: memory.layout === "sparse" && !fromPoints ? " per update" : "",
-    layout: memory.layout === "none" ? null : fromPoints ? "built from N points, any index range" : TREE_LAYOUT_LABELS[memory.layout],
-  };
+// The layout's label after "Memory <total>", if any. Sparse versions get none: the card's title ("Sparse seg tree",
+// "Sparse table over points") already says what they are.
+function layoutLabel(memory: RangeQueryTemplate["memory"]): string | null {
+  return memory.layout === "none" || memory.layout === "sparse" ? null : TREE_LAYOUT_LABELS[memory.layout];
 }
 
 // "1 field" / "3 fields" / "none", for the card's memory lines.
@@ -100,15 +94,14 @@ function fieldCount(n: number): string {
   return n === 0 ? "none" : `${n} ${n === 1 ? "field" : "fields"}`;
 }
 
-function MemoryPanel({ template }: { template: RangeQueryTemplate }) {
+function MemoryPanel({ template, lang }: { template: RangeQueryTemplate; lang: TemplateLang }) {
   const { memory } = template;
   return (
     <div className="border-b border-border px-4 py-3 text-xs">
       <p className="mb-1.5 font-semibold text-foreground">
-        Memory {formatMemory(memory.total)}
-        {memorySuffix(memory).perUpdate}
-        {memorySuffix(memory).layout && (
-          <span className="ml-2 font-normal text-muted-foreground">{memorySuffix(memory).layout}</span>
+        Memory {formatMemoryOf(memory, memory.total)}
+        {layoutLabel(memory) && (
+          <span className="ml-2 font-normal text-muted-foreground">{layoutLabel(memory)}</span>
         )}
       </p>
       <div className="grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-1">
@@ -122,19 +115,25 @@ function MemoryPanel({ template }: { template: RangeQueryTemplate }) {
                 {label}
                 {count > 0 && id !== "other" && ` (${fieldCount(count)})`}
               </span>
-              <span className="text-foreground">{count ? formatMemory(total) : "0"}</span>
-              <span className="font-mono text-muted-foreground">
+              <span className="text-foreground">{count ? formatMemoryOf(memory, total) : "0"}</span>
+              <span className={count === 0 ? "text-muted-foreground" : "text-foreground"}>
                 {count === 0
                   ? "none"
-                  : uniform
-                    ? arrays.map((a) => a.name).join(", ")
-                    : arrays.map((a) => `${a.name} ${formatMemory(a.size)}`).join(", ")}
+                  : arrays.map((a, k) => (
+                      <span key={a.name}>
+                        {k > 0 && ", "}
+                        <code className="font-mono">{a.name}</code>
+                        {!uniform && `: ${formatMemoryOf(memory, a.size)}`}
+                      </span>
+                    ))}
               </span>
             </div>
           );
         })}
       </div>
-      {memory.note && <p className="mt-1.5 text-muted-foreground">{memory.note}</p>}
+      {(memory.notes?.[lang] ?? memory.note) && (
+        <p className="mt-1.5 text-muted-foreground">{memory.notes?.[lang] ?? memory.note}</p>
+      )}
     </div>
   );
 }
@@ -142,7 +141,7 @@ function MemoryPanel({ template }: { template: RangeQueryTemplate }) {
 const LANG_STORAGE_KEY = "rangeQueryPicker.lang";
 const SPARSE_STORAGE_KEY = "rangeQueryPicker.sparse";
 
-// The sparse toggle lives in localStorage so it survives reloads; useSyncExternalStore reads it without a
+// The "include sparse versions" checkbox lives in localStorage so it survives reloads; useSyncExternalStore reads it without a
 // server / client mismatch (the server always renders it off).
 const sparseListeners = new Set<() => void>();
 const subscribeSparse = (onChange: () => void) => {
@@ -229,8 +228,7 @@ function CodeDrawer({
         <div className="flex items-start justify-between gap-4 border-b border-border p-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">
-              {DATA_STRUCTURE_TYPE_LABELS[template.dataStructureType]}
-              {template.file === "sparse" && <span className="ml-2 font-normal text-muted-foreground">sparse</span>}
+              {templateKindLabel(template)}
             </p>
             <p className="mt-1 break-all font-mono text-xs text-muted-foreground">{template.folder}</p>
           </div>
@@ -297,11 +295,113 @@ function CodeDrawer({
           <span className="font-mono text-muted-foreground">build</span>
           <span className="text-muted-foreground">{formatCost(template.build)}</span>
         </div>
-        <MemoryPanel template={template} />
+        <UsagePanel template={template} selected={selected} lang={lang} />
+        <MemoryPanel template={template} lang={lang} />
         <pre className="flex-1 overflow-auto bg-card p-4 font-mono text-xs leading-relaxed text-foreground">
           {failed ? "Couldn't load this template." : (code ?? "Loading…")}
         </pre>
       </div>
+    </div>
+  );
+}
+
+// Ops that change the array (no result to read): the range updates and every point op but pointGet.
+const UPDATE_OPS = new Set<OpId>(
+  OP_GROUPS.filter((g) => g.id === "range-updates" || g.id === "point")
+    .flatMap((g) => g.tiers.flatMap((t) => t.ops.map((o) => o.id)))
+    .filter((id) => id !== "pointGet")
+);
+
+// What each constructor argument is, by its name in the source.
+const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
+  arr: { py: "the initial array (a list), 0-indexed", cpp: "the initial array (vector<long long>), 0-indexed" },
+  a: { py: "the initial array (a list), 0-indexed", cpp: "the initial array (vector<long long>), 0-indexed" },
+  lo: { py: "smallest index (any int, negative is fine)", cpp: "smallest index (any long long, negative is fine)" },
+  hi: { py: "largest index (every index in [lo, hi] starts at 0)", cpp: "largest index (every index in [lo, hi] starts at 0)" },
+  points: {
+    py: "list of (index, value) pairs, distinct indices in [lo, hi]; every other index is 0",
+    cpp: "vector<pair<long long, long long>> of (index, value), distinct indices in [lo, hi]; every other index is 0",
+  },
+  mod: { py: "the modulus p", cpp: "the modulus p" },
+  number: { py: "the value countValue / kthOccurrence look for", cpp: "the value countValue / kthOccurrence look for" },
+  bits: { py: "values live in [0, 2^bits)", cpp: "values live in [0, 2^bits)" },
+};
+
+// "Usage": construct, then one line per selected op, each with what it returns; then the behaviors worth knowing.
+function UsagePanel({ template, selected, lang }: { template: TemplateView; selected: Set<OpId>; lang: TemplateLang }) {
+  const usage = template.usage[lang];
+  if (!usage) return null;
+  const ops = template.operations.filter((op) => selected.has(op));
+  const shown = ops.length ? ops : template.operations;
+  const cpp = lang === "cpp";
+  const cm = cpp ? "//" : "#";
+  const neededClasses = [...new Set(shown.map((op) => usage.methods[op]!.cls))].sort((a, b) => a - b);
+  const varOf = (k: number) =>
+    neededClasses.length === 1 ? "seg" : usage.classes[k].className[0].toLowerCase() + usage.classes[k].className.slice(1);
+  const typeOf = (ret = "") => ret.replace(/\bT\b/g, "long long").replace(/\bS\b/g, "long long");
+
+  const lines: { code: string; note?: string }[] = [];
+  for (const k of neededClasses) {
+    const cls = usage.classes[k];
+    const required = cls.ctor.filter((p) => p.default === undefined).map((p) => p.name);
+    const optional = cls.ctor.filter((p) => p.default !== undefined);
+    if (cpp && cls.pool)
+      lines.push({ code: `${cls.className}<long long>::resetPool();`, note: "between test cases (all trees of this type share one node pool)" });
+    lines.push({
+      code: cpp ? `${cls.className}<long long> ${varOf(k)}(${required.join(", ")});` : `${varOf(k)} = ${cls.className}(${required.join(", ")})`,
+      note: cpp ? "T = long long (int works too)" : undefined,
+    });
+    for (const n of required) if (CTOR_ARG_NOTES[n]) lines.push({ code: `${cm} ${n}: ${CTOR_ARG_NOTES[n][lang]}` });
+    for (const p of optional)
+      lines.push({
+        code: `${cm} optional: ${p.name}${cpp ? "" : "="}${cpp ? ` (default ${p.default})` : p.default}`,
+        note: CTOR_ARG_NOTES[p.name]?.[lang],
+      });
+  }
+  for (const op of shown) {
+    const m = usage.methods[op]!;
+    const call = `${varOf(m.cls)}.${op}(${m.params.join(", ")})`;
+    let code: string;
+    if (UPDATE_OPS.has(op)) code = cpp ? `${call};` : call;
+    else if (op === "rangeMode") code = cpp ? `auto [value, freq] = ${call};` : `value, freq = ${call}`;
+    else code = cpp ? `${typeOf(m.returns) || "auto"} ${op} = ${call};` : `${op} = ${call}`;
+    lines.push({ code, note: m.doc });
+  }
+  const width = Math.max(...lines.filter((l) => l.note).map((l) => l.code.length));
+
+  const sparse = template.file === "sparse";
+  const fromPoints = sparse && isBuiltFromPoints(template.memory);
+  const behavior = [
+    !sparse
+      ? "Indices are 0-based and every range [l, r] is inclusive."
+      : fromPoints
+        ? "Indices are any integers in [lo, hi] (negative is fine); ranges [l, r] are inclusive. Built from (index, value) points with distinct indices: every other index is 0 and counts as a 0 in every query."
+        : "Indices are any integers in [lo, hi] (negative is fine); ranges [l, r] are inclusive. Every index starts at 0, so untouched indices read as 0 in every query (e.g. the max of an untouched range is 0, not -inf).",
+    cpp && usage.classes.some((c) => c.pool) ? "C++ only: all trees of one type share a node pool, so call resetPool() between test cases." : "",
+    ...neededClasses.flatMap((k) => [usage.classes[k].doc, usage.classes[k].ctorDoc].filter(Boolean)),
+  ].filter(Boolean);
+
+  return (
+    <div className="border-b border-border px-4 py-3 text-xs">
+      <p className="mb-1.5 font-semibold text-foreground">Usage</p>
+      <pre className="overflow-x-auto rounded-md bg-card p-3 font-mono text-[11px] leading-relaxed text-foreground">
+        {lines.map((l, i) => (
+          <div key={i}>
+            {l.code}
+            {l.note && (
+              <span className="text-muted-foreground">
+                {" ".repeat(width - l.code.length + 2)}
+                {cm} {l.note}
+              </span>
+            )}
+          </div>
+        ))}
+      </pre>
+      <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
+        {behavior.map((b, i) => (
+          <li key={i}>{b}</li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -354,17 +454,13 @@ export function RangeQueryPicker() {
           Range Query Picker
         </h1>
         <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={toggleSparse}
-          aria-pressed={sparse}
-          title="Sparse: any index range [lo, hi] (e.g. up to 1e18), every position starting at 0 (static templates: built from (index, value) points, every other index 0)"
-          className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-            sparse ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground hover:bg-muted"
-          }`}
+        <label
+          title="Also list sparse versions: any index range [lo, hi] (e.g. up to 1e18). Templates with updates become dynamic trees where every position starts at 0; static ones are built from (index, value) points, every other index 0."
+          className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
         >
-          Sparse{sparse ? ": on" : ""}
-        </button>
+          <input type="checkbox" checked={sparse} onChange={toggleSparse} className="accent-primary" />
+          Include sparse versions
+        </label>
         <button
           type="button"
           onClick={() => setSelected(new Set())}
@@ -494,7 +590,7 @@ export function RangeQueryPicker() {
                 <ul className="mt-2 space-y-1.5">
                   {matches.map(({ template, extra, costs }, i) => {
                     return (
-                    <li key={template.folder}>
+                    <li key={`${template.folder}/${template.file}`}>
                       <button
                         type="button"
                         onClick={() => setOpenTemplate(template)}
@@ -502,7 +598,7 @@ export function RangeQueryPicker() {
                       >
                         <span className="flex items-center justify-between gap-2">
                           <span className="text-xs font-medium text-foreground">
-                            {DATA_STRUCTURE_TYPE_LABELS[template.dataStructureType]}
+                            {templateKindLabel(template)}
                           </span>
                           {i === 0 && (
                             <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
@@ -522,16 +618,13 @@ export function RangeQueryPicker() {
                         </span>
                         <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
                           <span className="block">
-                            Memory <span className="text-foreground">{formatMemory(template.memory.total)}</span>
-                            {memorySuffix(template.memory).perUpdate}
-                            {memorySuffix(template.memory).layout && ` (${memorySuffix(template.memory).layout})`}
+                            Memory <span className="text-foreground">{formatMemoryOf(template.memory, template.memory.total)}</span>
+                            {layoutLabel(template.memory) && ` (${layoutLabel(template.memory)})`}
                           </span>
                           {memoryGroups(template).map(({ id, label }) => (
                             <span key={id} className="block pl-3">
                               {label} —{" "}
-                              {id === "other"
-                                ? template.memory.other.arrays.map((a) => a.name).join(", ")
-                                : fieldCount(template.memory[id].arrays.length)}
+                              {template.memory[id].arrays.map((a) => a.name).join(", ") || "none"}
                             </span>
                           ))}
                         </span>
@@ -553,7 +646,7 @@ export function RangeQueryPicker() {
 
       {openTemplate && (
         <CodeDrawer
-          key={openTemplate.folder}
+          key={`${openTemplate.folder}/${openTemplate.file}`}
           template={openTemplate}
           selected={selected}
           onClose={() => setOpenTemplate(null)}

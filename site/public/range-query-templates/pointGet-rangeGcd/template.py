@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeGcd/template.py
 # @operations: pointGet rangeGcd
 # @data-structure-type: sparse-table
 # @complexities:

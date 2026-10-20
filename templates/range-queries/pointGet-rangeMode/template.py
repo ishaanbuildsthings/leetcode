@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeMode/template.py
 # @operations: pointGet rangeMode
 # @data-structure-type: sqrt
 # @complexities:
@@ -12,7 +14,6 @@
 #   note: blockMode/blockCnt are (N/B)^2 = N tables with B = sqrt(N); vals is the distinct values
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeMode-online.py
 
-# TEMPLATE BY https://github.com/agrawalishaan
 
 # ========================
 # COMPLEXITIES

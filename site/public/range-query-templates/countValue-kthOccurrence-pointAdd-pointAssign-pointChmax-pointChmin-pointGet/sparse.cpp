@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countValue-kthOccurrence-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/sparse.cpp
 // @operations: countValue kthOccurrence pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: BIT
 // @complexities:
@@ -7,14 +9,14 @@
 //   pointAssign: log(U)
 //   pointChmax: log(U)
 //   pointChmin: log(U)
-//   pointGet: 1
+//   pointGet: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
 //   node: cnt[1*log(U)]
 //   tags: none
-//   other: links[2*log(U)] vals[1]
-//   note: per point write, the O(logU) entries above it; position i stores [a[i] == number] - [0 == number], so the untouched store nothing; kthOccurrence descends / binary-lifts. Python: a Fenwick tree in a dict; C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
+//   other: children[2*log(U)] vals[1]
+//   note: per point write, the O(logU) entries above it; position i stores [a[i] == number] - [0 == number], so the untouched store nothing; kthOccurrence descends / binary-lifts. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
 
 // Count / find the k-th occurrence of one value (fixed at build time) in a range, with point updates, over any index
 // range [lo, hi] (huge or negative is fine); every position starts at 0. An index counts if a[i] == number; untouched
@@ -23,7 +25,7 @@
 // shared by every SparseCountValueBIT<T>. T: any type with ==.
 template <typename T>
 struct SparseCountValueBIT {
-    struct Node { long long f; int l, r; };  // f: total of the stored changes under the node
+    struct Node { long long f; T v; int l, r; };  // f: total of the stored changes under the node; v: a leaf's value
     static inline vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
     long long lo, hi;
     int root = 0;
@@ -60,6 +62,38 @@ struct SparseCountValueBIT {
         }
     }
 
+    // O(logU) -- the leaf of position i, created with its root path if missing
+    int leafOf(long long i) {
+        if (!root) root = make();
+        int y = root;
+        long long a = lo, b = hi;
+        while (a < b) {
+            long long m = a + (b - a) / 2;
+            bool right = i > m;
+            int c = right ? pool[y].r : pool[y].l;
+            if (!c) {
+                c = make();
+                (right ? pool[y].r : pool[y].l) = c;
+            }
+            y = c;
+            if (right) a = m + 1;
+            else b = m;
+        }
+        return y;
+    }
+
+    // O(logU) -- a[i]: its leaf's value (0 if never written)
+    T valueAt(long long i) const {
+        int y = root;
+        long long a = lo, b = hi;
+        while (y && a < b) {
+            long long m = a + (b - a) / 2;
+            if (i <= m) y = pool[y].l, b = m;
+            else y = pool[y].r, a = m + 1;
+        }
+        return pool[y].v;
+    }
+
     // O(logU) -- total of the changes at positions lo..i (0 for i < lo)
     long long prefix(long long i) const {
         long long s = 0;
@@ -76,7 +110,6 @@ struct SparseCountValueBIT {
 
     T number;
     long long z;
-    unordered_map<long long, T> vals;  // nonzero values only
 
     // O(1) -- all zeros over [lo, hi]
     SparseCountValueBIT(long long lo, long long hi, T number) : lo(lo), hi(hi), number(number), z(number == T(0)) {}
@@ -102,17 +135,13 @@ struct SparseCountValueBIT {
 
     // O(logU) -- a[i] = v
     void pointAssign(long long i, T v) {
-        long long diff = (long long)(v == number) - (long long)(pointGet(i) == number);
-        if (v != T(0)) vals[i] = v;
-        else vals.erase(i);
+        long long diff = (long long)(v == number) - (long long)(valueAt(i) == number);
         if (diff) add(i, diff);
+        pool[leafOf(i)].v = v;
     }
 
-    // O(1) expected -- a[i]
-    T pointGet(long long i) const {
-        auto it = vals.find(i);
-        return it == vals.end() ? T(0) : it->second;
-    }
+    // a[i]
+    T pointGet(long long i) const { return valueAt(i); }
 
     // a[i] += delta
     void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }

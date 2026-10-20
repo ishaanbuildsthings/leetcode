@@ -10,6 +10,8 @@ tag per node (None: none).
 """
 import os
 
+from note_lang import write_template
+
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 PLAIN = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 MOD_POINT = ["pointAdd", "pointAssign", "pointGet"]
@@ -331,8 +333,8 @@ def write(s):
     path = os.path.join(DIR, folder)
     assert os.path.isdir(path), folder
     note = s["note"] + POOL_NOTE
-    open(os.path.join(path, "sparse.py"), "w").write(header("#", ops, s.get("comp", {}), s["mem"], note) + py(s))
-    open(os.path.join(path, "sparse.cpp"), "w").write(header("//", ops, s.get("comp", {}), s["mem"], note) + cpp(s))
+    write_template(os.path.join(path, "sparse.py"), header("#", ops, s.get("comp", {}), s["mem"], note) + py(s))
+    write_template(os.path.join(path, "sparse.cpp"), header("//", ops, s.get("comp", {}), s["mem"], note) + cpp(s))
     print("wrote", folder)
 
 
@@ -348,7 +350,7 @@ write({
     "name": "SparseClampTree", "ops": PLAIN + ["rangeAdd", "rangeAssign", "rangeChmax", "rangeChmin"], "point": "plain",
     "desc": ["Range add / assign / chmin / chmax + point ops. A tag is the map x -> min(hi, max(lo, x + add)); these",
              "maps compose into the same form (assign v is hi = lo = v). Only leaves' values matter, so nothing is pulled."],
-    "mem": ("v[4*log(U)]", "hi[4*log(U)] lo[4*log(U)] add[4*log(U)]", "links[8*log(U)]"),
+    "mem": ("v[4*log(U)]", "hi[4*log(U)] lo[4*log(U)] add[4*log(U)]", "children[8*log(U)]"),
     "note": VISIT + "a leaf's value is v (internal nodes keep no aggregate). ",
     "cpp": {
         "types": "    static constexpr T INF = numeric_limits<T>::max(), NEG = numeric_limits<T>::lowest();\n",
@@ -380,7 +382,7 @@ write({
     "desc": ["Range and= / or= / xor= + point ops. Every update is a bit map v -> (v & a) ^ x (and X = (X, 0),",
              "or X = (~X, X), xor X = (all ones, X)), and these maps compose into the same form. Only leaves' values",
              "matter, so nothing is pulled."],
-    "mem": ("v[4*log(U)]", "a[4*log(U)] x[4*log(U)]", "links[8*log(U)]"),
+    "mem": ("v[4*log(U)]", "a[4*log(U)] x[4*log(U)]", "children[8*log(U)]"),
     "note": VISIT + "a leaf's value is v (internal nodes keep no aggregate). ",
     "cpp": {
         "agg": "T v;", "tag": "T a, x;  // v -> (v & a) ^ x", "ident": "Tag{T(-1), 0}", "is_id": "t.a == T(-1) && t.x == 0",
@@ -411,7 +413,7 @@ write({
              "Each node counts, for every bit, how many of its values have that bit set. Every update is a bit map",
              "v -> (v & a) ^ x, and per bit that is keep, force 0 (count = 0), force 1, or flip (count = length - count),",
              "so every update is an ordinary lazy tag. Sum = sum over bits of count * 2^bit."],
-    "mem": ("cnt[4*log(U)*log(U)]", "a[4*log(U)] x[4*log(U)]", "links[8*log(U)]"),
+    "mem": ("cnt[4*log(U)*log(U)]", "a[4*log(U)] x[4*log(U)]", "children[8*log(U)]"),
     "note": VISIT + "every node keeps BITS counts (BITS = 20, the second log); ",
     "cpp": {
         "types": "    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n"
@@ -457,7 +459,7 @@ write({
              "rangeGcd": "log(U) ?"},
     "desc": ["Range assign + range gcd, plus point ops. Gcds are of |values|. A leaf keeps its value, an internal node",
              "the gcd of |values| below it, and a node assigned v has gcd |v|, so assign is an ordinary lazy tag."],
-    "mem": ("g[4*log(U)]", "asg[4*log(U)] hasAsg[4*log(U)]", "links[8*log(U)]"),
+    "mem": ("g[4*log(U)]", "asg[4*log(U)] hasAsg[4*log(U)]", "children[8*log(U)]"),
     "note": VISIT + "the gcd costs' second log is of the largest value. ",
     "cpp": {
         "agg": "T g;  // a leaf: its value; internal: gcd of |values| below", "tag": "T asg; bool has;",
@@ -486,7 +488,7 @@ write({
     "desc": ["Range assign with range sum and max prefix / suffix / subarray sum (non-empty pieces), plus point ops.",
              "A node assigned v over k slots is fully known: sum v * k, and its best prefix / suffix / subarray are",
              "v * k if v > 0, else v. A block of zeros summarizes to all zeros. Merging is not commutative."],
-    "mem": ("sm[4*log(U)] pre[4*log(U)] suf[4*log(U)] best[4*log(U)]", "asg[4*log(U)] hasAsg[4*log(U)]", "links[8*log(U)]"),
+    "mem": ("sm[4*log(U)] pre[4*log(U)] suf[4*log(U)] best[4*log(U)]", "asg[4*log(U)] hasAsg[4*log(U)]", "children[8*log(U)]"),
     "note": VISIT,
     "cpp": {
         "types": "    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n",
@@ -533,7 +535,7 @@ for with_sum in (True, False):
                  "plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into",
                  "the same form" + (", and a node's sum of k slots becomes mul * sum + add * k." if with_sum
                                     else ". Only leaves' values matter, so nothing is pulled.")],
-        "mem": ("sm[4*log(U)]", "mul[4*log(U)] add[4*log(U)]", "links[8*log(U)]"),
+        "mem": ("sm[4*log(U)]", "mul[4*log(U)] add[4*log(U)]", "children[8*log(U)]"),
         "note": VISIT + ("" if with_sum else "a leaf's value is sm (internal nodes keep no aggregate). "),
         "cpp": {
             "types": MOD_TYPES, "agg": "T sm;", "tag": "T mul, add;  // x -> mul * x + add", "ident": "Tag{1, 0}",
@@ -562,7 +564,7 @@ write({
     "desc": ["Range mult with range sum, all mod p, plus point ops. Values are residues in [0, mod). A tag is a pending",
              "multiplier; a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a",
              "modular inverse at point writes, and a multiplier can be 0.)"],
-    "mem": ("sm[4*log(U)]", "mul[4*log(U)]", "links[8*log(U)]"),
+    "mem": ("sm[4*log(U)]", "mul[4*log(U)]", "children[8*log(U)]"),
     "note": VISIT,
     "cpp": {
         "types": MOD_TYPES, "agg": "T sm;", "tag": "T mul;", "ident": "Tag{1}", "is_id": "t.mul == 1", "helpers": MOD_HELP,

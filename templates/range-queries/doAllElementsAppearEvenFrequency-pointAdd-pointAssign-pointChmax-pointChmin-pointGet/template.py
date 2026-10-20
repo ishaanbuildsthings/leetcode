@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/doAllElementsAppearEvenFrequency-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
 # @operations: doAllElementsAppearEvenFrequency pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: BIT
 # @complexities:
@@ -12,16 +14,20 @@
 #   layout: none
 #   node: bit[1*N]
 #   tags: none
-#   other: vals[1*N] a[1*N] tag[1*N]
-#   note: a holds each index's random hash; tag maps each distinct value to its hash
+#   other: vals[1*N] a[1*N]
+#   note: a holds each index's tag; a value's tag is splitmix64(value ^ seed), a keyed hash with a random per-run seed, so there is no value -> tag table
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/xorHashing_allEven_withUpdates.py
 
 from random import getrandbits
 
+MASK = (1 << 64) - 1
+
 
 class XorEven:
     # Range "is every value's count even?" via XOR hashing.
-    # Each distinct value gets a random 64-bit tag. XOR over a range cancels tags
+    # Each distinct value gets a 64-bit tag, splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a
+    # random per-run seed, so equal values share a tag, distinct ints never collide, and no table is needed.
+    # XOR over a range cancels tags
     # in pairs, so an all-even range hashes to 0. False positives (nonzero counts
     # that happen to cancel) have probability ~q/2^64.
     # XOR is invertible, so a Fenwick tree suffices — no segment tree needed.
@@ -30,7 +36,7 @@ class XorEven:
     def __init__(self, arr):
         self.vals = list(arr)
         self.n = n = len(arr)
-        self.tag = {}
+        self.seed = getrandbits(64)
         self.a = [self._tagOf(v) for v in arr]
         # O(n) build: seed the tree, then push each node into its parent
         bit = [0] * (n + 1)
@@ -42,12 +48,13 @@ class XorEven:
                 bit[j] ^= bit[i]
         self.bit = bit
 
-    # O(1) amortized — random tag for a value, minted on first sight
+    # O(1) — the value's tag: splitmix64(v ^ seed). Ints are used as-is (hash(-1) == hash(-2) in CPython)
     def _tagOf(self, v):
-        t = self.tag.get(v)
-        if t is None:
-            t = self.tag[v] = getrandbits(64)
-        return t
+        z = ((v if type(v) is int else hash(v)) & MASK) ^ self.seed
+        z = (z + 0x9E3779B97F4A7C15) & MASK
+        z = ((z ^ (z >> 30)) * 0xBF58476D1CE4E5B9) & MASK
+        z = ((z ^ (z >> 27)) * 0x94D049BB133111EB) & MASK
+        return z ^ (z >> 31)
 
     # O(log n) — assign position i the value val (overwrite, not add)
     def pointAssign(self, i, val):

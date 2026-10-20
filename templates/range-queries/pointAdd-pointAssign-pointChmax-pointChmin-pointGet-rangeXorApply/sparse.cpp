@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeXorApply/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeXorApply
 // @data-structure-type: BIT
 // @complexities:
@@ -12,8 +14,8 @@
 //   layout: sparse
 //   node: d[2*log(U)]
 //   tags: none
-//   other: links[4*log(U)]
-//   note: per update, the O(logU) entries above each changed position; a range xor changes two xor-differences. Python: a Fenwick tree in a dict (no links); C++: a dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
+//   other: children[4*log(U)]
+//   note: per update, the O(logU) entries above each changed position; a range xor changes two xor-differences. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
 
 // Range xor, point get: prefix xors of the xor-difference array d[i] = a[i] ^ a[i - 1].
 // Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic

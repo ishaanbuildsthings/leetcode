@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign/template.cpp
 // @operations: countOccurrences pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign
 // @data-structure-type: sqrt
 // @complexities:
@@ -21,13 +23,23 @@
 // Sqrt decomposition: each block keeps its stored values, a value -> count table of them, and one pending tag
 // "value = (asg if assigned else stored) + add". A whole block answers a count from its table in O(1): look up
 // x - add (or compare x to asg + add when the block is assigned). A partial block bakes its tag in, edits the few
-// slots it covers, and patches its table one slot at a time. T: int, long long, ... (hashable, with + and -).
+// slots it covers, and patches its table one slot at a time. T: int, long long, ... (an integer type: the tables hash it).
 template <typename T>
 struct SqrtOccurrences {
+    // splitmix64 with a random per-run offset: anti-hash tests can't predict buckets, so tables stay O(1)
+    struct SafeHash {
+        size_t operator()(const T& x) const {
+            static const unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count();
+            unsigned long long z = (unsigned long long)x + seed + 0x9e3779b97f4a7c15ULL;
+            z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+            z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+            return z ^ (z >> 31);
+        }
+    };
     int n, B, nb;
     vector<T> vals, add, asg;
     vector<char> hasAsg;
-    vector<unordered_map<T, int>> cnt;
+    vector<unordered_map<T, int, SafeHash>> cnt;
 
     // O(N)
     explicit SqrtOccurrences(const vector<T>& a) : n((int)a.size()), vals(a) {
@@ -50,7 +62,7 @@ struct SqrtOccurrences {
             cnt[b].clear(), cnt[b][v] = hi(b) - lo(b) + 1;
         } else {
             for (int i = lo(b); i <= hi(b); i++) vals[i] += add[b];
-            unordered_map<T, int> shifted;
+            unordered_map<T, int, SafeHash> shifted;
             shifted.reserve(cnt[b].size());
             for (auto& [k, c] : cnt[b]) shifted[k + add[b]] = c;
             cnt[b].swap(shifted);

@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod-rangeSum/template.py
 # @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeSum
 # @data-structure-type: beats
 # @complexities:
@@ -22,8 +24,6 @@
 #   note: no tag arrays: an assigned range is a uniform node (max == min) and is pushed to children as such
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-Mod-Sum-FloorDiv-Sqrt-Min-Max-Assign.py
 
-# TEMPLATE BY https://github.com/agrawalishaan
-#
 # ========================
 # COMPLEXITIES
 #

@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
 // @data-structure-type: seg-tree
 // @complexities:
@@ -13,8 +15,8 @@
 //   layout: sparse
 //   node: sum[2*log(U)] g[2*log(U)]
 //   tags: none
-//   other: links[4*log(U)]
-//   note: per range add, the two root paths of the differences it changes; one tree over the differences keeps their sum (prefix sums are point values) and gcd; the gcd costs' second log is of the largest value. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: dicts keyed by heap index
+//   other: children[4*log(U)]
+//   note: per range add, the two root paths of the differences it changes; one tree over the differences keeps their sum (prefix sums are point values) and gcd; the gcd costs' second log is of the largest value. One shared node pool (node 0 = all zeros), call resetPool() between test cases
 
 // Range add + range gcd + point ops over any index range [lo, hi] (huge or negative is fine); every position
 // starts at 0. gcd(a[l], ..., a[r]) == gcd(a[l], a[l+1] - a[l], ..., a[r] - a[r-1]), and a range add only changes

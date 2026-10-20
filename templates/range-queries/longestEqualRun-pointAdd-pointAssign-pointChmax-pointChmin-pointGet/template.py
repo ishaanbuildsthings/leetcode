@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
 # @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: seg-tree
 # @complexities:

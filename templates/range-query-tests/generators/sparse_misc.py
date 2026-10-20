@@ -4,6 +4,8 @@
 """
 import os
 
+from note_lang import write_template
+
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 
 
@@ -20,8 +22,8 @@ def write(folder, comp, mem, note, py, cpp, dtype="seg-tree"):
     ops = folder.split("__")[0].split("-")
     path = os.path.join(DIR, folder)
     assert os.path.isdir(path), folder
-    open(os.path.join(path, "sparse.py"), "w").write(header("#", ops, comp, mem, note, dtype) + py)
-    open(os.path.join(path, "sparse.cpp"), "w").write(header("//", ops, comp, mem, note, dtype) + cpp)
+    write_template(os.path.join(path, "sparse.py"), header("#", ops, comp, mem, note, dtype) + py)
+    write_template(os.path.join(path, "sparse.cpp"), header("//", ops, comp, mem, note, dtype) + cpp)
     print("wrote", folder)
 
 
@@ -235,7 +237,7 @@ GCD_WRITE = "log(U)*log(U) ?"
 write("pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd",
       {"pointAdd": GCD_WRITE, "pointAssign": GCD_WRITE, "pointChmax": GCD_WRITE, "pointChmin": GCD_WRITE,
        "rangeAdd": GCD_WRITE, "rangeGcd": "log(U) ?"},
-      ("sum[2*log(U)] g[2*log(U)]", "none", "links[4*log(U)]"),
+      ("sum[2*log(U)] g[2*log(U)]", "none", "children[4*log(U)]"),
       "per range add, the two root paths of the differences it changes; one tree over the differences keeps their "
       "sum (prefix sums are point values) and gcd; the gcd costs' second log is of the largest value. C++: one shared "
       "node pool (node 0 = all zeros), call resetPool() between test cases; Python: dicts keyed by heap index",

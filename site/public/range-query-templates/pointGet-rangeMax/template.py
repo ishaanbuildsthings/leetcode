@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeMax/template.py
 # @operations: pointGet rangeMax
 # @data-structure-type: sparse-table
 # @complexities:

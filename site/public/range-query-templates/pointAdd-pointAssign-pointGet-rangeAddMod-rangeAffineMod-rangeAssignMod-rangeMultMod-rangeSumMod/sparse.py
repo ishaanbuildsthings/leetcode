@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod-rangeSumMod/sparse.py
 # @operations: pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeSumMod
 # @data-structure-type: lazy-seg-tree
 # @complexities:
@@ -14,8 +16,8 @@
 #   layout: sparse
 #   node: sm[4*log(U)]
 #   tags: mul[4*log(U)] add[4*log(U)]
-#   other: links[8*log(U)]
-#   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes
+#   other: children[8*log(U)]
+#   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Lists of nodes
 
 # Range affine maps mod p (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v) with range sum mod p,
 # plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into

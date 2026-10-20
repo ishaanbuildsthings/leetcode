@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
 // @operations: countDistinct pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: BIT
 // @complexities:
@@ -13,7 +15,7 @@
 //   node: sets[1*N*log(N)] last[1*N]
 //   tags: none
 //   other: a[1*N] nxt[1*N] chains[1*N]
-//   note: Fenwick node j keeps an ordered set of the nxt values in its lowbit(j) positions, about N*log(N)/2 keys in all; those are balanced-tree / bucket entries, several times heavier than a plain int (measured ~100 MB peak in C++ at N = 2e5)
+//   note: Fenwick node j keeps an ordered set of the nxt values in its lowbit(j) positions, about N*log(N)/2 keys in all; those are balanced-tree / bucket entries, several times heavier than a plain int; measured ~100 MB peak at N = 2e5
 
 // Range count distinct with point updates in O(log^2 N), online. All indices 0-based, ranges inclusive [l, r].
 // nxt[i] = next j > i with a[j] == a[i], else n. a[l..r] has one distinct value per position whose next occurrence

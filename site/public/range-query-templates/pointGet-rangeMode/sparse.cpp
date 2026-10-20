@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeMode/sparse.cpp
 // @operations: pointGet rangeMode
 // @data-structure-type: sqrt
 // @complexities:

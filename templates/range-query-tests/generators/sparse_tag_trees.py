@@ -13,6 +13,8 @@ Every position of [lo, hi] starts at 0 and only nodes that updates reach exist.
 """
 import os
 
+from note_lang import write_template
+
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 PLAIN = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 MOD_POINT = ["pointAdd", "pointAssign", "pointGet"]
@@ -32,12 +34,12 @@ def write(ops, comp, mem, note, py, cpp):
     folder = "-".join(ops)
     path = os.path.join(DIR, folder)
     assert os.path.isdir(path), folder
-    open(os.path.join(path, "sparse.py"), "w").write(header("#", ops, comp, mem, note) + py)
-    open(os.path.join(path, "sparse.cpp"), "w").write(header("//", ops, comp, mem, note) + cpp)
+    write_template(os.path.join(path, "sparse.py"), header("#", ops, comp, mem, note) + py)
+    write_template(os.path.join(path, "sparse.cpp"), header("//", ops, comp, mem, note) + cpp)
     print("wrote", folder)
 
 
-TAG_MEM = ("none", "tag[4*log(U)]", "links[8*log(U)]")
+TAG_MEM = ("none", "tag[4*log(U)]", "children[8*log(U)]")
 TAG_NOTE = ("per update, the nodes a range update visits (at most 4 per level; a point write creates its path and "
             "the path's siblings); a node's one field is its pending tag, or at a leaf its value. C++: one shared "
             "node pool, call resetPool() between test cases; Python: a dict keyed by heap index")
@@ -491,10 +493,10 @@ struct SparseRangeAssignTree {
     void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
 };
 '''
-write(PLAIN + ["rangeAssign"], {}, ("none", "stamp[4*log(U)] val[4*log(U)]", "links[8*log(U)]"),
+write(PLAIN + ["rangeAssign"], {}, ("none", "stamp[4*log(U)] val[4*log(U)]", "children[8*log(U)]"),
       "per update, the nodes a range update visits (at most 4 per level), each remembering the newest assignment "
-      "covering it; Python stores only the covering nodes (point assign is O(1) there). C++: one shared node pool, "
-      "call resetPool() between test cases; Python: a dict keyed by heap index", ASSIGN_PY, ASSIGN_CPP)
+      "covering it. C++: one shared node pool, call resetPool() between test cases; Python: a dict keyed by heap "
+      "index, storing only the covering nodes (so point assign is O(1))", ASSIGN_PY, ASSIGN_CPP)
 
 
 # ---------------------------------------------------------------- rangeMod: a max tree that descends
@@ -682,7 +684,7 @@ struct SparseRangeModTree {
     void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
 };
 '''
-write(PLAIN + ["rangeMod"], {"rangeMod": "log(U)*log(U) amortized"}, ("mx[1*log(U)]", "none", "links[2*log(U)]"),
+write(PLAIN + ["rangeMod"], {"rangeMod": "log(U)*log(U) amortized"}, ("mx[1*log(U)]", "none", "children[2*log(U)]"),
       "per point write, one node per level of its path (rangeMod creates nothing); rangeMod's second log is of the "
       "largest value. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: a "
       "dict keyed by heap index, a missing key is a block of zeros", MOD_PY, MOD_CPP)

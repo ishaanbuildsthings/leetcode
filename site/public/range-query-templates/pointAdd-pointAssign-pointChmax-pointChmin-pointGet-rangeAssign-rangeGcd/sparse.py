@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeGcd/sparse.py
 # @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd
 # @data-structure-type: lazy-seg-tree
 # @complexities:
@@ -13,8 +15,8 @@
 #   layout: sparse
 #   node: g[4*log(U)]
 #   tags: asg[4*log(U)] hasAsg[4*log(U)]
-#   other: links[8*log(U)]
-#   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. the gcd costs' second log is of the largest value. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: lists of nodes
+#   other: children[8*log(U)]
+#   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. the gcd costs' second log is of the largest value. Lists of nodes
 
 from math import gcd
 

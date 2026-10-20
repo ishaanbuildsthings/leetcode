@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeMax-rangeSum/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeSum
 // @data-structure-type: lazy-seg-tree
 // @complexities:
@@ -14,8 +16,8 @@
 //   layout: sparse
 //   node: sm[4*log(U)] mx[4*log(U)]
 //   tags: asg[4*log(U)] hasAsg[4*log(U)]
-//   other: links[8*log(U)]
-//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. C++: one shared node pool (node 0 = all zeros), call resetPool() between test cases; Python: parallel lists
+//   other: children[8*log(U)]
+//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases
 
 // Range assign with range sum / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
 // The tag is a pending assign.

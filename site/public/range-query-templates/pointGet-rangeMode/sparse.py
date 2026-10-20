@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeMode/sparse.py
 # @operations: pointGet rangeMode
 # @data-structure-type: sqrt
 # @complexities:
@@ -10,8 +12,6 @@
 #   tags: none
 #   other: idx[1*N] vals[1*N] zc[1*N] comp[1*N] positions[1*N] posIdx[1*N]
 #   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the sqrt mode structure is over the points only; 0's frequency is the zeros of [l, r] plus the points holding 0 (zc), and it wins whenever it is at least the points' mode frequency
-# TEMPLATE BY https://github.com/agrawalishaan
-
 # ========================
 # COMPLEXITIES
 

@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/allDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
 # @operations: allDistinct pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: seg-tree
 # @complexities:
@@ -7,114 +9,18 @@
 #   pointChmax: log(N)
 #   pointChmin: log(N)
 #   pointGet: 1
-#   build: N
+#   build: N*log(N)
 # @memory:
 #   layout: 2n-iterative
 #   node: tree[2*N]
 #   tags: none
 #   other: a[1*N] chains[1*N]
-#   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (C++: std::set; Python: a bucketed SortedList (below), so each change is a few binary searches plus a C-level shift of at most 1024 elements)
+#   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (a bucketed SortedList, defined at the top of the file, so each change is a few binary searches plus a C-level shift of at most 1024 elements); the build is O(N): a dict groups the positions, already in order
 
 from bisect import bisect_left, bisect_right, insort
 
-# "Are all values in a[l..r] distinct?" with point updates. All indices 0-based, ranges inclusive [l, r].
-# nxt[i] = next j > i with a[j] == a[i], else n. a[l..r] has a repeat iff some i in [l, r] has nxt[i] <= r,
-# so it is all distinct iff min(nxt[l..r]) > r: one min query on an iterative 2N tree.
-# An assign changes at most 3 nxt values: i's old predecessor, i's new predecessor, and i itself.
 
-
-class DistinctTree:
-    __slots__ = ("n", "a", "tree", "chains")
-
-    # O(N)
-    def __init__(self, arr):
-        n = self.n = len(arr)
-        self.a = list(arr)
-        tree = self.tree = [0] * (2 * n)
-        positions = {}
-        for i, v in enumerate(arr):
-            if v in positions:
-                positions[v].append(i)
-            else:
-                positions[v] = [i]
-        for p in positions.values():
-            for k in range(len(p) - 1):
-                tree[n + p[k]] = p[k + 1]
-            tree[n + p[-1]] = n
-        self.chains = {v: SortedList(p) for v, p in positions.items()}
-        for x in range(n - 1, 0, -1):
-            tree[x] = tree[2 * x] if tree[2 * x] < tree[2 * x + 1] else tree[2 * x + 1]
-
-    # O(logN) -- nxt[i] = v
-    def _setNxt(self, i, v):
-        tree = self.tree
-        p = i + self.n
-        tree[p] = v
-        p >>= 1
-        while p:
-            a, b = tree[2 * p], tree[2 * p + 1]
-            tree[p] = a if a < b else b
-            p >>= 1
-
-    # O(logN) -- true iff no value repeats inside a[l..r]
-    def allDistinct(self, l, r):
-        tree = self.tree
-        lo, hi = l + self.n, r + self.n + 1
-        while lo < hi:
-            if lo & 1:
-                if tree[lo] <= r:
-                    return False
-                lo += 1
-            if hi & 1:
-                hi -= 1
-                if tree[hi] <= r:
-                    return False
-            lo >>= 1
-            hi >>= 1
-        return True
-
-    # O(logN) -- a[i] = val
-    def pointAssign(self, i, val):
-        old = self.a[i]
-        if old == val:
-            return
-        n, chains = self.n, self.chains
-        chain = chains[old]
-        p, s = chain.pred(i), chain.succ(i)
-        if p is not None:
-            self._setNxt(p, n if s is None else s)
-        chain.remove(i)
-        if not len(chain):
-            del chains[old]
-        chain = chains.get(val)
-        if chain is None:
-            chain = chains[val] = SortedList()
-        chain.add(i)
-        p, s = chain.pred(i), chain.succ(i)
-        self._setNxt(i, n if s is None else s)
-        if p is not None:
-            self._setNxt(p, i)
-        self.a[i] = val
-
-    # O(1) -- a[i]
-    def pointGet(self, i):
-        return self.a[i]
-
-    # O(logN) -- a[i] += delta
-    def pointAdd(self, i, delta):
-        self.pointAssign(i, self.a[i] + delta)
-
-    # O(logN) -- a[i] = max(a[i], val)
-    def pointChmax(self, i, val):
-        if val > self.a[i]:
-            self.pointAssign(i, val)
-
-    # O(logN) -- a[i] = min(a[i], val)
-    def pointChmin(self, i, val):
-        if val < self.a[i]:
-            self.pointAssign(i, val)
-
-
+# SortedList: a self-contained sorted container (no sortedcontainers import needed), used by the class below.
 class SortedList:
     """Sorted list of ints kept in buckets of LOAD..2*LOAD. An add / remove is a binary search over the bucket maxima,
     one inside a bucket, and a C-level shift of at most 2*LOAD elements; pred / succ are two binary searches. A Fenwick
@@ -213,3 +119,100 @@ class SortedList:
             s += fen[i - 1]
             i &= i - 1
         return s + bisect_left(self.lists[k], x)
+
+# "Are all values in a[l..r] distinct?" with point updates. All indices 0-based, ranges inclusive [l, r].
+# nxt[i] = next j > i with a[j] == a[i], else n. a[l..r] has a repeat iff some i in [l, r] has nxt[i] <= r,
+# so it is all distinct iff min(nxt[l..r]) > r: one min query on an iterative 2N tree.
+# An assign changes at most 3 nxt values: i's old predecessor, i's new predecessor, and i itself.
+
+
+class DistinctTree:
+    __slots__ = ("n", "a", "tree", "chains")
+
+    # O(N)
+    def __init__(self, arr):
+        n = self.n = len(arr)
+        self.a = list(arr)
+        tree = self.tree = [0] * (2 * n)
+        positions = {}
+        for i, v in enumerate(arr):
+            if v in positions:
+                positions[v].append(i)
+            else:
+                positions[v] = [i]
+        for p in positions.values():
+            for k in range(len(p) - 1):
+                tree[n + p[k]] = p[k + 1]
+            tree[n + p[-1]] = n
+        self.chains = {v: SortedList(p) for v, p in positions.items()}
+        for x in range(n - 1, 0, -1):
+            tree[x] = tree[2 * x] if tree[2 * x] < tree[2 * x + 1] else tree[2 * x + 1]
+
+    # O(logN) -- nxt[i] = v
+    def _setNxt(self, i, v):
+        tree = self.tree
+        p = i + self.n
+        tree[p] = v
+        p >>= 1
+        while p:
+            a, b = tree[2 * p], tree[2 * p + 1]
+            tree[p] = a if a < b else b
+            p >>= 1
+
+    # O(logN) -- true iff no value repeats inside a[l..r]
+    def allDistinct(self, l, r):
+        tree = self.tree
+        lo, hi = l + self.n, r + self.n + 1
+        while lo < hi:
+            if lo & 1:
+                if tree[lo] <= r:
+                    return False
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                if tree[hi] <= r:
+                    return False
+            lo >>= 1
+            hi >>= 1
+        return True
+
+    # O(logN) -- a[i] = val
+    def pointAssign(self, i, val):
+        old = self.a[i]
+        if old == val:
+            return
+        n, chains = self.n, self.chains
+        chain = chains[old]
+        p, s = chain.pred(i), chain.succ(i)
+        if p is not None:
+            self._setNxt(p, n if s is None else s)
+        chain.remove(i)
+        if not len(chain):
+            del chains[old]
+        chain = chains.get(val)
+        if chain is None:
+            chain = chains[val] = SortedList()
+        chain.add(i)
+        p, s = chain.pred(i), chain.succ(i)
+        self._setNxt(i, n if s is None else s)
+        if p is not None:
+            self._setNxt(p, i)
+        self.a[i] = val
+
+    # O(1) -- a[i]
+    def pointGet(self, i):
+        return self.a[i]
+
+    # O(logN) -- a[i] += delta
+    def pointAdd(self, i, delta):
+        self.pointAssign(i, self.a[i] + delta)
+
+    # O(logN) -- a[i] = max(a[i], val)
+    def pointChmax(self, i, val):
+        if val > self.a[i]:
+            self.pointAssign(i, val)
+
+    # O(logN) -- a[i] = min(a[i], val)
+    def pointChmin(self, i, val):
+        if val < self.a[i]:
+            self.pointAssign(i, val)

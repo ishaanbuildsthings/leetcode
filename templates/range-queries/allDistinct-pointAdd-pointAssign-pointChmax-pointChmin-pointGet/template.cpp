@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/allDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
 // @operations: allDistinct pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: seg-tree
 // @complexities:
@@ -7,13 +9,13 @@
 //   pointChmax: log(N)
 //   pointChmin: log(N)
 //   pointGet: 1
-//   build: N
+//   build: N*log(N)
 // @memory:
 //   layout: 2n-iterative
 //   node: tree[2*N]
 //   tags: none
 //   other: a[1*N] chains[1*N]
-//   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (C++: std::set; Python: a bucketed SortedList (below), so each change is a few binary searches plus a C-level shift of at most 1024 elements)
+//   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (std::set); the build is O(N log N), one std::map lookup per element
 
 // "Are all values in a[l..r] distinct?" with point updates. All indices 0-based, ranges inclusive [l, r].
 // nxt[i] = next j > i with a[j] == a[i], else n. a[l..r] has a repeat iff some i in [l, r] has nxt[i] <= r,
@@ -27,9 +29,13 @@ struct DistinctTree {
     vector<int> tree;          // min tree over nxt; leaves are tree[n + i] = nxt[i]
     map<T, set<int>> chains;   // value -> sorted positions holding it
 
-    // O(N log N)
+    // O(N log N) -- one std::map lookup per element (positions arrive in increasing order, so each set insert is an
+    // amortized O(1) hint insert at the end)
     explicit DistinctTree(const vector<T>& arr) : n((int)arr.size()), a(arr), tree(2 * arr.size()) {
-        for (int i = 0; i < n; i++) chains[arr[i]].insert(i);
+        for (int i = 0; i < n; i++) {
+            set<int>& s = chains[arr[i]];
+            s.emplace_hint(s.end(), i);
+        }
         for (auto& [v, s] : chains) {
             int prev = -1;
             for (int i : s) {
