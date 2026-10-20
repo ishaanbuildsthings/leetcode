@@ -42,7 +42,7 @@ class SparseSumTree:
             t[p] = a + b
             p >>= 1
 
-    # O(logU) -- fold of a[l..r]
+    # O(logU) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         t, res = self.t, 0
         l += self.size - self.lo

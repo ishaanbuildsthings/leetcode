@@ -62,6 +62,7 @@ class MinSegTree:
             r >>= 1
         return ans
 
+    # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r):
         return self._queryHalfOpen(l, r + 1)
 

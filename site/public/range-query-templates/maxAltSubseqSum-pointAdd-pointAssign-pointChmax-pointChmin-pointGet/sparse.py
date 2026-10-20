@@ -86,7 +86,7 @@ class SparseAltSumTree:
             return left
         return self._merge(left, right)
 
-    # O(logU)
+    # O(logU) -- best alternating sum +x - y + z ... over the non-empty subsequences of a[l..r]
     def maxAltSubseqSum(self, l, r):
         res = self._query(l, r)
         return max(res[0], res[1])

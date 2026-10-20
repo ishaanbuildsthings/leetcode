@@ -52,6 +52,7 @@ class MonoIncreaseCost:
             self.sp.append(cur)
             j += 1
 
+    # O(1) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         return self.pf[r + 1] - self.pf[l] if r >= l else 0
 
@@ -61,6 +62,7 @@ class MonoIncreaseCost:
         b = self.sp[j][r - (1 << j) + 1]
         return a if self.arr[a] >= self.arr[b] else b
 
+    # O(1) -- min +1 increments to make a[l..r] non-decreasing
     def costMonoIncreasing(self, l, r):
         """Min increments to make arr[l..r] non-decreasing. O(1)."""
         m = self.argMax(l, r)

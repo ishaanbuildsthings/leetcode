@@ -43,7 +43,7 @@ class SparseMaxTree:
             t[p] = a if a > b else b
             p >>= 1
 
-    # O(logU) -- fold of a[l..r]
+    # O(logU) -- max of a[l..r]
     def rangeMax(self, l, r):
         t, res = self.t, NEG
         l += self.size - self.lo

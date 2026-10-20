@@ -899,7 +899,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "min +1 increments to make a[l..r] non-decreasing",
             "cls": 0
           },
           "pointGet": {
@@ -914,7 +914,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] + ... + a[r]",
             "cls": 0
           }
         }
@@ -2601,7 +2601,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "i",
               "newVal"
             ],
-            "doc": "",
+            "doc": "a[i] = newVal",
             "cls": 0
           },
           "pointChmax": {
@@ -2624,7 +2624,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "i"
             ],
-            "doc": "",
+            "doc": "a[i]",
             "cls": 0
           },
           "rangeAdd": {
@@ -2633,7 +2633,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "diff"
             ],
-            "doc": "O(Root(N) * logN) add diff to all values in l...r",
+            "doc": "a[i] += diff for i in [l, r]",
             "cls": 0
           },
           "rangeAssign": {
@@ -2642,7 +2642,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "x"
             ],
-            "doc": "O(Root(N) * logN) make l...r all equal to x",
+            "doc": "a[i] = x for i in [l, r]",
             "cls": 0
           },
           "rangeChmax": {
@@ -4001,446 +4001,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "countValue-kthOccurrence-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "countValue",
-      "kthOccurrence",
-      "pointAdd",
-      "pointAssign",
-      "pointChmax",
-      "pointChmin",
-      "pointGet"
-    ],
-    "dataStructureType": "BIT",
-    "complexities": {
-      "countValue": "log(N)",
-      "kthOccurrence": "log(N)",
-      "pointAdd": "log(N)",
-      "pointAssign": "log(N)",
-      "pointChmax": "log(N)",
-      "pointChmin": "log(N)",
-      "pointGet": "1"
-    },
-    "build": "N",
-    "memory": {
-      "layout": "none",
-      "node": {
-        "arrays": [
-          {
-            "name": "tree",
-            "size": "1*N"
-          }
-        ],
-        "total": "1*N"
-      },
-      "tags": {
-        "arrays": [],
-        "total": "0"
-      },
-      "other": {
-        "arrays": [
-          {
-            "name": "vals",
-            "size": "1*N"
-          }
-        ],
-        "total": "1*N"
-      },
-      "note": "a Fenwick tree over the 0/1 array [a[i] == number]; kthOccurrence binary-lifts over it",
-      "total": "2*N",
-      "notes": {
-        "py": "a Fenwick tree over the 0/1 array [a[i] == number]; kthOccurrence binary-lifts over it",
-        "cpp": "a Fenwick tree over the 0/1 array [a[i] == number]; kthOccurrence binary-lifts over it"
-      }
-    },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/CountAndKthIndexSegmentTree.py",
-    "usage": {
-      "py": {
-        "classes": [
-          {
-            "className": "CountValueBIT",
-            "doc": "Count / find the k-th occurrence of one value (fixed at build time) in a range, with point updates. All indices 0-based, ranges inclusive [l, r]. A Fenwick tree over ind[i] = (a[i] == number). kthOccurrence(l, r, k) = smallest i with ind[0] + ... + ind[i] >= (occurrences before l) + k, found by binary lifting down the tree in O(log N).",
-            "ctor": [
-              {
-                "name": "arr"
-              },
-              {
-                "name": "number"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "countValue": {
-            "params": [
-              "l",
-              "r"
-            ],
-            "doc": "how many i in [l, r] have a[i] == number",
-            "cls": 0
-          },
-          "kthOccurrence": {
-            "params": [
-              "l",
-              "r",
-              "k"
-            ],
-            "doc": "index of the k-th (1-indexed) i in [l, r] with a[i] == number, or -1",
-            "cls": 0
-          },
-          "pointAdd": {
-            "params": [
-              "i",
-              "delta"
-            ],
-            "doc": "a[i] += delta",
-            "cls": 0
-          },
-          "pointAssign": {
-            "params": [
-              "i",
-              "val"
-            ],
-            "doc": "a[i] = val",
-            "cls": 0
-          },
-          "pointChmax": {
-            "params": [
-              "i",
-              "val"
-            ],
-            "doc": "a[i] = max(a[i], val)",
-            "cls": 0
-          },
-          "pointChmin": {
-            "params": [
-              "i",
-              "val"
-            ],
-            "doc": "a[i] = min(a[i], val)",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "doc": "a[i]",
-            "cls": 0
-          }
-        }
-      },
-      "cpp": {
-        "classes": [
-          {
-            "className": "CountValueBIT",
-            "doc": "Count / find the k-th occurrence of one value (fixed at build time) in a range, with point updates. All indices 0-based, ranges inclusive [l, r]. A Fenwick tree over ind[i] = (a[i] == number). kthOccurrence(l, r, k) = smallest i with ind[0] + ... + ind[i] >= (occurrences before l) + k, found by binary lifting down the tree in O(log N). T: any type with ==.",
-            "ctor": [
-              {
-                "name": "a",
-                "type": "const vector<T>&"
-              },
-              {
-                "name": "number",
-                "type": "T"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "countValue": {
-            "params": [
-              "l",
-              "r"
-            ],
-            "returns": "int",
-            "doc": "how many i in [l, r] have a[i] == number",
-            "cls": 0
-          },
-          "kthOccurrence": {
-            "params": [
-              "l",
-              "r",
-              "k"
-            ],
-            "returns": "int",
-            "doc": "index of the k-th (1-indexed) i in [l, r] with a[i] == number, or -1",
-            "cls": 0
-          },
-          "pointAdd": {
-            "params": [
-              "i",
-              "delta"
-            ],
-            "returns": "void",
-            "doc": "a[i] += delta",
-            "cls": 0
-          },
-          "pointAssign": {
-            "params": [
-              "i",
-              "v"
-            ],
-            "returns": "void",
-            "doc": "a[i] = v",
-            "cls": 0
-          },
-          "pointChmax": {
-            "params": [
-              "i",
-              "v"
-            ],
-            "returns": "void",
-            "doc": "a[i] = max(a[i], v)",
-            "cls": 0
-          },
-          "pointChmin": {
-            "params": [
-              "i",
-              "v"
-            ],
-            "returns": "void",
-            "doc": "a[i] = min(a[i], v)",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "returns": "T",
-            "doc": "a[i]",
-            "cls": 0
-          }
-        }
-      }
-    },
-    "sparse": {
-      "langs": [
-        "py",
-        "cpp"
-      ],
-      "complexities": {
-        "countValue": "log(U)",
-        "kthOccurrence": "log(U)",
-        "pointAdd": "log(U)",
-        "pointAssign": "log(U)",
-        "pointChmax": "log(U)",
-        "pointChmin": "log(U)",
-        "pointGet": "log(U)"
-      },
-      "build": "1",
-      "memory": {
-        "layout": "sparse",
-        "node": {
-          "arrays": [
-            {
-              "name": "cnt",
-              "size": "1*log(U)"
-            }
-          ],
-          "total": "1*log(U)"
-        },
-        "tags": {
-          "arrays": [],
-          "total": "0"
-        },
-        "other": {
-          "arrays": [
-            {
-              "name": "children",
-              "size": "2*log(U)"
-            },
-            {
-              "name": "vals",
-              "size": "1"
-            }
-          ],
-          "total": "1+2*log(U)"
-        },
-        "note": "per point write, the O(logU) entries above it; position i stores [a[i] == number] - [0 == number], so the untouched store nothing; kthOccurrence descends / binary-lifts. A Fenwick tree in a dict",
-        "total": "1+3*log(U)",
-        "notes": {
-          "py": "per point write, the O(logU) entries above it; position i stores [a[i] == number] - [0 == number], so the untouched store nothing; kthOccurrence descends / binary-lifts. A Fenwick tree in a dict",
-          "cpp": "per point write, the O(logU) entries above it; position i stores [a[i] == number] - [0 == number], so the untouched store nothing; kthOccurrence descends / binary-lifts. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
-        }
-      },
-      "usage": {
-        "py": {
-          "classes": [
-            {
-              "className": "SparseCountValueBIT",
-              "doc": "Count / find the k-th occurrence of one value (fixed at build time) in a range, with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. An index counts if a[i] == number; untouched positions count iff number == 0 (z below), so position i stores [a[i] == number] - z in a dict Fenwick tree and a count over k positions is z * k plus the stored sum. kthOccurrence binary-lifts over the tree.",
-              "ctor": [
-                {
-                  "name": "lo"
-                },
-                {
-                  "name": "hi"
-                },
-                {
-                  "name": "number"
-                }
-              ],
-              "ctorDoc": ""
-            }
-          ],
-          "methods": {
-            "countValue": {
-              "params": [
-                "l",
-                "r"
-              ],
-              "doc": "how many i in [l, r] have a[i] == number",
-              "cls": 0
-            },
-            "kthOccurrence": {
-              "params": [
-                "l",
-                "r",
-                "k"
-              ],
-              "doc": "index of the k-th (1-indexed) i in [l, r] with a[i] == number, or lo - 1",
-              "cls": 0
-            },
-            "pointAdd": {
-              "params": [
-                "i",
-                "delta"
-              ],
-              "doc": "a[i] += delta",
-              "cls": 0
-            },
-            "pointAssign": {
-              "params": [
-                "i",
-                "val"
-              ],
-              "doc": "a[i] = val",
-              "cls": 0
-            },
-            "pointChmax": {
-              "params": [
-                "i",
-                "val"
-              ],
-              "doc": "a[i] = max(a[i], val)",
-              "cls": 0
-            },
-            "pointChmin": {
-              "params": [
-                "i",
-                "val"
-              ],
-              "doc": "a[i] = min(a[i], val)",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "doc": "a[i]",
-              "cls": 0
-            }
-          }
-        },
-        "cpp": {
-          "classes": [
-            {
-              "className": "SparseCountValueBIT",
-              "doc": "Count / find the k-th occurrence of one value (fixed at build time) in a range, with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. An index counts if a[i] == number; untouched positions count iff number == 0 (z below), so position i stores [a[i] == number] - z in a dynamic prefix-sum tree and a count over k positions is z * k plus the stored sum. kthOccurrence descends the tree. Nodes live in one pool shared by every SparseCountValueBIT<T>. T: any type with ==.",
-              "ctor": [
-                {
-                  "name": "lo",
-                  "type": "long long"
-                },
-                {
-                  "name": "hi",
-                  "type": "long long"
-                },
-                {
-                  "name": "number",
-                  "type": "T"
-                }
-              ],
-              "ctorDoc": "all zeros over [lo, hi]",
-              "pool": true
-            }
-          ],
-          "methods": {
-            "countValue": {
-              "params": [
-                "l",
-                "r"
-              ],
-              "returns": "long long",
-              "doc": "how many i in [l, r] have a[i] == number",
-              "cls": 0
-            },
-            "kthOccurrence": {
-              "params": [
-                "l",
-                "r",
-                "k"
-              ],
-              "returns": "long long",
-              "doc": "index of the k-th (1-indexed) i in [l, r] with a[i] == number, or lo - 1",
-              "cls": 0
-            },
-            "pointAdd": {
-              "params": [
-                "i",
-                "delta"
-              ],
-              "returns": "void",
-              "doc": "a[i] += delta",
-              "cls": 0
-            },
-            "pointAssign": {
-              "params": [
-                "i",
-                "v"
-              ],
-              "returns": "void",
-              "doc": "a[i] = v",
-              "cls": 0
-            },
-            "pointChmax": {
-              "params": [
-                "i",
-                "v"
-              ],
-              "returns": "void",
-              "doc": "a[i] = max(a[i], v)",
-              "cls": 0
-            },
-            "pointChmin": {
-              "params": [
-                "i",
-                "v"
-              ],
-              "returns": "void",
-              "doc": "a[i] = min(a[i], v)",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "returns": "T",
-              "doc": "a[i]",
-              "cls": 0
-            }
-          }
-        }
-      }
-    }
-  },
-  {
     "folder": "doAllElementsAppearEvenFrequency-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
     "langs": [
       "py",
@@ -5713,7 +5273,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "max of a[l..r]",
             "cls": 0
           },
           "rightmostGtX": {
@@ -6253,7 +5813,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "min of a[l..r]",
             "cls": 0
           },
           "rightmostLtX": {
@@ -6750,7 +6310,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "i",
               "delta"
             ],
-            "doc": "point add, logN",
+            "doc": "a[i] += delta",
             "cls": 0
           },
           "pointAssign": {
@@ -7409,7 +6969,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "length of the longest run of equal adjacent values in a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -7479,7 +7039,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "length of the longest run of equal adjacent values in a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -7813,7 +7373,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "best alternating sum +x - y + z ... over the non-empty subsequences of a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -7883,7 +7443,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "best alternating sum +x - y + z ... over the non-empty subsequences of a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -8841,7 +8401,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "best sum of a non-empty prefix of a[l..r]",
               "cls": 0
             },
             "maxSubarraySum": {
@@ -8849,7 +8409,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "best sum of a non-empty subarray of a[l..r]",
               "cls": 0
             },
             "maxSuffixSum": {
@@ -8857,7 +8417,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "best sum of a non-empty suffix of a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -8904,7 +8464,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -8935,7 +8495,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "best sum of a non-empty prefix of a[l..r]",
               "cls": 0
             },
             "maxSubarraySum": {
@@ -8944,7 +8504,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "best sum of a non-empty subarray of a[l..r]",
               "cls": 0
             },
             "maxSuffixSum": {
@@ -8953,7 +8513,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "best sum of a non-empty suffix of a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -9006,7 +8566,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -9323,7 +8883,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "best sum of a non-empty prefix of a[l..r]",
               "cls": 0
             },
             "maxSuffixSum": {
@@ -9331,7 +8891,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "best sum of a non-empty suffix of a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -9378,7 +8938,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -9409,7 +8969,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "best sum of a non-empty prefix of a[l..r]",
               "cls": 0
             },
             "maxSuffixSum": {
@@ -9418,7 +8978,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "best sum of a non-empty suffix of a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -9471,7 +9031,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -9760,7 +9320,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "best sum of a non-empty prefix of a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -9807,7 +9367,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -9838,7 +9398,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "best sum of a non-empty prefix of a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -9891,7 +9451,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -10180,7 +9740,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "best sum of a non-empty suffix of a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -10227,7 +9787,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -10258,7 +9818,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "best sum of a non-empty suffix of a[l..r]",
               "cls": 0
             },
             "pointAdd": {
@@ -10311,7 +9871,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "auto",
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -12261,7 +11821,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "p",
               "v"
             ],
-            "doc": "",
+            "doc": "a[p] = v",
             "cls": 0
           },
           "pointChmax": {
@@ -12284,7 +11844,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "p"
             ],
-            "doc": "",
+            "doc": "a[p]",
             "cls": 0
           },
           "rangeAdd": {
@@ -12293,7 +11853,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "v"
             ],
-            "doc": "",
+            "doc": "a[i] += v for i in [l, r]",
             "cls": 0
           },
           "rangeAssign": {
@@ -12302,7 +11862,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "v"
             ],
-            "doc": "",
+            "doc": "a[i] = v for i in [l, r]",
             "cls": 0
           },
           "rangeChmax": {
@@ -12311,7 +11871,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "x"
             ],
-            "doc": "",
+            "doc": "a[i] = max(a[i], x) for i in [l, r]",
             "cls": 0
           },
           "rangeChmin": {
@@ -12320,7 +11880,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "x"
             ],
-            "doc": "",
+            "doc": "a[i] = min(a[i], x) for i in [l, r]",
             "cls": 0
           },
           "rangeGcd": {
@@ -12328,7 +11888,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)",
             "cls": 0
           },
           "rangeMax": {
@@ -12336,7 +11896,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "max of a[l..r]",
             "cls": 0
           },
           "rangeMin": {
@@ -12344,7 +11904,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "min of a[l..r]",
             "cls": 0
           },
           "rangeSum": {
@@ -12352,7 +11912,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] + ... + a[r]",
             "cls": 0
           }
         }
@@ -12606,7 +12166,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "p",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[p] = v",
               "cls": 0
             },
             "pointChmax": {
@@ -12629,7 +12189,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "p"
               ],
-              "doc": "",
+              "doc": "a[p]",
               "cls": 0
             },
             "rangeAdd": {
@@ -12638,7 +12198,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[i] += v for i in [l, r]",
               "cls": 0
             },
             "rangeAssign": {
@@ -12647,7 +12207,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[i] = v for i in [l, r]",
               "cls": 0
             },
             "rangeChmax": {
@@ -12656,7 +12216,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "x"
               ],
-              "doc": "",
+              "doc": "a[i] = max(a[i], x) for i in [l, r]",
               "cls": 0
             },
             "rangeChmin": {
@@ -12665,7 +12225,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "x"
               ],
-              "doc": "",
+              "doc": "a[i] = min(a[i], x) for i in [l, r]",
               "cls": 0
             },
             "rangeGcd": {
@@ -12673,7 +12233,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)",
               "cls": 0
             },
             "rangeMax": {
@@ -12681,7 +12241,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "max of a[l..r]",
               "cls": 0
             },
             "rangeMin": {
@@ -12689,7 +12249,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "min of a[l..r]",
               "cls": 0
             },
             "rangeSum": {
@@ -12697,7 +12257,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -14162,7 +13722,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "pos",
               "v"
             ],
-            "doc": "",
+            "doc": "a[pos] = v",
             "cls": 0
           },
           "pointChmax": {
@@ -14185,7 +13745,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "pos"
             ],
-            "doc": "",
+            "doc": "a[pos]",
             "cls": 0
           },
           "rangeAdd": {
@@ -14194,7 +13754,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "v"
             ],
-            "doc": "",
+            "doc": "a[i] += v for i in [l, r]",
             "cls": 0
           },
           "rangeAssign": {
@@ -14203,7 +13763,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "v"
             ],
-            "doc": "",
+            "doc": "a[i] = v for i in [l, r]",
             "cls": 0
           },
           "rangeChmax": {
@@ -14212,7 +13772,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "x"
             ],
-            "doc": "",
+            "doc": "a[i] = max(a[i], x) for i in [l, r]",
             "cls": 0
           },
           "rangeChmin": {
@@ -14221,7 +13781,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "x"
             ],
-            "doc": "",
+            "doc": "a[i] = min(a[i], x) for i in [l, r]",
             "cls": 0
           },
           "rangeMax": {
@@ -14229,7 +13789,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "max of a[l..r]",
             "cls": 0
           },
           "rangeMin": {
@@ -14237,7 +13797,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "min of a[l..r]",
             "cls": 0
           },
           "rangeSum": {
@@ -14245,7 +13805,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] + ... + a[r]",
             "cls": 0
           }
         }
@@ -14505,7 +14065,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "pos",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[pos] = v",
               "cls": 0
             },
             "pointChmax": {
@@ -14528,7 +14088,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "pos"
               ],
-              "doc": "",
+              "doc": "a[pos]",
               "cls": 0
             },
             "rangeAdd": {
@@ -14537,7 +14097,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[i] += v for i in [l, r]",
               "cls": 0
             },
             "rangeAssign": {
@@ -14546,7 +14106,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[i] = v for i in [l, r]",
               "cls": 0
             },
             "rangeChmax": {
@@ -14555,7 +14115,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "x"
               ],
-              "doc": "",
+              "doc": "a[i] = max(a[i], x) for i in [l, r]",
               "cls": 0
             },
             "rangeChmin": {
@@ -14564,7 +14124,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "x"
               ],
-              "doc": "",
+              "doc": "a[i] = min(a[i], x) for i in [l, r]",
               "cls": 0
             },
             "rangeMax": {
@@ -14572,7 +14132,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "max of a[l..r]",
               "cls": 0
             },
             "rangeMin": {
@@ -14580,7 +14140,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "min of a[l..r]",
               "cls": 0
             },
             "rangeSum": {
@@ -14588,7 +14148,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -15414,7 +14974,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "pos",
               "v"
             ],
-            "doc": "",
+            "doc": "a[pos] = v",
             "cls": 0
           },
           "pointChmax": {
@@ -15437,7 +14997,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "pos"
             ],
-            "doc": "",
+            "doc": "a[pos]",
             "cls": 0
           },
           "rangeAdd": {
@@ -15446,7 +15006,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "v"
             ],
-            "doc": "",
+            "doc": "a[i] += v for i in [l, r]",
             "cls": 0
           },
           "rangeAssign": {
@@ -15455,7 +15015,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "v"
             ],
-            "doc": "",
+            "doc": "a[i] = v for i in [l, r]",
             "cls": 0
           },
           "rangeChmax": {
@@ -15464,7 +15024,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "x"
             ],
-            "doc": "",
+            "doc": "a[i] = max(a[i], x) for i in [l, r]",
             "cls": 0
           },
           "rangeMin": {
@@ -15472,7 +15032,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "min of a[l..r]",
             "cls": 0
           },
           "rangeSum": {
@@ -15480,7 +15040,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] + ... + a[r]",
             "cls": 0
           }
         }
@@ -15703,7 +15263,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "pos",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[pos] = v",
               "cls": 0
             },
             "pointChmax": {
@@ -15726,7 +15286,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "pos"
               ],
-              "doc": "",
+              "doc": "a[pos]",
               "cls": 0
             },
             "rangeAdd": {
@@ -15735,7 +15295,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[i] += v for i in [l, r]",
               "cls": 0
             },
             "rangeAssign": {
@@ -15744,7 +15304,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[i] = v for i in [l, r]",
               "cls": 0
             },
             "rangeChmax": {
@@ -15753,7 +15313,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "x"
               ],
-              "doc": "",
+              "doc": "a[i] = max(a[i], x) for i in [l, r]",
               "cls": 0
             },
             "rangeMin": {
@@ -15761,7 +15321,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "min of a[l..r]",
               "cls": 0
             },
             "rangeSum": {
@@ -15769,7 +15329,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -16011,7 +15571,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "pos",
               "v"
             ],
-            "doc": "",
+            "doc": "a[pos] = v",
             "cls": 0
           },
           "pointChmax": {
@@ -16034,7 +15594,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "pos"
             ],
-            "doc": "",
+            "doc": "a[pos]",
             "cls": 0
           },
           "rangeAdd": {
@@ -16043,7 +15603,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "v"
             ],
-            "doc": "",
+            "doc": "a[i] += v for i in [l, r]",
             "cls": 0
           },
           "rangeAssign": {
@@ -16052,7 +15612,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "v"
             ],
-            "doc": "",
+            "doc": "a[i] = v for i in [l, r]",
             "cls": 0
           },
           "rangeChmin": {
@@ -16061,7 +15621,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "x"
             ],
-            "doc": "",
+            "doc": "a[i] = min(a[i], x) for i in [l, r]",
             "cls": 0
           },
           "rangeMax": {
@@ -16069,7 +15629,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "max of a[l..r]",
             "cls": 0
           },
           "rangeSum": {
@@ -16077,7 +15637,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] + ... + a[r]",
             "cls": 0
           }
         }
@@ -16300,7 +15860,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "pos",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[pos] = v",
               "cls": 0
             },
             "pointChmax": {
@@ -16323,7 +15883,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "pos"
               ],
-              "doc": "",
+              "doc": "a[pos]",
               "cls": 0
             },
             "rangeAdd": {
@@ -16332,7 +15892,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[i] += v for i in [l, r]",
               "cls": 0
             },
             "rangeAssign": {
@@ -16341,7 +15901,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[i] = v for i in [l, r]",
               "cls": 0
             },
             "rangeChmin": {
@@ -16350,7 +15910,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "x"
               ],
-              "doc": "",
+              "doc": "a[i] = min(a[i], x) for i in [l, r]",
               "cls": 0
             },
             "rangeMax": {
@@ -16358,7 +15918,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "max of a[l..r]",
               "cls": 0
             },
             "rangeSum": {
@@ -16366,7 +15926,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -25683,7 +25243,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "p",
               "v"
             ],
-            "doc": "",
+            "doc": "a[p] = v",
             "cls": 0
           },
           "pointChmax": {
@@ -25706,7 +25266,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "p"
             ],
-            "doc": "",
+            "doc": "a[p]",
             "cls": 0
           },
           "rangeAndApply": {
@@ -25715,7 +25275,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "X"
             ],
-            "doc": "",
+            "doc": "a[i] &= X for i in [l, r]",
             "cls": 0
           },
           "rangeAndQuery": {
@@ -25723,7 +25283,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] & ... & a[r]",
             "cls": 0
           },
           "rangeMax": {
@@ -25731,7 +25291,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "max of a[l..r]",
             "cls": 0
           },
           "rangeMin": {
@@ -25739,7 +25299,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "min of a[l..r]",
             "cls": 0
           },
           "rangeOrApply": {
@@ -25748,7 +25308,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "X"
             ],
-            "doc": "",
+            "doc": "a[i] |= X for i in [l, r]",
             "cls": 0
           },
           "rangeOrQuery": {
@@ -25756,7 +25316,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] | ... | a[r]",
             "cls": 0
           },
           "rangeSum": {
@@ -25764,7 +25324,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] + ... + a[r]",
             "cls": 0
           }
         }
@@ -26011,7 +25571,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "p",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[p] = v",
               "cls": 0
             },
             "pointChmax": {
@@ -26034,7 +25594,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "p"
               ],
-              "doc": "",
+              "doc": "a[p]",
               "cls": 0
             },
             "rangeAndApply": {
@@ -26043,7 +25603,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "X"
               ],
-              "doc": "",
+              "doc": "a[i] &= X for i in [l, r]",
               "cls": 0
             },
             "rangeAndQuery": {
@@ -26051,7 +25611,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] & ... & a[r]",
               "cls": 0
             },
             "rangeMax": {
@@ -26059,7 +25619,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "max of a[l..r]",
               "cls": 0
             },
             "rangeMin": {
@@ -26067,7 +25627,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "min of a[l..r]",
               "cls": 0
             },
             "rangeOrApply": {
@@ -26076,7 +25636,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "X"
               ],
-              "doc": "",
+              "doc": "a[i] |= X for i in [l, r]",
               "cls": 0
             },
             "rangeOrQuery": {
@@ -26084,7 +25644,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] | ... | a[r]",
               "cls": 0
             },
             "rangeSum": {
@@ -26092,7 +25652,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -28900,7 +28460,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "p",
               "v"
             ],
-            "doc": "",
+            "doc": "a[p] = v",
             "cls": 0
           },
           "pointChmax": {
@@ -28923,7 +28483,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "p"
             ],
-            "doc": "",
+            "doc": "a[p]",
             "cls": 0
           },
           "rangeAssign": {
@@ -28932,7 +28492,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "v"
             ],
-            "doc": "",
+            "doc": "a[i] = v for i in [l, r]",
             "cls": 0
           },
           "rangeChmax": {
@@ -28941,7 +28501,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "x"
             ],
-            "doc": "",
+            "doc": "a[i] = max(a[i], x) for i in [l, r]",
             "cls": 0
           },
           "rangeChmin": {
@@ -28950,7 +28510,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r",
               "x"
             ],
-            "doc": "",
+            "doc": "a[i] = min(a[i], x) for i in [l, r]",
             "cls": 0
           },
           "rangeMax": {
@@ -28958,7 +28518,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "max of a[l..r]",
             "cls": 0
           },
           "rangeMin": {
@@ -28966,7 +28526,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "min of a[l..r]",
             "cls": 0
           },
           "rangeSum": {
@@ -28974,7 +28534,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] + ... + a[r]",
             "cls": 0
           }
         }
@@ -29198,7 +28758,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "p",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[p] = v",
               "cls": 0
             },
             "pointChmax": {
@@ -29221,7 +28781,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "p"
               ],
-              "doc": "",
+              "doc": "a[p]",
               "cls": 0
             },
             "rangeAssign": {
@@ -29230,7 +28790,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "v"
               ],
-              "doc": "",
+              "doc": "a[i] = v for i in [l, r]",
               "cls": 0
             },
             "rangeChmax": {
@@ -29239,7 +28799,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "x"
               ],
-              "doc": "",
+              "doc": "a[i] = max(a[i], x) for i in [l, r]",
               "cls": 0
             },
             "rangeChmin": {
@@ -29248,7 +28808,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r",
                 "x"
               ],
-              "doc": "",
+              "doc": "a[i] = min(a[i], x) for i in [l, r]",
               "cls": 0
             },
             "rangeMax": {
@@ -29256,7 +28816,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "max of a[l..r]",
               "cls": 0
             },
             "rangeMin": {
@@ -29264,7 +28824,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "min of a[l..r]",
               "cls": 0
             },
             "rangeSum": {
@@ -29272,7 +28832,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -31067,7 +30627,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "pos"
             ],
-            "doc": "",
+            "doc": "a[pos]",
             "cls": 0
           },
           "rangeAssign": {
@@ -31101,7 +30661,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "max of a[l..r]",
             "cls": 0
           },
           "rangeMin": {
@@ -31109,7 +30669,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "min of a[l..r]",
             "cls": 0
           },
           "rangeMod": {
@@ -31126,7 +30686,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] + ... + a[r]",
             "cls": 0
           }
         }
@@ -31367,7 +30927,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "pos"
               ],
-              "doc": "",
+              "doc": "a[pos]",
               "cls": 0
             },
             "rangeAssign": {
@@ -31401,7 +30961,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "max of a[l..r]",
               "cls": 0
             },
             "rangeMin": {
@@ -31409,7 +30969,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "min of a[l..r]",
               "cls": 0
             },
             "rangeMod": {
@@ -31426,7 +30986,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -37828,7 +37388,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "pos"
             ],
-            "doc": "",
+            "doc": "a[pos]",
             "cls": 0
           },
           "rangeFloorDiv": {
@@ -38086,7 +37646,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "pos"
               ],
-              "doc": "",
+              "doc": "a[pos]",
               "cls": 0
             },
             "rangeFloorDiv": {
@@ -38922,7 +38482,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "fold of a[l..r]",
+              "doc": "gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)",
               "cls": 0
             }
           }
@@ -38997,7 +38557,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "T",
-              "doc": "fold of a[l..r]",
+              "doc": "gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)",
               "cls": 0
             }
           }
@@ -39115,7 +38675,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "0 if l>r",
+            "doc": "max of a[l..r] (0 if l > r)",
             "cls": 0
           }
         }
@@ -39298,7 +38858,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "fold of a[l..r]",
+              "doc": "max of a[l..r]",
               "cls": 0
             }
           }
@@ -39373,7 +38933,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "T",
-              "doc": "fold of a[l..r]",
+              "doc": "max of a[l..r]",
               "cls": 0
             }
           }
@@ -40254,7 +39814,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] + ... + a[r]",
             "cls": 0
           }
         }
@@ -40437,7 +39997,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "l",
                 "r"
               ],
-              "doc": "fold of a[l..r]",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -40512,7 +40072,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "returns": "S",
-              "doc": "fold of a[l..r]",
+              "doc": "a[l] + ... + a[r]",
               "cls": 0
             }
           }
@@ -43805,7 +43365,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] & ... & a[r]",
             "cls": 0
           }
         }
@@ -44047,7 +43607,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "inclusive [l, r]",
+            "doc": "gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)",
             "cls": 0
           }
         }
@@ -44551,7 +44111,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "max of a[l..r]",
             "cls": 0
           }
         }
@@ -44793,7 +44353,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "min of a[l..r]",
             "cls": 0
           }
         }
@@ -45314,7 +44874,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "l",
               "r"
             ],
-            "doc": "",
+            "doc": "a[l] | ... | a[r]",
             "cls": 0
           }
         }

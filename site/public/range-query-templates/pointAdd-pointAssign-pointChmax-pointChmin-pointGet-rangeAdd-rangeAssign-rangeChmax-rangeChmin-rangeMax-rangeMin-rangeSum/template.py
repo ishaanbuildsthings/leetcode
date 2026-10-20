@@ -253,6 +253,7 @@ class BeatsChminChmax_PERFORMANT:
         self._chmin(2 * i + 1, tm + 1, tr, ql, qr, x)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] = min(a[i], x) for i in [l, r]
     def rangeChmin(self, l, r, x):
         if l > r or self.n == 0:
             return
@@ -271,6 +272,7 @@ class BeatsChminChmax_PERFORMANT:
         self._chmax(2 * i + 1, tm + 1, tr, ql, qr, x)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] = max(a[i], x) for i in [l, r]
     def rangeChmax(self, l, r, x):
         if l > r or self.n == 0:
             return
@@ -289,6 +291,7 @@ class BeatsChminChmax_PERFORMANT:
         self._add(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] += v for i in [l, r]
     def rangeAdd(self, l, r, v):
         if l > r or self.n == 0:
             return
@@ -307,11 +310,13 @@ class BeatsChminChmax_PERFORMANT:
         self._assign(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] = v for i in [l, r]
     def rangeAssign(self, l, r, v):
         if l > r or self.n == 0:
             return
         self._assign(1, 0, self.n - 1, l, r, v)
 
+    # O(log^2 N) -- a[pos] = v
     def pointAssign(self, pos, v):
         self.rangeAssign(pos, pos, v)
 
@@ -325,6 +330,7 @@ class BeatsChminChmax_PERFORMANT:
         tm = (tl + tr) // 2
         return self._sum(2 * i, tl, tm, ql, qr) + self._sum(2 * i + 1, tm + 1, tr, ql, qr)
 
+    # O(logN) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         if l > r or self.n == 0:
             return 0
@@ -341,6 +347,7 @@ class BeatsChminChmax_PERFORMANT:
         b = self._max(2 * i + 1, tm + 1, tr, ql, qr)
         return a if a > b else b
 
+    # O(logN) -- max of a[l..r]
     def rangeMax(self, l, r):
         if l > r or self.n == 0:
             return NEG_INF
@@ -357,11 +364,13 @@ class BeatsChminChmax_PERFORMANT:
         b = self._min(2 * i + 1, tm + 1, tr, ql, qr)
         return a if a < b else b
 
+    # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r):
         if l > r or self.n == 0:
             return POS_INF
         return self._min(1, 0, self.n - 1, l, r)
 
+    # O(logN) -- a[pos]
     def pointGet(self, pos):
         return self.rangeMax(pos, pos)
 

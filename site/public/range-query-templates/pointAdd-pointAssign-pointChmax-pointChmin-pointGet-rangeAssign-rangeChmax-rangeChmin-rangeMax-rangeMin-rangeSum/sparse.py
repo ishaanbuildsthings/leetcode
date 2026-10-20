@@ -253,6 +253,7 @@ class SparseBeatsChminChmaxNoAdd:
         self._chmin(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
+    # O(logN) -- a[i] = min(a[i], x) for i in [l, r]
     def rangeChmin(self, l, r, x):
         if l <= r:
             self._chmin(1, self.lo, self.hi, l, r, x)
@@ -269,6 +270,7 @@ class SparseBeatsChminChmaxNoAdd:
         self._chmax(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
+    # O(logN) -- a[i] = max(a[i], x) for i in [l, r]
     def rangeChmax(self, l, r, x):
         if l <= r:
             self._chmax(1, self.lo, self.hi, l, r, x)
@@ -285,10 +287,12 @@ class SparseBeatsChminChmaxNoAdd:
         self._assign(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
+    # O(logN) -- a[i] = v for i in [l, r]
     def rangeAssign(self, l, r, v):
         if l <= r:
             self._assign(1, self.lo, self.hi, l, r, v)
 
+    # O(logN) -- a[p] = v
     def pointAssign(self, p, v):
         self.rangeAssign(p, p, v)
 
@@ -302,6 +306,7 @@ class SparseBeatsChminChmaxNoAdd:
         tm = (tl + tr) // 2
         return self._sum(self.L[i], tl, tm, ql, qr) + self._sum(self.R[i], tm + 1, tr, ql, qr)
 
+    # O(logN) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         return 0 if (l > r) else self._sum(1, self.lo, self.hi, l, r)
 
@@ -317,6 +322,7 @@ class SparseBeatsChminChmaxNoAdd:
         b = self._qmax(self.R[i], tm + 1, tr, ql, qr)
         return a if a > b else b
 
+    # O(logN) -- max of a[l..r]
     def rangeMax(self, l, r):
         return NEG_INF if (l > r) else self._qmax(1, self.lo, self.hi, l, r)
 
@@ -332,9 +338,11 @@ class SparseBeatsChminChmaxNoAdd:
         b = self._qmin(self.R[i], tm + 1, tr, ql, qr)
         return a if a < b else b
 
+    # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r):
         return POS_INF if (l > r) else self._qmin(1, self.lo, self.hi, l, r)
 
+    # O(logN) -- a[p]
     def pointGet(self, p):
         return self.rangeMax(p, p)
 

@@ -262,15 +262,19 @@ class SparseShrinkSeg:
     def pointAssign(self, pos, v):
         self.rangeAssign(pos, pos, v)
 
+    # O(logN) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         return 0 if (l > r) else self._sum(1, self.lo, self.hi, l, r)
 
+    # O(logN) -- max of a[l..r]
     def rangeMax(self, l, r):
         return None if (l > r) else self._qmax(1, self.lo, self.hi, l, r)
 
+    # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r):
         return None if (l > r) else self._qmin(1, self.lo, self.hi, l, r)
 
+    # O(logN) -- a[pos]
     def pointGet(self, pos):
         return self.rangeMax(pos, pos)
 

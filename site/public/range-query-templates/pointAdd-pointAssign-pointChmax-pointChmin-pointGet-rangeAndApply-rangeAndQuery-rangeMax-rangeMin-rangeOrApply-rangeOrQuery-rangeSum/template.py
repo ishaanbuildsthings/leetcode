@@ -205,9 +205,11 @@ class BitBeats_PERFORMANT:
 
     ################ PUBLIC METHODS START HERE ################
 
+    # O(logN logU) -- a[i] &= X for i in [l, r]
     def rangeAndApply(self, l, r, X):
         if l <= r and self.n: self._upd(1, 0, self.n - 1, l, r, X & self.FULL, 0)
 
+    # O(logN logU) -- a[i] |= X for i in [l, r]
     def rangeOrApply(self, l, r, X):
         if l <= r and self.n: self._upd(1, 0, self.n - 1, l, r, ~X & self.FULL, X & self.FULL)
 
@@ -223,6 +225,7 @@ class BitBeats_PERFORMANT:
         else: self._set(2 * i + 1, tm + 1, tr, p, v)
         self._pull(i)
 
+    # O(logN) -- a[p] = v
     def pointAssign(self, p, v):
         if self.n: self._set(1, 0, self.n - 1, p, v & self.FULL)
 
@@ -243,11 +246,17 @@ class BitBeats_PERFORMANT:
         if kind == 3: return a & b
         return a | b
 
+    # O(logN) -- max of a[l..r]
     def rangeMax(self, l, r): return None if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 0)
+    # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r): return None if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 1)
+    # O(logN) -- a[l] + ... + a[r]
     def rangeSum(self, l, r): return 0 if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 2)
+    # O(logN) -- a[l] & ... & a[r]
     def rangeAndQuery(self, l, r): return self.FULL if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 3)
+    # O(logN) -- a[l] | ... | a[r]
     def rangeOrQuery(self, l, r): return 0 if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 4)
+    # O(logN) -- a[p]
     def pointGet(self, p): return self.rangeMax(p, p)
 
     # a[i] = max(a[i], val)

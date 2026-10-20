@@ -48,7 +48,7 @@ class MaxSegTree:
             r >>= 1
         return ans
 
-    # 0 if l>r
+    # O(logN) -- max of a[l..r] (0 if l > r)
     def rangeMax(self, l, r):
         if l > r: return 0
         return self._queryHalfOpen(l, r + 1)

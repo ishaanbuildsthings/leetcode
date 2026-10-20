@@ -15,6 +15,15 @@ import os
 
 from note_lang import write_template
 
+# What each summary query returns, for its method comment.
+QDESC = {
+    "rangeSum": "a[l] + ... + a[r]",
+    "maxPrefixSum": "best sum of a non-empty prefix of a[l..r]",
+    "maxSuffixSum": "best sum of a non-empty suffix of a[l..r]",
+    "maxSubarraySum": "best sum of a non-empty subarray of a[l..r]",
+    "longestEqualRun": "length of the longest run of equal adjacent values in a[l..r]",
+    "maxAltSubseqSum": "best alternating sum +x - y + z ... over the non-empty subsequences of a[l..r]",
+}
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 
@@ -133,6 +142,8 @@ def scalar(folder, query_op, name, desc, py_merge, py_identity, cpp_merge, cpp_i
     ops = POINT + [query_op]
     comp = {o: "log(U)" for o in ops}
     comp.update(comp_extra or {})
+    qdesc = {"rangeSum": "a[l] + ... + a[r]", "rangeMax": "max of a[l..r]",
+             "rangeGcd": "gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)"}[query_op]
     py = f'''{py_imports}
 # {desc}, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
 # Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is a block of zeros,
@@ -159,7 +170,7 @@ class {name}:
             t[p] = {py_merge}
             p >>= 1
 
-    # O(logU) -- fold of a[l..r]
+    # O(logU) -- {qdesc}
     def {query_op}(self, l, r):
         t, res = self.t, {py_identity}
         l += self.size - self.lo
@@ -206,7 +217,7 @@ struct {name} {{
         return merge(query(pool[x].l, a, m, l, r), query(pool[x].r, m + 1, b, l, r));
     }}
 
-    // O(logU) -- fold of a[l..r]
+    // O(logU) -- {qdesc}
     {cpp_agg} {query_op}(long long l, long long r) const {{ return query(root, lo, hi, l, r); }}
 
     // O(logU) -- a[i]
@@ -237,7 +248,7 @@ def summary(folder, name, desc, fields, py_merge, cpp_merge, py_leaf, cpp_leaf, 
     py_zero_fn = f"    @staticmethod\n    def _zero(k):  # a block of k zeros\n        return {py_zero}\n" if len_dependent else ""
     zero_get = "self._zero(k)" if len_dependent else "ZERO"
     py_queries = "".join(f'''
-    # O(logU)
+    # O(logU) -- {QDESC[op]}
     def {op}(self, l, r):
         res = self._query(l, r)
         return {py}
@@ -304,7 +315,7 @@ class {name}:
         return self._merge(left, right)
 {py_queries}''' + PY_POINT_OPS.format(get=py_get)
     cpp_queries = "".join(f'''
-    // O(logU)
+    // O(logU) -- {QDESC[op]}
     auto {op}(long long l, long long r) const {{
         Agg res = query(root, lo, hi, l, r);
         return {cpp};

@@ -34,6 +34,7 @@ class SparseOr:
                     val |= self.sparse[power - 1][rightEdge]
                 self.sparse[power][left] = val
 
+    # O(1) -- a[l] | ... | a[r]
     def rangeOrQuery(self, l, r):
         width = r - l + 1
         maxPow = width.bit_length() - 1

@@ -34,6 +34,7 @@ class SparseMax:
                     val = max(val, self.sparse[power - 1][rightEdge])
                 self.sparse[power][left] = val
 
+    # O(1) -- max of a[l..r]
     def rangeMax(self, l, r):
         width = r - l + 1
         maxPow = width.bit_length() - 1

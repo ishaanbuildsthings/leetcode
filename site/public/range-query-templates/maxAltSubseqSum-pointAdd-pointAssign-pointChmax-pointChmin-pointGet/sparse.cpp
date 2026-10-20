@@ -108,7 +108,7 @@ struct SparseAltSumTree {
         return merge(query(pool[x].l, a, m, l, r), query(pool[x].r, m + 1, b, l, r));
     }
 
-    // O(logU)
+    // O(logU) -- best alternating sum +x - y + z ... over the non-empty subsequences of a[l..r]
     auto maxAltSubseqSum(long long l, long long r) const {
         Agg res = query(root, lo, hi, l, r);
         return max(res.pp, res.pm);

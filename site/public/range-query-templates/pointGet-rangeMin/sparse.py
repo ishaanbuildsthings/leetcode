@@ -32,6 +32,7 @@ class SparseMin:
                     val = min(val, self.sparse[power - 1][rightEdge])
                 self.sparse[power][left] = val
 
+    # O(1) -- min of a[l..r]
     def rangeMin(self, l, r):
         width = r - l + 1
         maxPow = width.bit_length() - 1

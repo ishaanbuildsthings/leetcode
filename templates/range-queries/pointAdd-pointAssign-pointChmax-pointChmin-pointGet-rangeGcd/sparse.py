@@ -43,7 +43,7 @@ class SparseGcdTree:
             t[p] = gcd(a, b)
             p >>= 1
 
-    # O(logU) -- fold of a[l..r]
+    # O(logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)
     def rangeGcd(self, l, r):
         t, res = self.t, 0
         l += self.size - self.lo

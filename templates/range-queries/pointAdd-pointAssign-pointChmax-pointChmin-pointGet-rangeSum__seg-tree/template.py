@@ -50,6 +50,7 @@ class SumSegTree:
             r >>= 1
         return ans
 
+    # O(logN) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         return self._queryHalfOpen(l, r + 1)
 

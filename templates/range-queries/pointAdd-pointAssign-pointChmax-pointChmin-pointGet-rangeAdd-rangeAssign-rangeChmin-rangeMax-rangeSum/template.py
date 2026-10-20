@@ -198,6 +198,7 @@ class BeatsChmin_PERFORMANT:
         self._chmin(2 * i + 1, tm + 1, tr, ql, qr, x)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] = min(a[i], x) for i in [l, r]
     def rangeChmin(self, l, r, x):
         if l <= r and self.n:
             self._chmin(1, 0, self.n - 1, l, r, x)
@@ -214,6 +215,7 @@ class BeatsChmin_PERFORMANT:
         self._add(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] += v for i in [l, r]
     def rangeAdd(self, l, r, v):
         if l <= r and self.n:
             self._add(1, 0, self.n - 1, l, r, v)
@@ -230,10 +232,12 @@ class BeatsChmin_PERFORMANT:
         self._assign(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] = v for i in [l, r]
     def rangeAssign(self, l, r, v):
         if l <= r and self.n:
             self._assign(1, 0, self.n - 1, l, r, v)
 
+    # O(log^2 N) -- a[pos] = v
     def pointAssign(self, pos, v):
         self.rangeAssign(pos, pos, v)
 
@@ -246,6 +250,7 @@ class BeatsChmin_PERFORMANT:
         tm = (tl + tr) // 2
         return self._sum(2 * i, tl, tm, ql, qr) + self._sum(2 * i + 1, tm + 1, tr, ql, qr)
 
+    # O(logN) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         return 0 if (l > r or not self.n) else self._sum(1, 0, self.n - 1, l, r)
 
@@ -260,9 +265,11 @@ class BeatsChmin_PERFORMANT:
         b = self._qmax(2 * i + 1, tm + 1, tr, ql, qr)
         return a if a > b else b
 
+    # O(logN) -- max of a[l..r]
     def rangeMax(self, l, r):
         return NEG_INF if (l > r or not self.n) else self._qmax(1, 0, self.n - 1, l, r)
 
+    # O(logN) -- a[pos]
     def pointGet(self, pos):
         return self.rangeMax(pos, pos)
 

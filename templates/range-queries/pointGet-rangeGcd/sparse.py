@@ -30,7 +30,7 @@ class SparseGcd:
                 if rightEdge < self.n:
                     val = gcd(val, self.sparse[power - 1][rightEdge])
                 self.sparse[power][left] = val
-    # inclusive [l, r]
+    # O(logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)
     def rangeGcd(self, l, r):
         width = r - l + 1
         maxPow = width.bit_length() - 1

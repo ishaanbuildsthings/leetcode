@@ -130,7 +130,6 @@ BRUTE_QUERIES = {
     "maxSubarraySum": ("lr", lambda a, l, r, c: _max_sub(a[l:r + 1])),
     "maxPrefixSum": ("lr", lambda a, l, r, c: max(sum(a[l:i + 1]) for i in range(l, r + 1))),
     "maxSuffixSum": ("lr", lambda a, l, r, c: max(sum(a[i:r + 1]) for i in range(l, r + 1))),
-    "countValue": ("lr", lambda a, l, r, c: a[l:r + 1].count(c["number"])),
     "countOccurrences": ("lrx", lambda a, l, r, x, c: a[l:r + 1].count(x)),
     "countDistinct": ("lr", lambda a, l, r, c: len(set(a[l:r + 1]))),
     "allDistinct": ("lr", lambda a, l, r, c: len(set(a[l:r + 1])) == r - l + 1),
@@ -142,7 +141,6 @@ BRUTE_QUERIES = {
     "costStrictDecreasing": ("lr", lambda a, l, r, c: _cost_mono_dec([v + i for i, v in enumerate(a[l:r + 1])])),
     "longestEqualRun": ("lr", lambda a, l, r, c: _longest_run(a[l:r + 1])),
     "maxAltSubseqSum": ("lr", lambda a, l, r, c: _max_alt(a[l:r + 1])),
-    "kthOccurrence": ("lrk", lambda a, l, r, k, c: _kth(a, l, r, k, lambda v: v == c["number"])),
     "doAllElementsAppearEvenFrequency": ("lr", lambda a, l, r, c: all(v % 2 == 0 for v in Counter(a[l:r + 1]).values())),
     "countInValRange": ("lrlohi", lambda a, l, r, lo, hi, c: sum(lo <= v <= hi for v in a[l:r + 1])),
     "sumInValRange": ("lrlohi", lambda a, l, r, lo, hi, c: sum(v for v in a[l:r + 1] if lo <= v <= hi)),
@@ -197,7 +195,7 @@ def brute_update(a, op, args, ctx):
 def domain(folder, ops):
     """Random-input rules for one template: values, point-add deltas, ctor extra args, and the brute context.
     Keeps inputs inside each template's documented preconditions (e.g. shrink ops need values >= 0)."""
-    ctx = {"mod": None, "full": None, "number": None}
+    ctx = {"mod": None, "full": None}
     small = lambda r: r.randint(-10, 10)  # noqa: E731
     nonneg_small = lambda r: r.randint(0, 10)  # noqa: E731
     if MOD_OPS & set(ops):
@@ -219,9 +217,6 @@ def domain(folder, ops):
         return (lambda r: r.randint(0, 60)), nonneg_small, [], ctx
     if {"countDistinct", "allDistinct", "rangeMode", "doAllElementsAppearEvenFrequency", "countOccurrences"} & set(ops):
         return (lambda r: r.randint(0, 6)), nonneg_small, [], ctx
-    if "countValue" in ops:
-        ctx["number"] = 3
-        return (lambda r: r.randint(0, 5)), nonneg_small, [3], ctx
     if "longestEqualRun" in ops:
         return (lambda r: r.randint(0, 2)), (lambda r: r.randint(-1, 1)), [], ctx
     if "costMonoIncreasing" in ops:
@@ -450,7 +445,6 @@ def sparse_query(op, R, args, ctx):
                 hit = next(((s_, e) for s_, e, v in order if cmp(v, xs[0])), None)
                 return R.lo - 1 if hit is None else (hit[0] if side == "leftmost" else hit[1])
     n_of = lambda run: run[1] - run[0] + 1  # noqa: E731
-    if op == "countValue": return sum(n_of(x) for x in runs if x[2] == ctx["number"])
     if op == "countOccurrences": return sum(n_of(x) for x in runs if x[2] == xs[0])
     if op == "countDistinct": return len(set(vals))
     if op == "allDistinct": return all(n_of(x) == 1 for x in runs) and len(set(vals)) == len(vals)
@@ -471,7 +465,6 @@ def sparse_query(op, R, args, ctx):
     if op == "costMonoDecreasing": return _cost_pieces([(v, e - s_ + 1, 0) for s_, e, v in runs[::-1]])
     if op == "costStrictIncreasing": return _cost_pieces([(v - (s_ - l), e - s_ + 1, -1) for s_, e, v in runs])
     if op == "costStrictDecreasing": return _cost_pieces([(v + (e - l), e - s_ + 1, -1) for s_, e, v in runs[::-1]])
-    if op == "kthOccurrence": return _runs_kth(runs, xs[0], lambda v: v == ctx["number"], R.lo)
     for name, cmp in CMP.items():
         if op == f"kth{name}X":
             return _runs_kth(runs, xs[0], lambda v, cmp=cmp: cmp(v, xs[1]), R.lo)

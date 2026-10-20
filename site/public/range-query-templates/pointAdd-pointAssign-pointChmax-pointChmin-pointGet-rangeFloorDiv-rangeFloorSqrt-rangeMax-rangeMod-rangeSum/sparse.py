@@ -197,7 +197,7 @@ class SparseSegTree:
     def pointAssign(self, pos, val):
         self._pointAssign(1, self.lo, self.hi, pos, val)
 
-    # O(log n)
+    # O(logN) -- a[pos]
     def pointGet(self, pos):
         return self._rangeMax(1, self.lo, self.hi, pos, pos)
 

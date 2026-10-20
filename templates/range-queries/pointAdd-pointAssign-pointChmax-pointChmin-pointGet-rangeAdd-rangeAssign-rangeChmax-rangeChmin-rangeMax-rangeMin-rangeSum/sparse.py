@@ -283,6 +283,7 @@ class SparseBeatsChminChmax:
         self._chmin(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] = min(a[i], x) for i in [l, r]
     def rangeChmin(self, l, r, x):
         if l > r:
             return
@@ -302,6 +303,7 @@ class SparseBeatsChminChmax:
         self._chmax(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] = max(a[i], x) for i in [l, r]
     def rangeChmax(self, l, r, x):
         if l > r:
             return
@@ -321,6 +323,7 @@ class SparseBeatsChminChmax:
         self._add(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] += v for i in [l, r]
     def rangeAdd(self, l, r, v):
         if l > r:
             return
@@ -340,11 +343,13 @@ class SparseBeatsChminChmax:
         self._assign(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
+    # O(log^2 N) -- a[i] = v for i in [l, r]
     def rangeAssign(self, l, r, v):
         if l > r:
             return
         self._assign(1, self.lo, self.hi, l, r, v)
 
+    # O(log^2 N) -- a[pos] = v
     def pointAssign(self, pos, v):
         self.rangeAssign(pos, pos, v)
 
@@ -359,6 +364,7 @@ class SparseBeatsChminChmax:
         tm = (tl + tr) // 2
         return self._sum(self.L[i], tl, tm, ql, qr) + self._sum(self.R[i], tm + 1, tr, ql, qr)
 
+    # O(logN) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         if l > r:
             return 0
@@ -376,6 +382,7 @@ class SparseBeatsChminChmax:
         b = self._max(self.R[i], tm + 1, tr, ql, qr)
         return a if a > b else b
 
+    # O(logN) -- max of a[l..r]
     def rangeMax(self, l, r):
         if l > r:
             return NEG_INF
@@ -393,11 +400,13 @@ class SparseBeatsChminChmax:
         b = self._min(self.R[i], tm + 1, tr, ql, qr)
         return a if a < b else b
 
+    # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r):
         if l > r:
             return POS_INF
         return self._min(1, self.lo, self.hi, l, r)
 
+    # O(logN) -- a[pos]
     def pointGet(self, pos):
         return self.rangeMax(pos, pos)
 

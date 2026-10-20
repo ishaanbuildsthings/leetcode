@@ -62,6 +62,7 @@ class MaxSegTree:
             r >>= 1
         return ans
 
+    # O(logN) -- max of a[l..r]
     def rangeMax(self, l, r):
         return self._queryHalfOpen(l, r + 1)
 

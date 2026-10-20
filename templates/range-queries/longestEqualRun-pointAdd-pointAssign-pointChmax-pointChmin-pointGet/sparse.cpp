@@ -108,7 +108,7 @@ struct SparseEqualRunTree {
         return merge(query(pool[x].l, a, m, l, r), query(pool[x].r, m + 1, b, l, r));
     }
 
-    // O(logU)
+    // O(logU) -- length of the longest run of equal adjacent values in a[l..r]
     auto longestEqualRun(long long l, long long r) const {
         Agg res = query(root, lo, hi, l, r);
         return res.best;

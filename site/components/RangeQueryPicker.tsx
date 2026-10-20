@@ -36,12 +36,25 @@ const opCost = (t: RangeQueryTemplate, op: OpId) => t.complexities[op] ?? "?";
 // Templates covering every selected op, ranked by: slowest selected op, data structure type, total cost
 // of selected ops, memory, then fewest extra ops. Type outranks total because amortized bounds on heavy
 // structures (beats) hide large constants. Ops you didn't select don't count against a template.
-// With includeSparse, every template's sparse version (if it has one) competes too, with its own costs and memory.
-function matchTemplates(selected: Set<OpId>, includeSparse: boolean) {
+// Which versions compete: dense only, dense and sparse (each sparse version with its own costs and memory), or
+// sparse only.
+type SparseMode = "none" | "include" | "only";
+const SPARSE_MODES: { mode: SparseMode; label: string; title: string }[] = [
+  { mode: "none", label: "No sparse", title: "Only the dense templates (indices 0..n-1)" },
+  { mode: "include", label: "Include sparse", title: "Dense templates and their sparse versions together" },
+  {
+    mode: "only",
+    label: "Only sparse",
+    title:
+      "Only sparse versions: any index range [lo, hi] (e.g. up to 1e18). Templates with updates become dynamic trees where every position starts at 0; static ones are built from (index, value) points, every other index 0.",
+  },
+];
+
+function matchTemplates(selected: Set<OpId>, sparseMode: SparseMode) {
   if (selected.size === 0) return [];
   const picked = [...selected];
   const wantsMod = picked.some((op) => MOD_P_OPS.has(op));
-  return RANGE_QUERY_TEMPLATES.flatMap((t) => [viewOf(t, false), includeSparse ? viewOf(t, true) : null])
+  return RANGE_QUERY_TEMPLATES.flatMap((t) => [sparseMode !== "only" ? viewOf(t, false) : null, sparseMode !== "none" ? viewOf(t, true) : null])
     .filter((t): t is TemplateView => t !== null)
     .filter((t) => picked.every((op) => t.operations.includes(op)) && (wantsMod || !isModP(t)))
     .map((t) => {
@@ -141,8 +154,8 @@ function MemoryPanel({ template, lang }: { template: RangeQueryTemplate; lang: T
 const LANG_STORAGE_KEY = "rangeQueryPicker.lang";
 const SPARSE_STORAGE_KEY = "rangeQueryPicker.sparse";
 
-// The "include sparse versions" checkbox lives in localStorage so it survives reloads; useSyncExternalStore reads it without a
-// server / client mismatch (the server always renders it off).
+// The sparse mode lives in localStorage so it survives reloads; useSyncExternalStore reads it without a server /
+// client mismatch (the server always renders "none"). Stored as "0" / "1" / "2" ("1" was the old "include" checkbox).
 const sparseListeners = new Set<() => void>();
 const subscribeSparse = (onChange: () => void) => {
   sparseListeners.add(onChange);
@@ -150,16 +163,17 @@ const subscribeSparse = (onChange: () => void) => {
     sparseListeners.delete(onChange);
   };
 };
-function readSparse(): boolean {
+function readSparse(): SparseMode {
   try {
-    return window.localStorage.getItem(SPARSE_STORAGE_KEY) === "1";
+    const v = window.localStorage.getItem(SPARSE_STORAGE_KEY);
+    return v === "2" ? "only" : v === "1" ? "include" : "none";
   } catch {
-    return false;
+    return "none";
   }
 }
-function writeSparse(on: boolean) {
+function writeSparse(mode: SparseMode) {
   try {
-    window.localStorage.setItem(SPARSE_STORAGE_KEY, on ? "1" : "0");
+    window.localStorage.setItem(SPARSE_STORAGE_KEY, mode === "only" ? "2" : mode === "include" ? "1" : "0");
   } catch {}
   sparseListeners.forEach((notify) => notify());
 }
@@ -312,22 +326,20 @@ const UPDATE_OPS = new Set<OpId>(
     .filter((id) => id !== "pointGet")
 );
 
-// What each constructor argument is, by its name in the source.
+// What each constructor argument is, by its name in the source ("lo" / "hi" / "points" are covered by the sparse
+// sentences in UsagePanel).
 const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
-  arr: { py: "the initial array (a list), 0-indexed", cpp: "the initial array (vector<long long>), 0-indexed" },
-  a: { py: "the initial array (a list), 0-indexed", cpp: "the initial array (vector<long long>), 0-indexed" },
-  lo: { py: "smallest index (any int, negative is fine)", cpp: "smallest index (any long long, negative is fine)" },
-  hi: { py: "largest index (every index in [lo, hi] starts at 0)", cpp: "largest index (every index in [lo, hi] starts at 0)" },
+  arr: { py: "arr: the initial array (a list), 0-indexed", cpp: "arr: the initial array (vector<long long>), 0-indexed" },
+  a: { py: "a: the initial array (a list), 0-indexed", cpp: "a: the initial array (vector<long long>), 0-indexed" },
   points: {
-    py: "list of (index, value) pairs, distinct indices in [lo, hi]; every other index is 0",
-    cpp: "vector<pair<long long, long long>> of (index, value), distinct indices in [lo, hi]; every other index is 0",
+    py: "points: a list of (index, value) pairs, distinct indices in [lo, hi]",
+    cpp: "points: vector<pair<long long, long long>> of (index, value), distinct indices in [lo, hi]",
   },
   mod: { py: "the modulus p", cpp: "the modulus p" },
-  number: { py: "the value countValue / kthOccurrence look for", cpp: "the value countValue / kthOccurrence look for" },
   bits: { py: "values live in [0, 2^bits)", cpp: "values live in [0, 2^bits)" },
 };
 
-// "Usage": construct, then one line per selected op, each with what it returns; then the behaviors worth knowing.
+// "Usage": construct, then one block per selected op. Every statement has its comment on the lines above it.
 function UsagePanel({ template, selected, lang }: { template: TemplateView; selected: Set<OpId>; lang: TemplateLang }) {
   const usage = template.usage[lang];
   if (!usage) return null;
@@ -339,24 +351,46 @@ function UsagePanel({ template, selected, lang }: { template: TemplateView; sele
   const varOf = (k: number) =>
     neededClasses.length === 1 ? "seg" : usage.classes[k].className[0].toLowerCase() + usage.classes[k].className.slice(1);
   const typeOf = (ret = "") => ret.replace(/\bT\b/g, "long long").replace(/\bS\b/g, "long long");
+  const sparse = template.file === "sparse";
+  const fromPoints = sparse && isBuiltFromPoints(template.memory);
 
-  const lines: { code: string; note?: string }[] = [];
+  const blocks: { comments: string[]; code: string }[] = [];
   for (const k of neededClasses) {
     const cls = usage.classes[k];
-    const required = cls.ctor.filter((p) => p.default === undefined).map((p) => p.name);
+    const requiredParams = cls.ctor.filter((p) => p.default === undefined);
+    const required = requiredParams.map((p) => p.name);
     const optional = cls.ctor.filter((p) => p.default !== undefined);
+    // C++17 deduces T from a vector argument (vector<T>, vector<pair<long long, T>>), unless a scalar T argument
+    // (e.g. a literal 3, an int) could disagree with it; then, or when T appears in no argument, write it out.
+    const deducible =
+      requiredParams.some((p) => /vector<.*\bT\b/.test(p.type ?? "")) &&
+      !requiredParams.some((p) => /^(const\s+)?T\s*&?$/.test(p.type ?? ""));
     if (cpp && cls.pool)
-      lines.push({ code: `${cls.className}<long long>::resetPool();`, note: "between test cases (all trees of this type share one node pool)" });
-    lines.push({
-      code: cpp ? `${cls.className}<long long> ${varOf(k)}(${required.join(", ")});` : `${varOf(k)} = ${cls.className}(${required.join(", ")})`,
-      note: cpp ? "T = long long (int works too)" : undefined,
-    });
-    for (const n of required) if (CTOR_ARG_NOTES[n]) lines.push({ code: `${cm} ${n}: ${CTOR_ARG_NOTES[n][lang]}` });
-    for (const p of optional)
-      lines.push({
-        code: `${cm} optional: ${p.name}${cpp ? "" : "="}${cpp ? ` (default ${p.default})` : p.default}`,
-        note: CTOR_ARG_NOTES[p.name]?.[lang],
+      blocks.push({
+        comments: [`Between test cases: frees every ${cls.className}<long long> (they all share one node pool).`],
+        code: `${cls.className}<long long>::resetPool();`,
       });
+    const comments = [
+      ...(!sparse
+        ? []
+        : fromPoints
+          ? ["Indices are any integers in [lo, hi] (negative is fine); every index not in points is 0."]
+          : [
+              "Every index in [lo, hi] starts at 0 (any integers, negative is fine).",
+              "Untouched indices read as 0, e.g. the max of an untouched range is 0, not -inf.",
+            ]),
+      ...required.flatMap((n) => (CTOR_ARG_NOTES[n] && !["mod", "bits"].includes(n) ? [CTOR_ARG_NOTES[n][lang]] : [])),
+      ...optional.map((p) => `Optional: ${p.name} (default ${p.default})${CTOR_ARG_NOTES[p.name] ? `, ${CTOR_ARG_NOTES[p.name][lang]}` : ""}.`),
+      ...(cpp
+        ? [deducible ? "T is deduced from the vector (vector<long long> gives T = long long)." : "T = long long (int works too)."]
+        : []),
+    ];
+    blocks.push({
+      comments,
+      code: cpp
+        ? `${cls.className}${deducible ? "" : "<long long>"} ${varOf(k)}(${required.join(", ")});`
+        : `${varOf(k)} = ${cls.className}(${required.join(", ")})`,
+    });
   }
   for (const op of shown) {
     const m = usage.methods[op]!;
@@ -365,43 +399,28 @@ function UsagePanel({ template, selected, lang }: { template: TemplateView; sele
     if (UPDATE_OPS.has(op)) code = cpp ? `${call};` : call;
     else if (op === "rangeMode") code = cpp ? `auto [value, freq] = ${call};` : `value, freq = ${call}`;
     else code = cpp ? `${typeOf(m.returns) || "auto"} ${op} = ${call};` : `${op} = ${call}`;
-    lines.push({ code, note: m.doc });
+    // in a sparse version, every query line says what the indices nobody wrote hold
+    const zeros = !sparse || UPDATE_OPS.has(op) ? "" : fromPoints ? "indices not in points count as 0" : "never-updated indices count as 0";
+    const doc = [m.doc, zeros].filter(Boolean).join("; ");
+    blocks.push({ comments: doc ? [doc] : [], code });
   }
-  const width = Math.max(...lines.filter((l) => l.note).map((l) => l.code.length));
-
-  const sparse = template.file === "sparse";
-  const fromPoints = sparse && isBuiltFromPoints(template.memory);
-  const behavior = [
-    !sparse
-      ? "Indices are 0-based and every range [l, r] is inclusive."
-      : fromPoints
-        ? "Indices are any integers in [lo, hi] (negative is fine); ranges [l, r] are inclusive. Built from (index, value) points with distinct indices: every other index is 0 and counts as a 0 in every query."
-        : "Indices are any integers in [lo, hi] (negative is fine); ranges [l, r] are inclusive. Every index starts at 0, so untouched indices read as 0 in every query (e.g. the max of an untouched range is 0, not -inf).",
-    cpp && usage.classes.some((c) => c.pool) ? "C++ only: all trees of one type share a node pool, so call resetPool() between test cases." : "",
-    ...neededClasses.flatMap((k) => [usage.classes[k].doc, usage.classes[k].ctorDoc].filter(Boolean)),
-  ].filter(Boolean);
 
   return (
     <div className="border-b border-border px-4 py-3 text-xs">
       <p className="mb-1.5 font-semibold text-foreground">Usage</p>
       <pre className="overflow-x-auto rounded-md bg-card p-3 font-mono text-[11px] leading-relaxed text-foreground">
-        {lines.map((l, i) => (
-          <div key={i}>
-            {l.code}
-            {l.note && (
-              <span className="text-muted-foreground">
-                {" ".repeat(width - l.code.length + 2)}
-                {cm} {l.note}
+        {blocks.map((b, i) => (
+          <span key={i}>
+            {i > 0 && "\n"}
+            {b.comments.map((c, j) => (
+              <span key={j} className="text-muted-foreground">
+                {`${cm} ${c}\n`}
               </span>
-            )}
-          </div>
+            ))}
+            {`${b.code}\n`}
+          </span>
         ))}
       </pre>
-      <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
-        {behavior.map((b, i) => (
-          <li key={i}>{b}</li>
-        ))}
-      </ul>
     </div>
   );
 }
@@ -432,8 +451,7 @@ function TierBadge({ kind, label: labelOverride }: { kind: TierKind; label?: str
 export function RangeQueryPicker() {
   const [selected, setSelected] = useState<Set<OpId>>(new Set());
   const [openTemplate, setOpenTemplate] = useState<TemplateView | null>(null);
-  const sparse = useSyncExternalStore(subscribeSparse, readSparse, () => false);
-  const toggleSparse = () => writeSparse(!sparse);
+  const sparseMode = useSyncExternalStore(subscribeSparse, readSparse, (): SparseMode => "none");
 
   const toggle = (id: OpId) => {
     setSelected((prev) => {
@@ -445,7 +463,7 @@ export function RangeQueryPicker() {
   };
 
   const selectedOps = ALL_OPS.filter((op) => selected.has(op.id));
-  const matches = matchTemplates(selected, sparse);
+  const matches = matchTemplates(selected, sparseMode);
 
   return (
     <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-24 font-[family-name:var(--font-dm-sans)]">
@@ -454,13 +472,23 @@ export function RangeQueryPicker() {
           Range Query Picker
         </h1>
         <div className="flex items-center gap-2">
-        <label
-          title="Also list sparse versions: any index range [lo, hi] (e.g. up to 1e18). Templates with updates become dynamic trees where every position starts at 0; static ones are built from (index, value) points, every other index 0."
-          className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-        >
-          <input type="checkbox" checked={sparse} onChange={toggleSparse} className="accent-primary" />
-          Include sparse versions
-        </label>
+        <div className="flex overflow-hidden rounded-md border border-border text-xs font-medium" role="radiogroup" aria-label="Sparse versions">
+          {SPARSE_MODES.map(({ mode, label, title }) => (
+            <button
+              key={mode}
+              type="button"
+              role="radio"
+              aria-checked={sparseMode === mode}
+              title={title}
+              onClick={() => writeSparse(mode)}
+              className={`px-3 py-1.5 transition-colors ${
+                sparseMode === mode ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           onClick={() => setSelected(new Set())}

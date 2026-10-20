@@ -33,7 +33,7 @@ class BIT:
             if j <= n:
                 tree[j] += tree[i]
 
-    # point add, logN
+    # O(logN) -- a[i] += delta
     def pointAdd(self, i, delta):
         i += 1
         while i <= self.n:

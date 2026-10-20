@@ -30,7 +30,6 @@ export type OpId =
   | "maxSuffixSum"
   | "rangeAndQuery"
   | "rangeOrQuery"
-  | "countValue"
   | "countOccurrences"
   | "countDistinct"
   | "allDistinct"
@@ -55,7 +54,6 @@ export type OpId =
   | "rightmostLtX"
   | "leftmostPrefixSumGteX"
   | "leftmostPrefixSumGtX"
-  | "kthOccurrence"
   | "kthGteX"
   | "kthGtX"
   | "kthLteX"
@@ -178,7 +176,6 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "rangeMode", signature: "rangeMode(l, r)", description: "(mode, frequency) of a[l]…a[r]" },
           { id: "allDistinct", signature: "allDistinct(l, r)", description: "Are all values in a[l]…a[r] distinct?" },
           { id: "countOccurrences", signature: "countOccurrences(l, r, x)", description: "# of i in [l, r] with a[i] = x" },
-          { id: "countValue", signature: "countValue(l, r)", description: "# of times the value set at build appears in a[l]…a[r]" },
         ],
       },
       {
@@ -234,7 +231,6 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "kthLtX", signature: "kthLtX(l, r, k, x)", description: "Index of the k-th i in [l, r] with a[i] < x" },
           { id: "leftmostPrefixSumGteX", signature: "leftmostPrefixSumGteX(l, r, x)", description: "First i in [l, r] with a[l] + … + a[i] ≥ x (needs a[i] ≥ 0; k-th one on a 0/1 array)", showArgs: true },
           { id: "leftmostPrefixSumGtX", signature: "leftmostPrefixSumGtX(l, r, x)", description: "First i in [l, r] with a[l] + … + a[i] > x (needs a[i] ≥ 0)", showArgs: true },
-          { id: "kthOccurrence", signature: "kthOccurrence(l, r, k)", description: "Index of the k-th occurrence in [l, r] of the value set at build" },
         ],
       },
     ],

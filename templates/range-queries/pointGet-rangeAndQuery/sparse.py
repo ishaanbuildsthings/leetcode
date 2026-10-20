@@ -32,6 +32,7 @@ class SparseAnd:
                     val &= self.sparse[power - 1][rightEdge]
                 self.sparse[power][left] = val
 
+    # O(1) -- a[l] & ... & a[r]
     def rangeAndQuery(self, l, r):
         width = r - l + 1
         maxPow = width.bit_length() - 1

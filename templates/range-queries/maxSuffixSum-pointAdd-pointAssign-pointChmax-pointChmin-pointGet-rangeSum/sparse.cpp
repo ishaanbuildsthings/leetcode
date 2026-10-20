@@ -109,13 +109,13 @@ struct SparseMaxSuffixSumTree {
         return merge(query(pool[x].l, a, m, l, r), query(pool[x].r, m + 1, b, l, r));
     }
 
-    // O(logU)
+    // O(logU) -- a[l] + ... + a[r]
     auto rangeSum(long long l, long long r) const {
         Agg res = query(root, lo, hi, l, r);
         return res.sm;
     }
 
-    // O(logU)
+    // O(logU) -- best sum of a non-empty suffix of a[l..r]
     auto maxSuffixSum(long long l, long long r) const {
         Agg res = query(root, lo, hi, l, r);
         return res.suf;

@@ -80,22 +80,22 @@ class SparseMaxSubarrayTree:
             return left
         return self._merge(left, right)
 
-    # O(logU)
+    # O(logU) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         res = self._query(l, r)
         return res[0]
 
-    # O(logU)
+    # O(logU) -- best sum of a non-empty prefix of a[l..r]
     def maxPrefixSum(self, l, r):
         res = self._query(l, r)
         return res[1]
 
-    # O(logU)
+    # O(logU) -- best sum of a non-empty suffix of a[l..r]
     def maxSuffixSum(self, l, r):
         res = self._query(l, r)
         return res[2]
 
-    # O(logU)
+    # O(logU) -- best sum of a non-empty subarray of a[l..r]
     def maxSubarraySum(self, l, r):
         res = self._query(l, r)
         return res[3]

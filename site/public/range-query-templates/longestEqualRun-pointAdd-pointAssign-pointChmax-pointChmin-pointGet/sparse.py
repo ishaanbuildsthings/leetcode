@@ -88,7 +88,7 @@ class SparseEqualRunTree:
             return left
         return self._merge(left, right)
 
-    # O(logU)
+    # O(logU) -- length of the longest run of equal adjacent values in a[l..r]
     def longestEqualRun(self, l, r):
         res = self._query(l, r)
         return res[3]

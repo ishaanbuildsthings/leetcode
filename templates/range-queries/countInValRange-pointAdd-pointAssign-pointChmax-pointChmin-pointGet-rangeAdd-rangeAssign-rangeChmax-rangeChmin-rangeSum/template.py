@@ -139,7 +139,7 @@ class SqrtBlocks_PERFORMANT:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # O(1)
+    # O(1) -- a[i]
     def pointGet(self, i):
         b = i // self.blockSize
         v = self.valsBeforeTags[i] + self.lazyAdd[b]
@@ -558,7 +558,7 @@ class SqrtBlocks_CLEAN_CODE:
             return chmin
         return val
     
-    # O(1)
+    # O(1) -- a[i]
     def pointGet(self, i):
         b = i // self.blockSize
         add, chmin, chmax = self.lazyAdd[b], self.lazyChmin[b], self.lazyChmax[b]
@@ -567,7 +567,7 @@ class SqrtBlocks_CLEAN_CODE:
         return self._clamp(nval, chmin, chmax)
 
 
-    # O(Root(N))
+    # O(sqrtN) -- a[i] = newVal
     def pointAssign(self, i, newVal):
         b = i // self.blockSize
         self._pushLaziesAndClearLazies(b)
@@ -641,8 +641,7 @@ class SqrtBlocks_CLEAN_CODE:
                 self.lazyChmin[b] = x
         self._rangeApply(l, r, tagOp, indexOp)
     
-    # O(Root(N) * logN)
-    # make l...r all equal to x
+    # O(sqrtN logN) -- a[i] = x for i in [l, r]
     def rangeAssign(self, l, r, x):
         def indexOp(val):
             return x
@@ -652,8 +651,7 @@ class SqrtBlocks_CLEAN_CODE:
             self.lazyChmin[b] = x
         self._rangeApply(l, r, tagOp, indexOp)
     
-    # O(Root(N) * logN)
-    # add diff to all values in l...r
+    # O(sqrtN logN) -- a[i] += diff for i in [l, r]
     def rangeAdd(self, l, r, diff):
         def indexOp(val):
             return val + diff

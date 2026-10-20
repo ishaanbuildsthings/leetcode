@@ -97,7 +97,7 @@ struct SparseMaxTree {
         return merge(query(pool[x].l, a, m, l, r), query(pool[x].r, m + 1, b, l, r));
     }
 
-    // O(logU) -- fold of a[l..r]
+    // O(logU) -- max of a[l..r]
     T rangeMax(long long l, long long r) const { return query(root, lo, hi, l, r); }
 
     // O(logU) -- a[i]
