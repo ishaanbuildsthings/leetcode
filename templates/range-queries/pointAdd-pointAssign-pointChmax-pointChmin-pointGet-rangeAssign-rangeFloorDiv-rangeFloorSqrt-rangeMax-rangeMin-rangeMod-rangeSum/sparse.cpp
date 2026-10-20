@@ -141,37 +141,37 @@ struct SparseShrinkSeg {
         return min(qmin(Lc[i], tl, tm, ql, qr), qmin(Rc[i], tm + 1, tr, ql, qr));
     }
 
-    // amortized O(logN logU) -- a[i] %= x for i in [l, r]; prunes at max < x, where a % x == a
+    // amortized O(logU logU) -- a[i] %= x for i in [l, r]; prunes at max < x, where a % x == a
     void rangeMod(long long l, long long r, T x) {
         if (l <= r && x >= 1) shrink(root, lo, hi, l, r, x, [x](T v) { return v % x; });
     }
 
-    // amortized O(logN logU) -- a[i] /= x (floor) for i in [l, r]; requires x >= 2, prunes at max < 1
+    // amortized O(logU logU) -- a[i] /= x (floor) for i in [l, r]; requires x >= 2, prunes at max < 1
     void rangeFloorDiv(long long l, long long r, T x) {
         if (l <= r && x >= 2) shrink(root, lo, hi, l, r, T(1), [x](T v) { return v / x; });
     }
 
-    // amortized O(logN loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r]; 0 and 1 are fixed points
+    // amortized O(logU loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r]; 0 and 1 are fixed points
     void rangeFloorSqrt(long long l, long long r) {
         if (l <= r) shrink(root, lo, hi, l, r, T(2), isqrtT);
     }
 
-    // amortized O(logN) -- a[i] = v for i in [l, r]
+    // amortized O(logU) -- a[i] = v for i in [l, r]
     void rangeAssign(long long l, long long r, T v) { if (l <= r) assign(root, lo, hi, l, r, v); }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logU) -- a[l] + ... + a[r]
     S rangeSum(long long l, long long r) { return l > r ? S(0) : qsum(root, lo, hi, l, r); }
 
-    // O(logN) -- max of a[l..r]
+    // O(logU) -- max of a[l..r]
     T rangeMax(long long l, long long r) { return qmax(root, lo, hi, l, r); }
 
-    // O(logN) -- min of a[l..r]
+    // O(logU) -- min of a[l..r]
     T rangeMin(long long l, long long r) { return qmin(root, lo, hi, l, r); }
 
-    // O(logN) -- a[i] = v, an overwrite that may raise the value
+    // O(logU) -- a[i] = v, an overwrite that may raise the value
     void pointAssign(long long i, T v) { rangeAssign(i, i, v); }
 
-    // O(logN) -- a[i]
+    // O(logU) -- a[i]
     T pointGet(long long i) { return rangeMax(i, i); }
 
     // a[i] = max(a[i], v)

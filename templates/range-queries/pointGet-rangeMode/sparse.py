@@ -11,7 +11,7 @@
 #   node: blockMode[1*N] blockCnt[1*N]
 #   tags: none
 #   other: idx[1*N] vals[1*N] zc[1*N] comp[1*N] positions[1*N] posIdx[1*N]
-#   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the sqrt mode structure is over the points only; 0's frequency is the zeros of [l, r] plus the points holding 0 (zc), and it wins whenever it is at least the points' mode frequency
+#   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sqrt mode structure is over the given values only; 0's frequency is the zeros of [l, r] plus the given values holding 0 (zc), and it wins whenever it is at least the given values' mode frequency
 # ========================
 # COMPLEXITIES
 
@@ -151,27 +151,27 @@ class RangeMode:
 from bisect import bisect_left, bisect_right
 
 
-# Range mode over any index range [lo, hi], built from (index, value) points; every other index is 0. The sqrt mode
-# structure runs on the points alone; 0 appears (zeros of [l, r]) + (points holding 0) times, and is the answer
-# whenever that is at least the points' own mode frequency.
+# Range mode over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The sqrt mode
+# structure runs on the given values alone; 0 appears (zeros of [l, r]) + (given values holding 0) times, and is the answer
+# whenever that is at least the given values' own mode frequency.
 
 
 class SparseStaticRangeMode:
     __slots__ = ("lo", "hi", "idx", "vals", "inner", "zc")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
-        vals = self.vals or [0]  # (a dummy element when there are no points; it is never queried)
+        vals = self.vals or [0]  # (a dummy element when there are no given values; it is never queried)
         self.inner = RangeMode(vals)
-        self.zc = [0]  # zc[k] = # of the first k points holding 0
+        self.zc = [0]  # zc[k] = # of the first k given values holding 0
         for v in self.vals:
             self.zc.append(self.zc[-1] + (v == 0))
 
-    # (i0, i1, zeros): the points inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
+    # (i0, i1, zeros): the given values inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
     def _span(self, l, r):
         i0, i1 = bisect_left(self.idx, l), bisect_right(self.idx, r) - 1
         return i0, i1, (r - l + 1) - (i1 - i0 + 1)

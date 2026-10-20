@@ -11,21 +11,21 @@
 #   node: pos[1*N]
 #   tags: none
 #   other: idx[1*N] vals[1*N]
-#   note: built from N (index, value) points over any index range [lo, hi], every other index 0; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the points inside)
+#   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the given values inside)
 from bisect import bisect_left, bisect_right
 
-# "How many times does x appear in a[l..r]?" over any index range [lo, hi], built from (index, value) points; every
+# "How many times does x appear in a[l..r]?" over any index range [lo, hi], built from given values (index, value pairs); every
 # other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the
-# points inside).
+# given values inside).
 
 
 class SparseStaticOccurrences:
     __slots__ = ("lo", "hi", "idx", "vals", "pos")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
         pos = self.pos = {}

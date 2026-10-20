@@ -59,6 +59,20 @@ def sparse_header(header_lines, cm):
     return out
 
 
+def sparse_costs(code, cm):
+    """In comments, costs that counted tree levels over N elements now count them over the index range: N -> U."""
+    def fix(line):
+        k = line.find(cm)
+        if k < 0:
+            return line
+        c = line[k:]
+        c = c.replace("log^2 N", "log^2 U").replace("log^2(N)", "log^2(U)").replace("log² N", "log² U")
+        c = re.sub(r"\blog ?N\b", lambda m: m.group(0).replace("N", "U"), c)
+        c = re.sub(r"\blog n\b", "log U", c)
+        return line[:k] + c
+    return "\n".join(fix(line) for line in code.split("\n"))
+
+
 # ================================================================================================ Python
 
 def convert_py(src, name):
@@ -160,12 +174,12 @@ def main():
                  "# is one block of zeros; children are created on demand as blocks of zeros (every count = their length)\n"
                  "# right before anything descends past a node or pushes its tags. Otherwise the beats logic below is the\n"
                  "# dense tree's, with children in L / R instead of at 2i / 2i + 1.\n")
-        py = "\n".join(sparse_header(head, "#")) + "\n" + intro + convert_py(body, name)
+        py = "\n".join(sparse_header(head, "#")) + "\n" + intro + sparse_costs(convert_py(body, name), "#")
         write_template(os.path.join(DIR, folder, "sparse.py"), py)
         if not only_py:
             from sparse_beats_cpp import convert_cpp  # noqa: E402
             chead, cbody = split_header(open(os.path.join(DIR, folder, "template.cpp")).read())
-            cpp = "\n".join(sparse_header(chead, "//")) + "\n" + convert_cpp(folder, cbody)
+            cpp = "\n".join(sparse_header(chead, "//")) + "\n" + sparse_costs(convert_cpp(folder, cbody), "//")
             write_template(os.path.join(DIR, folder, "sparse.cpp"), cpp)
         print("wrote", folder)
 

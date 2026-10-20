@@ -35,19 +35,19 @@
 # seg = BitBeats_PERFORMANT(arr, 20)   # second arg is the bit width
 #
 # K = bit width (20 for values < 2^20)
-# AMORTIZED O(logN * K):  rangeAndApply(l, r, x)      -- a[i] &= x
-# AMORTIZED O(logN * K):  rangeOrApply(l, r, x)       -- a[i] |= x
-# AMORTIZED O(logN):      pointAssign(pos, newVal)
+# AMORTIZED O(logU * K):  rangeAndApply(l, r, x)      -- a[i] &= x
+# AMORTIZED O(logU * K):  rangeOrApply(l, r, x)       -- a[i] |= x
+# AMORTIZED O(logU):      pointAssign(pos, newVal)
 #
-# O(logN):  rangeMax(l, r)
-# O(logN):  rangeMin(l, r)
-# O(logN):  rangeSum(l, r)
-# O(logN):  rangeAndQuery(l, r)    -- AND of the whole range
-# O(logN):  rangeOrQuery(l, r)     -- OR of the whole range
-# O(logN):  pointGet(pos)
+# O(logU):  rangeMax(l, r)
+# O(logU):  rangeMin(l, r)
+# O(logU):  rangeSum(l, r)
+# O(logU):  rangeAndQuery(l, r)    -- AND of the whole range
+# O(logU):  rangeOrQuery(l, r)     -- OR of the whole range
+# O(logU):  pointGet(pos)
 # O(n) space
 #
-# Whole thing is O((n + q) * K * logN). Values must be NON-NEGATIVE and below 2^K. Python ints cannot overflow.
+# Whole thing is O((n + q) * K * logU). Values must be NON-NEGATIVE and below 2^K. Python ints cannot overflow.
 #
 # ========================
 #
@@ -229,11 +229,11 @@ class SparseBitBeats:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # O(logN logU) -- a[i] &= X for i in [l, r]
+    # O(logU logU) -- a[i] &= X for i in [l, r]
     def rangeAndApply(self, l, r, X):
         if l <= r: self._upd(1, self.lo, self.hi, l, r, X & self.FULL, 0)
 
-    # O(logN logU) -- a[i] |= X for i in [l, r]
+    # O(logU logU) -- a[i] |= X for i in [l, r]
     def rangeOrApply(self, l, r, X):
         if l <= r: self._upd(1, self.lo, self.hi, l, r, ~X & self.FULL, X & self.FULL)
 
@@ -250,7 +250,7 @@ class SparseBitBeats:
         else: self._set(self.R[i], tm + 1, tr, p, v)
         self._pull(i)
 
-    # O(logN) -- a[p] = v
+    # O(logU) -- a[p] = v
     def pointAssign(self, p, v):
         self._set(1, self.lo, self.hi, p, v & self.FULL)
 
@@ -272,17 +272,17 @@ class SparseBitBeats:
         if kind == 3: return a & b
         return a | b
 
-    # O(logN) -- max of a[l..r]
+    # O(logU) -- max of a[l..r]
     def rangeMax(self, l, r): return None if (l > r) else self._q(1, self.lo, self.hi, l, r, 0)
-    # O(logN) -- min of a[l..r]
+    # O(logU) -- min of a[l..r]
     def rangeMin(self, l, r): return None if (l > r) else self._q(1, self.lo, self.hi, l, r, 1)
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]
     def rangeSum(self, l, r): return 0 if (l > r) else self._q(1, self.lo, self.hi, l, r, 2)
-    # O(logN) -- a[l] & ... & a[r]
+    # O(logU) -- a[l] & ... & a[r]
     def rangeAndQuery(self, l, r): return self.FULL if (l > r) else self._q(1, self.lo, self.hi, l, r, 3)
-    # O(logN) -- a[l] | ... | a[r]
+    # O(logU) -- a[l] | ... | a[r]
     def rangeOrQuery(self, l, r): return 0 if (l > r) else self._q(1, self.lo, self.hi, l, r, 4)
-    # O(logN) -- a[p]
+    # O(logU) -- a[p]
     def pointGet(self, p): return self.rangeMax(p, p)
 
     # a[i] = max(a[i], val)

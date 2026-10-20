@@ -46,7 +46,7 @@ const SPARSE_MODES: { mode: SparseMode; label: string; title: string }[] = [
     mode: "only",
     label: "Only sparse",
     title:
-      "Only sparse versions: any index range [lo, hi] (e.g. up to 1e18). Templates with updates become dynamic trees where every position starts at 0; static ones are built from (index, value) points, every other index 0.",
+      "Only sparse versions: any index range [lo, hi] (e.g. up to 1e18). Templates with updates become dynamic trees where every position starts at 0; static ones are built from given values ((index, value) pairs), every other index 0.",
   },
 ];
 
@@ -97,7 +97,7 @@ function memoryGroups(template: RangeQueryTemplate): { id: MemoryGroupId; label:
 }
 
 // The layout's label after "Memory <total>", if any. Sparse versions get none: the card's title ("Sparse seg tree",
-// "Sparse table over points") already says what they are.
+// "Sparse table built from values") already says what they are.
 function layoutLabel(memory: RangeQueryTemplate["memory"]): string | null {
   return memory.layout === "none" || memory.layout === "sparse" ? null : TREE_LAYOUT_LABELS[memory.layout];
 }
@@ -326,14 +326,14 @@ const UPDATE_OPS = new Set<OpId>(
     .filter((id) => id !== "pointGet")
 );
 
-// What each constructor argument is, by its name in the source ("lo" / "hi" / "points" are covered by the sparse
-// sentences in UsagePanel).
+// What each constructor argument is, by its name in the source ("lo" / "hi" are covered by the sparse sentences in
+// UsagePanel).
 const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
   arr: { py: "arr: the initial array (a list), 0-indexed", cpp: "arr: the initial array (vector<long long>), 0-indexed" },
   a: { py: "a: the initial array (a list), 0-indexed", cpp: "a: the initial array (vector<long long>), 0-indexed" },
-  points: {
-    py: "points: a list of (index, value) pairs, distinct indices in [lo, hi]",
-    cpp: "points: vector<pair<long long, long long>> of (index, value), distinct indices in [lo, hi]",
+  values: {
+    py: "values: a list of (index, value) pairs, distinct indices in [lo, hi]; N = len(values)",
+    cpp: "values: vector<pair<long long, long long>> of (index, value), distinct indices in [lo, hi]; N = values.size()",
   },
   mod: { py: "the modulus p", cpp: "the modulus p" },
   bits: { py: "values live in [0, 2^bits)", cpp: "values live in [0, 2^bits)" },
@@ -374,7 +374,10 @@ function UsagePanel({ template, selected, lang }: { template: TemplateView; sele
       ...(!sparse
         ? []
         : fromPoints
-          ? ["Indices are any integers in [lo, hi] (negative is fine); every index not in points is 0."]
+          ? [
+              "Indices are any integers in [lo, hi] (negative is fine); every index not given in values is 0.",
+              "Costs depend on N, the number of given values, not on the size of [lo, hi].",
+            ]
           : [
               "Every index in [lo, hi] starts at 0 (any integers, negative is fine).",
               "Untouched indices read as 0, e.g. the max of an untouched range is 0, not -inf.",
@@ -400,7 +403,7 @@ function UsagePanel({ template, selected, lang }: { template: TemplateView; sele
     else if (op === "rangeMode") code = cpp ? `auto [value, freq] = ${call};` : `value, freq = ${call}`;
     else code = cpp ? `${typeOf(m.returns) || "auto"} ${op} = ${call};` : `${op} = ${call}`;
     // in a sparse version, every query line says what the indices nobody wrote hold
-    const zeros = !sparse || UPDATE_OPS.has(op) ? "" : fromPoints ? "indices not in points count as 0" : "never-updated indices count as 0";
+    const zeros = !sparse || UPDATE_OPS.has(op) ? "" : fromPoints ? "indices not given in values count as 0" : "never-updated indices count as 0";
     const doc = [m.doc, zeros].filter(Boolean).join("; ");
     blocks.push({ comments: doc ? [doc] : [], code });
   }

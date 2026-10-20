@@ -15,7 +15,7 @@
 //   node: sp[8*N*log(N)]
 //   tags: none
 //   other: idx[1*N] vals[1*N] starts[8*N] v[8*N] w[8*N] W[8*N] B[8*N] suff[8*N]
-//   note: built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query; sums wrap mod 2^64 (exact whenever the answer fits in long long)
+//   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query; sums wrap mod 2^64 (exact whenever the answer fits in long long)
 
 // costMonoIncreasing (min +1 increments to make a[l..r] non-decreasing) over an array given as pieces: piece k
 // starts at index starts[k], spans w[k] indices, and holds v[k] + slope[k] * t at its t-th index (slope 0 or -1, so
@@ -102,7 +102,7 @@ struct PieceCost {
         return (long long)(pref - sum(l, r));
     }
 
-    // the pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for sorted points over [lo, hi]
+    // the pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for sorted given values over [lo, hi]
     template <typename T>
     static PieceCost of(long long lo, long long hi, const vector<pair<long long, T>>& pts, int c) {
         vector<long long> st, v, w;
@@ -120,7 +120,7 @@ struct PieceCost {
 };
 
 // Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing,
-// and range sum, over any index range [lo, hi], built from (index, value) points; every other index is 0.
+// and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0.
 // Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the
 // non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query.
 // T: int, long long, ...
@@ -132,8 +132,8 @@ struct SparseMonoCosts {
     vector<pair<long long, T>> pts, mirrored;
     mutable optional<PieceCost> views[2][2];  // [mirrored][strict]
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    SparseMonoCosts(long long lo, long long hi, vector<pair<long long, T>> points) : lo(lo), hi(hi), pts(move(points)) {
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    SparseMonoCosts(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), pts(move(values)) {
         sort(pts.begin(), pts.end());
         for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v), mirrored.push_back({lo + hi - i, v});
         reverse(mirrored.begin(), mirrored.end());

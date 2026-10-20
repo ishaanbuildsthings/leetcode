@@ -12,7 +12,7 @@
 //   node: sp[2*N*log(N)]
 //   tags: none
 //   other: idx[1*N] vals[1*N] starts[2*N] v[2*N] w[2*N] W[2*N] B[2*N] suff[2*N]
-//   note: built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; sums wrap mod 2^64 (exact whenever the answer fits in long long)
+//   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; sums wrap mod 2^64 (exact whenever the answer fits in long long)
 
 // costMonoIncreasing (min +1 increments to make a[l..r] non-decreasing) over an array given as pieces: piece k
 // starts at index starts[k], spans w[k] indices, and holds v[k] + slope[k] * t at its t-th index (slope 0 or -1, so
@@ -99,7 +99,7 @@ struct PieceCost {
         return (long long)(pref - sum(l, r));
     }
 
-    // the pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for sorted points over [lo, hi]
+    // the pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for sorted given values over [lo, hi]
     template <typename T>
     static PieceCost of(long long lo, long long hi, const vector<pair<long long, T>>& pts, int c) {
         vector<long long> st, v, w;
@@ -117,7 +117,7 @@ struct PieceCost {
 };
 
 // Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from
-// (index, value) points; every other index is 0. One PieceCost view over the points and the gaps of zeros.
+// given values (index, value pairs); every other index is 0. One PieceCost view over the given values and the gaps of zeros.
 // T: int, long long, ...
 template <typename T>
 struct SparseMonoIncreaseCost {
@@ -126,9 +126,9 @@ struct SparseMonoIncreaseCost {
     vector<T> vals;
     PieceCost inc;
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    SparseMonoIncreaseCost(long long lo, long long hi, vector<pair<long long, T>> points)
-        : lo(lo), hi(hi), inc(PieceCost::of(lo, hi, sorted(points), 0)) {}
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    SparseMonoIncreaseCost(long long lo, long long hi, vector<pair<long long, T>> values)
+        : lo(lo), hi(hi), inc(PieceCost::of(lo, hi, sorted(values), 0)) {}
 
     vector<pair<long long, T>>& sorted(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());

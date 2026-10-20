@@ -29,7 +29,7 @@
 // Segment tree beats, one side, no add: range chmax / assign, range sum / min, point ops. 0-based, inclusive.
 // Each node keeps its min (mn), strict second min (mn2), how many times the min appears, and the sum. A chmax
 // with x strictly between mn2 and mn only moves the min copies, so it is O(1) at that node; otherwise it
-// descends, and each descent glues two distinct values together, which pays for it: O(log N) amortized, with no
+// descends, and each descent glues two distinct values together, which pays for it: O(log U) amortized, with no
 // add tags at all (that is the saving over the beats trees that support range add).
 // No tag arrays either: a node's own mn is its pending chmax for the children, and a node holding a single distinct
 // value (mn2 == SENT) is its own pending assign.
@@ -136,30 +136,30 @@ struct SparseChmaxSumBeats {
         return better(a, b) ? a : b;
     }
 
-    // amortized O(logN) -- a[i] = max(a[i], x) for i in [l, r]
+    // amortized O(logU) -- a[i] = max(a[i], x) for i in [l, r]
     void rangeChmax(long long l, long long r, T x) { if (l <= r) ch(root, lo, hi, l, r, x); }
 
-    // amortized O(logN) -- a[i] = x for i in [l, r]
+    // amortized O(logU) -- a[i] = x for i in [l, r]
     void rangeAssign(long long l, long long r, T x) { if (l <= r) assign(root, lo, hi, l, r, x); }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logU) -- a[l] + ... + a[r]
     S rangeSum(long long l, long long r) { return l <= r ? qsum(root, lo, hi, l, r) : S(0); }
 
-    // O(logN) -- min of a[l..r]
+    // O(logU) -- min of a[l..r]
     T rangeMin(long long l, long long r) { return qext(root, lo, hi, l, r); }
 
-    // O(logN) -- a[i]
+    // O(logU) -- a[i]
     T pointGet(long long i) { return qext(root, lo, hi, i, i); }
 
-    // amortized O(logN) -- a[i] = v
+    // amortized O(logU) -- a[i] = v
     void pointAssign(long long i, T v) { rangeAssign(i, i, v); }
 
-    // amortized O(logN) -- a[i] = max(a[i], v)
+    // amortized O(logU) -- a[i] = max(a[i], v)
     void pointChmax(long long i, T v) { rangeChmax(i, i, v); }
 
-    // amortized O(logN) -- a[i] = min(a[i], v)
+    // amortized O(logU) -- a[i] = min(a[i], v)
     void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
 
-    // amortized O(logN) -- a[i] += delta
+    // amortized O(logU) -- a[i] += delta
     void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
 };

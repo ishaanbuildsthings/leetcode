@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countDistinct-countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet/template.py
 # @operations: countDistinct countInValRange kthGtX kthGteX kthLtX kthLteX pointGet
 # @data-structure-type: merge-sort-tree
+# @fractional-cascading: yes
 # @complexities:
 #   countDistinct: log(N)
 #   countInValRange: log(N)

@@ -3,12 +3,12 @@
     python3 sparse_static.py
 
 A static template can't start all zeros (nothing would ever change), so its sparse version is built from a list of
-(index, value) points over any index range [lo, hi] (distinct indices); every other index is 0. N is the number of
-points. Each file embeds the dense class unchanged and wraps it:
+given values (index, value pairs, distinct indices) over any index range [lo, hi]; every other index is 0. N is the number of
+given values. Each file embeds the dense class unchanged and wraps it:
   - max / min / and / or / gcd / LIS: the dense class runs on a compressed array where every maximal gap of zeros
     is one 0 (a run of zeros adds nothing more to any of these);
-  - counts, sums, k-th, mode, distinct: the dense class runs on the points alone, and the zeros of [l, r] (its
-    length minus the points inside) are added in closed form;
+  - counts, sums, k-th, mode, distinct: the dense class runs on the given values alone, and the zeros of [l, r] (its
+    length minus the given values inside) are added in closed form;
   - the costMono family is written fresh: it needs every piece's length, not just its value.
 """
 import os
@@ -21,12 +21,15 @@ HEADER_LINE = re.compile(r"^(#|//) (@|  )")
 
 
 def header(cm, ops, dtype, comp, mem, note):
-    lines = [f"{cm} @operations: {' '.join(ops)}", f"{cm} @data-structure-type: {dtype}", f"{cm} @complexities:"]
+    lines = [f"{cm} @operations: {' '.join(ops)}", f"{cm} @data-structure-type: {dtype}"]
+    if dtype == "merge-sort-tree":
+        lines.append(f"{cm} @fractional-cascading: yes")  # every merge sort tree here walks prefix counts down from one root search
+    lines.append(f"{cm} @complexities:")
     lines += [f"{cm}   {o}: {comp[o]}" for o in ops] + [f"{cm}   build: {comp['build']}"]
     node, tags, other = mem
     lines += [f"{cm} @memory:", f"{cm}   layout: sparse", f"{cm}   node: {node}", f"{cm}   tags: {tags}",
               f"{cm}   other: {other}",
-              f"{cm}   note: built from N (index, value) points over any index range [lo, hi], every other index 0; {note}"]
+              f"{cm}   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; {note}"]
     return "\n".join(lines) + "\n"
 
 
@@ -77,18 +80,18 @@ CPP_POINT_GET = '''
 
 def compressed(folder, inner, name, op, what, comp, mem, note, rtype="T"):
     py = dense_body(folder, "py") + SPARSE_NOTE_PY + f'''
-# {what} over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap
-# of zeros adds nothing more than a single 0, so {inner} runs on the compressed array of points with one 0 per gap,
+# {what} over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap
+# of zeros adds nothing more than a single 0, so {inner} runs on the compressed array of given values with one 0 per gap,
 # and a query maps l and r to the compressed elements containing them.
 
 
 class {name}:
     __slots__ = ("lo", "hi", "idx", "vals", "starts", "inner")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
         starts, arr = [], []  # starts[k] = first index of compressed element k
@@ -111,18 +114,18 @@ class {name}:
         return self.inner.{op}(bisect_right(self.starts, l) - 1, bisect_right(self.starts, r) - 1)
 ''' + PY_POINT_GET
     cpp = dense_body(folder, "cpp") + SPARSE_NOTE_CPP + f'''
-// {what} over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap
-// of zeros adds nothing more than a single 0, so {inner} runs on the compressed array of points with one 0 per gap,
+// {what} over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap
+// of zeros adds nothing more than a single 0, so {inner} runs on the compressed array of given values with one 0 per gap,
 // and a query maps l and r to the compressed elements containing them.
 template <typename T>
 struct {name} {{
     long long lo, hi;
-    vector<long long> idx, starts;  // point indices; starts[k] = first index of compressed element k
+    vector<long long> idx, starts;  // given value indices; starts[k] = first index of compressed element k
     vector<T> vals;
     {inner}<T> inner;
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    {name}(long long lo, long long hi, vector<pair<long long, T>> points) : lo(lo), hi(hi), inner(compress(points)) {{}}
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    {name}(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(compress(values)) {{}}
 
     vector<T> compress(vector<pair<long long, T>>& pts) {{
         sort(pts.begin(), pts.end());
@@ -147,7 +150,7 @@ struct {name} {{
 
 
 TABLE_MEM = ("sparse[2*N*log(N)]", "none", "idx[1*N] vals[1*N] starts[2*N]")
-TABLE_NOTE = "the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)"
+TABLE_NOTE = "the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)"
 for op, inner, name, what in [("rangeMax", "SparseMax", "SparseStaticMax", "Range max"),
                               ("rangeMin", "SparseMin", "SparseStaticMin", "Range min"),
                               ("rangeAndQuery", "SparseAnd", "SparseStaticAnd", "Range and"),
@@ -160,36 +163,36 @@ compressed("pointGet-rangeLIS", "RangeLIS", "SparseStaticLIS", "rangeLIS",
            "Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element)",
            {"rangeLIS": "log(N)", "pointGet": "log(N)", "build": "N*log^2(N)"},
            ("cnt[2*N*log(N)]", "none", "idx[1*N] vals[1*N] starts[2*N] E[2*N] sortedVals[2*N]"),
-           "the seaweed LIS structure runs on the points plus one 0 per gap (at most 2N + 1 elements)", rtype="int")
+           "the seaweed LIS structure runs on the given values plus one 0 per gap (at most 2N + 1 elements)", rtype="int")
 
-# ------------------------------------------------------------------------------------------------ points-only wrappers
+# ------------------------------------------------------------------------------------------------ given values-only wrappers
 
 PY_POINTS_INIT = '''
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points{extra_args}):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values{extra_args}):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
-        vals = self.vals or [0]  # (a dummy element when there are no points; it is never queried)
+        vals = self.vals or [0]  # (a dummy element when there are no given values; it is never queried)
 {inits}
-    # (i0, i1, zeros): the points inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
+    # (i0, i1, zeros): the given values inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
     def _span(self, l, r):
         i0, i1 = bisect_left(self.idx, l), bisect_right(self.idx, r) - 1
         return i0, i1, (r - l + 1) - (i1 - i0 + 1)
 '''
 
 CPP_POINTS_INIT = '''
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    {name}(long long lo, long long hi, vector<pair<long long, T>> points) : lo(lo), hi(hi){inits} {{}}
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    {name}(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi){inits} {{}}
 
     vector<T> split(vector<pair<long long, T>>& pts) {{
         sort(pts.begin(), pts.end());
         for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v);
-        return vals.empty() ? vector<T>{{T(0)}} : vals;  // (a dummy element when there are no points; never queried)
+        return vals.empty() ? vector<T>{{T(0)}} : vals;  // (a dummy element when there are no given values; never queried)
     }}
 
-    // the points inside [l, r] are i0..i1, and the rest of [l, r] is zeros = (r - l + 1) - (i1 - i0 + 1) zeros
+    // the given values inside [l, r] are i0..i1, and the rest of [l, r] is zeros = (r - l + 1) - (i1 - i0 + 1) zeros
     void span(long long l, long long r, int& i0, int& i1, long long& zeros) const {{
         i0 = int(lower_bound(idx.begin(), idx.end(), l) - idx.begin());
         i1 = int(upper_bound(idx.begin(), idx.end(), r) - idx.begin()) - 1;
@@ -197,10 +200,10 @@ CPP_POINTS_INIT = '''
     }}
 '''
 
-# k-th: if 0 fails the test, it is the dense k-th among the points; if 0 passes, every zero counts too, so binary
-# search the point t before which the k-th qualifying index falls, then step into the gap before it.
+# k-th: if 0 fails the test, it is the dense k-th among the given values; if 0 passes, every zero counts too, so binary
+# search the given value t before which the k-th qualifying index falls, then step into the gap before it.
 PY_KTH = '''
-    # the k-th i in [l, r] whose value passes (test); qual(t) = qualifying points among i0..t-1; zeroOk: 0 passes
+    # the k-th i in [l, r] whose value passes (test); qual(t) = qualifying given values among i0..t-1; zeroOk: 0 passes
     def _kth(self, l, r, k, zeroOk, qual, denseKth):
         i0, i1, _ = self._span(l, r)
         if k <= 0:
@@ -212,7 +215,7 @@ PY_KTH = '''
             return self.idx[j] if j != -1 else self.lo - 1
         idx = self.idx
 
-        def g(t):  # qualifying indices in [l, (point t) - 1]; point i1 + 1 stands for r + 1
+        def g(t):  # qualifying indices in [l, (given value t) - 1]; given value i1 + 1 stands for r + 1
             return ((idx[t] if t <= i1 else r + 1) - l) - (t - i0) + qual(t)
 
         if g(i1 + 1) < k:
@@ -227,12 +230,12 @@ PY_KTH = '''
         t = a
         if t == i0:
             return l - 1 + k
-        c = g(t - 1) + qual(t) - qual(t - 1)  # qualifying indices in [l, point t - 1]
+        c = g(t - 1) + qual(t) - qual(t - 1)  # qualifying indices in [l, given value t - 1]
         return idx[t - 1] if c >= k else idx[t - 1] + (k - c)
 '''
 CPP_KTH = '''
-    // the k-th i in [l, r] whose value passes the test; qual(t) = qualifying points among i0..t-1; zeroOk: 0 passes;
-    // denseKth(i0, i1, k) = the dense k-th among the points (-1 if none)
+    // the k-th i in [l, r] whose value passes the test; qual(t) = qualifying given values among i0..t-1; zeroOk: 0 passes;
+    // denseKth(i0, i1, k) = the dense k-th among the given values (-1 if none)
     template <class Q, class K>
     long long kthWithZeros(long long l, long long r, long long k, bool zeroOk, Q qual, K denseKth) const {
         int i0, i1;
@@ -244,7 +247,7 @@ CPP_KTH = '''
             int j = denseKth(i0, i1, int(k));
             return j != -1 ? idx[j] : lo - 1;
         }
-        auto g = [&](int t) {  // qualifying indices in [l, (point t) - 1]; point i1 + 1 stands for r + 1
+        auto g = [&](int t) {  // qualifying indices in [l, (given value t) - 1]; given value i1 + 1 stands for r + 1
             return ((t <= i1 ? idx[t] : r + 1) - l) - (t - i0) + qual(i0, t);
         };
         if (g(i1 + 1) < k) return lo - 1;
@@ -256,12 +259,12 @@ CPP_KTH = '''
         }
         int t = a;
         if (t == i0) return l - 1 + k;
-        long long c = g(t - 1) + qual(i0, t) - qual(i0, t - 1);  // qualifying indices in [l, point t - 1]
+        long long c = g(t - 1) + qual(i0, t) - qual(i0, t - 1);  // qualifying indices in [l, given value t - 1]
         return c >= k ? idx[t - 1] : idx[t - 1] + (k - c);
     }
 '''
 
-KTH_SPECS = [  # op, does 0 pass (python / c++), qualifying points among i0..t-1 (python / c++), dense k-th
+KTH_SPECS = [  # op, does 0 pass (python / c++), qualifying given values among i0..t-1 (python / c++), dense k-th
     ("kthGteX", "0 >= x", "T(0) >= x", "self.inner.countGteX(i0, t - 1, x)", "inner.countGteX(i0, t - 1, x)", "a[i] >= x"),
     ("kthGtX", "0 > x", "T(0) > x", "self.inner.countGteX(i0, t - 1, x + 1)", "inner.countGteX(i0, t - 1, x + 1)", "a[i] > x"),
     ("kthLteX", "0 <= x", "T(0) <= x", "self.inner.countLteX(i0, t - 1, x)", "inner.countLteX(i0, t - 1, x)", "a[i] <= x"),
@@ -311,13 +314,13 @@ COUNT_CPP = '''
 kpy, kcpp = kth_methods()
 folder = "countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet"
 WHAT = ("Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built\n"
-        "{c} from (index, value) points; every other index is 0. The merge sort tree runs on the points alone; the zeros\n"
-        "{c} of [l, r] are its length minus the points inside, and they count wherever 0 passes the test.")
+        "{c} from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone; the zeros\n"
+        "{c} of [l, r] are its length minus the given values inside, and they count wherever 0 passes the test.")
 write(folder, "merge-sort-tree",
       {"countInValRange": "log(N)", "kthGtX": "log^2(N)", "kthGteX": "log^2(N)", "kthLtX": "log^2(N)", "kthLteX": "log^2(N)",
        "pointGet": "log(N)", "build": "N*log(N)"},
       ("cnt[1*N*log(N)]", "none", "idx[1*N] vals[1*N] sortedVals[1*N]"),
-      "the merge sort tree is over the points only; a k-th whose test 0 passes binary-searches the gap it falls in",
+      "the merge sort tree is over the given values only; a k-th whose test 0 passes binary-searches the gap it falls in",
       dense_body(folder, "py") + SPARSE_NOTE_PY + f'''
 # {WHAT.format(c="#")}
 
@@ -333,7 +336,7 @@ struct SparseStaticMergeSortTree {{
     vector<long long> idx;
     vector<T> vals;
     MergeSortTree<T> inner;
-''' + CPP_POINTS_INIT.format(name="SparseStaticMergeSortTree", inits=", inner(split(points))") + COUNT_CPP + kcpp + CPP_POINT_GET + "};\n")
+''' + CPP_POINTS_INIT.format(name="SparseStaticMergeSortTree", inits=", inner(split(values))") + COUNT_CPP + kcpp + CPP_POINT_GET + "};\n")
 
 # merge sort tree + count distinct
 folder = "countDistinct-countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet"
@@ -341,18 +344,18 @@ write(folder, "merge-sort-tree",
       {"countDistinct": "log(N)", "countInValRange": "log(N)", "kthGtX": "log^2(N)", "kthGteX": "log^2(N)",
        "kthLtX": "log^2(N)", "kthLteX": "log^2(N)", "pointGet": "log(N)", "build": "N*log(N)"},
       ("cnt[2*N*log(N)]", "none", "idx[1*N] vals[1*N] sortedVals[2*N] nxt[1*N] zc[1*N]"),
-      "both merge sort trees are over the points only; zeros add one distinct value when [l, r] has a zero and no "
-      "point holding 0 (zc counts those points)",
+      "both merge sort trees are over the given values only; zeros add one distinct value when [l, r] has a zero and no "
+      "given value holding 0 (zc counts those given values)",
       dense_body(folder, "py") + SPARSE_NOTE_PY + f'''
 # {WHAT.format(c="#")}
-# Distinct values: the points' distinct values, plus 0 if [l, r] has a zero index and no point holding 0.
+# Distinct values: the given values' distinct values, plus 0 if [l, r] has a zero index and no given value holding 0.
 
 
 class SparseStaticMergeSortTree:
     __slots__ = ("lo", "hi", "idx", "vals", "inner", "distinct", "zc")
 ''' + PY_POINTS_INIT.format(extra_args="", inits="""        self.inner = MergeSortTree(vals)
         self.distinct = StaticDistinct(vals)
-        self.zc = [0]  # zc[k] = # of the first k points holding 0
+        self.zc = [0]  # zc[k] = # of the first k given values holding 0
         for v in self.vals:
             self.zc.append(self.zc[-1] + (v == 0))
 """) + COUNT_PY + '''
@@ -365,7 +368,7 @@ class SparseStaticMergeSortTree:
 ''' + kpy + PY_POINT_GET,
       dense_body(folder, "cpp") + SPARSE_NOTE_CPP + f'''
 // {WHAT.format(c="//")}
-// Distinct values: the points' distinct values, plus 0 if [l, r] has a zero index and no point holding 0.
+// Distinct values: the given values' distinct values, plus 0 if [l, r] has a zero index and no given value holding 0.
 template <typename T>
 struct SparseStaticMergeSortTree {{
     long long lo, hi;
@@ -373,8 +376,8 @@ struct SparseStaticMergeSortTree {{
     vector<T> vals;
     MergeSortTree<T> inner;
     StaticDistinct<T> distinct;
-    vector<int> zc;  // zc[k] = # of the first k points holding 0
-''' + CPP_POINTS_INIT.format(name="SparseStaticMergeSortTree", inits=", inner(split(points)), distinct(vals.empty() ? vector<T>{T(0)} : vals), zc(1)").replace(
+    vector<int> zc;  // zc[k] = # of the first k given values holding 0
+''' + CPP_POINTS_INIT.format(name="SparseStaticMergeSortTree", inits=", inner(split(values)), distinct(vals.empty() ? vector<T>{T(0)} : vals), zc(1)").replace(
           "{}\n\n    vector<T> split", "{\n        for (T v : vals) zc.push_back(zc.back() + (v == T(0)));\n    }\n\n    vector<T> split") + COUNT_CPP + '''
     // O(logN) -- # of distinct values in a[l..r]
     long long countDistinct(long long l, long long r) const {
@@ -391,11 +394,11 @@ folder = "countInValRange-pointGet-sumInValRange"
 write(folder, "persistent",
       {"countInValRange": "log(N)", "pointGet": "log(N)", "sumInValRange": "log(N)", "build": "N*log(N)"},
       ("L[1*N*log(N)] R[1*N*log(N)] S[1*N*log(N)] C[1*N*log(N)]", "none", "idx[1*N] vals[1*N] root[1*N] srt[1*N]"),
-      "the persistent tree is over the points only; zeros add to counts (never to sums)",
+      "the persistent tree is over the given values only; zeros add to counts (never to sums)",
       dense_body(folder, "py") + SPARSE_NOTE_PY + '''
-# Count / sum of the values in a value range, over any index range [lo, hi], built from (index, value) points;
-# every other index is 0. The persistent tree runs on the points alone; the zeros of [l, r] (its length minus the
-# points inside) add to a count when 0 is in the value range, and never to a sum.
+# Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs);
+# every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the
+# given values inside) add to a count when 0 is in the value range, and never to a sum.
 
 
 class SparseStaticValueRangeSum:
@@ -407,9 +410,9 @@ class SparseStaticValueRangeSum:
         return self.inner.sumInValRange(i0, i1, lowVal, highVal) if i0 <= i1 else 0
 ''' + PY_POINT_GET,
       dense_body(folder, "cpp") + SPARSE_NOTE_CPP + '''
-// Count / sum of the values in a value range, over any index range [lo, hi], built from (index, value) points;
-// every other index is 0. The persistent tree runs on the points alone; the zeros of [l, r] (its length minus the
-// points inside) add to a count when 0 is in the value range, and never to a sum.
+// Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs);
+// every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the
+// given values inside) add to a count when 0 is in the value range, and never to a sum.
 template <typename T>
 struct SparseStaticValueRangeSum {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
@@ -417,7 +420,7 @@ struct SparseStaticValueRangeSum {
     vector<long long> idx;
     vector<T> vals;
     StaticValueRangeSum<T> inner;
-''' + CPP_POINTS_INIT.format(name="SparseStaticValueRangeSum", inits=", inner(split(points))") + COUNT_CPP.replace(
+''' + CPP_POINTS_INIT.format(name="SparseStaticValueRangeSum", inits=", inner(split(values))") + COUNT_CPP.replace(
           "inner.countInValRange(i0, i1, valLow, valHigh)", "inner.countInValRange(i0, i1, valLow, valHigh)") + '''
     // O(logN) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal
     S sumInValRange(long long l, long long r, T lowVal, T highVal) const {
@@ -432,18 +435,18 @@ struct SparseStaticValueRangeSum {
 folder = "pointGet-rangeMode"
 write(folder, "sqrt", {"pointGet": "log(N)", "rangeMode": "sqrt(N)", "build": "N*sqrt(N)"},
       ("blockMode[1*N] blockCnt[1*N]", "none", "idx[1*N] vals[1*N] zc[1*N] comp[1*N] positions[1*N] posIdx[1*N]"),
-      "the sqrt mode structure is over the points only; 0's frequency is the zeros of [l, r] plus the points holding 0 "
-      "(zc), and it wins whenever it is at least the points' mode frequency",
+      "the sqrt mode structure is over the given values only; 0's frequency is the zeros of [l, r] plus the given values holding 0 "
+      "(zc), and it wins whenever it is at least the given values' mode frequency",
       dense_body(folder, "py") + SPARSE_NOTE_PY + '''
-# Range mode over any index range [lo, hi], built from (index, value) points; every other index is 0. The sqrt mode
-# structure runs on the points alone; 0 appears (zeros of [l, r]) + (points holding 0) times, and is the answer
-# whenever that is at least the points' own mode frequency.
+# Range mode over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The sqrt mode
+# structure runs on the given values alone; 0 appears (zeros of [l, r]) + (given values holding 0) times, and is the answer
+# whenever that is at least the given values' own mode frequency.
 
 
 class SparseStaticRangeMode:
     __slots__ = ("lo", "hi", "idx", "vals", "inner", "zc")
 ''' + PY_POINTS_INIT.format(extra_args="", inits="""        self.inner = RangeMode(vals)
-        self.zc = [0]  # zc[k] = # of the first k points holding 0
+        self.zc = [0]  # zc[k] = # of the first k given values holding 0
         for v in self.vals:
             self.zc.append(self.zc[-1] + (v == 0))
 """) + '''
@@ -457,17 +460,17 @@ class SparseStaticRangeMode:
         return (0, f0) if f0 >= f else (v, f)
 ''' + PY_POINT_GET,
       dense_body(folder, "cpp") + SPARSE_NOTE_CPP + '''
-// Range mode over any index range [lo, hi], built from (index, value) points; every other index is 0. The sqrt mode
-// structure runs on the points alone; 0 appears (zeros of [l, r]) + (points holding 0) times, and is the answer
-// whenever that is at least the points' own mode frequency.
+// Range mode over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The sqrt mode
+// structure runs on the given values alone; 0 appears (zeros of [l, r]) + (given values holding 0) times, and is the answer
+// whenever that is at least the given values' own mode frequency.
 template <typename T>
 struct SparseStaticRangeMode {
     long long lo, hi;
     vector<long long> idx;
     vector<T> vals;
     RangeMode<T> inner;
-    vector<int> zc;  // zc[k] = # of the first k points holding 0
-''' + CPP_POINTS_INIT.format(name="SparseStaticRangeMode", inits=", inner(split(points)), zc(1)").replace(
+    vector<int> zc;  // zc[k] = # of the first k given values holding 0
+''' + CPP_POINTS_INIT.format(name="SparseStaticRangeMode", inits=", inner(split(values)), zc(1)").replace(
           "{}\n\n    vector<T> split", "{\n        for (T v : vals) zc.push_back(zc.back() + (v == T(0)));\n    }\n\n    vector<T> split") + '''
     // O(sqrtN) -- (mode, frequency) of a[l..r]; ties: any one of the tied values
     pair<T, long long> rangeMode(long long l, long long r) const {
@@ -484,21 +487,21 @@ struct SparseStaticRangeMode {
 # count occurrences (no inner structure needed: positions are kept as absolute indices)
 write("countOccurrences-pointGet", "positions", {"countOccurrences": "log(N)", "pointGet": "log(N)", "build": "N*log(N)"},
       ("pos[1*N]", "none", "idx[1*N] vals[1*N]"),
-      "pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the points inside)",
+      "pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the given values inside)",
       '''from bisect import bisect_left, bisect_right
 
-# "How many times does x appear in a[l..r]?" over any index range [lo, hi], built from (index, value) points; every
+# "How many times does x appear in a[l..r]?" over any index range [lo, hi], built from given values (index, value pairs); every
 # other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the
-# points inside).
+# given values inside).
 
 
 class SparseStaticOccurrences:
     __slots__ = ("lo", "hi", "idx", "vals", "pos")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
         pos = self.pos = {}
@@ -518,9 +521,9 @@ class SparseStaticOccurrences:
             res += (r - l + 1) - (bisect_right(self.idx, r) - bisect_left(self.idx, l))
         return res
 ''' + PY_POINT_GET, '''
-// "How many times does x appear in a[l..r]?" over any index range [lo, hi], built from (index, value) points; every
+// "How many times does x appear in a[l..r]?" over any index range [lo, hi], built from given values (index, value pairs); every
 // other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the
-// points inside). T: any type usable as a std::map key.
+// given values inside). T: any type usable as a std::map key.
 template <typename T>
 struct SparseStaticOccurrences {
     long long lo, hi;
@@ -528,10 +531,10 @@ struct SparseStaticOccurrences {
     vector<T> vals;
     map<T, vector<long long>> pos;
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    SparseStaticOccurrences(long long lo, long long hi, vector<pair<long long, T>> points) : lo(lo), hi(hi) {
-        sort(points.begin(), points.end());
-        for (auto& [i, v] : points) idx.push_back(i), vals.push_back(v), pos[v].push_back(i);
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    SparseStaticOccurrences(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi) {
+        sort(values.begin(), values.end());
+        for (auto& [i, v] : values) idx.push_back(i), vals.push_back(v), pos[v].push_back(i);
     }
 
     static long long countIn(const vector<long long>& p, long long l, long long r) {
@@ -629,7 +632,7 @@ class _PieceCost:
 
 
 def _pieces(lo, hi, pts, c):
-    """The pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for points pts over [lo, hi]."""
+    """The pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for given values pts over [lo, hi]."""
     starts, v, w, slope = [], [], [], []
     prev = lo - 1
     for i, x in pts:
@@ -728,7 +731,7 @@ struct PieceCost {
         return (long long)(pref - sum(l, r));
     }
 
-    // the pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for sorted points over [lo, hi]
+    // the pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for sorted given values over [lo, hi]
     template <typename T>
     static PieceCost of(long long lo, long long hi, const vector<pair<long long, T>>& pts, int c) {
         vector<long long> st, v, w;
@@ -746,7 +749,7 @@ struct PieceCost {
 };
 '''
 
-COST_NOTE = ("a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and "
+COST_NOTE = ("a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and "
              "next-greater sums over the pieces; ")
 write("costMonoIncreasing-pointGet-rangeSum", "sparse-table",
       {"costMonoIncreasing": "log(N)", "pointGet": "log(N)", "rangeSum": "log(N)", "build": "N*log(N)"},
@@ -755,16 +758,16 @@ write("costMonoIncreasing-pointGet-rangeSum", "sparse-table",
       PY_PIECE + '''
 
 # Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from
-# (index, value) points; every other index is 0. One _PieceCost view over the points and the gaps of zeros.
+# given values (index, value pairs); every other index is 0. One _PieceCost view over the given values and the gaps of zeros.
 
 
 class SparseMonoIncreaseCost:
     __slots__ = ("lo", "hi", "idx", "vals", "inc")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
         self.inc = _PieceCost(*_pieces(lo, hi, pts, 0))
@@ -778,7 +781,7 @@ class SparseMonoIncreaseCost:
         return self.inc.cost(l, r)
 ''' + PY_POINT_GET, CPP_PIECE + '''
 // Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from
-// (index, value) points; every other index is 0. One PieceCost view over the points and the gaps of zeros.
+// given values (index, value pairs); every other index is 0. One PieceCost view over the given values and the gaps of zeros.
 // T: int, long long, ...
 template <typename T>
 struct SparseMonoIncreaseCost {
@@ -787,9 +790,9 @@ struct SparseMonoIncreaseCost {
     vector<T> vals;
     PieceCost inc;
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    SparseMonoIncreaseCost(long long lo, long long hi, vector<pair<long long, T>> points)
-        : lo(lo), hi(hi), inc(PieceCost::of(lo, hi, sorted(points), 0)) {}
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    SparseMonoIncreaseCost(long long lo, long long hi, vector<pair<long long, T>> values)
+        : lo(lo), hi(hi), inc(PieceCost::of(lo, hi, sorted(values), 0)) {}
 
     vector<pair<long long, T>>& sorted(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());
@@ -814,7 +817,7 @@ write("costMonoDecreasing-costMonoIncreasing-costStrictDecreasing-costStrictIncr
       PY_PIECE + '''
 
 # Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing,
-# and range sum, over any index range [lo, hi], built from (index, value) points; every other index is 0.
+# and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0.
 # Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the
 # non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query.
 
@@ -822,10 +825,10 @@ write("costMonoDecreasing-costMonoIncreasing-costStrictDecreasing-costStrictIncr
 class SparseMonoCosts:
     __slots__ = ("lo", "hi", "idx", "vals", "pts", "views")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        self.pts = sorted(points)
+        self.pts = sorted(values)
         self.idx = [i for i, _ in self.pts]
         self.vals = [v for _, v in self.pts]
         self.views = {}
@@ -859,7 +862,7 @@ class SparseMonoCosts:
         return self._view(True, -1).cost(self.lo + self.hi - r, self.lo + self.hi - l)
 ''' + PY_POINT_GET, CPP_PIECE + '''
 // Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing,
-// and range sum, over any index range [lo, hi], built from (index, value) points; every other index is 0.
+// and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0.
 // Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the
 // non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query.
 // T: int, long long, ...
@@ -871,8 +874,8 @@ struct SparseMonoCosts {
     vector<pair<long long, T>> pts, mirrored;
     mutable optional<PieceCost> views[2][2];  // [mirrored][strict]
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    SparseMonoCosts(long long lo, long long hi, vector<pair<long long, T>> points) : lo(lo), hi(hi), pts(move(points)) {
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    SparseMonoCosts(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), pts(move(values)) {
         sort(pts.begin(), pts.end());
         for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v), mirrored.push_back({lo + hi - i, v});
         reverse(mirrored.begin(), mirrored.end());

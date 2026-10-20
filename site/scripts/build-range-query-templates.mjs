@@ -5,7 +5,7 @@
 // A folder may also hold sparse.py / sparse.cpp: the same operations over any index range [lo, hi]. Their header
 // has the same format, with layout "sparse". For a template with updates every position starts at 0, memory sizes
 // are counted per update (e.g. node: sum[1*log(U)]) and U is the size of the index range; a static template's
-// sparse version is built from N (index, value) points instead (every other index 0), with costs and memory in N.
+// sparse version is built from N given values ((index, value) pairs; every other index 0), with costs and memory in N.
 // Run with: npm run gen:range-queries
 //
 // Header format (Python shown; C++ uses //):
@@ -34,8 +34,9 @@ const manifestPath = path.join(siteDir, "lib/generated/range-query-templates.ts"
 
 const LANGS = { ".py": "py", ".cpp": "cpp" };
 // @original-file-url is optional: templates written fresh in this folder have no original.
-const TAGS = ["operations", "data-structure-type", "complexities", "memory", "original-file-url"];
-const OPTIONAL_TAGS = ["original-file-url"];
+// @fractional-cascading (yes / no) is required on, and only allowed on, merge sort trees.
+const TAGS = ["operations", "data-structure-type", "fractional-cascading", "complexities", "memory", "original-file-url"];
+const OPTIONAL_TAGS = ["original-file-url", "fractional-cascading"];
 const TAG_RE = /^\s*(?:#|\/\/) @([a-z-]+):\s*(.*?)\s*$/;
 const ENTRY_RE = /^\s*(?:#|\/\/)\s+([A-Za-z]\w*):\s*(.+?)\s*$/;
 
@@ -308,12 +309,19 @@ function readTemplateFile(where, filePath) {
   for (const op of operations) if (!(op in complexities)) errs.push(`${where}: @complexities is missing ${op}`);
   if (!("build" in complexities)) errs.push(`${where}: @complexities is missing build`);
 
+  const fc = tags["fractional-cascading"];
+  if (tags["data-structure-type"] === "merge-sort-tree" && !["yes", "no"].includes(fc))
+    errs.push(`${where}: a merge sort tree needs "@fractional-cascading: yes" or "no"`);
+  if (tags["data-structure-type"] !== "merge-sort-tree" && fc !== undefined)
+    errs.push(`${where}: @fractional-cascading is only for merge sort trees`);
+
   const { build, ...perOperation } = complexities;
   return {
     errs,
     data: {
       operations,
       dataStructureType: tags["data-structure-type"],
+      ...(fc !== undefined ? { fractionalCascading: fc === "yes" } : {}),
       complexities: perOperation,
       build,
       memory: {

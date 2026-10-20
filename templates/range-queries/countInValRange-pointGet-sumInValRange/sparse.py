@@ -12,7 +12,7 @@
 #   node: L[1*N*log(N)] R[1*N*log(N)] S[1*N*log(N)] C[1*N*log(N)]
 #   tags: none
 #   other: idx[1*N] vals[1*N] root[1*N] srt[1*N]
-#   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the persistent tree is over the points only; zeros add to counts (never to sums)
+#   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums)
 # EXAMPLE
 #   vrs = StaticValueRangeSum(A)
 #   s = vrs.sumInValRange(l, r, lowVal, highVal)  # lowVal <= A[i] <= highVal
@@ -141,24 +141,24 @@ class StaticValueRangeSum:
 from bisect import bisect_left, bisect_right
 
 
-# Count / sum of the values in a value range, over any index range [lo, hi], built from (index, value) points;
-# every other index is 0. The persistent tree runs on the points alone; the zeros of [l, r] (its length minus the
-# points inside) add to a count when 0 is in the value range, and never to a sum.
+# Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs);
+# every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the
+# given values inside) add to a count when 0 is in the value range, and never to a sum.
 
 
 class SparseStaticValueRangeSum:
     __slots__ = ("lo", "hi", "idx", "vals", "inner")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
-        vals = self.vals or [0]  # (a dummy element when there are no points; it is never queried)
+        vals = self.vals or [0]  # (a dummy element when there are no given values; it is never queried)
         self.inner = StaticValueRangeSum(vals)
 
-    # (i0, i1, zeros): the points inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
+    # (i0, i1, zeros): the given values inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
     def _span(self, l, r):
         i0, i1 = bisect_left(self.idx, l), bisect_right(self.idx, r) - 1
         return i0, i1, (r - l + 1) - (i1 - i0 + 1)

@@ -29,7 +29,7 @@
 // children in Lc / Rc instead of at 2i / 2i + 1.
 
 // Segment tree beats without range add: range chmin / chmax / assign, range sum / min / max, point ops.
-// All indices 0-based, ranges inclusive [l, r]. Amortized O(log N) for everything: chmin / chmax / assign apply one
+// All indices 0-based, ranges inclusive [l, r]. Amortized O(log U) for everything: chmin / chmax / assign apply one
 // function to a covered node, which can glue distinct values together but never split them. No add tags are
 // needed: a node's own mx / mn ARE its pending chmin / chmax, and mn == mx means a pending assign.
 // T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.
@@ -170,25 +170,25 @@ struct SparseBeatsChminChmaxNoAdd {
         return min(qmin(Lc[i], tl, tm, ql, qr), qmin(Rc[i], tm + 1, tr, ql, qr));
     }
 
-    // amortized O(logN) -- a[i] = min(a[i], x) for i in [l, r]
+    // amortized O(logU) -- a[i] = min(a[i], x) for i in [l, r]
     void rangeChmin(long long l, long long r, T x) { if (l <= r) chmin(root, lo, hi, l, r, x); }
 
-    // amortized O(logN) -- a[i] = max(a[i], x) for i in [l, r]
+    // amortized O(logU) -- a[i] = max(a[i], x) for i in [l, r]
     void rangeChmax(long long l, long long r, T x) { if (l <= r) chmax(root, lo, hi, l, r, x); }
 
-    // amortized O(logN) -- a[i] = x for i in [l, r]
+    // amortized O(logU) -- a[i] = x for i in [l, r]
     void rangeAssign(long long l, long long r, T x) { if (l <= r) assign(root, lo, hi, l, r, x); }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logU) -- a[l] + ... + a[r]
     S rangeSum(long long l, long long r) { return l > r ? S(0) : qsum(root, lo, hi, l, r); }
 
-    // O(logN) -- max of a[l..r]
+    // O(logU) -- max of a[l..r]
     T rangeMax(long long l, long long r) { return l > r ? NEG_INF : qmax(root, lo, hi, l, r); }
 
-    // O(logN) -- min of a[l..r]
+    // O(logU) -- min of a[l..r]
     T rangeMin(long long l, long long r) { return l > r ? POS_INF : qmin(root, lo, hi, l, r); }
 
-    // O(logN) -- a[i]
+    // O(logU) -- a[i]
     T pointGet(long long i) { return rangeMax(i, i); }
 
     // a[i] = v

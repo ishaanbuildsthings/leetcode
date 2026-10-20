@@ -227,31 +227,31 @@ struct SparseBeatsGcd {
         return std::gcd(qgcd(Lc[i], tl, tm, ql, qr), qgcd(Rc[i], tm + 1, tr, ql, qr));
     }
 
-    // amortized O(log^2 N logU) -- a[i] = min(a[i], x) for i in [l, r]
+    // amortized O(log^2 U logU) -- a[i] = min(a[i], x) for i in [l, r]
     void rangeChmin(long long l, long long r, T x) { if (l <= r) chmin(root, lo, hi, l, r, x); }
 
-    // amortized O(log^2 N logU) -- a[i] = max(a[i], x) for i in [l, r]
+    // amortized O(log^2 U logU) -- a[i] = max(a[i], x) for i in [l, r]
     void rangeChmax(long long l, long long r, T x) { if (l <= r) chmax(root, lo, hi, l, r, x); }
 
-    // amortized O(log^2 N logU) -- a[i] += x for i in [l, r]
+    // amortized O(log^2 U logU) -- a[i] += x for i in [l, r]
     void rangeAdd(long long l, long long r, T x) { if (l <= r) add(root, lo, hi, l, r, x); }
 
-    // amortized O(log^2 N logU) -- a[i] = x for i in [l, r]
+    // amortized O(log^2 U logU) -- a[i] = x for i in [l, r]
     void rangeAssign(long long l, long long r, T x) { if (l <= r) assign(root, lo, hi, l, r, x); }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logU) -- a[l] + ... + a[r]
     S rangeSum(long long l, long long r) { return l > r ? S(0) : qsum(root, lo, hi, l, r); }
 
-    // O(logN) -- max of a[l..r]
+    // O(logU) -- max of a[l..r]
     T rangeMax(long long l, long long r) { return l > r ? NEG_INF : qmax(root, lo, hi, l, r); }
 
-    // O(logN) -- min of a[l..r]
+    // O(logU) -- min of a[l..r]
     T rangeMin(long long l, long long r) { return l > r ? POS_INF : qmin(root, lo, hi, l, r); }
 
-    // O(logN logU) -- gcd of |a[l]|, ..., |a[r]|
+    // O(logU logU) -- gcd of |a[l]|, ..., |a[r]|
     T rangeGcd(long long l, long long r) { return l > r ? T(0) : qgcd(root, lo, hi, l, r); }
 
-    // O(logN) -- a[i]
+    // O(logU) -- a[i]
     T pointGet(long long i) { return rangeMax(i, i); }
 
     // a[i] = v

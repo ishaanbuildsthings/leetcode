@@ -35,16 +35,16 @@
 # seg = ShrinkSeg_PERFORMANT(arr)
 #
 # C = largest value in the array
-# AMORTIZED O(logN * logC):       rangeMod(l, r, x)      -- a[i] %= x
-# AMORTIZED O(logN * logC):       rangeFloorDiv(l, r, x)      -- a[i] //= x, floor, needs x >= 2
-# AMORTIZED O(logN * log(logC)):  rangeFloorSqrt(l, r)        -- a[i] = floor(sqrt(a[i]))
-# AMORTIZED O(logN):              rangeAssign(l, r, x)   -- a[i] = x
-# AMORTIZED O(logN):              pointAssign(pos, newVal)  -- OVERWRITE, may RAISE the value
+# AMORTIZED O(logU * logC):       rangeMod(l, r, x)      -- a[i] %= x
+# AMORTIZED O(logU * logC):       rangeFloorDiv(l, r, x)      -- a[i] //= x, floor, needs x >= 2
+# AMORTIZED O(logU * log(logC)):  rangeFloorSqrt(l, r)        -- a[i] = floor(sqrt(a[i]))
+# AMORTIZED O(logU):              rangeAssign(l, r, x)   -- a[i] = x
+# AMORTIZED O(logU):              pointAssign(pos, newVal)  -- OVERWRITE, may RAISE the value
 #
-# O(logN):  rangeSum(l, r)
-# O(logN):  rangeMin(l, r)
-# O(logN):  rangeMax(l, r)
-# O(logN):  pointGet(pos)
+# O(logU):  rangeSum(l, r)
+# O(logU):  rangeMin(l, r)
+# O(logU):  rangeMax(l, r)
+# O(logU):  pointGet(pos)
 # O(n) space
 #
 # Values must be NON-NEGATIVE. C++ % truncates toward zero and Python // floors toward negative
@@ -253,28 +253,28 @@ class SparseShrinkSeg:
             return
         self._rangeShrink(1, self.lo, self.hi, l, r, 2, isqrt)
 
-    # amortized O(logN) -- a[i] = v for every i in l...r
+    # amortized O(logU) -- a[i] = v for every i in l...r
     def rangeAssign(self, l, r, v):
         if l <= r:
             self._assign(1, self.lo, self.hi, l, r, v)
 
-    # amortized O(logN) -- a[pos] = v. an OVERWRITE, it may RAISE the value
+    # amortized O(logU) -- a[pos] = v. an OVERWRITE, it may RAISE the value
     def pointAssign(self, pos, v):
         self.rangeAssign(pos, pos, v)
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         return 0 if (l > r) else self._sum(1, self.lo, self.hi, l, r)
 
-    # O(logN) -- max of a[l..r]
+    # O(logU) -- max of a[l..r]
     def rangeMax(self, l, r):
         return None if (l > r) else self._qmax(1, self.lo, self.hi, l, r)
 
-    # O(logN) -- min of a[l..r]
+    # O(logU) -- min of a[l..r]
     def rangeMin(self, l, r):
         return None if (l > r) else self._qmin(1, self.lo, self.hi, l, r)
 
-    # O(logN) -- a[pos]
+    # O(logU) -- a[pos]
     def pointGet(self, pos):
         return self.rangeMax(pos, pos)
 

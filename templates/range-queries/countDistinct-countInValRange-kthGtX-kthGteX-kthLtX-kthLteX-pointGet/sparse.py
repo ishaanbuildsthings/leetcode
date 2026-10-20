@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countDistinct-countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet/sparse.py
 # @operations: countDistinct countInValRange kthGtX kthGteX kthLtX kthLteX pointGet
 # @data-structure-type: merge-sort-tree
+# @fractional-cascading: yes
 # @complexities:
 #   countDistinct: log(N)
 #   countInValRange: log(N)
@@ -16,7 +17,7 @@
 #   node: cnt[2*N*log(N)]
 #   tags: none
 #   other: idx[1*N] vals[1*N] sortedVals[2*N] nxt[1*N] zc[1*N]
-#   note: built from N (index, value) points over any index range [lo, hi], every other index 0; both merge sort trees are over the points only; zeros add one distinct value when [l, r] has a zero and no point holding 0 (zc counts those points)
+#   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; both merge sort trees are over the given values only; zeros add one distinct value when [l, r] has a zero and no given value holding 0 (zc counts those given values)
 from bisect import bisect_left, bisect_right
 from itertools import accumulate, compress
 from operator import not_
@@ -400,28 +401,28 @@ from bisect import bisect_left, bisect_right
 
 
 # Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built
-# from (index, value) points; every other index is 0. The merge sort tree runs on the points alone; the zeros
-# of [l, r] are its length minus the points inside, and they count wherever 0 passes the test.
-# Distinct values: the points' distinct values, plus 0 if [l, r] has a zero index and no point holding 0.
+# from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone; the zeros
+# of [l, r] are its length minus the given values inside, and they count wherever 0 passes the test.
+# Distinct values: the given values' distinct values, plus 0 if [l, r] has a zero index and no given value holding 0.
 
 
 class SparseStaticMergeSortTree:
     __slots__ = ("lo", "hi", "idx", "vals", "inner", "distinct", "zc")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
-        vals = self.vals or [0]  # (a dummy element when there are no points; it is never queried)
+        vals = self.vals or [0]  # (a dummy element when there are no given values; it is never queried)
         self.inner = MergeSortTree(vals)
         self.distinct = StaticDistinct(vals)
-        self.zc = [0]  # zc[k] = # of the first k points holding 0
+        self.zc = [0]  # zc[k] = # of the first k given values holding 0
         for v in self.vals:
             self.zc.append(self.zc[-1] + (v == 0))
 
-    # (i0, i1, zeros): the points inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
+    # (i0, i1, zeros): the given values inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
     def _span(self, l, r):
         i0, i1 = bisect_left(self.idx, l), bisect_right(self.idx, r) - 1
         return i0, i1, (r - l + 1) - (i1 - i0 + 1)
@@ -439,7 +440,7 @@ class SparseStaticMergeSortTree:
             return 1
         return self.distinct.countDistinct(i0, i1) + (zeros > 0 and self.zc[i1 + 1] == self.zc[i0])
 
-    # the k-th i in [l, r] whose value passes (test); qual(t) = qualifying points among i0..t-1; zeroOk: 0 passes
+    # the k-th i in [l, r] whose value passes (test); qual(t) = qualifying given values among i0..t-1; zeroOk: 0 passes
     def _kth(self, l, r, k, zeroOk, qual, denseKth):
         i0, i1, _ = self._span(l, r)
         if k <= 0:
@@ -451,7 +452,7 @@ class SparseStaticMergeSortTree:
             return self.idx[j] if j != -1 else self.lo - 1
         idx = self.idx
 
-        def g(t):  # qualifying indices in [l, (point t) - 1]; point i1 + 1 stands for r + 1
+        def g(t):  # qualifying indices in [l, (given value t) - 1]; given value i1 + 1 stands for r + 1
             return ((idx[t] if t <= i1 else r + 1) - l) - (t - i0) + qual(t)
 
         if g(i1 + 1) < k:
@@ -466,7 +467,7 @@ class SparseStaticMergeSortTree:
         t = a
         if t == i0:
             return l - 1 + k
-        c = g(t - 1) + qual(t) - qual(t - 1)  # qualifying indices in [l, point t - 1]
+        c = g(t - 1) + qual(t) - qual(t - 1)  # qualifying indices in [l, given value t - 1]
         return idx[t - 1] if c >= k else idx[t - 1] + (k - c)
 
     # O(log^2 N) -- index of the k-th (1-indexed) i in [l, r] with a[i] >= x, or lo - 1

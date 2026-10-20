@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeLIS/template.cpp
 // @operations: pointGet rangeLIS
 // @data-structure-type: merge-sort-tree
+// @fractional-cascading: yes
 // @complexities:
 //   pointGet: 1
 //   rangeLIS: log(N)

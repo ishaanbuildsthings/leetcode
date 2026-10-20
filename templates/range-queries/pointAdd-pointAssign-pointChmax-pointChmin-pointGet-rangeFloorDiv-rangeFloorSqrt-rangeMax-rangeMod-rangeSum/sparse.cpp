@@ -111,39 +111,39 @@ struct SparseShrinkTree {
         return max(qmax(Lc[i], tl, tm, ql, qr), qmax(Rc[i], tm + 1, tr, ql, qr));
     }
 
-    // amortized O(logN logU) -- a[i] %= x for i in [l, r]; prunes at max < x, where a % x == a
+    // amortized O(logU logU) -- a[i] %= x for i in [l, r]; prunes at max < x, where a % x == a
     void rangeMod(long long l, long long r, T x) {
         if (l <= r && x >= 1) shrink(root, lo, hi, l, r, x, [x](T v) { return v % x; });
     }
 
-    // amortized O(logN logU) -- a[i] /= x (floor) for i in [l, r]; requires x >= 2, prunes at max < 1
+    // amortized O(logU logU) -- a[i] /= x (floor) for i in [l, r]; requires x >= 2, prunes at max < 1
     void rangeFloorDiv(long long l, long long r, T x) {
         if (l <= r && x >= 2) shrink(root, lo, hi, l, r, T(1), [x](T v) { return v / x; });
     }
 
-    // amortized O(logN loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r]; 0 and 1 are fixed points
+    // amortized O(logU loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r]; 0 and 1 are fixed points
     void rangeFloorSqrt(long long l, long long r) {
         if (l <= r) shrink(root, lo, hi, l, r, T(2), isqrtT);
     }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logU) -- a[l] + ... + a[r]
     S rangeSum(long long l, long long r) const { return l > r ? S(0) : qsum(root, lo, hi, l, r); }
 
-    // O(logN) -- max of a[l..r]
+    // O(logU) -- max of a[l..r]
     T rangeMax(long long l, long long r) const { return l > r ? numeric_limits<T>::lowest() : qmax(root, lo, hi, l, r); }
 
-    // O(logN) -- a[i] = v, an overwrite that may raise the value
+    // O(logU) -- a[i] = v, an overwrite that may raise the value
     void pointAssign(long long i, T v) { set(root, lo, hi, i, v); }
 
-    // O(logN) -- a[i]
+    // O(logU) -- a[i]
     T pointGet(long long i) const { return rangeMax(i, i); }
 
-    // O(logN) -- a[i] = max(a[i], v)
+    // O(logU) -- a[i] = max(a[i], v)
     void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
 
-    // O(logN) -- a[i] = min(a[i], v)
+    // O(logU) -- a[i] = min(a[i], v)
     void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
 
-    // O(logN) -- a[i] += delta (the result must stay >= 0)
+    // O(logU) -- a[i] += delta (the result must stay >= 0)
     void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
 };

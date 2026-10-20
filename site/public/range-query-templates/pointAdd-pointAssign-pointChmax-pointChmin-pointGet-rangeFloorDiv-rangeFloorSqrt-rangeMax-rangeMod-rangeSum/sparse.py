@@ -34,12 +34,12 @@
 # seg = SegTree_PERFORMANT(arr)
 
 # C = largest value in the array
-# O(logN):              pointAssign(pos, newVal)
-# O(logN * logC):       rangeMod(l, r, mod)
-# O(logN * logC):       rangeFloorDiv(l, r, div) floor divide each element
-# O(logN * log(logC)):  rangeFloorSqrt(l, r) floor sqrt each element
+# O(logU):              pointAssign(pos, newVal)
+# O(logU * logC):       rangeMod(l, r, mod)
+# O(logU * logC):       rangeFloorDiv(l, r, div) floor divide each element
+# O(logU * log(logC)):  rangeFloorSqrt(l, r) floor sqrt each element
 
-# O(logN):              rangeSum(l, r)
+# O(logU):              rangeSum(l, r)
 
 
 # ========================
@@ -172,42 +172,42 @@ class SparseSegTree:
 
     #################### PUBLIC METHODS START HERE ####################
 
-    # amortized O(log n * log C) -- a[i] %= x for every i in l...r
+    # amortized O(log U * log C) -- a[i] %= x for every i in l...r
     # prune at mx < x: everything there is already below x, so a % x == a
     def rangeMod(self, l, r, x):
         if l > r:
             return
         self._rangeShrink(1, self.lo, self.hi, l, r, x, lambda val: val % x)
 
-    # amortized O(log n * log C) -- a[i] //= x for every i in l...r. requires x >= 2
+    # amortized O(log U * log C) -- a[i] //= x for every i in l...r. requires x >= 2
     # prune at mx < 1: only zeros left, and 0 // x == 0
     def rangeFloorDiv(self, l, r, x):
         if l > r or x < 2:
             return
         self._rangeShrink(1, self.lo, self.hi, l, r, 1, lambda val: val // x)
 
-    # amortized O(log n * log log C) -- a[i] = floor(sqrt(a[i])) for every i in l...r
+    # amortized O(log U * log log C) -- a[i] = floor(sqrt(a[i])) for every i in l...r
     # prune at mx < 2: 0 and 1 are fixed points
     def rangeFloorSqrt(self, l, r):
         if l > r:
             return
         self._rangeShrink(1, self.lo, self.hi, l, r, 2, isqrt)
 
-    # O(log n) -- a[pos] = val. an OVERWRITE, it may RAISE the value
+    # O(log U) -- a[pos] = val. an OVERWRITE, it may RAISE the value
     def pointAssign(self, pos, val):
         self._pointAssign(1, self.lo, self.hi, pos, val)
 
-    # O(logN) -- a[pos]
+    # O(logU) -- a[pos]
     def pointGet(self, pos):
         return self._rangeMax(1, self.lo, self.hi, pos, pos)
 
-    # O(log n) -- sum of l...r
+    # O(log U) -- sum of l...r
     def rangeSum(self, l, r):
         if l > r:
             return 0
         return self._rangeSum(1, self.lo, self.hi, l, r)
 
-    # O(log n) -- max of l...r
+    # O(log U) -- max of l...r
     def rangeMax(self, l, r):
         if l > r:
             return float("-inf")

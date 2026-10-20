@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet/sparse.py
 # @operations: countInValRange kthGtX kthGteX kthLtX kthLteX pointGet
 # @data-structure-type: merge-sort-tree
+# @fractional-cascading: yes
 # @complexities:
 #   countInValRange: log(N)
 #   kthGtX: log^2(N)
@@ -15,7 +16,7 @@
 #   node: cnt[1*N*log(N)]
 #   tags: none
 #   other: idx[1*N] vals[1*N] sortedVals[1*N]
-#   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the merge sort tree is over the points only; a k-th whose test 0 passes binary-searches the gap it falls in
+#   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the merge sort tree is over the given values only; a k-th whose test 0 passes binary-searches the gap it falls in
 from bisect import bisect_left, bisect_right
 from itertools import accumulate, compress
 from operator import not_
@@ -374,23 +375,23 @@ from bisect import bisect_left, bisect_right
 
 
 # Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built
-# from (index, value) points; every other index is 0. The merge sort tree runs on the points alone; the zeros
-# of [l, r] are its length minus the points inside, and they count wherever 0 passes the test.
+# from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone; the zeros
+# of [l, r] are its length minus the given values inside, and they count wherever 0 passes the test.
 
 
 class SparseStaticMergeSortTree:
     __slots__ = ("lo", "hi", "idx", "vals", "inner")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
-        vals = self.vals or [0]  # (a dummy element when there are no points; it is never queried)
+        vals = self.vals or [0]  # (a dummy element when there are no given values; it is never queried)
         self.inner = MergeSortTree(vals)
 
-    # (i0, i1, zeros): the points inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
+    # (i0, i1, zeros): the given values inside [l, r] are i0..i1, and the rest of [l, r] is that many zeros
     def _span(self, l, r):
         i0, i1 = bisect_left(self.idx, l), bisect_right(self.idx, r) - 1
         return i0, i1, (r - l + 1) - (i1 - i0 + 1)
@@ -401,7 +402,7 @@ class SparseStaticMergeSortTree:
         inside = self.inner.countInValRange(i0, i1, valLow, valHigh) if i0 <= i1 else 0
         return inside + (zeros if valLow <= 0 <= valHigh else 0)
 
-    # the k-th i in [l, r] whose value passes (test); qual(t) = qualifying points among i0..t-1; zeroOk: 0 passes
+    # the k-th i in [l, r] whose value passes (test); qual(t) = qualifying given values among i0..t-1; zeroOk: 0 passes
     def _kth(self, l, r, k, zeroOk, qual, denseKth):
         i0, i1, _ = self._span(l, r)
         if k <= 0:
@@ -413,7 +414,7 @@ class SparseStaticMergeSortTree:
             return self.idx[j] if j != -1 else self.lo - 1
         idx = self.idx
 
-        def g(t):  # qualifying indices in [l, (point t) - 1]; point i1 + 1 stands for r + 1
+        def g(t):  # qualifying indices in [l, (given value t) - 1]; given value i1 + 1 stands for r + 1
             return ((idx[t] if t <= i1 else r + 1) - l) - (t - i0) + qual(t)
 
         if g(i1 + 1) < k:
@@ -428,7 +429,7 @@ class SparseStaticMergeSortTree:
         t = a
         if t == i0:
             return l - 1 + k
-        c = g(t - 1) + qual(t) - qual(t - 1)  # qualifying indices in [l, point t - 1]
+        c = g(t - 1) + qual(t) - qual(t - 1)  # qualifying indices in [l, given value t - 1]
         return idx[t - 1] if c >= k else idx[t - 1] + (k - c)
 
     # O(log^2 N) -- index of the k-th (1-indexed) i in [l, r] with a[i] >= x, or lo - 1

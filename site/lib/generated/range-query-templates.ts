@@ -663,11 +663,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "50*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query",
         "total": "8*N*log(N)+50*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query; sums wrap mod 2^64 (exact whenever the answer fits in long long)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query; sums wrap mod 2^64 (exact whenever the answer fits in long long)"
         }
       },
       "usage": {
@@ -675,7 +675,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMonoCosts",
-              "doc": "Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing, and range sum, over any index range [lo, hi], built from (index, value) points; every other index is 0. Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query.",
+              "doc": "Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing, and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query.",
               "ctor": [
                 {
                   "name": "lo"
@@ -684,10 +684,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -744,7 +744,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMonoCosts",
-              "doc": "Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing, and range sum, over any index range [lo, hi], built from (index, value) points; every other index is 0. Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query. T: int, long long, ...",
+              "doc": "Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing, and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -755,11 +755,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -1026,11 +1026,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "14*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces",
         "total": "2*N*log(N)+14*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; sums wrap mod 2^64 (exact whenever the answer fits in long long)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; sums wrap mod 2^64 (exact whenever the answer fits in long long)"
         }
       },
       "usage": {
@@ -1038,7 +1038,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMonoIncreaseCost",
-              "doc": "Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from (index, value) points; every other index is 0. One _PieceCost view over the points and the gaps of zeros.",
+              "doc": "Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. One _PieceCost view over the given values and the gaps of zeros.",
               "ctor": [
                 {
                   "name": "lo"
@@ -1047,10 +1047,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -1083,7 +1083,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMonoIncreaseCost",
-              "doc": "Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from (index, value) points; every other index is 0. One PieceCost view over the points and the gaps of zeros. T: int, long long, ...",
+              "doc": "Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. One PieceCost view over the given values and the gaps of zeros. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -1094,11 +1094,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -1149,6 +1149,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointGet"
     ],
     "dataStructureType": "merge-sort-tree",
+    "fractionalCascading": true,
     "complexities": {
       "countDistinct": "log(N)",
       "countInValRange": "log(N)",
@@ -1443,11 +1444,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "6*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; both merge sort trees are over the points only; zeros add one distinct value when [l, r] has a zero and no point holding 0 (zc counts those points)",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; both merge sort trees are over the given values only; zeros add one distinct value when [l, r] has a zero and no given value holding 0 (zc counts those given values)",
         "total": "2*N*log(N)+6*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; both merge sort trees are over the points only; zeros add one distinct value when [l, r] has a zero and no point holding 0 (zc counts those points)",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; both merge sort trees are over the points only; zeros add one distinct value when [l, r] has a zero and no point holding 0 (zc counts those points)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; both merge sort trees are over the given values only; zeros add one distinct value when [l, r] has a zero and no given value holding 0 (zc counts those given values)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; both merge sort trees are over the given values only; zeros add one distinct value when [l, r] has a zero and no given value holding 0 (zc counts those given values)"
         }
       },
       "usage": {
@@ -1455,7 +1456,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticMergeSortTree",
-              "doc": "Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built from (index, value) points; every other index is 0. The merge sort tree runs on the points alone; the zeros of [l, r] are its length minus the points inside, and they count wherever 0 passes the test. Distinct values: the points' distinct values, plus 0 if [l, r] has a zero index and no point holding 0.",
+              "doc": "Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone; the zeros of [l, r] are its length minus the given values inside, and they count wherever 0 passes the test. Distinct values: the given values' distinct values, plus 0 if [l, r] has a zero index and no given value holding 0.",
               "ctor": [
                 {
                   "name": "lo"
@@ -1464,10 +1465,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -1542,7 +1543,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticMergeSortTree",
-              "doc": "Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built from (index, value) points; every other index is 0. The merge sort tree runs on the points alone; the zeros of [l, r] are its length minus the points inside, and they count wherever 0 passes the test. Distinct values: the points' distinct values, plus 0 if [l, r] has a zero index and no point holding 0.",
+              "doc": "Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone; the zeros of [l, r] are its length minus the given values inside, and they count wherever 0 passes the test. Distinct values: the given values' distinct values, plus 0 if [l, r] has a zero index and no given value holding 0.",
               "ctor": [
                 {
                   "name": "lo",
@@ -1553,11 +1554,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -2056,6 +2057,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointGet"
     ],
     "dataStructureType": "merge-sort-tree",
+    "fractionalCascading": true,
     "complexities": {
       "countInValRange": "log(N)",
       "kthGtX": "log(N)",
@@ -2298,11 +2300,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "3*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the merge sort tree is over the points only; a k-th whose test 0 passes binary-searches the gap it falls in",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the merge sort tree is over the given values only; a k-th whose test 0 passes binary-searches the gap it falls in",
         "total": "1*N*log(N)+3*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; the merge sort tree is over the points only; a k-th whose test 0 passes binary-searches the gap it falls in",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; the merge sort tree is over the points only; a k-th whose test 0 passes binary-searches the gap it falls in"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the merge sort tree is over the given values only; a k-th whose test 0 passes binary-searches the gap it falls in",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the merge sort tree is over the given values only; a k-th whose test 0 passes binary-searches the gap it falls in"
         }
       },
       "usage": {
@@ -2310,7 +2312,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticMergeSortTree",
-              "doc": "Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built from (index, value) points; every other index is 0. The merge sort tree runs on the points alone; the zeros of [l, r] are its length minus the points inside, and they count wherever 0 passes the test.",
+              "doc": "Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone; the zeros of [l, r] are its length minus the given values inside, and they count wherever 0 passes the test.",
               "ctor": [
                 {
                   "name": "lo"
@@ -2319,10 +2321,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -2389,7 +2391,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticMergeSortTree",
-              "doc": "Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built from (index, value) points; every other index is 0. The merge sort tree runs on the points alone; the zeros of [l, r] are its length minus the points inside, and they count wherever 0 passes the test.",
+              "doc": "Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone; the zeros of [l, r] are its length minus the given values inside, and they count wherever 0 passes the test.",
               "ctor": [
                 {
                   "name": "lo",
@@ -2400,11 +2402,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -3013,11 +3015,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "4*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the persistent tree is over the points only; zeros add to counts (never to sums)",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums)",
         "total": "4*N*log(N)+4*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; the persistent tree is over the points only; zeros add to counts (never to sums)",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; the persistent tree is over the points only; zeros add to counts (never to sums)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums)"
         }
       },
       "usage": {
@@ -3025,7 +3027,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticValueRangeSum",
-              "doc": "Count / sum of the values in a value range, over any index range [lo, hi], built from (index, value) points; every other index is 0. The persistent tree runs on the points alone; the zeros of [l, r] (its length minus the points inside) add to a count when 0 is in the value range, and never to a sum.",
+              "doc": "Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, and never to a sum.",
               "ctor": [
                 {
                   "name": "lo"
@@ -3034,10 +3036,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -3074,7 +3076,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticValueRangeSum",
-              "doc": "Count / sum of the values in a value range, over any index range [lo, hi], built from (index, value) points; every other index is 0. The persistent tree runs on the points alone; the zeros of [l, r] (its length minus the points inside) add to a count when 0 is in the value range, and never to a sum.",
+              "doc": "Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, and never to a sum.",
               "ctor": [
                 {
                   "name": "lo",
@@ -3085,11 +3087,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -3908,11 +3910,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "2*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the points inside)",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the given values inside)",
         "total": "3*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the points inside)",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the points inside)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the given values inside)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the given values inside)"
         }
       },
       "usage": {
@@ -3920,7 +3922,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticOccurrences",
-              "doc": "\"How many times does x appear in a[l..r]?\" over any index range [lo, hi], built from (index, value) points; every other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the points inside).",
+              "doc": "\"How many times does x appear in a[l..r]?\" over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the given values inside).",
               "ctor": [
                 {
                   "name": "lo"
@@ -3929,10 +3931,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -3958,7 +3960,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticOccurrences",
-              "doc": "\"How many times does x appear in a[l..r]?\" over any index range [lo, hi], built from (index, value) points; every other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the points inside). T: any type usable as a std::map key.",
+              "doc": "\"How many times does x appear in a[l..r]?\" over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the given values inside). T: any type usable as a std::map key.",
               "ctor": [
                 {
                   "name": "lo",
@@ -3969,11 +3971,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -14157,7 +14159,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseBeatsChminChmax",
-              "doc": "Segment tree beats: range chmin / chmax / add / assign, range sum / min / max, point ops. All indices 0-based, ranges inclusive [l, r]. Without rangeAdd everything is amortized O(log N); with it, O(log^2 N) amortized (proven tight). Each node keeps max / second max / count of max, the same for min, and three add tags (for the max group, the min group and everything else) plus an assign tag. Glue that one-sided beats does not need: a node with one distinct value has mx == mn, so applyAdd folds the three deltas into one (vMax + vMin - vOther); with exactly two distinct values mx2 == mn and mn2 == mx, so the second max moves with the MIN group and the second min with the MAX group. T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.",
+              "doc": "Segment tree beats: range chmin / chmax / add / assign, range sum / min / max, point ops. All indices 0-based, ranges inclusive [l, r]. Without rangeAdd everything is amortized O(log U); with it, O(log^2 U) amortized (proven tight). Each node keeps max / second max / count of max, the same for min, and three add tags (for the max group, the min group and everything else) plus an assign tag. Glue that one-sided beats does not need: a node with one distinct value has mx == mn, so applyAdd folds the three deltas into one (vMax + vMin - vOther); with exactly two distinct values mx2 == mn and mn2 == mx, so the second max moves with the MIN group and the second min with the MAX group. T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.",
               "ctor": [
                 {
                   "name": "lo",
@@ -14244,7 +14246,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "x"
               ],
               "returns": "void",
-              "doc": "amortized O(logN), O(log^2 N) once rangeAdd is used -- a[i] = max(a[i], x) for i in [l, r]",
+              "doc": "amortized O(logU), O(log^2 U) once rangeAdd is used -- a[i] = max(a[i], x) for i in [l, r]",
               "cls": 0
             },
             "rangeChmin": {
@@ -14254,7 +14256,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "x"
               ],
               "returns": "void",
-              "doc": "amortized O(logN), O(log^2 N) once rangeAdd is used -- a[i] = min(a[i], x) for i in [l, r]",
+              "doc": "amortized O(logU), O(log^2 U) once rangeAdd is used -- a[i] = min(a[i], x) for i in [l, r]",
               "cls": 0
             },
             "rangeMax": {
@@ -15338,7 +15340,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseBeatsChmax",
-              "doc": "Segment tree beats, one side only: range rangeChmax / add / assign, range sum / rangeMin, point ops. 0-based, inclusive. Each node keeps its min (mn), strict second min (mn2) and how many times the min appears, plus two add tags: one for the min group and one for everything else. A rangeChmax with mn < x < mn2 only moves the min group, so it becomes an add on that group alone. Amortized O(log^2 N) with rangeAdd in the mix (O(log N) without). T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.",
+              "doc": "Segment tree beats, one side only: range rangeChmax / add / assign, range sum / rangeMin, point ops. 0-based, inclusive. Each node keeps its min (mn), strict second min (mn2) and how many times the min appears, plus two add tags: one for the min group and one for everything else. A rangeChmax with mn < x < mn2 only moves the min group, so it becomes an add on that group alone. Amortized O(log^2 U) with rangeAdd in the mix (O(log U) without). T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.",
               "ctor": [
                 {
                   "name": "lo",
@@ -15935,7 +15937,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseBeatsChmin",
-              "doc": "Segment tree beats, one side only: range rangeChmin / add / assign, range sum / rangeMax, point ops. 0-based, inclusive. Each node keeps its max (mx), strict second max (mx2) and how many times the max appears, plus two add tags: one for the max group and one for everything else. A rangeChmin with mx2 < x < mx only moves the max group, so it becomes an add on that group alone. Amortized O(log^2 N) with rangeAdd in the mix (O(log N) without). T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.",
+              "doc": "Segment tree beats, one side only: range rangeChmin / add / assign, range sum / rangeMax, point ops. 0-based, inclusive. Each node keeps its max (mx), strict second max (mx2) and how many times the max appears, plus two add tags: one for the max group and one for everything else. A rangeChmin with mx2 < x < mx only moves the max group, so it becomes an add on that group alone. Amortized O(log^2 U) with rangeAdd in the mix (O(log U) without). T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.",
               "ctor": [
                 {
                   "name": "lo",
@@ -28841,7 +28843,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseBeatsChminChmaxNoAdd",
-              "doc": "Segment tree beats without range add: range chmin / chmax / assign, range sum / min / max, point ops. All indices 0-based, ranges inclusive [l, r]. Amortized O(log N) for everything: chmin / chmax / assign apply one function to a covered node, which can glue distinct values together but never split them. No add tags are needed: a node's own mx / mn ARE its pending chmin / chmax, and mn == mx means a pending assign. T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.",
+              "doc": "Segment tree beats without range add: range chmin / chmax / assign, range sum / min / max, point ops. All indices 0-based, ranges inclusive [l, r]. Amortized O(log U) for everything: chmin / chmax / assign apply one function to a covered node, which can glue distinct values together but never split them. No add tags are needed: a node's own mx / mn ARE its pending chmin / chmax, and mn == mx means a pending assign. T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.",
               "ctor": [
                 {
                   "name": "lo",
@@ -29797,7 +29799,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChmaxSumBeats",
-              "doc": "Segment tree beats, one side, no add: range chmax / assign, range sum / min, point ops. 0-based, inclusive. Each node keeps its min (mn), strict second min (mn2), how many times the min appears, and the sum. A chmax with x strictly between mn2 and mn only moves the min copies, so it is O(1) at that node; otherwise it descends, and each descent glues two distinct values together, which pays for it: O(log N) amortized, with no add tags at all (that is the saving over the beats trees that support range add). No tag arrays either: a node's own mn is its pending chmax for the children, and a node holding a single distinct value (mn2 == SENT) is its own pending assign.",
+              "doc": "Segment tree beats, one side, no add: range chmax / assign, range sum / min, point ops. 0-based, inclusive. Each node keeps its min (mn), strict second min (mn2), how many times the min appears, and the sum. A chmax with x strictly between mn2 and mn only moves the min copies, so it is O(1) at that node; otherwise it descends, and each descent glues two distinct values together, which pays for it: O(log U) amortized, with no add tags at all (that is the saving over the beats trees that support range add). No tag arrays either: a node's own mn is its pending chmax for the children, and a node holding a single distinct value (mn2 == SENT) is its own pending assign.",
               "ctor": [
                 {
                   "name": "lo"
@@ -29889,7 +29891,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChmaxSumBeats",
-              "doc": "Segment tree beats, one side, no add: range chmax / assign, range sum / min, point ops. 0-based, inclusive. Each node keeps its min (mn), strict second min (mn2), how many times the min appears, and the sum. A chmax with x strictly between mn2 and mn only moves the min copies, so it is O(1) at that node; otherwise it descends, and each descent glues two distinct values together, which pays for it: O(log N) amortized, with no add tags at all (that is the saving over the beats trees that support range add). No tag arrays either: a node's own mn is its pending chmax for the children, and a node holding a single distinct value (mn2 == SENT) is its own pending assign. T: int, long long, ...; sums accumulate in S (long long for small T).",
+              "doc": "Segment tree beats, one side, no add: range chmax / assign, range sum / min, point ops. 0-based, inclusive. Each node keeps its min (mn), strict second min (mn2), how many times the min appears, and the sum. A chmax with x strictly between mn2 and mn only moves the min copies, so it is O(1) at that node; otherwise it descends, and each descent glues two distinct values together, which pays for it: O(log U) amortized, with no add tags at all (that is the saving over the beats trees that support range add). No tag arrays either: a node's own mn is its pending chmax for the children, and a node holding a single distinct value (mn2 == SENT) is its own pending assign. T: int, long long, ...; sums accumulate in S (long long for small T).",
               "ctor": [
                 {
                   "name": "lo",
@@ -30310,7 +30312,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChminSumBeats",
-              "doc": "Segment tree beats, one side, no add: range chmin / assign, range sum / max, point ops. 0-based, inclusive. Each node keeps its max (mx), strict second max (mx2), how many times the max appears, and the sum. A chmin with x strictly between mx2 and mx only moves the max copies, so it is O(1) at that node; otherwise it descends, and each descent glues two distinct values together, which pays for it: O(log N) amortized, with no add tags at all (that is the saving over the beats trees that support range add). No tag arrays either: a node's own mx is its pending chmin for the children, and a node holding a single distinct value (mx2 == SENT) is its own pending assign.",
+              "doc": "Segment tree beats, one side, no add: range chmin / assign, range sum / max, point ops. 0-based, inclusive. Each node keeps its max (mx), strict second max (mx2), how many times the max appears, and the sum. A chmin with x strictly between mx2 and mx only moves the max copies, so it is O(1) at that node; otherwise it descends, and each descent glues two distinct values together, which pays for it: O(log U) amortized, with no add tags at all (that is the saving over the beats trees that support range add). No tag arrays either: a node's own mx is its pending chmin for the children, and a node holding a single distinct value (mx2 == SENT) is its own pending assign.",
               "ctor": [
                 {
                   "name": "lo"
@@ -30402,7 +30404,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChminSumBeats",
-              "doc": "Segment tree beats, one side, no add: range chmin / assign, range sum / max, point ops. 0-based, inclusive. Each node keeps its max (mx), strict second max (mx2), how many times the max appears, and the sum. A chmin with x strictly between mx2 and mx only moves the max copies, so it is O(1) at that node; otherwise it descends, and each descent glues two distinct values together, which pays for it: O(log N) amortized, with no add tags at all (that is the saving over the beats trees that support range add). No tag arrays either: a node's own mx is its pending chmin for the children, and a node holding a single distinct value (mx2 == SENT) is its own pending assign. T: int, long long, ...; sums accumulate in S (long long for small T).",
+              "doc": "Segment tree beats, one side, no add: range chmin / assign, range sum / max, point ops. 0-based, inclusive. Each node keeps its max (mx), strict second max (mx2), how many times the max appears, and the sum. A chmin with x strictly between mx2 and mx only moves the max copies, so it is O(1) at that node; otherwise it descends, and each descent glues two distinct values together, which pays for it: O(log U) amortized, with no add tags at all (that is the saving over the beats trees that support range add). No tag arrays either: a node's own mx is its pending chmin for the children, and a node holding a single distinct value (mx2 == SENT) is its own pending assign. T: int, long long, ...; sums accumulate in S (long long for small T).",
               "ctor": [
                 {
                   "name": "lo",
@@ -43447,11 +43449,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "4*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
         "total": "2*N*log(N)+4*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)"
         }
       },
       "usage": {
@@ -43459,7 +43461,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticAnd",
-              "doc": "Range and over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseAnd runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range and over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseAnd runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo"
@@ -43468,10 +43470,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -43496,7 +43498,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticAnd",
-              "doc": "Range and over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseAnd runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range and over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseAnd runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo",
@@ -43507,11 +43509,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -43689,11 +43691,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "4*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
         "total": "2*N*log(N)+4*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)"
         }
       },
       "usage": {
@@ -43701,7 +43703,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticGcd",
-              "doc": "Range gcd over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseGcd runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range gcd over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseGcd runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo"
@@ -43710,10 +43712,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -43738,7 +43740,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticGcd",
-              "doc": "Range gcd over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseGcd runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range gcd over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseGcd runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo",
@@ -43749,11 +43751,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -43790,6 +43792,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "rangeLIS"
     ],
     "dataStructureType": "merge-sort-tree",
+    "fractionalCascading": true,
     "complexities": {
       "pointGet": "1",
       "rangeLIS": "log(N)"
@@ -43951,11 +43954,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "8*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the seaweed LIS structure runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the seaweed LIS structure runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
         "total": "2*N*log(N)+8*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; the seaweed LIS structure runs on the points plus one 0 per gap (at most 2N + 1 elements)",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; the seaweed LIS structure runs on the points plus one 0 per gap (at most 2N + 1 elements)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the seaweed LIS structure runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the seaweed LIS structure runs on the given values plus one 0 per gap (at most 2N + 1 elements)"
         }
       },
       "usage": {
@@ -43963,7 +43966,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticLIS",
-              "doc": "Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo"
@@ -43972,10 +43975,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -44000,7 +44003,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticLIS",
-              "doc": "Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo",
@@ -44011,11 +44014,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -44193,11 +44196,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "4*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
         "total": "2*N*log(N)+4*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)"
         }
       },
       "usage": {
@@ -44205,7 +44208,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticMax",
-              "doc": "Range max over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseMax runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range max over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseMax runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo"
@@ -44214,10 +44217,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -44242,7 +44245,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticMax",
-              "doc": "Range max over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseMax runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range max over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseMax runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo",
@@ -44253,11 +44256,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -44435,11 +44438,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "4*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
         "total": "2*N*log(N)+4*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)"
         }
       },
       "usage": {
@@ -44447,7 +44450,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticMin",
-              "doc": "Range min over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseMin runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range min over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseMin runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo"
@@ -44456,10 +44459,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -44484,7 +44487,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticMin",
-              "doc": "Range min over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseMin runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range min over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseMin runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo",
@@ -44495,11 +44498,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -44714,11 +44717,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "6*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sqrt mode structure is over the points only; 0's frequency is the zeros of [l, r] plus the points holding 0 (zc), and it wins whenever it is at least the points' mode frequency",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sqrt mode structure is over the given values only; 0's frequency is the zeros of [l, r] plus the given values holding 0 (zc), and it wins whenever it is at least the given values' mode frequency",
         "total": "8*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sqrt mode structure is over the points only; 0's frequency is the zeros of [l, r] plus the points holding 0 (zc), and it wins whenever it is at least the points' mode frequency",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sqrt mode structure is over the points only; 0's frequency is the zeros of [l, r] plus the points holding 0 (zc), and it wins whenever it is at least the points' mode frequency"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sqrt mode structure is over the given values only; 0's frequency is the zeros of [l, r] plus the given values holding 0 (zc), and it wins whenever it is at least the given values' mode frequency",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sqrt mode structure is over the given values only; 0's frequency is the zeros of [l, r] plus the given values holding 0 (zc), and it wins whenever it is at least the given values' mode frequency"
         }
       },
       "usage": {
@@ -44726,7 +44729,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticRangeMode",
-              "doc": "Range mode over any index range [lo, hi], built from (index, value) points; every other index is 0. The sqrt mode structure runs on the points alone; 0 appears (zeros of [l, r]) + (points holding 0) times, and is the answer whenever that is at least the points' own mode frequency.",
+              "doc": "Range mode over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The sqrt mode structure runs on the given values alone; 0 appears (zeros of [l, r]) + (given values holding 0) times, and is the answer whenever that is at least the given values' own mode frequency.",
               "ctor": [
                 {
                   "name": "lo"
@@ -44735,10 +44738,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -44763,7 +44766,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticRangeMode",
-              "doc": "Range mode over any index range [lo, hi], built from (index, value) points; every other index is 0. The sqrt mode structure runs on the points alone; 0 appears (zeros of [l, r]) + (points holding 0) times, and is the answer whenever that is at least the points' own mode frequency.",
+              "doc": "Range mode over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The sqrt mode structure runs on the given values alone; 0 appears (zeros of [l, r]) + (given values holding 0) times, and is the answer whenever that is at least the given values' own mode frequency.",
               "ctor": [
                 {
                   "name": "lo",
@@ -44774,11 +44777,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -44956,11 +44959,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "4*N"
         },
-        "note": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
         "total": "2*N*log(N)+4*N",
         "notes": {
-          "py": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)",
-          "cpp": "built from N (index, value) points over any index range [lo, hi], every other index 0; the sparse table runs on the points plus one 0 per gap (at most 2N + 1 elements)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sparse table runs on the given values plus one 0 per gap (at most 2N + 1 elements)"
         }
       },
       "usage": {
@@ -44968,7 +44971,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticOr",
-              "doc": "Range or over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseOr runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range or over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseOr runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo"
@@ -44977,10 +44980,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "name": "hi"
                 },
                 {
-                  "name": "points"
+                  "name": "values"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {
@@ -45005,7 +45008,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticOr",
-              "doc": "Range or over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseOr runs on the compressed array of points with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
+              "doc": "Range or over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap of zeros adds nothing more than a single 0, so SparseOr runs on the compressed array of given values with one 0 per gap, and a query maps l and r to the compressed elements containing them.",
               "ctor": [
                 {
                   "name": "lo",
@@ -45016,11 +45019,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 },
                 {
-                  "name": "points",
+                  "name": "values",
                   "type": "vector<pair<long long, T>>"
                 }
               ],
-              "ctorDoc": "[lo, hi] all 0 except the given (index, value) points (distinct indices)"
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
             }
           ],
           "methods": {

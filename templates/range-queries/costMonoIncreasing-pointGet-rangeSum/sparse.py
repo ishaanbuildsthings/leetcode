@@ -12,7 +12,7 @@
 #   node: sp[2*N*log(N)]
 #   tags: none
 #   other: idx[1*N] vals[1*N] starts[2*N] v[2*N] w[2*N] W[2*N] B[2*N] suff[2*N]
-#   note: built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces
+#   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces
 from bisect import bisect_left, bisect_right
 
 
@@ -92,7 +92,7 @@ class _PieceCost:
 
 
 def _pieces(lo, hi, pts, c):
-    """The pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for points pts over [lo, hi]."""
+    """The pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for given values pts over [lo, hi]."""
     starts, v, w, slope = [], [], [], []
     prev = lo - 1
     for i, x in pts:
@@ -106,16 +106,16 @@ def _pieces(lo, hi, pts, c):
 
 
 # Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from
-# (index, value) points; every other index is 0. One _PieceCost view over the points and the gaps of zeros.
+# given values (index, value pairs); every other index is 0. One _PieceCost view over the given values and the gaps of zeros.
 
 
 class SparseMonoIncreaseCost:
     __slots__ = ("lo", "hi", "idx", "vals", "inc")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
         self.inc = _PieceCost(*_pieces(lo, hi, pts, 0))

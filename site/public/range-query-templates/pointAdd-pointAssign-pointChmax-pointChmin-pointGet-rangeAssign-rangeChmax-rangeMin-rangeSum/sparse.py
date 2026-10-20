@@ -30,7 +30,7 @@ SENT = float("inf")
 # Segment tree beats, one side, no add: range chmax / assign, range sum / min, point ops. 0-based, inclusive.
 # Each node keeps its min (mn), strict second min (mn2), how many times the min appears, and the sum. A chmax
 # with x strictly between mn2 and mn only moves the min copies, so it is O(1) at that node; otherwise it
-# descends, and each descent glues two distinct values together, which pays for it: O(log N) amortized, with no
+# descends, and each descent glues two distinct values together, which pays for it: O(log U) amortized, with no
 # add tags at all (that is the saving over the beats trees that support range add).
 # No tag arrays either: a node's own mn is its pending chmax for the children, and a node holding a single distinct
 # value (mn2 == SENT) is its own pending assign.
@@ -163,41 +163,41 @@ class SparseChmaxSumBeats:
         b = self._ext(self.R[i], tm + 1, tr, l, r)
         return a if a < b else b
 
-    # amortized O(logN) -- a[i] = max(a[i], x) for i in [l, r]
+    # amortized O(logU) -- a[i] = max(a[i], x) for i in [l, r]
     def rangeChmax(self, l, r, x):
         if l <= r:
             self._ch(1, self.lo, self.hi, l, r, x)
 
-    # amortized O(logN) -- a[i] = x for i in [l, r]
+    # amortized O(logU) -- a[i] = x for i in [l, r]
     def rangeAssign(self, l, r, x):
         if l <= r:
             self._assign(1, self.lo, self.hi, l, r, x)
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         return self._sum(1, self.lo, self.hi, l, r) if l <= r else 0
 
-    # O(logN) -- min of a[l..r]
+    # O(logU) -- min of a[l..r]
     def rangeMin(self, l, r):
         return self._ext(1, self.lo, self.hi, l, r)
 
-    # O(logN) -- a[i]
+    # O(logU) -- a[i]
     def pointGet(self, i):
         return self._ext(1, self.lo, self.hi, i, i)
 
-    # amortized O(logN) -- a[i] = val
+    # amortized O(logU) -- a[i] = val
     def pointAssign(self, i, val):
         self.rangeAssign(i, i, val)
 
-    # amortized O(logN) -- a[i] = max(a[i], val)
+    # amortized O(logU) -- a[i] = max(a[i], val)
     def pointChmax(self, i, val):
         self.rangeChmax(i, i, val)
 
-    # amortized O(logN) -- a[i] = min(a[i], val)
+    # amortized O(logU) -- a[i] = min(a[i], val)
     def pointChmin(self, i, val):
         if val < self.pointGet(i):
             self.pointAssign(i, val)
 
-    # amortized O(logN) -- a[i] += delta
+    # amortized O(logU) -- a[i] += delta
     def pointAdd(self, i, delta):
         self.pointAssign(i, self.pointGet(i) + delta)

@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeLIS/sparse.py
 # @operations: pointGet rangeLIS
 # @data-structure-type: merge-sort-tree
+# @fractional-cascading: yes
 # @complexities:
 #   pointGet: log(N)
 #   rangeLIS: log(N)
@@ -11,7 +12,7 @@
 #   node: cnt[2*N*log(N)]
 #   tags: none
 #   other: idx[1*N] vals[1*N] starts[2*N] E[2*N] sortedVals[2*N]
-#   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the seaweed LIS structure runs on the points plus one 0 per gap (at most 2N + 1 elements)
+#   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the seaweed LIS structure runs on the given values plus one 0 per gap (at most 2N + 1 elements)
 import sys
 from bisect import bisect_right
 
@@ -270,18 +271,18 @@ class RangeLIS:
 from bisect import bisect_left, bisect_right
 
 
-# Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap
-# of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of points with one 0 per gap,
+# Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap
+# of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of given values with one 0 per gap,
 # and a query maps l and r to the compressed elements containing them.
 
 
 class SparseStaticLIS:
     __slots__ = ("lo", "hi", "idx", "vals", "starts", "inner")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        pts = sorted(points)
+        pts = sorted(values)
         self.idx = [i for i, _ in pts]
         self.vals = [v for _, v in pts]
         starts, arr = [], []  # starts[k] = first index of compressed element k

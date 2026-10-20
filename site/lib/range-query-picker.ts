@@ -274,6 +274,8 @@ export interface RangeQueryTemplate {
   langs: TemplateLang[];
   operations: OpId[];
   dataStructureType: DataStructureType;
+  // merge sort trees only: whether queries use fractional cascading (one root search, then prefix counts per level)
+  fractionalCascading?: boolean;
   // Per-operation cost from the @complexities tag, e.g. "log(N)", "log^2(N) amortized", "log(N)*log(U)", "log(N)+log(U) ?" (a trailing ? marks a bound we are unsure of).
   complexities: Partial<Record<OpId, string>>;
   build: string;
@@ -281,7 +283,7 @@ export interface RangeQueryTemplate {
   originalFileUrl?: string;
   // The same operations over any index range [lo, hi]: a dynamic structure where every position starts at 0 (costs
   // use U = size of that range, log U <= 64, and memory sizes are per update), or, for a static template, one built
-  // from N (index, value) points with every other index 0 (costs and memory in N).
+  // from N given values ((index, value) pairs) with every other index 0 (costs and memory in N).
   sparse?: SparseVariant;
   usage: Partial<Record<TemplateLang, Usage>>;
 }
@@ -331,19 +333,21 @@ export function viewOf(t: RangeQueryTemplate, sparse: boolean): TemplateView | n
   return { ...t, ...t.sparse, file: "sparse" };
 }
 
-// A static template's sparse version is built from N (index, value) points, so its memory is a total in N; a
+// A static template's sparse version is built from N given values, so its memory is a total in N; a
 // dynamic one starts all zeros and its memory is counted per update.
 export function isBuiltFromPoints(memory: MemoryBreakdown): boolean {
   return memory.layout === "sparse" && /\bN\b/.test(memory.total);
 }
 
-// What a card calls the structure: "Lazy seg tree", "Sparse lazy seg tree", "Sparse seg tree beats", or for a
-// static structure built from points, "Sparse table over points".
+// What a card calls the structure: "Lazy seg tree", "Sparse lazy seg tree", "Sparse seg tree beats", for a static
+// structure's sparse version "Sparse merge sort tree built from values", and merge sort trees add "(FC)" / "(no FC)".
 export function templateKindLabel(t: TemplateView): string {
-  const label = DATA_STRUCTURE_TYPE_LABELS[t.dataStructureType];
-  if (t.file !== "sparse") return label;
-  if (isBuiltFromPoints(t.memory)) return `${label} over points`;
-  return `Sparse ${label === "BIT" ? label : label[0].toLowerCase() + label.slice(1)}`;
+  const base = DATA_STRUCTURE_TYPE_LABELS[t.dataStructureType];
+  const fc = t.fractionalCascading === undefined ? "" : t.fractionalCascading ? " (FC)" : " (no FC)";
+  if (t.file !== "sparse") return base + fc;
+  const lower = base === "BIT" ? base : base[0].toLowerCase() + base.slice(1);
+  const sparse = base.startsWith("Sparse") ? base : `Sparse ${lower}`; // "Sparse table" is already "sparse"
+  return `${sparse}${isBuiltFromPoints(t.memory) ? " built from values" : ""}${fc}`;
 }
 
 export type TreeLayout = "2n-iterative" | "pow2-iterative" | "4n-recursive" | "sparse" | "none";
@@ -407,7 +411,7 @@ function formatTerm(term: string): string {
 
 // Memory is a count of stored values, shown as a size with an explicit coefficient: "1N", "4N", "1N · log N", "3√N".
 // A dynamic sparse version (starts all zeros) has its memory sizes counted per update: shown as Q · (...) and ranked
-// as Q times that. A static one built from points has plain sizes in N.
+// as Q times that. A static one built from given values has plain sizes in N.
 export function isPerUpdate(memory: MemoryBreakdown): boolean {
   return memory.layout === "sparse" && !isBuiltFromPoints(memory);
 }

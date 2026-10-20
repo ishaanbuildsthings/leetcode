@@ -11,7 +11,7 @@
 //   node: blockMode[1*N] blockCnt[1*N]
 //   tags: none
 //   other: idx[1*N] vals[1*N] zc[1*N] comp[1*N] positions[1*N] posIdx[1*N]
-//   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the sqrt mode structure is over the points only; 0's frequency is the zeros of [l, r] plus the points holding 0 (zc), and it wins whenever it is at least the points' mode frequency
+//   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sqrt mode structure is over the given values only; 0's frequency is the zeros of [l, r] plus the given values holding 0 (zc), and it wins whenever it is at least the given values' mode frequency
 // Online range mode in O(sqrt N) per query, O(N sqrt N) build, O(N) memory beyond the block table.
 // Split into ~sqrt N blocks and precompute the mode of every run of whole blocks. For a query, the answer is either
 // the mode of the whole middle blocks or one of the O(sqrt N) edge elements. For an edge element, positions[val]
@@ -81,29 +81,29 @@ struct RangeMode {
 
 // ======================================================================================== sparse wrapper
 
-// Range mode over any index range [lo, hi], built from (index, value) points; every other index is 0. The sqrt mode
-// structure runs on the points alone; 0 appears (zeros of [l, r]) + (points holding 0) times, and is the answer
-// whenever that is at least the points' own mode frequency.
+// Range mode over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The sqrt mode
+// structure runs on the given values alone; 0 appears (zeros of [l, r]) + (given values holding 0) times, and is the answer
+// whenever that is at least the given values' own mode frequency.
 template <typename T>
 struct SparseStaticRangeMode {
     long long lo, hi;
     vector<long long> idx;
     vector<T> vals;
     RangeMode<T> inner;
-    vector<int> zc;  // zc[k] = # of the first k points holding 0
+    vector<int> zc;  // zc[k] = # of the first k given values holding 0
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    SparseStaticRangeMode(long long lo, long long hi, vector<pair<long long, T>> points) : lo(lo), hi(hi), inner(split(points)), zc(1) {
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    SparseStaticRangeMode(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(split(values)), zc(1) {
         for (T v : vals) zc.push_back(zc.back() + (v == T(0)));
     }
 
     vector<T> split(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());
         for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v);
-        return vals.empty() ? vector<T>{T(0)} : vals;  // (a dummy element when there are no points; never queried)
+        return vals.empty() ? vector<T>{T(0)} : vals;  // (a dummy element when there are no given values; never queried)
     }
 
-    // the points inside [l, r] are i0..i1, and the rest of [l, r] is zeros = (r - l + 1) - (i1 - i0 + 1) zeros
+    // the given values inside [l, r] are i0..i1, and the rest of [l, r] is zeros = (r - l + 1) - (i1 - i0 + 1) zeros
     void span(long long l, long long r, int& i0, int& i1, long long& zeros) const {
         i0 = int(lower_bound(idx.begin(), idx.end(), l) - idx.begin());
         i1 = int(upper_bound(idx.begin(), idx.end(), r) - idx.begin()) - 1;

@@ -15,7 +15,7 @@
 #   node: sp[8*N*log(N)]
 #   tags: none
 #   other: idx[1*N] vals[1*N] starts[8*N] v[8*N] w[8*N] W[8*N] B[8*N] suff[8*N]
-#   note: built from N (index, value) points over any index range [lo, hi], every other index 0; a view is the array cut into pieces (each point, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query
+#   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query
 from bisect import bisect_left, bisect_right
 
 
@@ -95,7 +95,7 @@ class _PieceCost:
 
 
 def _pieces(lo, hi, pts, c):
-    """The pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for points pts over [lo, hi]."""
+    """The pieces of b[i] = a[i] + c * (i - lo) (c = 0, or -1 for the strict costs) for given values pts over [lo, hi]."""
     starts, v, w, slope = [], [], [], []
     prev = lo - 1
     for i, x in pts:
@@ -109,7 +109,7 @@ def _pieces(lo, hi, pts, c):
 
 
 # Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing,
-# and range sum, over any index range [lo, hi], built from (index, value) points; every other index is 0.
+# and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0.
 # Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the
 # non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query.
 
@@ -117,10 +117,10 @@ def _pieces(lo, hi, pts, c):
 class SparseMonoCosts:
     __slots__ = ("lo", "hi", "idx", "vals", "pts", "views")
 
-    # O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    def __init__(self, lo, hi, points):
+    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    def __init__(self, lo, hi, values):
         self.lo, self.hi = lo, hi
-        self.pts = sorted(points)
+        self.pts = sorted(values)
         self.idx = [i for i, _ in self.pts]
         self.vals = [v for _, v in self.pts]
         self.views = {}

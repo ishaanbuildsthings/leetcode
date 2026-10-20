@@ -162,39 +162,39 @@ struct SparseBitBeats {
         }
     }
 
-    // amortized O(logN logU) -- a[i] &= X for i in [l, r]
+    // amortized O(logU logU) -- a[i] &= X for i in [l, r]
     void rangeAndApply(long long l, long long r, T X) { if (l <= r) upd(root, lo, hi, l, r, X & FULL, 0); }
 
-    // amortized O(logN logU) -- a[i] |= X for i in [l, r]
+    // amortized O(logU logU) -- a[i] |= X for i in [l, r]
     void rangeOrApply(long long l, long long r, T X) { if (l <= r) upd(root, lo, hi, l, r, ~X & FULL, X & FULL); }
 
-    // O(logN) -- max of a[l..r]
+    // O(logU) -- max of a[l..r]
     T rangeMax(long long l, long long r) { return T(query(root, lo, hi, l, r, 0)); }
 
-    // O(logN) -- min of a[l..r]
+    // O(logU) -- min of a[l..r]
     T rangeMin(long long l, long long r) { return T(query(root, lo, hi, l, r, 1)); }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logU) -- a[l] + ... + a[r]
     S rangeSum(long long l, long long r) { return l > r ? S(0) : query(root, lo, hi, l, r, 2); }
 
-    // O(logN) -- a[l] & ... & a[r]
+    // O(logU) -- a[l] & ... & a[r]
     T rangeAndQuery(long long l, long long r) { return l > r ? FULL : T(query(root, lo, hi, l, r, 3)); }
 
-    // O(logN) -- a[l] | ... | a[r]
+    // O(logU) -- a[l] | ... | a[r]
     T rangeOrQuery(long long l, long long r) { return l > r ? T(0) : T(query(root, lo, hi, l, r, 4)); }
 
-    // O(logN) -- a[i] = v & FULL
+    // O(logU) -- a[i] = v & FULL
     void pointAssign(long long i, T v) { set(root, lo, hi, i, v & FULL); }
 
-    // O(logN) -- a[i]
+    // O(logU) -- a[i]
     T pointGet(long long i) { return rangeMax(i, i); }
 
-    // O(logN) -- a[i] = max(a[i], v)
+    // O(logU) -- a[i] = max(a[i], v)
     void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
 
-    // O(logN) -- a[i] = min(a[i], v)
+    // O(logU) -- a[i] = min(a[i], v)
     void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
 
-    // O(logN) -- a[i] = (a[i] + delta) & FULL
+    // O(logU) -- a[i] = (a[i] + delta) & FULL
     void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
 };

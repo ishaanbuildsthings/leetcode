@@ -30,7 +30,7 @@
 // Segment tree beats, one side only: range rangeChmin / add / assign, range sum / rangeMax, point ops. 0-based, inclusive.
 // Each node keeps its max (mx), strict second max (mx2) and how many times the max appears, plus two add tags: one for
 // the max group and one for everything else. A rangeChmin with mx2 < x < mx only moves the max group, so it becomes
-// an add on that group alone. Amortized O(log^2 N) with rangeAdd in the mix (O(log N) without).
+// an add on that group alone. Amortized O(log^2 U) with rangeAdd in the mix (O(log U) without).
 // T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.
 template <typename T>
 struct SparseBeatsChmin {
@@ -169,22 +169,22 @@ struct SparseBeatsChmin {
         return better(a, b) ? a : b;
     }
 
-    // amortized O(log^2 N) -- a[i] = min(a[i], x) for i in [l, r]
+    // amortized O(log^2 U) -- a[i] = min(a[i], x) for i in [l, r]
     void rangeChmin(long long l, long long r, T x) { if (l <= r) chmin(root, lo, hi, l, r, x); }
 
-    // amortized O(log^2 N) -- a[i] += x for i in [l, r]
+    // amortized O(log^2 U) -- a[i] += x for i in [l, r]
     void rangeAdd(long long l, long long r, T x) { if (l <= r) add(root, lo, hi, l, r, x); }
 
-    // O(logN) -- a[i] = x for i in [l, r]
+    // O(logU) -- a[i] = x for i in [l, r]
     void rangeAssign(long long l, long long r, T x) { if (l <= r) assign(root, lo, hi, l, r, x); }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logU) -- a[l] + ... + a[r]
     S rangeSum(long long l, long long r) { return l > r ? S(0) : qsum(root, lo, hi, l, r); }
 
-    // O(logN) -- max of a[l..r]
+    // O(logU) -- max of a[l..r]
     T rangeMax(long long l, long long r) { return l > r ? INF : qext(root, lo, hi, l, r); }
 
-    // O(logN) -- a[i]
+    // O(logU) -- a[i]
     T pointGet(long long i) { return rangeMax(i, i); }
 
     // a[i] = v

@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeLIS/sparse.cpp
 // @operations: pointGet rangeLIS
 // @data-structure-type: merge-sort-tree
+// @fractional-cascading: yes
 // @complexities:
 //   pointGet: log(N)
 //   rangeLIS: log(N)
@@ -11,7 +12,7 @@
 //   node: cnt[2*N*log(N)]
 //   tags: none
 //   other: idx[1*N] vals[1*N] starts[2*N] E[2*N] sortedVals[2*N]
-//   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the seaweed LIS structure runs on the points plus one 0 per gap (at most 2N + 1 elements)
+//   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the seaweed LIS structure runs on the given values plus one 0 per gap (at most 2N + 1 elements)
 // Static range LIS: length of the longest STRICTLY increasing subsequence of a[l..r], online, O(log N) per query.
 // All indices 0-based, ranges inclusive. T: any type with <.
 //
@@ -229,18 +230,18 @@ struct RangeLIS {
 
 // ======================================================================================== sparse wrapper
 
-// Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range [lo, hi], built from (index, value) points; every other index is 0. A maximal gap
-// of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of points with one 0 per gap,
+// Range LIS (longest strictly increasing subsequence; a run of zeros adds at most one element) over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. A maximal gap
+// of zeros adds nothing more than a single 0, so RangeLIS runs on the compressed array of given values with one 0 per gap,
 // and a query maps l and r to the compressed elements containing them.
 template <typename T>
 struct SparseStaticLIS {
     long long lo, hi;
-    vector<long long> idx, starts;  // point indices; starts[k] = first index of compressed element k
+    vector<long long> idx, starts;  // given value indices; starts[k] = first index of compressed element k
     vector<T> vals;
     RangeLIS<T> inner;
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    SparseStaticLIS(long long lo, long long hi, vector<pair<long long, T>> points) : lo(lo), hi(hi), inner(compress(points)) {}
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    SparseStaticLIS(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(compress(values)) {}
 
     vector<T> compress(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());

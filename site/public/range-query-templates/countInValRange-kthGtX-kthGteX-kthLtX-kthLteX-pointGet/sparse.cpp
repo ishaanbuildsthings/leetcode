@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet/sparse.cpp
 // @operations: countInValRange kthGtX kthGteX kthLtX kthLteX pointGet
 // @data-structure-type: merge-sort-tree
+// @fractional-cascading: yes
 // @complexities:
 //   countInValRange: log(N)
 //   kthGtX: log^2(N)
@@ -15,7 +16,7 @@
 //   node: cnt[1*N*log(N)]
 //   tags: none
 //   other: idx[1*N] vals[1*N] sortedVals[1*N]
-//   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the merge sort tree is over the points only; a k-th whose test 0 passes binary-searches the gap it falls in
+//   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the merge sort tree is over the given values only; a k-th whose test 0 passes binary-searches the gap it falls in
 // Static merge sort tree with fractional cascading, in a flat wavelet-style layout. All indices 0-based, inclusive.
 // Only the root's sorted values are kept (one binary search per query); below that, cnt routes the "p smallest"
 // count down each level in O(1). At any depth the nodes partition [0, n), and the node [tl, tr] owns slots tl..tr
@@ -184,8 +185,8 @@ struct MergeSortTree {
 // ======================================================================================== sparse wrapper
 
 // Count values in a value range / k-th index whose value passes a test, over any index range [lo, hi], built
-// from (index, value) points; every other index is 0. The merge sort tree runs on the points alone; the zeros
-// of [l, r] are its length minus the points inside, and they count wherever 0 passes the test.
+// from given values (index, value pairs); every other index is 0. The merge sort tree runs on the given values alone; the zeros
+// of [l, r] are its length minus the given values inside, and they count wherever 0 passes the test.
 template <typename T>
 struct SparseStaticMergeSortTree {
     long long lo, hi;
@@ -193,16 +194,16 @@ struct SparseStaticMergeSortTree {
     vector<T> vals;
     MergeSortTree<T> inner;
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    SparseStaticMergeSortTree(long long lo, long long hi, vector<pair<long long, T>> points) : lo(lo), hi(hi), inner(split(points)) {}
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    SparseStaticMergeSortTree(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(split(values)) {}
 
     vector<T> split(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());
         for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v);
-        return vals.empty() ? vector<T>{T(0)} : vals;  // (a dummy element when there are no points; never queried)
+        return vals.empty() ? vector<T>{T(0)} : vals;  // (a dummy element when there are no given values; never queried)
     }
 
-    // the points inside [l, r] are i0..i1, and the rest of [l, r] is zeros = (r - l + 1) - (i1 - i0 + 1) zeros
+    // the given values inside [l, r] are i0..i1, and the rest of [l, r] is zeros = (r - l + 1) - (i1 - i0 + 1) zeros
     void span(long long l, long long r, int& i0, int& i1, long long& zeros) const {
         i0 = int(lower_bound(idx.begin(), idx.end(), l) - idx.begin());
         i1 = int(upper_bound(idx.begin(), idx.end(), r) - idx.begin()) - 1;
@@ -218,8 +219,8 @@ struct SparseStaticMergeSortTree {
         return inside + (valLow <= T(0) && T(0) <= valHigh ? zeros : 0);
     }
 
-    // the k-th i in [l, r] whose value passes the test; qual(t) = qualifying points among i0..t-1; zeroOk: 0 passes;
-    // denseKth(i0, i1, k) = the dense k-th among the points (-1 if none)
+    // the k-th i in [l, r] whose value passes the test; qual(t) = qualifying given values among i0..t-1; zeroOk: 0 passes;
+    // denseKth(i0, i1, k) = the dense k-th among the given values (-1 if none)
     template <class Q, class K>
     long long kthWithZeros(long long l, long long r, long long k, bool zeroOk, Q qual, K denseKth) const {
         int i0, i1;
@@ -231,7 +232,7 @@ struct SparseStaticMergeSortTree {
             int j = denseKth(i0, i1, int(k));
             return j != -1 ? idx[j] : lo - 1;
         }
-        auto g = [&](int t) {  // qualifying indices in [l, (point t) - 1]; point i1 + 1 stands for r + 1
+        auto g = [&](int t) {  // qualifying indices in [l, (given value t) - 1]; given value i1 + 1 stands for r + 1
             return ((t <= i1 ? idx[t] : r + 1) - l) - (t - i0) + qual(i0, t);
         };
         if (g(i1 + 1) < k) return lo - 1;
@@ -243,7 +244,7 @@ struct SparseStaticMergeSortTree {
         }
         int t = a;
         if (t == i0) return l - 1 + k;
-        long long c = g(t - 1) + qual(i0, t) - qual(i0, t - 1);  // qualifying indices in [l, point t - 1]
+        long long c = g(t - 1) + qual(i0, t) - qual(i0, t - 1);  // qualifying indices in [l, given value t - 1]
         return c >= k ? idx[t - 1] : idx[t - 1] + (k - c);
     }
 

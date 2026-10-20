@@ -11,11 +11,11 @@
 //   node: pos[1*N]
 //   tags: none
 //   other: idx[1*N] vals[1*N]
-//   note: built from N (index, value) points over any index range [lo, hi], every other index 0; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the points inside)
+//   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the given values inside)
 
-// "How many times does x appear in a[l..r]?" over any index range [lo, hi], built from (index, value) points; every
+// "How many times does x appear in a[l..r]?" over any index range [lo, hi], built from given values (index, value pairs); every
 // other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the
-// points inside). T: any type usable as a std::map key.
+// given values inside). T: any type usable as a std::map key.
 template <typename T>
 struct SparseStaticOccurrences {
     long long lo, hi;
@@ -23,10 +23,10 @@ struct SparseStaticOccurrences {
     vector<T> vals;
     map<T, vector<long long>> pos;
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    SparseStaticOccurrences(long long lo, long long hi, vector<pair<long long, T>> points) : lo(lo), hi(hi) {
-        sort(points.begin(), points.end());
-        for (auto& [i, v] : points) idx.push_back(i), vals.push_back(v), pos[v].push_back(i);
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    SparseStaticOccurrences(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi) {
+        sort(values.begin(), values.end());
+        for (auto& [i, v] : values) idx.push_back(i), vals.push_back(v), pos[v].push_back(i);
     }
 
     static long long countIn(const vector<long long>& p, long long l, long long r) {

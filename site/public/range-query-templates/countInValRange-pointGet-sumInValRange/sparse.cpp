@@ -12,7 +12,7 @@
 //   node: L[1*N*log(N)] R[1*N*log(N)] S[1*N*log(N)] C[1*N*log(N)]
 //   tags: none
 //   other: idx[1*N] vals[1*N] root[1*N] srt[1*N]
-//   note: built from N (index, value) points over any index range [lo, hi], every other index 0; the persistent tree is over the points only; zeros add to counts (never to sums)
+//   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums)
 // Static "count / sum of values in [lo, hi] among a[l..r]" via a persistent segment tree over compressed values.
 // Version i + 1 = version i with a[i] inserted; a query subtracts version l from version r + 1. All indices 0-based,
 // ranges inclusive. Build O(N log N), queries O(log N), ~N * (log N + 1) nodes.
@@ -79,9 +79,9 @@ struct StaticValueRangeSum {
 
 // ======================================================================================== sparse wrapper
 
-// Count / sum of the values in a value range, over any index range [lo, hi], built from (index, value) points;
-// every other index is 0. The persistent tree runs on the points alone; the zeros of [l, r] (its length minus the
-// points inside) add to a count when 0 is in the value range, and never to a sum.
+// Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs);
+// every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the
+// given values inside) add to a count when 0 is in the value range, and never to a sum.
 template <typename T>
 struct SparseStaticValueRangeSum {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
@@ -90,16 +90,16 @@ struct SparseStaticValueRangeSum {
     vector<T> vals;
     StaticValueRangeSum<T> inner;
 
-    // O(N log N) -- [lo, hi] all 0 except the given (index, value) points (distinct indices)
-    SparseStaticValueRangeSum(long long lo, long long hi, vector<pair<long long, T>> points) : lo(lo), hi(hi), inner(split(points)) {}
+    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
+    SparseStaticValueRangeSum(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), inner(split(values)) {}
 
     vector<T> split(vector<pair<long long, T>>& pts) {
         sort(pts.begin(), pts.end());
         for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v);
-        return vals.empty() ? vector<T>{T(0)} : vals;  // (a dummy element when there are no points; never queried)
+        return vals.empty() ? vector<T>{T(0)} : vals;  // (a dummy element when there are no given values; never queried)
     }
 
-    // the points inside [l, r] are i0..i1, and the rest of [l, r] is zeros = (r - l + 1) - (i1 - i0 + 1) zeros
+    // the given values inside [l, r] are i0..i1, and the rest of [l, r] is zeros = (r - l + 1) - (i1 - i0 + 1) zeros
     void span(long long l, long long r, int& i0, int& i1, long long& zeros) const {
         i0 = int(lower_bound(idx.begin(), idx.end(), l) - idx.begin());
         i1 = int(upper_bound(idx.begin(), idx.end(), r) - idx.begin()) - 1;

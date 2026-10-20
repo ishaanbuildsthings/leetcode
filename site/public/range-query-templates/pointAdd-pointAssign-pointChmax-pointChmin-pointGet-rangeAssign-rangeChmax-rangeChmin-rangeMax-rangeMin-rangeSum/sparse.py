@@ -33,19 +33,19 @@
 # O(n) build
 # seg = BeatsChminChmaxNoAdd_PERFORMANT(arr)
 #
-# AMORTIZED O(logN):  rangeChmin(l, r, x)    -- a[i] = min(a[i], x)
-# AMORTIZED O(logN):  rangeChmax(l, r, x)    -- a[i] = max(a[i], x)
-# AMORTIZED O(logN):  rangeAssign(l, r, x)   -- a[i] = x
-# AMORTIZED O(logN):  pointAssign(pos, newVal)  -- OVERWRITE, may RAISE the value
+# AMORTIZED O(logU):  rangeChmin(l, r, x)    -- a[i] = min(a[i], x)
+# AMORTIZED O(logU):  rangeChmax(l, r, x)    -- a[i] = max(a[i], x)
+# AMORTIZED O(logU):  rangeAssign(l, r, x)   -- a[i] = x
+# AMORTIZED O(logU):  pointAssign(pos, newVal)  -- OVERWRITE, may RAISE the value
 #
-# O(logN):  rangeSum(l, r)
-# O(logN):  rangeMin(l, r)
-# O(logN):  rangeMax(l, r)
-# O(logN):  pointGet(pos)
+# O(logU):  rangeSum(l, r)
+# O(logU):  rangeMin(l, r)
+# O(logU):  rangeMax(l, r)
+# O(logU):  pointGet(pos)
 # O(n) space
 #
-# Whole structure is O((n + q) logN). THERE IS NO rangeAdd HERE ON PURPOSE -- adding it forces
-# O((n + q) log^2 N), and that log^2 is proven tight (Tony2_CF, Dec 2025,
+# Whole structure is O((n + q) logU). THERE IS NO rangeAdd HERE ON PURPOSE -- adding it forces
+# O((n + q) log^2 U), and that log^2 is proven tight (Tony2_CF, Dec 2025,
 # codeforces.com/blog/entry/149516). If you need add, take the Chmin-Chmax-Add variant instead;
 # measured at n = q = 300000 it runs about 1.2x slower than this file on an add-free workload,
 # because its node is 104 bytes against 56 here.
@@ -253,7 +253,7 @@ class SparseBeatsChminChmaxNoAdd:
         self._chmin(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(logN) -- a[i] = min(a[i], x) for i in [l, r]
+    # O(logU) -- a[i] = min(a[i], x) for i in [l, r]
     def rangeChmin(self, l, r, x):
         if l <= r:
             self._chmin(1, self.lo, self.hi, l, r, x)
@@ -270,7 +270,7 @@ class SparseBeatsChminChmaxNoAdd:
         self._chmax(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(logN) -- a[i] = max(a[i], x) for i in [l, r]
+    # O(logU) -- a[i] = max(a[i], x) for i in [l, r]
     def rangeChmax(self, l, r, x):
         if l <= r:
             self._chmax(1, self.lo, self.hi, l, r, x)
@@ -287,12 +287,12 @@ class SparseBeatsChminChmaxNoAdd:
         self._assign(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(logN) -- a[i] = v for i in [l, r]
+    # O(logU) -- a[i] = v for i in [l, r]
     def rangeAssign(self, l, r, v):
         if l <= r:
             self._assign(1, self.lo, self.hi, l, r, v)
 
-    # O(logN) -- a[p] = v
+    # O(logU) -- a[p] = v
     def pointAssign(self, p, v):
         self.rangeAssign(p, p, v)
 
@@ -306,7 +306,7 @@ class SparseBeatsChminChmaxNoAdd:
         tm = (tl + tr) // 2
         return self._sum(self.L[i], tl, tm, ql, qr) + self._sum(self.R[i], tm + 1, tr, ql, qr)
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         return 0 if (l > r) else self._sum(1, self.lo, self.hi, l, r)
 
@@ -322,7 +322,7 @@ class SparseBeatsChminChmaxNoAdd:
         b = self._qmax(self.R[i], tm + 1, tr, ql, qr)
         return a if a > b else b
 
-    # O(logN) -- max of a[l..r]
+    # O(logU) -- max of a[l..r]
     def rangeMax(self, l, r):
         return NEG_INF if (l > r) else self._qmax(1, self.lo, self.hi, l, r)
 
@@ -338,11 +338,11 @@ class SparseBeatsChminChmaxNoAdd:
         b = self._qmin(self.R[i], tm + 1, tr, ql, qr)
         return a if a < b else b
 
-    # O(logN) -- min of a[l..r]
+    # O(logU) -- min of a[l..r]
     def rangeMin(self, l, r):
         return POS_INF if (l > r) else self._qmin(1, self.lo, self.hi, l, r)
 
-    # O(logN) -- a[p]
+    # O(logU) -- a[p]
     def pointGet(self, p):
         return self.rangeMax(p, p)
 

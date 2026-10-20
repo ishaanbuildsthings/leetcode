@@ -30,8 +30,8 @@
 // children in Lc / Rc instead of at 2i / 2i + 1.
 
 // Segment tree beats: range chmin / chmax / add / assign, range sum / min / max, point ops.
-// All indices 0-based, ranges inclusive [l, r]. Without rangeAdd everything is amortized O(log N); with it,
-// O(log^2 N) amortized (proven tight). Each node keeps max / second max / count of max, the same for min, and three
+// All indices 0-based, ranges inclusive [l, r]. Without rangeAdd everything is amortized O(log U); with it,
+// O(log^2 U) amortized (proven tight). Each node keeps max / second max / count of max, the same for min, and three
 // add tags (for the max group, the min group and everything else) plus an assign tag.
 // Glue that one-sided beats does not need: a node with one distinct value has mx == mn, so applyAdd folds the three
 // deltas into one (vMax + vMin - vOther); with exactly two distinct values mx2 == mn and mn2 == mx, so the second
@@ -202,31 +202,31 @@ struct SparseBeatsChminChmax {
         return min(qmin(Lc[i], tl, tm, ql, qr), qmin(Rc[i], tm + 1, tr, ql, qr));
     }
 
-    // amortized O(logN), O(log^2 N) once rangeAdd is used -- a[i] = min(a[i], x) for i in [l, r]
+    // amortized O(logU), O(log^2 U) once rangeAdd is used -- a[i] = min(a[i], x) for i in [l, r]
     void rangeChmin(long long l, long long r, T x) { if (l <= r) chmin(root, lo, hi, l, r, x); }
 
-    // amortized O(logN), O(log^2 N) once rangeAdd is used -- a[i] = max(a[i], x) for i in [l, r]
+    // amortized O(logU), O(log^2 U) once rangeAdd is used -- a[i] = max(a[i], x) for i in [l, r]
     void rangeChmax(long long l, long long r, T x) { if (l <= r) chmax(root, lo, hi, l, r, x); }
 
-    // amortized O(log^2 N) -- a[i] += x for i in [l, r]
+    // amortized O(log^2 U) -- a[i] += x for i in [l, r]
     void rangeAdd(long long l, long long r, T x) { if (l <= r) add(root, lo, hi, l, r, x); }
 
-    // O(logN) -- a[i] = x for i in [l, r]
+    // O(logU) -- a[i] = x for i in [l, r]
     void rangeAssign(long long l, long long r, T x) { if (l <= r) assign(root, lo, hi, l, r, x); }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logU) -- a[l] + ... + a[r]
     S rangeSum(long long l, long long r) { return l > r ? S(0) : qsum(root, lo, hi, l, r); }
 
-    // O(logN) -- max of a[l..r]
+    // O(logU) -- max of a[l..r]
     T rangeMax(long long l, long long r) { return l > r ? NEG_INF : qmax(root, lo, hi, l, r); }
 
-    // O(logN) -- min of a[l..r]
+    // O(logU) -- min of a[l..r]
     T rangeMin(long long l, long long r) { return l > r ? POS_INF : qmin(root, lo, hi, l, r); }
 
-    // O(logN) -- a[i]
+    // O(logU) -- a[i]
     T pointGet(long long i) { return rangeMax(i, i); }
 
-    // O(logN) -- a[i] = v
+    // O(logU) -- a[i] = v
     void pointAssign(long long i, T v) { rangeAssign(i, i, v); }
 
     // a[i] = max(a[i], v)
