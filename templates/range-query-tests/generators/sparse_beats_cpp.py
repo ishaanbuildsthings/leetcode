@@ -12,7 +12,7 @@ ZERO_NODE = {
     "ChminSumBeats": "Node{0, SENT, k, S(0)}",
 }
 ZERO_FLAT = {
-    "BitBeats": {"mx": "0", "mn": "0", "andAll": "0", "orAll": "0", "tagAnd": "FULL", "tagXor": "0", "tot": "0", "sz": "k"},
+    "BitBeats": {"mx": "0", "mn": "0", "andAll": "0", "orAll": "0", "tagAnd": "FULL", "tagXor": "0", "tot": "0"},
     "ShrinkSeg": {"mx": "0", "mn": "0", "tot": "0"},
     "ShrinkTree": {"mx": "0", "tot": "0"},
 }
@@ -58,7 +58,7 @@ def convert_cpp(folder, src):
         last = list(re.finditer(r"^    static inline vector<.*\n", body, re.M))[-1]
         body = body[:last.end()] + pool_extra + body[last.end():]
         zero = ZERO_FLAT[old]
-        assert set(zero) == set(arrays), (old, arrays)
+        assert set(arrays) <= set(zero), (old, arrays)  # (gen_bitbeats.py's variants keep only some of the fields)
         push_zero = " ".join(f"{a}.push_back({zero[a]});" for a in arrays)
         resets = " ".join(f"{a}.resize(1);" for a in arrays)
         reserves = " ".join(f"{a}.reserve(nodes);" for a in arrays)

@@ -751,69 +751,14 @@ struct PieceCost {
 
 COST_NOTE = ("a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and "
              "next-greater sums over the pieces; ")
-write("costMonoIncreasing-pointGet-rangeSum", "sparse-table",
-      {"costMonoIncreasing": "log(N)", "pointGet": "log(N)", "rangeSum": "log(N)", "build": "N*log(N)"},
-      ("sp[2*N*log(N)]", "none", "idx[1*N] vals[1*N] starts[2*N] v[2*N] w[2*N] W[2*N] B[2*N] suff[2*N]"),
-      COST_NOTE + "C++: sums wrap mod 2^64 (exact whenever the answer fits in long long)",
-      PY_PIECE + '''
-
-# Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from
-# given values (index, value pairs); every other index is 0. One _PieceCost view over the given values and the gaps of zeros.
-
-
-class SparseMonoIncreaseCost:
-    __slots__ = ("lo", "hi", "idx", "vals", "inc")
-
-    # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
-    def __init__(self, lo, hi, values):
-        self.lo, self.hi = lo, hi
-        pts = sorted(values)
-        self.idx = [i for i, _ in pts]
-        self.vals = [v for _, v in pts]
-        self.inc = _PieceCost(*_pieces(lo, hi, pts, 0))
-
-    # O(logN) -- a[l] + ... + a[r]
-    def rangeSum(self, l, r):
-        return self.inc.sum(l, r) if l <= r else 0
-
-    # O(logN) -- min +1 increments to make a[l..r] non-decreasing
-    def costMonoIncreasing(self, l, r):
-        return self.inc.cost(l, r)
-''' + PY_POINT_GET, CPP_PIECE + '''
-// Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from
-// given values (index, value pairs); every other index is 0. One PieceCost view over the given values and the gaps of zeros.
-// T: int, long long, ...
-template <typename T>
-struct SparseMonoIncreaseCost {
-    long long lo, hi;
-    vector<long long> idx;
-    vector<T> vals;
-    PieceCost inc;
-
-    // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
-    SparseMonoIncreaseCost(long long lo, long long hi, vector<pair<long long, T>> values)
-        : lo(lo), hi(hi), inc(PieceCost::of(lo, hi, sorted(values), 0)) {}
-
-    vector<pair<long long, T>>& sorted(vector<pair<long long, T>>& pts) {
-        sort(pts.begin(), pts.end());
-        for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v);
-        return pts;
-    }
-
-    // O(logN) -- a[l] + ... + a[r]
-    long long rangeSum(long long l, long long r) const { return l <= r ? (long long)inc.sum(l, r) : 0; }
-
-    // O(logN) -- min +1 increments to make a[l..r] non-decreasing
-    long long costMonoIncreasing(long long l, long long r) const { return inc.cost(l, r); }
-''' + CPP_POINT_GET + "};\n")
-
 write("costMonoDecreasing-costMonoIncreasing-costStrictDecreasing-costStrictIncreasing-pointGet-rangeSum", "sparse-table",
       {"costMonoDecreasing": "log(N)", "costMonoIncreasing": "log(N)", "costStrictDecreasing": "log(N)",
        "costStrictIncreasing": "log(N)", "pointGet": "log(N)", "rangeSum": "log(N)", "build": "N*log(N)"},
-      ("sp[8*N*log(N)]", "none", "idx[1*N] vals[1*N] starts[8*N] v[8*N] w[8*N] W[8*N] B[8*N] suff[8*N]"),
-      COST_NOTE + "four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing "
-      "costs on the mirror, strict costs subtract the index); each view is built on its first query; C++: sums wrap "
-      "mod 2^64 (exact whenever the answer fits in long long)",
+      ("sp[2*N*log(N)]", "none", "idx[1*N] vals[1*N] pf[1*N] starts[2*N] v[2*N] w[2*N] W[2*N] B[2*N] suff[2*N]"),
+      "per cost kind you call (shown for one): each kind builds its own view on its first query, so kinds you never "
+      "call cost nothing; " + COST_NOTE + "the four views: a, a mirrored, a[i] - i, and a mirrored minus its index "
+      "(decreasing costs are increasing costs on the mirror, strict costs subtract the index); rangeSum / pointGet "
+      "need no view; C++: sums wrap mod 2^64 (exact whenever the answer fits in long long)",
       PY_PIECE + '''
 
 # Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing,
@@ -823,7 +768,7 @@ write("costMonoDecreasing-costMonoIncreasing-costStrictDecreasing-costStrictIncr
 
 
 class SparseMonoCosts:
-    __slots__ = ("lo", "hi", "idx", "vals", "pts", "views")
+    __slots__ = ("lo", "hi", "idx", "vals", "pf", "pts", "views")
 
     # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
     def __init__(self, lo, hi, values):
@@ -831,6 +776,9 @@ class SparseMonoCosts:
         self.pts = sorted(values)
         self.idx = [i for i, _ in self.pts]
         self.vals = [v for _, v in self.pts]
+        self.pf = [0]  # prefix sums of the given values
+        for v in self.vals:
+            self.pf.append(self.pf[-1] + v)
         self.views = {}
 
     def _view(self, mirrored, c):
@@ -843,7 +791,7 @@ class SparseMonoCosts:
 
     # O(logN) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
-        return self._view(False, 0).sum(l, r) if l <= r else 0
+        return self.pf[bisect_right(self.idx, r)] - self.pf[bisect_left(self.idx, l)] if l <= r else 0
 
     # O(logN) -- min +1 increments to make a[l..r] non-decreasing
     def costMonoIncreasing(self, l, r):
@@ -864,20 +812,21 @@ class SparseMonoCosts:
 // Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing,
 // and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0.
 // Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the
-// non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query.
-// T: int, long long, ...
+// non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query, so you
+// only pay for the cost kinds you call. T: int, long long, ...
 template <typename T>
 struct SparseMonoCosts {
     long long lo, hi;
     vector<long long> idx;
     vector<T> vals;
+    vector<unsigned long long> pf{0};  // prefix sums of the given values (mod 2^64)
     vector<pair<long long, T>> pts, mirrored;
     mutable optional<PieceCost> views[2][2];  // [mirrored][strict]
 
     // O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
     SparseMonoCosts(long long lo, long long hi, vector<pair<long long, T>> values) : lo(lo), hi(hi), pts(move(values)) {
         sort(pts.begin(), pts.end());
-        for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v), mirrored.push_back({lo + hi - i, v});
+        for (auto& [i, v] : pts) idx.push_back(i), vals.push_back(v), mirrored.push_back({lo + hi - i, v}), pf.push_back(pf.back() + (unsigned long long)(long long)v);
         reverse(mirrored.begin(), mirrored.end());
     }
 
@@ -888,7 +837,11 @@ struct SparseMonoCosts {
     }
 
     // O(logN) -- a[l] + ... + a[r]
-    long long rangeSum(long long l, long long r) const { return l <= r ? (long long)view(false, false).sum(l, r) : 0; }
+    long long rangeSum(long long l, long long r) const {
+        if (l > r) return 0;
+        size_t a = lower_bound(idx.begin(), idx.end(), l) - idx.begin(), b = upper_bound(idx.begin(), idx.end(), r) - idx.begin();
+        return (long long)(pf[b] - pf[a]);
+    }
 
     // O(logN) -- min +1 increments to make a[l..r] non-decreasing
     long long costMonoIncreasing(long long l, long long r) const { return view(false, false).cost(l, r); }

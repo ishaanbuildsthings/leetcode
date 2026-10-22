@@ -18,7 +18,7 @@
 //   build: 1
 // @memory:
 //   layout: sparse
-//   node: mx[4*log(U)] mn[4*log(U)] tot[4*log(U)] sz[4*log(U)] andAll[4*log(U)] orAll[4*log(U)]
+//   node: mx[4*log(U)] mn[4*log(U)] tot[4*log(U)] andAll[4*log(U)] orAll[4*log(U)]
 //   tags: tagAnd[4*log(U)] tagXor[4*log(U)]
 //   other: none
 //   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases
@@ -29,12 +29,12 @@
 // SparseBitBeats<T> (resetPool() between test cases). Otherwise the beats logic below is the dense tree's, with
 // children in Lc / Rc instead of at 2i / 2i + 1.
 
-// Bitwise segment tree beats: range and= / or=, range sum / min / max / and / or, point ops.
+// Bitwise segment tree beats: range and= / or=, range max / min / sum / and / or, point ops.
 // All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x:
 //   and X -> (X, 0)   or X -> (~X, X)
 // and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's
-// values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min /
-// max / sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it.
+// values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so max / min / sum just shift.
+// Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it.
 // No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op.
 // For xor with sums use BitCountTree (per-bit counts), which needs no beats at all.
 // T: int, long long, ...; sums accumulate in S (long long for small T).
@@ -49,7 +49,6 @@ struct SparseBitBeats {
     static inline vector<T> tagAnd = vector<T>(1);
     static inline vector<T> tagXor = vector<T>(1);
     static inline vector<S> tot = vector<S>(1);
-    static inline vector<long long> sz = vector<long long>(1);
     static inline vector<int> Lc{0}, Rc{0};  // children (0: none yet)
     static inline vector<long long> ln{0};   // how many positions each node covers
     long long lo, hi;
@@ -59,14 +58,14 @@ struct SparseBitBeats {
     SparseBitBeats(long long lo, long long hi, int bits = 20) : FULL(T((T(1) << bits) - 1)), lo(lo), hi(hi) { root = node(hi - lo + 1); }
 
     // O(1) -- forget every node of every SparseBitBeats<T>; call between test cases, then build new trees
-    static void resetPool() { mx.resize(1); mn.resize(1); andAll.resize(1); orAll.resize(1); tagAnd.resize(1); tagXor.resize(1); tot.resize(1); sz.resize(1); Lc.resize(1); Rc.resize(1); ln.resize(1); }
+    static void resetPool() { mx.resize(1); mn.resize(1); andAll.resize(1); orAll.resize(1); tagAnd.resize(1); tagXor.resize(1); tot.resize(1); Lc.resize(1); Rc.resize(1); ln.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { mx.reserve(nodes); mn.reserve(nodes); andAll.reserve(nodes); orAll.reserve(nodes); tagAnd.reserve(nodes); tagXor.reserve(nodes); tot.reserve(nodes); sz.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
+    static void reservePool(size_t nodes) { mx.reserve(nodes); mn.reserve(nodes); andAll.reserve(nodes); orAll.reserve(nodes); tagAnd.reserve(nodes); tagXor.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
 
     // a fresh node: a block of k zeros
     int node(long long k) const {  // const: it only touches the shared pool
-        mx.push_back(0); mn.push_back(0); andAll.push_back(0); orAll.push_back(0); tagAnd.push_back(FULL); tagXor.push_back(0); tot.push_back(0); sz.push_back(k);
+        mx.push_back(0); mn.push_back(0); andAll.push_back(0); orAll.push_back(0); tagAnd.push_back(FULL); tagXor.push_back(0); tot.push_back(0);
         Lc.push_back(0), Rc.push_back(0), ln.push_back(k);
         return (int)ln.size() - 1;
     }
@@ -79,23 +78,24 @@ struct SparseBitBeats {
     }
 
     void setLeaf(int i, T v) {
-        mx[i] = mn[i] = andAll[i] = orAll[i] = v, tot[i] = v, sz[i] = 1;
+        mx[i] = mn[i] = andAll[i] = orAll[i] = v, tot[i] = v;
         tagAnd[i] = FULL, tagXor[i] = 0;
     }
 
     void pull(int i) {
         int l = Lc[i], r = Rc[i];
-        mx[i] = max(mx[l], mx[r]), mn[i] = min(mn[l], mn[r]);
-        tot[i] = tot[l] + tot[r], sz[i] = sz[l] + sz[r];
+        mx[i] = max(mx[l], mx[r]);
+        mn[i] = min(mn[l], mn[r]);
+        tot[i] = tot[l] + tot[r];
         andAll[i] = andAll[l] & andAll[r], orAll[i] = orAll[l] | orAll[r];
         tagAnd[i] = FULL, tagXor[i] = 0;
     }
 
-    // only legal when the node's mixed bits are all kept, so every value shifts by the same delta
-    void apply(int i, T a, T x) {
+    // only legal when the node's mixed bits are all kept, so every value shifts by the same delta (k = the node's length)
+    void apply(int i, T a, T x, long long k) {
         T keep = (a ^ x) & FULL;
         T delta = (~orAll[i] & x & FULL) - (andAll[i] & ~keep & FULL);
-        mx[i] += delta, mn[i] += delta, tot[i] += S(delta) * sz[i];
+        mx[i] += delta, mn[i] += delta, tot[i] += S(delta) * k;
         andAll[i] = ((andAll[i] & a) ^ x) & FULL, orAll[i] = ((orAll[i] & a) ^ x) & FULL;
         tagAnd[i] = tagAnd[i] & a & FULL, tagXor[i] = ((tagXor[i] & a) ^ x) & FULL;
     }
@@ -103,7 +103,9 @@ struct SparseBitBeats {
     void push(int i, long long tl, long long tr) {
         kids(i);
         if (tl == tr || (tagAnd[i] == FULL && tagXor[i] == 0)) return;
-        apply(Lc[i], tagAnd[i], tagXor[i]), apply(Rc[i], tagAnd[i], tagXor[i]);
+        kids(i);
+        long long tm = tl + (tr - tl) / 2;
+        apply(Lc[i], tagAnd[i], tagXor[i], tm - tl + 1), apply(Rc[i], tagAnd[i], tagXor[i], tr - tm);
         tagAnd[i] = FULL, tagXor[i] = 0;
     }
 
@@ -119,7 +121,7 @@ struct SparseBitBeats {
     void upd(int i, long long tl, long long tr, long long ql, long long qr, T a, T x) {
         if (qr < tl || ql > tr || noEffect(i, a, x)) return;
         T mixed = (andAll[i] ^ orAll[i]) & FULL;
-        if (ql <= tl && tr <= qr && (mixed & (~a | x) & FULL) == 0) { apply(i, a, x); return; }
+        if (ql <= tl && tr <= qr && (mixed & (~a | x) & FULL) == 0) { apply(i, a, x, tr - tl + 1); return; }
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
@@ -139,7 +141,15 @@ struct SparseBitBeats {
 
     // kind: 0 max, 1 min, 2 sum, 3 and, 4 or; identities are valid because every value is in [0, FULL]
     S query(int i, long long tl, long long tr, long long ql, long long qr, int kind) {
-        if (qr < tl || ql > tr) return kind == 1 || kind == 3 ? S(FULL) : S(0);
+        if (qr < tl || ql > tr) {
+            switch (kind) {
+                case 0: return S(0);
+                case 1: return S(FULL);
+                case 2: return S(0);
+                case 3: return S(FULL);
+                default: return S(0);
+            }
+        }
         if (ql <= tl && tr <= qr) {
             switch (kind) {
                 case 0: return mx[i];
@@ -187,7 +197,7 @@ struct SparseBitBeats {
     void pointAssign(long long i, T v) { set(root, lo, hi, i, v & FULL); }
 
     // O(logU) -- a[i]
-    T pointGet(long long i) { return rangeMax(i, i); }
+    T pointGet(long long i) { return rangeAndQuery(i, i); }
 
     // O(logU) -- a[i] = max(a[i], v)
     void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }

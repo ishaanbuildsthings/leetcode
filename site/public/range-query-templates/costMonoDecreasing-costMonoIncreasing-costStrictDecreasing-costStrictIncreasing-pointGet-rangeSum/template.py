@@ -12,10 +12,10 @@
 #   build: N*log(N)
 # @memory:
 #   layout: none
-#   node: sp[4*N*log(N)]
+#   node: sp[1*N*log(N)]
 #   tags: none
-#   other: arr[4*N] pf[4*N] suff[4*N]
-#   note: four MonoIncreaseCost views (a, reversed a, a[i] - i, reversed a[i] + i); every view but the first is built on its first query, so you only pay for the ones you call
+#   other: arr[2*N] pf[2*N] suff[1*N]
+#   note: per cost kind you call (shown for one): each kind builds its own MonoIncreaseCost view (a, reversed a, a[i] - i, reversed a[i] + i) on its first query, so kinds you never call cost nothing; rangeSum / pointGet need no view
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/costToMakeSubarrayMonoIncreasing.py
 
 from itertools import accumulate
@@ -84,17 +84,19 @@ class MonoIncreaseCost:
 
 
 class MonoCosts:
-    __slots__ = ("n", "arr", "_inc", "_dec", "_sinc", "_sdec")
+    __slots__ = ("n", "arr", "pf", "_inc", "_dec", "_sinc", "_sdec")
 
-    # O(N log N); the other three views are built on first use
+    # O(N); each cost kind builds its own O(N log N) view on its first query, so you only pay for the kinds you call
     def __init__(self, arr):
         self.n = len(arr)
         self.arr = list(arr)
-        self._inc = MonoIncreaseCost(self.arr)
-        self._dec = self._sinc = self._sdec = None
+        self.pf = list(accumulate(self.arr, initial=0))
+        self._inc = self._dec = self._sinc = self._sdec = None
 
     # O(1) -- min +1 increments to make a[l..r] non-decreasing
     def costMonoIncreasing(self, l, r):
+        if self._inc is None:
+            self._inc = MonoIncreaseCost(self.arr)
         return self._inc.costMonoIncreasing(l, r)
 
     # O(1) -- min +1 increments to make a[l..r] non-increasing
@@ -120,7 +122,7 @@ class MonoCosts:
 
     # O(1) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
-        return self._inc.rangeSum(l, r)
+        return self.pf[r + 1] - self.pf[l] if r >= l else 0
 
     # O(1) -- a[i]
     def pointGet(self, i):

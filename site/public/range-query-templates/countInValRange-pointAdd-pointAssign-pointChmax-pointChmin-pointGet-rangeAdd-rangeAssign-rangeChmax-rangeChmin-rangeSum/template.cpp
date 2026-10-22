@@ -20,7 +20,7 @@
 //   node: sortedBeforeTags[1*N] pfSum[1*N]
 //   tags: lazyAdd[1*sqrt(N)] lazyChmin[1*sqrt(N)] lazyChmax[1*sqrt(N)]
 //   other: valsBeforeTags[1*N] blockEnd[1*sqrt(N)]
-//   note: sqrt(N) blocks, each with a sorted copy and prefix sums; describes SqrtBlocks_PERFORMANT
+//   note: sqrt(N) blocks, each with a sorted copy; the prefix sums (pfSum) are only built once rangeSum is first called, so you never pay for them otherwise; describes SqrtBlocks_PERFORMANT
 // @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeChmin-Chmax-Add-Assign-Sum-CountValRange-SqrtDecomp-RootNLogN.cpp
 
 // Sqrt decomposition: range chmin / chmax / add / assign, range sum, count of values in [low, high] over a range,
@@ -38,7 +38,8 @@ struct SqrtBlocks {
     int n, B, nb;
     vector<T> vals;                // values before their block's tag
     vector<vector<T>> srt;         // srt[b] = sorted vals of block b (before tag)
-    vector<vector<S>> pf;          // pf[b][k] = srt[b][0] + ... + srt[b][k]
+    mutable vector<vector<S>> pf;  // pf[b][k] = srt[b][0] + ... + srt[b][k], kept only once rangeSum has been called
+    mutable bool sumReady = false;
     vector<T> lazyAdd, lazyChmin, lazyChmax;  // value = clamp(stored + add, lazyChmax, lazyChmin)
 
     // O(N log N)
@@ -62,7 +63,7 @@ struct SqrtBlocks {
         return v;
     }
 
-    void buildPf(int b) {
+    void buildPf(int b) const {
         pf[b].resize(srt[b].size());
         S run = 0;
         for (size_t k = 0; k < srt[b].size(); k++) pf[b][k] = run += srt[b][k];
@@ -72,7 +73,7 @@ struct SqrtBlocks {
     void refresh(int b) {
         srt[b].assign(vals.begin() + lo(b), vals.begin() + hi(b) + 1);
         sort(srt[b].begin(), srt[b].end());
-        buildPf(b);
+        if (sumReady) buildPf(b);
     }
 
     // O(sqrt N) -- bake the tag into the block and clear it; the sorted copy stays sorted
@@ -80,7 +81,7 @@ struct SqrtBlocks {
         if (!tagged(b)) return;
         for (int i = lo(b); i <= hi(b); i++) vals[i] = applyTag(b, vals[i]);
         for (T& v : srt[b]) v = applyTag(b, v);
-        buildPf(b);
+        if (sumReady) buildPf(b);
         lazyAdd[b] = 0, lazyChmin[b] = INF, lazyChmax[b] = NINF;
     }
 
@@ -168,6 +169,10 @@ struct SqrtBlocks {
     // O(sqrt N log N) -- a[l] + ... + a[r]
     S rangeSum(int l, int r) const {
         if (l > r) return 0;
+        if (!sumReady) {  // the first rangeSum builds every block's prefix sums; until then nobody pays for them
+            sumReady = true;
+            for (int b = 0; b < nb; b++) buildPf(b);
+        }
         S res = 0;
         for (int b = l / B, br = r / B; b <= br; b++) {
             if (!(l <= lo(b) && hi(b) <= r)) {
@@ -198,7 +203,7 @@ struct SqrtBlocks {
         vector<T>& s = srt[b];
         s.erase(lower_bound(s.begin(), s.end(), old));
         s.insert(upper_bound(s.begin(), s.end(), v), v);
-        buildPf(b);
+        if (sumReady) buildPf(b);
     }
 
     // a[i] = max(a[i], v)

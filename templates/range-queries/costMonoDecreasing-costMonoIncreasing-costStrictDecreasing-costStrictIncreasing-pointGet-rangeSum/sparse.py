@@ -12,10 +12,10 @@
 #   build: N*log(N)
 # @memory:
 #   layout: sparse
-#   node: sp[8*N*log(N)]
+#   node: sp[2*N*log(N)]
 #   tags: none
-#   other: idx[1*N] vals[1*N] starts[8*N] v[8*N] w[8*N] W[8*N] B[8*N] suff[8*N]
-#   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query
+#   other: idx[1*N] vals[1*N] pf[1*N] starts[2*N] v[2*N] w[2*N] W[2*N] B[2*N] suff[2*N]
+#   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; per cost kind you call (shown for one): each kind builds its own view on its first query, so kinds you never call cost nothing; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; the four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); rangeSum / pointGet need no view
 from bisect import bisect_left, bisect_right
 
 
@@ -115,7 +115,7 @@ def _pieces(lo, hi, pts, c):
 
 
 class SparseMonoCosts:
-    __slots__ = ("lo", "hi", "idx", "vals", "pts", "views")
+    __slots__ = ("lo", "hi", "idx", "vals", "pf", "pts", "views")
 
     # O(N log N) -- [lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)
     def __init__(self, lo, hi, values):
@@ -123,6 +123,9 @@ class SparseMonoCosts:
         self.pts = sorted(values)
         self.idx = [i for i, _ in self.pts]
         self.vals = [v for _, v in self.pts]
+        self.pf = [0]  # prefix sums of the given values
+        for v in self.vals:
+            self.pf.append(self.pf[-1] + v)
         self.views = {}
 
     def _view(self, mirrored, c):
@@ -135,7 +138,7 @@ class SparseMonoCosts:
 
     # O(logN) -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
-        return self._view(False, 0).sum(l, r) if l <= r else 0
+        return self.pf[bisect_right(self.idx, r)] - self.pf[bisect_left(self.idx, l)] if l <= r else 0
 
     # O(logN) -- min +1 increments to make a[l..r] non-decreasing
     def costMonoIncreasing(self, l, r):

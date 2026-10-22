@@ -18,7 +18,7 @@
 #   build: 1
 # @memory:
 #   layout: sparse
-#   node: mx[4*log(U)] mn[4*log(U)] tot[4*log(U)] sz[4*log(U)] andAll[4*log(U)] orAll[4*log(U)]
+#   node: mx[4*log(U)] mn[4*log(U)] tot[4*log(U)] andAll[4*log(U)] orAll[4*log(U)]
 #   tags: tagAnd[4*log(U)] tagXor[4*log(U)]
 #   other: none
 #   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow
@@ -39,11 +39,11 @@
 # AMORTIZED O(logU * K):  rangeOrApply(l, r, x)       -- a[i] |= x
 # AMORTIZED O(logU):      pointAssign(pos, newVal)
 #
-# O(logU):  rangeMax(l, r)
-# O(logU):  rangeMin(l, r)
-# O(logU):  rangeSum(l, r)
-# O(logU):  rangeAndQuery(l, r)    -- AND of the whole range
-# O(logU):  rangeOrQuery(l, r)     -- OR of the whole range
+# O(logU):  rangeMax(l, r)      -- max of a[l..r]
+# O(logU):  rangeMin(l, r)      -- min of a[l..r]
+# O(logU):  rangeSum(l, r)      -- a[l] + ... + a[r]
+# O(logU):  rangeAndQuery(l, r) -- a[l] & ... & a[r]
+# O(logU):  rangeOrQuery(l, r)  -- a[l] | ... | a[r]
 # O(logU):  pointGet(pos)
 # O(n) space
 #
@@ -128,7 +128,6 @@ class SparseBitBeats:
         self.mx = [0] * 2
         self.mn = [0] * 2
         self.tot = [0] * 2
-        self.sz = [0] * 2
         self.andAll = [FULL] * 2
         self.orAll = [0] * 2
         self.tagAnd = [FULL] * 2
@@ -138,7 +137,6 @@ class SparseBitBeats:
     # node i becomes a block of k zeros (its defaults, plus every count = k)
     def _zero(self, i, k):
         self.ln[i] = k
-        self.sz[i] = k
         self.andAll[i] = 0
 
     # a fresh node: a block of k zeros
@@ -150,7 +148,6 @@ class SparseBitBeats:
         self.mx.append(0)
         self.mn.append(0)
         self.tot.append(0)
-        self.sz.append(0)
         self.andAll.append(self.FULL)
         self.orAll.append(0)
         self.tagAnd.append(self.FULL)
@@ -167,24 +164,24 @@ class SparseBitBeats:
 
     def _pull(self, i):
         l = self.L[i]; r = self.R[i]
-        mx = self.mx; mn = self.mn
+        mx = self.mx
         self.mx[i] = mx[l] if mx[l] > mx[r] else mx[r]
+        mn = self.mn
         self.mn[i] = mn[l] if mn[l] < mn[r] else mn[r]
         self.tot[i] = self.tot[l] + self.tot[r]
-        self.sz[i] = self.sz[l] + self.sz[r]
         self.andAll[i] = self.andAll[l] & self.andAll[r]
         self.orAll[i] = self.orAll[l] | self.orAll[r]
         self.tagAnd[i] = self.FULL; self.tagXor[i] = 0
 
     # legal only when every bit the node disagrees on is kept: mixed <= a and mixed & x == 0.
-    # then every value changes by the SAME delta, so mx / mn / sum all just shift.
-    def _apply(self, i, a, x):
+    # then every value changes by the SAME delta, so mx / mn / tot just shift (k = the node's length).
+    def _apply(self, i, a, x, k):
         FULL = self.FULL
         keep = (a ^ x) & FULL
         delta = ((~self.orAll[i]) & x & FULL) - (self.andAll[i] & ~keep & FULL)
         self.mx[i] += delta
         self.mn[i] += delta
-        self.tot[i] += delta * self.sz[i]
+        self.tot[i] += delta * k
         self.andAll[i] = ((self.andAll[i] & a) ^ x) & FULL
         self.orAll[i] = ((self.orAll[i] & a) ^ x) & FULL
         self.tagAnd[i] = self.tagAnd[i] & a & FULL
@@ -197,8 +194,10 @@ class SparseBitBeats:
         a = self.tagAnd[i]; x = self.tagXor[i]
         if a == self.FULL and x == 0:
             return
-        self._apply(self.L[i], a, x)
-        self._apply(self.R[i], a, x)
+        self._kids(i)
+        tm = (tl + tr) // 2
+        self._apply(self.L[i], a, x, tm - tl + 1)
+        self._apply(self.R[i], a, x, tr - tm)
         self.tagAnd[i] = self.FULL; self.tagXor[i] = 0
 
     # nothing changes iff for every value v in the node, (v & a) ^ x == v.
@@ -218,7 +217,7 @@ class SparseBitBeats:
             return
         mixed = (self.andAll[i] ^ self.orAll[i]) & self.FULL
         if ql <= tl and qr >= tr and (mixed & (~a | x) & self.FULL) == 0:
-            self._apply(i, a, x)
+            self._apply(i, a, x, tr - tl + 1)
             return
         self._push(i, tl, tr)
         self._kids(i)
@@ -239,8 +238,7 @@ class SparseBitBeats:
 
     def _set(self, i, tl, tr, p, v):
         if tl == tr:
-            self.mx[i] = self.mn[i] = self.tot[i] = v
-            self.andAll[i] = self.orAll[i] = v
+            self.mx[i] = self.mn[i] = self.tot[i] = self.andAll[i] = self.orAll[i] = v
             self.tagAnd[i] = self.FULL; self.tagXor[i] = 0
             return
         self._push(i, tl, tr)
@@ -283,7 +281,7 @@ class SparseBitBeats:
     # O(logU) -- a[l] | ... | a[r]
     def rangeOrQuery(self, l, r): return 0 if (l > r) else self._q(1, self.lo, self.hi, l, r, 4)
     # O(logU) -- a[p]
-    def pointGet(self, p): return self.rangeMax(p, p)
+    def pointGet(self, p): return self.rangeAndQuery(p, p)
 
     # a[i] = max(a[i], val)
     def pointChmax(self, i, val):

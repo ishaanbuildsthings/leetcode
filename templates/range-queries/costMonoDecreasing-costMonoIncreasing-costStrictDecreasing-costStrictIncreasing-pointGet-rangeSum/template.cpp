@@ -12,10 +12,10 @@
 //   build: N*log(N)
 // @memory:
 //   layout: none
-//   node: sp[4*N*log(N)]
+//   node: sp[1*N*log(N)]
 //   tags: none
-//   other: arr[4*N] pf[4*N] suff[4*N]
-//   note: four MonoIncreaseCost views (a, reversed a, a[i] - i, reversed a[i] + i); every view but the first is built on its first query, so you only pay for the ones you call
+//   other: arr[2*N] pf[2*N] suff[1*N]
+//   note: per cost kind you call (shown for one): each kind builds its own MonoIncreaseCost view (a, reversed a, a[i] - i, reversed a[i] + i) on its first query, so kinds you never call cost nothing; rangeSum / pointGet need no view
 // @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/costToMakeSubarrayMonoIncreasing.cpp
 
 // Min increments to make a range non-decreasing (increments only). Static array, 0-indexed, ranges inclusive.
@@ -78,21 +78,27 @@ struct MonoIncreaseCost {
 //   non-increasing on a        == non-decreasing on a reversed
 //   strictly increasing on a   == non-decreasing on b[i] = a[i] - i      (a[i] < a[i+1]  <=>  b[i] <= b[i+1])
 //   strictly decreasing on a   == non-increasing on c[i] = a[i] + i
-// Adding +1 to a[i] adds it to b[i] / c[i] too, so the costs carry over. Each extra view is built on first use.
+// Adding +1 to a[i] adds it to b[i] / c[i] too, so the costs carry over. Each view is built on its first query, so
+// you only pay for the cost kinds you call.
 template <typename T>
 struct MonoCosts {
     using Cost = MonoIncreaseCost<T>;
     using S = typename Cost::S;
     int n;
     vector<T> arr;
-    Cost inc;
-    unique_ptr<Cost> dec, sinc, sdec;
+    vector<S> pf;
+    unique_ptr<Cost> inc, dec, sinc, sdec;
 
-    // O(N log N); the other three views cost O(N log N) each on their first query
-    explicit MonoCosts(const vector<T>& a) : n((int)a.size()), arr(a), inc(a) {}
+    // O(N); each cost kind builds its own O(N log N) view on its first query
+    explicit MonoCosts(const vector<T>& a) : n((int)a.size()), arr(a), pf(n + 1) {
+        for (int i = 0; i < n; i++) pf[i + 1] = pf[i] + S(arr[i]);
+    }
 
     // O(1) -- min +1 increments to make a[l..r] non-decreasing
-    S costMonoIncreasing(int l, int r) const { return inc.costMonoIncreasing(l, r); }
+    S costMonoIncreasing(int l, int r) {
+        if (!inc) inc = make_unique<Cost>(arr);
+        return inc->costMonoIncreasing(l, r);
+    }
 
     // O(1) -- min +1 increments to make a[l..r] non-increasing
     S costMonoDecreasing(int l, int r) {
@@ -121,7 +127,7 @@ struct MonoCosts {
     }
 
     // O(1) -- a[l] + ... + a[r]
-    S rangeSum(int l, int r) const { return inc.rangeSum(l, r); }
+    S rangeSum(int l, int r) const { return r >= l ? pf[r + 1] - pf[l] : S(0); }
 
     // O(1) -- a[i]
     T pointGet(int i) const { return arr[i]; }

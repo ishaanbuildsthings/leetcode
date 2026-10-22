@@ -20,7 +20,7 @@
 #   node: sortedBeforeTags[1*N] pfSum[1*N]
 #   tags: lazyAdd[1*sqrt(N)] lazyChmin[1*sqrt(N)] lazyChmax[1*sqrt(N)]
 #   other: valsBeforeTags[1*N] blockEnd[1*sqrt(N)]
-#   note: sqrt(N) blocks, each with a sorted copy and prefix sums; describes SqrtBlocks_PERFORMANT
+#   note: sqrt(N) blocks, each with a sorted copy; the prefix sums (pfSum) are only built once rangeSum is first called, so you never pay for them otherwise; describes SqrtBlocks_PERFORMANT
 # @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeChmin-Chmax-Add-Assign-Sum-CountValRange-SqrtDecomp-RootNLogN.py
 
 

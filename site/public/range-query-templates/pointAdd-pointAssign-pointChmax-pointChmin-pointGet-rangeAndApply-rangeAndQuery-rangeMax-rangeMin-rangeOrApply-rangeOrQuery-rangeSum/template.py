@@ -18,7 +18,7 @@
 #   build: N
 # @memory:
 #   layout: 4n-recursive
-#   node: mx[4*N] mn[4*N] tot[4*N] sz[4*N] andAll[4*N] orAll[4*N]
+#   node: mx[4*N] mn[4*N] tot[4*N] andAll[4*N] orAll[4*N]
 #   tags: tagAnd[4*N] tagXor[4*N]
 #   other: none
 #   note: the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree
@@ -35,11 +35,11 @@
 # AMORTIZED O(logN * K):  rangeOrApply(l, r, x)       -- a[i] |= x
 # AMORTIZED O(logN):      pointAssign(pos, newVal)
 #
-# O(logN):  rangeMax(l, r)
-# O(logN):  rangeMin(l, r)
-# O(logN):  rangeSum(l, r)
-# O(logN):  rangeAndQuery(l, r)    -- AND of the whole range
-# O(logN):  rangeOrQuery(l, r)     -- OR of the whole range
+# O(logN):  rangeMax(l, r)      -- max of a[l..r]
+# O(logN):  rangeMin(l, r)      -- min of a[l..r]
+# O(logN):  rangeSum(l, r)      -- a[l] + ... + a[r]
+# O(logN):  rangeAndQuery(l, r) -- a[l] & ... & a[r]
+# O(logN):  rangeOrQuery(l, r)  -- a[l] | ... | a[r]
 # O(logN):  pointGet(pos)
 # O(n) space
 #
@@ -122,7 +122,6 @@ class BitBeats_PERFORMANT:
         self.mx = [0] * size
         self.mn = [0] * size
         self.tot = [0] * size
-        self.sz = [0] * size
         self.andAll = [FULL] * size
         self.orAll = [0] * size
         self.tagAnd = [FULL] * size
@@ -134,9 +133,7 @@ class BitBeats_PERFORMANT:
         self.tagAnd[i] = self.FULL; self.tagXor[i] = 0
         if tl == tr:
             v = arr[tl]
-            self.mx[i] = self.mn[i] = self.tot[i] = v
-            self.andAll[i] = self.orAll[i] = v
-            self.sz[i] = 1
+            self.mx[i] = self.mn[i] = self.tot[i] = self.andAll[i] = self.orAll[i] = v
             return
         tm = (tl + tr) // 2
         self._build(2 * i, tl, tm, arr)
@@ -145,24 +142,24 @@ class BitBeats_PERFORMANT:
 
     def _pull(self, i):
         l = 2 * i; r = l + 1
-        mx = self.mx; mn = self.mn
+        mx = self.mx
         self.mx[i] = mx[l] if mx[l] > mx[r] else mx[r]
+        mn = self.mn
         self.mn[i] = mn[l] if mn[l] < mn[r] else mn[r]
         self.tot[i] = self.tot[l] + self.tot[r]
-        self.sz[i] = self.sz[l] + self.sz[r]
         self.andAll[i] = self.andAll[l] & self.andAll[r]
         self.orAll[i] = self.orAll[l] | self.orAll[r]
         self.tagAnd[i] = self.FULL; self.tagXor[i] = 0
 
     # legal only when every bit the node disagrees on is kept: mixed <= a and mixed & x == 0.
-    # then every value changes by the SAME delta, so mx / mn / sum all just shift.
-    def _apply(self, i, a, x):
+    # then every value changes by the SAME delta, so mx / mn / tot just shift (k = the node's length).
+    def _apply(self, i, a, x, k):
         FULL = self.FULL
         keep = (a ^ x) & FULL
         delta = ((~self.orAll[i]) & x & FULL) - (self.andAll[i] & ~keep & FULL)
         self.mx[i] += delta
         self.mn[i] += delta
-        self.tot[i] += delta * self.sz[i]
+        self.tot[i] += delta * k
         self.andAll[i] = ((self.andAll[i] & a) ^ x) & FULL
         self.orAll[i] = ((self.orAll[i] & a) ^ x) & FULL
         self.tagAnd[i] = self.tagAnd[i] & a & FULL
@@ -174,8 +171,9 @@ class BitBeats_PERFORMANT:
         a = self.tagAnd[i]; x = self.tagXor[i]
         if a == self.FULL and x == 0:
             return
-        self._apply(2 * i, a, x)
-        self._apply(2 * i + 1, a, x)
+        tm = (tl + tr) // 2
+        self._apply(2 * i, a, x, tm - tl + 1)
+        self._apply(2 * i + 1, a, x, tr - tm)
         self.tagAnd[i] = self.FULL; self.tagXor[i] = 0
 
     # nothing changes iff for every value v in the node, (v & a) ^ x == v.
@@ -195,7 +193,7 @@ class BitBeats_PERFORMANT:
             return
         mixed = (self.andAll[i] ^ self.orAll[i]) & self.FULL
         if ql <= tl and qr >= tr and (mixed & (~a | x) & self.FULL) == 0:
-            self._apply(i, a, x)
+            self._apply(i, a, x, tr - tl + 1)
             return
         self._push(i, tl, tr)
         tm = (tl + tr) // 2
@@ -215,8 +213,7 @@ class BitBeats_PERFORMANT:
 
     def _set(self, i, tl, tr, p, v):
         if tl == tr:
-            self.mx[i] = self.mn[i] = self.tot[i] = v
-            self.andAll[i] = self.orAll[i] = v
+            self.mx[i] = self.mn[i] = self.tot[i] = self.andAll[i] = self.orAll[i] = v
             self.tagAnd[i] = self.FULL; self.tagXor[i] = 0
             return
         self._push(i, tl, tr)
@@ -257,7 +254,7 @@ class BitBeats_PERFORMANT:
     # O(logN) -- a[l] | ... | a[r]
     def rangeOrQuery(self, l, r): return 0 if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 4)
     # O(logN) -- a[p]
-    def pointGet(self, p): return self.rangeMax(p, p)
+    def pointGet(self, p): return self.rangeAndQuery(p, p)
 
     # a[i] = max(a[i], val)
     def pointChmax(self, i, val):

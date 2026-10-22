@@ -428,10 +428,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "arrays": [
           {
             "name": "sp",
-            "size": "4*N*log(N)"
+            "size": "1*N*log(N)"
           }
         ],
-        "total": "4*N*log(N)"
+        "total": "1*N*log(N)"
       },
       "tags": {
         "arrays": [],
@@ -441,24 +441,24 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "arrays": [
           {
             "name": "arr",
-            "size": "4*N"
+            "size": "2*N"
           },
           {
             "name": "pf",
-            "size": "4*N"
+            "size": "2*N"
           },
           {
             "name": "suff",
-            "size": "4*N"
+            "size": "1*N"
           }
         ],
-        "total": "12*N"
+        "total": "5*N"
       },
-      "note": "four MonoIncreaseCost views (a, reversed a, a[i] - i, reversed a[i] + i); every view but the first is built on its first query, so you only pay for the ones you call",
-      "total": "4*N*log(N)+12*N",
+      "note": "per cost kind you call (shown for one): each kind builds its own MonoIncreaseCost view (a, reversed a, a[i] - i, reversed a[i] + i) on its first query, so kinds you never call cost nothing; rangeSum / pointGet need no view",
+      "total": "1*N*log(N)+5*N",
       "notes": {
-        "py": "four MonoIncreaseCost views (a, reversed a, a[i] - i, reversed a[i] + i); every view but the first is built on its first query, so you only pay for the ones you call",
-        "cpp": "four MonoIncreaseCost views (a, reversed a, a[i] - i, reversed a[i] + i); every view but the first is built on its first query, so you only pay for the ones you call"
+        "py": "per cost kind you call (shown for one): each kind builds its own MonoIncreaseCost view (a, reversed a, a[i] - i, reversed a[i] + i) on its first query, so kinds you never call cost nothing; rangeSum / pointGet need no view",
+        "cpp": "per cost kind you call (shown for one): each kind builds its own MonoIncreaseCost view (a, reversed a, a[i] - i, reversed a[i] + i) on its first query, so kinds you never call cost nothing; rangeSum / pointGet need no view"
       }
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/costToMakeSubarrayMonoIncreasing.py",
@@ -473,7 +473,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "name": "arr"
               }
             ],
-            "ctorDoc": "O(N log N); the other three views are built on first use"
+            "ctorDoc": "O(N); each cost kind builds its own O(N log N) view on its first query, so you only pay for the kinds you call"
           }
         ],
         "methods": {
@@ -530,14 +530,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "classes": [
           {
             "className": "MonoCosts",
-            "doc": "Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing. One structure answers \"non-decreasing\"; the other three reduce to it: non-increasing on a        == non-decreasing on a reversed strictly increasing on a   == non-decreasing on b[i] = a[i] - i      (a[i] < a[i+1]  <=>  b[i] <= b[i+1]) strictly decreasing on a   == non-increasing on c[i] = a[i] + i Adding +1 to a[i] adds it to b[i] / c[i] too, so the costs carry over. Each extra view is built on first use.",
+            "doc": "Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing. One structure answers \"non-decreasing\"; the other three reduce to it: non-increasing on a        == non-decreasing on a reversed strictly increasing on a   == non-decreasing on b[i] = a[i] - i      (a[i] < a[i+1]  <=>  b[i] <= b[i+1]) strictly decreasing on a   == non-increasing on c[i] = a[i] + i Adding +1 to a[i] adds it to b[i] / c[i] too, so the costs carry over. Each view is built on its first query, so you only pay for the cost kinds you call.",
             "ctor": [
               {
                 "name": "a",
                 "type": "const vector<T>&"
               }
             ],
-            "ctorDoc": "O(N log N); the other three views cost O(N log N) each on their first query"
+            "ctorDoc": "O(N); each cost kind builds its own O(N log N) view on its first query"
           }
         ],
         "methods": {
@@ -617,10 +617,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "arrays": [
             {
               "name": "sp",
-              "size": "8*N*log(N)"
+              "size": "2*N*log(N)"
             }
           ],
-          "total": "8*N*log(N)"
+          "total": "2*N*log(N)"
         },
         "tags": {
           "arrays": [],
@@ -637,37 +637,41 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "size": "1*N"
             },
             {
+              "name": "pf",
+              "size": "1*N"
+            },
+            {
               "name": "starts",
-              "size": "8*N"
+              "size": "2*N"
             },
             {
               "name": "v",
-              "size": "8*N"
+              "size": "2*N"
             },
             {
               "name": "w",
-              "size": "8*N"
+              "size": "2*N"
             },
             {
               "name": "W",
-              "size": "8*N"
+              "size": "2*N"
             },
             {
               "name": "B",
-              "size": "8*N"
+              "size": "2*N"
             },
             {
               "name": "suff",
-              "size": "8*N"
+              "size": "2*N"
             }
           ],
-          "total": "50*N"
+          "total": "15*N"
         },
-        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query",
-        "total": "8*N*log(N)+50*N",
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; per cost kind you call (shown for one): each kind builds its own view on its first query, so kinds you never call cost nothing; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; the four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); rangeSum / pointGet need no view",
+        "total": "2*N*log(N)+15*N",
         "notes": {
-          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query",
-          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); each view is built on its first query; sums wrap mod 2^64 (exact whenever the answer fits in long long)"
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; per cost kind you call (shown for one): each kind builds its own view on its first query, so kinds you never call cost nothing; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; the four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); rangeSum / pointGet need no view",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; per cost kind you call (shown for one): each kind builds its own view on its first query, so kinds you never call cost nothing; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; the four views: a, a mirrored, a[i] - i, and a mirrored minus its index (decreasing costs are increasing costs on the mirror, strict costs subtract the index); rangeSum / pointGet need no view; sums wrap mod 2^64 (exact whenever the answer fits in long long)"
         }
       },
       "usage": {
@@ -744,7 +748,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMonoCosts",
-              "doc": "Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing, and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query. T: int, long long, ...",
+              "doc": "Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing, and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. Decreasing costs are increasing costs on the mirror image (index i -> lo + hi - i); strict costs are the non-strict ones on a[i] - i (shifting by a constant changes nothing). Each view is built on its first query, so you only pay for the cost kinds you call. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -822,318 +826,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "costMonoIncreasing-pointGet-rangeSum",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "costMonoIncreasing",
-      "pointGet",
-      "rangeSum"
-    ],
-    "dataStructureType": "sparse-table",
-    "complexities": {
-      "costMonoIncreasing": "1",
-      "pointGet": "1",
-      "rangeSum": "1"
-    },
-    "build": "N*log(N)",
-    "memory": {
-      "layout": "none",
-      "node": {
-        "arrays": [
-          {
-            "name": "sp",
-            "size": "1*N*log(N)"
-          }
-        ],
-        "total": "1*N*log(N)"
-      },
-      "tags": {
-        "arrays": [],
-        "total": "0"
-      },
-      "other": {
-        "arrays": [
-          {
-            "name": "arr",
-            "size": "1*N"
-          },
-          {
-            "name": "pf",
-            "size": "1*N"
-          },
-          {
-            "name": "suff",
-            "size": "1*N"
-          }
-        ],
-        "total": "3*N"
-      },
-      "note": "sp is a sparse table of argmax indices; arr is a private copy of the input",
-      "total": "1*N*log(N)+3*N",
-      "notes": {
-        "py": "sp is a sparse table of argmax indices; arr is a private copy of the input",
-        "cpp": "sp is a sparse table of argmax indices; arr is a private copy of the input"
-      }
-    },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/costToMakeSubarrayMonoIncreasing.py",
-    "usage": {
-      "py": {
-        "classes": [
-          {
-            "className": "MonoIncreaseCost",
-            "doc": "compute the cost to make an array from l...r mono-increasing where a single cost lets us increment an index by 1 O(n log n) build, O(1) query range",
-            "ctor": [
-              {
-                "name": "arr"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "costMonoIncreasing": {
-            "params": [
-              "l",
-              "r"
-            ],
-            "doc": "min +1 increments to make a[l..r] non-decreasing",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "doc": "a[i]",
-            "cls": 0
-          },
-          "rangeSum": {
-            "params": [
-              "l",
-              "r"
-            ],
-            "doc": "a[l] + ... + a[r]",
-            "cls": 0
-          }
-        }
-      },
-      "cpp": {
-        "classes": [
-          {
-            "className": "MonoIncreaseCost",
-            "doc": "Min increments to make a range non-decreasing (increments only). Static array, 0-indexed, ranges inclusive. Build O(N log N); every query O(1). T: int, long long, ...; sums accumulate in S (long long for small T).",
-            "ctor": [
-              {
-                "name": "a",
-                "type": "const vector<T>&"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "costMonoIncreasing": {
-            "params": [
-              "l",
-              "r"
-            ],
-            "returns": "S",
-            "doc": "min total +1 increments to make a[l..r] non-decreasing",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "returns": "T",
-            "doc": "a[i]",
-            "cls": 0
-          },
-          "rangeSum": {
-            "params": [
-              "l",
-              "r"
-            ],
-            "returns": "S",
-            "doc": "a[l] + ... + a[r] (0 if l > r)",
-            "cls": 0
-          }
-        }
-      }
-    },
-    "sparse": {
-      "langs": [
-        "py",
-        "cpp"
-      ],
-      "complexities": {
-        "costMonoIncreasing": "log(N)",
-        "pointGet": "log(N)",
-        "rangeSum": "log(N)"
-      },
-      "build": "N*log(N)",
-      "memory": {
-        "layout": "sparse",
-        "node": {
-          "arrays": [
-            {
-              "name": "sp",
-              "size": "2*N*log(N)"
-            }
-          ],
-          "total": "2*N*log(N)"
-        },
-        "tags": {
-          "arrays": [],
-          "total": "0"
-        },
-        "other": {
-          "arrays": [
-            {
-              "name": "idx",
-              "size": "1*N"
-            },
-            {
-              "name": "vals",
-              "size": "1*N"
-            },
-            {
-              "name": "starts",
-              "size": "2*N"
-            },
-            {
-              "name": "v",
-              "size": "2*N"
-            },
-            {
-              "name": "w",
-              "size": "2*N"
-            },
-            {
-              "name": "W",
-              "size": "2*N"
-            },
-            {
-              "name": "B",
-              "size": "2*N"
-            },
-            {
-              "name": "suff",
-              "size": "2*N"
-            }
-          ],
-          "total": "14*N"
-        },
-        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces",
-        "total": "2*N*log(N)+14*N",
-        "notes": {
-          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces",
-          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; a view is the array cut into pieces (each given value, each gap of zeros), with a sparse table of argmax and next-greater sums over the pieces; sums wrap mod 2^64 (exact whenever the answer fits in long long)"
-        }
-      },
-      "usage": {
-        "py": {
-          "classes": [
-            {
-              "className": "SparseMonoIncreaseCost",
-              "doc": "Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. One _PieceCost view over the given values and the gaps of zeros.",
-              "ctor": [
-                {
-                  "name": "lo"
-                },
-                {
-                  "name": "hi"
-                },
-                {
-                  "name": "values"
-                }
-              ],
-              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
-            }
-          ],
-          "methods": {
-            "costMonoIncreasing": {
-              "params": [
-                "l",
-                "r"
-              ],
-              "doc": "min +1 increments to make a[l..r] non-decreasing",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "doc": "a[i]",
-              "cls": 0
-            },
-            "rangeSum": {
-              "params": [
-                "l",
-                "r"
-              ],
-              "doc": "a[l] + ... + a[r]",
-              "cls": 0
-            }
-          }
-        },
-        "cpp": {
-          "classes": [
-            {
-              "className": "SparseMonoIncreaseCost",
-              "doc": "Min +1 increments to make a[l..r] non-decreasing, and range sum, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. One PieceCost view over the given values and the gaps of zeros. T: int, long long, ...",
-              "ctor": [
-                {
-                  "name": "lo",
-                  "type": "long long"
-                },
-                {
-                  "name": "hi",
-                  "type": "long long"
-                },
-                {
-                  "name": "values",
-                  "type": "vector<pair<long long, T>>"
-                }
-              ],
-              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
-            }
-          ],
-          "methods": {
-            "costMonoIncreasing": {
-              "params": [
-                "l",
-                "r"
-              ],
-              "returns": "long long",
-              "doc": "min +1 increments to make a[l..r] non-decreasing",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "returns": "T",
-              "doc": "a[i]",
-              "cls": 0
-            },
-            "rangeSum": {
-              "params": [
-                "l",
-                "r"
-              ],
-              "returns": "long long",
-              "doc": "a[l] + ... + a[r]",
-              "cls": 0
-            }
-          }
-        }
-      }
-    }
-  },
-  {
     "folder": "countDistinct-countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet",
     "langs": [
       "py",
@@ -1149,7 +841,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointGet"
     ],
     "dataStructureType": "merge-sort-tree",
-    "fractionalCascading": true,
     "complexities": {
       "countDistinct": "log(N)",
       "countInValRange": "log(N)",
@@ -1195,6 +886,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "cpp": "two flat merge sort trees (one row of N prefix counts per level): one over the values for count / kth, one over nxt[i] for countDistinct"
       }
     },
+    "fractionalCascading": true,
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/merge/rangeDistinct_LogN_NoUpdates.py",
     "usage": {
       "py": {
@@ -2057,7 +1749,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointGet"
     ],
     "dataStructureType": "merge-sort-tree",
-    "fractionalCascading": true,
     "complexities": {
       "countInValRange": "log(N)",
       "kthGtX": "log(N)",
@@ -2098,6 +1789,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "cpp": "one row of N prefix counts per level (wavelet style), no per-node lists"
       }
     },
+    "fractionalCascading": true,
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/merge/MergeSortTreeFC.py",
     "usage": {
       "py": {
@@ -2557,11 +2249,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         ],
         "total": "1*N+1*sqrt(N)"
       },
-      "note": "sqrt(N) blocks, each with a sorted copy and prefix sums; describes SqrtBlocks_PERFORMANT",
+      "note": "sqrt(N) blocks, each with a sorted copy; the prefix sums (pfSum) are only built once rangeSum is first called, so you never pay for them otherwise; describes SqrtBlocks_PERFORMANT",
       "total": "3*N+4*sqrt(N)",
       "notes": {
-        "py": "sqrt(N) blocks, each with a sorted copy and prefix sums; describes SqrtBlocks_PERFORMANT",
-        "cpp": "sqrt(N) blocks, each with a sorted copy and prefix sums; describes SqrtBlocks_PERFORMANT"
+        "py": "sqrt(N) blocks, each with a sorted copy; the prefix sums (pfSum) are only built once rangeSum is first called, so you never pay for them otherwise; describes SqrtBlocks_PERFORMANT",
+        "cpp": "sqrt(N) blocks, each with a sorted copy; the prefix sums (pfSum) are only built once rangeSum is first called, so you never pay for them otherwise; describes SqrtBlocks_PERFORMANT"
       }
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/other-range-queries/rangeChmin-Chmax-Add-Assign-Sum-CountValRange-SqrtDecomp-RootNLogN.py",
@@ -25122,6 +24814,630 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeMin-rangeOrApply-rangeOrQuery",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAndApply",
+      "rangeAndQuery",
+      "rangeMax",
+      "rangeMin",
+      "rangeOrApply",
+      "rangeOrQuery"
+    ],
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAndApply": "log(N)*log(U) amortized",
+      "rangeAndQuery": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeOrApply": "log(N)*log(U) amortized",
+      "rangeOrQuery": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "andAll",
+            "size": "4*N"
+          },
+          {
+            "name": "orAll",
+            "size": "4*N"
+          }
+        ],
+        "total": "16*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tagAnd",
+            "size": "4*N"
+          },
+          {
+            "name": "tagXor",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+      "total": "24*N",
+      "notes": {
+        "py": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+        "cpp": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree"
+      }
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "BitBeats_PERFORMANT",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "bits",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "p",
+              "v"
+            ],
+            "doc": "a[p] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = max(a[i], val)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = min(a[i], val)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "p"
+            ],
+            "doc": "a[p]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "BitBeats",
+            "doc": "Bitwise segment tree beats: range and= / or=, range max / min / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so max / min just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "bits",
+                "type": "int",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "returns": "void",
+            "doc": "a[i] = (a[i] + delta) & FULL",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v & FULL",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAndApply": "log(U)*log(U) amortized",
+        "rangeAndQuery": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeOrApply": "log(U)*log(U) amortized",
+        "rangeOrQuery": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "andAll",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "orAll",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "16*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tagAnd",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tagXor",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+        "total": "24*log(U)",
+        "notes": {
+          "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "O(1) -- all zeros over [lo, hi]; any range of integers works",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "bits",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any range of integers works"
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "doc": "a[i] += delta",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "p",
+                "v"
+              ],
+              "doc": "a[p] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = max(a[i], val)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = min(a[i], val)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "p"
+              ],
+              "doc": "a[p]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "Bitwise segment tree beats: range and= / or=, range max / min / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so max / min just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ....",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "bits",
+                  "type": "int",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
+              "pool": true
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "returns": "void",
+              "doc": "a[i] = (a[i] + delta) & FULL",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = v & FULL",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
     "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeMin-rangeOrApply-rangeOrQuery-rangeSum",
     "langs": [
       "py",
@@ -25174,10 +25490,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "size": "4*N"
           },
           {
-            "name": "sz",
-            "size": "4*N"
-          },
-          {
             "name": "andAll",
             "size": "4*N"
           },
@@ -25186,7 +25498,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "size": "4*N"
           }
         ],
-        "total": "24*N"
+        "total": "20*N"
       },
       "tags": {
         "arrays": [
@@ -25206,7 +25518,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "0"
       },
       "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
-      "total": "32*N",
+      "total": "28*N",
       "notes": {
         "py": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
         "cpp": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree"
@@ -25335,7 +25647,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "classes": [
           {
             "className": "BitBeats",
-            "doc": "Bitwise segment tree beats: range and= / or=, range sum / min / max / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min / max / sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ...; sums accumulate in S (long long for small T).",
+            "doc": "Bitwise segment tree beats: range and= / or=, range max / min / sum / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so max / min / sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ...; sums accumulate in S (long long for small T).",
             "ctor": [
               {
                 "name": "a",
@@ -25500,10 +25812,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "size": "4*log(U)"
             },
             {
-              "name": "sz",
-              "size": "4*log(U)"
-            },
-            {
               "name": "andAll",
               "size": "4*log(U)"
             },
@@ -25512,7 +25820,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "size": "4*log(U)"
             }
           ],
-          "total": "24*log(U)"
+          "total": "20*log(U)"
         },
         "tags": {
           "arrays": [
@@ -25532,7 +25840,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "total": "0"
         },
         "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-        "total": "32*log(U)",
+        "total": "28*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
           "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
@@ -25663,7 +25971,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseBitBeats",
-              "doc": "Bitwise segment tree beats: range and= / or=, range sum / min / max / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min / max / sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ...; sums accumulate in S (long long for small T).",
+              "doc": "Bitwise segment tree beats: range and= / or=, range max / min / sum / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so max / min / sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ...; sums accumulate in S (long long for small T).",
               "ctor": [
                 {
                   "name": "lo",
@@ -25763,6 +26071,3525 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               ],
               "returns": "T",
               "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeOrApply-rangeOrQuery",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAndApply",
+      "rangeAndQuery",
+      "rangeMax",
+      "rangeOrApply",
+      "rangeOrQuery"
+    ],
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAndApply": "log(N)*log(U) amortized",
+      "rangeAndQuery": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeOrApply": "log(N)*log(U) amortized",
+      "rangeOrQuery": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "andAll",
+            "size": "4*N"
+          },
+          {
+            "name": "orAll",
+            "size": "4*N"
+          }
+        ],
+        "total": "12*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tagAnd",
+            "size": "4*N"
+          },
+          {
+            "name": "tagXor",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+      "total": "20*N",
+      "notes": {
+        "py": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+        "cpp": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree"
+      }
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "BitBeats_PERFORMANT",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "bits",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "p",
+              "v"
+            ],
+            "doc": "a[p] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = max(a[i], val)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = min(a[i], val)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "p"
+            ],
+            "doc": "a[p]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "BitBeats",
+            "doc": "Bitwise segment tree beats: range and= / or=, range max / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so max just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "bits",
+                "type": "int",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "returns": "void",
+            "doc": "a[i] = (a[i] + delta) & FULL",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v & FULL",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAndApply": "log(U)*log(U) amortized",
+        "rangeAndQuery": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeOrApply": "log(U)*log(U) amortized",
+        "rangeOrQuery": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "andAll",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "orAll",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tagAnd",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tagXor",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+        "total": "20*log(U)",
+        "notes": {
+          "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "O(1) -- all zeros over [lo, hi]; any range of integers works",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "bits",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any range of integers works"
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "doc": "a[i] += delta",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "p",
+                "v"
+              ],
+              "doc": "a[p] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = max(a[i], val)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = min(a[i], val)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "p"
+              ],
+              "doc": "a[p]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "Bitwise segment tree beats: range and= / or=, range max / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so max just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ....",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "bits",
+                  "type": "int",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
+              "pool": true
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "returns": "void",
+              "doc": "a[i] = (a[i] + delta) & FULL",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = v & FULL",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeOrApply-rangeOrQuery-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAndApply",
+      "rangeAndQuery",
+      "rangeMax",
+      "rangeOrApply",
+      "rangeOrQuery",
+      "rangeSum"
+    ],
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAndApply": "log(N)*log(U) amortized",
+      "rangeAndQuery": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeOrApply": "log(N)*log(U) amortized",
+      "rangeOrQuery": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mx",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          },
+          {
+            "name": "andAll",
+            "size": "4*N"
+          },
+          {
+            "name": "orAll",
+            "size": "4*N"
+          }
+        ],
+        "total": "16*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tagAnd",
+            "size": "4*N"
+          },
+          {
+            "name": "tagXor",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+      "total": "24*N",
+      "notes": {
+        "py": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+        "cpp": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree"
+      }
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "BitBeats_PERFORMANT",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "bits",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "p",
+              "v"
+            ],
+            "doc": "a[p] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = max(a[i], val)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = min(a[i], val)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "p"
+            ],
+            "doc": "a[p]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "BitBeats",
+            "doc": "Bitwise segment tree beats: range and= / or=, range max / sum / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so max / sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ...; sums accumulate in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "bits",
+                "type": "int",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "returns": "void",
+            "doc": "a[i] = (a[i] + delta) & FULL",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v & FULL",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAndApply": "log(U)*log(U) amortized",
+        "rangeAndQuery": "log(U)",
+        "rangeMax": "log(U)",
+        "rangeOrApply": "log(U)*log(U) amortized",
+        "rangeOrQuery": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mx",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "andAll",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "orAll",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "16*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tagAnd",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tagXor",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+        "total": "24*log(U)",
+        "notes": {
+          "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "O(1) -- all zeros over [lo, hi]; any range of integers works",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "bits",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any range of integers works"
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "doc": "a[i] += delta",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "p",
+                "v"
+              ],
+              "doc": "a[p] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = max(a[i], val)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = min(a[i], val)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "p"
+              ],
+              "doc": "a[p]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "Bitwise segment tree beats: range and= / or=, range max / sum / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so max / sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ...; sums accumulate in S (long long for small T).",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "bits",
+                  "type": "int",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
+              "pool": true
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "returns": "void",
+              "doc": "a[i] = (a[i] + delta) & FULL",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = v & FULL",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMin-rangeOrApply-rangeOrQuery",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAndApply",
+      "rangeAndQuery",
+      "rangeMin",
+      "rangeOrApply",
+      "rangeOrQuery"
+    ],
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAndApply": "log(N)*log(U) amortized",
+      "rangeAndQuery": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeOrApply": "log(N)*log(U) amortized",
+      "rangeOrQuery": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "andAll",
+            "size": "4*N"
+          },
+          {
+            "name": "orAll",
+            "size": "4*N"
+          }
+        ],
+        "total": "12*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tagAnd",
+            "size": "4*N"
+          },
+          {
+            "name": "tagXor",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+      "total": "20*N",
+      "notes": {
+        "py": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+        "cpp": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree"
+      }
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "BitBeats_PERFORMANT",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "bits",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "p",
+              "v"
+            ],
+            "doc": "a[p] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = max(a[i], val)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = min(a[i], val)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "p"
+            ],
+            "doc": "a[p]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "BitBeats",
+            "doc": "Bitwise segment tree beats: range and= / or=, range min / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "bits",
+                "type": "int",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "returns": "void",
+            "doc": "a[i] = (a[i] + delta) & FULL",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v & FULL",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAndApply": "log(U)*log(U) amortized",
+        "rangeAndQuery": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeOrApply": "log(U)*log(U) amortized",
+        "rangeOrQuery": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "andAll",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "orAll",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tagAnd",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tagXor",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+        "total": "20*log(U)",
+        "notes": {
+          "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "O(1) -- all zeros over [lo, hi]; any range of integers works",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "bits",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any range of integers works"
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "doc": "a[i] += delta",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "p",
+                "v"
+              ],
+              "doc": "a[p] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = max(a[i], val)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = min(a[i], val)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "p"
+              ],
+              "doc": "a[p]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "Bitwise segment tree beats: range and= / or=, range min / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ....",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "bits",
+                  "type": "int",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
+              "pool": true
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "returns": "void",
+              "doc": "a[i] = (a[i] + delta) & FULL",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = v & FULL",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMin-rangeOrApply-rangeOrQuery-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAndApply",
+      "rangeAndQuery",
+      "rangeMin",
+      "rangeOrApply",
+      "rangeOrQuery",
+      "rangeSum"
+    ],
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAndApply": "log(N)*log(U) amortized",
+      "rangeAndQuery": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeOrApply": "log(N)*log(U) amortized",
+      "rangeOrQuery": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "mn",
+            "size": "4*N"
+          },
+          {
+            "name": "tot",
+            "size": "4*N"
+          },
+          {
+            "name": "andAll",
+            "size": "4*N"
+          },
+          {
+            "name": "orAll",
+            "size": "4*N"
+          }
+        ],
+        "total": "16*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tagAnd",
+            "size": "4*N"
+          },
+          {
+            "name": "tagXor",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+      "total": "24*N",
+      "notes": {
+        "py": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+        "cpp": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree"
+      }
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "BitBeats_PERFORMANT",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "bits",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "p",
+              "v"
+            ],
+            "doc": "a[p] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = max(a[i], val)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = min(a[i], val)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "p"
+            ],
+            "doc": "a[p]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "BitBeats",
+            "doc": "Bitwise segment tree beats: range and= / or=, range min / sum / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min / sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ...; sums accumulate in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "bits",
+                "type": "int",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "returns": "void",
+            "doc": "a[i] = (a[i] + delta) & FULL",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v & FULL",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAndApply": "log(U)*log(U) amortized",
+        "rangeAndQuery": "log(U)",
+        "rangeMin": "log(U)",
+        "rangeOrApply": "log(U)*log(U) amortized",
+        "rangeOrQuery": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "mn",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "andAll",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "orAll",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "16*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tagAnd",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tagXor",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+        "total": "24*log(U)",
+        "notes": {
+          "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "O(1) -- all zeros over [lo, hi]; any range of integers works",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "bits",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any range of integers works"
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "doc": "a[i] += delta",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "p",
+                "v"
+              ],
+              "doc": "a[p] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = max(a[i], val)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = min(a[i], val)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "p"
+              ],
+              "doc": "a[p]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "Bitwise segment tree beats: range and= / or=, range min / sum / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so min / sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ...; sums accumulate in S (long long for small T).",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "bits",
+                  "type": "int",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
+              "pool": true
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "returns": "void",
+              "doc": "a[i] = (a[i] + delta) & FULL",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = v & FULL",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAndApply",
+      "rangeAndQuery",
+      "rangeOrApply",
+      "rangeOrQuery"
+    ],
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAndApply": "log(N)*log(U) amortized",
+      "rangeAndQuery": "log(N)",
+      "rangeOrApply": "log(N)*log(U) amortized",
+      "rangeOrQuery": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "andAll",
+            "size": "4*N"
+          },
+          {
+            "name": "orAll",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tagAnd",
+            "size": "4*N"
+          },
+          {
+            "name": "tagXor",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+      "total": "16*N",
+      "notes": {
+        "py": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+        "cpp": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree"
+      }
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "BitBeats_PERFORMANT",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "bits",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "p",
+              "v"
+            ],
+            "doc": "a[p] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = max(a[i], val)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = min(a[i], val)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "p"
+            ],
+            "doc": "a[p]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "BitBeats",
+            "doc": "Bitwise segment tree beats: range and= / or=, range and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0). Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "bits",
+                "type": "int",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "returns": "void",
+            "doc": "a[i] = (a[i] + delta) & FULL",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v & FULL",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAndApply": "log(U)*log(U) amortized",
+        "rangeAndQuery": "log(U)",
+        "rangeOrApply": "log(U)*log(U) amortized",
+        "rangeOrQuery": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "andAll",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "orAll",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tagAnd",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tagXor",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+        "total": "16*log(U)",
+        "notes": {
+          "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "O(1) -- all zeros over [lo, hi]; any range of integers works",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "bits",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any range of integers works"
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "doc": "a[i] += delta",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "p",
+                "v"
+              ],
+              "doc": "a[p] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = max(a[i], val)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = min(a[i], val)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "p"
+              ],
+              "doc": "a[p]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "Bitwise segment tree beats: range and= / or=, range and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0). Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ....",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "bits",
+                  "type": "int",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
+              "pool": true
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "returns": "void",
+              "doc": "a[i] = (a[i] + delta) & FULL",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = v & FULL",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAndApply",
+      "rangeAndQuery",
+      "rangeOrApply",
+      "rangeOrQuery",
+      "rangeSum"
+    ],
+    "dataStructureType": "beats",
+    "complexities": {
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAndApply": "log(N)*log(U) amortized",
+      "rangeAndQuery": "log(N)",
+      "rangeOrApply": "log(N)*log(U) amortized",
+      "rangeOrQuery": "log(N)",
+      "rangeSum": "log(N)"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "4n-recursive",
+      "node": {
+        "arrays": [
+          {
+            "name": "tot",
+            "size": "4*N"
+          },
+          {
+            "name": "andAll",
+            "size": "4*N"
+          },
+          {
+            "name": "orAll",
+            "size": "4*N"
+          }
+        ],
+        "total": "12*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "tagAnd",
+            "size": "4*N"
+          },
+          {
+            "name": "tagXor",
+            "size": "4*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+      "total": "20*N",
+      "notes": {
+        "py": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree",
+        "cpp": "the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree"
+      }
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/range-AndApply-OrApply-Min-Max-Sum-AndQuery-OrQuery-pointSet.py",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "BitBeats_PERFORMANT",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "bits",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "p",
+              "v"
+            ],
+            "doc": "a[p] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = max(a[i], val)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = min(a[i], val)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "p"
+            ],
+            "doc": "a[p]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "BitBeats",
+            "doc": "Bitwise segment tree beats: range and= / or=, range sum / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ...; sums accumulate in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "bits",
+                "type": "int",
+                "default": "20"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "returns": "void",
+            "doc": "a[i] = (a[i] + delta) & FULL",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v & FULL",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAndApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] &= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAndQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] & ... & a[r]",
+            "cls": 0
+          },
+          "rangeOrApply": {
+            "params": [
+              "l",
+              "r",
+              "X"
+            ],
+            "returns": "void",
+            "doc": "a[i] |= X for i in [l, r]",
+            "cls": 0
+          },
+          "rangeOrQuery": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "a[l] | ... | a[r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointAdd": "log(U) amortized",
+        "pointAssign": "log(U) amortized",
+        "pointChmax": "log(U) amortized",
+        "pointChmin": "log(U) amortized",
+        "pointGet": "log(U)",
+        "rangeAndApply": "log(U)*log(U) amortized",
+        "rangeAndQuery": "log(U)",
+        "rangeOrApply": "log(U)*log(U) amortized",
+        "rangeOrQuery": "log(U)",
+        "rangeSum": "log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "tot",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "andAll",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "orAll",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "12*log(U)"
+        },
+        "tags": {
+          "arrays": [
+            {
+              "name": "tagAnd",
+              "size": "4*log(U)"
+            },
+            {
+              "name": "tagXor",
+              "size": "4*log(U)"
+            }
+          ],
+          "total": "8*log(U)"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+        "total": "20*log(U)",
+        "notes": {
+          "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "O(1) -- all zeros over [lo, hi]; any range of integers works",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "bits",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any range of integers works"
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "doc": "a[i] += delta",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "p",
+                "v"
+              ],
+              "doc": "a[p] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = max(a[i], val)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = min(a[i], val)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "p"
+              ],
+              "doc": "a[p]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] & ... & a[r]",
+              "cls": 0
+            },
+            "rangeOrApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "doc": "a[i] |= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeOrQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] | ... | a[r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseBitBeats",
+              "doc": "Bitwise segment tree beats: range and= / or=, range sum / and / or, point ops. All indices 0-based, ranges inclusive. Values live in [0, 2^bits). Every update is the map v -> (v & a) ^ x: and X -> (X, 0)   or X -> (~X, X) and those compose into one (and, xor) tag. A tag may only be applied to a whole node when every bit the node's values DISAGREE on is merely kept (mixed & (~a | x) == 0): then every value moves by the same delta, so sum just shift. Otherwise recurse; each recursion makes a mixed bit uniform, which pays for it. No range xor: xor flips a mixed bit without making it uniform, so it could recurse to every leaf, O(N) per op. For xor with sums use BitCountTree (per-bit counts), which needs no beats at all. T: int, long long, ...; sums accumulate in S (long long for small T).",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "bits",
+                  "type": "int",
+                  "default": "20"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
+              "pool": true
+            }
+          ],
+          "methods": {
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "returns": "void",
+              "doc": "a[i] = (a[i] + delta) & FULL",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = v & FULL",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeAndApply": {
+              "params": [
+                "l",
+                "r",
+                "X"
+              ],
+              "returns": "void",
+              "doc": "a[i] &= X for i in [l, r]",
+              "cls": 0
+            },
+            "rangeAndQuery": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "a[l] & ... & a[r]",
               "cls": 0
             },
             "rangeOrApply": {
@@ -43792,7 +47619,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "rangeLIS"
     ],
     "dataStructureType": "merge-sort-tree",
-    "fractionalCascading": true,
     "complexities": {
       "pointGet": "1",
       "rangeLIS": "log(N)"
@@ -43837,6 +47663,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "cpp": "the build is Tiskin's seaweed algorithm (permutations of size 2N per recursion level, freed after); queries count points in a flat merge sort tree over E"
       }
     },
+    "fractionalCascading": true,
     "usage": {
       "py": {
         "classes": [
