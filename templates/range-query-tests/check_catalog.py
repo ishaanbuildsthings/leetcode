@@ -24,12 +24,12 @@ FACTORS = {"1": 1, "N": N, "log(N)": math.log2(N), "log^2(N)": math.log2(N) ** 2
 
 
 def value(cost):
-    body = re.sub(r" amortized$", "", re.sub(r" \?$", "", cost))
+    body = re.sub(r" (amortized|expected)$", "", re.sub(r" \?$", "", cost))
     return sum(math.prod(FACTORS[f] if f in FACTORS else float(f) for f in term.split("*")) for term in body.split("+"))
 
 
-def amortized(cost):
-    return "amortized" in cost
+def amortized(cost):  # amortized or expected: weaker than a worst-case bound
+    return "amortized" in cost or "expected" in cost
 
 
 def dominates(y, x):

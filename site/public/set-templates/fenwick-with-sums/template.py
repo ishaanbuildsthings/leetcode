@@ -197,10 +197,10 @@ class FenwickMultiset:
     def add(self, x):
         self._add(x, 1)
 
-    # O(logN) -- add c copies of x (nothing if c <= 0)
-    def addCount(self, x, c):
-        if c > 0:
-            self._add(x, c)
+    # O(logN) -- add cnt copies of val (nothing if cnt <= 0)
+    def addCount(self, val, cnt):
+        if cnt > 0:
+            self._add(val, cnt)
 
     # O(logN) -- how many copies of x
     def count(self, x):
@@ -299,19 +299,19 @@ class FenwickMultiset:
         self._add(x, -1)
         return 1
 
-    # O(logN) -- remove every copy of x; returns how many were removed
-    def removeAll(self, x):
-        k = self.count(x)
+    # O(logN) -- remove every copy of val; returns how many were removed
+    def removeAll(self, val):
+        k = self.count(val)
         if k:
-            self._add(x, -k)
+            self._add(val, -k)
         return k
 
-    # O(logN) -- remove min(c, count(x)) copies of x; returns how many were removed
-    def removeCount(self, x, c):
-        k = min(c, self.count(x))
+    # O(logN) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    def removeCount(self, val, cnt):
+        k = min(cnt, self.count(val))
         if k <= 0:
             return 0
-        self._add(x, -k)
+        self._add(val, -k)
         return k
 
     # O(1) -- how many values (copies count)

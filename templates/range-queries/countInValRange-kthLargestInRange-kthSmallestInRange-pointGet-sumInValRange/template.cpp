@@ -1,9 +1,11 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-pointGet-sumInValRange/template.cpp
-// @operations: countInValRange pointGet sumInValRange
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-kthLargestInRange-kthSmallestInRange-pointGet-sumInValRange/template.cpp
+// @operations: countInValRange kthLargestInRange kthSmallestInRange pointGet sumInValRange
 // @data-structure-type: persistent
 // @complexities:
 //   countInValRange: log(N)
+//   kthLargestInRange: log(N)
+//   kthSmallestInRange: log(N)
 //   pointGet: 1
 //   sumInValRange: log(N)
 //   build: N*log(N)
@@ -15,7 +17,8 @@
 //   note: about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count
 // @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/persistent/persistent-sum-denseOfflineWithCompressionLogN.cpp
 
-// Static "count / sum of values in [lo, hi] among a[l..r]" via a persistent segment tree over compressed values.
+// Static "count / sum of values in [lo, hi] among a[l..r]" and "k-th smallest / largest of a[l..r]" via a persistent
+// segment tree over compressed values.
 // Version i + 1 = version i with a[i] inserted; a query subtracts version l from version r + 1. All indices 0-based,
 // ranges inclusive. Build O(N log N), queries O(log N), ~N * (log N + 1) nodes.
 // T: int, long long, ...; sums accumulate in S (long long for small T).
@@ -74,6 +77,24 @@ struct StaticValueRangeSum {
 
     // O(logN) -- how many i in [l, r] have lowVal <= a[i] <= highVal
     int countInValRange(int l, int r, const T& lowVal, const T& highVal) const { return ranks(l, r, lb(lowVal), ub(highVal) - 1).second; }
+
+    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range
+    T kthSmallestInRange(int l, int r, int k) const {
+        if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallestInRange: k outside [1, r - l + 1]");
+        int a = root[r + 1], b = root[l], nl = 0, nh = m - 1;
+        while (nl != nh) {  // walk down version r+1 minus version l: the left child holds the smaller ranks
+            int mid = (nl + nh) >> 1, c = C[L[a]] - C[L[b]];
+            if (k <= c) a = L[a], b = L[b], nh = mid;
+            else k -= c, a = R[a], b = R[b], nl = mid + 1;
+        }
+        return srt[nl];
+    }
+
+    // O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range
+    T kthLargestInRange(int l, int r, int k) const {
+        if (k < 1 || k > r - l + 1) throw out_of_range("kthLargestInRange: k outside [1, r - l + 1]");
+        return kthSmallestInRange(l, r, r - l + 2 - k);
+    }
 
     // O(1) -- a[i]
     T pointGet(int i) const { return arr[i]; }

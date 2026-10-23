@@ -79,20 +79,21 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
         ops: [
           {
             id: "addCount",
-            signature: "addCount(x, c)",
-            description: "Add c copies of x",
+            signature: "addCount(val, cnt)",
+            description: "Add cnt copies of val",
             showArgs: true,
           },
           {
             id: "removeCount",
-            signature: "removeCount(x, c)",
-            description: "Remove up to c copies of x",
+            signature: "removeCount(val, cnt)",
+            description: "Remove up to cnt copies of val",
             showArgs: true,
           },
           {
             id: "removeAll",
-            signature: "removeAll(x)",
-            description: "Remove every copy of x",
+            signature: "removeAll(val)",
+            description: "Remove every copy of val",
+            showArgs: true,
           },
         ],
       },

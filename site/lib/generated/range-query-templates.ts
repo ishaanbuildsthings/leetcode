@@ -2171,6 +2171,764 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
+    "folder": "countInValRange-kthLargestInRange-kthSmallestInRange-pointGet",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countInValRange",
+      "kthLargestInRange",
+      "kthSmallestInRange",
+      "pointGet"
+    ],
+    "dataStructureType": "wavelet",
+    "complexities": {
+      "countInValRange": "log(N)",
+      "kthLargestInRange": "log(N)",
+      "kthSmallestInRange": "log(N)",
+      "pointGet": "1"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "zeros",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "1*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "note": "one row of N + 1 prefix counts per bit of the compressed value (wavelet matrix); no pointers, no per-node lists",
+      "total": "1*N*log(N)+2*N",
+      "notes": {
+        "py": "one row of N + 1 prefix counts per bit of the compressed value (wavelet matrix); no pointers, no per-node lists",
+        "cpp": "one row of N + 1 prefix counts per bit of the compressed value (wavelet matrix); no pointers, no per-node lists"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "WaveletMatrix",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "A"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "kthLargestInRange": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallestInRange": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "WaveletMatrix",
+            "doc": "Static \"k-th smallest / largest of a[l..r]\" and \"count of a[l..r] in [lowVal, highVal]\" via a wavelet matrix over compressed values (costs are log of the number of distinct values, never of the value range). Level d (top bit first) stably splits the current order into ranks with that bit 0, then bit 1; zeros[d][i] = # of the first i elements of level d's order with the bit 0. Indices 0-based, ranges inclusive. Everything is iterative. T: int, long long, ...",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "kthLargestInRange": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallestInRange": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countInValRange": "log(N)",
+        "kthLargestInRange": "log(N)",
+        "kthSmallestInRange": "log(N)",
+        "pointGet": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "zeros",
+              "size": "1*N*log(N)"
+            }
+          ],
+          "total": "1*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "arr",
+              "size": "1*N"
+            },
+            {
+              "name": "srt",
+              "size": "1*N"
+            }
+          ],
+          "total": "4*N"
+        },
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the wavelet matrix is over the given values only; zeros add to counts and sit between the negatives and the positives for a k-th",
+        "total": "1*N*log(N)+4*N",
+        "notes": {
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the wavelet matrix is over the given values only; zeros add to counts and sit between the negatives and the positives for a k-th",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the wavelet matrix is over the given values only; zeros add to counts and sit between the negatives and the positives for a k-th"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseWaveletMatrix",
+              "doc": "Count of values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The wavelet matrix runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, and sit between the given negatives and positives for a k-th.",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "values"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "valLow",
+                "valHigh"
+              ],
+              "doc": "# of i in [l, r] with valLow <= a[i] <= valHigh",
+              "cls": 0
+            },
+            "kthLargestInRange": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "kthSmallestInRange": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseWaveletMatrix",
+              "doc": "Count of values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The wavelet matrix runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, and sit between the given negatives and positives for a k-th.",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "values",
+                  "type": "vector<pair<long long, T>>"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "valLow",
+                "valHigh"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with valLow <= a[i] <= valHigh",
+              "cls": 0
+            },
+            "kthLargestInRange": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "kthSmallestInRange": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "countInValRange-kthLargestInRange-kthSmallestInRange-pointGet-sumInValRange",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countInValRange",
+      "kthLargestInRange",
+      "kthSmallestInRange",
+      "pointGet",
+      "sumInValRange"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countInValRange": "log(N)",
+      "kthLargestInRange": "log(N)",
+      "kthSmallestInRange": "log(N)",
+      "pointGet": "1",
+      "sumInValRange": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "S",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "4*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "note": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count",
+      "total": "4*N*log(N)+2*N",
+      "notes": {
+        "py": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count",
+        "cpp": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count"
+      }
+    },
+    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/persistent/persistent-sum-denseOfflineWithCompressionLogN.py",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "StaticValueRangeSum",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "A"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "lowVal <= A[i] <= highVal",
+            "cls": 0
+          },
+          "kthLargestInRange": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallestInRange": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "lowVal <= A[i] <= highVal",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "StaticValueRangeSum",
+            "doc": "Static \"count / sum of values in [lo, hi] among a[l..r]\" and \"k-th smallest / largest of a[l..r]\" via a persistent segment tree over compressed values. Version i + 1 = version i with a[i] inserted; a query subtracts version l from version r + 1. All indices 0-based, ranges inclusive. Build O(N log N), queries O(log N), ~N * (log N + 1) nodes. T: int, long long, ...; sums accumulate in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "how many i in [l, r] have lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "kthLargestInRange": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallestInRange": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "S",
+            "doc": "sum of a[i] for i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countInValRange": "log(N)",
+        "kthLargestInRange": "log(N)",
+        "kthSmallestInRange": "log(N)",
+        "pointGet": "log(N)",
+        "sumInValRange": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "L",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "R",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "S",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "C",
+              "size": "1*N*log(N)"
+            }
+          ],
+          "total": "4*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "root",
+              "size": "1*N"
+            },
+            {
+              "name": "srt",
+              "size": "1*N"
+            }
+          ],
+          "total": "4*N"
+        },
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums) and sit between the negatives and the positives for a k-th",
+        "total": "4*N*log(N)+4*N",
+        "notes": {
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums) and sit between the negatives and the positives for a k-th",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums) and sit between the negatives and the positives for a k-th"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseStaticValueRangeSum",
+              "doc": "Count / sum of the values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, never to a sum, and sit between the given negatives and positives for a k-th.",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "values"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "valLow",
+                "valHigh"
+              ],
+              "doc": "# of i in [l, r] with valLow <= a[i] <= valHigh",
+              "cls": 0
+            },
+            "kthLargestInRange": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "kthSmallestInRange": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "sumInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseStaticValueRangeSum",
+              "doc": "Count / sum of the values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, never to a sum, and sit between the given negatives and positives for a k-th.",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "values",
+                  "type": "vector<pair<long long, T>>"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "valLow",
+                "valHigh"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with valLow <= a[i] <= valHigh",
+              "cls": 0
+            },
+            "kthLargestInRange": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "kthSmallestInRange": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "sumInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "S",
+              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
     "folder": "countInValRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeSum",
     "langs": [
       "py",
@@ -2485,338 +3243,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "returns": "S",
             "doc": "a[l] + ... + a[r]",
             "cls": 0
-          }
-        }
-      }
-    }
-  },
-  {
-    "folder": "countInValRange-pointGet-sumInValRange",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "countInValRange",
-      "pointGet",
-      "sumInValRange"
-    ],
-    "dataStructureType": "persistent",
-    "complexities": {
-      "countInValRange": "log(N)",
-      "pointGet": "1",
-      "sumInValRange": "log(N)"
-    },
-    "build": "N*log(N)",
-    "memory": {
-      "layout": "none",
-      "node": {
-        "arrays": [
-          {
-            "name": "L",
-            "size": "1*N*log(N)"
-          },
-          {
-            "name": "R",
-            "size": "1*N*log(N)"
-          },
-          {
-            "name": "S",
-            "size": "1*N*log(N)"
-          },
-          {
-            "name": "C",
-            "size": "1*N*log(N)"
-          }
-        ],
-        "total": "4*N*log(N)"
-      },
-      "tags": {
-        "arrays": [],
-        "total": "0"
-      },
-      "other": {
-        "arrays": [
-          {
-            "name": "root",
-            "size": "1*N"
-          },
-          {
-            "name": "srt",
-            "size": "1*N"
-          }
-        ],
-        "total": "2*N"
-      },
-      "note": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count",
-      "total": "4*N*log(N)+2*N",
-      "notes": {
-        "py": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count",
-        "cpp": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count"
-      }
-    },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/persistent/persistent-sum-denseOfflineWithCompressionLogN.py",
-    "usage": {
-      "py": {
-        "classes": [
-          {
-            "className": "StaticValueRangeSum",
-            "doc": "",
-            "ctor": [
-              {
-                "name": "A"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "countInValRange": {
-            "params": [
-              "l",
-              "r",
-              "lowVal",
-              "highVal"
-            ],
-            "doc": "lowVal <= A[i] <= highVal",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "doc": "a[i]",
-            "cls": 0
-          },
-          "sumInValRange": {
-            "params": [
-              "l",
-              "r",
-              "lowVal",
-              "highVal"
-            ],
-            "doc": "lowVal <= A[i] <= highVal",
-            "cls": 0
-          }
-        }
-      },
-      "cpp": {
-        "classes": [
-          {
-            "className": "StaticValueRangeSum",
-            "doc": "Static \"count / sum of values in [lo, hi] among a[l..r]\" via a persistent segment tree over compressed values. Version i + 1 = version i with a[i] inserted; a query subtracts version l from version r + 1. All indices 0-based, ranges inclusive. Build O(N log N), queries O(log N), ~N * (log N + 1) nodes. T: int, long long, ...; sums accumulate in S (long long for small T).",
-            "ctor": [
-              {
-                "name": "a",
-                "type": "const vector<T>&"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "countInValRange": {
-            "params": [
-              "l",
-              "r",
-              "lowVal",
-              "highVal"
-            ],
-            "returns": "int",
-            "doc": "how many i in [l, r] have lowVal <= a[i] <= highVal",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "returns": "T",
-            "doc": "a[i]",
-            "cls": 0
-          },
-          "sumInValRange": {
-            "params": [
-              "l",
-              "r",
-              "lowVal",
-              "highVal"
-            ],
-            "returns": "S",
-            "doc": "sum of a[i] for i in [l, r] with lowVal <= a[i] <= highVal",
-            "cls": 0
-          }
-        }
-      }
-    },
-    "sparse": {
-      "langs": [
-        "py",
-        "cpp"
-      ],
-      "complexities": {
-        "countInValRange": "log(N)",
-        "pointGet": "log(N)",
-        "sumInValRange": "log(N)"
-      },
-      "build": "N*log(N)",
-      "memory": {
-        "layout": "sparse",
-        "node": {
-          "arrays": [
-            {
-              "name": "L",
-              "size": "1*N*log(N)"
-            },
-            {
-              "name": "R",
-              "size": "1*N*log(N)"
-            },
-            {
-              "name": "S",
-              "size": "1*N*log(N)"
-            },
-            {
-              "name": "C",
-              "size": "1*N*log(N)"
-            }
-          ],
-          "total": "4*N*log(N)"
-        },
-        "tags": {
-          "arrays": [],
-          "total": "0"
-        },
-        "other": {
-          "arrays": [
-            {
-              "name": "idx",
-              "size": "1*N"
-            },
-            {
-              "name": "vals",
-              "size": "1*N"
-            },
-            {
-              "name": "root",
-              "size": "1*N"
-            },
-            {
-              "name": "srt",
-              "size": "1*N"
-            }
-          ],
-          "total": "4*N"
-        },
-        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums)",
-        "total": "4*N*log(N)+4*N",
-        "notes": {
-          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums)",
-          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums)"
-        }
-      },
-      "usage": {
-        "py": {
-          "classes": [
-            {
-              "className": "SparseStaticValueRangeSum",
-              "doc": "Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, and never to a sum.",
-              "ctor": [
-                {
-                  "name": "lo"
-                },
-                {
-                  "name": "hi"
-                },
-                {
-                  "name": "values"
-                }
-              ],
-              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
-            }
-          ],
-          "methods": {
-            "countInValRange": {
-              "params": [
-                "l",
-                "r",
-                "valLow",
-                "valHigh"
-              ],
-              "doc": "# of i in [l, r] with valLow <= a[i] <= valHigh",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "doc": "a[i]",
-              "cls": 0
-            },
-            "sumInValRange": {
-              "params": [
-                "l",
-                "r",
-                "lowVal",
-                "highVal"
-              ],
-              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
-              "cls": 0
-            }
-          }
-        },
-        "cpp": {
-          "classes": [
-            {
-              "className": "SparseStaticValueRangeSum",
-              "doc": "Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, and never to a sum.",
-              "ctor": [
-                {
-                  "name": "lo",
-                  "type": "long long"
-                },
-                {
-                  "name": "hi",
-                  "type": "long long"
-                },
-                {
-                  "name": "values",
-                  "type": "vector<pair<long long, T>>"
-                }
-              ],
-              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
-            }
-          ],
-          "methods": {
-            "countInValRange": {
-              "params": [
-                "l",
-                "r",
-                "valLow",
-                "valHigh"
-              ],
-              "returns": "long long",
-              "doc": "# of i in [l, r] with valLow <= a[i] <= valHigh",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "returns": "T",
-              "doc": "a[i]",
-              "cls": 0
-            },
-            "sumInValRange": {
-              "params": [
-                "l",
-                "r",
-                "lowVal",
-                "highVal"
-              ],
-              "returns": "S",
-              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
-              "cls": 0
-            }
           }
         }
       }
@@ -4078,6 +4504,3092 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "doc": "a[i]",
               "cls": 0
             }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeMin-rangeReverse-rangeRotateLeft",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "eraseAt",
+      "eraseRange",
+      "insertAt",
+      "moveRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeMax",
+      "rangeMin",
+      "rangeReverse",
+      "rangeRotateLeft"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "eraseAt": "log(N) expected",
+      "eraseRange": "log(N) expected",
+      "insertAt": "log(N) expected",
+      "moveRange": "log(N) expected",
+      "pointAdd": "log(N) expected",
+      "pointAssign": "log(N) expected",
+      "pointChmax": "log(N) expected",
+      "pointChmin": "log(N) expected",
+      "pointGet": "log(N) expected",
+      "rangeAdd": "log(N) expected",
+      "rangeAssign": "log(N) expected",
+      "rangeMax": "log(N) expected",
+      "rangeMin": "log(N) expected",
+      "rangeReverse": "log(N) expected",
+      "rangeRotateLeft": "log(N) expected"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          },
+          {
+            "name": "sz",
+            "size": "1*N"
+          },
+          {
+            "name": "L",
+            "size": "1*N"
+          },
+          {
+            "name": "R",
+            "size": "1*N"
+          },
+          {
+            "name": "pri",
+            "size": "1*N"
+          },
+          {
+            "name": "mn",
+            "size": "1*N"
+          },
+          {
+            "name": "mx",
+            "size": "1*N"
+          }
+        ],
+        "total": "7*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "rev",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+      "total": "11*N",
+      "notes": {
+        "py": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+        "cpp": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate and cut-and-paste, each in O(logN) expected, plus point ops, rangeAdd / rangeAssign and rangeMin, rangeMax. All indices 0-based, ranges inclusive [l, r], and an index always means the position in the CURRENT array. Nodes keep their values in array order (an in-order walk); a node's position is the size of everything left of it. Lazy tags mean \"already applied to this node, not yet to its children\". T: int, long long, ...; values are stored as T.",
+            "ctor": [
+              {
+                "name": "arr",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "returns": "void",
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "returns": "void",
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeMin-rangeReverse-rangeRotateLeft-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "eraseAt",
+      "eraseRange",
+      "insertAt",
+      "moveRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeMax",
+      "rangeMin",
+      "rangeReverse",
+      "rangeRotateLeft",
+      "rangeSum"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "eraseAt": "log(N) expected",
+      "eraseRange": "log(N) expected",
+      "insertAt": "log(N) expected",
+      "moveRange": "log(N) expected",
+      "pointAdd": "log(N) expected",
+      "pointAssign": "log(N) expected",
+      "pointChmax": "log(N) expected",
+      "pointChmin": "log(N) expected",
+      "pointGet": "log(N) expected",
+      "rangeAdd": "log(N) expected",
+      "rangeAssign": "log(N) expected",
+      "rangeMax": "log(N) expected",
+      "rangeMin": "log(N) expected",
+      "rangeReverse": "log(N) expected",
+      "rangeRotateLeft": "log(N) expected",
+      "rangeSum": "log(N) expected"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          },
+          {
+            "name": "sz",
+            "size": "1*N"
+          },
+          {
+            "name": "L",
+            "size": "1*N"
+          },
+          {
+            "name": "R",
+            "size": "1*N"
+          },
+          {
+            "name": "pri",
+            "size": "1*N"
+          },
+          {
+            "name": "sm",
+            "size": "1*N"
+          },
+          {
+            "name": "mn",
+            "size": "1*N"
+          },
+          {
+            "name": "mx",
+            "size": "1*N"
+          }
+        ],
+        "total": "8*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "rev",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+      "total": "12*N",
+      "notes": {
+        "py": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+        "cpp": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate and cut-and-paste, each in O(logN) expected, plus point ops, rangeAdd / rangeAssign and rangeSum, rangeMin, rangeMax. All indices 0-based, ranges inclusive [l, r], and an index always means the position in the CURRENT array. Nodes keep their values in array order (an in-order walk); a node's position is the size of everything left of it. Lazy tags mean \"already applied to this node, not yet to its children\". T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "arr",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "returns": "void",
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "returns": "void",
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeReverse-rangeRotateLeft",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "eraseAt",
+      "eraseRange",
+      "insertAt",
+      "moveRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeMax",
+      "rangeReverse",
+      "rangeRotateLeft"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "eraseAt": "log(N) expected",
+      "eraseRange": "log(N) expected",
+      "insertAt": "log(N) expected",
+      "moveRange": "log(N) expected",
+      "pointAdd": "log(N) expected",
+      "pointAssign": "log(N) expected",
+      "pointChmax": "log(N) expected",
+      "pointChmin": "log(N) expected",
+      "pointGet": "log(N) expected",
+      "rangeAdd": "log(N) expected",
+      "rangeAssign": "log(N) expected",
+      "rangeMax": "log(N) expected",
+      "rangeReverse": "log(N) expected",
+      "rangeRotateLeft": "log(N) expected"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          },
+          {
+            "name": "sz",
+            "size": "1*N"
+          },
+          {
+            "name": "L",
+            "size": "1*N"
+          },
+          {
+            "name": "R",
+            "size": "1*N"
+          },
+          {
+            "name": "pri",
+            "size": "1*N"
+          },
+          {
+            "name": "mx",
+            "size": "1*N"
+          }
+        ],
+        "total": "6*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "rev",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+      "total": "10*N",
+      "notes": {
+        "py": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+        "cpp": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate and cut-and-paste, each in O(logN) expected, plus point ops, rangeAdd / rangeAssign and rangeMax. All indices 0-based, ranges inclusive [l, r], and an index always means the position in the CURRENT array. Nodes keep their values in array order (an in-order walk); a node's position is the size of everything left of it. Lazy tags mean \"already applied to this node, not yet to its children\". T: int, long long, ...; values are stored as T.",
+            "ctor": [
+              {
+                "name": "arr",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "returns": "void",
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "returns": "void",
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeReverse-rangeRotateLeft-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "eraseAt",
+      "eraseRange",
+      "insertAt",
+      "moveRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeMax",
+      "rangeReverse",
+      "rangeRotateLeft",
+      "rangeSum"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "eraseAt": "log(N) expected",
+      "eraseRange": "log(N) expected",
+      "insertAt": "log(N) expected",
+      "moveRange": "log(N) expected",
+      "pointAdd": "log(N) expected",
+      "pointAssign": "log(N) expected",
+      "pointChmax": "log(N) expected",
+      "pointChmin": "log(N) expected",
+      "pointGet": "log(N) expected",
+      "rangeAdd": "log(N) expected",
+      "rangeAssign": "log(N) expected",
+      "rangeMax": "log(N) expected",
+      "rangeReverse": "log(N) expected",
+      "rangeRotateLeft": "log(N) expected",
+      "rangeSum": "log(N) expected"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          },
+          {
+            "name": "sz",
+            "size": "1*N"
+          },
+          {
+            "name": "L",
+            "size": "1*N"
+          },
+          {
+            "name": "R",
+            "size": "1*N"
+          },
+          {
+            "name": "pri",
+            "size": "1*N"
+          },
+          {
+            "name": "sm",
+            "size": "1*N"
+          },
+          {
+            "name": "mx",
+            "size": "1*N"
+          }
+        ],
+        "total": "7*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "rev",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+      "total": "11*N",
+      "notes": {
+        "py": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+        "cpp": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate and cut-and-paste, each in O(logN) expected, plus point ops, rangeAdd / rangeAssign and rangeSum, rangeMax. All indices 0-based, ranges inclusive [l, r], and an index always means the position in the CURRENT array. Nodes keep their values in array order (an in-order walk); a node's position is the size of everything left of it. Lazy tags mean \"already applied to this node, not yet to its children\". T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "arr",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "returns": "void",
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "returns": "void",
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMin-rangeReverse-rangeRotateLeft",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "eraseAt",
+      "eraseRange",
+      "insertAt",
+      "moveRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeMin",
+      "rangeReverse",
+      "rangeRotateLeft"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "eraseAt": "log(N) expected",
+      "eraseRange": "log(N) expected",
+      "insertAt": "log(N) expected",
+      "moveRange": "log(N) expected",
+      "pointAdd": "log(N) expected",
+      "pointAssign": "log(N) expected",
+      "pointChmax": "log(N) expected",
+      "pointChmin": "log(N) expected",
+      "pointGet": "log(N) expected",
+      "rangeAdd": "log(N) expected",
+      "rangeAssign": "log(N) expected",
+      "rangeMin": "log(N) expected",
+      "rangeReverse": "log(N) expected",
+      "rangeRotateLeft": "log(N) expected"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          },
+          {
+            "name": "sz",
+            "size": "1*N"
+          },
+          {
+            "name": "L",
+            "size": "1*N"
+          },
+          {
+            "name": "R",
+            "size": "1*N"
+          },
+          {
+            "name": "pri",
+            "size": "1*N"
+          },
+          {
+            "name": "mn",
+            "size": "1*N"
+          }
+        ],
+        "total": "6*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "rev",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+      "total": "10*N",
+      "notes": {
+        "py": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+        "cpp": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate and cut-and-paste, each in O(logN) expected, plus point ops, rangeAdd / rangeAssign and rangeMin. All indices 0-based, ranges inclusive [l, r], and an index always means the position in the CURRENT array. Nodes keep their values in array order (an in-order walk); a node's position is the size of everything left of it. Lazy tags mean \"already applied to this node, not yet to its children\". T: int, long long, ...; values are stored as T.",
+            "ctor": [
+              {
+                "name": "arr",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "returns": "void",
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "returns": "void",
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMin-rangeReverse-rangeRotateLeft-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "eraseAt",
+      "eraseRange",
+      "insertAt",
+      "moveRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeMin",
+      "rangeReverse",
+      "rangeRotateLeft",
+      "rangeSum"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "eraseAt": "log(N) expected",
+      "eraseRange": "log(N) expected",
+      "insertAt": "log(N) expected",
+      "moveRange": "log(N) expected",
+      "pointAdd": "log(N) expected",
+      "pointAssign": "log(N) expected",
+      "pointChmax": "log(N) expected",
+      "pointChmin": "log(N) expected",
+      "pointGet": "log(N) expected",
+      "rangeAdd": "log(N) expected",
+      "rangeAssign": "log(N) expected",
+      "rangeMin": "log(N) expected",
+      "rangeReverse": "log(N) expected",
+      "rangeRotateLeft": "log(N) expected",
+      "rangeSum": "log(N) expected"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          },
+          {
+            "name": "sz",
+            "size": "1*N"
+          },
+          {
+            "name": "L",
+            "size": "1*N"
+          },
+          {
+            "name": "R",
+            "size": "1*N"
+          },
+          {
+            "name": "pri",
+            "size": "1*N"
+          },
+          {
+            "name": "sm",
+            "size": "1*N"
+          },
+          {
+            "name": "mn",
+            "size": "1*N"
+          }
+        ],
+        "total": "7*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "rev",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+      "total": "11*N",
+      "notes": {
+        "py": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+        "cpp": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate and cut-and-paste, each in O(logN) expected, plus point ops, rangeAdd / rangeAssign and rangeSum, rangeMin. All indices 0-based, ranges inclusive [l, r], and an index always means the position in the CURRENT array. Nodes keep their values in array order (an in-order walk); a node's position is the size of everything left of it. Lazy tags mean \"already applied to this node, not yet to its children\". T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "arr",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "returns": "void",
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "returns": "void",
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeReverse-rangeRotateLeft-rangeSum",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "eraseAt",
+      "eraseRange",
+      "insertAt",
+      "moveRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAdd",
+      "rangeAssign",
+      "rangeReverse",
+      "rangeRotateLeft",
+      "rangeSum"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "eraseAt": "log(N) expected",
+      "eraseRange": "log(N) expected",
+      "insertAt": "log(N) expected",
+      "moveRange": "log(N) expected",
+      "pointAdd": "log(N) expected",
+      "pointAssign": "log(N) expected",
+      "pointChmax": "log(N) expected",
+      "pointChmin": "log(N) expected",
+      "pointGet": "log(N) expected",
+      "rangeAdd": "log(N) expected",
+      "rangeAssign": "log(N) expected",
+      "rangeReverse": "log(N) expected",
+      "rangeRotateLeft": "log(N) expected",
+      "rangeSum": "log(N) expected"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          },
+          {
+            "name": "sz",
+            "size": "1*N"
+          },
+          {
+            "name": "L",
+            "size": "1*N"
+          },
+          {
+            "name": "R",
+            "size": "1*N"
+          },
+          {
+            "name": "pri",
+            "size": "1*N"
+          },
+          {
+            "name": "sm",
+            "size": "1*N"
+          }
+        ],
+        "total": "6*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "rev",
+            "size": "1*N"
+          },
+          {
+            "name": "add",
+            "size": "1*N"
+          },
+          {
+            "name": "asg",
+            "size": "1*N"
+          },
+          {
+            "name": "hasAsg",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+      "total": "10*N",
+      "notes": {
+        "py": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+        "cpp": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate and cut-and-paste, each in O(logN) expected, plus point ops, rangeAdd / rangeAssign and rangeSum. All indices 0-based, ranges inclusive [l, r], and an index always means the position in the CURRENT array. Nodes keep their values in array order (an in-order walk); a node's position is the size of everything left of it. Lazy tags mean \"already applied to this node, not yet to its children\". T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "arr",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "returns": "void",
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "returns": "void",
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAdd": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v for i in [l, r]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeReverse-rangeRotateLeft",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "eraseAt",
+      "eraseRange",
+      "insertAt",
+      "moveRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeReverse",
+      "rangeRotateLeft"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "eraseAt": "log(N) expected",
+      "eraseRange": "log(N) expected",
+      "insertAt": "log(N) expected",
+      "moveRange": "log(N) expected",
+      "pointAdd": "log(N) expected",
+      "pointAssign": "log(N) expected",
+      "pointChmax": "log(N) expected",
+      "pointChmin": "log(N) expected",
+      "pointGet": "log(N) expected",
+      "rangeReverse": "log(N) expected",
+      "rangeRotateLeft": "log(N) expected"
+    },
+    "build": "N",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "val",
+            "size": "1*N"
+          },
+          {
+            "name": "sz",
+            "size": "1*N"
+          },
+          {
+            "name": "L",
+            "size": "1*N"
+          },
+          {
+            "name": "R",
+            "size": "1*N"
+          },
+          {
+            "name": "pri",
+            "size": "1*N"
+          }
+        ],
+        "total": "5*N"
+      },
+      "tags": {
+        "arrays": [
+          {
+            "name": "rev",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+      "total": "6*N",
+      "notes": {
+        "py": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation",
+        "cpp": "N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ImplicitTreap",
+            "doc": "Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate and cut-and-paste, each in O(logN) expected, plus point ops. All indices 0-based, ranges inclusive [l, r], and an index always means the position in the CURRENT array. Nodes keep their values in array order (an in-order walk); a node's position is the size of everything left of it. Lazy tags mean \"already applied to this node, not yet to its children\". T: int, long long, ...; values are stored as T.",
+            "ctor": [
+              {
+                "name": "arr",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty)"
+          }
+        ],
+        "methods": {
+          "eraseAt": {
+            "params": [
+              "i"
+            ],
+            "returns": "void",
+            "doc": "remove a[i]; everything after it shifts left by one",
+            "cls": 0
+          },
+          "eraseRange": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "remove a[l..r]; everything after it shifts left by r - l + 1",
+            "cls": 0
+          },
+          "insertAt": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)",
+            "cls": 0
+          },
+          "moveRange": {
+            "params": [
+              "l",
+              "r",
+              "i"
+            ],
+            "returns": "void",
+            "doc": "cut a[l..r] out, then paste it back so it starts at index i of the array without it (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeReverse": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "void",
+            "doc": "reverse a[l..r] in place",
+            "cls": 0
+          },
+          "rangeRotateLeft": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
           }
         }
       }

@@ -41,6 +41,8 @@ export type OpId =
   | "rangeMode"
   | "countInValRange"
   | "sumInValRange"
+  | "kthSmallestInRange"
+  | "kthLargestInRange"
   | "maxAltSubseqSum"
   | "longestEqualRun"
   | "rangeLIS"
@@ -62,7 +64,13 @@ export type OpId =
   | "kthGteX"
   | "kthGtX"
   | "kthLteX"
-  | "kthLtX";
+  | "kthLtX"
+  | "insertAt"
+  | "eraseAt"
+  | "eraseRange"
+  | "rangeReverse"
+  | "rangeRotateLeft"
+  | "moveRange";
 
 export interface Op {
   id: OpId;
@@ -154,6 +162,29 @@ export const OP_GROUPS: OpGroup[] = [
     ],
   },
   {
+    id: "sequence",
+    title: "Sequence edits",
+    blurb: "Change the array's shape: insert, erase, reverse, move pieces. Later indices shift.",
+    tiers: [
+      {
+        kind: "common",
+        ops: [
+          { id: "insertAt", signature: "insertAt(i, v)", description: "Insert v so it becomes a[i] (i = n appends)" },
+          { id: "eraseAt", signature: "eraseAt(i)", description: "Remove a[i]" },
+          { id: "rangeReverse", signature: "rangeReverse(l, r)", description: "Reverse a[l]…a[r]" },
+        ],
+      },
+      {
+        kind: "uncommon",
+        ops: [
+          { id: "eraseRange", signature: "eraseRange(l, r)", description: "Remove a[l]…a[r]" },
+          { id: "rangeRotateLeft", signature: "rangeRotateLeft(l, r, k)", description: "Cyclic shift a[l]…a[r] left by k (a[l+k] moves to l)", showArgs: true },
+          { id: "moveRange", signature: "moveRange(l, r, i)", description: "Cut a[l]…a[r] out and paste it back starting at index i", showArgs: true },
+        ],
+      },
+    ],
+  },
+  {
     id: "range-queries",
     title: "Range queries",
     blurb: "Aggregate over [l, r].",
@@ -169,6 +200,8 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "maxSubarraySum", signature: "maxSubarraySum(l, r)", description: "Max sum of a non-empty contiguous subarray within a[l]…a[r]" },
           { id: "countInValRange", signature: "countInValRange(l, r, lo, hi)", description: "# of values in a[l]…a[r] with lo ≤ value ≤ hi", showArgs: true },
           { id: "sumInValRange", signature: "sumInValRange(l, r, lo, hi)", description: "Sum of values in a[l]…a[r] with lo ≤ value ≤ hi", showArgs: true },
+          { id: "kthSmallestInRange", signature: "kthSmallestInRange(l, r, k)", description: "k-th smallest value in a[l]…a[r] (k = 1 is the min)" },
+          { id: "kthLargestInRange", signature: "kthLargestInRange(l, r, k)", description: "k-th largest value in a[l]…a[r] (k = 1 is the max)" },
         ],
       },
       {
@@ -248,7 +281,9 @@ export const DATA_STRUCTURE_TYPES = [
   "seg-tree",
   "lazy-seg-tree",
   "merge-sort-tree",
+  "wavelet",
   "persistent",
+  "treap",
   "beats",
   "sqrt",
 ] as const;
@@ -262,7 +297,9 @@ export const DATA_STRUCTURE_TYPE_LABELS: Record<DataStructureType, string> = {
   "seg-tree": "Seg tree",
   "lazy-seg-tree": "Lazy seg tree",
   "merge-sort-tree": "Merge sort tree",
+  wavelet: "Wavelet matrix",
   persistent: "Persistent seg tree",
+  treap: "Implicit treap",
   beats: "Seg tree beats",
   sqrt: "Sqrt decomposition",
 };

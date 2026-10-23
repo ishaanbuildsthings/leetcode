@@ -227,9 +227,9 @@ struct SplayMultiset {
         addRaw(x, 1);
     }
 
-    // O(logN amortized) -- add c copies of x (nothing if c <= 0)
-    void addCount(T x, long long c) {
-        if (c > 0) addRaw(x, c);
+    // O(logN amortized) -- add cnt copies of val (nothing if cnt <= 0)
+    void addCount(T val, long long cnt) {
+        if (cnt > 0) addRaw(val, cnt);
     }
 
     // O(logN amortized) -- how many copies of x
@@ -342,18 +342,18 @@ struct SplayMultiset {
         return 1;
     }
 
-    // O(logN amortized) -- remove every copy of x; returns how many were removed
-    long long removeAll(T x) {
-        long long k = count(x);
-        if (k) addRaw(x, -k);
+    // O(logN amortized) -- remove every copy of val; returns how many were removed
+    long long removeAll(T val) {
+        long long k = count(val);
+        if (k) addRaw(val, -k);
         return k;
     }
 
-    // O(logN amortized) -- remove min(c, count(x)) copies of x; returns how many were removed
-    long long removeCount(T x, long long c) {
-        long long k = std::min(c, count(x));
+    // O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    long long removeCount(T val, long long cnt) {
+        long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;
-        addRaw(x, -k);
+        addRaw(val, -k);
         return k;
     }
 

@@ -128,10 +128,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -249,17 +249,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -304,11 +304,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -444,19 +444,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -617,10 +617,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -743,17 +743,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -798,11 +798,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -944,19 +944,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -1139,10 +1139,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -1260,17 +1260,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -1398,11 +1398,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -1538,19 +1538,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -1834,10 +1834,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -1960,17 +1960,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -2098,11 +2098,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -2244,19 +2244,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -2508,10 +2508,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -2634,17 +2634,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -2688,11 +2688,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -2834,19 +2834,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -3007,10 +3007,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -3133,17 +3133,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -3187,11 +3187,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -3333,19 +3333,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -3542,10 +3542,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -3668,17 +3668,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -3805,11 +3805,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -3951,19 +3951,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -4247,10 +4247,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -4373,17 +4373,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -4510,11 +4510,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -4656,19 +4656,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -4914,10 +4914,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -5035,17 +5035,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -5094,11 +5094,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -5234,19 +5234,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -5403,10 +5403,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -5529,17 +5529,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -5588,11 +5588,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -5734,19 +5734,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -5925,10 +5925,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -6046,17 +6046,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -6188,11 +6188,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -6328,19 +6328,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -6620,10 +6620,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -6746,17 +6746,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -6888,11 +6888,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -7034,19 +7034,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -7570,10 +7570,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -7691,17 +7691,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -7746,11 +7746,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -7886,19 +7886,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -8059,10 +8059,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -8185,17 +8185,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -8240,11 +8240,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -8386,19 +8386,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -8581,10 +8581,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -8702,17 +8702,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -8840,11 +8840,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -8980,19 +8980,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -9276,10 +9276,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -9402,17 +9402,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -9540,11 +9540,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -9686,19 +9686,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -9948,10 +9948,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -10069,17 +10069,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -10124,11 +10124,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -10264,19 +10264,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -10437,10 +10437,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -10563,17 +10563,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -10618,11 +10618,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -10764,19 +10764,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -10959,10 +10959,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -11080,17 +11080,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -11218,11 +11218,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -11358,19 +11358,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -11654,10 +11654,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -11780,17 +11780,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -11918,11 +11918,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -12064,19 +12064,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -12321,10 +12321,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -12442,17 +12442,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -12506,11 +12506,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -12646,19 +12646,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -12814,10 +12814,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -12940,17 +12940,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -13004,11 +13004,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -13150,19 +13150,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -13340,10 +13340,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -13461,17 +13461,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -13608,11 +13608,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -13748,19 +13748,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -14039,10 +14039,10 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -14165,17 +14165,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {
@@ -14312,11 +14312,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "addCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "void",
-            "doc": "add c copies of x (nothing if c <= 0)",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
           "count": {
@@ -14458,19 +14458,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "removeAll": {
             "params": [
-              "x"
+              "val"
             ],
             "returns": "long long",
-            "doc": "remove every copy of x; returns how many were removed",
+            "doc": "remove every copy of val; returns how many were removed",
             "cls": 0
           },
           "removeCount": {
             "params": [
-              "x",
-              "c"
+              "val",
+              "cnt"
             ],
             "returns": "long long",
-            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
             "cls": 0
           },
           "size": {

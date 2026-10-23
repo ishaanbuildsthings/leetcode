@@ -1,9 +1,11 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-pointGet-sumInValRange/template.py
-# @operations: countInValRange pointGet sumInValRange
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-kthLargestInRange-kthSmallestInRange-pointGet-sumInValRange/template.py
+# @operations: countInValRange kthLargestInRange kthSmallestInRange pointGet sumInValRange
 # @data-structure-type: persistent
 # @complexities:
 #   countInValRange: log(N)
+#   kthLargestInRange: log(N)
+#   kthSmallestInRange: log(N)
 #   pointGet: 1
 #   sumInValRange: log(N)
 #   build: N*log(N)
@@ -20,6 +22,7 @@
 #   s = vrs.sumInValRange(l, r, lowVal, highVal)  # lowVal <= A[i] <= highVal
 #   t = vrs.sumValsLteX(l, r, X)                      # X need not appear in A
 #   c = vrs.cntValsLtX(l, r, X)
+#   v = vrs.kthSmallestInRange(l, r, k)              # k = 1 is the min of A[l..r]
 #
 # Static array, offline or online queries. Values are compressed once in the
 # constructor; query bounds are bisected into the compressed domain, so nothing
@@ -82,6 +85,30 @@ class StaticValueRangeSum:
     def cntValsGteX(self, l, r, X): return self._ranks(l, r, self._lb(X), self.m - 1)[1]
     def cntValsGtX(self, l, r, X):  return self._ranks(l, r, self._ub(X), self.m - 1)[1]
     def cntValsAll(self, l, r):     return self._ranks(l, r, 0, self.m - 1)[1]
+
+    # ---- k-th smallest / largest value of a[l..r] ----
+    # O(log n) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError
+    def kthSmallestInRange(self, l, r, k):
+        if not 1 <= k <= r - l + 1:
+            raise IndexError(f"kthSmallestInRange: k = {k} is outside [1, {r - l + 1}]")
+        L, R, C = self.L, self.R, self.C
+        a, b = self.root[r + 1], self.root[l]
+        nl, nh = 0, self.m - 1
+        while nl != nh:  # walk down version r+1 minus version l: the left child holds the smaller ranks
+            mid = (nl + nh) >> 1
+            c = C[L[a]] - C[L[b]]
+            if k <= c:
+                a, b, nh = L[a], L[b], mid
+            else:
+                k -= c
+                a, b, nl = R[a], R[b], mid + 1
+        return self.srt[nl]
+
+    # O(log n) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError
+    def kthLargestInRange(self, l, r, k):
+        if not 1 <= k <= r - l + 1:
+            raise IndexError(f"kthLargestInRange: k = {k} is outside [1, {r - l + 1}]")
+        return self.kthSmallestInRange(l, r, r - l + 2 - k)
 
     # first rank with value >= v
     def _lb(self, v): return bisect_left(self.srt, v)

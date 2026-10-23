@@ -19,9 +19,9 @@ import { RANGE_QUERY_TEMPLATES } from "@/lib/generated/range-query-templates";
 const MOD_P_OPS = new Set<string>(OP_GROUPS.flatMap((g) => g.tiers.filter((t) => t.kind === "mod").flatMap((t) => t.ops.map((o) => o.id))));
 const isModP = (t: RangeQueryTemplate) => t.operations.some((op) => MOD_P_OPS.has(op));
 
-// Ops that change the array (no result to read): the range updates and every point op but pointGet.
+// Ops that change the array (no result to read): the range updates, the sequence edits and every point op but pointGet.
 const UPDATE_OPS = new Set<string>(
-  OP_GROUPS.filter((g) => g.id === "range-updates" || g.id === "point")
+  OP_GROUPS.filter((g) => g.id === "range-updates" || g.id === "sequence" || g.id === "point")
     .flatMap((g) => g.tiers.flatMap((t) => t.ops.map((o) => o.id)))
     .filter((id) => id !== "pointGet")
 );
@@ -72,7 +72,7 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   memoryGroups: (template) => {
     const { memory, dataStructureType: type } = template;
     const groups: { id: "node" | "tags" | "other"; label: string }[] = [
-      { id: "node", label: type === "sparse-table" ? "Table" : type === "sqrt" ? "Blocks" : type === "positions" ? "Lists" : "Node data" },
+      { id: "node", label: type === "sparse-table" ? "Table" : type === "sqrt" ? "Blocks" : type === "positions" ? "Lists" : type === "wavelet" ? "Levels" : "Node data" },
     ];
     const tree = memory.layout !== "none" && (memory.layout !== "sparse" || ["seg-tree", "lazy-seg-tree", "beats"].includes(type));
     if (tree || memory.tags.arrays.length > 0) groups.push({ id: "tags", label: "Lazy tags" });

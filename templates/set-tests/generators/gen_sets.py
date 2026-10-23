@@ -37,10 +37,10 @@ GITHUB_FILES = GITHUB_USER + "/leetcode/blob/main/templates/sets/"
 # op -> (argument kind, result kind, description). Result kinds: none / int / opt (None in Python, nullopt in C++).
 OPS = {
     "add": ("x", "none", "add one copy of x"),
-    "addCount": ("xc", "none", "add c copies of x (nothing if c <= 0)"),
+    "addCount": ("vc", "none", "add cnt copies of val (nothing if cnt <= 0)"),
     "remove": ("x", "int", "remove one copy of x if present; returns how many were removed (0 or 1)"),
-    "removeCount": ("xc", "int", "remove min(c, count(x)) copies of x; returns how many were removed"),
-    "removeAll": ("x", "int", "remove every copy of x; returns how many were removed"),
+    "removeCount": ("vc", "int", "remove min(cnt, count(val)) copies of val; returns how many were removed"),
+    "removeAll": ("v", "int", "remove every copy of val; returns how many were removed"),
     "popMin": ("", "opt", "remove and return the smallest value; {none} if empty"),
     "popMax": ("", "opt", "remove and return the largest value; {none} if empty"),
     "size": ("", "int", "how many values (copies count)"),
@@ -78,17 +78,17 @@ OPS = {
 SUM_OPS = {"sumAll", "sumAbsDiffToMedian", "sumSmallestK", "sumLargestK", "sumKthSmallestRange", "sumKthLargestRange",
            "sumLtX", "sumLteX", "sumGtX", "sumGteX", "sumInValRange", "sumAbsDiffToX"}
 COUNT_OPS = [op for op in OPS if op not in SUM_OPS]
-ARGS = {"x": ["x"], "xc": ["x", "c"], "k": ["k"], "ij": ["i", "j"], "lohi": ["lo", "hi"], "": []}
+ARGS = {"x": ["x"], "xc": ["x", "c"], "v": ["val"], "vc": ["val", "cnt"], "k": ["k"], "ij": ["i", "j"], "lohi": ["lo", "hi"], "": []}
 
 # ================================================================================================ shared ops
 
 # Python bodies of the public ops, on top of the core (self.n = size, self.total = sum).
 PY_OPS = {
     "add": "self._add(x, 1)",
-    "addCount": "if c > 0:\n    self._add(x, c)",
+    "addCount": "if cnt > 0:\n    self._add(val, cnt)",
     "remove": "if not self.count(x):\n    return 0\nself._add(x, -1)\nreturn 1",
-    "removeCount": "k = min(c, self.count(x))\nif k <= 0:\n    return 0\nself._add(x, -k)\nreturn k",
-    "removeAll": "k = self.count(x)\nif k:\n    self._add(x, -k)\nreturn k",
+    "removeCount": "k = min(cnt, self.count(val))\nif k <= 0:\n    return 0\nself._add(val, -k)\nreturn k",
+    "removeAll": "k = self.count(val)\nif k:\n    self._add(val, -k)\nreturn k",
     "popMin": "if not self.n:\n    return None\nv = self.mn\nself._add(v, -1)\nreturn v",
     "popMax": "if not self.n:\n    return None\nv = self.mx\nself._add(v, -1)\nreturn v",
     "size": "return self.n",
@@ -127,10 +127,10 @@ PY_OPS = {
 # C++ bodies (members n, total; T values, S sums).
 CPP_OPS = {
     "add": ("void", "addRaw(x, 1);"),
-    "addCount": ("void", "if (c > 0) addRaw(x, c);"),
+    "addCount": ("void", "if (cnt > 0) addRaw(val, cnt);"),
     "remove": ("long long", "if (!count(x)) return 0;\naddRaw(x, -1);\nreturn 1;"),
-    "removeCount": ("long long", "long long k = std::min(c, count(x));\nif (k <= 0) return 0;\naddRaw(x, -k);\nreturn k;"),
-    "removeAll": ("long long", "long long k = count(x);\nif (k) addRaw(x, -k);\nreturn k;"),
+    "removeCount": ("long long", "long long k = std::min(cnt, count(val));\nif (k <= 0) return 0;\naddRaw(val, -k);\nreturn k;"),
+    "removeAll": ("long long", "long long k = count(val);\nif (k) addRaw(val, -k);\nreturn k;"),
     "popMin": ("optional<T>", "if (!n) return nullopt;\nT v = mn;\naddRaw(v, -1);\nreturn v;"),
     "popMax": ("optional<T>", "if (!n) return nullopt;\nT v = mx;\naddRaw(v, -1);\nreturn v;"),
     "size": ("long long", "return n;"),
@@ -165,7 +165,7 @@ CPP_OPS = {
     "sumInValRange": ("S", "return lo <= hi ? sle(hi) - slt(lo) : S(0);"),
     "sumAbsDiffToX": ("S", "long long c = lt(x);\nS s = slt(x);\nreturn S(x) * c - s + (total - s) - S(x) * (n - c);"),
 }
-CPP_PARAMS = {"x": "T x", "xc": "T x, long long c", "k": "long long k", "ij": "long long i, long long j", "lohi": "T lo, T hi", "": ""}
+CPP_PARAMS = {"x": "T x", "xc": "T x, long long c", "v": "T val", "vc": "T val, long long cnt", "k": "long long k", "ij": "long long i, long long j", "lohi": "T lo, T hi", "": ""}
 
 
 def cost_text(c):

@@ -1,9 +1,11 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-pointGet-sumInValRange/sparse.cpp
-// @operations: countInValRange pointGet sumInValRange
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-kthLargestInRange-kthSmallestInRange-pointGet-sumInValRange/sparse.cpp
+// @operations: countInValRange kthLargestInRange kthSmallestInRange pointGet sumInValRange
 // @data-structure-type: persistent
 // @complexities:
 //   countInValRange: log(N)
+//   kthLargestInRange: log(N)
+//   kthSmallestInRange: log(N)
 //   pointGet: log(N)
 //   sumInValRange: log(N)
 //   build: N*log(N)
@@ -12,8 +14,9 @@
 //   node: L[1*N*log(N)] R[1*N*log(N)] S[1*N*log(N)] C[1*N*log(N)]
 //   tags: none
 //   other: idx[1*N] vals[1*N] root[1*N] srt[1*N]
-//   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums)
-// Static "count / sum of values in [lo, hi] among a[l..r]" via a persistent segment tree over compressed values.
+//   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums) and sit between the negatives and the positives for a k-th
+// Static "count / sum of values in [lo, hi] among a[l..r]" and "k-th smallest / largest of a[l..r]" via a persistent
+// segment tree over compressed values.
 // Version i + 1 = version i with a[i] inserted; a query subtracts version l from version r + 1. All indices 0-based,
 // ranges inclusive. Build O(N log N), queries O(log N), ~N * (log N + 1) nodes.
 // T: int, long long, ...; sums accumulate in S (long long for small T).
@@ -73,15 +76,34 @@ struct StaticValueRangeSum {
     // O(logN) -- how many i in [l, r] have lowVal <= a[i] <= highVal
     int countInValRange(int l, int r, const T& lowVal, const T& highVal) const { return ranks(l, r, lb(lowVal), ub(highVal) - 1).second; }
 
+    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range
+    T kthSmallestInRange(int l, int r, int k) const {
+        if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallestInRange: k outside [1, r - l + 1]");
+        int a = root[r + 1], b = root[l], nl = 0, nh = m - 1;
+        while (nl != nh) {  // walk down version r+1 minus version l: the left child holds the smaller ranks
+            int mid = (nl + nh) >> 1, c = C[L[a]] - C[L[b]];
+            if (k <= c) a = L[a], b = L[b], nh = mid;
+            else k -= c, a = R[a], b = R[b], nl = mid + 1;
+        }
+        return srt[nl];
+    }
+
+    // O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range
+    T kthLargestInRange(int l, int r, int k) const {
+        if (k < 1 || k > r - l + 1) throw out_of_range("kthLargestInRange: k outside [1, r - l + 1]");
+        return kthSmallestInRange(l, r, r - l + 2 - k);
+    }
+
     // O(1) -- a[i]
     T pointGet(int i) const { return arr[i]; }
 };
 
 // ======================================================================================== sparse wrapper
 
-// Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs);
-// every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the
-// given values inside) add to a count when 0 is in the value range, and never to a sum.
+// Count / sum of the values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given
+// values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of
+// [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, never to a sum, and
+// sit between the given negatives and positives for a k-th.
 template <typename T>
 struct SparseStaticValueRangeSum {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
@@ -113,6 +135,24 @@ struct SparseStaticValueRangeSum {
         span(l, r, i0, i1, zeros);
         long long inside = i0 <= i1 ? inner.countInValRange(i0, i1, valLow, valHigh) : 0;
         return inside + (valLow <= T(0) && T(0) <= valHigh ? zeros : 0);
+    }
+
+    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range
+    T kthSmallestInRange(long long l, long long r, long long k) const {
+        if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallestInRange: k outside [1, r - l + 1]");
+        int i0, i1;
+        long long zeros;
+        span(l, r, i0, i1, zeros);
+        long long neg = i0 <= i1 ? inner.countInValRange(i0, i1, numeric_limits<T>::lowest(), T(-1)) : 0;
+        if (k <= neg) return inner.kthSmallestInRange(i0, i1, int(k));
+        if (k <= neg + zeros) return T(0);
+        return inner.kthSmallestInRange(i0, i1, int(k - zeros));
+    }
+
+    // O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range
+    T kthLargestInRange(long long l, long long r, long long k) const {
+        if (k < 1 || k > r - l + 1) throw out_of_range("kthLargestInRange: k outside [1, r - l + 1]");
+        return kthSmallestInRange(l, r, r - l + 2 - k);
     }
 
     // O(logN) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal

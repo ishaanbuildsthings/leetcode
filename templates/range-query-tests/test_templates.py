@@ -48,7 +48,13 @@ RANGE_UPDATES = {  # op -> number of args after (l, r)
     "rangeAddArithSeq": 2, "rangeAddArithSeqMod": 2, "rangeMod": 1, "rangeFloorDiv": 1, "rangeFloorSqrt": 0,
     "rangeAndApply": 1, "rangeOrApply": 1, "rangeXorApply": 1,
 }
+# sequence edits (implicit treap): op -> arg kind; they change the array's length
+SEQ_OPS = {"insertAt": "iv", "eraseAt": "i", "eraseRange": "lr", "rangeReverse": "lr", "rangeRotateLeft": "lrk", "moveRange": "lri"}
 MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod", "rangeAssignMod", "rangeSumMod"}  # any: values live mod p
+
+
+def is_update(op):
+    return op in POINT_UPDATES or op in RANGE_UPDATES or op in SEQ_OPS
 
 
 def _first(a, idxs, pred):
@@ -118,7 +124,8 @@ def _cost_mono_inc(seg):
 SIDE = {"leftmost": lambda l, r: range(l, r + 1), "rightmost": lambda l, r: range(r, l - 1, -1)}
 CMP = {"Gte": lambda v, x: v >= x, "Gt": lambda v, x: v > x, "Lte": lambda v, x: v <= x, "Lt": lambda v, x: v < x}
 
-# query op -> (arg kind, brute(a, l, r, *args, ctx)); arg kinds: "lr", "lrx", "lrk", "lrkx", "lrlohi"
+# query op -> (arg kind, brute(a, l, r, *args, ctx)); arg kinds: "lr", "lrx", "lrk", "lrkx", "lrlohi", and "lrkv" (a k
+# in [1, r - l + 1]: those ops error outside it)
 BRUTE_QUERIES = {
     "rangeSum": ("lr", lambda a, l, r, c: sum(a[l:r + 1])),
     "rangeSumMod": ("lr", lambda a, l, r, c: sum(a[l:r + 1]) % c["mod"]),
@@ -144,6 +151,8 @@ BRUTE_QUERIES = {
     "doAllElementsAppearEvenFrequency": ("lr", lambda a, l, r, c: all(v % 2 == 0 for v in Counter(a[l:r + 1]).values())),
     "countInValRange": ("lrlohi", lambda a, l, r, lo, hi, c: sum(lo <= v <= hi for v in a[l:r + 1])),
     "sumInValRange": ("lrlohi", lambda a, l, r, lo, hi, c: sum(v for v in a[l:r + 1] if lo <= v <= hi)),
+    "kthSmallestInRange": ("lrkv", lambda a, l, r, k, c: sorted(a[l:r + 1])[k - 1]),
+    "kthLargestInRange": ("lrkv", lambda a, l, r, k, c: sorted(a[l:r + 1])[-k]),
     "leftmostPrefixSumGteX": ("lrx", lambda a, l, r, x, c: _prefix_search(a, l, r, x, False)),
     "leftmostPrefixSumGtX": ("lrx", lambda a, l, r, x, c: _prefix_search(a, l, r, x, True)),
 }
@@ -163,6 +172,24 @@ def _check_mode(a, l, r, got):
 
 def brute_update(a, op, args, ctx):
     mod, full = ctx["mod"], ctx["full"]
+    if op in SEQ_OPS:
+        if op == "insertAt":
+            a.insert(args[0], args[1])
+        elif op == "eraseAt":
+            del a[args[0]]
+        else:
+            l, r = args[0], args[1]
+            seg = a[l:r + 1]
+            del a[l:r + 1]
+            if op == "rangeReverse":
+                seg.reverse()
+            elif op == "rangeRotateLeft":
+                k = args[2] % len(seg)
+                seg = seg[k:] + seg[:k]
+            if op != "eraseRange":
+                at = args[2] if op == "moveRange" else l
+                a[at:at] = seg
+        return
     if op in POINT_UPDATES:
         i, v = args
         a[i] = {"pointAssign": v, "pointAdd": a[i] + v, "pointChmax": max(a[i], v), "pointChmin": min(a[i], v)}[op]
@@ -241,7 +268,7 @@ def update_args(op, rng, gen, mod):
 def make_trials(folder, ops, trials):
     """Deterministic random op sequences: [(initial array, [(op, args)])]."""
     gen, delta, _, ctx = domain(folder, ops)
-    updates = [o for o in ops if o in POINT_UPDATES or o in RANGE_UPDATES]
+    updates = [o for o in ops if is_update(o)]
     queries = [o for o in ops if o not in updates]
     out = []
     for t in range(trials):
@@ -251,7 +278,25 @@ def make_trials(folder, ops, trials):
         seq = []
         for _ in range(OPS_PER_TRIAL):
             op = rng.choice(updates) if updates and rng.random() < 0.5 else rng.choice(queries or updates)
-            if op == "pointGet":
+            if op in ("eraseAt", "eraseRange") and n == 1 or op == "insertAt" and n >= 40:  # keep 1 <= n <= 40
+                op = "insertAt" if n == 1 else "eraseAt"
+            if op in SEQ_OPS:
+                l, r = sorted((rng.randrange(n), rng.randrange(n)))
+                kind = SEQ_OPS[op]
+                if kind == "iv":
+                    args = [rng.randint(0, n), gen(rng)]
+                elif kind == "i":
+                    args = [rng.randrange(n)]
+                elif op == "eraseRange":
+                    args = [l, r - (r - l + 1 == n)]  # never empty the array
+                elif kind == "lrk":
+                    args = [l, r, rng.randint(-2 * (r - l + 1), 2 * (r - l + 1))]
+                elif kind == "lri":
+                    args = [l, r, rng.randint(0, n - (r - l + 1))]
+                else:
+                    args = [l, r]
+                n += 1 if op == "insertAt" else -1 if op == "eraseAt" else -(args[1] - args[0] + 1) if op == "eraseRange" else 0
+            elif op == "pointGet":
                 args = [rng.randrange(n)]
             elif op in POINT_UPDATES:
                 args = [rng.randrange(n), delta(rng) if op == "pointAdd" else gen(rng)]
@@ -266,6 +311,8 @@ def make_trials(folder, ops, trials):
                     args = [l, r, rng.randint(1, 5), gen(rng)]
                 elif kind == "lrk":
                     args = [l, r, rng.randint(0, 6)]
+                elif kind == "lrkv":
+                    args = [l, r, rng.randint(1, r - l + 1)]
                 elif kind == "lrlohi":
                     args = [l, r, *sorted((gen(rng), gen(rng)))]
                 else:
@@ -285,7 +332,7 @@ def expected_outputs(trials, ctx):
         for op, args in seq:
             if op == "pointGet":
                 exp.append(a[args[0]])
-            elif op in POINT_UPDATES or op in RANGE_UPDATES:
+            elif is_update(op):
                 brute_update(a, op, args, ctx)
             elif op == "rangeMode":
                 exp.append(("mode", list(a), *args))
@@ -330,7 +377,7 @@ def describe_query(trials, k):
     seen = 0
     for t, (a0, seq) in enumerate(trials):
         for step, (op, args) in enumerate(seq):
-            if op in POINT_UPDATES or op in RANGE_UPDATES:
+            if is_update(op):
                 continue
             if seen == k:
                 return f"trial {t}, step {step}: {op}({', '.join(map(str, args))}), initial array {a0}"
@@ -461,6 +508,15 @@ def sparse_query(op, R, args, ctx):
     if op == "rangeLIS": return _lis(vals)
     if op == "countInValRange": return sum(n_of(x) for x in runs if xs[0] <= x[2] <= xs[1])
     if op == "sumInValRange": return sum(n_of(x) * x[2] for x in runs if xs[0] <= x[2] <= xs[1])
+    if op in ("kthSmallestInRange", "kthLargestInRange"):
+        k = xs[0] if op == "kthSmallestInRange" else (r - l + 2 - xs[0])
+        tot = Counter()
+        for x in runs:
+            tot[x[2]] += n_of(x)
+        for v in sorted(tot):
+            if k <= tot[v]:
+                return v
+            k -= tot[v]
     if op == "costMonoIncreasing": return _cost_pieces([(v, e - s_ + 1, 0) for s_, e, v in runs])
     if op == "costMonoDecreasing": return _cost_pieces([(v, e - s_ + 1, 0) for s_, e, v in runs[::-1]])
     if op == "costStrictIncreasing": return _cost_pieces([(v - (s_ - l), e - s_ + 1, -1) for s_, e, v in runs])
@@ -598,6 +654,9 @@ def make_sparse_trials(folder, ops, trials):
                         args = [l, r, k, gen(rng)]
                     elif kind == "lrk":
                         args = [l, r, k]
+                    elif kind == "lrkv":  # mostly near either end, where the given values sit around the zeros
+                        n = r - l + 1
+                        args = [l, r, rng.choice([rng.randint(1, min(n, 6)), n + 1 - rng.randint(1, min(n, 6)), rng.randint(1, n)])]
                     elif kind == "lrlohi":
                         args = [l, r, *sorted((gen(rng), gen(rng)))]
                     else:
@@ -637,7 +696,7 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
             if name not in objs:
                 objs[name] = classes[name](*a0, *ctor_extra) if stem == "sparse" else classes[name](list(a0), *ctor_extra)
             res = getattr(objs[name], op)(*args)
-            if not (op in POINT_UPDATES or op in RANGE_UPDATES):
+            if not is_update(op):
                 out.append(norm(res))
     return out
 
@@ -712,7 +771,10 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
     lines += ["    while (q--) {", "      string op; cin >> op;", "      if (false) {}"]
     for op in ops:
         s = f"s_{owners[op]}"
-        if op == "pointGet":
+        if op in SEQ_OPS:
+            names = {"iv": ["i", "v"], "i": ["i"], "lr": ["l", "r"], "lrk": ["l", "r", "k"], "lri": ["l", "r", "i"]}[SEQ_OPS[op]]
+            body = f"long long {', '.join(names)}; cin{''.join(f' >> {x}' for x in names)}; {s}.{op}({', '.join(names)});"
+        elif op == "pointGet":
             body = f"long long i; cin >> i; out({s}.pointGet(i));"
         elif op in POINT_UPDATES:
             body = f"long long i, v; cin >> i >> v; {s}.{op}(i, v);"
@@ -730,7 +792,7 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
                 body = f"long long l, r, x; cin >> l >> r >> x; out({s}.{op}(l, r, x));"
             elif kind == "lrkx":
                 body = f"long long l, r, k, x; cin >> l >> r >> k >> x; out({s}.{op}(l, r, k, x));"
-            elif kind == "lrk":
+            elif kind in ("lrk", "lrkv"):
                 body = f"long long l, r, k; cin >> l >> r >> k; out({s}.{op}(l, r, k));"
             else:
                 body = f"long long l, r, lo, hi; cin >> l >> r >> lo >> hi; out({s}.{op}(l, r, lo, hi));"
@@ -791,7 +853,7 @@ def main():
         py = os.path.join(DIR, folder, "template.py")
         cpp = os.path.join(DIR, folder, "template.cpp")
         ops = parse_ops(py, "#") if os.path.exists(py) else parse_ops(cpp, "//")
-        unknown = [o for o in ops if o not in BRUTE_QUERIES and o not in RANGE_UPDATES and o not in POINT_UPDATES and o != "pointGet"]
+        unknown = [o for o in ops if o not in BRUTE_QUERIES and o not in RANGE_UPDATES and o not in POINT_UPDATES and o not in SEQ_OPS and o != "pointGet"]
         if unknown:
             failed.append(folder)
             print(f"FAIL  {folder}\n      no brute force for {unknown}: add it to BRUTE_QUERIES / RANGE_UPDATES")

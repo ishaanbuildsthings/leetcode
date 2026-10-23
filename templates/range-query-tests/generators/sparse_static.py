@@ -310,6 +310,47 @@ COUNT_CPP = '''
     }
 '''
 
+# k-th smallest / largest value: the sorted values of [l, r] are the given negatives, then every 0 (the zeros of [l, r]
+# and the given 0s), then the given positives, so a k past the negatives and the zeros is the given (k - zeros)-th.
+KTH_VAL_PY = '''
+    # O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError
+    def kthSmallestInRange(self, l, r, k):
+        if not 1 <= k <= r - l + 1:
+            raise IndexError(f"kthSmallestInRange: k = {k} is outside [1, {r - l + 1}]")
+        i0, i1, zeros = self._span(l, r)
+        neg = self.inner.countInValRange(i0, i1, float("-inf"), -1) if i0 <= i1 else 0
+        if k <= neg:
+            return self.inner.kthSmallestInRange(i0, i1, k)
+        if k <= neg + zeros:
+            return 0
+        return self.inner.kthSmallestInRange(i0, i1, k - zeros)
+
+    # O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError
+    def kthLargestInRange(self, l, r, k):
+        if not 1 <= k <= r - l + 1:
+            raise IndexError(f"kthLargestInRange: k = {k} is outside [1, {r - l + 1}]")
+        return self.kthSmallestInRange(l, r, r - l + 2 - k)
+'''
+KTH_VAL_CPP = '''
+    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range
+    T kthSmallestInRange(long long l, long long r, long long k) const {
+        if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallestInRange: k outside [1, r - l + 1]");
+        int i0, i1;
+        long long zeros;
+        span(l, r, i0, i1, zeros);
+        long long neg = i0 <= i1 ? inner.countInValRange(i0, i1, numeric_limits<T>::lowest(), T(-1)) : 0;
+        if (k <= neg) return inner.kthSmallestInRange(i0, i1, int(k));
+        if (k <= neg + zeros) return T(0);
+        return inner.kthSmallestInRange(i0, i1, int(k - zeros));
+    }
+
+    // O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range
+    T kthLargestInRange(long long l, long long r, long long k) const {
+        if (k < 1 || k > r - l + 1) throw out_of_range("kthLargestInRange: k outside [1, r - l + 1]");
+        return kthSmallestInRange(l, r, r - l + 2 - k);
+    }
+'''
+
 # merge sort tree: count / k-th
 kpy, kcpp = kth_methods()
 folder = "countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet"
@@ -390,29 +431,32 @@ struct SparseStaticMergeSortTree {{
 ''' + kcpp + CPP_POINT_GET + "};\n")
 
 # persistent: count / sum in a value range
-folder = "countInValRange-pointGet-sumInValRange"
+folder = "countInValRange-kthLargestInRange-kthSmallestInRange-pointGet-sumInValRange"
 write(folder, "persistent",
-      {"countInValRange": "log(N)", "pointGet": "log(N)", "sumInValRange": "log(N)", "build": "N*log(N)"},
+      {"countInValRange": "log(N)", "kthLargestInRange": "log(N)", "kthSmallestInRange": "log(N)", "pointGet": "log(N)",
+       "sumInValRange": "log(N)", "build": "N*log(N)"},
       ("L[1*N*log(N)] R[1*N*log(N)] S[1*N*log(N)] C[1*N*log(N)]", "none", "idx[1*N] vals[1*N] root[1*N] srt[1*N]"),
-      "the persistent tree is over the given values only; zeros add to counts (never to sums)",
+      "the persistent tree is over the given values only; zeros add to counts (never to sums) and sit between the negatives and the positives for a k-th",
       dense_body(folder, "py") + SPARSE_NOTE_PY + '''
-# Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs);
-# every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the
-# given values inside) add to a count when 0 is in the value range, and never to a sum.
+# Count / sum of the values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given
+# values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of
+# [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, never to a sum, and
+# sit between the given negatives and positives for a k-th.
 
 
 class SparseStaticValueRangeSum:
     __slots__ = ("lo", "hi", "idx", "vals", "inner")
-''' + PY_POINTS_INIT.format(extra_args="", inits="        self.inner = StaticValueRangeSum(vals)\n") + COUNT_PY + '''
+''' + PY_POINTS_INIT.format(extra_args="", inits="        self.inner = StaticValueRangeSum(vals)\n") + COUNT_PY + KTH_VAL_PY + '''
     # O(logN) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal
     def sumInValRange(self, l, r, lowVal, highVal):
         i0, i1, _ = self._span(l, r)
         return self.inner.sumInValRange(i0, i1, lowVal, highVal) if i0 <= i1 else 0
 ''' + PY_POINT_GET,
       dense_body(folder, "cpp") + SPARSE_NOTE_CPP + '''
-// Count / sum of the values in a value range, over any index range [lo, hi], built from given values (index, value pairs);
-// every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the
-// given values inside) add to a count when 0 is in the value range, and never to a sum.
+// Count / sum of the values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given
+// values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of
+// [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, never to a sum, and
+// sit between the given negatives and positives for a k-th.
 template <typename T>
 struct SparseStaticValueRangeSum {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
@@ -421,7 +465,7 @@ struct SparseStaticValueRangeSum {
     vector<T> vals;
     StaticValueRangeSum<T> inner;
 ''' + CPP_POINTS_INIT.format(name="SparseStaticValueRangeSum", inits=", inner(split(values))") + COUNT_CPP.replace(
-          "inner.countInValRange(i0, i1, valLow, valHigh)", "inner.countInValRange(i0, i1, valLow, valHigh)") + '''
+          "inner.countInValRange(i0, i1, valLow, valHigh)", "inner.countInValRange(i0, i1, valLow, valHigh)") + KTH_VAL_CPP + '''
     // O(logN) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal
     S sumInValRange(long long l, long long r, T lowVal, T highVal) const {
         int i0, i1;
@@ -430,6 +474,34 @@ struct SparseStaticValueRangeSum {
         return i0 <= i1 ? S(inner.sumInValRange(i0, i1, lowVal, highVal)) : S(0);
     }
 ''' + CPP_POINT_GET + "};\n")
+
+# wavelet matrix: count in a value range / k-th smallest / largest
+folder = "countInValRange-kthLargestInRange-kthSmallestInRange-pointGet"
+WHAT = ("Count of values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given values\n"
+        "{c} (index, value pairs); every other index is 0. The wavelet matrix runs on the given values alone; the zeros of [l, r]\n"
+        "{c} (its length minus the given values inside) add to a count when 0 is in the value range, and sit between the given\n"
+        "{c} negatives and positives for a k-th.")
+write(folder, "wavelet",
+      {"countInValRange": "log(N)", "kthLargestInRange": "log(N)", "kthSmallestInRange": "log(N)", "pointGet": "log(N)",
+       "build": "N*log(N)"},
+      ("zeros[1*N*log(N)]", "none", "idx[1*N] vals[1*N] arr[1*N] srt[1*N]"),
+      "the wavelet matrix is over the given values only; zeros add to counts and sit between the negatives and the positives for a k-th",
+      dense_body(folder, "py") + SPARSE_NOTE_PY + f'''
+# {WHAT.format(c="#")}
+
+
+class SparseWaveletMatrix:
+    __slots__ = ("lo", "hi", "idx", "vals", "inner")
+''' + PY_POINTS_INIT.format(extra_args="", inits="        self.inner = WaveletMatrix(vals)\n") + COUNT_PY + KTH_VAL_PY + PY_POINT_GET,
+      dense_body(folder, "cpp") + SPARSE_NOTE_CPP + f'''
+// {WHAT.format(c="//")}
+template <typename T>
+struct SparseWaveletMatrix {{
+    long long lo, hi;
+    vector<long long> idx;
+    vector<T> vals;
+    WaveletMatrix<T> inner;
+''' + CPP_POINTS_INIT.format(name="SparseWaveletMatrix", inits=", inner(split(values))") + COUNT_CPP + KTH_VAL_CPP + CPP_POINT_GET + "};\n")
 
 # range mode
 folder = "pointGet-rangeMode"
