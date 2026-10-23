@@ -16,17 +16,35 @@ type SetView = SetTemplate & { file: "template" };
 
 const VIEWS: SetView[] = SET_TEMPLATES.map((t) => ({ ...t, file: "template" }));
 
-// What you know about the values ahead of time decides which templates can work: every value (offline) or nothing.
-// Knowing more never rules a template out.
+// Knowing every value ahead (offline) allows everything, including the Fenwick tree on compressed values. Online
+// allows the comparison-based structures plus the value seg tree, which only needs a [lo, hi] all values lie in.
 const USABLE: Record<string, SetTemplate["values"][]> = {
-  known: ["offline", "online"],
-  unknown: ["online"],
+  known: ["offline", "online-range", "online"],
+  unknown: ["online-range", "online"],
 };
+
+// These structures come with and without mex (it costs them one more field per node / array); the sorted lists find
+// mex from their keys for free, so theirs always has it.
+const OPTIONAL_MEX = new Set([
+  "fenwick",
+  "value-tree",
+  "avl",
+  "treap",
+  "splay",
+]);
 
 const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
   allValuesThatWillEverBeInsertedForOfflineCompression: {
     py: "allValuesThatWillEverBeInsertedForOfflineCompression: every value you will ever add (a list; any order, duplicates fine). Only used to compress values: this does NOT add them, the multiset starts empty. N = how many distinct",
     cpp: "allValuesThatWillEverBeInsertedForOfflineCompression: every value you will ever add (vector<long long>; any order, duplicates fine). Only used to compress values: this does NOT add them, the multiset starts empty. N = how many distinct",
+  },
+  lo: {
+    py: "lo: every value added is >= lo (any integer, negative is fine)",
+    cpp: "lo: every value added is >= lo (any long long, negative is fine)",
+  },
+  hi: {
+    py: "hi: every value added is <= hi",
+    cpp: "hi: every value added is <= hi",
   },
 };
 
@@ -43,40 +61,39 @@ const SET_CATALOG: PickerCatalog<SetView> = {
     options: [
       {
         mode: "known",
-        label: "All values known",
+        label: "All values ever added known (offline, compressed)",
         title:
-          "You know every value that will ever be added (queries' x can still be anything): every structure works, including the Fenwick over compressed values",
+          "You know every value that will ever be added (queries' x can still be anything): every structure works, including the Fenwick tree on compressed values",
       },
       {
         mode: "unknown",
-        label: "Nothing known",
+        label: "All values ever added not known (online)",
         title:
-          "Values aren't known ahead: only comparison-based structures (AVL tree, sorted blocks)",
+          "Values arrive as you go: sorted lists, AVL tree, treap, splay tree, pb_ds, and the value seg tree (which needs a range [lo, hi] all values lie in)",
       },
     ],
-    parse: (v) => (v && v in USABLE ? v : "known"),
+    // "range" was an older third mode; it now lives under online
+    parse: (v) => (v === "range" ? "unknown" : v && v in USABLE ? v : "known"),
     views: (mode) => VIEWS.filter((t) => USABLE[mode].includes(t.values)),
   },
-  // Fenwick and AVL come with and without mex (it costs them an extra array); sorted blocks always have it for free
+  // "AVL tree — counts + sums, mex": what it keeps (counts only, or counts and sums), mex where it's optional, and
+  // what it needs to know up front
   kindLabel: (t) => {
-    const extras = [
-      ...(t.operations.includes("sumAll") ? ["sums"] : []),
-      ...(t.operations.includes("mex") &&
-      (t.dataStructureType === "fenwick" || t.dataStructureType === "avl")
-        ? ["mex"]
-        : []),
+    const parts = [
+      t.operations.includes("sumAll") ? "counts + sums" : "counts only",
     ];
-    return (
-      SET_TYPE_LABELS[t.dataStructureType] +
-      (extras.length ? ` with ${extras.join(" + ")}` : "") +
-      (t.values === "offline" ? " (offline)" : "")
-    );
+    if (OPTIONAL_MEX.has(t.dataStructureType) && t.operations.includes("mex"))
+      parts.push("mex");
+    if (t.values === "offline") parts.push("offline");
+    return `${SET_TYPE_LABELS[t.dataStructureType]} — ${parts.join(", ")}`;
   },
   memoryGroups: (t) => {
     const groups: { id: "node" | "tags" | "other"; label: string }[] = [
       {
         id: "node",
-        label: t.dataStructureType === "blocks" ? "Blocks" : "Node data",
+        label: t.dataStructureType.startsWith("blocks")
+          ? "Blocks"
+          : "Node data",
       },
     ];
     if (t.memory.tags.arrays.length > 0)
@@ -94,7 +111,11 @@ const SET_CATALOG: PickerCatalog<SetView> = {
       ? [
           "Offline: the constructor only learns which values can appear; the multiset starts empty, so add() each value yourself. Query arguments (x, lo, hi) can be anything.",
         ]
-      : [],
+      : t.values === "online-range"
+        ? [
+            "Every value added must lie in [lo, hi]; query arguments can be anything.",
+          ]
+        : [],
 };
 
 export function SetPicker() {

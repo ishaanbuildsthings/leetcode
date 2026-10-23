@@ -7169,5 +7169,7429 @@ export const SET_TEMPLATES: SetTemplate[] = [
         }
       }
     }
+  },
+  {
+    "folder": "pbds",
+    "langs": [
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "size",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "pbds",
+    "complexities": {
+      "add": "log(N)",
+      "count": "log(N)",
+      "countDistinct": "1",
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "min": "1",
+      "popMax": "log(N)",
+      "popMin": "log(N)",
+      "remove": "log(N)",
+      "size": "1",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "key",
+            "size": "2*N"
+          },
+          {
+            "name": "size",
+            "size": "1*N"
+          },
+          {
+            "name": "color",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*N"
+          },
+          {
+            "name": "parent",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = copies present: one red-black tree node per copy, keyed (value, id), with its subtree size",
+      "total": "7*N",
+      "notes": {
+        "cpp": "N = copies present: one red-black tree node per copy, keyed (value, id), with its subtree size"
+      }
+    },
+    "values": "online",
+    "usage": {
+      "cpp": {
+        "classes": [
+          {
+            "className": "PbdsMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead) on GCC's order-statistics tree (pb_ds): one node per copy, keyed (value, id) so equal values stay distinct. No sums, no bulk adds. T: any type with < (and +1 for le).",
+            "ctor": [],
+            "ctorDoc": "an empty multiset"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "splay",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "splay",
+    "complexities": {
+      "add": "log(N) amortized",
+      "addCount": "log(N) amortized",
+      "count": "log(N) amortized",
+      "countDistinct": "1",
+      "countGtX": "log(N) amortized",
+      "countGteX": "log(N) amortized",
+      "countInValRange": "log(N) amortized",
+      "countLtX": "log(N) amortized",
+      "countLteX": "log(N) amortized",
+      "kthLargest": "log(N) amortized",
+      "kthSmallest": "log(N) amortized",
+      "largestLtX": "log(N) amortized",
+      "largestLteX": "log(N) amortized",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "min": "1",
+      "popMax": "log(N) amortized",
+      "popMin": "log(N) amortized",
+      "remove": "log(N) amortized",
+      "removeAll": "log(N) amortized",
+      "removeCount": "log(N) amortized",
+      "size": "1",
+      "smallestGtX": "log(N) amortized",
+      "smallestGteX": "log(N) amortized"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "key",
+            "size": "1*N"
+          },
+          {
+            "name": "cnt",
+            "size": "1*N"
+          },
+          {
+            "name": "size",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*N"
+          },
+          {
+            "name": "parent",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+      "total": "6*N",
+      "notes": {
+        "py": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+        "cpp": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree"
+      }
+    },
+    "values": "online",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "SplayMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node keeps its value, its copies, and the copies in its subtree; every operation splays the last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed nodes are reused.",
+            "ctor": [],
+            "ctorDoc": "an empty multiset"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "SplayMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node keeps its value, its copies, and the copies in its subtree; every operation splays the last node it touched to the root, which makes each one O(log N) amortized. Nodes live in one pool shared by every SplayMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S (long long for small T).",
+            "ctor": [],
+            "ctorDoc": "an empty multiset",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "splay-with-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "mex",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "splay",
+    "complexities": {
+      "add": "log(N) amortized",
+      "addCount": "log(N) amortized",
+      "count": "log(N) amortized",
+      "countDistinct": "1",
+      "countGtX": "log(N) amortized",
+      "countGteX": "log(N) amortized",
+      "countInValRange": "log(N) amortized",
+      "countLtX": "log(N) amortized",
+      "countLteX": "log(N) amortized",
+      "kthLargest": "log(N) amortized",
+      "kthSmallest": "log(N) amortized",
+      "largestLtX": "log(N) amortized",
+      "largestLteX": "log(N) amortized",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "mex": "1 amortized",
+      "min": "1",
+      "popMax": "log(N) amortized",
+      "popMin": "log(N) amortized",
+      "remove": "log(N) amortized",
+      "removeAll": "log(N) amortized",
+      "removeCount": "log(N) amortized",
+      "size": "1",
+      "smallestGtX": "log(N) amortized",
+      "smallestGteX": "log(N) amortized"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "key",
+            "size": "1*N"
+          },
+          {
+            "name": "cnt",
+            "size": "1*N"
+          },
+          {
+            "name": "size",
+            "size": "1*N"
+          },
+          {
+            "name": "dn",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*N"
+          },
+          {
+            "name": "parent",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+      "total": "7*N",
+      "notes": {
+        "py": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+        "cpp": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree"
+      }
+    },
+    "values": "online",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "SplayMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node keeps its value, its copies, and the copies and distinct values in its subtree; every operation splays the last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed nodes are reused.",
+            "ctor": [],
+            "ctorDoc": "an empty multiset"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "SplayMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node keeps its value, its copies, and the copies and distinct values in its subtree; every operation splays the last node it touched to the root, which makes each one O(log N) amortized. Nodes live in one pool shared by every SplayMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S (long long for small T).",
+            "ctor": [],
+            "ctorDoc": "an empty multiset",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "returns": "long long",
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "splay-with-sums",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumAll",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "splay",
+    "complexities": {
+      "add": "log(N) amortized",
+      "addCount": "log(N) amortized",
+      "count": "log(N) amortized",
+      "countDistinct": "1",
+      "countGtX": "log(N) amortized",
+      "countGteX": "log(N) amortized",
+      "countInValRange": "log(N) amortized",
+      "countLtX": "log(N) amortized",
+      "countLteX": "log(N) amortized",
+      "kthLargest": "log(N) amortized",
+      "kthSmallest": "log(N) amortized",
+      "largestLtX": "log(N) amortized",
+      "largestLteX": "log(N) amortized",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "min": "1",
+      "popMax": "log(N) amortized",
+      "popMin": "log(N) amortized",
+      "remove": "log(N) amortized",
+      "removeAll": "log(N) amortized",
+      "removeCount": "log(N) amortized",
+      "size": "1",
+      "smallestGtX": "log(N) amortized",
+      "smallestGteX": "log(N) amortized",
+      "sumAbsDiffToMedian": "1 amortized",
+      "sumAbsDiffToX": "log(N) amortized",
+      "sumAll": "1",
+      "sumGtX": "log(N) amortized",
+      "sumGteX": "log(N) amortized",
+      "sumInValRange": "log(N) amortized",
+      "sumKthLargestRange": "log(N) amortized",
+      "sumKthSmallestRange": "log(N) amortized",
+      "sumLargestK": "log(N) amortized",
+      "sumLtX": "log(N) amortized",
+      "sumLteX": "log(N) amortized",
+      "sumSmallestK": "log(N) amortized"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "key",
+            "size": "1*N"
+          },
+          {
+            "name": "cnt",
+            "size": "1*N"
+          },
+          {
+            "name": "size",
+            "size": "1*N"
+          },
+          {
+            "name": "sum",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*N"
+          },
+          {
+            "name": "parent",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+      "total": "7*N",
+      "notes": {
+        "py": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+        "cpp": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree"
+      }
+    },
+    "values": "online",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "SplayMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node keeps its value, its copies, and the copies, sum in its subtree; every operation splays the last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed nodes are reused.",
+            "ctor": [],
+            "ctorDoc": "an empty multiset"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k largest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k smallest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "SplayMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node keeps its value, its copies, and the copies, sum in its subtree; every operation splays the last node it touched to the root, which makes each one O(log N) amortized. Nodes live in one pool shared by every SplayMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S (long long for small T).",
+            "ctor": [],
+            "ctorDoc": "an empty multiset",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "S",
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "splay-with-sums-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "mex",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumAll",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "splay",
+    "complexities": {
+      "add": "log(N) amortized",
+      "addCount": "log(N) amortized",
+      "count": "log(N) amortized",
+      "countDistinct": "1",
+      "countGtX": "log(N) amortized",
+      "countGteX": "log(N) amortized",
+      "countInValRange": "log(N) amortized",
+      "countLtX": "log(N) amortized",
+      "countLteX": "log(N) amortized",
+      "kthLargest": "log(N) amortized",
+      "kthSmallest": "log(N) amortized",
+      "largestLtX": "log(N) amortized",
+      "largestLteX": "log(N) amortized",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "mex": "1 amortized",
+      "min": "1",
+      "popMax": "log(N) amortized",
+      "popMin": "log(N) amortized",
+      "remove": "log(N) amortized",
+      "removeAll": "log(N) amortized",
+      "removeCount": "log(N) amortized",
+      "size": "1",
+      "smallestGtX": "log(N) amortized",
+      "smallestGteX": "log(N) amortized",
+      "sumAbsDiffToMedian": "1 amortized",
+      "sumAbsDiffToX": "log(N) amortized",
+      "sumAll": "1",
+      "sumGtX": "log(N) amortized",
+      "sumGteX": "log(N) amortized",
+      "sumInValRange": "log(N) amortized",
+      "sumKthLargestRange": "log(N) amortized",
+      "sumKthSmallestRange": "log(N) amortized",
+      "sumLargestK": "log(N) amortized",
+      "sumLtX": "log(N) amortized",
+      "sumLteX": "log(N) amortized",
+      "sumSmallestK": "log(N) amortized"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "key",
+            "size": "1*N"
+          },
+          {
+            "name": "cnt",
+            "size": "1*N"
+          },
+          {
+            "name": "size",
+            "size": "1*N"
+          },
+          {
+            "name": "dn",
+            "size": "1*N"
+          },
+          {
+            "name": "sum",
+            "size": "1*N"
+          }
+        ],
+        "total": "5*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*N"
+          },
+          {
+            "name": "parent",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+      "total": "8*N",
+      "notes": {
+        "py": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+        "cpp": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree"
+      }
+    },
+    "values": "online",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "SplayMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node keeps its value, its copies, and the copies, sum and distinct values in its subtree; every operation splays the last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed nodes are reused.",
+            "ctor": [],
+            "ctorDoc": "an empty multiset"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k largest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k smallest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "SplayMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node keeps its value, its copies, and the copies, sum and distinct values in its subtree; every operation splays the last node it touched to the root, which makes each one O(log N) amortized. Nodes live in one pool shared by every SplayMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S (long long for small T).",
+            "ctor": [],
+            "ctorDoc": "an empty multiset",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "returns": "long long",
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "S",
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "treap",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "add": "log(N) expected",
+      "addCount": "log(N) expected",
+      "count": "log(N) expected",
+      "countDistinct": "1",
+      "countGtX": "log(N) expected",
+      "countGteX": "log(N) expected",
+      "countInValRange": "log(N) expected",
+      "countLtX": "log(N) expected",
+      "countLteX": "log(N) expected",
+      "kthLargest": "log(N) expected",
+      "kthSmallest": "log(N) expected",
+      "largestLtX": "log(N) expected",
+      "largestLteX": "log(N) expected",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "min": "1",
+      "popMax": "log(N) expected",
+      "popMin": "log(N) expected",
+      "remove": "log(N) expected",
+      "removeAll": "log(N) expected",
+      "removeCount": "log(N) expected",
+      "size": "1",
+      "smallestGtX": "log(N) expected",
+      "smallestGteX": "log(N) expected"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "key",
+            "size": "1*N"
+          },
+          {
+            "name": "cnt",
+            "size": "1*N"
+          },
+          {
+            "name": "size",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*N"
+          },
+          {
+            "name": "prio",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+      "total": "6*N",
+      "notes": {
+        "py": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+        "cpp": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree"
+      }
+    },
+    "values": "online",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "TreapMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps its value, its copies, and the copies in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.",
+            "ctor": [],
+            "ctorDoc": "an empty multiset"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "TreapMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps its value, its copies, and the copies in its subtree. Nodes live in one pool shared by every TreapMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused. Updates split around x and merge back. T: an integer type; sums in S (long long for small T).",
+            "ctor": [],
+            "ctorDoc": "an empty multiset",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "treap-with-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "mex",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "add": "log(N) expected",
+      "addCount": "log(N) expected",
+      "count": "log(N) expected",
+      "countDistinct": "1",
+      "countGtX": "log(N) expected",
+      "countGteX": "log(N) expected",
+      "countInValRange": "log(N) expected",
+      "countLtX": "log(N) expected",
+      "countLteX": "log(N) expected",
+      "kthLargest": "log(N) expected",
+      "kthSmallest": "log(N) expected",
+      "largestLtX": "log(N) expected",
+      "largestLteX": "log(N) expected",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "mex": "1 amortized",
+      "min": "1",
+      "popMax": "log(N) expected",
+      "popMin": "log(N) expected",
+      "remove": "log(N) expected",
+      "removeAll": "log(N) expected",
+      "removeCount": "log(N) expected",
+      "size": "1",
+      "smallestGtX": "log(N) expected",
+      "smallestGteX": "log(N) expected"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "key",
+            "size": "1*N"
+          },
+          {
+            "name": "cnt",
+            "size": "1*N"
+          },
+          {
+            "name": "size",
+            "size": "1*N"
+          },
+          {
+            "name": "dn",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*N"
+          },
+          {
+            "name": "prio",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+      "total": "7*N",
+      "notes": {
+        "py": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+        "cpp": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree"
+      }
+    },
+    "values": "online",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "TreapMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps its value, its copies, and the copies and distinct values in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.",
+            "ctor": [],
+            "ctorDoc": "an empty multiset"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "TreapMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps its value, its copies, and the copies and distinct values in its subtree. Nodes live in one pool shared by every TreapMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused. Updates split around x and merge back. T: an integer type; sums in S (long long for small T).",
+            "ctor": [],
+            "ctorDoc": "an empty multiset",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "returns": "long long",
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "treap-with-sums",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumAll",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "add": "log(N) expected",
+      "addCount": "log(N) expected",
+      "count": "log(N) expected",
+      "countDistinct": "1",
+      "countGtX": "log(N) expected",
+      "countGteX": "log(N) expected",
+      "countInValRange": "log(N) expected",
+      "countLtX": "log(N) expected",
+      "countLteX": "log(N) expected",
+      "kthLargest": "log(N) expected",
+      "kthSmallest": "log(N) expected",
+      "largestLtX": "log(N) expected",
+      "largestLteX": "log(N) expected",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "min": "1",
+      "popMax": "log(N) expected",
+      "popMin": "log(N) expected",
+      "remove": "log(N) expected",
+      "removeAll": "log(N) expected",
+      "removeCount": "log(N) expected",
+      "size": "1",
+      "smallestGtX": "log(N) expected",
+      "smallestGteX": "log(N) expected",
+      "sumAbsDiffToMedian": "1 amortized",
+      "sumAbsDiffToX": "log(N) expected",
+      "sumAll": "1",
+      "sumGtX": "log(N) expected",
+      "sumGteX": "log(N) expected",
+      "sumInValRange": "log(N) expected",
+      "sumKthLargestRange": "log(N) expected",
+      "sumKthSmallestRange": "log(N) expected",
+      "sumLargestK": "log(N) expected",
+      "sumLtX": "log(N) expected",
+      "sumLteX": "log(N) expected",
+      "sumSmallestK": "log(N) expected"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "key",
+            "size": "1*N"
+          },
+          {
+            "name": "cnt",
+            "size": "1*N"
+          },
+          {
+            "name": "size",
+            "size": "1*N"
+          },
+          {
+            "name": "sum",
+            "size": "1*N"
+          }
+        ],
+        "total": "4*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*N"
+          },
+          {
+            "name": "prio",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+      "total": "7*N",
+      "notes": {
+        "py": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+        "cpp": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree"
+      }
+    },
+    "values": "online",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "TreapMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps its value, its copies, and the copies, sum in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.",
+            "ctor": [],
+            "ctorDoc": "an empty multiset"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k largest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k smallest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "TreapMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps its value, its copies, and the copies, sum in its subtree. Nodes live in one pool shared by every TreapMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused. Updates split around x and merge back. T: an integer type; sums in S (long long for small T).",
+            "ctor": [],
+            "ctorDoc": "an empty multiset",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "S",
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "treap-with-sums-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "mex",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumAll",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "treap",
+    "complexities": {
+      "add": "log(N) expected",
+      "addCount": "log(N) expected",
+      "count": "log(N) expected",
+      "countDistinct": "1",
+      "countGtX": "log(N) expected",
+      "countGteX": "log(N) expected",
+      "countInValRange": "log(N) expected",
+      "countLtX": "log(N) expected",
+      "countLteX": "log(N) expected",
+      "kthLargest": "log(N) expected",
+      "kthSmallest": "log(N) expected",
+      "largestLtX": "log(N) expected",
+      "largestLteX": "log(N) expected",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "mex": "1 amortized",
+      "min": "1",
+      "popMax": "log(N) expected",
+      "popMin": "log(N) expected",
+      "remove": "log(N) expected",
+      "removeAll": "log(N) expected",
+      "removeCount": "log(N) expected",
+      "size": "1",
+      "smallestGtX": "log(N) expected",
+      "smallestGteX": "log(N) expected",
+      "sumAbsDiffToMedian": "1 amortized",
+      "sumAbsDiffToX": "log(N) expected",
+      "sumAll": "1",
+      "sumGtX": "log(N) expected",
+      "sumGteX": "log(N) expected",
+      "sumInValRange": "log(N) expected",
+      "sumKthLargestRange": "log(N) expected",
+      "sumKthSmallestRange": "log(N) expected",
+      "sumLargestK": "log(N) expected",
+      "sumLtX": "log(N) expected",
+      "sumLteX": "log(N) expected",
+      "sumSmallestK": "log(N) expected"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "key",
+            "size": "1*N"
+          },
+          {
+            "name": "cnt",
+            "size": "1*N"
+          },
+          {
+            "name": "size",
+            "size": "1*N"
+          },
+          {
+            "name": "dn",
+            "size": "1*N"
+          },
+          {
+            "name": "sum",
+            "size": "1*N"
+          }
+        ],
+        "total": "5*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*N"
+          },
+          {
+            "name": "prio",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+      "total": "8*N",
+      "notes": {
+        "py": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree",
+        "cpp": "N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree"
+      }
+    },
+    "values": "online",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "TreapMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps its value, its copies, and the copies, sum and distinct values in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.",
+            "ctor": [],
+            "ctorDoc": "an empty multiset"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k largest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k smallest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "TreapMultiset",
+            "doc": "Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps its value, its copies, and the copies, sum and distinct values in its subtree. Nodes live in one pool shared by every TreapMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused. Updates split around x and merge back. T: an integer type; sums in S (long long for small T).",
+            "ctor": [],
+            "ctorDoc": "an empty multiset",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "returns": "long long",
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "S",
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "value-tree",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "value-tree",
+    "complexities": {
+      "add": "log(U)",
+      "addCount": "log(U)",
+      "count": "log(U)",
+      "countDistinct": "1",
+      "countGtX": "log(U)",
+      "countGteX": "log(U)",
+      "countInValRange": "log(U)",
+      "countLtX": "log(U)",
+      "countLteX": "log(U)",
+      "kthLargest": "log(U)",
+      "kthSmallest": "log(U)",
+      "largestLtX": "log(U)",
+      "largestLteX": "log(U)",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "min": "1",
+      "popMax": "log(U)",
+      "popMin": "log(U)",
+      "remove": "log(U)",
+      "removeAll": "log(U)",
+      "removeCount": "log(U)",
+      "size": "1",
+      "smallestGtX": "log(U)",
+      "smallestGteX": "log(U)"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "sparse",
+      "node": {
+        "arrays": [
+          {
+            "name": "c",
+            "size": "1*log(U)"
+          }
+        ],
+        "total": "1*log(U)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*log(U)"
+          }
+        ],
+        "total": "2*log(U)"
+      },
+      "note": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index",
+      "total": "3*log(U)",
+      "notes": {
+        "py": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index",
+        "cpp": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index"
+      }
+    },
+    "values": "online-range",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ValueTreeMultiset",
+            "doc": "Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range, each node keeping how many copies are below it. Sparse: dicts keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend by counts.",
+            "ctor": [
+              {
+                "name": "lo"
+              },
+              {
+                "name": "hi"
+              }
+            ],
+            "ctorDoc": "an empty multiset for values in [lo, hi] (any integers, negative is fine)"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ValueTreeMultiset",
+            "doc": "Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range, each node keeping how many copies are below it. Nodes live in one pool shared by every ValueTreeMultiset<T> (call resetPool() between test cases); node 0 is the shared empty block. k-th / sums of the k smallest descend by counts. T: int, long long, ...; sums in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "lo",
+                "type": "long long"
+              },
+              {
+                "name": "hi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "an empty multiset for values in [lo, hi] (any long long range, negative is fine)",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "value-tree-with-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "mex",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "value-tree",
+    "complexities": {
+      "add": "log(U)",
+      "addCount": "log(U)",
+      "count": "log(U)",
+      "countDistinct": "1",
+      "countGtX": "log(U)",
+      "countGteX": "log(U)",
+      "countInValRange": "log(U)",
+      "countLtX": "log(U)",
+      "countLteX": "log(U)",
+      "kthLargest": "log(U)",
+      "kthSmallest": "log(U)",
+      "largestLtX": "log(U)",
+      "largestLteX": "log(U)",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "mex": "1 amortized",
+      "min": "1",
+      "popMax": "log(U)",
+      "popMin": "log(U)",
+      "remove": "log(U)",
+      "removeAll": "log(U)",
+      "removeCount": "log(U)",
+      "size": "1",
+      "smallestGtX": "log(U)",
+      "smallestGteX": "log(U)"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "sparse",
+      "node": {
+        "arrays": [
+          {
+            "name": "c",
+            "size": "1*log(U)"
+          },
+          {
+            "name": "p",
+            "size": "1*log(U)"
+          }
+        ],
+        "total": "2*log(U)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*log(U)"
+          }
+        ],
+        "total": "2*log(U)"
+      },
+      "note": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index",
+      "total": "4*log(U)",
+      "notes": {
+        "py": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index",
+        "cpp": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index"
+      }
+    },
+    "values": "online-range",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ValueTreeMultiset",
+            "doc": "Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range, each node keeping how many copies and how many distinct values (for mex) are below it. Sparse: dicts keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend by counts; mex descends to the first value >= 0 whose block isn't full.",
+            "ctor": [
+              {
+                "name": "lo"
+              },
+              {
+                "name": "hi"
+              }
+            ],
+            "ctorDoc": "an empty multiset for values in [lo, hi] (any integers, negative is fine)"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ValueTreeMultiset",
+            "doc": "Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range, each node keeping how many copies and how many distinct values (for mex) are below it. Nodes live in one pool shared by every ValueTreeMultiset<T> (call resetPool() between test cases); node 0 is the shared empty block. k-th / sums of the k smallest descend by counts; mex descends to the first value >= 0 whose block isn't full. T: int, long long, ...; sums in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "lo",
+                "type": "long long"
+              },
+              {
+                "name": "hi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "an empty multiset for values in [lo, hi] (any long long range, negative is fine)",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "returns": "long long",
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "value-tree-with-sums",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumAll",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "value-tree",
+    "complexities": {
+      "add": "log(U)",
+      "addCount": "log(U)",
+      "count": "log(U)",
+      "countDistinct": "1",
+      "countGtX": "log(U)",
+      "countGteX": "log(U)",
+      "countInValRange": "log(U)",
+      "countLtX": "log(U)",
+      "countLteX": "log(U)",
+      "kthLargest": "log(U)",
+      "kthSmallest": "log(U)",
+      "largestLtX": "log(U)",
+      "largestLteX": "log(U)",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "min": "1",
+      "popMax": "log(U)",
+      "popMin": "log(U)",
+      "remove": "log(U)",
+      "removeAll": "log(U)",
+      "removeCount": "log(U)",
+      "size": "1",
+      "smallestGtX": "log(U)",
+      "smallestGteX": "log(U)",
+      "sumAbsDiffToMedian": "1 amortized",
+      "sumAbsDiffToX": "log(U)",
+      "sumAll": "1",
+      "sumGtX": "log(U)",
+      "sumGteX": "log(U)",
+      "sumInValRange": "log(U)",
+      "sumKthLargestRange": "log(U)",
+      "sumKthSmallestRange": "log(U)",
+      "sumLargestK": "log(U)",
+      "sumLtX": "log(U)",
+      "sumLteX": "log(U)",
+      "sumSmallestK": "log(U)"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "sparse",
+      "node": {
+        "arrays": [
+          {
+            "name": "c",
+            "size": "1*log(U)"
+          },
+          {
+            "name": "s",
+            "size": "1*log(U)"
+          }
+        ],
+        "total": "2*log(U)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*log(U)"
+          }
+        ],
+        "total": "2*log(U)"
+      },
+      "note": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index",
+      "total": "4*log(U)",
+      "notes": {
+        "py": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index",
+        "cpp": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index"
+      }
+    },
+    "values": "online-range",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ValueTreeMultiset",
+            "doc": "Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range, each node keeping how many copies, their sum, are below it. Sparse: dicts keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend by counts.",
+            "ctor": [
+              {
+                "name": "lo"
+              },
+              {
+                "name": "hi"
+              }
+            ],
+            "ctorDoc": "an empty multiset for values in [lo, hi] (any integers, negative is fine)"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k largest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k smallest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ValueTreeMultiset",
+            "doc": "Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range, each node keeping how many copies, their sum, are below it. Nodes live in one pool shared by every ValueTreeMultiset<T> (call resetPool() between test cases); node 0 is the shared empty block. k-th / sums of the k smallest descend by counts. T: int, long long, ...; sums in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "lo",
+                "type": "long long"
+              },
+              {
+                "name": "hi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "an empty multiset for values in [lo, hi] (any long long range, negative is fine)",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "S",
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "value-tree-with-sums-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "count",
+      "countDistinct",
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "medianHigh",
+      "medianLow",
+      "mex",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumAll",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "value-tree",
+    "complexities": {
+      "add": "log(U)",
+      "addCount": "log(U)",
+      "count": "log(U)",
+      "countDistinct": "1",
+      "countGtX": "log(U)",
+      "countGteX": "log(U)",
+      "countInValRange": "log(U)",
+      "countLtX": "log(U)",
+      "countLteX": "log(U)",
+      "kthLargest": "log(U)",
+      "kthSmallest": "log(U)",
+      "largestLtX": "log(U)",
+      "largestLteX": "log(U)",
+      "max": "1",
+      "medianHigh": "1 amortized",
+      "medianLow": "1 amortized",
+      "mex": "1 amortized",
+      "min": "1",
+      "popMax": "log(U)",
+      "popMin": "log(U)",
+      "remove": "log(U)",
+      "removeAll": "log(U)",
+      "removeCount": "log(U)",
+      "size": "1",
+      "smallestGtX": "log(U)",
+      "smallestGteX": "log(U)",
+      "sumAbsDiffToMedian": "1 amortized",
+      "sumAbsDiffToX": "log(U)",
+      "sumAll": "1",
+      "sumGtX": "log(U)",
+      "sumGteX": "log(U)",
+      "sumInValRange": "log(U)",
+      "sumKthLargestRange": "log(U)",
+      "sumKthSmallestRange": "log(U)",
+      "sumLargestK": "log(U)",
+      "sumLtX": "log(U)",
+      "sumLteX": "log(U)",
+      "sumSmallestK": "log(U)"
+    },
+    "build": "1",
+    "memory": {
+      "layout": "sparse",
+      "node": {
+        "arrays": [
+          {
+            "name": "c",
+            "size": "1*log(U)"
+          },
+          {
+            "name": "p",
+            "size": "1*log(U)"
+          },
+          {
+            "name": "s",
+            "size": "1*log(U)"
+          }
+        ],
+        "total": "3*log(U)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "children",
+            "size": "2*log(U)"
+          }
+        ],
+        "total": "2*log(U)"
+      },
+      "note": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index",
+      "total": "5*log(U)",
+      "notes": {
+        "py": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index",
+        "cpp": "per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index"
+      }
+    },
+    "values": "online-range",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "ValueTreeMultiset",
+            "doc": "Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range, each node keeping how many copies, their sum, and how many distinct values (for mex) are below it. Sparse: dicts keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend by counts; mex descends to the first value >= 0 whose block isn't full.",
+            "ctor": [
+              {
+                "name": "lo"
+              },
+              {
+                "name": "hi"
+              }
+            ],
+            "ctorDoc": "an empty multiset for values in [lo, hi] (any integers, negative is fine)"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "doc": "lower median: the ceil(size/2)-th smallest value; None if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k largest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "doc": "sum of the k smallest values; raises IndexError unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "ValueTreeMultiset",
+            "doc": "Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range, each node keeping how many copies, their sum, and how many distinct values (for mex) are below it. Nodes live in one pool shared by every ValueTreeMultiset<T> (call resetPool() between test cases); node 0 is the shared empty block. k-th / sums of the k smallest descend by counts; mex descends to the first value >= 0 whose block isn't full. T: int, long long, ...; sums in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "lo",
+                "type": "long long"
+              },
+              {
+                "name": "hi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "an empty multiset for values in [lo, hi] (any long long range, negative is fine)",
+            "pool": true
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "void",
+            "doc": "add c copies of x (nothing if c <= 0)",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "countGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values > x",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values >= x",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "long long",
+            "doc": "how many values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values < x",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many values <= x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "k"
+            ],
+            "returns": "T",
+            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "lower median: the ceil(size/2)-th smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "mex": {
+            "params": [],
+            "returns": "long long",
+            "doc": "smallest non-negative integer not in the set",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of x; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "x",
+              "c"
+            ],
+            "returns": "long long",
+            "doc": "remove min(c, count(x)) copies of x; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |v - x| over all values",
+            "cls": 0
+          },
+          "sumAll": {
+            "params": [],
+            "returns": "S",
+            "doc": "sum of all values",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "lo",
+              "hi"
+            ],
+            "returns": "S",
+            "doc": "sum of the values v with lo <= v <= hi (0 if lo > hi)",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values; throws out_of_range unless 0 <= k <= size",
+            "cls": 0
+          }
+        }
+      }
+    }
   }
 ];

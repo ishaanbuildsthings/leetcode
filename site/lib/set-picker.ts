@@ -322,21 +322,30 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
 // Ordered lightest to heaviest constant factor; used to break ties between templates.
 export const SET_TYPES = [
   "fenwick",
+  "value-tree",
   "blocks",
   "blocks-fenwick",
   "avl",
+  "pbds",
+  "treap",
+  "splay",
 ] as const;
 export type SetType = (typeof SET_TYPES)[number];
 
 export const SET_TYPE_LABELS: Record<SetType, string> = {
-  fenwick: "Fenwick over values",
-  blocks: "Sorted blocks",
-  "blocks-fenwick": "Sorted blocks + inner Fenwicks",
+  fenwick: "Fenwick tree on values",
+  "value-tree": "Value seg tree on [lo, hi]",
+  blocks: "Sorted list (√N blocks)",
+  "blocks-fenwick": "Sorted list (√N blocks, Fenwick in each block)",
   avl: "AVL tree",
+  pbds: "pb_ds order-statistics tree (C++)",
+  treap: "Treap",
+  splay: "Splay tree",
 };
 
-// What the constructor needs up front: every value that will ever be added, or nothing.
-export type SetValues = "offline" | "online";
+// What the constructor needs up front: every value that will ever be added, a range [lo, hi] all values lie in, or
+// nothing.
+export type SetValues = "offline" | "online-range" | "online";
 
 export interface SetTemplate {
   // Folder under templates/sets holding template.py and/or template.cpp, named by its structure.

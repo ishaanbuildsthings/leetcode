@@ -4,7 +4,7 @@
 //
 // Each template is a folder (named by its structure, e.g. treap-with-sums: the op list is too long for a folder
 // name) holding template.py and/or template.cpp with the same header as range-query templates plus
-//   # @values: offline | online
+//   # @values: offline | online-range | online
 // saying what the constructor needs up front: every value that will be added / a range [lo, hi] / nothing.
 // Loose files in templates/sets (older originals) are ignored.
 // Run with: npm run gen:sets
@@ -20,7 +20,7 @@ const publicDir = path.join(siteDir, "public/set-templates");
 const manifestPath = path.join(siteDir, "lib/generated/set-templates.ts");
 
 const TAGS = ["operations", "data-structure-type", "values", "complexities", "memory"];
-const VALUES = ["offline", "online"];
+const VALUES = ["offline", "online-range", "online"];
 
 const errors = [];
 const entries = [];

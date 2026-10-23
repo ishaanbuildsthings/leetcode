@@ -21,6 +21,11 @@ Structures (each in a count-only version and a count + sum version, unless noted
     avl          online: AVL tree on a node pool (subtree counts / sums), freed nodes reused   log N worst case
     blocks       online: sorted blocks of distinct keys with per-block counts / sums + Fenwick over blocks   sqrt N
     blocks-fenwick   online: the same blocks with a Fenwick tree inside each block: queries log N, updates sqrt N
+    value-tree   online, values in [lo, hi]: a dynamic value tree (C++: shared node pool; Python: dict)   log U
+    treap        online: treap on a node pool, freed nodes reused   log N expected
+    splay        online: splay tree on a node pool, freed nodes reused   log N amortized
+    pbds         online, C++ only, count-only: GCC order-statistics tree, one node per copy   log N
+(value-tree, treap, splay and pbds lose to AVL on paper; they stay as options: check_sets.py reports them as kept.)
 """
 import os
 import re
@@ -526,7 +531,260 @@ struct FenwickMultiset {{
                 note="N = how many distinct values were given to the constructor; the arrays are allocated once")
 
 
-# ------------------------------------------------------------------------------------------------ AVL tree
+# ------------------------------------------------------------------------------------------------ value tree
+
+def value_tree(sums, mex):
+    s, M = sums, mex
+    py = f'''
+# Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
+# each node keeping how many copies{", their sum," if s else ""}{" and how many distinct values (for mex)" if M else ""} are below it. Sparse: dicts keyed by heap
+# index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend
+# by counts{"; mex descends to the first value >= 0 whose block isn" + chr(39) + "t full" if M else ""}.
+
+
+class ValueTreeMultiset:
+    __slots__ = ("lo", "hi", "cap", "c",{' "s",' if s else ""}{' "p",' if M else ""} "n",{' "total",' if s else ""} "d")
+
+    # O(1) -- an empty multiset for values in [lo, hi] (any integers, negative is fine)
+    def __init__(self, lo, hi):
+        self.lo, self.hi = lo, hi
+        self.cap = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of value v is cap + (v - lo)
+        self.c = {{}}  # node -> copies below it
+{"        self.s = {}  # node -> sum of the copies below it" + chr(10) if s else ""}        self.p = {{}}  # node -> distinct values below it  @mex
+        self.n = {"self.total = " if s else ""}self.d = 0
+
+    def _insert(self, x, c):
+        cc{", ss" if s else ""} = self.c{", self.s" if s else ""}
+        pp = self.p  @mex
+        i = self.cap + x - self.lo
+        old = cc.get(i, 0)
+        pres = (old + c > 0) - (old > 0)
+        self.d += pres
+        while i:
+            cc[i] = cc.get(i, 0) + c
+{"            ss[i] = ss.get(i, 0) + c * x" + chr(10) if s else ""}            if pres:  @mex
+                pp[i] = pp.get(i, 0) + pres  @mex
+            i >>= 1
+
+    def _prefix(self, f, x):  # f's total over the values < x
+        if x <= self.lo:
+            return 0
+        if x > self.hi:
+            return f.get(1, 0)
+        i = self.cap + x - self.lo
+        res = 0
+        while i > 1:
+            if i & 1:
+                res += f.get(i - 1, 0)
+            i >>= 1
+        return res
+
+    def _lt(self, x):
+        return self._prefix(self.c, x)
+
+    def _le(self, x):
+        return self._prefix(self.c, x + 1)
+
+    def _countOf(self, x):  # the leaf of x
+        return self.c.get(self.cap + x - self.lo, 0) if self.lo <= x <= self.hi else 0
+{f"""
+    def _slt(self, x):
+        return self._prefix(self.s, x)
+
+    def _sle(self, x):
+        return self._prefix(self.s, x + 1)
+""" if s else ""}
+    def _kth(self, k):
+        c, i, size = self.c, 1, self.cap
+        while i < size:
+            i <<= 1
+            cl = c.get(i, 0)
+            if k > cl:
+                k -= cl
+                i += 1
+        return i - size + self.lo
+
+    def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies{", sum before it" if s else ""})
+        c,{" s," if s else ""} i, size, before{", acc" if s else ""} = self.c,{" self.s," if s else ""} 1, self.cap, 0{", 0" if s else ""}
+        while i < size:
+            i <<= 1
+            cl = c.get(i, 0)
+            if before + cl < k:
+                before += cl
+{"                acc += s.get(i, 0)" + chr(10) if s else ""}                i += 1
+        return i - size + self.lo, before, c[i]{", acc" if s else ""}
+
+@mex{{
+    # smallest non-negative integer not in the set (hi + 1 if all of [0, hi] are present)
+    def _findMex(self):
+        if self.lo > 0:
+            return 0
+        p, size = self.p, self.cap
+
+        def full(i):  # every value below node i is present
+            return p.get(i, 0) == size >> (i.bit_length() - 1)
+
+        i = size - self.lo  # the leaf of value 0
+        while True:
+            while i > 1 and not i & 1:  # climb while i is a left child: its parent starts at the same value
+                i >>= 1
+            if not full(i):  # the first missing value is inside i: descend, preferring the left child
+                while i < size:
+                    i <<= 1
+                    if full(i):
+                        i += 1
+                return min(i - size + self.lo, self.hi + 1)
+            i += 1
+            if not i & (i - 1):  # walked off the right edge
+                return self.hi + 1
+@mex}}
+'''
+    sfield = "S s; " if s else ""
+    cpp = f'''
+// Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
+// each node keeping how many copies{", their sum," if s else ""}{" and how many distinct values (for mex)" if M else ""} are below it. Nodes live in one pool
+// shared by every ValueTreeMultiset<T> (call resetPool() between test cases); node 0 is the shared empty block.
+// k-th / sums of the k smallest descend by counts{"; mex descends to the first value >= 0 whose block isn" + chr(39) + "t full" if M else ""}.
+// T: int, long long, ...; sums in S (long long for small T).
+template <typename T>
+struct ValueTreeMultiset {{
+    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
+    struct Node {{ long long c; {sfield}{"long long p; " if M else ""}int l, r; }};  // copies{", sum" if s else ""}{", distinct values" if M else ""} below
+    static inline vector<Node> pool{{Node{{}}}};  // node 0: empty, its children are itself
+    long long lo, hi, n = 0, d = 0;
+{"    S total = 0;" + chr(10) if s else ""}    int root = 0;
+
+    // O(1) -- an empty multiset for values in [lo, hi] (any long long range, negative is fine)
+    ValueTreeMultiset(long long lo, long long hi) : lo(lo), hi(hi) {{}}
+
+    // O(1) -- forget every node of every ValueTreeMultiset<T>; call between test cases, then build new ones
+    static void resetPool() {{ pool.resize(1); }}
+
+    // optional -- reserve room for this many nodes up front
+    static void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
+
+    static int make() {{
+        pool.push_back(Node{{}});
+        return (int)pool.size() - 1;
+    }}
+
+    void insert(T x, long long c) {{
+        if (!root) root = make();
+        int path[130], dep = 0, y = root;
+        long long a = lo, b = hi;
+        while (true) {{
+            path[dep++] = y;
+            if (a == b) break;
+            long long m = a + (b - a) / 2;
+            bool right = x > m;
+            int ch = right ? pool[y].r : pool[y].l;
+            if (!ch) {{
+                ch = make();
+                (right ? pool[y].r : pool[y].l) = ch;
+            }}
+            y = ch;
+            if (right) a = m + 1;
+            else b = m;
+        }}
+        long long old = pool[y].c;
+        long long pres = (old + c > 0) - (old > 0);
+        d += pres;
+        for (int k = 0; k < dep; k++) {{
+            Node& v = pool[path[k]];
+            v.c += c;
+            v.p += pres;  @mex
+{"            v.s += S(c) * x;" + chr(10) if s else ""}        }}
+    }}
+
+    // (copies, sum) of the values < x
+    pair<long long, S> prefix(T x) const {{
+        if (x <= lo) return {{0, 0}};
+        if (x > hi) return {{pool[root].c, {"pool[root].s" if s else "0"}}};
+        long long cnt = 0;
+        S sum = 0;
+        int y = root;
+        long long a = lo, b = hi;
+        while (y && a < b) {{
+            long long m = a + (b - a) / 2;
+            if (x <= m) y = pool[y].l, b = m;
+            else {{
+                const Node& L = pool[pool[y].l];
+                cnt += L.c{", sum += L.s" if s else ""};
+                y = pool[y].r, a = m + 1;
+            }}
+        }}
+        return {{cnt, sum}};  // y is now the leaf of x (or empty): values < x only
+    }}
+
+    long long lt(T x) {{ return prefix(x).first; }}
+    long long le(T x) {{ return prefix(x + 1).first; }}
+
+    long long countOf(T x) const {{  // walk to the leaf of x
+        if (x < lo || x > hi) return 0;
+        int y = root;
+        long long a = lo, b = hi;
+        while (y && a < b) {{
+            long long m = a + (b - a) / 2;
+            if (x <= m) y = pool[y].l, b = m;
+            else y = pool[y].r, a = m + 1;
+        }}
+        return pool[y].c;
+    }}
+{"    S slt(T x) { return prefix(x).second; }" + chr(10) + "    S sle(T x) { return prefix(x + 1).second; }" + chr(10) if s else ""}
+    T kth(long long k) {{
+        int y = root;
+        long long a = lo, b = hi;
+        while (a < b) {{
+            long long m = a + (b - a) / 2;
+            long long cl = pool[pool[y].l].c;
+            if (k <= cl) y = pool[y].l, b = m;
+            else k -= cl, y = pool[y].r, a = m + 1;
+        }}
+        return T(a);
+    }}
+
+    Info kthInfo(long long k) {{  // the k-th smallest, copies before it, its copies{", sum before it" if s else ""}
+        int y = root;
+        long long a = lo, b = hi, before = 0;
+{"        S acc = 0;" + chr(10) if s else ""}        while (a < b) {{
+            long long m = a + (b - a) / 2;
+            const Node& L = pool[pool[y].l];
+            if (k <= before + L.c) y = pool[y].l, b = m;
+            else before += L.c{", acc += L.s" if s else ""}, y = pool[y].r, a = m + 1;
+        }}
+        return {{T(a), before, pool[y].c{", acc" if s else ""}}};
+    }}
+@mex{{
+    // the first value >= from in [a, b] (node y) that is not present, or LLONG_MAX
+    long long firstMissing(int y, long long a, long long b, long long from) const {{
+        if (b < from) return LLONG_MAX;
+        if (!y) return std::max(a, from);
+        if (pool[y].p == b - a + 1) return LLONG_MAX;
+        if (a == b) return a;
+        long long m = a + (b - a) / 2;
+        long long res = firstMissing(pool[y].l, a, m, from);
+        return res != LLONG_MAX ? res : firstMissing(pool[y].r, m + 1, b, from);
+    }}
+
+    // smallest non-negative integer not in the set (hi + 1 if all of [0, hi] are present)
+    long long findMex() {{
+        if (lo > 0) return 0;
+        long long res = firstMissing(root, lo, hi, 0);
+        return res == LLONG_MAX ? hi + 1 : res;
+    }}
+@mex}}
+'''
+    comps = {op: "log(U)" for op in OPS}
+    comps.update({"size": "1", "sumAll": "1", "countDistinct": "1", "min": "1", "max": "1", "build": "1"})
+    node = "c[1*log(U)]" + (" p[1*log(U)]" if M else "") + (" s[1*log(U)]" if s else "")
+    return dict(name="ValueTreeMultiset", dtype="value-tree", values="online-range", py=keep_mex(py, M), cpp=keep_mex(cpp, M),
+                comps=comps, mex=M,
+                mem=("sparse", node, "none", "children[2*log(U)]"),
+                note="per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared "
+                     "node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index")
+
+
+# ------------------------------------------------------------------------------------------------ AVL tree, treap, splay tree
 
 def bst_common_py(s):
     """Read-only walks of the AVL tree (Python): K key, C copies, Z copies below, S sum below, D distinct below,
@@ -706,6 +964,174 @@ def bst_common_cpp(s):
     }}
 @mex}}
 '''
+
+
+def treap(sums, mex):
+    s, M = sums, mex
+    py = f'''from random import random
+
+
+# Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
+# its value, its copies, and the copies{", sum" if s else ""}{" and distinct values" if M else ""} in its subtree. Nodes live in parallel lists (a node
+# pool; node 0 is the empty tree) and removed nodes are reused. Updates split around x and merge back.
+
+
+class TreapMultiset:
+    __slots__ = ("K", "C", "Z",{' "S",' if s else ""}{' "D",' if M else ""} "P", "L", "R", "free", "root", "n",{' "total",' if s else ""} "d")
+
+    # O(1) -- an empty multiset
+    def __init__(self):
+        self.K, self.C, self.Z{", self.S" if s else ""} = [0], [0], [0]{", [0]" if s else ""}  # key, copies, copies below{", sum below" if s else ""}
+        self.D = [0]  # distinct values below  @mex
+        self.P, self.L, self.R = [0.0], [0], [0]  # priority, children
+        self.free = []  # removed nodes, reused first
+        self.root = self.n = {"self.total = " if s else ""}self.d = 0
+
+    def _new(self, x):
+        if self.free:
+            t = self.free.pop()
+            self.K[t], self.C[t], self.P[t], self.L[t], self.R[t] = x, 0, random(), 0, 0
+            return t
+        self.K.append(x)
+        self.C.append(0)
+        self.Z.append(0)
+{"        self.S.append(0)" + chr(10) if s else ""}        self.D.append(0)  @mex
+        self.P.append(random())
+        self.L.append(0)
+        self.R.append(0)
+        return len(self.K) - 1
+
+    def _pull(self, t):
+        l, r = self.L[t], self.R[t]
+        self.Z[t] = self.Z[l] + self.Z[r] + self.C[t]
+{"        self.S[t] = self.S[l] + self.S[r] + self.C[t] * self.K[t]" + chr(10) if s else ""}        self.D[t] = self.D[l] + self.D[r] + 1  @mex
+
+    def _split(self, t, x):  # (keys < x, keys >= x)
+        if not t:
+            return 0, 0
+        if self.K[t] < x:
+            a, b = self._split(self.R[t], x)
+            self.R[t] = a
+            self._pull(t)
+            return t, b
+        a, b = self._split(self.L[t], x)
+        self.L[t] = b
+        self._pull(t)
+        return a, t
+
+    def _merge(self, a, b):  # every key in a < every key in b
+        if not a or not b:
+            return a or b
+        if self.P[a] > self.P[b]:
+            self.R[a] = self._merge(self.R[a], b)
+            self._pull(a)
+            return a
+        self.L[b] = self._merge(a, self.L[b])
+        self._pull(b)
+        return b
+
+    def _insert(self, x, c):
+        a, b = self._split(self.root, x)
+        m, b = self._split(b, x + 1)  # m: the node of x, or 0
+        if not m:
+            m = self._new(x)
+            self.d += 1
+        self.C[m] += c
+        if self.C[m]:
+            self._pull(m)
+        else:
+            self.free.append(m)
+            m = 0
+            self.d -= 1
+        self.root = self._merge(self._merge(a, m), b)
+''' + bst_common_py(s)
+    sfield = "S s; " if s else ""
+    cpp = f'''
+// Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
+// its value, its copies, and the copies{", sum" if s else ""}{" and distinct values" if M else ""} in its subtree. Nodes live in one pool shared by every
+// TreapMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused.
+// Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
+template <typename T>
+struct TreapMultiset {{
+    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
+    struct Node {{ T key; long long c, z; {sfield}{"long long dn; " if M else ""}unsigned prio; int l, r; }};  // copies; copies{", sum" if s else ""}{", distinct" if M else ""} below
+    static inline vector<Node> pool{{Node{{}}}};
+    static inline vector<int> freeList;
+    static inline mt19937 rng{{(unsigned)chrono::steady_clock::now().time_since_epoch().count()}};
+    int root = 0;
+    long long n = 0, d = 0;
+{"    S total = 0;" + chr(10) if s else ""}
+    // O(1) -- an empty multiset
+    TreapMultiset() {{}}
+
+    // O(1) -- forget every node of every TreapMultiset<T>; call between test cases, then build new ones
+    static void resetPool() {{ pool.resize(1), freeList.clear(); }}
+
+    // optional -- reserve room for this many nodes up front
+    static void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
+
+    static int make(T x) {{
+        int t;
+        if (!freeList.empty()) t = freeList.back(), freeList.pop_back();
+        else pool.push_back(Node{{}}), t = (int)pool.size() - 1;
+        pool[t] = Node{{}};
+        pool[t].key = x, pool[t].prio = rng();
+        return t;
+    }}
+
+    static void pull(int t) {{
+        Node& v = pool[t];
+        const Node &a = pool[v.l], &b = pool[v.r];
+        v.z = a.z + b.z + v.c;
+        v.dn = a.dn + b.dn + 1;  @mex
+{"        v.s = a.s + b.s + S(v.c) * v.key;" + chr(10) if s else ""}    }}
+
+    static void split(int t, T x, int& a, int& b) {{  // (keys < x, keys >= x)
+        if (!t) {{
+            a = b = 0;
+            return;
+        }}
+        if (pool[t].key < x) {{
+            int ra, rb;
+            split(pool[t].r, x, ra, rb);
+            pool[t].r = ra, pull(t), a = t, b = rb;
+        }} else {{
+            int la, lb;
+            split(pool[t].l, x, la, lb);
+            pool[t].l = lb, pull(t), a = la, b = t;
+        }}
+    }}
+
+    static int merge(int a, int b) {{  // every key in a < every key in b
+        if (!a || !b) return a ? a : b;
+        if (pool[a].prio > pool[b].prio) {{
+            int r = merge(pool[a].r, b);
+            pool[a].r = r, pull(a);
+            return a;
+        }}
+        int l = merge(a, pool[b].l);
+        pool[b].l = l, pull(b);
+        return b;
+    }}
+
+    void insert(T x, long long c) {{
+        int a, b, m;
+        split(root, x, a, b);
+        split(b, x + 1, m, b);  // m: the node of x, or 0
+        if (!m) m = make(x), d++;
+        pool[m].c += c;
+        if (pool[m].c) pull(m);
+        else freeList.push_back(m), m = 0, d--;
+        root = merge(merge(a, m), b);
+    }}
+''' + bst_common_cpp(s)
+    comps = {op: "log(N) expected" for op in OPS}
+    comps.update({"size": "1", "sumAll": "1", "countDistinct": "1", "min": "1", "max": "1", "build": "1"})
+    node = "key[1*N] cnt[1*N] size[1*N]" + (" dn[1*N]" if M else "") + (" sum[1*N]" if s else "")
+    return dict(name="TreapMultiset", dtype="treap", values="online", py=keep_mex(py, M), cpp=keep_mex(cpp, M), comps=comps, mex=M,
+                mem=("none", node, "none", "children[2*N] prio[1*N]"),
+                note="N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, "
+                     "call resetPool() between test cases; Python: parallel lists per tree")
 
 
 def avl(sums, mex):
@@ -922,6 +1348,443 @@ struct AVLMultiset {{
     node = "key[1*N] cnt[1*N] size[1*N]" + (" dn[1*N]" if M else "") + (" sum[1*N]" if s else "")
     return dict(name="AVLMultiset", dtype="avl", values="online", py=keep_mex(py, M), cpp=keep_mex(cpp, M), comps=comps, mex=M,
                 mem=("none", node, "none", "children[2*N] height[1*N]"),
+                note="N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, "
+                     "call resetPool() between test cases; Python: parallel lists per tree")
+
+
+def splay_walks_py(s):
+    """The AVL walks (bst_common_py), but each splays the last node it visited, which is what makes the splay tree's
+    bounds amortized O(log N)."""
+    return f'''
+    def _lt(self, x):  # copies of values < x
+        K, C, Z, L, R = self.K, self.C, self.Z, self.L, self.R
+        t, res, last = self.root, 0, 0
+        while t:
+            last = t
+            if K[t] < x:
+                res += Z[L[t]] + C[t]
+                t = R[t]
+            else:
+                t = L[t]
+        self._touch(last)
+        return res
+
+    def _le(self, x):
+        return self._lt(x + 1)
+
+    def _countOf(self, x):
+        K, L, R = self.K, self.L, self.R
+        t, last = self.root, 0
+        while t and K[t] != x:
+            last = t
+            t = L[t] if x < K[t] else R[t]
+        self._touch(t or last)
+        return self.C[t]
+{f"""
+    def _slt(self, x):  # sum of the values < x
+        K, C, S, L, R = self.K, self.C, self.S, self.L, self.R
+        t, res, last = self.root, 0, 0
+        while t:
+            last = t
+            if K[t] < x:
+                res += S[L[t]] + C[t] * K[t]
+                t = R[t]
+            else:
+                t = L[t]
+        self._touch(last)
+        return res
+
+    def _sle(self, x):
+        return self._slt(x + 1)
+""" if s else ""}
+    def _kth(self, k):
+        K, C, Z, L, R = self.K, self.C, self.Z, self.L, self.R
+        t = self.root
+        while True:
+            zl = Z[L[t]]
+            if k <= zl:
+                t = L[t]
+            elif k <= zl + C[t]:
+                self._touch(t)
+                return K[t]
+            else:
+                k -= zl + C[t]
+                t = R[t]
+    def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies{", sum before it" if s else ""})
+        K, C, Z,{" S," if s else ""} L, R = self.K, self.C, self.Z,{" self.S," if s else ""} self.L, self.R
+        t, before{", acc" if s else ""} = self.root, 0{", 0" if s else ""}
+        while True:
+            l = L[t]
+            zl = before + Z[l]
+            if k <= zl:
+                t = l
+            elif k <= zl + C[t]:
+                res = K[t], zl, C[t]{", acc + S[l]" if s else ""}
+                self._touch(t)
+                return res
+            else:
+                before = zl + C[t]
+{"                acc += S[l] + C[t] * K[t]" + chr(10) if s else ""}                t = R[t]
+@mex{{
+    def _distinctLt(self, x):  # distinct values < x
+        K, D, L, R = self.K, self.D, self.L, self.R
+        t, res, last = self.root, 0, 0
+        while t:
+            last = t
+            if K[t] < x:
+                res += D[L[t]] + 1
+                t = R[t]
+            else:
+                t = L[t]
+        self._touch(last)
+        return res
+
+    # smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0
+    # in order v_0 < v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j
+    # with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
+    def _findMex(self):
+        K, D, L, R = self.K, self.D, self.L, self.R
+        c0 = self._distinctLt(0)
+        t, before, last, res = self.root, -c0, 0, self.d - c0  # before: distinct values >= 0 left of t's subtree
+        while t:
+            last = t
+            j = before + D[L[t]]
+            if K[t] < 0 or K[t] == j:
+                before = j + 1
+                t = R[t]
+            else:
+                res = j
+                t = L[t]
+        self._touch(last)
+        return res
+@mex}}
+'''
+
+
+def splay_walks_cpp(s):
+    return f'''
+    long long lt(T x) {{  // copies of values < x
+        int t = root, last = 0;
+        long long res = 0;
+        while (t) {{
+            last = t;
+            if (pool[t].key < x) res += pool[pool[t].l].z + pool[t].c, t = pool[t].r;
+            else t = pool[t].l;
+        }}
+        touch(last);
+        return res;
+    }}
+
+    long long le(T x) {{ return lt(x + 1); }}
+
+    long long countOf(T x) {{
+        int t = root, last = 0;
+        while (t && pool[t].key != x) last = t, t = x < pool[t].key ? pool[t].l : pool[t].r;
+        touch(t ? t : last);
+        return pool[t].c;
+    }}
+{f"""
+    S slt(T x) {{  // sum of the values < x
+        int t = root, last = 0;
+        S res = 0;
+        while (t) {{
+            last = t;
+            if (pool[t].key < x) res += pool[pool[t].l].s + S(pool[t].c) * pool[t].key, t = pool[t].r;
+            else t = pool[t].l;
+        }}
+        touch(last);
+        return res;
+    }}
+
+    S sle(T x) {{ return slt(x + 1); }}
+""" if s else ""}
+    T kth(long long k) {{
+        int t = root;
+        while (true) {{
+            long long zl = pool[pool[t].l].z;
+            if (k <= zl) t = pool[t].l;
+            else if (k <= zl + pool[t].c) {{
+                touch(t);
+                return pool[t].key;
+            }} else k -= zl + pool[t].c, t = pool[t].r;
+        }}
+    }}
+    Info kthInfo(long long k) {{  // the k-th smallest, copies before it, its copies{", sum before it" if s else ""}
+        int t = root;
+        long long before = 0;
+{"        S acc = 0;" + chr(10) if s else ""}        while (true) {{
+            const Node& v = pool[t];
+            long long zl = before + pool[v.l].z;
+            if (k <= zl) t = v.l;
+            else if (k <= zl + v.c) {{
+                Info res{{v.key, zl, v.c{", acc + pool[v.l].s" if s else ""}}};
+                touch(t);
+                return res;
+            }} else before = zl + v.c{", acc += pool[v.l].s + S(v.c) * v.key" if s else ""}, t = v.r;
+        }}
+    }}
+@mex{{
+    long long distinctLt(T x) {{  // distinct values < x
+        int t = root, last = 0;
+        long long res = 0;
+        while (t) {{
+            last = t;
+            if (pool[t].key < x) res += pool[pool[t].l].dn + 1, t = pool[t].r;
+            else t = pool[t].l;
+        }}
+        touch(last);
+        return res;
+    }}
+
+    // smallest non-negative integer not in the set. With c0 distinct negatives, the distinct values >= 0
+    // in order v_0 < v_1 < ... satisfy v_j >= j, and v_j == j means 0..v_j are all present; the answer is the first j
+    // with v_j > j (or how many there are). One walk down: at a node of distinct rank c0 + j, go right if v_j == j.
+    long long findMex() {{
+        long long c0 = distinctLt(0), before = -c0, res = d - c0;  // before: distinct values >= 0 left of t's subtree
+        int t = root, last = 0;
+        while (t) {{
+            last = t;
+            long long j = before + pool[pool[t].l].dn;
+            if (pool[t].key < 0 || pool[t].key == T(j)) before = j + 1, t = pool[t].r;
+            else res = j, t = pool[t].l;
+        }}
+        touch(last);
+        return res;
+    }}
+@mex}}
+'''
+
+
+def splay(sums, mex):
+    s, M = sums, mex
+    py = f'''
+# Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
+# keeps its value, its copies, and the copies{", sum" if s else ""}{" and distinct values" if M else ""} in its subtree; every operation splays the
+# last node it touched to the root, which makes each one O(log N) amortized. Nodes live in parallel lists (a node pool;
+# node 0 is the empty tree) and removed nodes are reused.
+
+
+class SplayMultiset:
+    __slots__ = ("K", "C", "Z",{' "S",' if s else ""}{' "D",' if M else ""} "L", "R", "P", "free", "root", "n",{' "total",' if s else ""} "d")
+
+    # O(1) -- an empty multiset
+    def __init__(self):
+        self.K, self.C, self.Z{", self.S" if s else ""} = [0], [0], [0]{", [0]" if s else ""}  # key, copies, copies below{", sum below" if s else ""}
+        self.D = [0]  # distinct values below  @mex
+        self.L, self.R, self.P = [0], [0], [0]  # children, parent
+        self.free = []  # removed nodes, reused first
+        self.root = self.n = {"self.total = " if s else ""}self.d = 0
+
+    def _new(self, x, parent):
+        if self.free:
+            t = self.free.pop()
+            self.K[t], self.C[t], self.L[t], self.R[t], self.P[t] = x, 0, 0, 0, parent
+            return t
+        self.K.append(x)
+        self.C.append(0)
+        self.Z.append(0)
+{"        self.S.append(0)" + chr(10) if s else ""}        self.D.append(0)  @mex
+        self.L.append(0)
+        self.R.append(0)
+        self.P.append(parent)
+        return len(self.K) - 1
+
+    def _pull(self, t):
+        l, r = self.L[t], self.R[t]
+        self.Z[t] = self.Z[l] + self.Z[r] + self.C[t]
+{"        self.S[t] = self.S[l] + self.S[r] + self.C[t] * self.K[t]" + chr(10) if s else ""}        self.D[t] = self.D[l] + self.D[r] + 1  @mex
+
+    def _rotate(self, x):  # x moves above its parent
+        L, R, P = self.L, self.R, self.P
+        p = P[x]
+        g = P[p]
+        if L[p] == x:
+            b = R[x]
+            L[p], R[x] = b, p
+        else:
+            b = L[x]
+            R[p], L[x] = b, p
+        if b:
+            P[b] = p
+        P[p], P[x] = x, g
+        if g:
+            if L[g] == p:
+                L[g] = x
+            else:
+                R[g] = x
+        self._pull(p)
+        self._pull(x)
+
+    def _splay(self, x):  # x becomes the root of its tree
+        P, L = self.P, self.L
+        while P[x]:
+            p = P[x]
+            g = P[p]
+            if g:
+                self._rotate(p if (L[g] == p) == (L[p] == x) else x)
+            self._rotate(x)
+        return x
+
+    def _touch(self, t):
+        if t:
+            self.root = self._splay(t)
+
+    def _insert(self, x, c):
+        K, L, R = self.K, self.L, self.R
+        t = self.root
+        while t and K[t] != x:
+            nxt = L[t] if x < K[t] else R[t]
+            if not nxt:
+                break
+            t = nxt
+        if t and K[t] == x:  # x is already here
+            self.C[t] += c
+            self._pull(t)
+            self.root = self._splay(t)
+            if not self.C[t]:
+                self._erase(t)
+            return
+        u = self._new(x, t)
+        self.C[u] = c
+        self._pull(u)
+        if t:
+            if x < K[t]:
+                L[t] = u
+            else:
+                R[t] = u
+        self.root = self._splay(u)
+        self.d += 1
+
+    def _erase(self, t):  # t is the root
+        L, R, P = self.L, self.R, self.P
+        l, r = L[t], R[t]
+        if l:
+            P[l] = 0
+        if r:
+            P[r] = 0
+        if not l:
+            self.root = r
+        else:
+            m = l
+            while R[m]:
+                m = R[m]
+            m = self._splay(m)  # the largest key on the left becomes the left tree's root, with no right child
+            R[m] = r
+            if r:
+                P[r] = m
+            self._pull(m)
+            self.root = m
+        self.free.append(t)
+        self.d -= 1
+''' + splay_walks_py(s)
+    sfield = "S s; " if s else ""
+    cpp = f'''
+// Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
+// keeps its value, its copies, and the copies{", sum" if s else ""}{" and distinct values" if M else ""} in its subtree; every operation splays the
+// last node it touched to the root, which makes each one O(log N) amortized. Nodes live in one pool shared by every
+// SplayMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused.
+// T: an integer type; sums in S (long long for small T).
+template <typename T>
+struct SplayMultiset {{
+    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
+    struct Node {{ T key; long long c, z; {sfield}{"long long dn; " if M else ""}int l, r, p; }};  // copies; copies{", sum" if s else ""}{", distinct" if M else ""} below; parent
+    static inline vector<Node> pool{{Node{{}}}};
+    static inline vector<int> freeList;
+    int root = 0;
+    long long n = 0, d = 0;
+{"    S total = 0;" + chr(10) if s else ""}
+    // O(1) -- an empty multiset
+    SplayMultiset() {{}}
+
+    // O(1) -- forget every node of every SplayMultiset<T>; call between test cases, then build new ones
+    static void resetPool() {{ pool.resize(1), freeList.clear(); }}
+
+    // optional -- reserve room for this many nodes up front
+    static void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
+
+    static int make(T x, int parent) {{
+        int t;
+        if (!freeList.empty()) t = freeList.back(), freeList.pop_back();
+        else pool.push_back(Node{{}}), t = (int)pool.size() - 1;
+        pool[t] = Node{{}};
+        pool[t].key = x, pool[t].p = parent;
+        return t;
+    }}
+
+    static void pull(int t) {{
+        Node& v = pool[t];
+        const Node &a = pool[v.l], &b = pool[v.r];
+        v.z = a.z + b.z + v.c;
+        v.dn = a.dn + b.dn + 1;  @mex
+{"        v.s = a.s + b.s + S(v.c) * v.key;" + chr(10) if s else ""}    }}
+
+    static void rotate(int x) {{  // x moves above its parent
+        int p = pool[x].p, g = pool[p].p, b;
+        if (pool[p].l == x) b = pool[x].r, pool[p].l = b, pool[x].r = p;
+        else b = pool[x].l, pool[p].r = b, pool[x].l = p;
+        if (b) pool[b].p = p;
+        pool[p].p = x, pool[x].p = g;
+        if (g) (pool[g].l == p ? pool[g].l : pool[g].r) = x;
+        pull(p), pull(x);
+    }}
+
+    static int splay(int x) {{  // x becomes the root of its tree
+        while (int p = pool[x].p) {{
+            if (int g = pool[p].p) rotate((pool[g].l == p) == (pool[p].l == x) ? p : x);
+            rotate(x);
+        }}
+        return x;
+    }}
+
+    void touch(int t) {{
+        if (t) root = splay(t);
+    }}
+
+    void insert(T x, long long c) {{
+        int t = root;
+        while (t && pool[t].key != x) {{
+            int nxt = x < pool[t].key ? pool[t].l : pool[t].r;
+            if (!nxt) break;
+            t = nxt;
+        }}
+        if (t && pool[t].key == x) {{  // x is already here
+            pool[t].c += c;
+            pull(t);
+            root = splay(t);
+            if (!pool[t].c) erase(t);
+            return;
+        }}
+        int u = make(x, t);
+        pool[u].c = c;
+        pull(u);
+        if (t) (x < pool[t].key ? pool[t].l : pool[t].r) = u;
+        root = splay(u);
+        d++;
+    }}
+
+    void erase(int t) {{  // t is the root
+        int l = pool[t].l, r = pool[t].r;
+        if (l) pool[l].p = 0;
+        if (r) pool[r].p = 0;
+        if (!l) root = r;
+        else {{
+            int m = l;
+            while (pool[m].r) m = pool[m].r;
+            m = splay(m);  // the largest key on the left becomes the left tree's root, with no right child
+            pool[m].r = r;
+            if (r) pool[r].p = m;
+            pull(m);
+            root = m;
+        }}
+        freeList.push_back(t);
+        d--;
+    }}
+''' + splay_walks_cpp(s)
+    comps = {op: "log(N) amortized" for op in OPS}
+    comps.update({"size": "1", "sumAll": "1", "countDistinct": "1", "min": "1", "max": "1", "build": "1"})
+    node = "key[1*N] cnt[1*N] size[1*N]" + (" dn[1*N]" if M else "") + (" sum[1*N]" if s else "")
+    return dict(name="SplayMultiset", dtype="splay", values="online", py=keep_mex(py, M), cpp=keep_mex(cpp, M), comps=comps, mex=M,
+                mem=("none", node, "none", "children[2*N] parent[1*N]"),
                 note="N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, "
                      "call resetPool() between test cases; Python: parallel lists per tree")
 
@@ -1643,6 +2506,55 @@ struct BlockFenwickMultiset {{
                      "O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt)")
 
 
+def pbds():
+    cpp = '''
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+// Ordered multiset (online: any values, nothing known ahead) on GCC's order-statistics tree (pb_ds): one node per
+// copy, keyed (value, id) so equal values stay distinct. No sums, no bulk adds. T: any type with < (and +1 for le).
+template <typename T>
+struct PbdsMultiset {
+    using Tree = __gnu_pbds::tree<pair<T, int>, __gnu_pbds::null_type, less<pair<T, int>>, __gnu_pbds::rb_tree_tag,
+                                  __gnu_pbds::tree_order_statistics_node_update>;
+    Tree t;
+    int ids = 0;
+    long long n = 0, d = 0;
+
+    // O(1) -- an empty multiset
+    PbdsMultiset() {}
+
+    void insert(T x, long long c) {  // c = +1 or -1
+        if (c > 0) {
+            if (!count(x)) d++;
+            t.insert({x, ids++});
+        } else {
+            t.erase(t.lower_bound({x, INT_MIN}));
+            if (!count(x)) d--;
+        }
+    }
+
+    long long lt(T x) { return (long long)t.order_of_key({x, INT_MIN}); }
+    long long le(T x) { return (long long)t.order_of_key({x, INT_MAX}); }
+    T kth(long long k) { return t.find_by_order(k - 1)->first; }
+    long long countOf(T x) { return le(x) - lt(x); }
+
+    Info kthInfo(long long k) {  // the k-th smallest, copies before it, its copies
+        T v = kth(k);
+        long long b = lt(v);
+        return {v, b, le(v) - b};
+    }
+'''
+    ops = ["add", "remove", "popMin", "popMax", "size", "count", "countDistinct", "min", "max", "medianLow", "medianHigh",
+           "kthSmallest", "kthLargest", "largestLtX", "largestLteX", "smallestGtX", "smallestGteX", "countLtX",
+           "countLteX", "countGtX", "countGteX", "countInValRange"]
+    comps = {op: "log(N)" for op in OPS}
+    comps.update({"size": "1", "countDistinct": "1", "min": "1", "max": "1", "build": "1"})
+    return dict(name="PbdsMultiset", dtype="pbds", values="online", py=None, cpp=cpp, comps=comps,
+                mem=("none", "key[2*N] size[1*N] color[1*N]", "none", "children[2*N] parent[1*N]"),
+                note="N = copies present: one red-black tree node per copy, keyed (value, id), with its subtree size", ops=ops)
+
+
 # ================================================================================================ assembly
 
 def header(cm, ops, spec):
@@ -1680,7 +2592,7 @@ CACHED_OPS = {"min": "1", "max": "1", "medianLow": "1 amortized", "medianHigh": 
 
 
 def write(spec, sums):
-    ops = sorted(op for op in (list(OPS) if sums else COUNT_OPS) if op != "mex" or spec.get("mex", True))
+    ops = sorted(spec.get("ops") or (op for op in (list(OPS) if sums else COUNT_OPS) if op != "mex" or spec.get("mex", True)))
     spec["comps"].update(CACHED_OPS)
     # named by structure and extras (the op list would pass the 255-character name limit)
     extras = (["sums"] if sums else []) + (["mex"] if spec.get("mex") else [])
@@ -1702,10 +2614,11 @@ def write(spec, sums):
 
 
 if __name__ == "__main__":
-    for make in (fenwick, avl):  # mex costs these an extra array, so each comes with and without it
+    for make in (fenwick, value_tree, avl, treap, splay):  # mex costs these an extra array, so each comes with and without it
         for sums in (False, True):
             for mex in (False, True):
                 write(make(sums, mex), sums)
     for make in (blocks, blocks_fenwick):
         for sums in (False, True):
             write(make(sums), sums)
+    write(pbds(), False)

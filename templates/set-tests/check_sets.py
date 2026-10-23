@@ -18,6 +18,9 @@ sys.path.insert(0, os.path.join(HERE, "generators"))
 from gen_sets import OPS  # noqa: E402
 
 SIZES = {"N": 2e5, "U": 1e9, "Q": 2e5}
+# Structures the user keeps as options although they lose to the AVL tree on paper (the value tree is often faster in
+# practice; treap / splay / pb_ds are the classic alternatives). Losing on paper is reported for them, not a problem.
+KEPT = {"value-tree", "treap", "splay", "pbds"}
 KNOWLEDGE = {"online": 0, "online-range": 1, "offline": 2}
 
 
@@ -66,18 +69,19 @@ def read(folder):
             text = open(path).read()
             ops = re.search(rf"^{cm} @operations: (.*)$", text, re.M).group(1).split()
             vals = re.search(rf"^{cm} @values: (.*)$", text, re.M).group(1).strip()
+            dtype = re.search(rf"^{cm} @data-structure-type: (.*)$", text, re.M).group(1).strip()
             comps = dict(re.findall(rf"^{cm}   (\w+): (.*)$", text, re.M))
             mem = sum(value(size) for size in re.findall(r"\w+\[([^\]]+)\]", "\n".join(
                 line for line in text.split("\n") if re.match(rf"^{cm}   (node|tags|other): ", line))))
             if re.search(rf"^{cm}   layout: sparse", text, re.M):
                 mem *= SIZES["Q"]  # a sparse value tree's memory is per add
-            return dict(folder=folder, ops=set(ops), values=vals, comps=comps, mem=mem)
+            return dict(folder=folder, ops=set(ops), values=vals, comps=comps, mem=mem, dtype=dtype)
     return None
 
 
 def main():
     temps = [t for t in (read(f) for f in sorted(os.listdir(DIR)) if os.path.isdir(os.path.join(DIR, f))) if t]
-    problems = []
+    problems, kept = [], []
     covered = set().union(*(t["ops"] for t in temps))
     for op in OPS:
         if op not in covered:
@@ -97,9 +101,12 @@ def main():
                 continue
             better |= a["mem"] < b["mem"] - 1e-9 or a["ops"] > b["ops"] or KNOWLEDGE[a["values"]] < KNOWLEDGE[b["values"]]
             if better:
-                problems.append(f"{b['folder']} is dominated by {a['folder']}")
+                (kept if b["dtype"] in KEPT else problems).append(f"{b['folder']} is dominated by {a['folder']}")
     for p in problems:
         print(p)
+    names = sorted({k.split(" ")[0] for k in kept})
+    if names:
+        print(f"kept on purpose although they lose on paper: {', '.join(names)}")
     print(f"{len(temps)} templates, {len(covered)} ops: " + ("all good" if not problems else f"{len(problems)} problems"))
     sys.exit(1 if problems else 0)
 

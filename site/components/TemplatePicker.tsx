@@ -121,11 +121,12 @@ function matchTemplates<V extends PickerTemplate>(
       };
     })
     .sort(
+      // worst selected op first, then all selected ops together, and only then the structure's constant factor
       (a, b) =>
         a.bottleneck.value - b.bottleneck.value ||
+        a.total - b.total ||
         catalog.typeOrder.indexOf(a.template.dataStructureType) -
           catalog.typeOrder.indexOf(b.template.dataStructureType) ||
-        a.total - b.total ||
         memoryValue(a.template.memory) - memoryValue(b.template.memory) ||
         a.extra.length - b.extra.length ||
         a.template.folder.localeCompare(b.template.folder) ||
