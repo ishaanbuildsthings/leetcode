@@ -35,11 +35,13 @@ const manifestPath = path.join(siteDir, "lib/generated/range-query-templates.ts"
 
 // @original-file-url is optional: templates written fresh in this folder have no original.
 // @fractional-cascading (yes / no) is required on, and only allowed on, merge sort trees.
-const TAGS = ["operations", "data-structure-type", "fractional-cascading", "complexities", "memory", "original-file-url"];
-const OPTIONAL_TAGS = ["original-file-url", "fractional-cascading"];
+// @values: offline (optional) = the constructor needs every value that will ever be added (e.g. by pushBack) up front.
+const TAGS = ["operations", "data-structure-type", "fractional-cascading", "values", "complexities", "memory", "original-file-url"];
+const OPTIONAL_TAGS = ["original-file-url", "fractional-cascading", "values"];
 
 const errors = [];
 const entries = [];
+const LONG_FOLDER = 180;
 
 // Parses and validates one language file's header: the shared checks, plus the range-query tags.
 function readTemplateFile(where, filePath) {
@@ -49,18 +51,21 @@ function readTemplateFile(where, filePath) {
     errs.push(`${where}: a merge sort tree needs "@fractional-cascading: yes" or "no"`);
   if (tags["data-structure-type"] !== "merge-sort-tree" && fc !== undefined)
     errs.push(`${where}: @fractional-cascading is only for merge sort trees`);
+  if (tags.values !== undefined && tags.values !== "offline") errs.push(`${where}: @values can only be "offline"`);
   return {
     errs,
     data: {
       ...data,
       ...(fc !== undefined ? { fractionalCascading: fc === "yes" } : {}),
+      ...(tags.values === "offline" ? { valuesOffline: true } : {}),
       ...(tags["original-file-url"] ? { originalFileUrl: tags["original-file-url"] } : {}),
     },
   };
 }
 
 // Each template is a folder holding template.py and/or template.cpp. The folder is named by its operations
-// (alphabetical, "-" joined), with a __<data-structure-type> suffix when two templates share operations.
+// (alphabetical, "-" joined), with a __<data-structure-type> suffix when two templates share operations; an op list
+// longer than LONG_FOLDER characters may instead be named "<data-structure-type>-<anything>".
 // Both language files carry the same header; they may differ only in the original-file-url and the @memory note
 // (each language's note describes its own implementation).
 for (const folder of fs.readdirSync(srcDir).sort()) {
@@ -107,7 +112,10 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
   }
   const base = data.operations.join("-");
   const allowed = [base, `${base}__${data.dataStructureType}`];
-  if (!allowed.includes(folder)) errors.push(`${folder}: folder should be ${allowed[0]} (or ${allowed[1]} if it collides)`);
+  // an op list too long for a folder name (filenames stop at 255 bytes) may name the structure instead: "<type>-..."
+  const named = base.length > LONG_FOLDER && folder.startsWith(`${data.dataStructureType}-`);
+  if (!allowed.includes(folder) && !named)
+    errors.push(`${folder}: folder should be ${allowed[0]} (or ${allowed[1]} if it collides${base.length > LONG_FOLDER ? `, or ${data.dataStructureType}-<name> since the op list is long` : ""})`);
   if (data.memory.layout === "sparse") errors.push(`${folder}: template files can't use the sparse layout; put it in sparse.py / sparse.cpp`);
   const entry = { folder, langs, ...data, usage };
   if (sparse.data) {

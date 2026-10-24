@@ -407,8 +407,8 @@ for mod in (False, True):
 # ---------------------------------------------------------------- point add + range sum + prefix-sum searches
 
 write(["leftmostPrefixSumGtX", "leftmostPrefixSumGteX", "pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet",
-       "rangeSum"], ("tree[1*log(U)]", "children[2*log(U)]"),
-      "the prefix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies",
+       "rangeSum", "rightmostSuffixSumGtX", "rightmostSuffixSumGteX"], ("tree[1*log(U)]", "children[2*log(U)]"),
+      "the prefix / suffix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies",
       py_class("SparseBIT", "Point add, range sum, and the first index where a running sum from l reaches x.",
                ["tree"], "add", '''
     # O(logU) -- a[i] += delta
@@ -465,6 +465,23 @@ write(["leftmostPrefixSumGtX", "leftmostPrefixSumGteX", "pointAdd", "pointAssign
     def leftmostPrefixSumGtX(self, l, r, x):
         i = max(l, self.lo + self._lowerBound(self._prefix(l - 1 - self.lo) + x, True))
         return i if i <= r else self.lo - 1
+
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1. Needs every a[i] >= 0.
+    # That is the last i with a[lo] + ... + a[i - 1] <= prefix(r) - x: one binary lift.
+    def rightmostSuffixSumGteX(self, l, r, x):
+        t = self._prefix(r - self.lo) - x
+        if t < 0:
+            return self.lo - 1
+        i = min(r, self.lo + self._lowerBound(t, True))
+        return i if i >= l else self.lo - 1
+
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1. Needs every a[i] >= 0.
+    def rightmostSuffixSumGtX(self, l, r, x):
+        t = self._prefix(r - self.lo) - x
+        if t <= 0:
+            return self.lo - 1
+        i = min(r, self.lo + self._lowerBound(t, False))
+        return i if i >= l else self.lo - 1
 '''),
       cpp_struct("SparseBIT", "Point add, range sum, and the first index where a running sum from l reaches x.", 1, "sum", '''
     // O(logU) -- a[i] += delta
@@ -511,5 +528,22 @@ write(["leftmostPrefixSumGtX", "leftmostPrefixSumGteX", "pointAdd", "pointAssign
     long long leftmostPrefixSumGtX(long long l, long long r, T x) const {
         long long i = max(l, lo + lowerBound(prefix(l - 1 - lo)[0] + x, true));
         return i <= r ? i : lo - 1;
+    }
+
+    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1. Needs every a[i] >= 0.
+    // That is the last i with a[lo] + ... + a[i - 1] <= prefix(r) - x: one binary lift.
+    long long rightmostSuffixSumGteX(long long l, long long r, T x) const {
+        S t = prefix(r - lo)[0] - S(x);
+        if (t < 0) return lo - 1;
+        long long i = min(r, lo + lowerBound(t, true));
+        return i >= l ? i : lo - 1;
+    }
+
+    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1. Needs every a[i] >= 0.
+    long long rightmostSuffixSumGtX(long long l, long long r, T x) const {
+        S t = prefix(r - lo)[0] - S(x);
+        if (t <= 0) return lo - 1;
+        long long i = min(r, lo + lowerBound(t, false));
+        return i >= l ? i : lo - 1;
     }
 '''))

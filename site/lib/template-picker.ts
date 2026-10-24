@@ -5,11 +5,10 @@ export interface PickerOp {
   id: string;
   signature: string;
   description: string;
-  // Show the arguments on the page; only for ops whose name doesn't explain them.
-  showArgs?: true;
 }
 
-export type TierKind = "common" | "uncommon" | "rare" | "mod" | "bitOps";
+// "topic" groups ops by what they do rather than how often they come up; it always carries a label
+export type TierKind = "common" | "uncommon" | "rare" | "mod" | "bitOps" | "topic";
 
 export interface PickerOpTier {
   kind: TierKind;

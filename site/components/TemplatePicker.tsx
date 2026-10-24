@@ -549,6 +549,7 @@ const TIER_STYLES: Record<TierKind, { label: string; badge: string }> = {
     label: "Bit ops",
     badge: "border-violet-200 bg-violet-50 text-violet-700",
   },
+  topic: { label: "", badge: "border-stone-200 bg-white text-stone-500" },
 };
 
 function TierBadge({
@@ -692,11 +693,9 @@ export function TemplatePicker<V extends PickerTemplate>({
                           className={`whitespace-nowrap font-mono text-[13px] ${isOn ? "font-medium text-primary" : "text-foreground"}`}
                         >
                           {opName(op)}
-                          {op.showArgs && (
-                            <span className="font-normal text-muted-foreground">
-                              {opArgs(op)}
-                            </span>
-                          )}
+                          <span className="font-normal text-muted-foreground">
+                            {opArgs(op)}
+                          </span>
                         </span>
                         <span className="min-w-0 text-xs text-muted-foreground">
                           {op.description}

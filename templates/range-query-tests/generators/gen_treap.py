@@ -13,7 +13,7 @@ import os
 from note_lang import write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
-SEQ = ["eraseAt", "eraseRange", "insertAt", "moveRange", "rangeReverse", "rangeRotateLeft"]
+SEQ = ["eraseAt", "eraseRange", "insertAt", "moveRange", "pushBack", "rangeReverse", "rangeRotateLeft", "rangeRotateRight"]
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 AGG_OPS = {"sum": "rangeSum", "min": "rangeMin", "max": "rangeMax"}
 AGG_FIELD = {"sum": "sm", "min": "mn", "max": "mx"}
@@ -98,6 +98,10 @@ def python(ops, aggs):
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, self._newNode(v)), c)
 '''))
+    pub.append(('pushBack', '''    # O(logN) expected -- append v to the end (it becomes a[size()])
+    def pushBack(self, v):
+        self.root = self._merge(self.root, self._newNode(v))
+'''))
     pub.append(('eraseAt', '''    # O(logN) expected -- remove a[i]; everything after it shifts left by one
     def eraseAt(self, i):
         a, _, c = self._cut(i, i)
@@ -122,6 +126,11 @@ def python(ops, aggs):
             b1, b2 = self._split(b, k)
             b = self._merge(b2, b1)
         self._join(a, b, c)
+'''))
+    pub.append(('rangeRotateRight', '''    # O(logN) expected -- cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k,
+    # negative shifts left
+    def rangeRotateRight(self, l, r, k):
+        self.rangeRotateLeft(l, r, -k)
 '''))
     pub.append(('moveRange', '''    # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     # (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)
@@ -367,6 +376,12 @@ def cpp(ops, aggs):
         root = merge(merge(a, newNode(v)), c);
     }
 '''))
+    pub.append(("pushBack", '''    // O(logN) expected -- append v to the end (it becomes a[size()])
+    void pushBack(T v) {
+        int x = newNode(v);
+        root = merge(root, x);
+    }
+'''))
     pub.append(("eraseAt", '''    // O(logN) expected -- remove a[i]; everything after it shifts left by one
     void eraseAt(int i) { eraseRange(i, i); }
 '''))
@@ -397,6 +412,10 @@ def cpp(ops, aggs):
         }
         root = merge(merge(a, b), c);
     }
+'''))
+    pub.append(("rangeRotateRight", '''    // O(logN) expected -- cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k,
+    // negative shifts left
+    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
 '''))
     pub.append(("moveRange", '''    // O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     // (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)

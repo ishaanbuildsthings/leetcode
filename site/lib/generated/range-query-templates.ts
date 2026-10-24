@@ -399,6 +399,2586 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
+    "folder": "bit-of-trees-order-stats",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeMax",
+      "rangeMin",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "bit-of-trees",
+    "complexities": {
+      "countGtX": "log(N)*log(U)",
+      "countGteX": "log(N)*log(U)",
+      "countInValRange": "log(N)*log(U)",
+      "countLtX": "log(N)*log(U)",
+      "countLteX": "log(N)*log(U)",
+      "countOccurrences": "log(N)*log(U)",
+      "kthLargest": "log(N)*log(U)",
+      "kthSmallest": "log(N)*log(U)",
+      "largestLtX": "log(N)*log(U)",
+      "largestLteX": "log(N)*log(U)",
+      "medianHigh": "log(N)*log(U)",
+      "medianLow": "log(N)*log(U)",
+      "pointAdd": "log(N)*log(U)",
+      "pointAssign": "log(N)*log(U)",
+      "pointChmax": "log(N)*log(U)",
+      "pointChmin": "log(N)*log(U)",
+      "pointGet": "1",
+      "rangeMax": "log(N)*log(U)",
+      "rangeMin": "log(N)*log(U)",
+      "smallestGtX": "log(N)*log(U)",
+      "smallestGteX": "log(N)*log(U)"
+    },
+    "build": "N*log(N)*log(U)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(N)*log(U)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(N)*log(U)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(N)*log(U)"
+          }
+        ],
+        "total": "3*N*log(N)*log(U)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "note": "BIT over positions, each BIT node a dynamic value seg tree over [valLo, valHi] (U = its size); nodes are never freed, so each point update adds up to 2 log N log U of them",
+      "total": "2*N+3*N*log(N)*log(U)",
+      "notes": {
+        "py": "BIT over positions, each BIT node a dynamic value seg tree over [valLo, valHi] (U = its size); nodes are never freed, so each point update adds up to 2 log N log U of them",
+        "cpp": "BIT over positions, each BIT node a dynamic value seg tree over [valLo, valHi] (U = its size); nodes are never freed, so each point update adds up to 2 log N log U of them"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "DynamicOrderStats",
+            "doc": "a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over positions: BIT node j is a dynamic value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything.",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "valLo"
+              },
+              {
+                "name": "valHi"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list), 0-indexed; every value a[i] ever holds must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "DynamicOrderStats",
+            "doc": "a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over positions: BIT node j is a dynamic value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "valLo",
+                "type": "long long"
+              },
+              {
+                "name": "valHi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "arr: the initial array, 0-indexed; every value a[i] ever holds must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countGtX": "log(U)*log(U)",
+        "countGteX": "log(U)*log(U)",
+        "countInValRange": "log(U)*log(U)",
+        "countLtX": "log(U)*log(U)",
+        "countLteX": "log(U)*log(U)",
+        "countOccurrences": "log(U)*log(U)",
+        "kthLargest": "log(U)*log(U)",
+        "kthSmallest": "log(U)*log(U)",
+        "largestLtX": "log(U)*log(U)",
+        "largestLteX": "log(U)*log(U)",
+        "medianHigh": "log(U)*log(U)",
+        "medianLow": "log(U)*log(U)",
+        "pointAdd": "log(U)*log(U)",
+        "pointAssign": "log(U)*log(U)",
+        "pointChmax": "log(U)*log(U)",
+        "pointChmin": "log(U)*log(U)",
+        "pointGet": "1",
+        "rangeMax": "log(U)*log(U)",
+        "rangeMin": "log(U)*log(U)",
+        "smallestGtX": "log(U)*log(U)",
+        "smallestGteX": "log(U)*log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "L",
+              "size": "1*log(U)*log(U)"
+            },
+            {
+              "name": "R",
+              "size": "1*log(U)*log(U)"
+            },
+            {
+              "name": "C",
+              "size": "1*log(U)*log(U)"
+            }
+          ],
+          "total": "3*log(U)*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "root",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "vals",
+              "size": "1"
+            }
+          ],
+          "total": "1+1*log(U)"
+        },
+        "note": "any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of [l, r] are counted in closed form; U = the larger of the index range and the value range [valLo, valHi]; sizes are per point update",
+        "total": "1+3*log(U)*log(U)+1*log(U)",
+        "notes": {
+          "py": "any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of [l, r] are counted in closed form; U = the larger of the index range and the value range [valLo, valHi]; sizes are per point update",
+          "cpp": "any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of [l, r] are counted in closed form; U = the larger of the index range and the value range [valLo, valHi]; sizes are per point update"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseDynamicOrderStats",
+              "doc": "a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a dynamic value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything. Sparse: every position of [lo, hi] starts at 0 and only nonzero values are stored; the zeros of [l, r] (its length minus the stored values in it) sit between the stored negatives and positives.",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "valLo"
+                },
+                {
+                  "name": "valHi"
+                }
+              ],
+              "ctorDoc": "indices: any integers in [lo, hi], every position starting at 0; every value a[i] ever holds must lie in [valLo, valHi] (U = the larger of the two ranges' sizes)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value < x in a[l..r], or None",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value <= x in a[l..r], or None",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointAdd": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "doc": "a[i] += v",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "doc": "a[i] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value > x in a[l..r], or None",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value >= x in a[l..r], or None",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseDynamicOrderStats",
+              "doc": "a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a dynamic value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything. Sparse: every position of [lo, hi] starts at 0 and only nonzero values are stored; the zeros of [l, r] (its length minus the stored values in it) sit between the stored negatives and positives. T: int, long long, ....",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "valLo",
+                  "type": "long long"
+                },
+                {
+                  "name": "valHi",
+                  "type": "long long"
+                }
+              ],
+              "ctorDoc": "indices: any integers in [lo, hi], every position starting at 0; every value a[i] ever holds must lie in [valLo, valHi] (U = the larger of the two ranges' sizes)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value < x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value <= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointAdd": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] += v",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value > x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value >= x in a[l..r], or nullopt",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "bit-of-trees-order-stats-sums",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeMax",
+      "rangeMin",
+      "rangeSum",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "bit-of-trees",
+    "complexities": {
+      "countGtX": "log(N)*log(U)",
+      "countGteX": "log(N)*log(U)",
+      "countInValRange": "log(N)*log(U)",
+      "countLtX": "log(N)*log(U)",
+      "countLteX": "log(N)*log(U)",
+      "countOccurrences": "log(N)*log(U)",
+      "kthLargest": "log(N)*log(U)",
+      "kthSmallest": "log(N)*log(U)",
+      "largestLtX": "log(N)*log(U)",
+      "largestLteX": "log(N)*log(U)",
+      "medianHigh": "log(N)*log(U)",
+      "medianLow": "log(N)*log(U)",
+      "pointAdd": "log(N)*log(U)",
+      "pointAssign": "log(N)*log(U)",
+      "pointChmax": "log(N)*log(U)",
+      "pointChmin": "log(N)*log(U)",
+      "pointGet": "1",
+      "rangeMax": "log(N)*log(U)",
+      "rangeMin": "log(N)*log(U)",
+      "rangeSum": "log(N)*log(U)",
+      "smallestGtX": "log(N)*log(U)",
+      "smallestGteX": "log(N)*log(U)",
+      "sumAbsDiffToMedian": "log(N)*log(U)",
+      "sumAbsDiffToX": "log(N)*log(U)",
+      "sumGtX": "log(N)*log(U)",
+      "sumGteX": "log(N)*log(U)",
+      "sumInValRange": "log(N)*log(U)",
+      "sumKthLargestRange": "log(N)*log(U)",
+      "sumKthSmallestRange": "log(N)*log(U)",
+      "sumLargestK": "log(N)*log(U)",
+      "sumLtX": "log(N)*log(U)",
+      "sumLteX": "log(N)*log(U)",
+      "sumSmallestK": "log(N)*log(U)"
+    },
+    "build": "N*log(N)*log(U)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(N)*log(U)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(N)*log(U)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(N)*log(U)"
+          },
+          {
+            "name": "S",
+            "size": "1*N*log(N)*log(U)"
+          }
+        ],
+        "total": "4*N*log(N)*log(U)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "note": "BIT over positions, each BIT node a dynamic value seg tree over [valLo, valHi] (U = its size); nodes are never freed, so each point update adds up to 2 log N log U of them",
+      "total": "2*N+4*N*log(N)*log(U)",
+      "notes": {
+        "py": "BIT over positions, each BIT node a dynamic value seg tree over [valLo, valHi] (U = its size); nodes are never freed, so each point update adds up to 2 log N log U of them",
+        "cpp": "BIT over positions, each BIT node a dynamic value seg tree over [valLo, valHi] (U = its size); nodes are never freed, so each point update adds up to 2 log N log U of them"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "DynamicOrderStats",
+            "doc": "a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over positions: BIT node j is a dynamic value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything.",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "valLo"
+              },
+              {
+                "name": "valHi"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list), 0-indexed; every value a[i] ever holds must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "DynamicOrderStats",
+            "doc": "a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over positions: BIT node j is a dynamic value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything. T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "valLo",
+                "type": "long long"
+              },
+              {
+                "name": "valHi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "arr: the initial array, 0-indexed; every value a[i] ever holds must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] += v",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "S",
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countGtX": "log(U)*log(U)",
+        "countGteX": "log(U)*log(U)",
+        "countInValRange": "log(U)*log(U)",
+        "countLtX": "log(U)*log(U)",
+        "countLteX": "log(U)*log(U)",
+        "countOccurrences": "log(U)*log(U)",
+        "kthLargest": "log(U)*log(U)",
+        "kthSmallest": "log(U)*log(U)",
+        "largestLtX": "log(U)*log(U)",
+        "largestLteX": "log(U)*log(U)",
+        "medianHigh": "log(U)*log(U)",
+        "medianLow": "log(U)*log(U)",
+        "pointAdd": "log(U)*log(U)",
+        "pointAssign": "log(U)*log(U)",
+        "pointChmax": "log(U)*log(U)",
+        "pointChmin": "log(U)*log(U)",
+        "pointGet": "1",
+        "rangeMax": "log(U)*log(U)",
+        "rangeMin": "log(U)*log(U)",
+        "rangeSum": "log(U)*log(U)",
+        "smallestGtX": "log(U)*log(U)",
+        "smallestGteX": "log(U)*log(U)",
+        "sumAbsDiffToMedian": "log(U)*log(U)",
+        "sumAbsDiffToX": "log(U)*log(U)",
+        "sumGtX": "log(U)*log(U)",
+        "sumGteX": "log(U)*log(U)",
+        "sumInValRange": "log(U)*log(U)",
+        "sumKthLargestRange": "log(U)*log(U)",
+        "sumKthSmallestRange": "log(U)*log(U)",
+        "sumLargestK": "log(U)*log(U)",
+        "sumLtX": "log(U)*log(U)",
+        "sumLteX": "log(U)*log(U)",
+        "sumSmallestK": "log(U)*log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "L",
+              "size": "1*log(U)*log(U)"
+            },
+            {
+              "name": "R",
+              "size": "1*log(U)*log(U)"
+            },
+            {
+              "name": "C",
+              "size": "1*log(U)*log(U)"
+            },
+            {
+              "name": "S",
+              "size": "1*log(U)*log(U)"
+            }
+          ],
+          "total": "4*log(U)*log(U)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "root",
+              "size": "1*log(U)"
+            },
+            {
+              "name": "vals",
+              "size": "1"
+            }
+          ],
+          "total": "1+1*log(U)"
+        },
+        "note": "any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of [l, r] are counted in closed form; U = the larger of the index range and the value range [valLo, valHi]; sizes are per point update",
+        "total": "1+4*log(U)*log(U)+1*log(U)",
+        "notes": {
+          "py": "any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of [l, r] are counted in closed form; U = the larger of the index range and the value range [valLo, valHi]; sizes are per point update",
+          "cpp": "any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of [l, r] are counted in closed form; U = the larger of the index range and the value range [valLo, valHi]; sizes are per point update"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseDynamicOrderStats",
+              "doc": "a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a dynamic value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything. Sparse: every position of [lo, hi] starts at 0 and only nonzero values are stored; the zeros of [l, r] (its length minus the stored values in it) sit between the stored negatives and positives.",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "valLo"
+                },
+                {
+                  "name": "valHi"
+                }
+              ],
+              "ctorDoc": "indices: any integers in [lo, hi], every position starting at 0; every value a[i] ever holds must lie in [valLo, valHi] (U = the larger of the two ranges' sizes)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value < x in a[l..r], or None",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value <= x in a[l..r], or None",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointAdd": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "doc": "a[i] += v",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "doc": "a[i] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value > x in a[l..r], or None",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value >= x in a[l..r], or None",
+              "cls": 0
+            },
+            "sumAbsDiffToMedian": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+              "cls": 0
+            },
+            "sumAbsDiffToX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of |a[i] - x| over i in [l, r]",
+              "cls": 0
+            },
+            "sumGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values > x in a[l..r]",
+              "cls": 0
+            },
+            "sumGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values >= x in a[l..r]",
+              "cls": 0
+            },
+            "sumInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "sumKthLargestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumKthSmallestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumLargestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values < x in a[l..r]",
+              "cls": 0
+            },
+            "sumLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values <= x in a[l..r]",
+              "cls": 0
+            },
+            "sumSmallestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseDynamicOrderStats",
+              "doc": "a[l..r] as a sorted multiset, with point updates. A Fenwick tree (BIT) over the index range [lo, hi]: BIT node j is a dynamic value seg tree over [valLo, valHi] holding the values of a[j - lowbit(j) .. j - 1]. The multiset of a[l..r] is the BIT prefix of r + 1 minus the prefix of l, so a query walks down those ~2 log N value trees together (pos adds, neg subtracts). Values are integers; query arguments (x, lowVal, ...) can be anything. Sparse: every position of [lo, hi] starts at 0 and only nonzero values are stored; the zeros of [l, r] (its length minus the stored values in it) sit between the stored negatives and positives. T: int, long long, ...; sums are kept in S (long long for small T).",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "valLo",
+                  "type": "long long"
+                },
+                {
+                  "name": "valHi",
+                  "type": "long long"
+                }
+              ],
+              "ctorDoc": "indices: any integers in [lo, hi], every position starting at 0; every value a[i] ever holds must lie in [valLo, valHi] (U = the larger of the two ranges' sizes)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value < x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value <= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointAdd": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] += v",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value > x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value >= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "sumAbsDiffToMedian": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+              "cls": 0
+            },
+            "sumAbsDiffToX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of |a[i] - x| over i in [l, r]",
+              "cls": 0
+            },
+            "sumGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values > x in a[l..r]",
+              "cls": 0
+            },
+            "sumGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values >= x in a[l..r]",
+              "cls": 0
+            },
+            "sumInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "S",
+              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "sumKthLargestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "returns": "S",
+              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumKthSmallestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "returns": "S",
+              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumLargestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "S",
+              "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values < x in a[l..r]",
+              "cls": 0
+            },
+            "sumLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values <= x in a[l..r]",
+              "cls": 0
+            },
+            "sumSmallestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "S",
+              "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
     "folder": "costMonoDecreasing-costMonoIncreasing-costStrictDecreasing-costStrictIncreasing-pointGet-rangeSum",
     "langs": [
       "py",
@@ -2171,764 +4751,6 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "countInValRange-kthLargestInRange-kthSmallestInRange-pointGet",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "countInValRange",
-      "kthLargestInRange",
-      "kthSmallestInRange",
-      "pointGet"
-    ],
-    "dataStructureType": "wavelet",
-    "complexities": {
-      "countInValRange": "log(N)",
-      "kthLargestInRange": "log(N)",
-      "kthSmallestInRange": "log(N)",
-      "pointGet": "1"
-    },
-    "build": "N*log(N)",
-    "memory": {
-      "layout": "none",
-      "node": {
-        "arrays": [
-          {
-            "name": "zeros",
-            "size": "1*N*log(N)"
-          }
-        ],
-        "total": "1*N*log(N)"
-      },
-      "tags": {
-        "arrays": [],
-        "total": "0"
-      },
-      "other": {
-        "arrays": [
-          {
-            "name": "arr",
-            "size": "1*N"
-          },
-          {
-            "name": "srt",
-            "size": "1*N"
-          }
-        ],
-        "total": "2*N"
-      },
-      "note": "one row of N + 1 prefix counts per bit of the compressed value (wavelet matrix); no pointers, no per-node lists",
-      "total": "1*N*log(N)+2*N",
-      "notes": {
-        "py": "one row of N + 1 prefix counts per bit of the compressed value (wavelet matrix); no pointers, no per-node lists",
-        "cpp": "one row of N + 1 prefix counts per bit of the compressed value (wavelet matrix); no pointers, no per-node lists"
-      }
-    },
-    "usage": {
-      "py": {
-        "classes": [
-          {
-            "className": "WaveletMatrix",
-            "doc": "",
-            "ctor": [
-              {
-                "name": "A"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "countInValRange": {
-            "params": [
-              "l",
-              "r",
-              "lowVal",
-              "highVal"
-            ],
-            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
-            "cls": 0
-          },
-          "kthLargestInRange": {
-            "params": [
-              "l",
-              "r",
-              "k"
-            ],
-            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
-            "cls": 0
-          },
-          "kthSmallestInRange": {
-            "params": [
-              "l",
-              "r",
-              "k"
-            ],
-            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "doc": "a[i]",
-            "cls": 0
-          }
-        }
-      },
-      "cpp": {
-        "classes": [
-          {
-            "className": "WaveletMatrix",
-            "doc": "Static \"k-th smallest / largest of a[l..r]\" and \"count of a[l..r] in [lowVal, highVal]\" via a wavelet matrix over compressed values (costs are log of the number of distinct values, never of the value range). Level d (top bit first) stably splits the current order into ranks with that bit 0, then bit 1; zeros[d][i] = # of the first i elements of level d's order with the bit 0. Indices 0-based, ranges inclusive. Everything is iterative. T: int, long long, ...",
-            "ctor": [
-              {
-                "name": "a",
-                "type": "const vector<T>&"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "countInValRange": {
-            "params": [
-              "l",
-              "r",
-              "lowVal",
-              "highVal"
-            ],
-            "returns": "int",
-            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
-            "cls": 0
-          },
-          "kthLargestInRange": {
-            "params": [
-              "l",
-              "r",
-              "k"
-            ],
-            "returns": "T",
-            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
-            "cls": 0
-          },
-          "kthSmallestInRange": {
-            "params": [
-              "l",
-              "r",
-              "k"
-            ],
-            "returns": "T",
-            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "returns": "T",
-            "doc": "a[i]",
-            "cls": 0
-          }
-        }
-      }
-    },
-    "sparse": {
-      "langs": [
-        "py",
-        "cpp"
-      ],
-      "complexities": {
-        "countInValRange": "log(N)",
-        "kthLargestInRange": "log(N)",
-        "kthSmallestInRange": "log(N)",
-        "pointGet": "log(N)"
-      },
-      "build": "N*log(N)",
-      "memory": {
-        "layout": "sparse",
-        "node": {
-          "arrays": [
-            {
-              "name": "zeros",
-              "size": "1*N*log(N)"
-            }
-          ],
-          "total": "1*N*log(N)"
-        },
-        "tags": {
-          "arrays": [],
-          "total": "0"
-        },
-        "other": {
-          "arrays": [
-            {
-              "name": "idx",
-              "size": "1*N"
-            },
-            {
-              "name": "vals",
-              "size": "1*N"
-            },
-            {
-              "name": "arr",
-              "size": "1*N"
-            },
-            {
-              "name": "srt",
-              "size": "1*N"
-            }
-          ],
-          "total": "4*N"
-        },
-        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the wavelet matrix is over the given values only; zeros add to counts and sit between the negatives and the positives for a k-th",
-        "total": "1*N*log(N)+4*N",
-        "notes": {
-          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the wavelet matrix is over the given values only; zeros add to counts and sit between the negatives and the positives for a k-th",
-          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the wavelet matrix is over the given values only; zeros add to counts and sit between the negatives and the positives for a k-th"
-        }
-      },
-      "usage": {
-        "py": {
-          "classes": [
-            {
-              "className": "SparseWaveletMatrix",
-              "doc": "Count of values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The wavelet matrix runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, and sit between the given negatives and positives for a k-th.",
-              "ctor": [
-                {
-                  "name": "lo"
-                },
-                {
-                  "name": "hi"
-                },
-                {
-                  "name": "values"
-                }
-              ],
-              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
-            }
-          ],
-          "methods": {
-            "countInValRange": {
-              "params": [
-                "l",
-                "r",
-                "valLow",
-                "valHigh"
-              ],
-              "doc": "# of i in [l, r] with valLow <= a[i] <= valHigh",
-              "cls": 0
-            },
-            "kthLargestInRange": {
-              "params": [
-                "l",
-                "r",
-                "k"
-              ],
-              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
-              "cls": 0
-            },
-            "kthSmallestInRange": {
-              "params": [
-                "l",
-                "r",
-                "k"
-              ],
-              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "doc": "a[i]",
-              "cls": 0
-            }
-          }
-        },
-        "cpp": {
-          "classes": [
-            {
-              "className": "SparseWaveletMatrix",
-              "doc": "Count of values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The wavelet matrix runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, and sit between the given negatives and positives for a k-th.",
-              "ctor": [
-                {
-                  "name": "lo",
-                  "type": "long long"
-                },
-                {
-                  "name": "hi",
-                  "type": "long long"
-                },
-                {
-                  "name": "values",
-                  "type": "vector<pair<long long, T>>"
-                }
-              ],
-              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
-            }
-          ],
-          "methods": {
-            "countInValRange": {
-              "params": [
-                "l",
-                "r",
-                "valLow",
-                "valHigh"
-              ],
-              "returns": "long long",
-              "doc": "# of i in [l, r] with valLow <= a[i] <= valHigh",
-              "cls": 0
-            },
-            "kthLargestInRange": {
-              "params": [
-                "l",
-                "r",
-                "k"
-              ],
-              "returns": "T",
-              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
-              "cls": 0
-            },
-            "kthSmallestInRange": {
-              "params": [
-                "l",
-                "r",
-                "k"
-              ],
-              "returns": "T",
-              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "returns": "T",
-              "doc": "a[i]",
-              "cls": 0
-            }
-          }
-        }
-      }
-    }
-  },
-  {
-    "folder": "countInValRange-kthLargestInRange-kthSmallestInRange-pointGet-sumInValRange",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "countInValRange",
-      "kthLargestInRange",
-      "kthSmallestInRange",
-      "pointGet",
-      "sumInValRange"
-    ],
-    "dataStructureType": "persistent",
-    "complexities": {
-      "countInValRange": "log(N)",
-      "kthLargestInRange": "log(N)",
-      "kthSmallestInRange": "log(N)",
-      "pointGet": "1",
-      "sumInValRange": "log(N)"
-    },
-    "build": "N*log(N)",
-    "memory": {
-      "layout": "none",
-      "node": {
-        "arrays": [
-          {
-            "name": "L",
-            "size": "1*N*log(N)"
-          },
-          {
-            "name": "R",
-            "size": "1*N*log(N)"
-          },
-          {
-            "name": "S",
-            "size": "1*N*log(N)"
-          },
-          {
-            "name": "C",
-            "size": "1*N*log(N)"
-          }
-        ],
-        "total": "4*N*log(N)"
-      },
-      "tags": {
-        "arrays": [],
-        "total": "0"
-      },
-      "other": {
-        "arrays": [
-          {
-            "name": "root",
-            "size": "1*N"
-          },
-          {
-            "name": "srt",
-            "size": "1*N"
-          }
-        ],
-        "total": "2*N"
-      },
-      "note": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count",
-      "total": "4*N*log(N)+2*N",
-      "notes": {
-        "py": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count",
-        "cpp": "about N*log(N) persistent nodes; L/R are child pointers, S/C are sum and count"
-      }
-    },
-    "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/persistent/persistent-sum-denseOfflineWithCompressionLogN.py",
-    "usage": {
-      "py": {
-        "classes": [
-          {
-            "className": "StaticValueRangeSum",
-            "doc": "",
-            "ctor": [
-              {
-                "name": "A"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "countInValRange": {
-            "params": [
-              "l",
-              "r",
-              "lowVal",
-              "highVal"
-            ],
-            "doc": "lowVal <= A[i] <= highVal",
-            "cls": 0
-          },
-          "kthLargestInRange": {
-            "params": [
-              "l",
-              "r",
-              "k"
-            ],
-            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
-            "cls": 0
-          },
-          "kthSmallestInRange": {
-            "params": [
-              "l",
-              "r",
-              "k"
-            ],
-            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "doc": "a[i]",
-            "cls": 0
-          },
-          "sumInValRange": {
-            "params": [
-              "l",
-              "r",
-              "lowVal",
-              "highVal"
-            ],
-            "doc": "lowVal <= A[i] <= highVal",
-            "cls": 0
-          }
-        }
-      },
-      "cpp": {
-        "classes": [
-          {
-            "className": "StaticValueRangeSum",
-            "doc": "Static \"count / sum of values in [lo, hi] among a[l..r]\" and \"k-th smallest / largest of a[l..r]\" via a persistent segment tree over compressed values. Version i + 1 = version i with a[i] inserted; a query subtracts version l from version r + 1. All indices 0-based, ranges inclusive. Build O(N log N), queries O(log N), ~N * (log N + 1) nodes. T: int, long long, ...; sums accumulate in S (long long for small T).",
-            "ctor": [
-              {
-                "name": "a",
-                "type": "const vector<T>&"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "countInValRange": {
-            "params": [
-              "l",
-              "r",
-              "lowVal",
-              "highVal"
-            ],
-            "returns": "int",
-            "doc": "how many i in [l, r] have lowVal <= a[i] <= highVal",
-            "cls": 0
-          },
-          "kthLargestInRange": {
-            "params": [
-              "l",
-              "r",
-              "k"
-            ],
-            "returns": "T",
-            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
-            "cls": 0
-          },
-          "kthSmallestInRange": {
-            "params": [
-              "l",
-              "r",
-              "k"
-            ],
-            "returns": "T",
-            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "returns": "T",
-            "doc": "a[i]",
-            "cls": 0
-          },
-          "sumInValRange": {
-            "params": [
-              "l",
-              "r",
-              "lowVal",
-              "highVal"
-            ],
-            "returns": "S",
-            "doc": "sum of a[i] for i in [l, r] with lowVal <= a[i] <= highVal",
-            "cls": 0
-          }
-        }
-      }
-    },
-    "sparse": {
-      "langs": [
-        "py",
-        "cpp"
-      ],
-      "complexities": {
-        "countInValRange": "log(N)",
-        "kthLargestInRange": "log(N)",
-        "kthSmallestInRange": "log(N)",
-        "pointGet": "log(N)",
-        "sumInValRange": "log(N)"
-      },
-      "build": "N*log(N)",
-      "memory": {
-        "layout": "sparse",
-        "node": {
-          "arrays": [
-            {
-              "name": "L",
-              "size": "1*N*log(N)"
-            },
-            {
-              "name": "R",
-              "size": "1*N*log(N)"
-            },
-            {
-              "name": "S",
-              "size": "1*N*log(N)"
-            },
-            {
-              "name": "C",
-              "size": "1*N*log(N)"
-            }
-          ],
-          "total": "4*N*log(N)"
-        },
-        "tags": {
-          "arrays": [],
-          "total": "0"
-        },
-        "other": {
-          "arrays": [
-            {
-              "name": "idx",
-              "size": "1*N"
-            },
-            {
-              "name": "vals",
-              "size": "1*N"
-            },
-            {
-              "name": "root",
-              "size": "1*N"
-            },
-            {
-              "name": "srt",
-              "size": "1*N"
-            }
-          ],
-          "total": "4*N"
-        },
-        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums) and sit between the negatives and the positives for a k-th",
-        "total": "4*N*log(N)+4*N",
-        "notes": {
-          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums) and sit between the negatives and the positives for a k-th",
-          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the persistent tree is over the given values only; zeros add to counts (never to sums) and sit between the negatives and the positives for a k-th"
-        }
-      },
-      "usage": {
-        "py": {
-          "classes": [
-            {
-              "className": "SparseStaticValueRangeSum",
-              "doc": "Count / sum of the values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, never to a sum, and sit between the given negatives and positives for a k-th.",
-              "ctor": [
-                {
-                  "name": "lo"
-                },
-                {
-                  "name": "hi"
-                },
-                {
-                  "name": "values"
-                }
-              ],
-              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
-            }
-          ],
-          "methods": {
-            "countInValRange": {
-              "params": [
-                "l",
-                "r",
-                "valLow",
-                "valHigh"
-              ],
-              "doc": "# of i in [l, r] with valLow <= a[i] <= valHigh",
-              "cls": 0
-            },
-            "kthLargestInRange": {
-              "params": [
-                "l",
-                "r",
-                "k"
-              ],
-              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
-              "cls": 0
-            },
-            "kthSmallestInRange": {
-              "params": [
-                "l",
-                "r",
-                "k"
-              ],
-              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "doc": "a[i]",
-              "cls": 0
-            },
-            "sumInValRange": {
-              "params": [
-                "l",
-                "r",
-                "lowVal",
-                "highVal"
-              ],
-              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
-              "cls": 0
-            }
-          }
-        },
-        "cpp": {
-          "classes": [
-            {
-              "className": "SparseStaticValueRangeSum",
-              "doc": "Count / sum of the values in a value range and k-th smallest / largest, over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The persistent tree runs on the given values alone; the zeros of [l, r] (its length minus the given values inside) add to a count when 0 is in the value range, never to a sum, and sit between the given negatives and positives for a k-th.",
-              "ctor": [
-                {
-                  "name": "lo",
-                  "type": "long long"
-                },
-                {
-                  "name": "hi",
-                  "type": "long long"
-                },
-                {
-                  "name": "values",
-                  "type": "vector<pair<long long, T>>"
-                }
-              ],
-              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
-            }
-          ],
-          "methods": {
-            "countInValRange": {
-              "params": [
-                "l",
-                "r",
-                "valLow",
-                "valHigh"
-              ],
-              "returns": "long long",
-              "doc": "# of i in [l, r] with valLow <= a[i] <= valHigh",
-              "cls": 0
-            },
-            "kthLargestInRange": {
-              "params": [
-                "l",
-                "r",
-                "k"
-              ],
-              "returns": "T",
-              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
-              "cls": 0
-            },
-            "kthSmallestInRange": {
-              "params": [
-                "l",
-                "r",
-                "k"
-              ],
-              "returns": "T",
-              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "returns": "T",
-              "doc": "a[i]",
-              "cls": 0
-            },
-            "sumInValRange": {
-              "params": [
-                "l",
-                "r",
-                "lowVal",
-                "highVal"
-              ],
-              "returns": "S",
-              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
-              "cls": 0
-            }
-          }
-        }
-      }
-    }
-  },
-  {
     "folder": "countInValRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeSum",
     "langs": [
       "py",
@@ -4510,7 +6332,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeMin-rangeReverse-rangeRotateLeft",
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-pushBack-rangeAdd-rangeAssign-rangeMax-rangeMin-rangeReverse-rangeRotateLeft-rangeRotateRight",
     "langs": [
       "py",
       "cpp"
@@ -4525,12 +6347,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
+      "pushBack",
       "rangeAdd",
       "rangeAssign",
       "rangeMax",
       "rangeMin",
       "rangeReverse",
-      "rangeRotateLeft"
+      "rangeRotateLeft",
+      "rangeRotateRight"
     ],
     "dataStructureType": "treap",
     "complexities": {
@@ -4543,12 +6367,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N) expected",
       "pointChmin": "log(N) expected",
       "pointGet": "log(N) expected",
+      "pushBack": "log(N) expected",
       "rangeAdd": "log(N) expected",
       "rangeAssign": "log(N) expected",
       "rangeMax": "log(N) expected",
       "rangeMin": "log(N) expected",
       "rangeReverse": "log(N) expected",
-      "rangeRotateLeft": "log(N) expected"
+      "rangeRotateLeft": "log(N) expected",
+      "rangeRotateRight": "log(N) expected"
     },
     "build": "N",
     "memory": {
@@ -4704,6 +6530,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -4753,6 +6586,15 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "k"
             ],
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
             "cls": 0
           }
         }
@@ -4852,6 +6694,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -4908,13 +6758,23 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "returns": "void",
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
             "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
+            "cls": 0
           }
         }
       }
     }
   },
   {
-    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeMin-rangeReverse-rangeRotateLeft-rangeSum",
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-pushBack-rangeAdd-rangeAssign-rangeMax-rangeMin-rangeReverse-rangeRotateLeft-rangeRotateRight-rangeSum",
     "langs": [
       "py",
       "cpp"
@@ -4929,12 +6789,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
+      "pushBack",
       "rangeAdd",
       "rangeAssign",
       "rangeMax",
       "rangeMin",
       "rangeReverse",
       "rangeRotateLeft",
+      "rangeRotateRight",
       "rangeSum"
     ],
     "dataStructureType": "treap",
@@ -4948,12 +6810,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N) expected",
       "pointChmin": "log(N) expected",
       "pointGet": "log(N) expected",
+      "pushBack": "log(N) expected",
       "rangeAdd": "log(N) expected",
       "rangeAssign": "log(N) expected",
       "rangeMax": "log(N) expected",
       "rangeMin": "log(N) expected",
       "rangeReverse": "log(N) expected",
       "rangeRotateLeft": "log(N) expected",
+      "rangeRotateRight": "log(N) expected",
       "rangeSum": "log(N) expected"
     },
     "build": "N",
@@ -5114,6 +6978,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -5163,6 +7034,15 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "k"
             ],
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
             "cls": 0
           },
           "rangeSum": {
@@ -5270,6 +7150,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -5327,6 +7215,16 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
             "cls": 0
           },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
+            "cls": 0
+          },
           "rangeSum": {
             "params": [
               "l",
@@ -5341,7 +7239,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeReverse-rangeRotateLeft",
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-pushBack-rangeAdd-rangeAssign-rangeMax-rangeReverse-rangeRotateLeft-rangeRotateRight",
     "langs": [
       "py",
       "cpp"
@@ -5356,11 +7254,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
+      "pushBack",
       "rangeAdd",
       "rangeAssign",
       "rangeMax",
       "rangeReverse",
-      "rangeRotateLeft"
+      "rangeRotateLeft",
+      "rangeRotateRight"
     ],
     "dataStructureType": "treap",
     "complexities": {
@@ -5373,11 +7273,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N) expected",
       "pointChmin": "log(N) expected",
       "pointGet": "log(N) expected",
+      "pushBack": "log(N) expected",
       "rangeAdd": "log(N) expected",
       "rangeAssign": "log(N) expected",
       "rangeMax": "log(N) expected",
       "rangeReverse": "log(N) expected",
-      "rangeRotateLeft": "log(N) expected"
+      "rangeRotateLeft": "log(N) expected",
+      "rangeRotateRight": "log(N) expected"
     },
     "build": "N",
     "memory": {
@@ -5529,6 +7431,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -5570,6 +7479,15 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "k"
             ],
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
             "cls": 0
           }
         }
@@ -5669,6 +7587,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -5716,13 +7642,23 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "returns": "void",
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
             "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
+            "cls": 0
           }
         }
       }
     }
   },
   {
-    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeReverse-rangeRotateLeft-rangeSum",
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-pushBack-rangeAdd-rangeAssign-rangeMax-rangeReverse-rangeRotateLeft-rangeRotateRight-rangeSum",
     "langs": [
       "py",
       "cpp"
@@ -5737,11 +7673,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
+      "pushBack",
       "rangeAdd",
       "rangeAssign",
       "rangeMax",
       "rangeReverse",
       "rangeRotateLeft",
+      "rangeRotateRight",
       "rangeSum"
     ],
     "dataStructureType": "treap",
@@ -5755,11 +7693,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N) expected",
       "pointChmin": "log(N) expected",
       "pointGet": "log(N) expected",
+      "pushBack": "log(N) expected",
       "rangeAdd": "log(N) expected",
       "rangeAssign": "log(N) expected",
       "rangeMax": "log(N) expected",
       "rangeReverse": "log(N) expected",
       "rangeRotateLeft": "log(N) expected",
+      "rangeRotateRight": "log(N) expected",
       "rangeSum": "log(N) expected"
     },
     "build": "N",
@@ -5916,6 +7856,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -5957,6 +7904,15 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "k"
             ],
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
             "cls": 0
           },
           "rangeSum": {
@@ -6064,6 +8020,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -6112,6 +8076,16 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
             "cls": 0
           },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
+            "cls": 0
+          },
           "rangeSum": {
             "params": [
               "l",
@@ -6126,7 +8100,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMin-rangeReverse-rangeRotateLeft",
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-pushBack-rangeAdd-rangeAssign-rangeMin-rangeReverse-rangeRotateLeft-rangeRotateRight",
     "langs": [
       "py",
       "cpp"
@@ -6141,11 +8115,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
+      "pushBack",
       "rangeAdd",
       "rangeAssign",
       "rangeMin",
       "rangeReverse",
-      "rangeRotateLeft"
+      "rangeRotateLeft",
+      "rangeRotateRight"
     ],
     "dataStructureType": "treap",
     "complexities": {
@@ -6158,11 +8134,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N) expected",
       "pointChmin": "log(N) expected",
       "pointGet": "log(N) expected",
+      "pushBack": "log(N) expected",
       "rangeAdd": "log(N) expected",
       "rangeAssign": "log(N) expected",
       "rangeMin": "log(N) expected",
       "rangeReverse": "log(N) expected",
-      "rangeRotateLeft": "log(N) expected"
+      "rangeRotateLeft": "log(N) expected",
+      "rangeRotateRight": "log(N) expected"
     },
     "build": "N",
     "memory": {
@@ -6314,6 +8292,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -6355,6 +8340,15 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "k"
             ],
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
             "cls": 0
           }
         }
@@ -6454,6 +8448,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -6501,13 +8503,23 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "returns": "void",
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
             "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
+            "cls": 0
           }
         }
       }
     }
   },
   {
-    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMin-rangeReverse-rangeRotateLeft-rangeSum",
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-pushBack-rangeAdd-rangeAssign-rangeMin-rangeReverse-rangeRotateLeft-rangeRotateRight-rangeSum",
     "langs": [
       "py",
       "cpp"
@@ -6522,11 +8534,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
+      "pushBack",
       "rangeAdd",
       "rangeAssign",
       "rangeMin",
       "rangeReverse",
       "rangeRotateLeft",
+      "rangeRotateRight",
       "rangeSum"
     ],
     "dataStructureType": "treap",
@@ -6540,11 +8554,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N) expected",
       "pointChmin": "log(N) expected",
       "pointGet": "log(N) expected",
+      "pushBack": "log(N) expected",
       "rangeAdd": "log(N) expected",
       "rangeAssign": "log(N) expected",
       "rangeMin": "log(N) expected",
       "rangeReverse": "log(N) expected",
       "rangeRotateLeft": "log(N) expected",
+      "rangeRotateRight": "log(N) expected",
       "rangeSum": "log(N) expected"
     },
     "build": "N",
@@ -6701,6 +8717,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -6742,6 +8765,15 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "k"
             ],
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
             "cls": 0
           },
           "rangeSum": {
@@ -6849,6 +8881,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -6897,6 +8937,16 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
             "cls": 0
           },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
+            "cls": 0
+          },
           "rangeSum": {
             "params": [
               "l",
@@ -6911,7 +8961,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeReverse-rangeRotateLeft-rangeSum",
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-pushBack-rangeAdd-rangeAssign-rangeReverse-rangeRotateLeft-rangeRotateRight-rangeSum",
     "langs": [
       "py",
       "cpp"
@@ -6926,10 +8976,12 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
+      "pushBack",
       "rangeAdd",
       "rangeAssign",
       "rangeReverse",
       "rangeRotateLeft",
+      "rangeRotateRight",
       "rangeSum"
     ],
     "dataStructureType": "treap",
@@ -6943,10 +8995,12 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N) expected",
       "pointChmin": "log(N) expected",
       "pointGet": "log(N) expected",
+      "pushBack": "log(N) expected",
       "rangeAdd": "log(N) expected",
       "rangeAssign": "log(N) expected",
       "rangeReverse": "log(N) expected",
       "rangeRotateLeft": "log(N) expected",
+      "rangeRotateRight": "log(N) expected",
       "rangeSum": "log(N) expected"
     },
     "build": "N",
@@ -7099,6 +9153,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -7132,6 +9193,15 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "k"
             ],
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
             "cls": 0
           },
           "rangeSum": {
@@ -7239,6 +9309,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeAdd": {
             "params": [
               "l",
@@ -7278,6 +9356,16 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
             "cls": 0
           },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
+            "cls": 0
+          },
           "rangeSum": {
             "params": [
               "l",
@@ -7292,7 +9380,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeReverse-rangeRotateLeft",
+    "folder": "eraseAt-eraseRange-insertAt-moveRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-pushBack-rangeReverse-rangeRotateLeft-rangeRotateRight",
     "langs": [
       "py",
       "cpp"
@@ -7307,8 +9395,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
+      "pushBack",
       "rangeReverse",
-      "rangeRotateLeft"
+      "rangeRotateLeft",
+      "rangeRotateRight"
     ],
     "dataStructureType": "treap",
     "complexities": {
@@ -7321,8 +9411,10 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N) expected",
       "pointChmin": "log(N) expected",
       "pointGet": "log(N) expected",
+      "pushBack": "log(N) expected",
       "rangeReverse": "log(N) expected",
-      "rangeRotateLeft": "log(N) expected"
+      "rangeRotateLeft": "log(N) expected",
+      "rangeRotateRight": "log(N) expected"
     },
     "build": "N",
     "memory": {
@@ -7458,6 +9550,13 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeReverse": {
             "params": [
               "l",
@@ -7473,6 +9572,15 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "k"
             ],
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
             "cls": 0
           }
         }
@@ -7572,6 +9680,14 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "a[i]",
             "cls": 0
           },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v to the end (it becomes a[size()])",
+            "cls": 0
+          },
           "rangeReverse": {
             "params": [
               "l",
@@ -7589,6 +9705,16 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             ],
             "returns": "void",
             "doc": "cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right",
+            "cls": 0
+          },
+          "rangeRotateRight": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "void",
+            "doc": "cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k, negative shifts left",
             "cls": 0
           }
         }
@@ -9424,7 +11550,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "leftmostPrefixSumGtX-leftmostPrefixSumGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum",
+    "folder": "leftmostPrefixSumGtX-leftmostPrefixSumGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX",
     "langs": [
       "py",
       "cpp"
@@ -9437,7 +11563,9 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax",
       "pointChmin",
       "pointGet",
-      "rangeSum"
+      "rangeSum",
+      "rightmostSuffixSumGtX",
+      "rightmostSuffixSumGteX"
     ],
     "dataStructureType": "BIT",
     "complexities": {
@@ -9448,7 +11576,9 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       "pointChmax": "log(N)",
       "pointChmin": "log(N)",
       "pointGet": "log(N)",
-      "rangeSum": "log(N)"
+      "rangeSum": "log(N)",
+      "rightmostSuffixSumGtX": "log(N)",
+      "rightmostSuffixSumGteX": "log(N)"
     },
     "build": "N",
     "memory": {
@@ -9470,11 +11600,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "arrays": [],
         "total": "0"
       },
-      "note": "the prefix-sum searches binary-lift over the tree, so they need every a[i] >= 0",
+      "note": "the prefix / suffix-sum searches binary-lift over the tree, so they need every a[i] >= 0",
       "total": "1*N",
       "notes": {
-        "py": "the prefix-sum searches binary-lift over the tree, so they need every a[i] >= 0",
-        "cpp": "the prefix-sum searches binary-lift over the tree, so they need every a[i] >= 0"
+        "py": "the prefix / suffix-sum searches binary-lift over the tree, so they need every a[i] >= 0",
+        "cpp": "the prefix / suffix-sum searches binary-lift over the tree, so they need every a[i] >= 0"
       }
     },
     "originalFileUrl": "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/pointAddRangeSumBIT.py",
@@ -9556,6 +11686,24 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "r"
             ],
             "doc": "gets sum l...r",
+            "cls": 0
+          },
+          "rightmostSuffixSumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "last i in [l, r] with a[i] + ... + a[r] > x, or -1. Needs every a[i] >= 0.",
+            "cls": 0
+          },
+          "rightmostSuffixSumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "last i in [l, r] with a[i] + ... + a[r] >= x, or -1. Needs every a[i] >= 0. That is the last i with a[0] + ... + a[i - 1] <= prefix(r) - x: one binary lift.",
             "cls": 0
           }
         }
@@ -9647,6 +11795,26 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "returns": "T",
             "doc": "a[l] + ... + a[r]",
             "cls": 0
+          },
+          "rightmostSuffixSumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "last i in [l, r] with a[i] + ... + a[r] > x, or -1. Needs every a[i] >= 0.",
+            "cls": 0
+          },
+          "rightmostSuffixSumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "last i in [l, r] with a[i] + ... + a[r] >= x, or -1. Needs every a[i] >= 0. That is the last i with a[0] + ... + a[i - 1] <= prefixSum(r) - x: one binary lift.",
+            "cls": 0
           }
         }
       }
@@ -9664,7 +11832,9 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "pointChmax": "log(U)",
         "pointChmin": "log(U)",
         "pointGet": "log(U)",
-        "rangeSum": "log(U)"
+        "rangeSum": "log(U)",
+        "rightmostSuffixSumGtX": "log(U)",
+        "rightmostSuffixSumGteX": "log(U)"
       },
       "build": "1",
       "memory": {
@@ -9691,11 +11861,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           ],
           "total": "2*log(U)"
         },
-        "note": "per update, the O(logU) entries above each changed position; the prefix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. A Fenwick tree in a dict (no child pointers)",
+        "note": "per update, the O(logU) entries above each changed position; the prefix / suffix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. A Fenwick tree in a dict (no child pointers)",
         "total": "3*log(U)",
         "notes": {
-          "py": "per update, the O(logU) entries above each changed position; the prefix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. A Fenwick tree in a dict (no child pointers)",
-          "cpp": "per update, the O(logU) entries above each changed position; the prefix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
+          "py": "per update, the O(logU) entries above each changed position; the prefix / suffix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. A Fenwick tree in a dict (no child pointers)",
+          "cpp": "per update, the O(logU) entries above each changed position; the prefix / suffix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
         }
       },
       "usage": {
@@ -9779,6 +11949,24 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                 "r"
               ],
               "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            },
+            "rightmostSuffixSumGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1. Needs every a[i] >= 0.",
+              "cls": 0
+            },
+            "rightmostSuffixSumGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1. Needs every a[i] >= 0. That is the last i with a[lo] + ... + a[i - 1] <= prefix(r) - x: one binary lift.",
               "cls": 0
             }
           }
@@ -9874,6 +12062,26 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               ],
               "returns": "S",
               "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            },
+            "rightmostSuffixSumGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1. Needs every a[i] >= 0.",
+              "cls": 0
+            },
+            "rightmostSuffixSumGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1. Needs every a[i] >= 0. That is the last i with a[lo] + ... + a[i - 1] <= prefix(r) - x: one binary lift.",
               "cls": 0
             }
           }
@@ -13078,6 +15286,7196 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               ],
               "returns": "auto",
               "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "persistent-offline-order-stats",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "pushBack",
+      "rangeMax",
+      "rangeMin",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "countOccurrences": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "medianHigh": "log(N)",
+      "medianLow": "log(N)",
+      "pointGet": "1",
+      "pushBack": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "3*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values",
+      "total": "3*N*log(N)+3*N",
+      "notes": {
+        "py": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values",
+        "cpp": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values"
+      }
+    },
+    "valuesOffline": true,
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentOfflineOrderStats",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "allValuesThatWillEverBeInsertedForOfflineCompression"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list, may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will ever get (any order, duplicates fine; arr's own values are included for you)."
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v (one of the values given to the constructor, else ValueError): it becomes a[n], n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentOfflineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Every value that will ever be added is given up front (only to compress them: nothing is added until you push it), so the persistent seg tree is over compressed ranks and costs are log N, never log U: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Query arguments (x, lowVal, ...) can be anything. 0-indexed. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "allValuesThatWillEverBeInsertedForOfflineCompression",
+                "type": "vector<T>"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will ever get (any order, duplicates fine; arr's own values are included for you)."
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v (one of the values given to the constructor, else throws invalid_argument): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "persistent-offline-order-stats-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "pushBack",
+      "rangeMax",
+      "rangeMex",
+      "rangeMin",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "countOccurrences": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "medianHigh": "log(N)",
+      "medianLow": "log(N)",
+      "pointGet": "1",
+      "pushBack": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMex": "log(N)",
+      "rangeMin": "log(N)",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "3*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          },
+          {
+            "name": "mexRoot",
+            "size": "1*N"
+          },
+          {
+            "name": "ML",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "MR",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "MN",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "3*N*log(N)+4*N"
+      },
+      "note": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values (and one in the mex tree)",
+      "total": "6*N*log(N)+4*N",
+      "notes": {
+        "py": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values (and one in the mex tree)",
+        "cpp": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values (and one in the mex tree)"
+      }
+    },
+    "valuesOffline": true,
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentOfflineOrderStats",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "allValuesThatWillEverBeInsertedForOfflineCompression"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list, may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will ever get (any order, duplicates fine; arr's own values are included for you)."
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v (one of the values given to the constructor, else ValueError): it becomes a[n], n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentOfflineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Every value that will ever be added is given up front (only to compress them: nothing is added until you push it), so the persistent seg tree is over compressed ranks and costs are log N, never log U: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Query arguments (x, lowVal, ...) can be anything. 0-indexed. rangeMex: a second persistent tree, over the values 0..(# of distinct values) + 1, holding each value's last index. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "allValuesThatWillEverBeInsertedForOfflineCompression",
+                "type": "vector<T>"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will ever get (any order, duplicates fine; arr's own values are included for you)."
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v (one of the values given to the constructor, else throws invalid_argument): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "int",
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "persistent-offline-order-stats-sums",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "pushBack",
+      "rangeMax",
+      "rangeMin",
+      "rangeSum",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "countOccurrences": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "medianHigh": "log(N)",
+      "medianLow": "log(N)",
+      "pointGet": "1",
+      "pushBack": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)",
+      "sumAbsDiffToMedian": "log(N)",
+      "sumAbsDiffToX": "log(N)",
+      "sumGtX": "log(N)",
+      "sumGteX": "log(N)",
+      "sumInValRange": "log(N)",
+      "sumKthLargestRange": "log(N)",
+      "sumKthSmallestRange": "log(N)",
+      "sumLargestK": "log(N)",
+      "sumLtX": "log(N)",
+      "sumLteX": "log(N)",
+      "sumSmallestK": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "S",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "4*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values",
+      "total": "4*N*log(N)+3*N",
+      "notes": {
+        "py": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values",
+        "cpp": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values"
+      }
+    },
+    "valuesOffline": true,
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentOfflineOrderStats",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "allValuesThatWillEverBeInsertedForOfflineCompression"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list, may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will ever get (any order, duplicates fine; arr's own values are included for you)."
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v (one of the values given to the constructor, else ValueError): it becomes a[n], n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentOfflineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Every value that will ever be added is given up front (only to compress them: nothing is added until you push it), so the persistent seg tree is over compressed ranks and costs are log N, never log U: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Query arguments (x, lowVal, ...) can be anything. 0-indexed. T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "allValuesThatWillEverBeInsertedForOfflineCompression",
+                "type": "vector<T>"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will ever get (any order, duplicates fine; arr's own values are included for you)."
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v (one of the values given to the constructor, else throws invalid_argument): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "S",
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "persistent-offline-order-stats-sums-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "pushBack",
+      "rangeMax",
+      "rangeMex",
+      "rangeMin",
+      "rangeSum",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "countOccurrences": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "medianHigh": "log(N)",
+      "medianLow": "log(N)",
+      "pointGet": "1",
+      "pushBack": "log(N)",
+      "rangeMax": "log(N)",
+      "rangeMex": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)",
+      "sumAbsDiffToMedian": "log(N)",
+      "sumAbsDiffToX": "log(N)",
+      "sumGtX": "log(N)",
+      "sumGteX": "log(N)",
+      "sumInValRange": "log(N)",
+      "sumKthLargestRange": "log(N)",
+      "sumKthSmallestRange": "log(N)",
+      "sumLargestK": "log(N)",
+      "sumLtX": "log(N)",
+      "sumLteX": "log(N)",
+      "sumSmallestK": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "S",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "4*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          },
+          {
+            "name": "mexRoot",
+            "size": "1*N"
+          },
+          {
+            "name": "ML",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "MR",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "MN",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "3*N*log(N)+4*N"
+      },
+      "note": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values (and one in the mex tree)",
+      "total": "7*N*log(N)+4*N",
+      "notes": {
+        "py": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values (and one in the mex tree)",
+        "cpp": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values (and one in the mex tree)"
+      }
+    },
+    "valuesOffline": true,
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentOfflineOrderStats",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "allValuesThatWillEverBeInsertedForOfflineCompression"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list, may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will ever get (any order, duplicates fine; arr's own values are included for you)."
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v (one of the values given to the constructor, else ValueError): it becomes a[n], n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentOfflineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Every value that will ever be added is given up front (only to compress them: nothing is added until you push it), so the persistent seg tree is over compressed ranks and costs are log N, never log U: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Query arguments (x, lowVal, ...) can be anything. 0-indexed. rangeMex: a second persistent tree, over the values 0..(# of distinct values) + 1, holding each value's last index. T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "allValuesThatWillEverBeInsertedForOfflineCompression",
+                "type": "vector<T>"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will ever get (any order, duplicates fine; arr's own values are included for you)."
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v (one of the values given to the constructor, else throws invalid_argument): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "int",
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "S",
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "persistent-online-order-stats",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "pushBack",
+      "rangeMax",
+      "rangeMin",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countGtX": "log(U)",
+      "countGteX": "log(U)",
+      "countInValRange": "log(U)",
+      "countLtX": "log(U)",
+      "countLteX": "log(U)",
+      "countOccurrences": "log(U)",
+      "kthLargest": "log(U)",
+      "kthSmallest": "log(U)",
+      "largestLtX": "log(U)",
+      "largestLteX": "log(U)",
+      "medianHigh": "log(U)",
+      "medianLow": "log(U)",
+      "pointGet": "1",
+      "pushBack": "log(U)",
+      "rangeMax": "log(U)",
+      "rangeMin": "log(U)",
+      "smallestGtX": "log(U)",
+      "smallestGteX": "log(U)"
+    },
+    "build": "N*log(U)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(U)"
+          }
+        ],
+        "total": "3*N*log(U)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "note": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi]",
+      "total": "2*N+3*N*log(U)",
+      "notes": {
+        "py": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi]",
+        "cpp": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi]"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentOnlineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive.",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "valLo"
+              },
+              {
+                "name": "valHi"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list, may be empty), 0-indexed; every value ever added must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentOnlineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "valLo",
+                "type": "long long"
+              },
+              {
+                "name": "valHi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty), 0-indexed; every value ever added must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "persistent-online-order-stats-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "pushBack",
+      "rangeMax",
+      "rangeMex",
+      "rangeMin",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countGtX": "log(U)",
+      "countGteX": "log(U)",
+      "countInValRange": "log(U)",
+      "countLtX": "log(U)",
+      "countLteX": "log(U)",
+      "countOccurrences": "log(U)",
+      "kthLargest": "log(U)",
+      "kthSmallest": "log(U)",
+      "largestLtX": "log(U)",
+      "largestLteX": "log(U)",
+      "medianHigh": "log(U)",
+      "medianLow": "log(U)",
+      "pointGet": "1",
+      "pushBack": "log(U)",
+      "rangeMax": "log(U)",
+      "rangeMex": "log(U)",
+      "rangeMin": "log(U)",
+      "smallestGtX": "log(U)",
+      "smallestGteX": "log(U)"
+    },
+    "build": "N*log(U)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(U)"
+          }
+        ],
+        "total": "3*N*log(U)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "mexRoot",
+            "size": "1*N"
+          },
+          {
+            "name": "ML",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "MR",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "MN",
+            "size": "1*N*log(U)"
+          }
+        ],
+        "total": "3*N+3*N*log(U)"
+      },
+      "note": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi] (and one in the mex tree)",
+      "total": "3*N+6*N*log(U)",
+      "notes": {
+        "py": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi] (and one in the mex tree)",
+        "cpp": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi] (and one in the mex tree)"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentOnlineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive. rangeMex: a second persistent tree, over the values 0..min(valHi, 2^30) + 1, holding each value's last index.",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "valLo"
+              },
+              {
+                "name": "valHi"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list, may be empty), 0-indexed; every value ever added must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentOnlineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive. rangeMex: a second persistent tree, over the values 0..min(valHi, 2^30) + 1, holding each value's last index. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "valLo",
+                "type": "long long"
+              },
+              {
+                "name": "valHi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty), 0-indexed; every value ever added must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "int",
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "persistent-online-order-stats-sums",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "pushBack",
+      "rangeMax",
+      "rangeMin",
+      "rangeSum",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countGtX": "log(U)",
+      "countGteX": "log(U)",
+      "countInValRange": "log(U)",
+      "countLtX": "log(U)",
+      "countLteX": "log(U)",
+      "countOccurrences": "log(U)",
+      "kthLargest": "log(U)",
+      "kthSmallest": "log(U)",
+      "largestLtX": "log(U)",
+      "largestLteX": "log(U)",
+      "medianHigh": "log(U)",
+      "medianLow": "log(U)",
+      "pointGet": "1",
+      "pushBack": "log(U)",
+      "rangeMax": "log(U)",
+      "rangeMin": "log(U)",
+      "rangeSum": "log(U)",
+      "smallestGtX": "log(U)",
+      "smallestGteX": "log(U)",
+      "sumAbsDiffToMedian": "log(U)",
+      "sumAbsDiffToX": "log(U)",
+      "sumGtX": "log(U)",
+      "sumGteX": "log(U)",
+      "sumInValRange": "log(U)",
+      "sumKthLargestRange": "log(U)",
+      "sumKthSmallestRange": "log(U)",
+      "sumLargestK": "log(U)",
+      "sumLtX": "log(U)",
+      "sumLteX": "log(U)",
+      "sumSmallestK": "log(U)"
+    },
+    "build": "N*log(U)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "S",
+            "size": "1*N*log(U)"
+          }
+        ],
+        "total": "4*N*log(U)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "note": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi]",
+      "total": "2*N+4*N*log(U)",
+      "notes": {
+        "py": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi]",
+        "cpp": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi]"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentOnlineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive.",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "valLo"
+              },
+              {
+                "name": "valHi"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list, may be empty), 0-indexed; every value ever added must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentOnlineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive. T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "valLo",
+                "type": "long long"
+              },
+              {
+                "name": "valHi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty), 0-indexed; every value ever added must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "S",
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "persistent-online-order-stats-sums-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "pushBack",
+      "rangeMax",
+      "rangeMex",
+      "rangeMin",
+      "rangeSum",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countGtX": "log(U)",
+      "countGteX": "log(U)",
+      "countInValRange": "log(U)",
+      "countLtX": "log(U)",
+      "countLteX": "log(U)",
+      "countOccurrences": "log(U)",
+      "kthLargest": "log(U)",
+      "kthSmallest": "log(U)",
+      "largestLtX": "log(U)",
+      "largestLteX": "log(U)",
+      "medianHigh": "log(U)",
+      "medianLow": "log(U)",
+      "pointGet": "1",
+      "pushBack": "log(U)",
+      "rangeMax": "log(U)",
+      "rangeMex": "log(U)",
+      "rangeMin": "log(U)",
+      "rangeSum": "log(U)",
+      "smallestGtX": "log(U)",
+      "smallestGteX": "log(U)",
+      "sumAbsDiffToMedian": "log(U)",
+      "sumAbsDiffToX": "log(U)",
+      "sumGtX": "log(U)",
+      "sumGteX": "log(U)",
+      "sumInValRange": "log(U)",
+      "sumKthLargestRange": "log(U)",
+      "sumKthSmallestRange": "log(U)",
+      "sumLargestK": "log(U)",
+      "sumLtX": "log(U)",
+      "sumLteX": "log(U)",
+      "sumSmallestK": "log(U)"
+    },
+    "build": "N*log(U)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "S",
+            "size": "1*N*log(U)"
+          }
+        ],
+        "total": "4*N*log(U)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "mexRoot",
+            "size": "1*N"
+          },
+          {
+            "name": "ML",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "MR",
+            "size": "1*N*log(U)"
+          },
+          {
+            "name": "MN",
+            "size": "1*N*log(U)"
+          }
+        ],
+        "total": "3*N+3*N*log(U)"
+      },
+      "note": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi] (and one in the mex tree)",
+      "total": "3*N+7*N*log(U)",
+      "notes": {
+        "py": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi] (and one in the mex tree)",
+        "cpp": "N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi] (and one in the mex tree)"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentOnlineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive. rangeMex: a second persistent tree, over the values 0..min(valHi, 2^30) + 1, holding each value's last index.",
+            "ctor": [
+              {
+                "name": "arr"
+              },
+              {
+                "name": "valLo"
+              },
+              {
+                "name": "valHi"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list, may be empty), 0-indexed; every value ever added must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "doc": "append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentOnlineOrderStats",
+            "doc": "An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive. rangeMex: a second persistent tree, over the values 0..min(valHi, 2^30) + 1, holding each value's last index. T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              },
+              {
+                "name": "valLo",
+                "type": "long long"
+              },
+              {
+                "name": "valHi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (may be empty), 0-indexed; every value ever added must lie in [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "pushBack": {
+            "params": [
+              "v"
+            ],
+            "returns": "void",
+            "doc": "append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "int",
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "S",
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "persistent-order-stats",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "rangeMax",
+      "rangeMin",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "countOccurrences": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "medianHigh": "log(N)",
+      "medianLow": "log(N)",
+      "pointGet": "1",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "3*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts",
+      "total": "3*N*log(N)+3*N",
+      "notes": {
+        "py": "persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts",
+        "cpp": "persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentOrderStats",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list), 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentOrderStats",
+            "doc": "Static array. Persistent seg tree over the values' compressed ranks: version p holds a[0..p-1], so a[l..r] is version r + 1 minus version l, and every query walks down those two versions together. Costs are log of the number of distinct values, never of the value range; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array, 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countGtX": "log(N)",
+        "countGteX": "log(N)",
+        "countInValRange": "log(N)",
+        "countLtX": "log(N)",
+        "countLteX": "log(N)",
+        "countOccurrences": "log(N)",
+        "kthLargest": "log(N)",
+        "kthSmallest": "log(N)",
+        "largestLtX": "log(N)",
+        "largestLteX": "log(N)",
+        "medianHigh": "log(N)",
+        "medianLow": "log(N)",
+        "pointGet": "log(N)",
+        "rangeMax": "log(N)",
+        "rangeMin": "log(N)",
+        "smallestGtX": "log(N)",
+        "smallestGteX": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "L",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "R",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "C",
+              "size": "1*N*log(N)"
+            }
+          ],
+          "total": "3*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "root",
+              "size": "1*N"
+            },
+            {
+              "name": "arr",
+              "size": "1*N"
+            },
+            {
+              "name": "srt",
+              "size": "1*N"
+            }
+          ],
+          "total": "5*N"
+        },
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts; the tree is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+        "total": "3*N*log(N)+5*N",
+        "notes": {
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts; the tree is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts; the tree is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparsePersistentOrderStats",
+              "doc": "",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "values"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value < x in a[l..r], or None",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value <= x in a[l..r], or None",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value > x in a[l..r], or None",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value >= x in a[l..r], or None",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparsePersistentOrderStats",
+              "doc": "The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so the k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "values",
+                  "type": "vector<pair<long long, T>>"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value < x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value <= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value > x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value >= x in a[l..r], or nullopt",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "persistent-order-stats-sums",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "rangeMax",
+      "rangeMin",
+      "rangeSum",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "countOccurrences": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "medianHigh": "log(N)",
+      "medianLow": "log(N)",
+      "pointGet": "1",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)",
+      "sumAbsDiffToMedian": "log(N)",
+      "sumAbsDiffToX": "log(N)",
+      "sumGtX": "log(N)",
+      "sumGteX": "log(N)",
+      "sumInValRange": "log(N)",
+      "sumKthLargestRange": "log(N)",
+      "sumKthSmallestRange": "log(N)",
+      "sumLargestK": "log(N)",
+      "sumLtX": "log(N)",
+      "sumLteX": "log(N)",
+      "sumSmallestK": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "L",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "R",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "C",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "S",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "4*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          }
+        ],
+        "total": "3*N"
+      },
+      "note": "persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts, S sums",
+      "total": "4*N*log(N)+3*N",
+      "notes": {
+        "py": "persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts, S sums",
+        "cpp": "persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts, S sums"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentOrderStats",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list), 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentOrderStats",
+            "doc": "Static array. Persistent seg tree over the values' compressed ranks: version p holds a[0..p-1], so a[l..r] is version r + 1 minus version l, and every query walks down those two versions together. Costs are log of the number of distinct values, never of the value range; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive. T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array, 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "S",
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countGtX": "log(N)",
+        "countGteX": "log(N)",
+        "countInValRange": "log(N)",
+        "countLtX": "log(N)",
+        "countLteX": "log(N)",
+        "countOccurrences": "log(N)",
+        "kthLargest": "log(N)",
+        "kthSmallest": "log(N)",
+        "largestLtX": "log(N)",
+        "largestLteX": "log(N)",
+        "medianHigh": "log(N)",
+        "medianLow": "log(N)",
+        "pointGet": "log(N)",
+        "rangeMax": "log(N)",
+        "rangeMin": "log(N)",
+        "rangeSum": "log(N)",
+        "smallestGtX": "log(N)",
+        "smallestGteX": "log(N)",
+        "sumAbsDiffToMedian": "log(N)",
+        "sumAbsDiffToX": "log(N)",
+        "sumGtX": "log(N)",
+        "sumGteX": "log(N)",
+        "sumInValRange": "log(N)",
+        "sumKthLargestRange": "log(N)",
+        "sumKthSmallestRange": "log(N)",
+        "sumLargestK": "log(N)",
+        "sumLtX": "log(N)",
+        "sumLteX": "log(N)",
+        "sumSmallestK": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "L",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "R",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "C",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "S",
+              "size": "1*N*log(N)"
+            }
+          ],
+          "total": "4*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "root",
+              "size": "1*N"
+            },
+            {
+              "name": "arr",
+              "size": "1*N"
+            },
+            {
+              "name": "srt",
+              "size": "1*N"
+            }
+          ],
+          "total": "5*N"
+        },
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts, S sums; the tree is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+        "total": "4*N*log(N)+5*N",
+        "notes": {
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts, S sums; the tree is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; persistent seg tree over the compressed values: about N log N nodes; L/R are child pointers, C counts, S sums; the tree is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparsePersistentOrderStats",
+              "doc": "",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "values"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value < x in a[l..r], or None",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value <= x in a[l..r], or None",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value > x in a[l..r], or None",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value >= x in a[l..r], or None",
+              "cls": 0
+            },
+            "sumAbsDiffToMedian": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+              "cls": 0
+            },
+            "sumAbsDiffToX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of |a[i] - x| over i in [l, r]",
+              "cls": 0
+            },
+            "sumGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values > x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values >= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumKthLargestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumKthSmallestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumLargestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values < x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values <= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumSmallestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparsePersistentOrderStats",
+              "doc": "The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so the k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "values",
+                  "type": "vector<pair<long long, T>>"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value < x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value <= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value > x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value >= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "sumAbsDiffToMedian": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+              "cls": 0
+            },
+            "sumAbsDiffToX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of |a[i] - x| over i in [l, r]",
+              "cls": 0
+            },
+            "sumGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values > x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values >= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "S",
+              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumKthLargestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "returns": "S",
+              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumKthSmallestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "returns": "S",
+              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumLargestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "S",
+              "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values < x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values <= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumSmallestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "S",
+              "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
               "cls": 0
             }
           }
@@ -51626,6 +61024,276 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
+    "folder": "pointGet-rangeMex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "pointGet",
+      "rangeMex"
+    ],
+    "dataStructureType": "persistent",
+    "complexities": {
+      "pointGet": "1",
+      "rangeMex": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "ML",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "MR",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "MN",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "3*N*log(N)"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "root",
+            "size": "1*N"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "note": "persistent seg tree over the values 0..N+1; version p holds each value's last index before p, and the mex of a[l..r] is the first value whose last index is < l",
+      "total": "3*N*log(N)+2*N",
+      "notes": {
+        "py": "persistent seg tree over the values 0..N+1; version p holds each value's last index before p, and the mex of a[l..r] is the first value whose last index is < l",
+        "cpp": "persistent seg tree over the values 0..N+1; version p holds each value's last index before p, and the mex of a[l..r] is the first value whose last index is < l"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "PersistentMex",
+            "doc": "Static array; rangeMex(l, r) = smallest integer >= 0 not in a[l..r] (0-indexed, inclusive), online. rangeMex: a persistent seg tree over the values 0..N+1; version p holds, per value, its last index before p (-1 if none). The mex of a[l..r] is the first value whose last index in version r + 1 is < l.",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list), 0-indexed"
+          }
+        ],
+        "methods": {
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "PersistentMex",
+            "doc": "Static array; rangeMex(l, r) = smallest integer >= 0 not in a[l..r] (0-indexed, inclusive), online. rangeMex: a persistent seg tree over the values 0..N+1; version p holds, per value, its last index before p (-1 if none). The mex of a[l..r] is the first value whose last index in version r + 1 is < l. T: int, long long, ...",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array, 0-indexed"
+          }
+        ],
+        "methods": {
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "int",
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "pointGet": "log(N)",
+        "rangeMex": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "ML",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "MR",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "MN",
+              "size": "1*N*log(N)"
+            }
+          ],
+          "total": "3*N*log(N)"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "root",
+              "size": "1*N"
+            },
+            {
+              "name": "arr",
+              "size": "1*N"
+            }
+          ],
+          "total": "4*N"
+        },
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; persistent seg tree over the values 0..N+1; version p holds each value's last index before p, and the mex of a[l..r] is the first value whose last index is < l; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+        "total": "3*N*log(N)+4*N",
+        "notes": {
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; persistent seg tree over the values 0..N+1; version p holds each value's last index before p, and the mex of a[l..r] is the first value whose last index is < l; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; persistent seg tree over the values 0..N+1; version p holds each value's last index before p, and the mex of a[l..r] is the first value whose last index is < l; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparsePersistentMex",
+              "doc": "",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "values"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMex": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "smallest integer >= 0 that is not in a[l..r]",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparsePersistentMex",
+              "doc": "The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so the k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "values",
+                  "type": "vector<pair<long long, T>>"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMex": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "long long",
+              "doc": "smallest integer >= 0 that is not in a[l..r]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
     "folder": "pointGet-rangeMin",
     "langs": [
       "py",
@@ -52381,6 +62049,4588 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               ],
               "returns": "T",
               "doc": "range or of a[l..r]",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "wavelet-order-stats",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "rangeMax",
+      "rangeMin",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "wavelet",
+    "complexities": {
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "countOccurrences": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "medianHigh": "log(N)",
+      "medianLow": "log(N)",
+      "pointGet": "1",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "zeros",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N*log(N)+2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value",
+      "total": "1*N*log(N)+2*N",
+      "notes": {
+        "py": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value",
+        "cpp": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "WaveletMatrix",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list), 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "WaveletMatrix",
+            "doc": "Static array. Each query treats a[l..r] (0-indexed, inclusive) as a sorted multiset. Values are compressed to ranks 0..m-1 once, so costs are log of the number of distinct values, never of the value range; query arguments (x, lowVal, ...) can be anything. Level d of the wavelet matrix (top bit first) stably splits the current order into the ranks with that bit 0, then 1; zeros[d][i] = # of the first i elements of level d's order with the bit 0. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array, 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countGtX": "log(N)",
+        "countGteX": "log(N)",
+        "countInValRange": "log(N)",
+        "countLtX": "log(N)",
+        "countLteX": "log(N)",
+        "countOccurrences": "log(N)",
+        "kthLargest": "log(N)",
+        "kthSmallest": "log(N)",
+        "largestLtX": "log(N)",
+        "largestLteX": "log(N)",
+        "medianHigh": "log(N)",
+        "medianLow": "log(N)",
+        "pointGet": "log(N)",
+        "rangeMax": "log(N)",
+        "rangeMin": "log(N)",
+        "smallestGtX": "log(N)",
+        "smallestGteX": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "zeros",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "arr",
+              "size": "1*N"
+            },
+            {
+              "name": "srt",
+              "size": "1*N"
+            }
+          ],
+          "total": "1*N*log(N)+4*N"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+        "total": "1*N*log(N)+4*N",
+        "notes": {
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseWaveletMatrix",
+              "doc": "",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "values"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value < x in a[l..r], or None",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value <= x in a[l..r], or None",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value > x in a[l..r], or None",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value >= x in a[l..r], or None",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseWaveletMatrix",
+              "doc": "The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so the k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "values",
+                  "type": "vector<pair<long long, T>>"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value < x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value <= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value > x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value >= x in a[l..r], or nullopt",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "wavelet-order-stats-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "rangeMax",
+      "rangeMex",
+      "rangeMin",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "wavelet",
+    "complexities": {
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "countOccurrences": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "medianHigh": "log(N)",
+      "medianLow": "log(N)",
+      "pointGet": "1",
+      "rangeMax": "log(N)",
+      "rangeMex": "log(N)",
+      "rangeMin": "log(N)",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "zeros",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          },
+          {
+            "name": "mexRoot",
+            "size": "1*N"
+          },
+          {
+            "name": "ML",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "MR",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "MN",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "4*N*log(N)+3*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index",
+      "total": "4*N*log(N)+3*N",
+      "notes": {
+        "py": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index",
+        "cpp": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "WaveletMatrix",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list), 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "WaveletMatrix",
+            "doc": "Static array. Each query treats a[l..r] (0-indexed, inclusive) as a sorted multiset. Values are compressed to ranks 0..m-1 once, so costs are log of the number of distinct values, never of the value range; query arguments (x, lowVal, ...) can be anything. Level d of the wavelet matrix (top bit first) stably splits the current order into the ranks with that bit 0, then 1; zeros[d][i] = # of the first i elements of level d's order with the bit 0. rangeMex: a persistent seg tree over the values 0..N+1; version p holds, per value, its last index before p (-1 if none). The mex of a[l..r] is the first value whose last index in version r + 1 is < l. T: int, long long, ....",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array, 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "int",
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countGtX": "log(N)",
+        "countGteX": "log(N)",
+        "countInValRange": "log(N)",
+        "countLtX": "log(N)",
+        "countLteX": "log(N)",
+        "countOccurrences": "log(N)",
+        "kthLargest": "log(N)",
+        "kthSmallest": "log(N)",
+        "largestLtX": "log(N)",
+        "largestLteX": "log(N)",
+        "medianHigh": "log(N)",
+        "medianLow": "log(N)",
+        "pointGet": "log(N)",
+        "rangeMax": "log(N)",
+        "rangeMex": "log(N)",
+        "rangeMin": "log(N)",
+        "smallestGtX": "log(N)",
+        "smallestGteX": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "zeros",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "arr",
+              "size": "1*N"
+            },
+            {
+              "name": "srt",
+              "size": "1*N"
+            },
+            {
+              "name": "mexRoot",
+              "size": "1*N"
+            },
+            {
+              "name": "ML",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "MR",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "MN",
+              "size": "1*N*log(N)"
+            }
+          ],
+          "total": "4*N*log(N)+5*N"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+        "total": "4*N*log(N)+5*N",
+        "notes": {
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseWaveletMatrix",
+              "doc": "",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "values"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value < x in a[l..r], or None",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value <= x in a[l..r], or None",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMex": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "smallest integer >= 0 that is not in a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value > x in a[l..r], or None",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value >= x in a[l..r], or None",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseWaveletMatrix",
+              "doc": "The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so the k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "values",
+                  "type": "vector<pair<long long, T>>"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value < x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value <= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMex": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "long long",
+              "doc": "smallest integer >= 0 that is not in a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value > x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value >= x in a[l..r], or nullopt",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "wavelet-order-stats-sums",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "rangeMax",
+      "rangeMin",
+      "rangeSum",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "wavelet",
+    "complexities": {
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "countOccurrences": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "medianHigh": "log(N)",
+      "medianLow": "log(N)",
+      "pointGet": "1",
+      "rangeMax": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)",
+      "sumAbsDiffToMedian": "log(N)",
+      "sumAbsDiffToX": "log(N)",
+      "sumGtX": "log(N)",
+      "sumGteX": "log(N)",
+      "sumInValRange": "log(N)",
+      "sumKthLargestRange": "log(N)",
+      "sumKthSmallestRange": "log(N)",
+      "sumLargestK": "log(N)",
+      "sumLtX": "log(N)",
+      "sumLteX": "log(N)",
+      "sumSmallestK": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "zeros",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "zsum",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N*log(N)+2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left",
+      "total": "2*N*log(N)+2*N",
+      "notes": {
+        "py": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left",
+        "cpp": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "WaveletMatrix",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list), 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "WaveletMatrix",
+            "doc": "Static array. Each query treats a[l..r] (0-indexed, inclusive) as a sorted multiset. Values are compressed to ranks 0..m-1 once, so costs are log of the number of distinct values, never of the value range; query arguments (x, lowVal, ...) can be anything. Level d of the wavelet matrix (top bit first) stably splits the current order into the ranks with that bit 0, then 1; zeros[d][i] = # of the first i elements of level d's order with the bit 0. zsum[d][i] = sum of the values among the first i elements of level d's order whose bit is 0. T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array, 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "S",
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countGtX": "log(N)",
+        "countGteX": "log(N)",
+        "countInValRange": "log(N)",
+        "countLtX": "log(N)",
+        "countLteX": "log(N)",
+        "countOccurrences": "log(N)",
+        "kthLargest": "log(N)",
+        "kthSmallest": "log(N)",
+        "largestLtX": "log(N)",
+        "largestLteX": "log(N)",
+        "medianHigh": "log(N)",
+        "medianLow": "log(N)",
+        "pointGet": "log(N)",
+        "rangeMax": "log(N)",
+        "rangeMin": "log(N)",
+        "rangeSum": "log(N)",
+        "smallestGtX": "log(N)",
+        "smallestGteX": "log(N)",
+        "sumAbsDiffToMedian": "log(N)",
+        "sumAbsDiffToX": "log(N)",
+        "sumGtX": "log(N)",
+        "sumGteX": "log(N)",
+        "sumInValRange": "log(N)",
+        "sumKthLargestRange": "log(N)",
+        "sumKthSmallestRange": "log(N)",
+        "sumLargestK": "log(N)",
+        "sumLtX": "log(N)",
+        "sumLteX": "log(N)",
+        "sumSmallestK": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "zeros",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "zsum",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "arr",
+              "size": "1*N"
+            },
+            {
+              "name": "srt",
+              "size": "1*N"
+            }
+          ],
+          "total": "2*N*log(N)+4*N"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+        "total": "2*N*log(N)+4*N",
+        "notes": {
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseWaveletMatrix",
+              "doc": "",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "values"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value < x in a[l..r], or None",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value <= x in a[l..r], or None",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value > x in a[l..r], or None",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value >= x in a[l..r], or None",
+              "cls": 0
+            },
+            "sumAbsDiffToMedian": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+              "cls": 0
+            },
+            "sumAbsDiffToX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of |a[i] - x| over i in [l, r]",
+              "cls": 0
+            },
+            "sumGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values > x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values >= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumKthLargestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumKthSmallestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumLargestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values < x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values <= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumSmallestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseWaveletMatrix",
+              "doc": "The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so the k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "values",
+                  "type": "vector<pair<long long, T>>"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value < x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value <= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value > x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value >= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "sumAbsDiffToMedian": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+              "cls": 0
+            },
+            "sumAbsDiffToX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of |a[i] - x| over i in [l, r]",
+              "cls": 0
+            },
+            "sumGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values > x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values >= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "S",
+              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumKthLargestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "returns": "S",
+              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumKthSmallestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "returns": "S",
+              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumLargestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "S",
+              "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values < x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values <= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumSmallestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "S",
+              "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "wavelet-order-stats-sums-mex",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countGtX",
+      "countGteX",
+      "countInValRange",
+      "countLtX",
+      "countLteX",
+      "countOccurrences",
+      "kthLargest",
+      "kthSmallest",
+      "largestLtX",
+      "largestLteX",
+      "medianHigh",
+      "medianLow",
+      "pointGet",
+      "rangeMax",
+      "rangeMex",
+      "rangeMin",
+      "rangeSum",
+      "smallestGtX",
+      "smallestGteX",
+      "sumAbsDiffToMedian",
+      "sumAbsDiffToX",
+      "sumGtX",
+      "sumGteX",
+      "sumInValRange",
+      "sumKthLargestRange",
+      "sumKthSmallestRange",
+      "sumLargestK",
+      "sumLtX",
+      "sumLteX",
+      "sumSmallestK"
+    ],
+    "dataStructureType": "wavelet",
+    "complexities": {
+      "countGtX": "log(N)",
+      "countGteX": "log(N)",
+      "countInValRange": "log(N)",
+      "countLtX": "log(N)",
+      "countLteX": "log(N)",
+      "countOccurrences": "log(N)",
+      "kthLargest": "log(N)",
+      "kthSmallest": "log(N)",
+      "largestLtX": "log(N)",
+      "largestLteX": "log(N)",
+      "medianHigh": "log(N)",
+      "medianLow": "log(N)",
+      "pointGet": "1",
+      "rangeMax": "log(N)",
+      "rangeMex": "log(N)",
+      "rangeMin": "log(N)",
+      "rangeSum": "log(N)",
+      "smallestGtX": "log(N)",
+      "smallestGteX": "log(N)",
+      "sumAbsDiffToMedian": "log(N)",
+      "sumAbsDiffToX": "log(N)",
+      "sumGtX": "log(N)",
+      "sumGteX": "log(N)",
+      "sumInValRange": "log(N)",
+      "sumKthLargestRange": "log(N)",
+      "sumKthSmallestRange": "log(N)",
+      "sumLargestK": "log(N)",
+      "sumLtX": "log(N)",
+      "sumLteX": "log(N)",
+      "sumSmallestK": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "zeros",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "zsum",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "arr",
+            "size": "1*N"
+          },
+          {
+            "name": "srt",
+            "size": "1*N"
+          },
+          {
+            "name": "mexRoot",
+            "size": "1*N"
+          },
+          {
+            "name": "ML",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "MR",
+            "size": "1*N*log(N)"
+          },
+          {
+            "name": "MN",
+            "size": "1*N*log(N)"
+          }
+        ],
+        "total": "5*N*log(N)+3*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index",
+      "total": "5*N*log(N)+3*N",
+      "notes": {
+        "py": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index",
+        "cpp": "wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index"
+      }
+    },
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "WaveletMatrix",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (a list), 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value < x in a[l..r], or None",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "largest value <= x in a[l..r], or None",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value > x in a[l..r], or None",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "smallest value >= x in a[l..r], or None",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "WaveletMatrix",
+            "doc": "Static array. Each query treats a[l..r] (0-indexed, inclusive) as a sorted multiset. Values are compressed to ranks 0..m-1 once, so costs are log of the number of distinct values, never of the value range; query arguments (x, lowVal, ...) can be anything. Level d of the wavelet matrix (top bit first) stably splits the current order into the ranks with that bit 0, then 1; zeros[d][i] = # of the first i elements of level d's order with the bit 0. zsum[d][i] = sum of the values among the first i elements of level d's order whose bit is 0. rangeMex: a persistent seg tree over the values 0..N+1; version p holds, per value, its last index before p (-1 if none). The mex of a[l..r] is the first value whose last index in version r + 1 is < l. T: int, long long, ...; sums are kept in S (long long for small T).",
+            "ctor": [
+              {
+                "name": "a",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array, 0-indexed"
+          }
+        ],
+        "methods": {
+          "countGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values > x in a[l..r]",
+            "cls": 0
+          },
+          "countGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values >= x in a[l..r]",
+            "cls": 0
+          },
+          "countInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "countLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values < x in a[l..r]",
+            "cls": 0
+          },
+          "countLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of values <= x in a[l..r]",
+            "cls": 0
+          },
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "kthLargest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "kthSmallest": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "T",
+            "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "medianHigh": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+            "cls": 0
+          },
+          "medianLow": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeMax": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "max of a[l..r]",
+            "cls": 0
+          },
+          "rangeMex": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "int",
+            "doc": "smallest integer >= 0 that is not in a[l..r]",
+            "cls": 0
+          },
+          "rangeMin": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "T",
+            "doc": "min of a[l..r]",
+            "cls": 0
+          },
+          "rangeSum": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "a[l] + ... + a[r]",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x in a[l..r], or nullopt",
+            "cls": 0
+          },
+          "sumAbsDiffToMedian": {
+            "params": [
+              "l",
+              "r"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+            "cls": 0
+          },
+          "sumAbsDiffToX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of |a[i] - x| over i in [l, r]",
+            "cls": 0
+          },
+          "sumGtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values > x in a[l..r]",
+            "cls": 0
+          },
+          "sumGteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values >= x in a[l..r]",
+            "cls": 0
+          },
+          "sumInValRange": {
+            "params": [
+              "l",
+              "r",
+              "lowVal",
+              "highVal"
+            ],
+            "returns": "S",
+            "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal",
+            "cls": 0
+          },
+          "sumKthLargestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumKthSmallestRange": {
+            "params": [
+              "l",
+              "r",
+              "i",
+              "j"
+            ],
+            "returns": "S",
+            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLargestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          },
+          "sumLtX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values < x in a[l..r]",
+            "cls": 0
+          },
+          "sumLteX": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "S",
+            "doc": "sum of the values <= x in a[l..r]",
+            "cls": 0
+          },
+          "sumSmallestK": {
+            "params": [
+              "l",
+              "r",
+              "k"
+            ],
+            "returns": "S",
+            "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "complexities": {
+        "countGtX": "log(N)",
+        "countGteX": "log(N)",
+        "countInValRange": "log(N)",
+        "countLtX": "log(N)",
+        "countLteX": "log(N)",
+        "countOccurrences": "log(N)",
+        "kthLargest": "log(N)",
+        "kthSmallest": "log(N)",
+        "largestLtX": "log(N)",
+        "largestLteX": "log(N)",
+        "medianHigh": "log(N)",
+        "medianLow": "log(N)",
+        "pointGet": "log(N)",
+        "rangeMax": "log(N)",
+        "rangeMex": "log(N)",
+        "rangeMin": "log(N)",
+        "rangeSum": "log(N)",
+        "smallestGtX": "log(N)",
+        "smallestGteX": "log(N)",
+        "sumAbsDiffToMedian": "log(N)",
+        "sumAbsDiffToX": "log(N)",
+        "sumGtX": "log(N)",
+        "sumGteX": "log(N)",
+        "sumInValRange": "log(N)",
+        "sumKthLargestRange": "log(N)",
+        "sumKthSmallestRange": "log(N)",
+        "sumLargestK": "log(N)",
+        "sumLtX": "log(N)",
+        "sumLteX": "log(N)",
+        "sumSmallestK": "log(N)"
+      },
+      "build": "N*log(N)",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "idx",
+              "size": "1*N"
+            },
+            {
+              "name": "vals",
+              "size": "1*N"
+            },
+            {
+              "name": "zeros",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "zsum",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "arr",
+              "size": "1*N"
+            },
+            {
+              "name": "srt",
+              "size": "1*N"
+            },
+            {
+              "name": "mexRoot",
+              "size": "1*N"
+            },
+            {
+              "name": "ML",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "MR",
+              "size": "1*N*log(N)"
+            },
+            {
+              "name": "MN",
+              "size": "1*N*log(N)"
+            }
+          ],
+          "total": "5*N*log(N)+5*N"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+        "total": "5*N*log(N)+5*N",
+        "notes": {
+          "py": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)",
+          "cpp": "built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value, plus one row of prefix sums of the values that go left; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit between the negatives and the positives)"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseWaveletMatrix",
+              "doc": "",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                },
+                {
+                  "name": "values"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value < x in a[l..r], or None",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "largest value <= x in a[l..r], or None",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMex": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "smallest integer >= 0 that is not in a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value > x in a[l..r], or None",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "smallest value >= x in a[l..r], or None",
+              "cls": 0
+            },
+            "sumAbsDiffToMedian": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+              "cls": 0
+            },
+            "sumAbsDiffToX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of |a[i] - x| over i in [l, r]",
+              "cls": 0
+            },
+            "sumGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values > x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values >= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumKthLargestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumKthSmallestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumLargestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            },
+            "sumLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values < x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "sum of the values <= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumSmallestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseWaveletMatrix",
+              "doc": "The same queries over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. The structure above runs on the given values alone (in index order). [l, r] covers given values i0..i1 and zeros = (r - l + 1) - (i1 - i0 + 1) zeros, and in sorted order those zeros sit right after the given negatives, so the k-th smallest of [l, r] is the given k-th while k <= neg, 0 while k <= neg + zeros, then the given (k - zeros)-th.",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                },
+                {
+                  "name": "values",
+                  "type": "vector<pair<long long, T>>"
+                }
+              ],
+              "ctorDoc": "[lo, hi] all 0 except the given values: (index, value) pairs with distinct indices; N = len(values)"
+            }
+          ],
+          "methods": {
+            "countGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values > x in a[l..r]",
+              "cls": 0
+            },
+            "countGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values >= x in a[l..r]",
+              "cls": 0
+            },
+            "countInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with lowVal <= a[i] <= highVal",
+              "cls": 0
+            },
+            "countLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values < x in a[l..r]",
+              "cls": 0
+            },
+            "countLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of values <= x in a[l..r]",
+              "cls": 0
+            },
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "kthLargest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "kthSmallest": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "T",
+              "doc": "the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value < x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value <= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "medianHigh": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest",
+              "cls": 0
+            },
+            "medianLow": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "lower median of a[l..r]: its ceil(len / 2)-th smallest",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rangeMax": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "max of a[l..r]",
+              "cls": 0
+            },
+            "rangeMex": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "long long",
+              "doc": "smallest integer >= 0 that is not in a[l..r]",
+              "cls": 0
+            },
+            "rangeMin": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "T",
+              "doc": "min of a[l..r]",
+              "cls": 0
+            },
+            "rangeSum": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "a[l] + ... + a[r]",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value > x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value >= x in a[l..r], or nullopt",
+              "cls": 0
+            },
+            "sumAbsDiffToMedian": {
+              "params": [
+                "l",
+                "r"
+              ],
+              "returns": "S",
+              "doc": "sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal",
+              "cls": 0
+            },
+            "sumAbsDiffToX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of |a[i] - x| over i in [l, r]",
+              "cls": 0
+            },
+            "sumGtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values > x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumGteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values >= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumInValRange": {
+              "params": [
+                "l",
+                "r",
+                "lowVal",
+                "highVal"
+              ],
+              "returns": "S",
+              "doc": "sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumKthLargestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "returns": "S",
+              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumKthSmallestRange": {
+              "params": [
+                "l",
+                "r",
+                "i",
+                "j"
+              ],
+              "returns": "S",
+              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumLargestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "S",
+              "doc": "sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
+              "cls": 0
+            },
+            "sumLtX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values < x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumLteX": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "S",
+              "doc": "sum of the values <= x in a[l..r] (the zeros add nothing)",
+              "cls": 0
+            },
+            "sumSmallestK": {
+              "params": [
+                "l",
+                "r",
+                "k"
+              ],
+              "returns": "S",
+              "doc": "sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else throws out_of_range",
               "cls": 0
             }
           }

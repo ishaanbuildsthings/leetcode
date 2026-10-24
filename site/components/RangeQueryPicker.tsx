@@ -31,11 +31,17 @@ const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
   arr: { py: "arr: the initial array (a list), 0-indexed", cpp: "arr: the initial array (vector<long long>), 0-indexed" },
   a: { py: "a: the initial array (a list), 0-indexed", cpp: "a: the initial array (vector<long long>), 0-indexed" },
   values: {
-    py: "values: a list of (index, value) pairs, distinct indices in [lo, hi]; N = len(values)",
-    cpp: "values: vector<pair<long long, long long>> of (index, value), distinct indices in [lo, hi]; N = values.size()",
+    py: "values: the nonzero entries, as a list of (index, value) pairs (distinct indices in [lo, hi], any order)",
+    cpp: "values: the nonzero entries, as vector<pair<long long, long long>> of (index, value) (distinct indices in [lo, hi], any order)",
   },
   mod: { py: "the modulus p", cpp: "the modulus p" },
   bits: { py: "values live in [0, 2^bits)", cpp: "values live in [0, 2^bits)" },
+  allValuesThatWillEverBeInsertedForOfflineCompression: {
+    py: "allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will ever get (a list; any order, duplicates fine). Only used to compress values: this does NOT add them. N = how many distinct",
+    cpp: "allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will ever get (vector<long long>; any order, duplicates fine). Only used to compress values: this does NOT add them. N = how many distinct",
+  },
+  valLo: { py: "valLo: every value a[i] ever holds is >= valLo (any integer, negative is fine)", cpp: "valLo: every value a[i] ever holds is >= valLo (any long long, negative is fine)" },
+  valHi: { py: "valHi: every value a[i] ever holds is <= valHi; U = valHi - valLo + 1", cpp: "valHi: every value a[i] ever holds is <= valHi; U = valHi - valLo + 1" },
 };
 
 // Which versions compete: dense only, dense and sparse (each sparse version with its own costs and memory), or
@@ -72,7 +78,7 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   memoryGroups: (template) => {
     const { memory, dataStructureType: type } = template;
     const groups: { id: "node" | "tags" | "other"; label: string }[] = [
-      { id: "node", label: type === "sparse-table" ? "Table" : type === "sqrt" ? "Blocks" : type === "positions" ? "Lists" : type === "wavelet" ? "Levels" : "Node data" },
+      { id: "node", label: type === "sparse-table" ? "Table" : type === "sqrt" ? "Blocks" : type === "positions" ? "Lists" : type === "wavelet" ? "Arrays" : "Node data" },
     ];
     const tree = memory.layout !== "none" && (memory.layout !== "sparse" || ["seg-tree", "lazy-seg-tree", "beats"].includes(type));
     if (tree || memory.tags.arrays.length > 0) groups.push({ id: "tags", label: "Lazy tags" });
@@ -90,11 +96,12 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
       ? []
       : isBuiltFromPoints(t.memory)
         ? [
-            "Indices are any integers in [lo, hi] (negative is fine); every index not given in values is 0.",
-            "Costs depend on N, the number of given values, not on the size of [lo, hi].",
+            "A huge, mostly-zero array a[lo..hi] (e.g. lo = 0, hi = 10^18; negative is fine): lo and hi only say how long it is.",
+            "values lists every nonzero entry, all at once; every other index is 0. Nothing is added later: the array never changes.",
+            "Costs depend on N = len(values), not on hi - lo.",
           ]
         : [
-            "Every index in [lo, hi] starts at 0 (any integers, negative is fine).",
+            "A huge array a[lo..hi] (e.g. lo = 0, hi = 10^18; negative is fine) where every index starts at 0: lo and hi only say how long it is.",
             "Untouched indices read as 0, e.g. the max of an untouched range is 0, not -inf.",
           ],
   // in a sparse version, every query line says what the indices nobody wrote hold

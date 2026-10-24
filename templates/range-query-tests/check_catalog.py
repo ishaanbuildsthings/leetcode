@@ -19,6 +19,8 @@ MANIFEST = os.path.join(ROOT, "site", "lib", "generated", "range-query-templates
 PICKER = os.path.join(ROOT, "site", "lib", "range-query-picker.ts")
 
 N, U = 2e5, 1e9
+# dominated, but the user wants them on the page anyway (2026-10-22: "lets keep the plain persistent ones too")
+KEPT = {"persistent-order-stats", "persistent-order-stats-sums"}
 FACTORS = {"1": 1, "N": N, "log(N)": math.log2(N), "log^2(N)": math.log2(N) ** 2, "sqrt(N)": math.sqrt(N),
            "log(U)": math.log2(U), "log(log(U))": math.log2(math.log2(U))}
 
@@ -35,6 +37,8 @@ def amortized(cost):  # amortized or expected: weaker than a worst-case bound
 def dominates(y, x):
     """True if template y makes template x pointless."""
     if not set(x["operations"]) <= set(y["operations"]):
+        return False
+    if y.get("valuesOffline") and not x.get("valuesOffline"):  # needing every value up front is a real cost
         return False
     mx, my = value(x["memory"]["total"]), value(y["memory"]["total"])
     bx, by = value(x["build"]), value(y["build"])
@@ -66,7 +70,9 @@ def main():
         problems += 1
     for x in templates:
         better = next((y for y in templates if y is not x and dominates(y, x)), None)
-        if better:
+        if better and x["folder"] in KEPT:
+            print(f"kept on purpose: {x['folder']} (dominated by {better['folder']})")
+        elif better:
             print(f"dominated: {x['folder']}  [{x['memory']['total']}]\n       by: {better['folder']}  [{better['memory']['total']}]")
             problems += 1
     print(f"{len(templates)} templates, {len(picker_ops)} ops: " + ("all good" if not problems else f"{problems} problem(s)"))

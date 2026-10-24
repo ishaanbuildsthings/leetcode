@@ -49,7 +49,7 @@ RANGE_UPDATES = {  # op -> number of args after (l, r)
     "rangeAndApply": 1, "rangeOrApply": 1, "rangeXorApply": 1,
 }
 # sequence edits (implicit treap): op -> arg kind; they change the array's length
-SEQ_OPS = {"insertAt": "iv", "eraseAt": "i", "eraseRange": "lr", "rangeReverse": "lr", "rangeRotateLeft": "lrk", "moveRange": "lri"}
+SEQ_OPS = {"pushBack": "v", "insertAt": "iv", "eraseAt": "i", "eraseRange": "lr", "rangeReverse": "lr", "rangeRotateLeft": "lrk", "rangeRotateRight": "lrk", "moveRange": "lri"}
 MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod", "rangeAssignMod", "rangeSumMod"}  # any: values live mod p
 
 
@@ -77,6 +77,15 @@ def _max_sub(seg):
 def _prefix_search(a, l, r, x, strict):
     run = 0
     for i in range(l, r + 1):
+        run += a[i]
+        if run > x or (not strict and run == x):
+            return i
+    return -1
+
+
+def _suffix_search(a, l, r, x, strict):
+    run = 0
+    for i in range(r, l - 1, -1):
         run += a[i]
         if run > x or (not strict and run == x):
             return i
@@ -124,8 +133,67 @@ def _cost_mono_inc(seg):
 SIDE = {"leftmost": lambda l, r: range(l, r + 1), "rightmost": lambda l, r: range(r, l - 1, -1)}
 CMP = {"Gte": lambda v, x: v >= x, "Gt": lambda v, x: v > x, "Lte": lambda v, x: v <= x, "Lt": lambda v, x: v < x}
 
-# query op -> (arg kind, brute(a, l, r, *args, ctx)); arg kinds: "lr", "lrx", "lrk", "lrkx", "lrlohi", and "lrkv" (a k
-# in [1, r - l + 1]: those ops error outside it)
+# Order statistics of a[l..r] (the sets picker's queries, asked about a subarray): answered from the multiset
+# {value: copies}, so the dense and sparse brute forces share them. op -> arg kind.
+ORDER_OPS = {
+    "kthSmallest": "lrkv", "kthLargest": "lrkv", "medianLow": "lr", "medianHigh": "lr",
+    "countLtX": "lrx", "countLteX": "lrx", "countGtX": "lrx", "countGteX": "lrx",
+    "smallestGteX": "lrx", "smallestGtX": "lrx", "largestLteX": "lrx", "largestLtX": "lrx",
+    "sumLtX": "lrx", "sumLteX": "lrx", "sumGtX": "lrx", "sumGteX": "lrx", "sumSmallestK": "lrk0", "sumLargestK": "lrk0",
+    "sumKthSmallestRange": "lrij", "sumKthLargestRange": "lrij", "sumAbsDiffToX": "lrx", "sumAbsDiffToMedian": "lr",
+    "rangeMex": "lr",
+}
+
+
+def order_stat(op, tot, n, xs):
+    """op on the multiset tot ({value: copies}, n values in all); xs are the args after (l, r)."""
+    keys = sorted(v for v, c in tot.items() if c)
+
+    def kth(k):
+        for v in keys:
+            if k <= tot[v]:
+                return v
+            k -= tot[v]
+
+    def first(k):  # sum of the k smallest
+        s_ = 0
+        for v in keys:
+            t = min(k, tot[v])
+            s_, k = s_ + t * v, k - t
+        return s_
+
+    cnt = lambda p: sum(tot[v] for v in keys if p(v))  # noqa: E731
+    sm = lambda p: sum(tot[v] * v for v in keys if p(v))  # noqa: E731
+    x = xs[0] if xs else None
+    if op == "kthSmallest": return kth(x)
+    if op == "kthLargest": return kth(n + 1 - x)
+    if op == "medianLow": return kth((n + 1) // 2)
+    if op == "medianHigh": return kth(n // 2 + 1)
+    for name, cmp in CMP.items():
+        if op == f"count{name}X": return cnt(lambda v: cmp(v, x))
+        if op == f"sum{name}X": return sm(lambda v: cmp(v, x))
+    if op == "smallestGteX": return min((v for v in keys if v >= x), default=None)
+    if op == "smallestGtX": return min((v for v in keys if v > x), default=None)
+    if op == "largestLteX": return max((v for v in keys if v <= x), default=None)
+    if op == "largestLtX": return max((v for v in keys if v < x), default=None)
+    if op == "sumSmallestK": return first(x)
+    if op == "sumLargestK": return first(n) - first(n - x)
+    if op == "sumKthSmallestRange": return first(xs[1]) - first(xs[0] - 1)
+    if op == "sumKthLargestRange": return first(n - xs[0] + 1) - first(n - xs[1])
+    if op == "sumAbsDiffToX": return sum(tot[v] * abs(v - x) for v in keys)
+    if op == "sumAbsDiffToMedian":
+        m = kth((n + 1) // 2)
+        return sum(tot[v] * abs(v - m) for v in keys)
+    if op == "rangeMex":
+        v = 0
+        while tot.get(v):
+            v += 1
+        return v
+    raise KeyError(op)
+
+
+# query op -> (arg kind, brute(a, l, r, *args, ctx)); arg kinds: "lr", "lrx", "lrk", "lrkx", "lrlohi", plus "lrkv" (a k
+# in [1, r - l + 1]), "lrk0" (a k in [0, r - l + 1]) and "lrij" (1 <= i <= j <= r - l + 1): those ops error outside them
 BRUTE_QUERIES = {
     "rangeSum": ("lr", lambda a, l, r, c: sum(a[l:r + 1])),
     "rangeSumMod": ("lr", lambda a, l, r, c: sum(a[l:r + 1]) % c["mod"]),
@@ -151,14 +219,16 @@ BRUTE_QUERIES = {
     "doAllElementsAppearEvenFrequency": ("lr", lambda a, l, r, c: all(v % 2 == 0 for v in Counter(a[l:r + 1]).values())),
     "countInValRange": ("lrlohi", lambda a, l, r, lo, hi, c: sum(lo <= v <= hi for v in a[l:r + 1])),
     "sumInValRange": ("lrlohi", lambda a, l, r, lo, hi, c: sum(v for v in a[l:r + 1] if lo <= v <= hi)),
-    "kthSmallestInRange": ("lrkv", lambda a, l, r, k, c: sorted(a[l:r + 1])[k - 1]),
-    "kthLargestInRange": ("lrkv", lambda a, l, r, k, c: sorted(a[l:r + 1])[-k]),
     "leftmostPrefixSumGteX": ("lrx", lambda a, l, r, x, c: _prefix_search(a, l, r, x, False)),
     "leftmostPrefixSumGtX": ("lrx", lambda a, l, r, x, c: _prefix_search(a, l, r, x, True)),
+    "rightmostSuffixSumGteX": ("lrx", lambda a, l, r, x, c: _suffix_search(a, l, r, x, False)),
+    "rightmostSuffixSumGtX": ("lrx", lambda a, l, r, x, c: _suffix_search(a, l, r, x, True)),
 }
 for _side, _idx in SIDE.items():
     for _name, _cmp in CMP.items():
         BRUTE_QUERIES[f"{_side}{_name}X"] = ("lrx", lambda a, l, r, x, c, _idx=_idx, _cmp=_cmp: _first(a, _idx(l, r), lambda v: _cmp(v, x)))
+for _op, _kind in ORDER_OPS.items():
+    BRUTE_QUERIES[_op] = (_kind, lambda a, l, r, *xs, _op=_op: order_stat(_op, Counter(a[l:r + 1]), r - l + 1, xs[:-1]))
 for _name, _cmp in CMP.items():
     BRUTE_QUERIES[f"kth{_name}X"] = ("lrkx", lambda a, l, r, k, x, c, _cmp=_cmp: _kth(a, l, r, k, lambda v: _cmp(v, x)))
 
@@ -173,7 +243,9 @@ def _check_mode(a, l, r, got):
 def brute_update(a, op, args, ctx):
     mod, full = ctx["mod"], ctx["full"]
     if op in SEQ_OPS:
-        if op == "insertAt":
+        if op == "pushBack":
+            a.append(args[0])
+        elif op == "insertAt":
             a.insert(args[0], args[1])
         elif op == "eraseAt":
             del a[args[0]]
@@ -183,8 +255,8 @@ def brute_update(a, op, args, ctx):
             del a[l:r + 1]
             if op == "rangeReverse":
                 seg.reverse()
-            elif op == "rangeRotateLeft":
-                k = args[2] % len(seg)
+            elif op in ("rangeRotateLeft", "rangeRotateRight"):
+                k = (args[2] if op == "rangeRotateLeft" else -args[2]) % len(seg)
                 seg = seg[k:] + seg[:k]
             if op != "eraseRange":
                 at = args[2] if op == "moveRange" else l
@@ -242,6 +314,16 @@ def domain(folder, ops):
         return (lambda r: r.randint(0, 200)), nonneg_small, [], ctx
     if "rangeGcd" in ops:
         return (lambda r: r.randint(0, 60)), nonneg_small, [], ctx
+    # order statistics: templates with updates take the value range [valLo, valHi] too, or (offline) every value
+    # that will ever be added
+    if "rangeMex" in ops or "kthSmallest" in ops:
+        lo, hi = (-3, 14) if "rangeMex" in ops else (-12, 12)
+        extra = []
+        if "offline" in folder:
+            extra = [list(range(lo, hi + 1))]
+        elif "pointAssign" in ops or "pushBack" in ops:
+            extra = [-10**9, 10**9]
+        return (lambda r: r.randint(lo, hi)), small, extra, ctx
     if {"countDistinct", "allDistinct", "rangeMode", "doAllElementsAppearEvenFrequency", "countOccurrences"} & set(ops):
         return (lambda r: r.randint(0, 6)), nonneg_small, [], ctx
     if "longestEqualRun" in ops:
@@ -278,12 +360,14 @@ def make_trials(folder, ops, trials):
         seq = []
         for _ in range(OPS_PER_TRIAL):
             op = rng.choice(updates) if updates and rng.random() < 0.5 else rng.choice(queries or updates)
-            if op in ("eraseAt", "eraseRange") and n == 1 or op == "insertAt" and n >= 40:  # keep 1 <= n <= 40
-                op = "insertAt" if n == 1 else "eraseAt"
+            if op in ("eraseAt", "eraseRange") and n == 1 or op in ("insertAt", "pushBack") and n >= 40:  # keep 1 <= n <= 40
+                op = "insertAt" if n == 1 else "eraseAt" if "eraseAt" in ops else "pointGet"
             if op in SEQ_OPS:
                 l, r = sorted((rng.randrange(n), rng.randrange(n)))
                 kind = SEQ_OPS[op]
-                if kind == "iv":
+                if kind == "v":
+                    args = [gen(rng)]
+                elif kind == "iv":
                     args = [rng.randint(0, n), gen(rng)]
                 elif kind == "i":
                     args = [rng.randrange(n)]
@@ -295,7 +379,7 @@ def make_trials(folder, ops, trials):
                     args = [l, r, rng.randint(0, n - (r - l + 1))]
                 else:
                     args = [l, r]
-                n += 1 if op == "insertAt" else -1 if op == "eraseAt" else -(args[1] - args[0] + 1) if op == "eraseRange" else 0
+                n += 1 if op in ("insertAt", "pushBack") else -1 if op == "eraseAt" else -(args[1] - args[0] + 1) if op == "eraseRange" else 0
             elif op == "pointGet":
                 args = [rng.randrange(n)]
             elif op in POINT_UPDATES:
@@ -306,13 +390,17 @@ def make_trials(folder, ops, trials):
                 if kind == "upd":
                     args = [l, r] + update_args(op, rng, gen, ctx["mod"])
                 elif kind == "lrx":
-                    args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op else gen(rng)]
+                    args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op or "SuffixSum" in op else gen(rng)]
                 elif kind == "lrkx":
                     args = [l, r, rng.randint(1, 5), gen(rng)]
                 elif kind == "lrk":
                     args = [l, r, rng.randint(0, 6)]
                 elif kind == "lrkv":
                     args = [l, r, rng.randint(1, r - l + 1)]
+                elif kind == "lrk0":
+                    args = [l, r, rng.randint(0, r - l + 1)]
+                elif kind == "lrij":
+                    args = [l, r, *sorted((rng.randint(1, r - l + 1), rng.randint(1, r - l + 1)))]
                 elif kind == "lrlohi":
                     args = [l, r, *sorted((gen(rng), gen(rng)))]
                 else:
@@ -482,6 +570,9 @@ def sparse_query(op, R, args, ctx):
     if op == "maxSuffixSum": return _runs_sub(runs)[2]
     if op == "longestEqualRun": return _runs_longest(runs)
     if op == "maxAltSubseqSum": return _max_alt([v for s_, e, v in runs for _ in range(min(3, e - s_ + 1))])
+    if op in ("rightmostSuffixSumGteX", "rightmostSuffixSumGtX"):  # mirror the runs and search from r leftwards
+        hit = _runs_prefix_search([(-e, -s_, v) for s_, e, v in runs[::-1]], xs[0], op.endswith("GtX"))
+        return R.lo - 1 if hit is None else -hit
     if op in ("leftmostPrefixSumGteX", "leftmostPrefixSumGtX"):  # not found: lo - 1 (-1 when lo = 0)
         hit = _runs_prefix_search(runs, xs[0], op.endswith("GtX"))
         return R.lo - 1 if hit is None else hit
@@ -508,15 +599,11 @@ def sparse_query(op, R, args, ctx):
     if op == "rangeLIS": return _lis(vals)
     if op == "countInValRange": return sum(n_of(x) for x in runs if xs[0] <= x[2] <= xs[1])
     if op == "sumInValRange": return sum(n_of(x) * x[2] for x in runs if xs[0] <= x[2] <= xs[1])
-    if op in ("kthSmallestInRange", "kthLargestInRange"):
-        k = xs[0] if op == "kthSmallestInRange" else (r - l + 2 - xs[0])
+    if op in ORDER_OPS:
         tot = Counter()
         for x in runs:
             tot[x[2]] += n_of(x)
-        for v in sorted(tot):
-            if k <= tot[v]:
-                return v
-            k -= tot[v]
+        return order_stat(op, tot, r - l + 1, xs)
     if op == "costMonoIncreasing": return _cost_pieces([(v, e - s_ + 1, 0) for s_, e, v in runs])
     if op == "costMonoDecreasing": return _cost_pieces([(v, e - s_ + 1, 0) for s_, e, v in runs[::-1]])
     if op == "costStrictIncreasing": return _cost_pieces([(v - (s_ - l), e - s_ + 1, -1) for s_, e, v in runs])
@@ -649,14 +736,20 @@ def make_sparse_trials(folder, ops, trials):
                     kind = BRUTE_QUERIES.get(op, ("lr",))[0]
                     k = rng.choice([rng.randint(0, 5), rng.randint(1, 10**12)])
                     if kind == "lrx":
-                        args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op else gen(rng)]
+                        args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op or "SuffixSum" in op else gen(rng)]
                     elif kind == "lrkx":
                         args = [l, r, k, gen(rng)]
                     elif kind == "lrk":
                         args = [l, r, k]
-                    elif kind == "lrkv":  # mostly near either end, where the given values sit around the zeros
+                    elif kind in ("lrkv", "lrk0", "lrij"):  # mostly near either end, where the given values sit around the zeros
                         n = r - l + 1
-                        args = [l, r, rng.choice([rng.randint(1, min(n, 6)), n + 1 - rng.randint(1, min(n, 6)), rng.randint(1, n)])]
+                        pick = lambda: rng.choice([rng.randint(1, min(n, 6)), n + 1 - rng.randint(1, min(n, 6)), rng.randint(1, n)])  # noqa: E731
+                        if kind == "lrkv":
+                            args = [l, r, pick()]
+                        elif kind == "lrk0":
+                            args = [l, r, rng.choice([0, n, pick()])]
+                        else:
+                            args = [l, r, *sorted((pick(), pick()))]
                     elif kind == "lrlohi":
                         args = [l, r, *sorted((gen(rng), gen(rng)))]
                     else:
@@ -746,13 +839,14 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
     if missing:
         raise RuntimeError(f"{stem}.cpp has no method for {missing}")
     used = sorted(set(owners.values()))
-    extra = "".join(f", {e}" for e in ctor_extra)
+    extra = "".join(f", vector<long long>{{{', '.join(map(str, e))}}}" if isinstance(e, list) else f", {e}" for e in ctor_extra)
     lines = ["#include <bits/stdc++.h>", "using namespace std;", f'#include "{os.path.join(DIR, folder, stem + ".cpp")}"']
     lines += [f"template struct {s}<int>;" for s in used]  # type-check the generic code for int too
     lines += [
         "template <class X> void out(const X& x) { cout << x << '\\n'; }",
         "void out(bool b) { cout << (b ? 1 : 0) << '\\n'; }",
         "template <class A, class B> void out(const pair<A, B>& p) { cout << p.first << ' ' << p.second << '\\n'; }",
+        "template <class X> void out(const optional<X>& o) { if (o) cout << *o << '\\n'; else cout << \"None\\n\"; }",
         "int main() {",
         "  ios::sync_with_stdio(false); cin.tie(nullptr);",
         "  int cases; cin >> cases;",
@@ -772,7 +866,7 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
     for op in ops:
         s = f"s_{owners[op]}"
         if op in SEQ_OPS:
-            names = {"iv": ["i", "v"], "i": ["i"], "lr": ["l", "r"], "lrk": ["l", "r", "k"], "lri": ["l", "r", "i"]}[SEQ_OPS[op]]
+            names = {"v": ["v"], "iv": ["i", "v"], "i": ["i"], "lr": ["l", "r"], "lrk": ["l", "r", "k"], "lri": ["l", "r", "i"]}[SEQ_OPS[op]]
             body = f"long long {', '.join(names)}; cin{''.join(f' >> {x}' for x in names)}; {s}.{op}({', '.join(names)});"
         elif op == "pointGet":
             body = f"long long i; cin >> i; out({s}.pointGet(i));"
@@ -792,8 +886,10 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
                 body = f"long long l, r, x; cin >> l >> r >> x; out({s}.{op}(l, r, x));"
             elif kind == "lrkx":
                 body = f"long long l, r, k, x; cin >> l >> r >> k >> x; out({s}.{op}(l, r, k, x));"
-            elif kind in ("lrk", "lrkv"):
+            elif kind in ("lrk", "lrkv", "lrk0"):
                 body = f"long long l, r, k; cin >> l >> r >> k; out({s}.{op}(l, r, k));"
+            elif kind == "lrij":
+                body = f"long long l, r, i, j; cin >> l >> r >> i >> j; out({s}.{op}(l, r, i, j));"
             else:
                 body = f"long long l, r, lo, hi; cin >> l >> r >> lo >> hi; out({s}.{op}(l, r, lo, hi));"
         lines.append(f'      else if (op == "{op}") {{ {body} }}')
