@@ -95,12 +95,6 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             description:
               "Remove and return the value at sorted position i (0-indexed)",
           },
-          {
-            id: "clear",
-            signature: "clear()",
-            description:
-              "Empty it, to reuse instead of building a new one (no other op pays for this)",
-          },
         ],
       },
     ],
@@ -133,6 +127,23 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             id: "countDistinct",
             signature: "countDistinct()",
             description: "How many distinct values",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "hoisting",
+    title: "Hoisting",
+    tiers: [
+      {
+        kind: "topic",
+        ops: [
+          {
+            id: "clear",
+            signature: "clear()",
+            description:
+              "Empty it, to reuse instead of building a new one (no other op pays for this)",
           },
         ],
       },
