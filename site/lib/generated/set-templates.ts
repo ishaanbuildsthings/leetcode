@@ -11,6 +11,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -18,14 +19,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -39,6 +42,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N)",
       "addCount": "log(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -46,14 +50,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N)",
       "popMax": "log(N)",
       "popMin": "log(N)",
       "remove": "log(N)",
@@ -108,6 +114,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "any",
     "usage": {
       "py": {
         "classes": [
@@ -132,6 +139,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -182,18 +194,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -208,6 +220,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -228,6 +247,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -311,6 +337,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -366,20 +398,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -396,6 +428,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -420,6 +460,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -494,6 +542,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -501,15 +550,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -523,6 +574,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N)",
       "addCount": "log(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -530,15 +582,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N)",
       "popMax": "log(N)",
       "popMin": "log(N)",
       "remove": "log(N)",
@@ -597,6 +651,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "any",
     "usage": {
       "py": {
         "classes": [
@@ -621,6 +676,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -671,18 +731,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -697,6 +757,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -722,6 +789,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -805,6 +879,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -860,20 +940,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -890,6 +970,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -920,6 +1008,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -994,6 +1090,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -1001,14 +1098,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -1034,6 +1133,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N)",
       "addCount": "log(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -1041,14 +1141,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N)",
       "popMax": "log(N)",
       "popMin": "log(N)",
       "remove": "log(N)",
@@ -1119,6 +1221,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -1143,6 +1246,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -1193,18 +1301,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -1219,6 +1327,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -1239,6 +1354,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -1333,18 +1455,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -1405,6 +1527,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -1460,20 +1588,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -1490,6 +1618,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -1514,6 +1650,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -1622,20 +1766,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -1683,6 +1827,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -1690,15 +1835,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -1724,6 +1871,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N)",
       "addCount": "log(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -1731,15 +1879,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N)",
       "popMax": "log(N)",
       "popMin": "log(N)",
       "remove": "log(N)",
@@ -1814,6 +1964,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -1838,6 +1989,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -1888,18 +2044,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -1914,6 +2070,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -1939,6 +2102,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -2033,18 +2203,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -2105,6 +2275,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -2160,20 +2336,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -2190,6 +2366,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -2220,6 +2404,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -2328,20 +2520,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -2389,6 +2581,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -2396,15 +2589,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -2418,6 +2613,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "sqrt(N)",
       "addCount": "sqrt(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "sqrt(N)",
@@ -2425,15 +2621,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "sqrt(N)",
       "countLtX": "sqrt(N)",
       "countLteX": "sqrt(N)",
-      "kthLargest": "sqrt(N)",
-      "kthSmallest": "sqrt(N)",
+      "firstIndex": "sqrt(N)",
+      "kth": "sqrt(N)",
       "largestLtX": "sqrt(N)",
       "largestLteX": "sqrt(N)",
-      "max": "1",
+      "lastIndex": "sqrt(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "sqrt(N)",
       "popMax": "sqrt(N)",
       "popMin": "sqrt(N)",
       "remove": "sqrt(N)",
@@ -2488,6 +2686,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "any",
     "usage": {
       "py": {
         "classes": [
@@ -2512,6 +2711,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -2562,18 +2766,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -2588,6 +2792,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -2613,6 +2824,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -2695,6 +2913,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -2750,20 +2974,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -2780,6 +3004,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -2810,6 +3042,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -2884,6 +3124,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -2891,15 +3132,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -2913,6 +3156,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "sqrt(N)",
       "addCount": "sqrt(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -2920,15 +3164,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "sqrt(N)",
       "popMax": "sqrt(N)",
       "popMin": "sqrt(N)",
       "remove": "sqrt(N)",
@@ -2987,6 +3233,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "any",
     "usage": {
       "py": {
         "classes": [
@@ -3011,6 +3258,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -3061,18 +3313,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -3087,6 +3339,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -3112,6 +3371,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -3194,6 +3460,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -3249,20 +3521,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -3279,6 +3551,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -3309,6 +3589,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -3383,6 +3671,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -3390,15 +3679,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -3424,6 +3715,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "sqrt(N)",
       "addCount": "sqrt(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -3431,15 +3723,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "sqrt(N)",
       "popMax": "sqrt(N)",
       "popMin": "sqrt(N)",
       "remove": "sqrt(N)",
@@ -3522,6 +3816,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -3546,6 +3841,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -3596,18 +3896,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -3622,6 +3922,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -3647,6 +3954,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -3741,18 +4055,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -3812,6 +4126,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -3867,20 +4187,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -3897,6 +4217,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -3927,6 +4255,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -4035,20 +4371,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -4096,6 +4432,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -4103,15 +4440,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -4137,6 +4476,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "sqrt(N)",
       "addCount": "sqrt(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "sqrt(N)",
@@ -4144,15 +4484,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "sqrt(N)",
       "countLtX": "sqrt(N)",
       "countLteX": "sqrt(N)",
-      "kthLargest": "sqrt(N)",
-      "kthSmallest": "sqrt(N)",
+      "firstIndex": "sqrt(N)",
+      "kth": "sqrt(N)",
       "largestLtX": "sqrt(N)",
       "largestLteX": "sqrt(N)",
-      "max": "1",
+      "lastIndex": "sqrt(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "sqrt(N)",
       "popMax": "sqrt(N)",
       "popMin": "sqrt(N)",
       "remove": "sqrt(N)",
@@ -4227,6 +4569,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -4251,6 +4594,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -4301,18 +4649,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -4327,6 +4675,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -4352,6 +4707,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -4446,18 +4808,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -4517,6 +4879,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -4572,20 +4940,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -4602,6 +4970,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -4632,6 +5008,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -4740,20 +5124,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -4793,6 +5177,643 @@ export const SET_TEMPLATES: SetTemplate[] = [
     }
   },
   {
+    "folder": "fastset",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "add",
+      "addCount",
+      "clear",
+      "count",
+      "countDistinct",
+      "largestLtX",
+      "largestLteX",
+      "max",
+      "min",
+      "popMax",
+      "popMin",
+      "remove",
+      "removeAll",
+      "removeCount",
+      "size",
+      "smallestGtX",
+      "smallestGteX"
+    ],
+    "dataStructureType": "fastset",
+    "complexities": {
+      "add": "log64(U)",
+      "addCount": "log64(U)",
+      "clear": "N*log64(U)",
+      "count": "1",
+      "countDistinct": "1",
+      "largestLtX": "log64(U)",
+      "largestLteX": "log64(U)",
+      "max": "1 amortized",
+      "min": "1 amortized",
+      "popMax": "log64(U)",
+      "popMin": "log64(U)",
+      "remove": "log64(U)",
+      "removeAll": "log64(U)",
+      "removeCount": "log64(U)",
+      "size": "1",
+      "smallestGtX": "log64(U)",
+      "smallestGteX": "log64(U)"
+    },
+    "build": "U",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "cnt",
+            "size": "1*U"
+          }
+        ],
+        "total": "1*U"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "U = hi - lo + 1: a count per value, plus the trie's U / 64 + U / 4096 + ... 64-bit words (about U / 63)",
+      "total": "1*U",
+      "notes": {
+        "py": "U = hi - lo + 1: a count per value, plus the trie's U / 64 + U / 4096 + ... 64-bit words (about U / 63)",
+        "cpp": "U = hi - lo + 1: a count per value, plus the trie's U / 64 + U / 4096 + ... 64-bit words (about U / 63)"
+      }
+    },
+    "values": "online-range",
+    "keys": "numbers",
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "FastSetMultiset",
+            "doc": "Ordered multiset of integers in [lo, hi] (FastSet): a 64-ary bit trie over the U = hi - lo + 1 slots, a bit meaning \"this value (or something under this word) is present\", plus a count per value. add / remove / smallest >= x / largest <= x touch one word per level: log_64(U) levels, about 4 for U = 10^7. It keeps no ranks, so no k-th and no \"how many below x\".",
+            "ctor": [
+              {
+                "name": "lo"
+              },
+              {
+                "name": "hi"
+              }
+            ],
+            "ctorDoc": "lo, hi: every value added lies in [lo, hi] (any integers, negative is fine); U = hi - lo + 1"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "val",
+              "cnt"
+            ],
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value < x; None if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "doc": "largest value; None if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "doc": "remove and return the largest value; None if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "doc": "remove and return the smallest value; None if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "val"
+            ],
+            "doc": "remove every copy of val; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "val",
+              "cnt"
+            ],
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value > x; None if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "doc": "smallest value >= x; None if there is none",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "FastSetMultiset",
+            "doc": "Ordered multiset of integers in [lo, hi] (FastSet): a 64-ary bit trie over the U = hi - lo + 1 slots, a bit meaning \"this value (or something under this word) is present\", plus a count per value. add / remove / smallest >= x / largest <= x touch one word per level: log_64(U) levels, about 4 for U = 10^7. It keeps no ranks, so no k-th and no \"how many below x\". T: int, long long, ...",
+            "ctor": [
+              {
+                "name": "lo",
+                "type": "long long"
+              },
+              {
+                "name": "hi",
+                "type": "long long"
+              }
+            ],
+            "ctorDoc": "lo, hi: every value added lies in [lo, hi] (any integers, negative is fine); U = hi - lo + 1"
+          }
+        ],
+        "methods": {
+          "add": {
+            "params": [
+              "x"
+            ],
+            "returns": "void",
+            "doc": "add one copy of x",
+            "cls": 0
+          },
+          "addCount": {
+            "params": [
+              "val",
+              "cnt"
+            ],
+            "returns": "void",
+            "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
+          "count": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "how many copies of x",
+            "cls": 0
+          },
+          "countDistinct": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many distinct values",
+            "cls": 0
+          },
+          "largestLtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value < x; nullopt if there is none",
+            "cls": 0
+          },
+          "largestLteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "max": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "largest value; nullopt if empty",
+            "cls": 0
+          },
+          "min": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMax": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the largest value; nullopt if empty",
+            "cls": 0
+          },
+          "popMin": {
+            "params": [],
+            "returns": "optional<T>",
+            "doc": "remove and return the smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "remove": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "remove one copy of x if present; returns how many were removed (0 or 1)",
+            "cls": 0
+          },
+          "removeAll": {
+            "params": [
+              "val"
+            ],
+            "returns": "long long",
+            "doc": "remove every copy of val; returns how many were removed",
+            "cls": 0
+          },
+          "removeCount": {
+            "params": [
+              "val",
+              "cnt"
+            ],
+            "returns": "long long",
+            "doc": "remove min(cnt, count(val)) copies of val; returns how many were removed",
+            "cls": 0
+          },
+          "size": {
+            "params": [],
+            "returns": "long long",
+            "doc": "how many values (copies count)",
+            "cls": 0
+          },
+          "smallestGtX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value > x; nullopt if there is none",
+            "cls": 0
+          },
+          "smallestGteX": {
+            "params": [
+              "x"
+            ],
+            "returns": "optional<T>",
+            "doc": "smallest value >= x; nullopt if there is none",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "distinct": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "operations": [
+        "add",
+        "clear",
+        "count",
+        "countDistinct",
+        "largestLtX",
+        "largestLteX",
+        "max",
+        "min",
+        "popMax",
+        "popMin",
+        "remove",
+        "size",
+        "smallestGtX",
+        "smallestGteX"
+      ],
+      "complexities": {
+        "add": "log64(U)",
+        "clear": "N*log64(U)",
+        "count": "1",
+        "countDistinct": "1",
+        "largestLtX": "log64(U)",
+        "largestLteX": "log64(U)",
+        "max": "log64(U)",
+        "min": "log64(U)",
+        "popMax": "log64(U)",
+        "popMin": "log64(U)",
+        "remove": "log64(U)",
+        "size": "1",
+        "smallestGtX": "log64(U)",
+        "smallestGteX": "log64(U)"
+      },
+      "build": "U/64",
+      "memory": {
+        "layout": "none",
+        "node": {
+          "arrays": [
+            {
+              "name": "seg",
+              "size": "1*U/64"
+            }
+          ],
+          "total": "1*U/64"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [],
+          "total": "0"
+        },
+        "note": "U = hi - lo + 1: just the trie's U / 64 + U / 4096 + ... 64-bit words (about U / 63); no duplicates",
+        "total": "1*U/64",
+        "notes": {
+          "py": "U = hi - lo + 1: just the trie's U / 64 + U / 4096 + ... 64-bit words (about U / 63); no duplicates",
+          "cpp": "U = hi - lo + 1: just the trie's U / 64 + U / 4096 + ... 64-bit words (about U / 63); no duplicates"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "FastSet",
+              "doc": "Ordered set of DISTINCT integers in [lo, hi] (FastSet): a 64-ary bit trie over the U = hi - lo + 1 slots, a bit meaning \"this value (or something under this word) is present\". No duplicates: adding a value that is already in the set does nothing, so there is no count per value and building is just the trie's ~U / 63 words. Every op touches one word per level: log_64(U) levels, about 4 for U = 10^7.",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                }
+              ],
+              "ctorDoc": "lo, hi: every value added lies in [lo, hi] (any integers, negative is fine); U = hi - lo + 1"
+            }
+          ],
+          "methods": {
+            "add": {
+              "params": [
+                "x"
+              ],
+              "doc": "add x (nothing if x is already in the set: no duplicates)",
+              "cls": 0
+            },
+            "clear": {
+              "params": [],
+              "doc": "remove everything (N = values in it): as newly built, so reuse it instead of building a new one",
+              "cls": 0
+            },
+            "count": {
+              "params": [
+                "x"
+              ],
+              "doc": "1 if x is in the set, else 0",
+              "cls": 0
+            },
+            "countDistinct": {
+              "params": [],
+              "doc": "how many values (no duplicates, so also how many distinct)",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "x"
+              ],
+              "doc": "largest value < x; None if there is none",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "x"
+              ],
+              "doc": "largest value <= x; None if there is none",
+              "cls": 0
+            },
+            "max": {
+              "params": [],
+              "doc": "largest value; None if empty",
+              "cls": 0
+            },
+            "min": {
+              "params": [],
+              "doc": "smallest value; None if empty",
+              "cls": 0
+            },
+            "popMax": {
+              "params": [],
+              "doc": "remove and return the largest value; None if empty",
+              "cls": 0
+            },
+            "popMin": {
+              "params": [],
+              "doc": "remove and return the smallest value; None if empty",
+              "cls": 0
+            },
+            "remove": {
+              "params": [
+                "x"
+              ],
+              "doc": "remove x if present; returns how many were removed (0 or 1)",
+              "cls": 0
+            },
+            "size": {
+              "params": [],
+              "doc": "how many values",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "x"
+              ],
+              "doc": "smallest value > x; None if there is none",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "x"
+              ],
+              "doc": "smallest value >= x; None if there is none",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "FastSet",
+              "doc": "Ordered set of DISTINCT integers in [lo, hi] (FastSet): a 64-ary bit trie over the U = hi - lo + 1 slots, a bit meaning \"this value (or something under this word) is present\". No duplicates: adding a value that is already in the set does nothing, so there is no count per value and building is just the trie's ~U / 63 words. Every op touches one word per level: log_64(U) levels, about 4 for U = 10^7. T: int, long long, ...",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                }
+              ],
+              "ctorDoc": "lo, hi: every value added lies in [lo, hi] (any integers, negative is fine); U = hi - lo + 1"
+            }
+          ],
+          "methods": {
+            "add": {
+              "params": [
+                "x"
+              ],
+              "returns": "void",
+              "doc": "add x (nothing if x is already in the set: no duplicates)",
+              "cls": 0
+            },
+            "clear": {
+              "params": [],
+              "returns": "void",
+              "doc": "remove everything (N = values in it): as newly built, so reuse it instead of building a new one",
+              "cls": 0
+            },
+            "count": {
+              "params": [
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "1 if x is in the set, else 0",
+              "cls": 0
+            },
+            "countDistinct": {
+              "params": [],
+              "returns": "long long",
+              "doc": "how many values (no duplicates, so also how many distinct)",
+              "cls": 0
+            },
+            "largestLtX": {
+              "params": [
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value < x; nullopt if there is none",
+              "cls": 0
+            },
+            "largestLteX": {
+              "params": [
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "largest value <= x; nullopt if there is none",
+              "cls": 0
+            },
+            "max": {
+              "params": [],
+              "returns": "optional<T>",
+              "doc": "largest value; nullopt if empty",
+              "cls": 0
+            },
+            "min": {
+              "params": [],
+              "returns": "optional<T>",
+              "doc": "smallest value; nullopt if empty",
+              "cls": 0
+            },
+            "popMax": {
+              "params": [],
+              "returns": "optional<T>",
+              "doc": "remove and return the largest value; nullopt if empty",
+              "cls": 0
+            },
+            "popMin": {
+              "params": [],
+              "returns": "optional<T>",
+              "doc": "remove and return the smallest value; nullopt if empty",
+              "cls": 0
+            },
+            "remove": {
+              "params": [
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "remove x if present; returns how many were removed (0 or 1)",
+              "cls": 0
+            },
+            "size": {
+              "params": [],
+              "returns": "long long",
+              "doc": "how many values",
+              "cls": 0
+            },
+            "smallestGtX": {
+              "params": [
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value > x; nullopt if there is none",
+              "cls": 0
+            },
+            "smallestGteX": {
+              "params": [
+                "x"
+              ],
+              "returns": "optional<T>",
+              "doc": "smallest value >= x; nullopt if there is none",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
     "folder": "fenwick",
     "langs": [
       "py",
@@ -4801,6 +5822,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -4808,14 +5830,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -4829,6 +5853,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N)",
       "addCount": "log(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -4836,14 +5861,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N)",
       "popMax": "log(N)",
       "popMin": "log(N)",
       "remove": "log(N)",
@@ -4890,6 +5917,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "offline",
+    "keys": "any",
     "usage": {
       "py": {
         "classes": [
@@ -4918,6 +5946,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -4968,18 +6001,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -4994,6 +6027,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -5014,6 +6054,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -5101,6 +6148,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -5156,20 +6209,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -5186,6 +6239,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -5210,6 +6271,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -5284,6 +6353,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -5291,15 +6361,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -5313,6 +6385,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N)",
       "addCount": "log(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -5320,15 +6393,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N)",
       "popMax": "log(N)",
       "popMin": "log(N)",
       "remove": "log(N)",
@@ -5379,6 +6454,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "offline",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -5407,6 +6483,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -5457,18 +6538,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -5483,6 +6564,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -5508,6 +6596,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -5595,6 +6690,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -5650,20 +6751,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -5680,6 +6781,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -5710,6 +6819,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -5784,6 +6901,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -5791,14 +6909,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -5824,6 +6944,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N)",
       "addCount": "log(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -5831,14 +6952,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N)",
       "popMax": "log(N)",
       "popMin": "log(N)",
       "remove": "log(N)",
@@ -5901,6 +7024,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "offline",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -5929,6 +7053,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -5979,18 +7108,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -6005,6 +7134,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -6025,6 +7161,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -6119,18 +7262,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -6195,6 +7338,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -6250,20 +7399,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -6280,6 +7429,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -6304,6 +7461,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -6412,20 +7577,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -6473,6 +7638,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -6480,15 +7646,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -6514,6 +7682,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N)",
       "addCount": "log(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -6521,15 +7690,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N)",
       "popMax": "log(N)",
       "popMin": "log(N)",
       "remove": "log(N)",
@@ -6596,6 +7767,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "offline",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -6624,6 +7796,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -6674,18 +7851,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -6700,6 +7877,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -6725,6 +7909,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -6819,18 +8010,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -6895,6 +8086,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -6950,20 +8147,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -6980,6 +8177,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -7010,6 +8215,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -7118,20 +8331,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -7177,6 +8390,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     ],
     "operations": [
       "add",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -7184,14 +8398,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -7202,6 +8418,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "dataStructureType": "pbds",
     "complexities": {
       "add": "log(N)",
+      "clear": "N",
       "count": "log(N)",
       "countDistinct": "1",
       "countGtX": "log(N)",
@@ -7209,14 +8426,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N)",
       "countLtX": "log(N)",
       "countLteX": "log(N)",
-      "kthLargest": "log(N)",
-      "kthSmallest": "log(N)",
+      "firstIndex": "log(N)",
+      "kth": "log(N)",
       "largestLtX": "log(N)",
       "largestLteX": "log(N)",
-      "max": "1",
+      "lastIndex": "log(N)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N)",
       "popMax": "log(N)",
       "popMin": "log(N)",
       "remove": "log(N)",
@@ -7268,6 +8487,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "any",
     "usage": {
       "cpp": {
         "classes": [
@@ -7285,6 +8505,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "void",
             "doc": "add one copy of x",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -7342,20 +8568,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -7372,6 +8598,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -7396,6 +8630,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -7453,6 +8695,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -7460,14 +8703,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -7481,6 +8726,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N) amortized",
       "addCount": "log(N) amortized",
+      "clear": "N",
       "count": "log(N) amortized",
       "countDistinct": "1",
       "countGtX": "log(N) amortized",
@@ -7488,14 +8734,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N) amortized",
       "countLtX": "log(N) amortized",
       "countLteX": "log(N) amortized",
-      "kthLargest": "log(N) amortized",
-      "kthSmallest": "log(N) amortized",
+      "firstIndex": "log(N) amortized",
+      "kth": "log(N) amortized",
       "largestLtX": "log(N) amortized",
       "largestLteX": "log(N) amortized",
-      "max": "1",
+      "lastIndex": "log(N) amortized",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N) amortized",
       "popMax": "log(N) amortized",
       "popMin": "log(N) amortized",
       "remove": "log(N) amortized",
@@ -7550,6 +8798,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "any",
     "usage": {
       "py": {
         "classes": [
@@ -7574,6 +8823,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -7624,18 +8878,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -7650,6 +8904,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -7670,6 +8931,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -7753,6 +9021,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -7808,20 +9082,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -7838,6 +9112,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -7862,6 +9144,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -7936,6 +9226,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -7943,15 +9234,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -7965,6 +9258,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N) amortized",
       "addCount": "log(N) amortized",
+      "clear": "N",
       "count": "log(N) amortized",
       "countDistinct": "1",
       "countGtX": "log(N) amortized",
@@ -7972,15 +9266,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N) amortized",
       "countLtX": "log(N) amortized",
       "countLteX": "log(N) amortized",
-      "kthLargest": "log(N) amortized",
-      "kthSmallest": "log(N) amortized",
+      "firstIndex": "log(N) amortized",
+      "kth": "log(N) amortized",
       "largestLtX": "log(N) amortized",
       "largestLteX": "log(N) amortized",
-      "max": "1",
+      "lastIndex": "log(N) amortized",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N) amortized",
       "popMax": "log(N) amortized",
       "popMin": "log(N) amortized",
       "remove": "log(N) amortized",
@@ -8039,6 +9335,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "any",
     "usage": {
       "py": {
         "classes": [
@@ -8063,6 +9360,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -8113,18 +9415,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -8139,6 +9441,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -8164,6 +9473,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -8247,6 +9563,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -8302,20 +9624,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -8332,6 +9654,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -8362,6 +9692,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -8436,6 +9774,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -8443,14 +9782,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -8476,6 +9817,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N) amortized",
       "addCount": "log(N) amortized",
+      "clear": "N",
       "count": "log(N) amortized",
       "countDistinct": "1",
       "countGtX": "log(N) amortized",
@@ -8483,14 +9825,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N) amortized",
       "countLtX": "log(N) amortized",
       "countLteX": "log(N) amortized",
-      "kthLargest": "log(N) amortized",
-      "kthSmallest": "log(N) amortized",
+      "firstIndex": "log(N) amortized",
+      "kth": "log(N) amortized",
       "largestLtX": "log(N) amortized",
       "largestLteX": "log(N) amortized",
-      "max": "1",
+      "lastIndex": "log(N) amortized",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N) amortized",
       "popMax": "log(N) amortized",
       "popMin": "log(N) amortized",
       "remove": "log(N) amortized",
@@ -8561,6 +9905,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -8585,6 +9930,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -8635,18 +9985,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -8661,6 +10011,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -8681,6 +10038,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -8775,18 +10139,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -8847,6 +10211,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -8902,20 +10272,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -8932,6 +10302,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -8956,6 +10334,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -9064,20 +10450,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -9125,6 +10511,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -9132,15 +10519,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -9166,6 +10555,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N) amortized",
       "addCount": "log(N) amortized",
+      "clear": "N",
       "count": "log(N) amortized",
       "countDistinct": "1",
       "countGtX": "log(N) amortized",
@@ -9173,15 +10563,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N) amortized",
       "countLtX": "log(N) amortized",
       "countLteX": "log(N) amortized",
-      "kthLargest": "log(N) amortized",
-      "kthSmallest": "log(N) amortized",
+      "firstIndex": "log(N) amortized",
+      "kth": "log(N) amortized",
       "largestLtX": "log(N) amortized",
       "largestLteX": "log(N) amortized",
-      "max": "1",
+      "lastIndex": "log(N) amortized",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N) amortized",
       "popMax": "log(N) amortized",
       "popMin": "log(N) amortized",
       "remove": "log(N) amortized",
@@ -9256,6 +10648,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -9280,6 +10673,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -9330,18 +10728,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -9356,6 +10754,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -9381,6 +10786,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -9475,18 +10887,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -9547,6 +10959,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -9602,20 +11020,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -9632,6 +11050,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -9662,6 +11088,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -9770,20 +11204,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -9831,6 +11265,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -9838,14 +11273,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -9859,6 +11296,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N) expected",
       "addCount": "log(N) expected",
+      "clear": "N",
       "count": "log(N) expected",
       "countDistinct": "1",
       "countGtX": "log(N) expected",
@@ -9866,14 +11304,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N) expected",
       "countLtX": "log(N) expected",
       "countLteX": "log(N) expected",
-      "kthLargest": "log(N) expected",
-      "kthSmallest": "log(N) expected",
+      "firstIndex": "log(N) expected",
+      "kth": "log(N) expected",
       "largestLtX": "log(N) expected",
       "largestLteX": "log(N) expected",
-      "max": "1",
+      "lastIndex": "log(N) expected",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N) expected",
       "popMax": "log(N) expected",
       "popMin": "log(N) expected",
       "remove": "log(N) expected",
@@ -9928,6 +11368,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "any",
     "usage": {
       "py": {
         "classes": [
@@ -9952,6 +11393,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -10002,18 +11448,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -10028,6 +11474,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -10048,6 +11501,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -10131,6 +11591,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -10186,20 +11652,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -10216,6 +11682,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -10240,6 +11714,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -10314,6 +11796,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -10321,15 +11804,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -10343,6 +11828,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N) expected",
       "addCount": "log(N) expected",
+      "clear": "N",
       "count": "log(N) expected",
       "countDistinct": "1",
       "countGtX": "log(N) expected",
@@ -10350,15 +11836,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N) expected",
       "countLtX": "log(N) expected",
       "countLteX": "log(N) expected",
-      "kthLargest": "log(N) expected",
-      "kthSmallest": "log(N) expected",
+      "firstIndex": "log(N) expected",
+      "kth": "log(N) expected",
       "largestLtX": "log(N) expected",
       "largestLteX": "log(N) expected",
-      "max": "1",
+      "lastIndex": "log(N) expected",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N) expected",
       "popMax": "log(N) expected",
       "popMin": "log(N) expected",
       "remove": "log(N) expected",
@@ -10417,6 +11905,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "any",
     "usage": {
       "py": {
         "classes": [
@@ -10441,6 +11930,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -10491,18 +11985,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -10517,6 +12011,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -10542,6 +12043,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -10625,6 +12133,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -10680,20 +12194,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -10710,6 +12224,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -10740,6 +12262,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -10814,6 +12344,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -10821,14 +12352,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -10854,6 +12387,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N) expected",
       "addCount": "log(N) expected",
+      "clear": "N",
       "count": "log(N) expected",
       "countDistinct": "1",
       "countGtX": "log(N) expected",
@@ -10861,14 +12395,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N) expected",
       "countLtX": "log(N) expected",
       "countLteX": "log(N) expected",
-      "kthLargest": "log(N) expected",
-      "kthSmallest": "log(N) expected",
+      "firstIndex": "log(N) expected",
+      "kth": "log(N) expected",
       "largestLtX": "log(N) expected",
       "largestLteX": "log(N) expected",
-      "max": "1",
+      "lastIndex": "log(N) expected",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N) expected",
       "popMax": "log(N) expected",
       "popMin": "log(N) expected",
       "remove": "log(N) expected",
@@ -10939,6 +12475,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -10963,6 +12500,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -11013,18 +12555,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -11039,6 +12581,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -11059,6 +12608,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -11153,18 +12709,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -11225,6 +12781,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -11280,20 +12842,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -11310,6 +12872,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -11334,6 +12904,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -11442,20 +13020,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -11503,6 +13081,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -11510,15 +13089,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -11544,6 +13125,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(N) expected",
       "addCount": "log(N) expected",
+      "clear": "N",
       "count": "log(N) expected",
       "countDistinct": "1",
       "countGtX": "log(N) expected",
@@ -11551,15 +13133,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(N) expected",
       "countLtX": "log(N) expected",
       "countLteX": "log(N) expected",
-      "kthLargest": "log(N) expected",
-      "kthSmallest": "log(N) expected",
+      "firstIndex": "log(N) expected",
+      "kth": "log(N) expected",
       "largestLtX": "log(N) expected",
       "largestLteX": "log(N) expected",
-      "max": "1",
+      "lastIndex": "log(N) expected",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(N) expected",
       "popMax": "log(N) expected",
       "popMin": "log(N) expected",
       "remove": "log(N) expected",
@@ -11634,6 +13218,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -11658,6 +13243,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -11708,18 +13298,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -11734,6 +13324,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -11759,6 +13356,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -11853,18 +13457,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -11925,6 +13529,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -11980,20 +13590,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -12010,6 +13620,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -12040,6 +13658,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -12148,20 +13774,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -12209,6 +13835,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -12216,14 +13843,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -12237,6 +13866,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(U)",
       "addCount": "log(U)",
+      "clear": "N*log(U)",
       "count": "log(U)",
       "countDistinct": "1",
       "countGtX": "log(U)",
@@ -12244,14 +13874,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(U)",
       "countLtX": "log(U)",
       "countLteX": "log(U)",
-      "kthLargest": "log(U)",
-      "kthSmallest": "log(U)",
+      "firstIndex": "log(U)",
+      "kth": "log(U)",
       "largestLtX": "log(U)",
       "largestLteX": "log(U)",
-      "max": "1",
+      "lastIndex": "log(U)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(U)",
       "popMax": "log(U)",
       "popMin": "log(U)",
       "remove": "log(U)",
@@ -12294,6 +13926,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online-range",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -12325,6 +13958,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -12375,18 +14013,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -12401,6 +14039,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -12421,6 +14066,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -12513,6 +14165,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -12568,20 +14226,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -12598,6 +14256,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -12622,6 +14288,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -12696,6 +14370,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -12703,15 +14378,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -12725,6 +14402,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(U)",
       "addCount": "log(U)",
+      "clear": "N*log(U)",
       "count": "log(U)",
       "countDistinct": "1",
       "countGtX": "log(U)",
@@ -12732,15 +14410,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(U)",
       "countLtX": "log(U)",
       "countLteX": "log(U)",
-      "kthLargest": "log(U)",
-      "kthSmallest": "log(U)",
+      "firstIndex": "log(U)",
+      "kth": "log(U)",
       "largestLtX": "log(U)",
       "largestLteX": "log(U)",
-      "max": "1",
+      "lastIndex": "log(U)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(U)",
       "popMax": "log(U)",
       "popMin": "log(U)",
       "remove": "log(U)",
@@ -12787,6 +14467,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online-range",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -12818,6 +14499,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -12868,18 +14554,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -12894,6 +14580,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -12919,6 +14612,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -13011,6 +14711,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -13066,20 +14772,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -13096,6 +14802,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -13126,6 +14840,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -13200,6 +14922,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -13207,14 +14930,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -13240,6 +14965,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(U)",
       "addCount": "log(U)",
+      "clear": "N*log(U)",
       "count": "log(U)",
       "countDistinct": "1",
       "countGtX": "log(U)",
@@ -13247,14 +14973,16 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(U)",
       "countLtX": "log(U)",
       "countLteX": "log(U)",
-      "kthLargest": "log(U)",
-      "kthSmallest": "log(U)",
+      "firstIndex": "log(U)",
+      "kth": "log(U)",
       "largestLtX": "log(U)",
       "largestLteX": "log(U)",
-      "max": "1",
+      "lastIndex": "log(U)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(U)",
       "popMax": "log(U)",
       "popMin": "log(U)",
       "remove": "log(U)",
@@ -13313,6 +15041,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online-range",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -13344,6 +15073,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -13394,18 +15128,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -13420,6 +15154,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -13440,6 +15181,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -13534,18 +15282,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -13615,6 +15363,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -13670,20 +15424,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -13700,6 +15454,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -13724,6 +15486,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -13832,20 +15602,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -13893,6 +15663,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "operations": [
       "add",
       "addCount",
+      "clear",
       "count",
       "countDistinct",
       "countGtX",
@@ -13900,15 +15671,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange",
       "countLtX",
       "countLteX",
-      "kthLargest",
-      "kthSmallest",
+      "firstIndex",
+      "kth",
       "largestLtX",
       "largestLteX",
+      "lastIndex",
       "max",
       "medianHigh",
       "medianLow",
       "mex",
       "min",
+      "pop",
       "popMax",
       "popMin",
       "remove",
@@ -13934,6 +15707,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
     "complexities": {
       "add": "log(U)",
       "addCount": "log(U)",
+      "clear": "N*log(U)",
       "count": "log(U)",
       "countDistinct": "1",
       "countGtX": "log(U)",
@@ -13941,15 +15715,17 @@ export const SET_TEMPLATES: SetTemplate[] = [
       "countInValRange": "log(U)",
       "countLtX": "log(U)",
       "countLteX": "log(U)",
-      "kthLargest": "log(U)",
-      "kthSmallest": "log(U)",
+      "firstIndex": "log(U)",
+      "kth": "log(U)",
       "largestLtX": "log(U)",
       "largestLteX": "log(U)",
-      "max": "1",
+      "lastIndex": "log(U)",
+      "max": "1 amortized",
       "medianHigh": "1 amortized",
       "medianLow": "1 amortized",
       "mex": "1 amortized",
-      "min": "1",
+      "min": "1 amortized",
+      "pop": "log(U)",
       "popMax": "log(U)",
       "popMin": "log(U)",
       "remove": "log(U)",
@@ -14012,6 +15788,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
       }
     },
     "values": "online-range",
+    "keys": "numbers",
     "usage": {
       "py": {
         "classes": [
@@ -14043,6 +15820,11 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "cnt"
             ],
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
+            "cls": 0
+          },
+          "clear": {
+            "params": [],
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
             "cls": 0
           },
           "count": {
@@ -14093,18 +15875,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "doc": "k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
-            "doc": "k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -14119,6 +15901,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
               "x"
             ],
             "doc": "largest value <= x; None if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -14144,6 +15933,13 @@ export const SET_TEMPLATES: SetTemplate[] = [
           "min": {
             "params": [],
             "doc": "smallest value; None if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -14238,18 +16034,18 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {
@@ -14319,6 +16115,12 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "add cnt copies of val (nothing if cnt <= 0)",
             "cls": 0
           },
+          "clear": {
+            "params": [],
+            "returns": "void",
+            "doc": "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one",
+            "cls": 0
+          },
           "count": {
             "params": [
               "x"
@@ -14374,20 +16176,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "doc": "how many values <= x",
             "cls": 0
           },
-          "kthLargest": {
+          "firstIndex": {
             "params": [
-              "k"
+              "x"
             ],
-            "returns": "T",
-            "doc": "k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "returns": "long long",
+            "doc": "0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set",
             "cls": 0
           },
-          "kthSmallest": {
+          "kth": {
             "params": [
-              "k"
+              "i"
             ],
             "returns": "T",
-            "doc": "k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size",
+            "doc": "the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "largestLtX": {
@@ -14404,6 +16206,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             ],
             "returns": "optional<T>",
             "doc": "largest value <= x; nullopt if there is none",
+            "cls": 0
+          },
+          "lastIndex": {
+            "params": [
+              "x"
+            ],
+            "returns": "long long",
+            "doc": "0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set",
             "cls": 0
           },
           "max": {
@@ -14434,6 +16244,14 @@ export const SET_TEMPLATES: SetTemplate[] = [
             "params": [],
             "returns": "optional<T>",
             "doc": "smallest value; nullopt if empty",
+            "cls": 0
+          },
+          "pop": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size",
             "cls": 0
           },
           "popMax": {
@@ -14542,20 +16360,20 @@ export const SET_TEMPLATES: SetTemplate[] = [
           },
           "sumKthLargestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size",
+            "doc": "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size",
             "cls": 0
           },
           "sumLargestK": {

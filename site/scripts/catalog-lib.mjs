@@ -9,7 +9,9 @@ const ENTRY_RE = /^\s*(?:#|\/\/)\s+([A-Za-z]\w*):\s*(.+?)\s*$/;
 
 // N = number of elements, U = largest value (gcd, bit ops, floor div/sqrt depend on it); in sparse files U is the
 // size of the index range instead (and in set templates, the size of the value range [lo, hi]).
-const FACTORS = new Set(["1", "N", "log(N)", "log^2(N)", "sqrt(N)", "log(U)", "log(log(U))"]);
+// log64(U) = log base 64 of U (a 64-ary bit trie's depth).
+// U/64 = U 64-bit words (a bitset over U values).
+const FACTORS = new Set(["1", "N", "log(N)", "log^2(N)", "sqrt(N)", "U", "U/64", "log(U)", "log64(U)", "log(log(U))"]);
 
 // A cost is terms joined by "+", each term factors joined by "*" (a factor may be a positive integer
 // constant, e.g. 36*N), optionally followed by " amortized" or " expected", then optionally " ?" (a bound we are

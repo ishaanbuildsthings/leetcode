@@ -20,7 +20,7 @@ import {
 // The picker pages, shown as tabs above each one.
 const PICKER_PAGES = [
   { href: "/templates/range-queries", label: "Range queries" },
-  { href: "/templates/sets", label: "Sets" },
+  { href: "/templates/sets", label: "Ordered sets (no indices)" },
 ];
 
 function PickerTabs() {
@@ -70,6 +70,24 @@ export interface PickerCatalog<V extends PickerTemplate> {
     parse: (stored: string | null) => string;
     views: (mode: string) => V[];
   };
+  // an optional checkbox next to the switch (sets: tuple values): when on, only templates passing keep compete and
+  // the ops in disabledOps are greyed out and can't be picked
+  flag?: {
+    label: string;
+    title: string;
+    storageKey: string;
+    keep: (t: V) => boolean;
+    disabledOps: ReadonlySet<string>;
+    disabledTitle: string;
+  };
+  // another file of a template (sets: FastSet without duplicates, built in O(U/64)): the drawer has a checkbox next
+  // to build that switches to it, and a card whose selected ops it covers shows both builds
+  variant?: {
+    file: string;
+    label: string;
+    title: string;
+    of: (t: V) => Partial<V> | undefined;
+  };
   // a template may need a selected op before it is offered (range queries: mod-p templates)
   allowed?: (t: V, picked: string[]) => boolean;
   kindLabel: (t: V) => string;
@@ -95,11 +113,13 @@ function matchTemplates<V extends PickerTemplate>(
   catalog: PickerCatalog<V>,
   selected: Set<string>,
   mode: string,
+  flagOn = false,
 ) {
   if (selected.size === 0) return [];
   const picked = [...selected];
   return catalog.modes
     .views(mode)
+    .filter((t) => !flagOn || (catalog.flag?.keep(t) ?? true))
     .filter(
       (t) =>
         picked.every((op) => t.operations.includes(op)) &&
@@ -233,7 +253,7 @@ function readPreferredLang(): TemplateLang {
 
 function CodeDrawer<V extends PickerTemplate>({
   catalog,
-  template,
+  template: base,
   selected,
   onClose,
 }: {
@@ -242,6 +262,13 @@ function CodeDrawer<V extends PickerTemplate>({
   selected: Set<string>;
   onClose: () => void;
 }) {
+  const variant = catalog.variant?.of(base);
+  const [useVariant, setUseVariant] = useState(false);
+  const template = (
+    useVariant && variant
+      ? { ...base, ...variant, file: catalog.variant!.file }
+      : base
+  ) as V;
   const [preferred, setPreferred] = useState<TemplateLang>(readPreferredLang);
   const lang = template.langs.includes(preferred)
     ? preferred
@@ -371,30 +398,43 @@ function CodeDrawer<V extends PickerTemplate>({
         {/* everything under the header scrolls together: a template with many ops can fill the drawer before the code */}
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 border-b border-border px-4 py-3 text-xs">
-            {[...template.operations]
-              .sort((a, b) => Number(selected.has(b)) - Number(selected.has(a)))
-              .map((op) => (
-                <div key={op} className="contents">
-                  <span
-                    className={`font-mono ${selected.has(op) ? "font-medium text-primary" : "text-muted-foreground"}`}
-                  >
-                    {op}
-                  </span>
-                  <span
-                    className={
-                      selected.has(op)
-                        ? "text-foreground"
-                        : "text-muted-foreground"
-                    }
-                  >
-                    {formatCost(opCost(template, op))}
-                  </span>
-                </div>
-              ))}
-            <span className="font-mono text-muted-foreground">build</span>
-            <span className="text-muted-foreground">
-              {formatCost(template.build)}
-            </span>
+            {/* the selected ops, then build (always paid, so always highlighted), then the rest */}
+            {[
+              ...template.operations
+                .filter((op) => selected.has(op))
+                .map((op) => [op, opCost(template, op), true] as const),
+              ["build", template.build, true] as const,
+              ...template.operations
+                .filter((op) => !selected.has(op))
+                .map((op) => [op, opCost(template, op), false] as const),
+            ].map(([op, cost, on]) => (
+              <div key={op} className="contents">
+                <span
+                  className={`font-mono ${on ? "font-medium text-primary" : "text-muted-foreground"}`}
+                >
+                  {op}
+                </span>
+                <span
+                  className={on ? "text-foreground" : "text-muted-foreground"}
+                >
+                  {formatCost(cost)}
+                  {op === "build" && variant && (
+                    <label
+                      title={catalog.variant!.title}
+                      className="ml-3 inline-flex cursor-pointer items-center gap-1.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={useVariant}
+                        onChange={(e) => setUseVariant(e.target.checked)}
+                        className="accent-primary"
+                      />
+                      {catalog.variant!.label}
+                    </label>
+                  )}
+                </span>
+              </div>
+            ))}
           </div>
           <UsagePanel
             catalog={catalog}
@@ -583,8 +623,16 @@ export function TemplatePicker<V extends PickerTemplate>({
     () => modes.parse(readStored(modes.storageKey)),
     () => modes.parse(null),
   );
+  const { flag } = catalog;
+  const flagOn = useSyncExternalStore(
+    subscribeMode,
+    () => !!flag && readStored(flag.storageKey) === "1",
+    () => false,
+  );
+  const isDisabled = (id: string) => flagOn && !!flag?.disabledOps.has(id);
 
   const toggle = (id: string) => {
+    if (isDisabled(id)) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -594,8 +642,10 @@ export function TemplatePicker<V extends PickerTemplate>({
   };
 
   const allOps = catalog.opGroups.flatMap((g) => g.tiers.flatMap((t) => t.ops));
-  const selectedOps = allOps.filter((op) => selected.has(op.id));
-  const matches = matchTemplates(catalog, selected, mode);
+  // ops the checkbox disabled stay remembered but drop out of the selection while it is on
+  const active = new Set([...selected].filter((id) => !isDisabled(id)));
+  const selectedOps = allOps.filter((op) => active.has(op.id));
+  const matches = matchTemplates(catalog, active, mode, flagOn);
 
   return (
     <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-24 font-[family-name:var(--font-dm-sans)]">
@@ -605,6 +655,22 @@ export function TemplatePicker<V extends PickerTemplate>({
           {catalog.title}
         </h1>
         <div className="flex items-center gap-2">
+          {flag && (
+            <label
+              title={flag.title}
+              className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+            >
+              <input
+                type="checkbox"
+                checked={flagOn}
+                onChange={(e) =>
+                  writeStored(flag.storageKey, e.target.checked ? "1" : "0")
+                }
+                className="accent-primary"
+              />
+              {flag.label}
+            </label>
+          )}
           <div
             className="flex overflow-hidden rounded-md border border-border text-xs font-medium"
             role="radiogroup"
@@ -650,33 +716,44 @@ export function TemplatePicker<V extends PickerTemplate>({
                 <h2 className="text-sm font-semibold text-foreground">
                   {group.title}
                 </h2>
-                <span className="text-xs text-muted-foreground">
-                  {group.blurb}
-                </span>
+                {group.blurb && (
+                  <span className="text-xs text-muted-foreground">
+                    {group.blurb}
+                  </span>
+                )}
               </div>
               <div className="-mx-2 grid grid-cols-[auto_auto_minmax(0,1fr)]">
                 {group.tiers.flatMap((tier, tierIdx) => [
-                  <h3
-                    key={tier.label ?? tier.kind}
-                    className={`col-span-3 flex items-center gap-2 px-2 pb-1 ${tierIdx === 0 ? "" : "mt-3"}`}
-                  >
-                    <TierBadge kind={tier.kind} label={tier.label} />
-                    <span
-                      aria-hidden
-                      className="h-px flex-1 bg-gradient-to-r from-border to-transparent"
-                    />
-                  </h3>,
+                  // a "topic" tier with no label is just the group's list: no header
+                  tier.kind === "topic" && !tier.label ? null : (
+                    <h3
+                      key={tier.label ?? tier.kind}
+                      className={`col-span-3 flex items-center gap-2 px-2 pb-1 ${tierIdx === 0 ? "" : "mt-3"}`}
+                    >
+                      <TierBadge kind={tier.kind} label={tier.label} />
+                      <span
+                        aria-hidden
+                        className="h-px flex-1 bg-gradient-to-r from-border to-transparent"
+                      />
+                    </h3>
+                  ),
                   ...tier.ops.map((op) => {
-                    const isOn = selected.has(op.id);
+                    const off = isDisabled(op.id);
+                    const isOn = active.has(op.id);
                     return (
                       <button
                         key={op.id}
                         type="button"
                         aria-pressed={isOn}
+                        disabled={off}
                         onClick={() => toggle(op.id)}
-                        title={op.signature}
+                        title={off ? flag?.disabledTitle : op.signature}
                         className={`col-span-3 grid grid-cols-subgrid items-baseline gap-x-3 rounded-md px-2 py-1 text-left transition-colors ${
-                          isOn ? "bg-primary/15" : "hover:bg-muted"
+                          off
+                            ? "cursor-not-allowed opacity-35"
+                            : isOn
+                              ? "bg-primary/15"
+                              : "hover:bg-muted"
                         }`}
                       >
                         <span
@@ -812,6 +889,15 @@ export function TemplatePicker<V extends PickerTemplate>({
                             </span>
                             <span className="text-foreground">
                               {formatCost(template.build)}
+                              {(() => {
+                                const alt = catalog.variant?.of(template);
+                                return alt?.build &&
+                                  [...active].every((op) =>
+                                    alt.operations?.includes(op),
+                                  )
+                                  ? ` / ${formatCost(alt.build)}`
+                                  : "";
+                              })()}
                             </span>
                           </span>
                           <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">

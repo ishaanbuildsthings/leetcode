@@ -8,7 +8,8 @@ export interface PickerOp {
 }
 
 // "topic" groups ops by what they do rather than how often they come up; it always carries a label
-export type TierKind = "common" | "uncommon" | "rare" | "mod" | "bitOps" | "topic";
+export type TierKind =
+  "common" | "uncommon" | "rare" | "mod" | "bitOps" | "topic";
 
 export interface PickerOpTier {
   kind: TierKind;
@@ -20,7 +21,7 @@ export interface PickerOpTier {
 export interface PickerOpGroup {
   id: string;
   title: string;
-  blurb: string;
+  blurb?: string;
   tiers: PickerOpTier[];
 }
 
@@ -39,7 +40,10 @@ export interface PickerTemplate {
 
 export type TemplateLang = "py" | "cpp";
 
-export const TEMPLATE_LANG_LABELS: Record<TemplateLang, string> = { py: "Python", cpp: "C++" };
+export const TEMPLATE_LANG_LABELS: Record<TemplateLang, string> = {
+  py: "Python",
+  cpp: "C++",
+};
 
 // How to call a template, read from its source by the generator: the classes to construct and, per operation,
 // which class has it, its parameter names, (C++) its return type, and the comment above it.
@@ -75,7 +79,8 @@ export function isBuiltFromPoints(memory: MemoryBreakdown): boolean {
   return memory.layout === "sparse" && /\bN\b/.test(memory.total);
 }
 
-export type TreeLayout = "2n-iterative" | "pow2-iterative" | "4n-recursive" | "sparse" | "none";
+export type TreeLayout =
+  "2n-iterative" | "pow2-iterative" | "4n-recursive" | "sparse" | "none";
 
 export const TREE_LAYOUT_LABELS: Record<TreeLayout, string> = {
   "2n-iterative": "2N iterative tree",
@@ -110,7 +115,10 @@ const FACTOR_VALUES: Record<string, number> = {
   "log(N)": Math.log2(SIZES.N),
   "log^2(N)": Math.log2(SIZES.N) ** 2,
   "sqrt(N)": Math.sqrt(SIZES.N),
+  U: SIZES.U,
+  "U/64": SIZES.U / 64,
   "log(U)": Math.log2(SIZES.U),
+  "log64(U)": Math.log2(SIZES.U) / 6,
   "log(log(U))": Math.log2(Math.log2(SIZES.U)),
 };
 
@@ -119,17 +127,26 @@ export function costValue(cost: string): number {
     .replace(/ \?$/, "")
     .replace(/ (amortized|expected)$/, "")
     .split("+")
-    .reduce((sum, term) => sum + term.split("*").reduce((prod, f) => prod * factorValue(f), 1), 0);
+    .reduce(
+      (sum, term) =>
+        sum + term.split("*").reduce((prod, f) => prod * factorValue(f), 1),
+      0,
+    );
 }
 
 const isConstant = (f: string) => /^\d+$/.test(f);
-const factorValue = (f: string) => (isConstant(f) ? Number(f) : FACTOR_VALUES[f]);
+const factorValue = (f: string) =>
+  isConstant(f) ? Number(f) : FACTOR_VALUES[f];
 
 // "36*N" -> "36N", "2*N*log(N)" -> "2N · log N"
 function formatTerm(term: string): string {
   const factors = term.split("*");
-  const constant = factors.filter(isConstant).reduce((prod, f) => prod * Number(f), 1);
-  const rest = factors.filter((f) => !isConstant(f) && f !== "1").map((f) => PRETTY_FACTORS[f]);
+  const constant = factors
+    .filter(isConstant)
+    .reduce((prod, f) => prod * Number(f), 1);
+  const rest = factors
+    .filter((f) => !isConstant(f) && f !== "1")
+    .map((f) => PRETTY_FACTORS[f]);
   if (rest.length === 0) return String(constant);
   return (constant === 1 ? "" : String(constant)) + rest.join(" · ");
 }
@@ -148,7 +165,7 @@ export function formatMemoryOf(memory: MemoryBreakdown, size: string): string {
     size
       .split("+")
       .map((term) => `${term}*Q`)
-      .join("+")
+      .join("+"),
   );
 }
 
@@ -166,11 +183,17 @@ export function formatMemory(memory: string): string {
     .split("+")
     .map((term) => {
       const factors = term.split("*");
-      const constant = factors.filter(isConstant).reduce((prod, f) => prod * Number(f), 1);
+      const constant = factors
+        .filter(isConstant)
+        .reduce((prod, f) => prod * Number(f), 1);
       const vars = factors.filter((f) => !isConstant(f) && f !== "1");
       const letters = LETTERS.filter((v) => vars.includes(v)).join("");
-      const rest = vars.filter((f) => !LETTERS.includes(f)).map((f) => PRETTY_FACTORS[f]);
-      const head = (constant === 1 && (letters || rest.length) ? "" : String(constant)) + letters;
+      const rest = vars
+        .filter((f) => !LETTERS.includes(f))
+        .map((f) => PRETTY_FACTORS[f]);
+      const head =
+        (constant === 1 && (letters || rest.length) ? "" : String(constant)) +
+        letters;
       return [head, ...rest].filter(Boolean).join("*");
     })
     .join(" + ");
@@ -184,7 +207,10 @@ const PRETTY_FACTORS: Record<string, string> = {
   "log(N)": "logN",
   "log^2(N)": "log²N",
   "sqrt(N)": "√N",
+  U: "U",
+  "U/64": "U/64",
   "log(U)": "logU",
+  "log64(U)": "log₆₄U",
   "log(log(U))": "loglogU",
 };
 

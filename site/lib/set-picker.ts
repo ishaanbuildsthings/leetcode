@@ -15,72 +15,59 @@ export type SetOpId =
   | "removeAll"
   | "popMin"
   | "popMax"
-  | "size"
-  | "count"
-  | "sumAll"
-  | "countDistinct"
-  | "min"
-  | "max"
+  | "pop"
+  | "clear"
+  | "sumAbsDiffToMedian"
+  | "sumAbsDiffToX"
   | "medianLow"
   | "medianHigh"
+  | "size"
+  | "min"
+  | "max"
   | "mex"
-  | "sumAbsDiffToMedian"
-  | "kthSmallest"
-  | "kthLargest"
+  | "sumAll"
+  | "countDistinct"
+  | "kth"
   | "sumSmallestK"
   | "sumLargestK"
   | "sumKthSmallestRange"
   | "sumKthLargestRange"
-  | "largestLtX"
-  | "largestLteX"
-  | "smallestGtX"
-  | "smallestGteX"
+  | "count"
+  | "firstIndex"
+  | "lastIndex"
   | "countLtX"
   | "countLteX"
   | "countGtX"
   | "countGteX"
+  | "largestLteX"
+  | "smallestGteX"
+  | "largestLtX"
+  | "smallestGtX"
   | "countInValRange"
   | "sumLtX"
   | "sumLteX"
   | "sumGtX"
   | "sumGteX"
-  | "sumInValRange"
-  | "sumAbsDiffToX";
+  | "sumInValRange";
 
 export const SET_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "updates",
-    title: "Updates",
-    blurb: "Add or remove values.",
+    title: "Add / remove",
     tiers: [
       {
-        kind: "common",
+        kind: "topic",
         ops: [
           { id: "add", signature: "add(x)", description: "Add one copy of x" },
-          {
-            id: "remove",
-            signature: "remove(x)",
-            description: "Remove one copy of x (if present)",
-          },
-          {
-            id: "popMin",
-            signature: "popMin()",
-            description: "Remove and return the smallest value",
-          },
-          {
-            id: "popMax",
-            signature: "popMax()",
-            description: "Remove and return the largest value",
-          },
-        ],
-      },
-      {
-        kind: "uncommon",
-        ops: [
           {
             id: "addCount",
             signature: "addCount(val, cnt)",
             description: "Add cnt copies of val",
+          },
+          {
+            id: "remove",
+            signature: "remove(x)",
+            description: "Remove one copy of x (if present)",
           },
           {
             id: "removeCount",
@@ -92,6 +79,28 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             signature: "removeAll(val)",
             description: "Remove every copy of val",
           },
+          {
+            id: "popMin",
+            signature: "popMin()",
+            description: "Remove and return the smallest value",
+          },
+          {
+            id: "popMax",
+            signature: "popMax()",
+            description: "Remove and return the largest value",
+          },
+          {
+            id: "pop",
+            signature: "pop(i)",
+            description:
+              "Remove and return the value at sorted position i (0-indexed)",
+          },
+          {
+            id: "clear",
+            signature: "clear()",
+            description:
+              "Empty it, to reuse instead of building a new one (no other op pays for this)",
+          },
         ],
       },
     ],
@@ -99,57 +108,31 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "whole",
     title: "Whole set",
-    blurb: "Questions about everything in the set.",
     tiers: [
       {
-        kind: "common",
+        kind: "topic",
         ops: [
           {
             id: "size",
             signature: "size()",
             description: "How many values (copies count)",
           },
-          {
-            id: "count",
-            signature: "count(x)",
-            description: "How many copies of x",
-          },
           { id: "min", signature: "min()", description: "Smallest value" },
           { id: "max", signature: "max()", description: "Largest value" },
-        ],
-      },
-      {
-        kind: "uncommon",
-        ops: [
           {
-            id: "medianLow",
-            signature: "medianLow()",
-            description: "Lower median (the ⌈n/2⌉-th smallest)",
-          },
-          {
-            id: "medianHigh",
-            signature: "medianHigh()",
-            description: "Upper median (the (⌊n/2⌋+1)-th smallest)",
-          },
-          {
-            id: "countDistinct",
-            signature: "countDistinct()",
-            description: "How many distinct values",
+            id: "mex",
+            signature: "mex()",
+            description: "Smallest non-negative integer not in the set",
           },
           {
             id: "sumAll",
             signature: "sumAll()",
             description: "Sum of all values",
           },
-        ],
-      },
-      {
-        kind: "rare",
-        ops: [
           {
-            id: "mex",
-            signature: "mex()",
-            description: "Smallest non-negative integer not in the set",
+            id: "countDistinct",
+            signature: "countDistinct()",
+            description: "How many distinct values",
           },
         ],
       },
@@ -158,51 +141,38 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "rank",
     title: "By rank",
-    blurb: "The k-th smallest / largest, 1-indexed.",
     tiers: [
       {
-        kind: "common",
+        kind: "topic",
         ops: [
           {
-            id: "kthSmallest",
-            signature: "kthSmallest(k)",
-            description: "k-th smallest value",
-          },
-          {
-            id: "kthLargest",
-            signature: "kthLargest(k)",
-            description: "k-th largest value",
-          },
-        ],
-      },
-      {
-        kind: "uncommon",
-        ops: [
-          {
-            id: "sumSmallestK",
-            signature: "sumSmallestK(k)",
-            description: "Sum of the k smallest values",
-          },
-          {
-            id: "sumLargestK",
-            signature: "sumLargestK(k)",
-            description: "Sum of the k largest values",
-          },
-        ],
-      },
-      {
-        kind: "rare",
-        ops: [
-          {
-            id: "sumKthSmallestRange",
-            signature: "sumKthSmallestRange(i, j)",
-            description: "Sum of the i-th..j-th smallest values",
-          },
-          {
-            id: "sumKthLargestRange",
-            signature: "sumKthLargestRange(i, j)",
+            id: "kth",
+            signature: "kth(i)",
             description:
-              "Sum of the i-th..j-th largest (e.g. 5th..8th biggest)",
+              "Value at sorted position i (0-indexed: kth(0) is the min)",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "indices",
+    title: "Indices",
+    tiers: [
+      {
+        kind: "topic",
+        ops: [
+          {
+            id: "firstIndex",
+            signature: "firstIndex(x)",
+            description:
+              "Position of the first copy of x in sorted order (0-indexed), or -1 if x isn't in the set",
+          },
+          {
+            id: "lastIndex",
+            signature: "lastIndex(x)",
+            description:
+              "Position of the last copy of x in sorted order (0-indexed), or -1 if x isn't in the set",
           },
         ],
       },
@@ -211,11 +181,15 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "value",
     title: "By value",
-    blurb: "Compare against a value x.",
     tiers: [
       {
-        kind: "common",
+        kind: "topic",
         ops: [
+          {
+            id: "count",
+            signature: "count(x)",
+            description: "How many copies of x",
+          },
           {
             id: "countLtX",
             signature: "countLtX(x)",
@@ -246,11 +220,6 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             signature: "smallestGteX(x)",
             description: "Smallest value ≥ x (ceiling)",
           },
-        ],
-      },
-      {
-        kind: "uncommon",
-        ops: [
           {
             id: "largestLtX",
             signature: "largestLtX(x)",
@@ -265,6 +234,39 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             id: "countInValRange",
             signature: "countInValRange(lo, hi)",
             description: "How many values in [lo, hi]",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "sums",
+    title: "Sums",
+    tiers: [
+      {
+        kind: "topic",
+        ops: [
+          {
+            id: "sumSmallestK",
+            signature: "sumSmallestK(k)",
+            description: "Sum of the k smallest values",
+          },
+          {
+            id: "sumLargestK",
+            signature: "sumLargestK(k)",
+            description: "Sum of the k largest values",
+          },
+          {
+            id: "sumKthSmallestRange",
+            signature: "sumKthSmallestRange(kFrom, kTo)",
+            description:
+              "Sum of the kFrom-th..kTo-th smallest values (1-indexed ranks)",
+          },
+          {
+            id: "sumKthLargestRange",
+            signature: "sumKthLargestRange(kFrom, kTo)",
+            description:
+              "Sum of the kFrom-th..kTo-th largest (e.g. 5th..8th biggest)",
           },
           {
             id: "sumLtX",
@@ -293,19 +295,35 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    id: "median",
+    title: "Median",
+    tiers: [
       {
-        kind: "rare",
+        kind: "topic",
         ops: [
+          {
+            id: "sumAbsDiffToMedian",
+            signature: "sumAbsDiffToMedian()",
+            description:
+              "Σ|v − median|: min total moves to make all values equal",
+          },
           {
             id: "sumAbsDiffToX",
             signature: "sumAbsDiffToX(x)",
             description: "Σ|v − x|: total moves to bring every value to x",
           },
           {
-            id: "sumAbsDiffToMedian",
-            signature: "sumAbsDiffToMedian()",
-            description:
-              "Σ|v − median|: min total moves to make all values equal",
+            id: "medianLow",
+            signature: "medianLow()",
+            description: "Lower median (the ⌈n/2⌉-th smallest)",
+          },
+          {
+            id: "medianHigh",
+            signature: "medianHigh()",
+            description: "Upper median (the (⌊n/2⌋+1)-th smallest)",
           },
         ],
       },
@@ -313,8 +331,26 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
   },
 ];
 
+// Ops that need the values to be numbers (sums, mex); with tuple values they are greyed out.
+export const NUMERIC_SET_OPS: ReadonlySet<SetOpId> = new Set<SetOpId>([
+  "sumAll",
+  "sumSmallestK",
+  "sumLargestK",
+  "sumKthSmallestRange",
+  "sumKthLargestRange",
+  "sumLtX",
+  "sumLteX",
+  "sumGtX",
+  "sumGteX",
+  "sumInValRange",
+  "sumAbsDiffToX",
+  "sumAbsDiffToMedian",
+  "mex",
+]);
+
 // Ordered lightest to heaviest constant factor; used to break ties between templates.
 export const SET_TYPES = [
+  "fastset",
   "fenwick",
   "value-tree",
   "blocks",
@@ -327,6 +363,7 @@ export const SET_TYPES = [
 export type SetType = (typeof SET_TYPES)[number];
 
 export const SET_TYPE_LABELS: Record<SetType, string> = {
+  fastset: "Bit trie (FastSet) on [lo, hi]",
   fenwick: "Fenwick tree on values",
   "value-tree": "Value seg tree on [lo, hi]",
   blocks: "Sorted list (√N blocks)",
@@ -348,6 +385,17 @@ export interface SetTemplate {
   operations: SetOpId[];
   dataStructureType: SetType;
   values: SetValues;
+  // any: works with any comparable values (tuples, pairs, ...); numbers: needs numeric values
+  keys: "any" | "numbers";
+  // FastSet only: a no-duplicates version (distinct.*) with no count per value, so building is just the bit trie
+  distinct?: {
+    langs: TemplateLang[];
+    operations: SetOpId[];
+    complexities: Partial<Record<SetOpId, string>>;
+    build: string;
+    memory: MemoryBreakdown;
+    usage: Partial<Record<TemplateLang, Usage>>;
+  };
   complexities: Partial<Record<SetOpId, string>>;
   build: string;
   memory: MemoryBreakdown;

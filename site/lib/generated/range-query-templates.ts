@@ -1819,20 +1819,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumLargestK": {
@@ -2160,22 +2160,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumLargestK": {
@@ -2570,20 +2570,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
-              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
               "cls": 0
             },
             "sumKthSmallestRange": {
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
-              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
               "cls": 0
             },
             "sumLargestK": {
@@ -2915,22 +2915,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
               "returns": "S",
-              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
               "cls": 0
             },
             "sumKthSmallestRange": {
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
               "returns": "S",
-              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
               "cls": 0
             },
             "sumLargestK": {
@@ -16616,20 +16616,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumLargestK": {
@@ -16925,22 +16925,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumLargestK": {
@@ -17367,20 +17367,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumLargestK": {
@@ -17685,22 +17685,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumLargestK": {
@@ -19072,20 +19072,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumLargestK": {
@@ -19385,22 +19385,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumLargestK": {
@@ -19825,20 +19825,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumLargestK": {
@@ -20147,22 +20147,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumLargestK": {
@@ -21435,20 +21435,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumLargestK": {
@@ -21732,22 +21732,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumLargestK": {
@@ -22115,20 +22115,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
-              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
               "cls": 0
             },
             "sumKthSmallestRange": {
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
-              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
               "cls": 0
             },
             "sumLargestK": {
@@ -22420,22 +22420,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
               "returns": "S",
-              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
               "cls": 0
             },
             "sumKthSmallestRange": {
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
               "returns": "S",
-              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
               "cls": 0
             },
             "sumLargestK": {
@@ -64171,20 +64171,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumLargestK": {
@@ -64468,22 +64468,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumLargestK": {
@@ -64838,20 +64838,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
-              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
               "cls": 0
             },
             "sumKthSmallestRange": {
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
-              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
               "cls": 0
             },
             "sumLargestK": {
@@ -65143,22 +65143,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
               "returns": "S",
-              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
               "cls": 0
             },
             "sumKthSmallestRange": {
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
               "returns": "S",
-              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
               "cls": 0
             },
             "sumLargestK": {
@@ -65560,20 +65560,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
             "cls": 0
           },
           "sumLargestK": {
@@ -65866,22 +65866,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumKthSmallestRange": {
             "params": [
               "l",
               "r",
-              "i",
-              "j"
+              "kFrom",
+              "kTo"
             ],
             "returns": "S",
-            "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+            "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
             "cls": 0
           },
           "sumLargestK": {
@@ -66261,20 +66261,20 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
-              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
               "cls": 0
             },
             "sumKthSmallestRange": {
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
-              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else IndexError",
+              "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError",
               "cls": 0
             },
             "sumLargestK": {
@@ -66575,22 +66575,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
               "returns": "S",
-              "doc": "sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "doc": "sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
               "cls": 0
             },
             "sumKthSmallestRange": {
               "params": [
                 "l",
                 "r",
-                "i",
-                "j"
+                "kFrom",
+                "kTo"
               ],
               "returns": "S",
-              "doc": "sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1, else throws out_of_range",
+              "doc": "sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range",
               "cls": 0
             },
             "sumLargestK": {

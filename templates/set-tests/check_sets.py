@@ -35,6 +35,10 @@ def value(expr):
                 prod *= int(f)
             elif f in SIZES:
                 prod *= SIZES[f]
+            elif f == "U/64":
+                prod *= SIZES["U"] / 64
+            elif f == "log64(U)":
+                prod *= math.log2(SIZES["U"]) / 6
             else:
                 m = re.fullmatch(r"log\^2\((\w)\)|log\((\w)\)|sqrt\((\w)\)", f)
                 if not m:

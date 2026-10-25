@@ -191,19 +191,19 @@ struct DynamicOrderStats {
         return sumFirst(l, r, n) - sumFirst(l, r, n - k);
     }
 
-    // O(logN) -- sum of the i-th..j-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= i <= j <= r - l + 1,
+    // O(logN) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1,
     // else throws out_of_range
-    S sumKthSmallestRange(long long l, long long r, long long i, long long j) const {
-        if (i < 1 || i > j || j > r - l + 1) throw out_of_range("sumKthSmallestRange: needs 1 <= i <= j <= r - l + 1");
-        return sumFirst(l, r, j) - sumFirst(l, r, i - 1);
+    S sumKthSmallestRange(long long l, long long r, long long kFrom, long long kTo) const {
+        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        return sumFirst(l, r, kTo) - sumFirst(l, r, kFrom - 1);
     }
 
-    // O(logN) -- sum of the i-th..j-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs
-    // 1 <= i <= j <= r - l + 1, else throws out_of_range
-    S sumKthLargestRange(long long l, long long r, long long i, long long j) const {
+    // O(logN) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs
+    // 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
+    S sumKthLargestRange(long long l, long long r, long long kFrom, long long kTo) const {
         long long n = r - l + 1;
-        if (i < 1 || i > j || j > n) throw out_of_range("sumKthLargestRange: needs 1 <= i <= j <= r - l + 1");
-        return sumFirst(l, r, n - i + 1) - sumFirst(l, r, n - j);
+        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        return sumFirst(l, r, n - kFrom + 1) - sumFirst(l, r, n - kTo);
     }
 
     // O(logN) -- sum of |a[i] - x| over i in [l, r]

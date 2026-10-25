@@ -1,11 +1,13 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/treap-with-sums-mex/template.cpp
-// @operations: add addCount count countDistinct countGtX countGteX countInValRange countLtX countLteX kthLargest kthSmallest largestLtX largestLteX max medianHigh medianLow mex min popMax popMin remove removeAll removeCount size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+// @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow mex min pop popMax popMin remove removeAll removeCount size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 // @data-structure-type: treap
 // @values: online
+// @keys: numbers
 // @complexities:
 //   add: log(N) expected
 //   addCount: log(N) expected
+//   clear: N
 //   count: log(N) expected
 //   countDistinct: 1
 //   countGtX: log(N) expected
@@ -13,15 +15,17 @@
 //   countInValRange: log(N) expected
 //   countLtX: log(N) expected
 //   countLteX: log(N) expected
-//   kthLargest: log(N) expected
-//   kthSmallest: log(N) expected
+//   firstIndex: log(N) expected
+//   kth: log(N) expected
 //   largestLtX: log(N) expected
 //   largestLteX: log(N) expected
-//   max: 1
+//   lastIndex: log(N) expected
+//   max: 1 amortized
 //   medianHigh: 1 amortized
 //   medianLow: 1 amortized
 //   mex: 1 amortized
-//   min: 1
+//   min: 1 amortized
+//   pop: log(N) expected
 //   popMax: log(N) expected
 //   popMin: log(N) expected
 //   remove: log(N) expected
@@ -64,7 +68,8 @@ struct TreapMultiset {
     int root = 0;
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; S sb; };  // a value, copies before it, its copies, sum before it
-    T mn{}, mx{};  // kept current by addRaw while n > 0
+    T mn{}, mx{};  // kept current by addRaw once min() / max() has been called (mm)
+    bool mm = false;
     bool med = false;  // medians (low, high) are tracked from the first median query on
     Info low{}, high{};
     long long mexV = -1;  // -1 until mex() is first called, then kept current
@@ -112,6 +117,22 @@ struct TreapMultiset {
         }
     }
 
+    static void splitLe(int t, const T& x, int& a, int& b) {  // a: keys <= x, b: keys > x
+        if (!t) {
+            a = b = 0;
+            return;
+        }
+        if (x < pool[t].key) {
+            int la, lb;
+            splitLe(pool[t].l, x, la, lb);
+            pool[t].l = lb, pull(t), a = la, b = t;
+        } else {
+            int ra, rb;
+            splitLe(pool[t].r, x, ra, rb);
+            pool[t].r = ra, pull(t), a = t, b = rb;
+        }
+    }
+
     static int merge(int a, int b) {  // every key in a < every key in b
         if (!a || !b) return a ? a : b;
         if (pool[a].prio > pool[b].prio) {
@@ -127,7 +148,7 @@ struct TreapMultiset {
     void insert(T x, long long c) {
         int a, b, m;
         split(root, x, a, b);
-        split(b, x + 1, m, b);  // m: the node of x, or 0
+        splitLe(b, x, m, b);  // m: the node of x, or 0
         if (!m) m = make(x), d++;
         pool[m].c += c;
         if (pool[m].c) pull(m);
@@ -145,7 +166,15 @@ struct TreapMultiset {
         return res;
     }
 
-    long long le(T x) { return lt(x + 1); }
+    long long le(T x) {  // copies of values <= x
+        int t = root;
+        long long res = 0;
+        while (t) {
+            if (x < pool[t].key) t = pool[t].l;
+            else res += pool[pool[t].l].z + pool[t].c, t = pool[t].r;
+        }
+        return res;
+    }
 
     long long countOf(T x) {
         int t = root;
@@ -163,9 +192,17 @@ struct TreapMultiset {
         return res;
     }
 
-    S sle(T x) { return slt(x + 1); }
+    S sle(T x) {  // sum of the values <= x
+        int t = root;
+        S res = 0;
+        while (t) {
+            if (x < pool[t].key) t = pool[t].l;
+            else res += pool[pool[t].l].s + S(pool[t].c) * pool[t].key, t = pool[t].r;
+        }
+        return res;
+    }
 
-    T kth(long long k) {
+    T kthAt(long long k) {
         int t = root;
         while (true) {
             long long zl = pool[pool[t].l].z;
@@ -212,24 +249,28 @@ struct TreapMultiset {
         return res;
     }
 
-    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max (and medians / mex once asked for) current
+    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
         n += c;
         total += S(c) * x;
         insert(x, c);
         if (c > 0) {
-            if (x == T(mexV) && mexV >= 0) mexV = findMex();  // x filled the mex (mexV is -1 until mex() is first called)
+            if constexpr (is_integral_v<T>) if (x == T(mexV) && mexV >= 0) mexV = findMex();  // x filled the mex (mexV is -1 until mex() is first called)
             if (n == c) {  // the set was empty
-                mn = mx = x;
+                if (mm) mn = mx = x;
                 if (med) low = high = Info{x, 0, c, 0};
                 return;
             }
-            if (x < mn) mn = x;
-            if (x > mx) mx = x;
+            if (mm) {
+                if (x < mn) mn = x;
+                if (x > mx) mx = x;
+            }
         } else {
-            if (x >= 0 && x < T(mexV) && !countOf(x)) mexV = x;  // the last copy of a value below the mex
+            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !countOf(x)) mexV = x;  // the last copy of a value below the mex
             if (!n) return;
-            if (x == mn) mn = kth(1);
-            if (x == mx) mx = kth(n);
+            if (mm) {
+                if (x == mn) mn = kthAt(1);
+                if (x == mx) mx = kthAt(n);
+            }
         }
         if (!med) return;
         // each median is a tracked rank: shift its (value, copies before, copies, sum before), and search again only
@@ -244,6 +285,11 @@ struct TreapMultiset {
         if (r <= high.before || r > high.before + high.c) high = kthInfo(r);
     }
 
+    void startMinMax() {  // the first min() / max() (n > 0): from now on addRaw keeps both current
+        mm = true;
+        mn = kthAt(1), mx = kthAt(n);
+    }
+
     void startMedians() {  // the first median query (n > 0): from now on addRaw keeps both medians current
         med = true;
         low = kthInfo((n + 1) / 2), high = kthInfo(n / 2 + 1);
@@ -255,6 +301,26 @@ struct TreapMultiset {
         return f.sb + S(k - f.before) * f.v;
     }
 
+    void resetCached() {  // nothing counted, nothing tracked: as newly built
+        mm = med = false;
+        mexV = -1;
+        n = d = 0;
+        total = 0;
+    }
+
+    void clearData() {  // hand this tree's nodes back to the shared pool's free list
+        vector<int> st;
+        if (root) st.push_back(root);
+        while (!st.empty()) {
+            int t = st.back();
+            st.pop_back();
+            if (pool[t].l) st.push_back(pool[t].l);
+            if (pool[t].r) st.push_back(pool[t].r);
+            freeList.push_back(t);
+        }
+        root = 0;
+    }
+
     // O(logN expected) -- add one copy of x
     void add(T x) {
         addRaw(x, 1);
@@ -263,6 +329,12 @@ struct TreapMultiset {
     // O(logN expected) -- add cnt copies of val (nothing if cnt <= 0)
     void addCount(T val, long long cnt) {
         if (cnt > 0) addRaw(val, cnt);
+    }
+
+    // O(N) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    void clear() {
+        clearData();
+        resetCached();
     }
 
     // O(logN expected) -- how many copies of x
@@ -300,35 +372,40 @@ struct TreapMultiset {
         return le(x);
     }
 
-    // O(logN expected) -- k-th largest value (1-indexed); throws out_of_range unless 1 <= k <= size
-    T kthLargest(long long k) {
-        if (k < 1 || k > n) throw out_of_range("kthLargest: needs 1 <= k <= size");
-        return kth(n - k + 1);
+    // O(logN expected) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    long long firstIndex(T x) {
+        return countOf(x) ? lt(x) : -1;
     }
 
-    // O(logN expected) -- k-th smallest value (1-indexed); throws out_of_range unless 1 <= k <= size
-    T kthSmallest(long long k) {
-        if (k < 1 || k > n) throw out_of_range("kthSmallest: needs 1 <= k <= size");
-        return kth(k);
+    // O(logN expected) -- the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size
+    T kth(long long i) {
+        if (i < 0 || i >= n) throw out_of_range("kth: needs 0 <= i < size");
+        return kthAt(i + 1);
     }
 
     // O(logN expected) -- largest value < x; nullopt if there is none
     optional<T> largestLtX(T x) {
         long long c = lt(x);
         if (!c) return nullopt;
-        return kth(c);
+        return kthAt(c);
     }
 
     // O(logN expected) -- largest value <= x; nullopt if there is none
     optional<T> largestLteX(T x) {
         long long c = le(x);
         if (!c) return nullopt;
-        return kth(c);
+        return kthAt(c);
     }
 
-    // O(1) -- largest value; nullopt if empty
+    // O(logN expected) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    long long lastIndex(T x) {
+        return countOf(x) ? le(x) - 1 : -1;
+    }
+
+    // O(1 amortized) -- largest value; nullopt if empty
     optional<T> max() {
         if (!n) return nullopt;
+        if (!mm) startMinMax();
         return mx;
     }
 
@@ -352,16 +429,25 @@ struct TreapMultiset {
         return mexV;
     }
 
-    // O(1) -- smallest value; nullopt if empty
+    // O(1 amortized) -- smallest value; nullopt if empty
     optional<T> min() {
         if (!n) return nullopt;
+        if (!mm) startMinMax();
         return mn;
+    }
+
+    // O(logN expected) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
+    T pop(long long i) {
+        if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
+        T v = kthAt(i + 1);
+        addRaw(v, -1);
+        return v;
     }
 
     // O(logN expected) -- remove and return the largest value; nullopt if empty
     optional<T> popMax() {
         if (!n) return nullopt;
-        T v = mx;
+        T v = mm ? mx : kthAt(n);
         addRaw(v, -1);
         return v;
     }
@@ -369,7 +455,7 @@ struct TreapMultiset {
     // O(logN expected) -- remove and return the smallest value; nullopt if empty
     optional<T> popMin() {
         if (!n) return nullopt;
-        T v = mn;
+        T v = mm ? mn : kthAt(1);
         addRaw(v, -1);
         return v;
     }
@@ -405,14 +491,14 @@ struct TreapMultiset {
     optional<T> smallestGtX(T x) {
         long long c = le(x);
         if (c == n) return nullopt;
-        return kth(c + 1);
+        return kthAt(c + 1);
     }
 
     // O(logN expected) -- smallest value >= x; nullopt if there is none
     optional<T> smallestGteX(T x) {
         long long c = lt(x);
         if (c == n) return nullopt;
-        return kth(c + 1);
+        return kthAt(c + 1);
     }
 
     // O(1 amortized) -- sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty
@@ -450,16 +536,16 @@ struct TreapMultiset {
         return lo <= hi ? sle(hi) - slt(lo) : S(0);
     }
 
-    // O(logN expected) -- sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= i <= j <= size
-    S sumKthLargestRange(long long i, long long j) {
-        if (i < 1 || i > j || j > n) throw out_of_range("sumKthLargestRange: needs 1 <= i <= j <= size");
-        return sumFirst(n - i + 1) - sumFirst(n - j);
+    // O(logN expected) -- sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    S sumKthLargestRange(long long kFrom, long long kTo) {
+        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
+        return sumFirst(n - kFrom + 1) - sumFirst(n - kTo);
     }
 
-    // O(logN expected) -- sum of the i-th..j-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= i <= j <= size
-    S sumKthSmallestRange(long long i, long long j) {
-        if (i < 1 || i > j || j > n) throw out_of_range("sumKthSmallestRange: needs 1 <= i <= j <= size");
-        return sumFirst(j) - sumFirst(i - 1);
+    // O(logN expected) -- sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    S sumKthSmallestRange(long long kFrom, long long kTo) {
+        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
+        return sumFirst(kTo) - sumFirst(kFrom - 1);
     }
 
     // O(logN expected) -- sum of the k largest values; throws out_of_range unless 0 <= k <= size

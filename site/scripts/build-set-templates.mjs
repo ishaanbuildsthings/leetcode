@@ -19,8 +19,10 @@ const srcDir = path.resolve(siteDir, "../templates/sets");
 const publicDir = path.join(siteDir, "public/set-templates");
 const manifestPath = path.join(siteDir, "lib/generated/set-templates.ts");
 
-const TAGS = ["operations", "data-structure-type", "values", "complexities", "memory"];
+const TAGS = ["operations", "data-structure-type", "values", "keys", "complexities", "memory"];
 const VALUES = ["offline", "online-range", "online"];
+// any: values only need to compare (tuples, pairs, ...); numbers: the template needs numeric values
+const KEYS = ["any", "numbers"];
 
 const errors = [];
 const entries = [];
@@ -28,37 +30,50 @@ const entries = [];
 for (const folder of fs.readdirSync(srcDir).sort()) {
   const folderPath = path.join(srcDir, folder);
   if (!fs.statSync(folderPath).isDirectory()) continue;
-  const langs = [];
-  const notes = {};
-  const usage = {};
-  let data = null;
-  for (const [ext, lang] of Object.entries(LANGS)) {
-    const filePath = path.join(folderPath, `template${ext}`);
-    if (!fs.existsSync(filePath)) continue;
-    const where = `${folder}/template${ext}`;
-    const { errs, tags, data: d } = readHeaderFile(where, filePath, { tags: TAGS });
-    errors.push(...errs);
-    if (!VALUES.includes(tags.values)) errors.push(`${where}: @values must be one of ${VALUES.join(", ")}`);
-    d.values = tags.values;
-    langs.push(lang);
-    if (d.memory.note) notes[lang] = d.memory.note;
-    const u = readUsage(fs.readFileSync(filePath, "utf8"), lang, d.operations);
-    if (u) usage[lang] = u;
-    else errors.push(`${where}: no class implements every operation (needed for the usage panel)`);
-    if (!data) data = d;
-    else {
-      const strip = (x) => JSON.stringify({ ...x, memory: { ...x.memory, note: undefined } });
-      if (strip(data) !== strip(d)) errors.push(`${folder}: template${ext} header disagrees with the other language's`);
+  // reads template.* or distinct.* (FastSet's no-duplicates variant) in every language it exists in
+  const readStem = (stem) => {
+    const langs = [];
+    const notes = {};
+    const usage = {};
+    let data = null;
+    for (const [ext, lang] of Object.entries(LANGS)) {
+      const filePath = path.join(folderPath, `${stem}${ext}`);
+      if (!fs.existsSync(filePath)) continue;
+      const where = `${folder}/${stem}${ext}`;
+      const { errs, tags, data: d } = readHeaderFile(where, filePath, { tags: TAGS });
+      errors.push(...errs);
+      if (!VALUES.includes(tags.values)) errors.push(`${where}: @values must be one of ${VALUES.join(", ")}`);
+      d.values = tags.values;
+      if (!KEYS.includes(tags.keys)) errors.push(`${where}: @keys must be one of ${KEYS.join(", ")}`);
+      d.keys = tags.keys;
+      langs.push(lang);
+      if (d.memory.note) notes[lang] = d.memory.note;
+      const u = readUsage(fs.readFileSync(filePath, "utf8"), lang, d.operations);
+      if (u) usage[lang] = u;
+      else errors.push(`${where}: no class implements every operation (needed for the usage panel)`);
+      if (!data) data = d;
+      else {
+        const strip = (x) => JSON.stringify({ ...x, memory: { ...x.memory, note: undefined } });
+        if (strip(data) !== strip(d)) errors.push(`${folder}: ${stem}${ext} header disagrees with the other language's`);
+      }
     }
-  }
+    if (data && Object.keys(notes).length) data.memory.notes = notes;
+    return { langs, data, usage };
+  };
+  const { langs, data, usage } = readStem("template");
+  const distinct = readStem("distinct");
   for (const f of fs.readdirSync(folderPath))
-    if (!Object.keys(LANGS).some((ext) => f === `template${ext}`)) errors.push(`${folder}: unexpected file ${f}`);
+    if (!["template", "distinct"].some((stem) => Object.keys(LANGS).some((ext) => f === `${stem}${ext}`))) errors.push(`${folder}: unexpected file ${f}`);
   if (!data) {
     errors.push(`${folder}: no template.py or template.cpp`);
     continue;
   }
-  if (Object.keys(notes).length) data.memory.notes = notes;
-  entries.push({ folder, langs, ...data, usage });
+  const entry = { folder, langs, ...data, usage };
+  if (distinct.data) {
+    const d = distinct.data;
+    entry.distinct = { langs: distinct.langs, operations: d.operations, complexities: d.complexities, build: d.build, memory: d.memory, usage: distinct.usage };
+  }
+  entries.push(entry);
 }
 
 if (errors.length) {
@@ -68,9 +83,10 @@ if (errors.length) {
 
 fs.rmSync(publicDir, { recursive: true, force: true });
 fs.mkdirSync(publicDir, { recursive: true });
-for (const { folder, langs } of entries) {
+for (const { folder, langs, distinct } of entries) {
   fs.mkdirSync(path.join(publicDir, folder), { recursive: true });
-  for (const l of langs) fs.copyFileSync(path.join(srcDir, folder, `template.${l}`), path.join(publicDir, folder, `template.${l}`));
+  const files = [...langs.map((l) => `template.${l}`), ...(distinct?.langs ?? []).map((l) => `distinct.${l}`)];
+  for (const f of files) fs.copyFileSync(path.join(srcDir, folder, f), path.join(publicDir, folder, f));
 }
 
 const manifest = `// Generated by scripts/build-set-templates.mjs from templates/sets. Do not edit.

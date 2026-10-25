@@ -314,8 +314,8 @@ export const OP_GROUPS: OpGroup[] = [
         ops: [
           { id: "sumSmallestK", signature: "sumSmallestK(l, r, k)", description: "Sum of the k smallest values in a[l]…a[r]" },
           { id: "sumLargestK", signature: "sumLargestK(l, r, k)", description: "Sum of the k largest values in a[l]…a[r]" },
-          { id: "sumKthSmallestRange", signature: "sumKthSmallestRange(l, r, i, j)", description: "Sum of the i-th … j-th smallest values in a[l]…a[r]" },
-          { id: "sumKthLargestRange", signature: "sumKthLargestRange(l, r, i, j)", description: "Sum of the i-th … j-th largest values in a[l]…a[r]" },
+          { id: "sumKthSmallestRange", signature: "sumKthSmallestRange(l, r, kFrom, kTo)", description: "Sum of the kFrom-th … kTo-th smallest values in a[l]…a[r] (1-indexed ranks)" },
+          { id: "sumKthLargestRange", signature: "sumKthLargestRange(l, r, kFrom, kTo)", description: "Sum of the kFrom-th … kTo-th largest values in a[l]…a[r] (1-indexed ranks)" },
         ],
       },
       {

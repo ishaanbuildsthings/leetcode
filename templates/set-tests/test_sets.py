@@ -32,14 +32,27 @@ OPS_PER_TRIAL = 80
 
 # op -> argument kind; results are printed for every op but add / addCount
 ARG_KINDS = {
+    "clear": "",
     "add": "x", "addCount": "xc", "remove": "x", "removeCount": "xc", "removeAll": "x", "popMin": "", "popMax": "",
     "size": "", "count": "x", "sumAll": "", "countDistinct": "", "min": "", "max": "", "medianLow": "", "medianHigh": "",
-    "mex": "", "sumAbsDiffToMedian": "", "kthSmallest": "k", "kthLargest": "k", "sumSmallestK": "k", "sumLargestK": "k",
+    "mex": "", "sumAbsDiffToMedian": "", "kth": "k", "pop": "k", "sumSmallestK": "k", "sumLargestK": "k",
     "sumKthSmallestRange": "ij", "sumKthLargestRange": "ij", "largestLtX": "x", "largestLteX": "x", "smallestGtX": "x",
-    "smallestGteX": "x", "countLtX": "x", "countLteX": "x", "countGtX": "x", "countGteX": "x", "countInValRange": "lohi",
+    "smallestGteX": "x", "countLtX": "x", "countLteX": "x", "countGtX": "x", "countGteX": "x", "countInValRange": "lohi", "firstIndex": "x", "lastIndex": "x",
     "sumLtX": "x", "sumLteX": "x", "sumGtX": "x", "sumGteX": "x", "sumInValRange": "lohi", "sumAbsDiffToX": "x",
 }
-NO_RESULT = {"add", "addCount"}
+NO_RESULT = {"add", "addCount", "clear"}
+# ops that need the values to be numbers; a template tagged "@keys: any" is also run with tuple / pair keys on the rest
+NUMERIC_OPS = {"sumAll", "sumSmallestK", "sumLargestK", "sumKthSmallestRange", "sumKthLargestRange", "sumLtX", "sumLteX",
+               "sumGtX", "sumGteX", "sumInValRange", "sumAbsDiffToX", "sumAbsDiffToMedian", "mex"}
+VALUE_ARGS = {"x": (0,), "xc": (0,), "lohi": (0, 1)}  # which arguments are values (the rest are counts / ranks)
+
+
+def key(v):  # an order-preserving int -> tuple map, so the int brute force still gives the answers
+    return (v // 7, v % 7)
+
+
+def unkey(t):
+    return t[0] * 7 + t[1]
 ERR = "ERR"  # the op must raise IndexError (Python) / throw out_of_range (C++)
 
 
@@ -48,6 +61,9 @@ ERR = "ERR"  # the op must raise IndexError (Python) / throw out_of_range (C++)
 def brute(a, op, args):
     """Apply op to the sorted list a (in place) and return its result."""
     n = len(a)
+    if op == "clear":
+        a.clear()
+        return None
     if op == "add":
         bisect.insort(a, args[0])
         return None
@@ -62,6 +78,7 @@ def brute(a, op, args):
         i = bisect.bisect_left(a, x)
         del a[i:i + k]
         return k
+    if op == "pop": return a.pop(args[0]) if 0 <= args[0] < n else ERR
     if op in ("popMin", "popMax"):
         return (a.pop(0) if op == "popMin" else a.pop()) if a else None
     if op == "size": return n
@@ -78,8 +95,7 @@ def brute(a, op, args):
             m += 1
         return m
     if op == "sumAbsDiffToMedian": return sum(abs(v - a[(n + 1) // 2 - 1]) for v in a) if a else 0
-    if op == "kthSmallest": return a[args[0] - 1] if 1 <= args[0] <= n else ERR
-    if op == "kthLargest": return a[n - args[0]] if 1 <= args[0] <= n else ERR
+    if op == "kth": return a[args[0]] if 0 <= args[0] < n else ERR
     if op == "sumSmallestK": return sum(a[:args[0]]) if 0 <= args[0] <= n else ERR
     if op == "sumLargestK": return sum(a[n - args[0]:]) if 0 <= args[0] <= n else ERR
     if op in ("sumKthSmallestRange", "sumKthLargestRange"):
@@ -96,6 +112,8 @@ def brute(a, op, args):
     lt = bisect.bisect_left(a, x) if x is not None else 0
     le = bisect.bisect_right(a, x) if x is not None else 0
     if op == "countLtX": return lt
+    if op == "firstIndex": return lt if le > lt else -1
+    if op == "lastIndex": return le - 1 if le > lt else -1
     if op == "countLteX": return le
     if op == "countGtX": return n - le
     if op == "countGteX": return n - lt
@@ -118,15 +136,15 @@ def norm(v):
 
 # ------------------------------------------------------------------------------------------------ trials
 
-def make_trials(ops, values_kind, trials):
+def make_trials(ops, values_kind, trials, max_range=None):
     """[(ctor args, [(op, args)])]. Values mostly small (lots of duplicates, 0..few for mex) with some negatives; a
     third of the trials use huge values too. Offline trials pass every value the sequence will add."""
-    updates = [o for o in ops if o in ("add", "addCount", "remove", "removeCount", "removeAll", "popMin", "popMax")]
+    updates = [o for o in ops if o in ("add", "addCount", "remove", "removeCount", "removeAll", "popMin", "popMax", "pop", "clear")]
     queries = [o for o in ops if o not in updates]
     out = []
     for t in range(trials):
         rng = random.Random(t)
-        big = t % 3 == 0
+        big = t % 3 == 0 and max_range is None  # (a structure with an array over [lo, hi] can't take a huge range)
         long_trial = t % 25 == 7  # thousands of distinct values: block splits, deep trees, multi-block walks
         lo, hi = (-10**12, 10**12) if big else (-rng.randint(0, 6), rng.randint(4, 16))
         if long_trial:
@@ -139,6 +157,8 @@ def make_trials(ops, values_kind, trials):
         seq, added = [], set()
         for _ in range(4000 if long_trial else OPS_PER_TRIAL):
             op = rng.choice(updates) if updates and rng.random() < (0.75 if long_trial else 0.55) else rng.choice(queries)
+            if op == "clear" and rng.random() > (0.02 if long_trial else 0.15):  # rare, so the set grows between clears
+                op = "add"
             if op in ("add", "addCount") and rng.random() < 0.3:
                 op = "add"
             if long_trial and op in updates and "add" in ops and rng.random() < 0.6:
@@ -173,11 +193,14 @@ def make_trials(ops, values_kind, trials):
     return out
 
 
-def expected(trials):
+def expected(trials, distinct=False):
+    """distinct: a set without duplicates (adding a value already present does nothing), as in fastset/distinct.*"""
     exp = []
     for _, seq in trials:
         a = []
         for op, args in seq:
+            if distinct and op == "add" and args[0] in a:
+                continue  # (add has no result to check)
             r = brute(a, op, args)
             if op not in NO_RESULT:
                 exp.append(norm(r))
@@ -190,10 +213,11 @@ def parse_header(path, cm):
     text = open(path).read()
     ops = re.search(rf"^{re.escape(cm)} @operations: (.*)$", text, re.M).group(1).split()
     values = re.search(rf"^{re.escape(cm)} @values: (.*)$", text, re.M).group(1).strip()
-    return ops, values
+    keys = re.search(rf"^{re.escape(cm)} @keys: (.*)$", text, re.M).group(1).strip()
+    return ops, values, keys
 
 
-def run_python(path, ops, trials):
+def run_python(path, ops, trials, keyed=False):
     spec = importlib.util.spec_from_file_location("set_" + re.sub(r"\W", "_", path), path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -204,12 +228,16 @@ def run_python(path, ops, trials):
         raise RuntimeError(f"no method for {missing}")
     out = []
     for ctor, seq in trials:
-        s = cls(*ctor)
+        s = cls(*([list(map(key, c)) for c in ctor] if keyed else ctor))
         for op, args in seq:
+            if keyed:
+                args = [key(a) if k in VALUE_ARGS.get(ARG_KINDS[op], ()) else a for k, a in enumerate(args)]
             try:
                 r = getattr(s, op)(*args)
             except IndexError:
                 r = ERR
+            if keyed and isinstance(r, tuple):
+                r = unkey(r)
             if op not in NO_RESULT:
                 out.append(norm(r))
     return out
@@ -225,33 +253,39 @@ def find_cxx():
     return None
 
 
-def run_cpp(path, ops, values_kind, trials, cxx):
+def run_cpp(path, ops, values_kind, trials, cxx, keyed=False):
     text = open(path).read()
     names = re.findall(r"^template <typename T>\nstruct (\w+) \{", text, re.M)
     name = names[-1]
     lines = ["#include <bits/stdc++.h>", "using namespace std;", f'#include "{path}"', f"template struct {name}<int>;",
              "void out(long long v) { cout << v << '\\n'; }",
              "void out(optional<long long> v) { if (v) cout << *v << '\\n'; else cout << \"None\\n\"; }",
+             "using P = pair<long long, long long>;",
+             "P key(long long v) { long long q = v >= 0 ? v / 7 : -((-v + 6) / 7); return {q, v - 7 * q}; }",
+             "void out(const P& p) { cout << p.first * 7 + p.second << '\\n'; }",
+             "void out(optional<P> v) { if (v) out(*v); else cout << \"None\\n\"; }",
              "int main() {", "  ios::sync_with_stdio(false); cin.tie(nullptr);", "  int cases; cin >> cases;", "  while (cases--) {"]
+    K = "P" if keyed else "long long"
     if values_kind == "offline":
-        lines += ["    int m; cin >> m; vector<long long> vals(m); for (auto& v : vals) cin >> v;", f"    {name}<long long> s(vals);"]
+        lines += [f"    int m; cin >> m; vector<{K}> vals(m); for (auto& v : vals) {{ long long x; cin >> x; v = {'key(x)' if keyed else 'x'}; }}",
+                  f"    {name}<{K}> s(vals);"]
     elif values_kind == "online-range":
-        lines += ["    long long lo, hi; cin >> lo >> hi;", f"    {name}<long long> s(lo, hi);"]
+        lines += ["    long long lo, hi; cin >> lo >> hi;", f"    {name}<{K}> s(lo, hi);"]
     else:
-        lines += [f"    {name}<long long> s;"]
+        lines += [f"    {name}<{K}> s;"]
     if "resetPool" in text:
-        lines.insert(-1, f"    {name}<long long>::resetPool();")
+        lines.insert(-1, f"    {name}<{K}>::resetPool();")
     lines += ["    int q; cin >> q;", "    while (q--) {", "      string op; cin >> op;", "      if (false) {}"]
     for op in ops:
         kind = ARG_KINDS[op]
         names_ = {"x": ["x"], "xc": ["x", "c"], "k": ["k"], "ij": ["i", "j"], "lohi": ["lo", "hi"], "": []}[kind]
         decl = f"long long {', '.join(names_)}; cin >> {' >> '.join(names_)}; " if names_ else ""
-        call = f"s.{op}({', '.join(names_)})"
+        call = f"s.{op}({', '.join(f'key({a})' if keyed and k in VALUE_ARGS.get(kind, ()) else a for k, a in enumerate(names_))})"
         body = decl + (f"{call};" if op in NO_RESULT else f'try {{ out({call}); }} catch (const out_of_range&) {{ cout << "ERR\\n"; }}')
         lines.append(f'      else if (op == "{op}") {{ {body} }}')
     lines += ["      else { cerr << \"unknown op \" << op << '\\n'; return 1; }", "    }", "  }", "}"]
     os.makedirs(BUILD, exist_ok=True)
-    src = os.path.join(BUILD, os.path.basename(os.path.dirname(path)) + ".cpp")
+    src = os.path.join(BUILD, os.path.basename(os.path.dirname(path)) + "__" + os.path.basename(path)[:-4] + ("__keyed" if keyed else "") + ".cpp")
     exe = src[:-4]
     open(src, "w").write("\n".join(lines) + "\n")
     comp = subprocess.run([cxx, "-std=c++17", "-O2", "-Wall", "-o", exe, src], capture_output=True, text=True)
@@ -304,19 +338,36 @@ def main():
     failed, total = [], 0
     for folder in folders:
         results = []
-        for lang, ok, cm in (("py", want_py, "#"), ("cpp", want_cpp, "//")):
-            path = os.path.join(DIR, folder, f"template.{lang}")
+        for stem, lang, ok, cm in (("template", "py", want_py, "#"), ("template", "cpp", want_cpp, "//"),
+                                   ("distinct", "py", want_py, "#"), ("distinct", "cpp", want_cpp, "//")):
+            path = os.path.join(DIR, folder, f"{stem}.{lang}")
             if not ok or not os.path.exists(path):
                 continue
-            ops, values_kind = parse_header(path, cm)
-            trials = make_trials(ops, values_kind, trials_n)
-            exp = expected(trials)
-            total += len(exp)
-            try:
-                got = run_python(path, ops, trials) if lang == "py" else run_cpp(path, ops, values_kind, trials, cxx)[0]
-                results.append((lang, first_mismatch(got, exp, trials)))
-            except Exception as e:  # noqa: BLE001
-                results.append((lang, f"{type(e).__name__}: {e}"))
+            ops, values_kind, keys = parse_header(path, cm)
+            if stem == "distinct":  # a no-duplicates variant (fastset/distinct.*): set semantics in the brute force
+                trials = make_trials(ops, values_kind, trials_n, 10**5)
+                exp = expected(trials, distinct=True)
+                total += len(exp)
+                try:
+                    got = run_python(path, ops, trials) if lang == "py" else run_cpp(path, ops, values_kind, trials, cxx)[0]
+                    results.append((lang + "(distinct)", first_mismatch(got, exp, trials)))
+                except Exception as e:  # noqa: BLE001
+                    results.append((lang + "(distinct)", f"{type(e).__name__}: {e}"))
+                continue
+            # every template with ints; "@keys: any" ones again with tuple (Python) / pair (C++) keys on the ops that
+            # only compare values
+            passes = [(lang, ops, False)] + ([(lang + "(tuples)" if lang == "py" else lang + "(pairs)",
+                                                [o for o in ops if o not in NUMERIC_OPS], True)] if keys == "any" else [])
+            for label, ops_, keyed in passes:
+                trials = make_trials(ops_, values_kind, trials_n, 10**5 if folder.startswith("fastset") else None)
+                exp = expected(trials)
+                total += len(exp)
+                try:
+                    got = (run_python(path, ops_, trials, keyed) if lang == "py"
+                           else run_cpp(path, ops_, values_kind, trials, cxx, keyed)[0])
+                    results.append((label, first_mismatch(got, exp, trials)))
+                except Exception as e:  # noqa: BLE001
+                    results.append((label, f"{type(e).__name__}: {e}"))
         bad = [(lang, msg) for lang, msg in results if msg]
         print(f"{'FAIL' if bad else 'PASS'}  {folder}  [{' '.join(lang for lang, _ in results)}]")
         for lang, msg in bad:

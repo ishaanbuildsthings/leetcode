@@ -5,6 +5,7 @@ import {
   type PickerCatalog,
 } from "@/components/TemplatePicker";
 import {
+  NUMERIC_SET_OPS,
   SET_OP_GROUPS,
   SET_TYPES,
   SET_TYPE_LABELS,
@@ -12,7 +13,7 @@ import {
 } from "@/lib/set-picker";
 import { SET_TEMPLATES } from "@/lib/generated/set-templates";
 
-type SetView = SetTemplate & { file: "template" };
+type SetView = SetTemplate & { file: "template" | "distinct" };
 
 const VIEWS: SetView[] = SET_TEMPLATES.map((t) => ({ ...t, file: "template" }));
 
@@ -76,6 +77,24 @@ const SET_CATALOG: PickerCatalog<SetView> = {
     parse: (v) => (v === "range" ? "unknown" : v && v in USABLE ? v : "known"),
     views: (mode) => VIEWS.filter((t) => USABLE[mode].includes(t.values)),
   },
+  variant: {
+    file: "distinct",
+    label:
+      "Want fast build O(U/64)? Restriction: no duplicates in the structure (so no O(U) frequency array is needed)",
+    title:
+      "Use the version without duplicates: adding a value that is already in the set does nothing, so there is no count per value and building is just the bit trie (about U / 63 words)",
+    of: (t) =>
+      t.distinct ? ({ ...t.distinct } as Partial<SetView>) : undefined,
+  },
+  flag: {
+    label: "Values are tuples",
+    title:
+      "Values are tuples / pairs (anything that compares), not numbers: only templates that just compare values are offered, and ops that need numbers (sums, mex) are greyed out",
+    storageKey: "setPicker.tuples",
+    keep: (t) => t.keys === "any",
+    disabledOps: NUMERIC_SET_OPS,
+    disabledTitle: "Needs number values: not available with tuples",
+  },
   // "AVL tree — counts + sums, mex": what it keeps (counts only, or counts and sums), mex where it's optional, and
   // what it needs to know up front
   kindLabel: (t) => {
@@ -85,6 +104,7 @@ const SET_CATALOG: PickerCatalog<SetView> = {
     if (OPTIONAL_MEX.has(t.dataStructureType) && t.operations.includes("mex"))
       parts.push("mex");
     if (t.values === "offline") parts.push("offline");
+    if (t.file === "distinct") parts.push("no duplicates");
     return `${SET_TYPE_LABELS[t.dataStructureType]} — ${parts.join(", ")}`;
   },
   memoryGroups: (t) => {
@@ -103,7 +123,7 @@ const SET_CATALOG: PickerCatalog<SetView> = {
     return groups;
   },
   layoutLabel: () => null,
-  updateOps: new Set(["add", "addCount"]),
+  updateOps: new Set(["add", "addCount", "clear"]),
   varName: "ms",
   ctorNotes: CTOR_ARG_NOTES,
   ctorComments: (t) =>

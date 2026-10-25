@@ -318,7 +318,7 @@ def cpp_query_ops(ops):
         if op in ops and op != "pointGet" and op != "rangeMex":
             t = CPP_OPS[op]
             for a, b in (("(int l, int r", "(long long l, long long r"), (", int k)", ", long long k)"),
-                         (", int i, int j)", ", long long i, long long j)"), ("    int count", "    long long count"),
+                         (", int kFrom, int kTo)", ", long long kFrom, long long kTo)"), ("    int count", "    long long count"),
                          ("int n = r - l + 1", "long long n = r - l + 1"), ("int c = countBelow", "long long c = countBelow"),
                          ("int rk = lb(x), c = countBelow(l, r, rk);", "long long rk = lb(x), c = countBelow(l, r, rk);")):
                 t = t.replace(a, b)

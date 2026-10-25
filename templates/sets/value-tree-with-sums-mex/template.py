@@ -1,11 +1,13 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/value-tree-with-sums-mex/template.py
-# @operations: add addCount count countDistinct countGtX countGteX countInValRange countLtX countLteX kthLargest kthSmallest largestLtX largestLteX max medianHigh medianLow mex min popMax popMin remove removeAll removeCount size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+# @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow mex min pop popMax popMin remove removeAll removeCount size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 # @data-structure-type: value-tree
 # @values: online-range
+# @keys: numbers
 # @complexities:
 #   add: log(U)
 #   addCount: log(U)
+#   clear: N*log(U)
 #   count: log(U)
 #   countDistinct: 1
 #   countGtX: log(U)
@@ -13,15 +15,17 @@
 #   countInValRange: log(U)
 #   countLtX: log(U)
 #   countLteX: log(U)
-#   kthLargest: log(U)
-#   kthSmallest: log(U)
+#   firstIndex: log(U)
+#   kth: log(U)
 #   largestLtX: log(U)
 #   largestLteX: log(U)
-#   max: 1
+#   lastIndex: log(U)
+#   max: 1 amortized
 #   medianHigh: 1 amortized
 #   medianLow: 1 amortized
 #   mex: 1 amortized
-#   min: 1
+#   min: 1 amortized
+#   pop: log(U)
 #   popMax: log(U)
 #   popMin: log(U)
 #   remove: log(U)
@@ -57,7 +61,7 @@
 
 
 class ValueTreeMultiset:
-    __slots__ = ("lo", "hi", "cap", "c", "s", "p", "n", "mn", "mx", "med", "lowV", "lowB", "lowC", "lowS", "highV", "highB", "highC", "mexV", "total", "d")
+    __slots__ = ("lo", "hi", "cap", "c", "s", "p", "n", "mn", "mx", "mm", "med", "lowV", "lowB", "lowC", "lowS", "highV", "highB", "highC", "mexV", "total", "d")
 
     # O(1) -- an empty multiset for values in [lo, hi] (any integers, negative is fine)
     def __init__(self, lo, hi):
@@ -66,7 +70,7 @@ class ValueTreeMultiset:
         self.c = {}  # node -> copies below it
         self.s = {}  # node -> sum of the copies below it
         self.p = {}  # node -> distinct values below it
-        self.med, self.mexV = False, -1  # medians / mex are tracked from their first query on; min / max always (set by the first add)
+        self.med, self.mm, self.mexV = False, False, -1  # min / max, medians, mex: tracked from their first query on (until then updates skip them)
         self.n = self.total = self.d = 0
 
     def _insert(self, x, c):
@@ -155,7 +159,7 @@ class ValueTreeMultiset:
             if not i & (i - 1):  # walked off the right edge
                 return self.hi + 1
 
-    def _add(self, x, c):  # c copies of x (c < 0 removes); keeps min / max (and medians / mex once asked for) current
+    def _add(self, x, c):  # c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
         self.n += c
         self.total += c * x
         self._insert(x, c)
@@ -164,25 +168,28 @@ class ValueTreeMultiset:
             if x == self.mexV and x >= 0:  # x filled the mex (mexV is -1 until mex() is first called)
                 self.mexV = self._findMex()
             if n == c:  # the set was empty
-                self.mn = self.mx = x
+                if self.mm:
+                    self.mn = self.mx = x
                 if self.med:
                     self.lowV = self.highV = x
                     self.lowB = self.highB = self.lowS = 0
                     self.lowC = self.highC = c
                 return
-            if x < self.mn:
-                self.mn = x
-            if x > self.mx:
-                self.mx = x
+            if self.mm:
+                if x < self.mn:
+                    self.mn = x
+                if x > self.mx:
+                    self.mx = x
         else:
-            if 0 <= x < self.mexV and not self._countOf(x):  # the last copy of a value below the mex
+            if self.mexV > 0 and 0 <= x < self.mexV and not self._countOf(x):  # the last copy of a value below the mex
                 self.mexV = x
             if not n:
                 return
-            if x == self.mn:
-                self.mn = self._kth(1)
-            if x == self.mx:
-                self.mx = self._kth(n)
+            if self.mm:
+                if x == self.mn:
+                    self.mn = self._kth(1)
+                if x == self.mx:
+                    self.mx = self._kth(n)
         if not self.med:
             return
         # each median is a tracked rank: shift its (value, copies before, copies, sum before), and search again only
@@ -203,6 +210,10 @@ class ValueTreeMultiset:
         if not self.highB < r <= self.highB + self.highC:
             self.highV, self.highB, self.highC = self._kthInfo(r)[:3]
 
+    def _startMinMax(self):  # the first min() / max() (n > 0): from now on _add keeps both current
+        self.mm = True
+        self.mn, self.mx = self._kth(1), self._kth(self.n)
+
     def _startMedians(self):  # the first median query (n > 0): from now on _add keeps both medians current
         self.med = True
         n = self.n
@@ -215,6 +226,17 @@ class ValueTreeMultiset:
         v, b, _, s = self._kthInfo(k)
         return s + (k - b) * v
 
+    def _resetCached(self):  # nothing counted, nothing tracked: as newly built
+        self.med = self.mm = False
+        self.mexV = -1
+        self.n = self.d = 0
+        self.total = 0
+
+    def _clearData(self):
+        self.c = {}
+        self.s = {}
+        self.p = {}
+
     # O(logU) -- add one copy of x
     def add(self, x):
         self._add(x, 1)
@@ -223,6 +245,11 @@ class ValueTreeMultiset:
     def addCount(self, val, cnt):
         if cnt > 0:
             self._add(val, cnt)
+
+    # O(N logU) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    def clear(self):
+        self._clearData()
+        self._resetCached()
 
     # O(logU) -- how many copies of x
     def count(self, x):
@@ -252,17 +279,15 @@ class ValueTreeMultiset:
     def countLteX(self, x):
         return self._le(x)
 
-    # O(logU) -- k-th largest value (1-indexed); raises IndexError unless 1 <= k <= size
-    def kthLargest(self, k):
-        if not 1 <= k <= self.n:
-            raise IndexError(f"kthLargest: needs 1 <= k <= size, got k = {k}, size = {self.n}")
-        return self._kth(self.n - k + 1)
+    # O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    def firstIndex(self, x):
+        return self._lt(x) if self._countOf(x) else -1
 
-    # O(logU) -- k-th smallest value (1-indexed); raises IndexError unless 1 <= k <= size
-    def kthSmallest(self, k):
-        if not 1 <= k <= self.n:
-            raise IndexError(f"kthSmallest: needs 1 <= k <= size, got k = {k}, size = {self.n}")
-        return self._kth(k)
+    # O(logU) -- the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size
+    def kth(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"kth: needs 0 <= i < size, got i = {i}, size = {self.n}")
+        return self._kth(i + 1)
 
     # O(logU) -- largest value < x; None if there is none
     def largestLtX(self, x):
@@ -274,9 +299,17 @@ class ValueTreeMultiset:
         c = self._le(x)
         return self._kth(c) if c else None
 
-    # O(1) -- largest value; None if empty
+    # O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    def lastIndex(self, x):
+        return self._le(x) - 1 if self._countOf(x) else -1
+
+    # O(1 amortized) -- largest value; None if empty
     def max(self):
-        return self.mx if self.n else None
+        if not self.n:
+            return None
+        if not self.mm:
+            self._startMinMax()
+        return self.mx
 
     # O(1 amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
     def medianHigh(self):
@@ -300,15 +333,27 @@ class ValueTreeMultiset:
             self.mexV = self._findMex()
         return self.mexV
 
-    # O(1) -- smallest value; None if empty
+    # O(1 amortized) -- smallest value; None if empty
     def min(self):
-        return self.mn if self.n else None
+        if not self.n:
+            return None
+        if not self.mm:
+            self._startMinMax()
+        return self.mn
+
+    # O(logU) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size
+    def pop(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")
+        v = self._kth(i + 1)
+        self._add(v, -1)
+        return v
 
     # O(logU) -- remove and return the largest value; None if empty
     def popMax(self):
         if not self.n:
             return None
-        v = self.mx
+        v = self.mx if self.mm else self._kth(self.n)
         self._add(v, -1)
         return v
 
@@ -316,7 +361,7 @@ class ValueTreeMultiset:
     def popMin(self):
         if not self.n:
             return None
-        v = self.mn
+        v = self.mn if self.mm else self._kth(1)
         self._add(v, -1)
         return v
 
@@ -344,6 +389,10 @@ class ValueTreeMultiset:
 
     # O(1) -- how many values (copies count)
     def size(self):
+        return self.n
+
+    # O(1) -- same as size()
+    def __len__(self):
         return self.n
 
     # O(logU) -- smallest value > x; None if there is none
@@ -386,17 +435,17 @@ class ValueTreeMultiset:
     def sumInValRange(self, lo, hi):
         return self._sle(hi) - self._slt(lo) if lo <= hi else 0
 
-    # O(logU) -- sum of the i-th..j-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= i <= j <= size
-    def sumKthLargestRange(self, i, j):
-        if not 1 <= i <= j <= self.n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= i <= j <= size, got i = {i}, j = {j}, size = {self.n}")
-        return self._sumFirst(self.n - i + 1) - self._sumFirst(self.n - j)
+    # O(logU) -- sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size
+    def sumKthLargestRange(self, kFrom, kTo):
+        if not 1 <= kFrom <= kTo <= self.n:
+            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+        return self._sumFirst(self.n - kFrom + 1) - self._sumFirst(self.n - kTo)
 
-    # O(logU) -- sum of the i-th..j-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= i <= j <= size
-    def sumKthSmallestRange(self, i, j):
-        if not 1 <= i <= j <= self.n:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= i <= j <= size, got i = {i}, j = {j}, size = {self.n}")
-        return self._sumFirst(j) - self._sumFirst(i - 1)
+    # O(logU) -- sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    def sumKthSmallestRange(self, kFrom, kTo):
+        if not 1 <= kFrom <= kTo <= self.n:
+            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+        return self._sumFirst(kTo) - self._sumFirst(kFrom - 1)
 
     # O(logU) -- sum of the k largest values; raises IndexError unless 0 <= k <= size
     def sumLargestK(self, k):
