@@ -17,6 +17,7 @@ export type SetOpId =
   | "popMax"
   | "pop"
   | "clear"
+  | "removeInValRange"
   | "sumAbsDiffToMedian"
   | "sumAbsDiffToX"
   | "medianLow"
@@ -27,6 +28,9 @@ export type SetOpId =
   | "mex"
   | "sumAll"
   | "countDistinct"
+  | "mode"
+  | "minAdjacentDiff"
+  | "maxGap"
   | "kth"
   | "sumSmallestK"
   | "sumLargestK"
@@ -44,6 +48,7 @@ export type SetOpId =
   | "largestLtX"
   | "smallestGtX"
   | "countInValRange"
+  | "countDistinctInValRange"
   | "sumLtX"
   | "sumLteX"
   | "sumGtX"
@@ -78,6 +83,11 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             id: "removeAll",
             signature: "removeAll(val)",
             description: "Remove every copy of val",
+          },
+          {
+            id: "removeInValRange",
+            signature: "removeInValRange(lo, hi)",
+            description: "Remove every value in [lo, hi]",
           },
           {
             id: "popMin",
@@ -127,6 +137,11 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             id: "countDistinct",
             signature: "countDistinct()",
             description: "How many distinct values",
+          },
+          {
+            id: "mode",
+            signature: "mode()",
+            description: "(most frequent value, its count)",
           },
         ],
       },
@@ -246,6 +261,11 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             signature: "countInValRange(lo, hi)",
             description: "How many values in [lo, hi]",
           },
+          {
+            id: "countDistinctInValRange",
+            signature: "countDistinctInValRange(lo, hi)",
+            description: "How many distinct values in [lo, hi]",
+          },
         ],
       },
     ],
@@ -340,9 +360,31 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
       },
     ],
   },
+  {
+    id: "gaps",
+    title: "Gaps",
+    tiers: [
+      {
+        kind: "topic",
+        ops: [
+          {
+            id: "minAdjacentDiff",
+            signature: "minAdjacentDiff()",
+            description:
+              "Smallest difference between two values (0 if some value repeats)",
+          },
+          {
+            id: "maxGap",
+            signature: "maxGap()",
+            description: "Largest difference between neighbouring distinct values",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
-// Ops that need the values to be numbers (sums, mex); with tuple values they are greyed out.
+// Ops that need the values to be numbers (sums, mex, gaps); with tuple values they are greyed out.
 export const NUMERIC_SET_OPS: ReadonlySet<SetOpId> = new Set<SetOpId>([
   "sumAll",
   "sumSmallestK",
@@ -357,6 +399,8 @@ export const NUMERIC_SET_OPS: ReadonlySet<SetOpId> = new Set<SetOpId>([
   "sumAbsDiffToX",
   "sumAbsDiffToMedian",
   "mex",
+  "minAdjacentDiff",
+  "maxGap",
 ]);
 
 // Ordered lightest to heaviest constant factor; used to break ties between templates.
@@ -398,6 +442,8 @@ export interface SetTemplate {
   values: SetValues;
   // any: works with any comparable values (tuples, pairs, ...); numbers: needs numeric values
   keys: "any" | "numbers";
+  // what this variant keeps current on every update (cached min / max, medians, mex); [] = nothing beyond the counts
+  tracks: string[];
   // FastSet only: a no-duplicates version (distinct.*) with no count per value, so building is just the bit trie
   distinct?: {
     langs: TemplateLang[];

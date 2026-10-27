@@ -19,7 +19,8 @@ const srcDir = path.resolve(siteDir, "../templates/sets");
 const publicDir = path.join(siteDir, "public/set-templates");
 const manifestPath = path.join(siteDir, "lib/generated/set-templates.ts");
 
-const TAGS = ["operations", "data-structure-type", "values", "keys", "complexities", "memory"];
+// @tracks: what the template keeps current on every update (cached min / max, medians, mex), or none
+const TAGS = ["operations", "data-structure-type", "values", "keys", "tracks", "complexities", "memory"];
 const VALUES = ["offline", "online-range", "online"];
 // any: values only need to compare (tuples, pairs, ...); numbers: the template needs numeric values
 const KEYS = ["any", "numbers"];
@@ -46,6 +47,7 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
       d.values = tags.values;
       if (!KEYS.includes(tags.keys)) errors.push(`${where}: @keys must be one of ${KEYS.join(", ")}`);
       d.keys = tags.keys;
+      d.tracks = tags.tracks === "none" ? [] : (tags.tracks ?? "").split(/\s+/).filter(Boolean);
       langs.push(lang);
       if (d.memory.note) notes[lang] = d.memory.note;
       const u = readUsage(fs.readFileSync(filePath, "utf8"), lang, d.operations);

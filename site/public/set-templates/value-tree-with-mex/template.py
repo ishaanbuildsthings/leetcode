@@ -1,15 +1,17 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/value-tree-with-mex/template.py
-# @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow mex min pop popMax popMin remove removeAll removeCount size smallestGtX smallestGteX
+# @operations: add addCount clear count countDistinct countDistinctInValRange countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow mex min pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX
 # @data-structure-type: value-tree
 # @values: online-range
 # @keys: numbers
+# @tracks: none
 # @complexities:
 #   add: log(U)
 #   addCount: log(U)
 #   clear: N*log(U)
 #   count: log(U)
 #   countDistinct: 1
+#   countDistinctInValRange: log(U)
 #   countGtX: log(U)
 #   countGteX: log(U)
 #   countInValRange: log(U)
@@ -20,17 +22,18 @@
 #   largestLtX: log(U)
 #   largestLteX: log(U)
 #   lastIndex: log(U)
-#   max: 1 amortized
-#   medianHigh: 1 amortized
-#   medianLow: 1 amortized
-#   mex: 1 amortized
-#   min: 1 amortized
+#   max: log(U)
+#   medianHigh: log(U)
+#   medianLow: log(U)
+#   mex: log(U)
+#   min: log(U)
 #   pop: log(U)
 #   popMax: log(U)
 #   popMin: log(U)
 #   remove: log(U)
 #   removeAll: log(U)
 #   removeCount: log(U)
+#   removeInValRange: log(U) amortized
 #   size: 1
 #   smallestGtX: log(U)
 #   smallestGteX: log(U)
@@ -49,7 +52,7 @@
 
 
 class ValueTreeMultiset:
-    __slots__ = ("lo", "hi", "cap", "c", "p", "n", "mn", "mx", "mm", "med", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "d")
+    __slots__ = ("lo", "hi", "cap", "c", "p", "n", "d")
 
     # O(1) -- an empty multiset for values in [lo, hi] (any integers, negative is fine)
     def __init__(self, lo, hi):
@@ -57,7 +60,6 @@ class ValueTreeMultiset:
         self.cap = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of value v is cap + (v - lo)
         self.c = {}  # node -> copies below it
         self.p = {}  # node -> distinct values below it
-        self.med, self.mm, self.mexV = False, False, -1  # min / max, medians, mex: tracked from their first query on (until then updates skip them)
         self.n = self.d = 0
 
     def _insert(self, x, c):
@@ -72,6 +74,7 @@ class ValueTreeMultiset:
             if pres:
                 pp[i] = pp.get(i, 0) + pres
             i >>= 1
+        return old + c  # (x's new count)
 
     def _prefix(self, f, x):  # f's total over the values < x
         if x <= self.lo:
@@ -138,73 +141,19 @@ class ValueTreeMultiset:
             if not i & (i - 1):  # walked off the right edge
                 return self.hi + 1
 
-    def _add(self, x, c):  # c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
+    def _add(self, x, c):  # c copies of x (c < 0 removes)
         self.n += c
         self._insert(x, c)
-        n = self.n
-        if c > 0:
-            if x == self.mexV and x >= 0:  # x filled the mex (mexV is -1 until mex() is first called)
-                self.mexV = self._findMex()
-            if n == c:  # the set was empty
-                if self.mm:
-                    self.mn = self.mx = x
-                if self.med:
-                    self.lowV = self.highV = x
-                    self.lowB = self.highB = 0
-                    self.lowC = self.highC = c
-                return
-            if self.mm:
-                if x < self.mn:
-                    self.mn = x
-                if x > self.mx:
-                    self.mx = x
-        else:
-            if self.mexV > 0 and 0 <= x < self.mexV and not self._countOf(x):  # the last copy of a value below the mex
-                self.mexV = x
-            if not n:
-                return
-            if self.mm:
-                if x == self.mn:
-                    self.mn = self._kth(1)
-                if x == self.mx:
-                    self.mx = self._kth(n)
-        if not self.med:
-            return
-        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        # when the rank leaves the tracked value
-        if x < self.lowV:
-            self.lowB += c
-        elif x == self.lowV:
-            self.lowC += c
-        r = (n + 1) >> 1
-        if not self.lowB < r <= self.lowB + self.lowC:
-            self.lowV, self.lowB, self.lowC = self._kthInfo(r)
-        if x < self.highV:
-            self.highB += c
-        elif x == self.highV:
-            self.highC += c
-        r = (n >> 1) + 1
-        if not self.highB < r <= self.highB + self.highC:
-            self.highV, self.highB, self.highC = self._kthInfo(r)
 
-    def _startMinMax(self):  # the first min() / max() (n > 0): from now on _add keeps both current
-        self.mm = True
-        self.mn, self.mx = self._kth(1), self._kth(self.n)
-
-    def _startMedians(self):  # the first median query (n > 0): from now on _add keeps both medians current
-        self.med = True
-        n = self.n
-        self.lowV, self.lowB, self.lowC = self._kthInfo((n + 1) >> 1)
-        self.highV, self.highB, self.highC = self._kthInfo((n >> 1) + 1)
-
-    def _resetCached(self):  # nothing counted, nothing tracked: as newly built
-        self.med = self.mm = False
-        self.mexV = -1
+    def _resetCached(self):  # nothing counted: as newly built
         self.n = self.d = 0
 
     def _clearData(self):
         self.c = {}
         self.p = {}
+
+    def _distinctLt(self, x):  # distinct values < x
+        return self._prefix(self.p, x)
 
     # O(logU) -- add one copy of x
     def add(self, x):
@@ -227,6 +176,12 @@ class ValueTreeMultiset:
     # O(1) -- how many distinct values
     def countDistinct(self):
         return self.d
+
+    # O(logU) -- how many distinct values v with lo <= v <= hi (0 if lo > hi)
+    def countDistinctInValRange(self, lo, hi):
+        if lo > hi:
+            return 0
+        return self._distinctLt(hi) - self._distinctLt(lo) + (1 if self._countOf(hi) else 0)
 
     # O(logU) -- how many values > x
     def countGtX(self, x):
@@ -272,43 +227,25 @@ class ValueTreeMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(1 amortized) -- largest value; None if empty
+    # O(logU) -- largest value; None if empty
     def max(self):
-        if not self.n:
-            return None
-        if not self.mm:
-            self._startMinMax()
-        return self.mx
+        return self._kth(self.n) if self.n else None
 
-    # O(1 amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(logU) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
     def medianHigh(self):
-        if not self.n:
-            return None
-        if not self.med:
-            self._startMedians()
-        return self.highV
+        return self._kth((self.n >> 1) + 1) if self.n else None
 
-    # O(1 amortized) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(logU) -- lower median: the ceil(size/2)-th smallest value; None if empty
     def medianLow(self):
-        if not self.n:
-            return None
-        if not self.med:
-            self._startMedians()
-        return self.lowV
+        return self._kth((self.n + 1) >> 1) if self.n else None
 
-    # O(1 amortized) -- smallest non-negative integer not in the set
+    # O(logU) -- smallest non-negative integer not in the set
     def mex(self):
-        if self.mexV < 0:  # the first call: from now on _add keeps it current
-            self.mexV = self._findMex()
-        return self.mexV
+        return self._findMex()
 
-    # O(1 amortized) -- smallest value; None if empty
+    # O(logU) -- smallest value; None if empty
     def min(self):
-        if not self.n:
-            return None
-        if not self.mm:
-            self._startMinMax()
-        return self.mn
+        return self._kth(1) if self.n else None
 
     # O(logU) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size
     def pop(self, i):
@@ -322,7 +259,7 @@ class ValueTreeMultiset:
     def popMax(self):
         if not self.n:
             return None
-        v = self.mx if self.mm else self._kth(self.n)
+        v = self._kth(self.n)
         self._add(v, -1)
         return v
 
@@ -330,7 +267,7 @@ class ValueTreeMultiset:
     def popMin(self):
         if not self.n:
             return None
-        v = self.mn if self.mm else self._kth(1)
+        v = self._kth(1)
         self._add(v, -1)
         return v
 
@@ -355,6 +292,23 @@ class ValueTreeMultiset:
             return 0
         self._add(val, -k)
         return k
+
+    # O(logU amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    def removeInValRange(self, lo, hi):
+        if lo > hi:
+            return 0
+        removed = 0
+        while self.n:  # the smallest value >= lo, while it is <= hi: drop all its copies
+            c = self._lt(lo)
+            if c == self.n:
+                break
+            v = self._kth(c + 1)
+            if v > hi:
+                break
+            k = self._countOf(v)
+            self._add(v, -k)
+            removed += k
+        return removed
 
     # O(1) -- how many values (copies count)
     def size(self):

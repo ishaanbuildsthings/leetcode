@@ -105,6 +105,23 @@ export interface PickerCatalog<V extends PickerTemplate> {
 }
 
 const opCost = (t: PickerTemplate, op: string) => t.complexities[op] ?? "?";
+// a cost without its amortized / expected / ? qualifiers: what a complexity cap compares
+const baseCost = (cost: string) =>
+  cost.replace(/ \?$/, "").replace(/ (amortized|expected)$/, "");
+const withinCaps = (t: PickerTemplate, caps: Record<string, number>) =>
+  Object.entries(caps).every(([op, cap]) => costValue(opCost(t, op)) <= cap);
+
+// The cost levels the given matches offer for op (cheapest first): the choices of op's complexity cap
+function capChoices(matches: { template: PickerTemplate }[], op: string) {
+  const byValue = new Map<number, string>();
+  for (const { template } of matches) {
+    const cost = baseCost(opCost(template, op));
+    byValue.set(costValue(cost), cost);
+  }
+  return [...byValue.entries()].sort((a, b) => a[0] - b[0]);
+}
+const tracked = (t: PickerTemplate) =>
+  (t as { tracks?: string[] }).tracks?.length ?? 0;
 
 // Templates covering every selected op, ranked by: slowest selected op, data structure type, total cost of selected
 // ops, memory, then fewest extra ops. Type outranks total because amortized bounds on heavy structures (beats) hide
@@ -145,6 +162,8 @@ function matchTemplates<V extends PickerTemplate>(
       (a, b) =>
         a.bottleneck.value - b.bottleneck.value ||
         a.total - b.total ||
+        // then the variant that keeps less current on every update (sets: cached min / max, medians, mex)
+        tracked(a.template) - tracked(b.template) ||
         catalog.typeOrder.indexOf(a.template.dataStructureType) -
           catalog.typeOrder.indexOf(b.template.dataStructureType) ||
         memoryValue(a.template.memory) - memoryValue(b.template.memory) ||
@@ -616,6 +635,8 @@ export function TemplatePicker<V extends PickerTemplate>({
   catalog: PickerCatalog<V>;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // per selected op, the most it may cost (a cost value); templates over any cap are left out
+  const [caps, setCaps] = useState<Record<string, number>>({});
   const [openTemplate, setOpenTemplate] = useState<V | null>(null);
   const { modes } = catalog;
   const mode = useSyncExternalStore(
@@ -633,6 +654,7 @@ export function TemplatePicker<V extends PickerTemplate>({
 
   const toggle = (id: string) => {
     if (isDisabled(id)) return;
+    if (selected.has(id)) setCap(id, null);
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -645,7 +667,31 @@ export function TemplatePicker<V extends PickerTemplate>({
   // ops the checkbox disabled stay remembered but drop out of the selection while it is on
   const active = new Set([...selected].filter((id) => !isDisabled(id)));
   const selectedOps = allOps.filter((op) => active.has(op.id));
-  const matches = matchTemplates(catalog, active, mode, flagOn);
+  const activeCaps = Object.fromEntries(
+    Object.entries(caps).filter(([op]) => active.has(op)),
+  );
+  const uncapped = matchTemplates(catalog, active, mode, flagOn);
+  const matches = uncapped.filter((m) => withinCaps(m.template, activeCaps));
+  // an op's choices come from the templates the other ops' caps allow, so every choice changes the result
+  const choicesFor = (op: string) =>
+    capChoices(
+      uncapped.filter((m) =>
+        withinCaps(
+          m.template,
+          Object.fromEntries(
+            Object.entries(activeCaps).filter(([o]) => o !== op),
+          ),
+        ),
+      ),
+      op,
+    );
+  const setCap = (op: string, cap: number | null) =>
+    setCaps((prev) => {
+      const next = { ...prev };
+      if (cap === null) delete next[op];
+      else next[op] = cap;
+      return next;
+    });
 
   return (
     <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-24 font-[family-name:var(--font-dm-sans)]">
@@ -800,7 +846,10 @@ export function TemplatePicker<V extends PickerTemplate>({
               {selectedOps.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => setSelected(new Set())}
+                  onClick={() => {
+                    setSelected(new Set());
+                    setCaps({});
+                  }}
                   className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
                 >
                   Clear
@@ -814,24 +863,63 @@ export function TemplatePicker<V extends PickerTemplate>({
               </p>
             ) : (
               <ul className="space-y-1.5">
-                {selectedOps.map((op) => (
-                  <li
-                    key={op.id}
-                    className="flex items-center justify-between gap-2"
-                  >
-                    <code className="truncate font-mono text-xs text-foreground">
-                      {op.signature}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={() => toggle(op.id)}
-                      aria-label={`Remove ${opName(op)}`}
-                      className="flex-shrink-0 text-sm leading-none text-muted-foreground hover:text-foreground"
+                {selectedOps.map((op) => {
+                  const cap = activeCaps[op.id];
+                  let choices = choicesFor(op.id);
+                  // (a cap the other caps have since ruled out stays listed, so the dropdown still shows it)
+                  if (cap !== undefined && !choices.some(([v]) => v === cap))
+                    choices = [
+                      ...choices,
+                      capChoices(uncapped, op.id).find(([v]) => v === cap) ?? [
+                        cap,
+                        "?",
+                      ],
+                    ].sort((a, b) => a[0] - b[0]);
+                  return (
+                    <li
+                      key={op.id}
+                      className="flex items-center justify-between gap-2"
                     >
-                      ×
-                    </button>
-                  </li>
-                ))}
+                      <code className="min-w-0 flex-1 truncate font-mono text-xs text-foreground">
+                        {op.signature}
+                      </code>
+                      {(choices.length > 1 || op.id in activeCaps) && (
+                        <select
+                          value={activeCaps[op.id] ?? ""}
+                          onChange={(e) =>
+                            setCap(
+                              op.id,
+                              e.target.value === ""
+                                ? null
+                                : Number(e.target.value),
+                            )
+                          }
+                          aria-label={`Most ${opName(op)} may cost`}
+                          className={`flex-shrink-0 rounded border border-border bg-background px-1 py-0.5 font-mono text-[11px] ${
+                            op.id in activeCaps
+                              ? "text-foreground"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          <option value="">any cost</option>
+                          {choices.map(([value, cost]) => (
+                            <option key={value} value={value}>
+                              ≤ {formatCost(cost)}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => toggle(op.id)}
+                        aria-label={`Remove ${opName(op)}`}
+                        className="flex-shrink-0 text-sm leading-none text-muted-foreground hover:text-foreground"
+                      >
+                        ×
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
 

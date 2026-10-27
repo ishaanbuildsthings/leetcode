@@ -2,7 +2,8 @@
 
     python3 check_sets.py
 
-A dominates B when A supports every op B does, needs no more knowledge of the values up front (online <
+A dominates B when A supports every op B does, keeps no more current on every update (@tracks), needs no more
+knowledge of the values up front (online <
 online-range < offline), has a cost <= B's for each of B's ops and for the build, the same or a stronger guarantee
 (worst case beats expected and amortized; expected and amortized don't compare), and memory <= B's; with at least
 one of these strictly better. Python and C++ share headers.
@@ -74,12 +75,13 @@ def read(folder):
             ops = re.search(rf"^{cm} @operations: (.*)$", text, re.M).group(1).split()
             vals = re.search(rf"^{cm} @values: (.*)$", text, re.M).group(1).strip()
             dtype = re.search(rf"^{cm} @data-structure-type: (.*)$", text, re.M).group(1).strip()
+            tracks = set(re.search(rf"^{cm} @tracks: (.*)$", text, re.M).group(1).split()) - {"none"}
             comps = dict(re.findall(rf"^{cm}   (\w+): (.*)$", text, re.M))
             mem = sum(value(size) for size in re.findall(r"\w+\[([^\]]+)\]", "\n".join(
                 line for line in text.split("\n") if re.match(rf"^{cm}   (node|tags|other): ", line))))
             if re.search(rf"^{cm}   layout: sparse", text, re.M):
                 mem *= SIZES["Q"]  # a sparse value tree's memory is per add
-            return dict(folder=folder, ops=set(ops), values=vals, comps=comps, mem=mem, dtype=dtype)
+            return dict(folder=folder, ops=set(ops), values=vals, comps=comps, mem=mem, dtype=dtype, tracks=tracks)
     return None
 
 
@@ -92,7 +94,9 @@ def main():
             problems.append(f"no template supports {op}")
     for b in temps:
         for a in temps:
-            if a is b or not b["ops"] <= a["ops"] or KNOWLEDGE[a["values"]] > KNOWLEDGE[b["values"]]:
+            # keeping more current on every update (cached min / max, medians, mex) is never free, so a template that
+            # tracks something b doesn't can't make b pointless
+            if a is b or not b["ops"] <= a["ops"] or KNOWLEDGE[a["values"]] > KNOWLEDGE[b["values"]] or not a["tracks"] <= b["tracks"]:
                 continue
             better, ok = False, True
             for key in sorted(b["ops"]) + ["build"]:

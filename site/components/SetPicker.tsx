@@ -101,8 +101,17 @@ const SET_CATALOG: PickerCatalog<SetView> = {
     const parts = [
       t.operations.includes("sumAll") ? "counts + sums" : "counts only",
     ];
-    if (OPTIONAL_MEX.has(t.dataStructureType) && t.operations.includes("mex"))
+    // what it caches (kept current on every update); "mex" alone = computed per query
+    if (t.tracks.includes("mex")) parts.push("mex cached");
+    else if (
+      OPTIONAL_MEX.has(t.dataStructureType) &&
+      t.operations.includes("mex")
+    )
       parts.push("mex");
+    if (t.tracks.includes("minmax")) parts.push("min/max cached");
+    if (t.tracks.includes("medians")) parts.push("medians cached");
+    if (t.tracks.includes("mode")) parts.push("mode");
+    if (t.tracks.includes("gaps")) parts.push("gaps");
     if (t.values === "offline") parts.push("offline");
     if (t.file === "distinct") parts.push("no duplicates");
     return `${SET_TYPE_LABELS[t.dataStructureType]} — ${parts.join(", ")}`;
@@ -125,6 +134,7 @@ const SET_CATALOG: PickerCatalog<SetView> = {
   layoutLabel: () => null,
   updateOps: new Set(["add", "addCount", "clear"]),
   varName: "ms",
+  pairResults: { mode: ["value", "freq"] },
   ctorNotes: CTOR_ARG_NOTES,
   ctorComments: (t) =>
     t.values === "offline"

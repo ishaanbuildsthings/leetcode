@@ -1,9 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/splay-with-sums/template.py
-# @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow min pop popMax popMin remove removeAll removeCount size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+# @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow min pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 # @data-structure-type: splay
 # @values: online
 # @keys: numbers
+# @tracks: none
 # @complexities:
 #   add: log(N) amortized
 #   addCount: log(N) amortized
@@ -20,20 +21,21 @@
 #   largestLtX: log(N) amortized
 #   largestLteX: log(N) amortized
 #   lastIndex: log(N) amortized
-#   max: 1 amortized
-#   medianHigh: 1 amortized
-#   medianLow: 1 amortized
-#   min: 1 amortized
+#   max: log(N) amortized
+#   medianHigh: log(N) amortized
+#   medianLow: log(N) amortized
+#   min: log(N) amortized
 #   pop: log(N) amortized
 #   popMax: log(N) amortized
 #   popMin: log(N) amortized
 #   remove: log(N) amortized
 #   removeAll: log(N) amortized
 #   removeCount: log(N) amortized
+#   removeInValRange: log(N) amortized
 #   size: 1
 #   smallestGtX: log(N) amortized
 #   smallestGteX: log(N) amortized
-#   sumAbsDiffToMedian: 1 amortized
+#   sumAbsDiffToMedian: log(N) amortized
 #   sumAbsDiffToX: log(N) amortized
 #   sumAll: 1
 #   sumGtX: log(N) amortized
@@ -60,14 +62,13 @@
 
 
 class SplayMultiset:
-    __slots__ = ("K", "C", "Z", "S", "L", "R", "P", "free", "root", "n", "mn", "mx", "mm", "med", "lowV", "lowB", "lowC", "lowS", "highV", "highB", "highC", "total", "d")
+    __slots__ = ("K", "C", "Z", "S", "L", "R", "P", "free", "root", "n", "total", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
         self.K, self.C, self.Z, self.S = [0], [0], [0], [0]  # key, copies, copies below, sum below
         self.L, self.R, self.P = [0], [0], [0]  # children, parent
         self.free = []  # removed nodes, reused first
-        self.med = self.mm = False  # min / max, medians, mex: tracked from their first query on (until then updates skip them)
         self.root = self.n = self.total = self.d = 0
 
     def _new(self, x, parent):
@@ -133,12 +134,12 @@ class SplayMultiset:
                 break
             t = nxt
         if t and K[t] == x:  # x is already here
-            self.C[t] += c
+            f = self.C[t] = self.C[t] + c
             self._pull(t)
             self.root = self._splay(t)
-            if not self.C[t]:
+            if not f:
                 self._erase(t)
-            return
+            return f  # (x's new count)
         u = self._new(x, t)
         self.C[u] = c
         self._pull(u)
@@ -149,6 +150,7 @@ class SplayMultiset:
                 R[t] = u
         self.root = self._splay(u)
         self.d += 1
+        return c
 
     def _erase(self, t):  # t is the root
         L, R, P = self.L, self.R, self.P
@@ -263,62 +265,10 @@ class SplayMultiset:
                 acc += S[l] + C[t] * K[t]
                 t = R[t]
 
-    def _add(self, x, c):  # c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
+    def _add(self, x, c):  # c copies of x (c < 0 removes)
         self.n += c
         self.total += c * x
         self._insert(x, c)
-        n = self.n
-        if c > 0:
-            if n == c:  # the set was empty
-                if self.mm:
-                    self.mn = self.mx = x
-                if self.med:
-                    self.lowV = self.highV = x
-                    self.lowB = self.highB = self.lowS = 0
-                    self.lowC = self.highC = c
-                return
-            if self.mm:
-                if x < self.mn:
-                    self.mn = x
-                if x > self.mx:
-                    self.mx = x
-        else:
-            if not n:
-                return
-            if self.mm:
-                if x == self.mn:
-                    self.mn = self._kth(1)
-                if x == self.mx:
-                    self.mx = self._kth(n)
-        if not self.med:
-            return
-        # each median is a tracked rank: shift its (value, copies before, copies, sum before), and search again only
-        # when the rank leaves the tracked value
-        if x < self.lowV:
-            self.lowB += c
-            self.lowS += c * x
-        elif x == self.lowV:
-            self.lowC += c
-        r = (n + 1) >> 1
-        if not self.lowB < r <= self.lowB + self.lowC:
-            self.lowV, self.lowB, self.lowC, self.lowS = self._kthInfo(r)
-        if x < self.highV:
-            self.highB += c
-        elif x == self.highV:
-            self.highC += c
-        r = (n >> 1) + 1
-        if not self.highB < r <= self.highB + self.highC:
-            self.highV, self.highB, self.highC = self._kthInfo(r)[:3]
-
-    def _startMinMax(self):  # the first min() / max() (n > 0): from now on _add keeps both current
-        self.mm = True
-        self.mn, self.mx = self._kth(1), self._kth(self.n)
-
-    def _startMedians(self):  # the first median query (n > 0): from now on _add keeps both medians current
-        self.med = True
-        n = self.n
-        self.lowV, self.lowB, self.lowC, self.lowS = self._kthInfo((n + 1) >> 1)
-        self.highV, self.highB, self.highC = self._kthInfo((n >> 1) + 1)[:3]
 
     def _sumFirst(self, k):  # sum of the k smallest values
         if k <= 0:
@@ -326,8 +276,7 @@ class SplayMultiset:
         v, b, _, s = self._kthInfo(k)
         return s + (k - b) * v
 
-    def _resetCached(self):  # nothing counted, nothing tracked: as newly built
-        self.med = self.mm = False
+    def _resetCached(self):  # nothing counted: as newly built
         self.n = self.d = 0
         self.total = 0
 
@@ -408,37 +357,21 @@ class SplayMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(1 amortized) -- largest value; None if empty
+    # O(logN amortized) -- largest value; None if empty
     def max(self):
-        if not self.n:
-            return None
-        if not self.mm:
-            self._startMinMax()
-        return self.mx
+        return self._kth(self.n) if self.n else None
 
-    # O(1 amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(logN amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
     def medianHigh(self):
-        if not self.n:
-            return None
-        if not self.med:
-            self._startMedians()
-        return self.highV
+        return self._kth((self.n >> 1) + 1) if self.n else None
 
-    # O(1 amortized) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(logN amortized) -- lower median: the ceil(size/2)-th smallest value; None if empty
     def medianLow(self):
-        if not self.n:
-            return None
-        if not self.med:
-            self._startMedians()
-        return self.lowV
+        return self._kth((self.n + 1) >> 1) if self.n else None
 
-    # O(1 amortized) -- smallest value; None if empty
+    # O(logN amortized) -- smallest value; None if empty
     def min(self):
-        if not self.n:
-            return None
-        if not self.mm:
-            self._startMinMax()
-        return self.mn
+        return self._kth(1) if self.n else None
 
     # O(logN amortized) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size
     def pop(self, i):
@@ -452,7 +385,7 @@ class SplayMultiset:
     def popMax(self):
         if not self.n:
             return None
-        v = self.mx if self.mm else self._kth(self.n)
+        v = self._kth(self.n)
         self._add(v, -1)
         return v
 
@@ -460,7 +393,7 @@ class SplayMultiset:
     def popMin(self):
         if not self.n:
             return None
-        v = self.mn if self.mm else self._kth(1)
+        v = self._kth(1)
         self._add(v, -1)
         return v
 
@@ -486,6 +419,23 @@ class SplayMultiset:
         self._add(val, -k)
         return k
 
+    # O(logN amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    def removeInValRange(self, lo, hi):
+        if lo > hi:
+            return 0
+        removed = 0
+        while self.n:  # the smallest value >= lo, while it is <= hi: drop all its copies
+            c = self._lt(lo)
+            if c == self.n:
+                break
+            v = self._kth(c + 1)
+            if v > hi:
+                break
+            k = self._countOf(v)
+            self._add(v, -k)
+            removed += k
+        return removed
+
     # O(1) -- how many values (copies count)
     def size(self):
         return self.n
@@ -504,13 +454,11 @@ class SplayMultiset:
         c = self._lt(x)
         return self._kth(c + 1) if c < self.n else None
 
-    # O(1 amortized) -- sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty
+    # O(logN amortized) -- sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty
     def sumAbsDiffToMedian(self):
         if not self.n:
             return 0
-        if not self.med:
-            self._startMedians()
-        v, b, c, s = self.lowV, self.lowB, self.lowC, self.lowS
+        v, b, c, s = self._kthInfo((self.n + 1) >> 1)
         return v * b - s + (self.total - s - c * v) - v * (self.n - b - c)
 
     # O(logN amortized) -- sum of |v - x| over all values

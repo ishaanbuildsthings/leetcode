@@ -1,9 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/pbds/template.cpp
-// @operations: add clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow min pop popMax popMin remove size smallestGtX smallestGteX
+// @operations: add clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow min pop popMax popMin remove removeInValRange size smallestGtX smallestGteX
 // @data-structure-type: pbds
 // @values: online
 // @keys: any
+// @tracks: none
 // @complexities:
 //   add: log(N)
 //   clear: N
@@ -19,14 +20,15 @@
 //   largestLtX: log(N)
 //   largestLteX: log(N)
 //   lastIndex: log(N)
-//   max: 1 amortized
-//   medianHigh: 1 amortized
-//   medianLow: 1 amortized
-//   min: 1 amortized
+//   max: log(N)
+//   medianHigh: log(N)
+//   medianLow: log(N)
+//   min: log(N)
 //   pop: log(N)
 //   popMax: log(N)
 //   popMin: log(N)
 //   remove: log(N)
+//   removeInValRange: log(N) amortized
 //   size: 1
 //   smallestGtX: log(N)
 //   smallestGteX: log(N)
@@ -51,22 +53,21 @@ struct PbdsMultiset {
     int ids = 0;
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; };  // a value, copies before it, its copies
-    T mn{}, mx{};  // kept current by addRaw once min() / max() has been called (mm)
-    bool mm = false;
-    bool med = false;  // medians (low, high) are tracked from the first median query on
-    Info low{}, high{};
 
     // O(1) -- an empty multiset
     PbdsMultiset() {}
 
-    void insert(T x, long long c) {  // c = +1 or -1
+    long long insert(T x, long long c) {  // c = +1 or -1; returns x's new count
         if (c > 0) {
-            if (!count(x)) d++;
+            long long k = countOf(x);
+            if (!k) d++;
             t.insert({x, ids++});
-        } else {
-            t.erase(t.lower_bound({x, INT_MIN}));
-            if (!count(x)) d--;
+            return k + 1;
         }
+        t.erase(t.lower_bound({x, INT_MIN}));
+        long long k = countOf(x);
+        if (!k) d--;
+        return k;
     }
 
     long long lt(T x) { return (long long)t.order_of_key({x, INT_MIN}); }
@@ -80,51 +81,12 @@ struct PbdsMultiset {
         return {v, b, le(v) - b};
     }
 
-    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
+    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes)
         n += c;
         insert(x, c);
-        if (c > 0) {
-            if (n == c) {  // the set was empty
-                if (mm) mn = mx = x;
-                if (med) low = high = Info{x, 0, c};
-                return;
-            }
-            if (mm) {
-                if (x < mn) mn = x;
-                if (x > mx) mx = x;
-            }
-        } else {
-            if (!n) return;
-            if (mm) {
-                if (x == mn) mn = kthAt(1);
-                if (x == mx) mx = kthAt(n);
-            }
-        }
-        if (!med) return;
-        // each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        // when the rank leaves the tracked value
-        if (x < low.v) low.before += c;
-        else if (x == low.v) low.c += c;
-        long long r = (n + 1) / 2;
-        if (r <= low.before || r > low.before + low.c) low = kthInfo(r);
-        if (x < high.v) high.before += c;
-        else if (x == high.v) high.c += c;
-        r = n / 2 + 1;
-        if (r <= high.before || r > high.before + high.c) high = kthInfo(r);
     }
 
-    void startMinMax() {  // the first min() / max() (n > 0): from now on addRaw keeps both current
-        mm = true;
-        mn = kthAt(1), mx = kthAt(n);
-    }
-
-    void startMedians() {  // the first median query (n > 0): from now on addRaw keeps both medians current
-        med = true;
-        low = kthInfo((n + 1) / 2), high = kthInfo(n / 2 + 1);
-    }
-
-    void resetCached() {  // nothing counted, nothing tracked: as newly built
-        mm = med = false;
+    void resetCached() {  // nothing counted: as newly built
         n = d = 0;
     }
 
@@ -209,32 +171,28 @@ struct PbdsMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(1 amortized) -- largest value; nullopt if empty
+    // O(logN) -- largest value; nullopt if empty
     optional<T> max() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mx;
+        return kthAt(n);
     }
 
-    // O(1 amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
+    // O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
     optional<T> medianHigh() {
         if (!n) return nullopt;
-        if (!med) startMedians();
-        return high.v;
+        return kthAt(n / 2 + 1);
     }
 
-    // O(1 amortized) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
+    // O(logN) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
     optional<T> medianLow() {
         if (!n) return nullopt;
-        if (!med) startMedians();
-        return low.v;
+        return kthAt((n + 1) / 2);
     }
 
-    // O(1 amortized) -- smallest value; nullopt if empty
+    // O(logN) -- smallest value; nullopt if empty
     optional<T> min() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mn;
+        return kthAt(1);
     }
 
     // O(logN) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
@@ -248,7 +206,7 @@ struct PbdsMultiset {
     // O(logN) -- remove and return the largest value; nullopt if empty
     optional<T> popMax() {
         if (!n) return nullopt;
-        T v = mm ? mx : kthAt(n);
+        T v = kthAt(n);
         addRaw(v, -1);
         return v;
     }
@@ -256,7 +214,7 @@ struct PbdsMultiset {
     // O(logN) -- remove and return the smallest value; nullopt if empty
     optional<T> popMin() {
         if (!n) return nullopt;
-        T v = mm ? mn : kthAt(1);
+        T v = kthAt(1);
         addRaw(v, -1);
         return v;
     }
@@ -266,6 +224,18 @@ struct PbdsMultiset {
         if (!count(x)) return 0;
         addRaw(x, -1);
         return 1;
+    }
+
+    // O(logN amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    long long removeInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        long long removed = 0;
+        while (n) {  // the smallest value >= lo, while it is <= hi
+            auto it = t.lower_bound({lo, INT_MIN});
+            if (it == t.end() || hi < it->first) break;
+            addRaw(it->first, -1), removed++;
+        }
+        return removed;
     }
 
     // O(1) -- how many values (copies count)

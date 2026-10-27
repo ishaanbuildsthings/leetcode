@@ -12,6 +12,7 @@ Random op sequences run on a plain sorted list and on the template, in Python an
     python3 test_sets.py --trials 300    # more random sequences per template (default 150)
 """
 import bisect
+from collections import Counter
 import importlib.util
 import inspect
 import os
@@ -26,13 +27,13 @@ sys.dont_write_bytecode = True
 sys.setrecursionlimit(10000)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DIR = os.path.join(os.path.dirname(HERE), "sets")
+DIR = os.environ.get("SETS_DIR") or os.path.join(os.path.dirname(HERE), "sets")
 BUILD = os.path.join(tempfile.gettempdir(), "set-template-tests")
 OPS_PER_TRIAL = 80
 
 # op -> argument kind; results are printed for every op but add / addCount
 ARG_KINDS = {
-    "clear": "",
+    "clear": "", "removeInValRange": "lohi", "countDistinctInValRange": "lohi", "mode": "", "minAdjacentDiff": "", "maxGap": "",
     "add": "x", "addCount": "xc", "remove": "x", "removeCount": "xc", "removeAll": "x", "popMin": "", "popMax": "",
     "size": "", "count": "x", "sumAll": "", "countDistinct": "", "min": "", "max": "", "medianLow": "", "medianHigh": "",
     "mex": "", "sumAbsDiffToMedian": "", "kth": "k", "pop": "k", "sumSmallestK": "k", "sumLargestK": "k",
@@ -43,7 +44,8 @@ ARG_KINDS = {
 NO_RESULT = {"add", "addCount", "clear"}
 # ops that need the values to be numbers; a template tagged "@keys: any" is also run with tuple / pair keys on the rest
 NUMERIC_OPS = {"sumAll", "sumSmallestK", "sumLargestK", "sumKthSmallestRange", "sumKthLargestRange", "sumLtX", "sumLteX",
-               "sumGtX", "sumGteX", "sumInValRange", "sumAbsDiffToX", "sumAbsDiffToMedian", "mex"}
+               "sumGtX", "sumGteX", "sumInValRange", "sumAbsDiffToX", "sumAbsDiffToMedian", "mex",
+               "minAdjacentDiff", "maxGap"}
 VALUE_ARGS = {"x": (0,), "xc": (0,), "lohi": (0, 1)}  # which arguments are values (the rest are counts / ranks)
 
 
@@ -64,6 +66,26 @@ def brute(a, op, args):
     if op == "clear":
         a.clear()
         return None
+    if op == "mode":  # any most frequent value is right: ("mode", its count, the values with it)
+        if not a:
+            return None
+        cnt = Counter(a)
+        f = max(cnt.values())
+        return ("mode", f, frozenset(v for v, k in cnt.items() if k == f))
+    if op == "minAdjacentDiff":
+        return min(a[i + 1] - a[i] for i in range(n - 1)) if n >= 2 else None
+    if op == "maxGap":
+        u = sorted(set(a))
+        return max(u[i + 1] - u[i] for i in range(len(u) - 1)) if len(u) >= 2 else None
+    if op == "countDistinctInValRange":
+        lo, hi = args
+        return len({v for v in a if lo <= v <= hi})
+    if op == "removeInValRange":
+        lo, hi = args
+        keep = [v for v in a if not lo <= v <= hi]
+        removed = len(a) - len(keep)
+        a[:] = keep
+        return removed
     if op == "add":
         bisect.insort(a, args[0])
         return None
@@ -131,6 +153,10 @@ def brute(a, op, args):
 
 
 def norm(v):
+    if isinstance(v, tuple) and v and v[0] == "mode":
+        return v  # checked by first_mismatch
+    if isinstance(v, tuple):  # (value, count) from mode()
+        return f"{norm(v[0])} {norm(v[1])}"
     return "None" if v is None else v if v == ERR else str(int(v))
 
 
@@ -139,7 +165,7 @@ def norm(v):
 def make_trials(ops, values_kind, trials, max_range=None):
     """[(ctor args, [(op, args)])]. Values mostly small (lots of duplicates, 0..few for mex) with some negatives; a
     third of the trials use huge values too. Offline trials pass every value the sequence will add."""
-    updates = [o for o in ops if o in ("add", "addCount", "remove", "removeCount", "removeAll", "popMin", "popMax", "pop", "clear")]
+    updates = [o for o in ops if o in ("add", "addCount", "remove", "removeCount", "removeAll", "popMin", "popMax", "pop", "clear", "removeInValRange")]
     queries = [o for o in ops if o not in updates]
     out = []
     for t in range(trials):
@@ -237,7 +263,7 @@ def run_python(path, ops, trials, keyed=False):
             except IndexError:
                 r = ERR
             if keyed and isinstance(r, tuple):
-                r = unkey(r)
+                r = (unkey(r[0]), r[1]) if op == "mode" else unkey(r)
             if op not in NO_RESULT:
                 out.append(norm(r))
     return out
@@ -264,8 +290,12 @@ def run_cpp(path, ops, values_kind, trials, cxx, keyed=False):
              "P key(long long v) { long long q = v >= 0 ? v / 7 : -((-v + 6) / 7); return {q, v - 7 * q}; }",
              "void out(const P& p) { cout << p.first * 7 + p.second << '\\n'; }",
              "void out(optional<P> v) { if (v) out(*v); else cout << \"None\\n\"; }",
+
              "int main() {", "  ios::sync_with_stdio(false); cin.tie(nullptr);", "  int cases; cin >> cases;", "  while (cases--) {"]
     K = "P" if keyed else "long long"
+    # mode() returns (value, count); with int keys that type is the same as optional<P>, so each driver gets only its own
+    lines.insert(lines.index("int main() {"), "void out(optional<pair<P, long long>> v) { if (v) cout << v->first.first * 7 + v->first.second << ' ' << v->second << '\\n'; else cout << \"None\\n\"; }"
+                 if keyed else "void outMode(optional<pair<long long, long long>> v) { if (v) cout << v->first << ' ' << v->second << '\\n'; else cout << \"None\\n\"; }")
     if values_kind == "offline":
         lines += [f"    int m; cin >> m; vector<{K}> vals(m); for (auto& v : vals) {{ long long x; cin >> x; v = {'key(x)' if keyed else 'x'}; }}",
                   f"    {name}<{K}> s(vals);"]
@@ -281,7 +311,8 @@ def run_cpp(path, ops, values_kind, trials, cxx, keyed=False):
         names_ = {"x": ["x"], "xc": ["x", "c"], "k": ["k"], "ij": ["i", "j"], "lohi": ["lo", "hi"], "": []}[kind]
         decl = f"long long {', '.join(names_)}; cin >> {' >> '.join(names_)}; " if names_ else ""
         call = f"s.{op}({', '.join(f'key({a})' if keyed and k in VALUE_ARGS.get(kind, ()) else a for k, a in enumerate(names_))})"
-        body = decl + (f"{call};" if op in NO_RESULT else f'try {{ out({call}); }} catch (const out_of_range&) {{ cout << "ERR\\n"; }}')
+        printer = "outMode" if op == "mode" and not keyed else "out"
+        body = decl + (f"{call};" if op in NO_RESULT else f'try {{ {printer}({call}); }} catch (const out_of_range&) {{ cout << "ERR\\n"; }}')
         lines.append(f'      else if (op == "{op}") {{ {body} }}')
     lines += ["      else { cerr << \"unknown op \" << op << '\\n'; return 1; }", "    }", "  }", "}"]
     os.makedirs(BUILD, exist_ok=True)
@@ -309,6 +340,10 @@ def first_mismatch(got, exp, trials):
     if len(got) != len(exp):
         return f"{len(got)} outputs, expected {len(exp)}"
     for k, (g, e) in enumerate(zip(got, exp)):
+        if isinstance(e, tuple):  # mode: any value with the top count
+            parts = g.split()
+            if len(parts) == 2 and int(parts[1]) == e[1] and int(parts[0]) in e[2]:
+                continue
         if g != e:
             seen = 0
             for t, (ctor, seq) in enumerate(trials):

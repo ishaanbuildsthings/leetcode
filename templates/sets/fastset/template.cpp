@@ -1,9 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/fastset/template.cpp
-// @operations: add addCount clear count countDistinct largestLtX largestLteX max min popMax popMin remove removeAll removeCount size smallestGtX smallestGteX
+// @operations: add addCount clear count countDistinct largestLtX largestLteX max min popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX
 // @data-structure-type: fastset
 // @values: online-range
 // @keys: numbers
+// @tracks: none
 // @complexities:
 //   add: log64(U)
 //   addCount: log64(U)
@@ -12,13 +13,14 @@
 //   countDistinct: 1
 //   largestLtX: log64(U)
 //   largestLteX: log64(U)
-//   max: 1 amortized
-//   min: 1 amortized
+//   max: log64(U)
+//   min: log64(U)
 //   popMax: log64(U)
 //   popMin: log64(U)
 //   remove: log64(U)
 //   removeAll: log64(U)
 //   removeCount: log64(U)
+//   removeInValRange: log64(U) amortized
 //   size: 1
 //   smallestGtX: log64(U)
 //   smallestGteX: log64(U)
@@ -42,10 +44,6 @@ struct FastSetMultiset {
     vector<long long> cnt;                   // copies of lo + i
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; };  // a value, copies before it, its copies
-    T mn{}, mx{};  // kept current by addRaw once min() / max() has been called (mm)
-    bool mm = false;
-    bool med = false;  // medians (low, high) are tracked from the first median query on
-    Info low{}, high{};
 
     // O(U) -- lo, hi: every value added lies in [lo, hi] (any integers, negative is fine); U = hi - lo + 1
     FastSetMultiset(long long lo, long long hi) : lo(lo), hi(hi), u(int(hi - lo + 1)), cnt(u) {
@@ -57,7 +55,7 @@ struct FastSetMultiset {
         }
     }
 
-    void insert(T x, long long c) {
+    long long insert(T x, long long c) {  // returns x's new count
         int i = int((long long)x - lo);  // x must lie in [lo, hi]
         long long old = cnt[i];
         cnt[i] += c;
@@ -72,6 +70,7 @@ struct FastSetMultiset {
                 i = j;
             }
         }
+        return cnt[(long long)x - lo];
     }
 
     long long countOf(T x) const { return (long long)x >= lo && (long long)x <= hi ? cnt[(long long)x - lo] : 0; }
@@ -114,51 +113,12 @@ struct FastSetMultiset {
 
     Info kthInfo(long long k) const { return {kthAt(k), 0, 0}; }  // never called: this structure has no median ops
 
-    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
+    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes)
         n += c;
         insert(x, c);
-        if (c > 0) {
-            if (n == c) {  // the set was empty
-                if (mm) mn = mx = x;
-                if (med) low = high = Info{x, 0, c};
-                return;
-            }
-            if (mm) {
-                if (x < mn) mn = x;
-                if (x > mx) mx = x;
-            }
-        } else {
-            if (!n) return;
-            if (mm) {
-                if (x == mn) mn = kthAt(1);
-                if (x == mx) mx = kthAt(n);
-            }
-        }
-        if (!med) return;
-        // each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        // when the rank leaves the tracked value
-        if (x < low.v) low.before += c;
-        else if (x == low.v) low.c += c;
-        long long r = (n + 1) / 2;
-        if (r <= low.before || r > low.before + low.c) low = kthInfo(r);
-        if (x < high.v) high.before += c;
-        else if (x == high.v) high.c += c;
-        r = n / 2 + 1;
-        if (r <= high.before || r > high.before + high.c) high = kthInfo(r);
     }
 
-    void startMinMax() {  // the first min() / max() (n > 0): from now on addRaw keeps both current
-        mm = true;
-        mn = kthAt(1), mx = kthAt(n);
-    }
-
-    void startMedians() {  // the first median query (n > 0): from now on addRaw keeps both medians current
-        med = true;
-        low = kthInfo((n + 1) / 2), high = kthInfo(n / 2 + 1);
-    }
-
-    void resetCached() {  // nothing counted, nothing tracked: as newly built
-        mm = med = false;
+    void resetCached() {  // nothing counted: as newly built
         n = d = 0;
     }
 
@@ -219,24 +179,22 @@ struct FastSetMultiset {
         return T(lo + i);
     }
 
-    // O(1 amortized) -- largest value; nullopt if empty
+    // O(log64(U)) -- largest value; nullopt if empty
     optional<T> max() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mx;
+        return kthAt(n);
     }
 
-    // O(1 amortized) -- smallest value; nullopt if empty
+    // O(log64(U)) -- smallest value; nullopt if empty
     optional<T> min() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mn;
+        return kthAt(1);
     }
 
     // O(log64(U)) -- remove and return the largest value; nullopt if empty
     optional<T> popMax() {
         if (!n) return nullopt;
-        T v = mm ? mx : kthAt(n);
+        T v = kthAt(n);
         addRaw(v, -1);
         return v;
     }
@@ -244,7 +202,7 @@ struct FastSetMultiset {
     // O(log64(U)) -- remove and return the smallest value; nullopt if empty
     optional<T> popMin() {
         if (!n) return nullopt;
-        T v = mm ? mn : kthAt(1);
+        T v = kthAt(1);
         addRaw(v, -1);
         return v;
     }
@@ -269,6 +227,17 @@ struct FastSetMultiset {
         if (k <= 0) return 0;
         addRaw(val, -k);
         return k;
+    }
+
+    // O(log64(U) amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    long long removeInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        long long removed = 0;
+        for (long long i = next((long long)lo - this->lo); i >= 0 && this->lo + i <= (long long)hi; i = next(i + 1)) {  // each present value in [lo, hi]
+            long long k = cnt[i];
+            addRaw(T(this->lo + i), -k), removed += k;
+        }
+        return removed;
     }
 
     // O(1) -- how many values (copies count)

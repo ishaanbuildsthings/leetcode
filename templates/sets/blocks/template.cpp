@@ -1,15 +1,17 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/blocks/template.cpp
-// @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow mex min pop popMax popMin remove removeAll removeCount size smallestGtX smallestGteX
+// @operations: add addCount clear count countDistinct countDistinctInValRange countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow mex min pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX
 // @data-structure-type: blocks
 // @values: online
 // @keys: any
+// @tracks: none
 // @complexities:
 //   add: sqrt(N)
 //   addCount: sqrt(N)
 //   clear: N
 //   count: log(N)
 //   countDistinct: 1
+//   countDistinctInValRange: sqrt(N)
 //   countGtX: sqrt(N)
 //   countGteX: sqrt(N)
 //   countInValRange: sqrt(N)
@@ -20,17 +22,18 @@
 //   largestLtX: sqrt(N)
 //   largestLteX: sqrt(N)
 //   lastIndex: sqrt(N)
-//   max: 1 amortized
-//   medianHigh: 1 amortized
-//   medianLow: 1 amortized
-//   mex: 1 amortized
-//   min: 1 amortized
+//   max: sqrt(N)
+//   medianHigh: sqrt(N)
+//   medianLow: sqrt(N)
+//   mex: sqrt(N)
+//   min: sqrt(N)
 //   pop: sqrt(N)
 //   popMax: sqrt(N)
 //   popMin: sqrt(N)
 //   remove: sqrt(N)
 //   removeAll: sqrt(N)
 //   removeCount: sqrt(N)
+//   removeInValRange: sqrt(N) amortized
 //   size: 1
 //   smallestGtX: sqrt(N)
 //   smallestGteX: sqrt(N)
@@ -57,11 +60,6 @@ struct BlockMultiset {
     bool stale = true;  // the Fenwicks need a rebuild
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; };  // a value, copies before it, its copies
-    T mn{}, mx{};  // kept current by addRaw once min() / max() has been called (mm)
-    bool mm = false;
-    bool med = false;  // medians (low, high) are tracked from the first median query on
-    Info low{}, high{};
-    long long mexV = -1;  // -1 until mex() is first called, then kept current
 
     // O(1) -- an empty multiset
     BlockMultiset() {}
@@ -98,31 +96,31 @@ struct BlockMultiset {
 
     int blockOf(T x) const { return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin()); }
 
-    void insert(T x, long long c) {
+    long long insert(T x, long long c) {  // returns x's new count
         int k = blockOf(x);
         if (k < (int)keys.size()) {
             int j = int(lower_bound(keys[k].begin(), keys[k].end(), x) - keys[k].begin());
             if (j < (int)keys[k].size() && keys[k][j] == x) {  // x is already here
                 if (cnts[k][j] + c) {
                     cnts[k][j] += c, bc[k] += c, fen(fc, k, c);
-                    return;
+                    return cnts[k][j];
                 }
                 d--;
                 keys[k].erase(keys[k].begin() + j), cnts[k].erase(cnts[k].begin() + j);
                 if (keys[k].empty()) {  // the block is empty: drop it
                     keys.erase(keys.begin() + k), cnts.erase(cnts.begin() + k), maxes.erase(maxes.begin() + k), bc.erase(bc.begin() + k);
                     stale = true;
-                    return;
+                    return 0;
                 }
                 maxes[k] = keys[k].back(), bc[k] += c, fen(fc, k, c);
-                return;
+                return 0;
             }
         }
         d++;
         if (keys.empty()) {
             keys.push_back({x}), cnts.push_back({c}), maxes.push_back(x), bc.push_back(c);
             stale = true;
-            return;
+            return c;
         }
         if (k == (int)keys.size()) k--;
         int j = int(lower_bound(keys[k].begin(), keys[k].end(), x) - keys[k].begin());
@@ -139,6 +137,7 @@ struct BlockMultiset {
             bc.insert(bc.begin() + k + 1, accumulate(cnts[k + 1].begin(), cnts[k + 1].end(), 0LL));
             stale = true;
         }
+        return c;
     }
 
     long long countBelow(T x, bool strict) {  // copies of the values < x (strict) or <= x
@@ -214,60 +213,26 @@ struct BlockMultiset {
         return want;
     }
 
-    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
+    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes)
         n += c;
         insert(x, c);
-        if (c > 0) {
-            if constexpr (is_integral_v<T>) if (x == T(mexV) && mexV >= 0) mexV = findMex();  // x filled the mex (mexV is -1 until mex() is first called)
-            if (n == c) {  // the set was empty
-                if (mm) mn = mx = x;
-                if (med) low = high = Info{x, 0, c};
-                return;
-            }
-            if (mm) {
-                if (x < mn) mn = x;
-                if (x > mx) mx = x;
-            }
-        } else {
-            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !countOf(x)) mexV = x;  // the last copy of a value below the mex
-            if (!n) return;
-            if (mm) {
-                if (x == mn) mn = kthAt(1);
-                if (x == mx) mx = kthAt(n);
-            }
-        }
-        if (!med) return;
-        // each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        // when the rank leaves the tracked value
-        if (x < low.v) low.before += c;
-        else if (x == low.v) low.c += c;
-        long long r = (n + 1) / 2;
-        if (r <= low.before || r > low.before + low.c) low = kthInfo(r);
-        if (x < high.v) high.before += c;
-        else if (x == high.v) high.c += c;
-        r = n / 2 + 1;
-        if (r <= high.before || r > high.before + high.c) high = kthInfo(r);
     }
 
-    void startMinMax() {  // the first min() / max() (n > 0): from now on addRaw keeps both current
-        mm = true;
-        mn = kthAt(1), mx = kthAt(n);
-    }
-
-    void startMedians() {  // the first median query (n > 0): from now on addRaw keeps both medians current
-        med = true;
-        low = kthInfo((n + 1) / 2), high = kthInfo(n / 2 + 1);
-    }
-
-    void resetCached() {  // nothing counted, nothing tracked: as newly built
-        mm = med = false;
-        mexV = -1;
+    void resetCached() {  // nothing counted: as newly built
         n = d = 0;
     }
 
     void clearData() {
         keys.clear(), cnts.clear(), maxes.clear(), bc.clear(), fc.clear();
         stale = true;
+    }
+
+    long long distinctLt(T x) const {  // distinct values < x: every block before x's, then a binary search in x's block
+        int b = int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin());
+        long long res = 0;
+        for (int k = 0; k < b; k++) res += (long long)keys[k].size();
+        if (b < (int)keys.size()) res += lower_bound(keys[b].begin(), keys[b].end(), x) - keys[b].begin();
+        return res;
     }
 
     // O(sqrtN) -- add one copy of x
@@ -294,6 +259,12 @@ struct BlockMultiset {
     // O(1) -- how many distinct values
     long long countDistinct() {
         return d;
+    }
+
+    // O(sqrtN) -- how many distinct values v with lo <= v <= hi (0 if lo > hi)
+    long long countDistinctInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        return distinctLt(hi) - distinctLt(lo) + (countOf(hi) ? 1 : 0);
     }
 
     // O(sqrtN) -- how many values > x
@@ -351,38 +322,33 @@ struct BlockMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(1 amortized) -- largest value; nullopt if empty
+    // O(sqrtN) -- largest value; nullopt if empty
     optional<T> max() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mx;
+        return kthAt(n);
     }
 
-    // O(1 amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
+    // O(sqrtN) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
     optional<T> medianHigh() {
         if (!n) return nullopt;
-        if (!med) startMedians();
-        return high.v;
+        return kthAt(n / 2 + 1);
     }
 
-    // O(1 amortized) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
+    // O(sqrtN) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
     optional<T> medianLow() {
         if (!n) return nullopt;
-        if (!med) startMedians();
-        return low.v;
+        return kthAt((n + 1) / 2);
     }
 
-    // O(1 amortized) -- smallest non-negative integer not in the set
+    // O(sqrtN) -- smallest non-negative integer not in the set
     long long mex() {
-        if (mexV < 0) mexV = findMex();  // the first call: from now on addRaw keeps it current
-        return mexV;
+        return findMex();
     }
 
-    // O(1 amortized) -- smallest value; nullopt if empty
+    // O(sqrtN) -- smallest value; nullopt if empty
     optional<T> min() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mn;
+        return kthAt(1);
     }
 
     // O(sqrtN) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
@@ -396,7 +362,7 @@ struct BlockMultiset {
     // O(sqrtN) -- remove and return the largest value; nullopt if empty
     optional<T> popMax() {
         if (!n) return nullopt;
-        T v = mm ? mx : kthAt(n);
+        T v = kthAt(n);
         addRaw(v, -1);
         return v;
     }
@@ -404,7 +370,7 @@ struct BlockMultiset {
     // O(sqrtN) -- remove and return the smallest value; nullopt if empty
     optional<T> popMin() {
         if (!n) return nullopt;
-        T v = mm ? mn : kthAt(1);
+        T v = kthAt(1);
         addRaw(v, -1);
         return v;
     }
@@ -429,6 +395,21 @@ struct BlockMultiset {
         if (k <= 0) return 0;
         addRaw(val, -k);
         return k;
+    }
+
+    // O(sqrtN amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    long long removeInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        long long removed = 0;
+        while (n) {  // the smallest value >= lo, while it is <= hi: drop all its copies
+            long long c = lt(lo);
+            if (c == n) break;
+            T v = kthAt(c + 1);
+            if (hi < v) break;
+            long long k = countOf(v);
+            addRaw(v, -k), removed += k;
+        }
+        return removed;
     }
 
     // O(1) -- how many values (copies count)

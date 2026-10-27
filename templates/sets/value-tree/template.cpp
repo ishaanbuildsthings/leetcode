@@ -1,9 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/value-tree/template.cpp
-// @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow min pop popMax popMin remove removeAll removeCount size smallestGtX smallestGteX
+// @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow min pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX
 // @data-structure-type: value-tree
 // @values: online-range
 // @keys: numbers
+// @tracks: none
 // @complexities:
 //   add: log(U)
 //   addCount: log(U)
@@ -20,16 +21,17 @@
 //   largestLtX: log(U)
 //   largestLteX: log(U)
 //   lastIndex: log(U)
-//   max: 1 amortized
-//   medianHigh: 1 amortized
-//   medianLow: 1 amortized
-//   min: 1 amortized
+//   max: log(U)
+//   medianHigh: log(U)
+//   medianLow: log(U)
+//   min: log(U)
 //   pop: log(U)
 //   popMax: log(U)
 //   popMin: log(U)
 //   remove: log(U)
 //   removeAll: log(U)
 //   removeCount: log(U)
+//   removeInValRange: log(U) amortized
 //   size: 1
 //   smallestGtX: log(U)
 //   smallestGteX: log(U)
@@ -53,10 +55,6 @@ struct ValueTreeMultiset {
     static inline vector<Node> pool{Node{}};  // node 0: empty, its children are itself
     long long lo, hi, n = 0, d = 0;
     struct Info { T v; long long before, c; };  // a value, copies before it, its copies
-    T mn{}, mx{};  // kept current by addRaw once min() / max() has been called (mm)
-    bool mm = false;
-    bool med = false;  // medians (low, high) are tracked from the first median query on
-    Info low{}, high{};
     int root = 0;
 
     // O(1) -- an empty multiset for values in [lo, hi] (any long long range, negative is fine)
@@ -73,7 +71,7 @@ struct ValueTreeMultiset {
         return (int)pool.size() - 1;
     }
 
-    void insert(T x, long long c) {
+    long long insert(T x, long long c) {  // returns x's new count
         if (!root) root = make();
         int path[130], dep = 0, y = root;
         long long a = lo, b = hi;
@@ -98,6 +96,7 @@ struct ValueTreeMultiset {
             Node& v = pool[path[k]];
             v.c += c;
         }
+        return old + c;
     }
 
     // (copies, sum) of the values < x
@@ -159,51 +158,12 @@ struct ValueTreeMultiset {
         return {T(a), before, pool[y].c};
     }
 
-    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
+    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes)
         n += c;
         insert(x, c);
-        if (c > 0) {
-            if (n == c) {  // the set was empty
-                if (mm) mn = mx = x;
-                if (med) low = high = Info{x, 0, c};
-                return;
-            }
-            if (mm) {
-                if (x < mn) mn = x;
-                if (x > mx) mx = x;
-            }
-        } else {
-            if (!n) return;
-            if (mm) {
-                if (x == mn) mn = kthAt(1);
-                if (x == mx) mx = kthAt(n);
-            }
-        }
-        if (!med) return;
-        // each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        // when the rank leaves the tracked value
-        if (x < low.v) low.before += c;
-        else if (x == low.v) low.c += c;
-        long long r = (n + 1) / 2;
-        if (r <= low.before || r > low.before + low.c) low = kthInfo(r);
-        if (x < high.v) high.before += c;
-        else if (x == high.v) high.c += c;
-        r = n / 2 + 1;
-        if (r <= high.before || r > high.before + high.c) high = kthInfo(r);
     }
 
-    void startMinMax() {  // the first min() / max() (n > 0): from now on addRaw keeps both current
-        mm = true;
-        mn = kthAt(1), mx = kthAt(n);
-    }
-
-    void startMedians() {  // the first median query (n > 0): from now on addRaw keeps both medians current
-        med = true;
-        low = kthInfo((n + 1) / 2), high = kthInfo(n / 2 + 1);
-    }
-
-    void resetCached() {  // nothing counted, nothing tracked: as newly built
-        mm = med = false;
+    void resetCached() {  // nothing counted: as newly built
         n = d = 0;
     }
 
@@ -300,32 +260,28 @@ struct ValueTreeMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(1 amortized) -- largest value; nullopt if empty
+    // O(logU) -- largest value; nullopt if empty
     optional<T> max() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mx;
+        return kthAt(n);
     }
 
-    // O(1 amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
+    // O(logU) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
     optional<T> medianHigh() {
         if (!n) return nullopt;
-        if (!med) startMedians();
-        return high.v;
+        return kthAt(n / 2 + 1);
     }
 
-    // O(1 amortized) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
+    // O(logU) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
     optional<T> medianLow() {
         if (!n) return nullopt;
-        if (!med) startMedians();
-        return low.v;
+        return kthAt((n + 1) / 2);
     }
 
-    // O(1 amortized) -- smallest value; nullopt if empty
+    // O(logU) -- smallest value; nullopt if empty
     optional<T> min() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mn;
+        return kthAt(1);
     }
 
     // O(logU) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
@@ -339,7 +295,7 @@ struct ValueTreeMultiset {
     // O(logU) -- remove and return the largest value; nullopt if empty
     optional<T> popMax() {
         if (!n) return nullopt;
-        T v = mm ? mx : kthAt(n);
+        T v = kthAt(n);
         addRaw(v, -1);
         return v;
     }
@@ -347,7 +303,7 @@ struct ValueTreeMultiset {
     // O(logU) -- remove and return the smallest value; nullopt if empty
     optional<T> popMin() {
         if (!n) return nullopt;
-        T v = mm ? mn : kthAt(1);
+        T v = kthAt(1);
         addRaw(v, -1);
         return v;
     }
@@ -372,6 +328,21 @@ struct ValueTreeMultiset {
         if (k <= 0) return 0;
         addRaw(val, -k);
         return k;
+    }
+
+    // O(logU amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    long long removeInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        long long removed = 0;
+        while (n) {  // the smallest value >= lo, while it is <= hi: drop all its copies
+            long long c = lt(lo);
+            if (c == n) break;
+            T v = kthAt(c + 1);
+            if (hi < v) break;
+            long long k = countOf(v);
+            addRaw(v, -k), removed += k;
+        }
+        return removed;
     }
 
     // O(1) -- how many values (copies count)

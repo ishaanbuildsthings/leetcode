@@ -1,9 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/avl-with-sums/template.cpp
-// @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow min pop popMax popMin remove removeAll removeCount size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+// @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow min pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 // @data-structure-type: avl
 // @values: online
 // @keys: numbers
+// @tracks: none
 // @complexities:
 //   add: log(N)
 //   addCount: log(N)
@@ -20,20 +21,21 @@
 //   largestLtX: log(N)
 //   largestLteX: log(N)
 //   lastIndex: log(N)
-//   max: 1 amortized
-//   medianHigh: 1 amortized
-//   medianLow: 1 amortized
-//   min: 1 amortized
+//   max: log(N)
+//   medianHigh: log(N)
+//   medianLow: log(N)
+//   min: log(N)
 //   pop: log(N)
 //   popMax: log(N)
 //   popMin: log(N)
 //   remove: log(N)
 //   removeAll: log(N)
 //   removeCount: log(N)
+//   removeInValRange: log(N) amortized
 //   size: 1
 //   smallestGtX: log(N)
 //   smallestGteX: log(N)
-//   sumAbsDiffToMedian: 1 amortized
+//   sumAbsDiffToMedian: log(N)
 //   sumAbsDiffToX: log(N)
 //   sumAll: 1
 //   sumGtX: log(N)
@@ -66,10 +68,6 @@ struct AVLMultiset {
     int root = 0;
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; S sb; };  // a value, copies before it, its copies, sum before it
-    T mn{}, mx{};  // kept current by addRaw once min() / max() has been called (mm)
-    bool mm = false;
-    bool med = false;  // medians (low, high) are tracked from the first median query on
-    Info low{}, high{};
     S total = 0;
 
     // O(1) -- an empty multiset
@@ -232,48 +230,10 @@ struct AVLMultiset {
     }
 
 
-    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
+    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes)
         n += c;
         total += S(c) * x;
         insert(x, c);
-        if (c > 0) {
-            if (n == c) {  // the set was empty
-                if (mm) mn = mx = x;
-                if (med) low = high = Info{x, 0, c, 0};
-                return;
-            }
-            if (mm) {
-                if (x < mn) mn = x;
-                if (x > mx) mx = x;
-            }
-        } else {
-            if (!n) return;
-            if (mm) {
-                if (x == mn) mn = kthAt(1);
-                if (x == mx) mx = kthAt(n);
-            }
-        }
-        if (!med) return;
-        // each median is a tracked rank: shift its (value, copies before, copies, sum before), and search again only
-        // when the rank leaves the tracked value
-        if (x < low.v) low.before += c, low.sb += S(c) * x;
-        else if (x == low.v) low.c += c;
-        long long r = (n + 1) / 2;
-        if (r <= low.before || r > low.before + low.c) low = kthInfo(r);
-        if (x < high.v) high.before += c, high.sb += S(c) * x;
-        else if (x == high.v) high.c += c;
-        r = n / 2 + 1;
-        if (r <= high.before || r > high.before + high.c) high = kthInfo(r);
-    }
-
-    void startMinMax() {  // the first min() / max() (n > 0): from now on addRaw keeps both current
-        mm = true;
-        mn = kthAt(1), mx = kthAt(n);
-    }
-
-    void startMedians() {  // the first median query (n > 0): from now on addRaw keeps both medians current
-        med = true;
-        low = kthInfo((n + 1) / 2), high = kthInfo(n / 2 + 1);
     }
 
     S sumFirst(long long k) {  // sum of the k smallest values
@@ -282,8 +242,7 @@ struct AVLMultiset {
         return f.sb + S(k - f.before) * f.v;
     }
 
-    void resetCached() {  // nothing counted, nothing tracked: as newly built
-        mm = med = false;
+    void resetCached() {  // nothing counted: as newly built
         n = d = 0;
         total = 0;
     }
@@ -382,32 +341,28 @@ struct AVLMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(1 amortized) -- largest value; nullopt if empty
+    // O(logN) -- largest value; nullopt if empty
     optional<T> max() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mx;
+        return kthAt(n);
     }
 
-    // O(1 amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
+    // O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
     optional<T> medianHigh() {
         if (!n) return nullopt;
-        if (!med) startMedians();
-        return high.v;
+        return kthAt(n / 2 + 1);
     }
 
-    // O(1 amortized) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
+    // O(logN) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
     optional<T> medianLow() {
         if (!n) return nullopt;
-        if (!med) startMedians();
-        return low.v;
+        return kthAt((n + 1) / 2);
     }
 
-    // O(1 amortized) -- smallest value; nullopt if empty
+    // O(logN) -- smallest value; nullopt if empty
     optional<T> min() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mn;
+        return kthAt(1);
     }
 
     // O(logN) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
@@ -421,7 +376,7 @@ struct AVLMultiset {
     // O(logN) -- remove and return the largest value; nullopt if empty
     optional<T> popMax() {
         if (!n) return nullopt;
-        T v = mm ? mx : kthAt(n);
+        T v = kthAt(n);
         addRaw(v, -1);
         return v;
     }
@@ -429,7 +384,7 @@ struct AVLMultiset {
     // O(logN) -- remove and return the smallest value; nullopt if empty
     optional<T> popMin() {
         if (!n) return nullopt;
-        T v = mm ? mn : kthAt(1);
+        T v = kthAt(1);
         addRaw(v, -1);
         return v;
     }
@@ -456,6 +411,21 @@ struct AVLMultiset {
         return k;
     }
 
+    // O(logN amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    long long removeInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        long long removed = 0;
+        while (n) {  // the smallest value >= lo, while it is <= hi: drop all its copies
+            long long c = lt(lo);
+            if (c == n) break;
+            T v = kthAt(c + 1);
+            if (hi < v) break;
+            long long k = countOf(v);
+            addRaw(v, -k), removed += k;
+        }
+        return removed;
+    }
+
     // O(1) -- how many values (copies count)
     long long size() {
         return n;
@@ -475,11 +445,10 @@ struct AVLMultiset {
         return kthAt(c + 1);
     }
 
-    // O(1 amortized) -- sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty
+    // O(logN) -- sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty
     S sumAbsDiffToMedian() {
         if (!n) return 0;
-        if (!med) startMedians();
-        const Info& m = low;
+        Info m = kthInfo((n + 1) / 2);
         return S(m.v) * m.before - m.sb + (total - m.sb - S(m.v) * m.c) - S(m.v) * (n - m.before - m.c);
     }
 

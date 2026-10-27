@@ -1,9 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/fastset/distinct.cpp
-// @operations: add clear count countDistinct largestLtX largestLteX max min popMax popMin remove size smallestGtX smallestGteX
+// @operations: add clear count countDistinct largestLtX largestLteX max min popMax popMin remove removeInValRange size smallestGtX smallestGteX
 // @data-structure-type: fastset
 // @values: online-range
 // @keys: numbers
+// @tracks: none
 // @complexities:
 //   add: log64(U)
 //   clear: N*log64(U)
@@ -16,6 +17,7 @@
 //   popMax: log64(U)
 //   popMin: log64(U)
 //   remove: log64(U)
+//   removeInValRange: log64(U) amortized
 //   size: 1
 //   smallestGtX: log64(U)
 //   smallestGteX: log64(U)
@@ -123,6 +125,15 @@ struct FastSet {
                 if (h) st.push_back({h - 1, base + b});
             }
         }
+    }
+
+    // O(log64(U) amortized) -- remove every value v with lo <= v <= hi; returns how many were removed (0 if lo > hi)
+    long long removeInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        long long removed = 0;
+        for (long long i = next((long long)lo - this->lo); i >= 0 && this->lo + i <= (long long)hi; i = next(i + 1))
+            remove(T(this->lo + i)), removed++;
+        return removed;
     }
 
     // O(1) -- 1 if x is in the set, else 0

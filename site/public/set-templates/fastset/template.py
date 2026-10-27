@@ -1,9 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/fastset/template.py
-# @operations: add addCount clear count countDistinct largestLtX largestLteX max min popMax popMin remove removeAll removeCount size smallestGtX smallestGteX
+# @operations: add addCount clear count countDistinct largestLtX largestLteX max min popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX
 # @data-structure-type: fastset
 # @values: online-range
 # @keys: numbers
+# @tracks: none
 # @complexities:
 #   add: log64(U)
 #   addCount: log64(U)
@@ -12,13 +13,14 @@
 #   countDistinct: 1
 #   largestLtX: log64(U)
 #   largestLteX: log64(U)
-#   max: 1 amortized
-#   min: 1 amortized
+#   max: log64(U)
+#   min: log64(U)
 #   popMax: log64(U)
 #   popMin: log64(U)
 #   remove: log64(U)
 #   removeAll: log64(U)
 #   removeCount: log64(U)
+#   removeInValRange: log64(U) amortized
 #   size: 1
 #   smallestGtX: log64(U)
 #   smallestGteX: log64(U)
@@ -37,7 +39,7 @@
 
 
 class FastSetMultiset:
-    __slots__ = ("lo", "hi", "u", "seg", "cnt", "n", "mn", "mx", "mm", "med", "lowV", "lowB", "lowC", "highV", "highB", "highC", "d")
+    __slots__ = ("lo", "hi", "u", "seg", "cnt", "n", "d")
 
     # O(U) -- lo, hi: every value added lies in [lo, hi] (any integers, negative is fine); U = hi - lo + 1
     def __init__(self, lo, hi):
@@ -52,7 +54,6 @@ class FastSetMultiset:
             if words == 1:
                 break
             width = words
-        self.med = self.mm = False  # min / max, medians, mex: tracked from their first query on (until then updates skip them)
         self.n = self.d = 0
 
     def _insert(self, x, c):
@@ -73,6 +74,7 @@ class FastSetMultiset:
                 if w:
                     break
                 i = j
+        return new
 
     def _countOf(self, x):
         return self.cnt[x - self.lo] if self.lo <= x <= self.hi else 0
@@ -119,63 +121,11 @@ class FastSetMultiset:
     def _kth(self, k):  # only the min (k = 1) or the max (k = n), for _add: the trie has no ranks
         return self.lo + (self._next(0) if k == 1 else self._prev(self.u - 1))
 
-    def _add(self, x, c):  # c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
+    def _add(self, x, c):  # c copies of x (c < 0 removes)
         self.n += c
         self._insert(x, c)
-        n = self.n
-        if c > 0:
-            if n == c:  # the set was empty
-                if self.mm:
-                    self.mn = self.mx = x
-                if self.med:
-                    self.lowV = self.highV = x
-                    self.lowB = self.highB = 0
-                    self.lowC = self.highC = c
-                return
-            if self.mm:
-                if x < self.mn:
-                    self.mn = x
-                if x > self.mx:
-                    self.mx = x
-        else:
-            if not n:
-                return
-            if self.mm:
-                if x == self.mn:
-                    self.mn = self._kth(1)
-                if x == self.mx:
-                    self.mx = self._kth(n)
-        if not self.med:
-            return
-        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
-        # when the rank leaves the tracked value
-        if x < self.lowV:
-            self.lowB += c
-        elif x == self.lowV:
-            self.lowC += c
-        r = (n + 1) >> 1
-        if not self.lowB < r <= self.lowB + self.lowC:
-            self.lowV, self.lowB, self.lowC = self._kthInfo(r)
-        if x < self.highV:
-            self.highB += c
-        elif x == self.highV:
-            self.highC += c
-        r = (n >> 1) + 1
-        if not self.highB < r <= self.highB + self.highC:
-            self.highV, self.highB, self.highC = self._kthInfo(r)
 
-    def _startMinMax(self):  # the first min() / max() (n > 0): from now on _add keeps both current
-        self.mm = True
-        self.mn, self.mx = self._kth(1), self._kth(self.n)
-
-    def _startMedians(self):  # the first median query (n > 0): from now on _add keeps both medians current
-        self.med = True
-        n = self.n
-        self.lowV, self.lowB, self.lowC = self._kthInfo((n + 1) >> 1)
-        self.highV, self.highB, self.highC = self._kthInfo((n >> 1) + 1)
-
-    def _resetCached(self):  # nothing counted, nothing tracked: as newly built
-        self.med = self.mm = False
+    def _resetCached(self):  # nothing counted: as newly built
         self.n = self.d = 0
 
     def _clearData(self):  # zero only the trie words in use (walking down from the top through set bits), and the counts of the values present
@@ -228,27 +178,19 @@ class FastSetMultiset:
         i = self._prev(x - self.lo)
         return None if i < 0 else self.lo + i
 
-    # O(1 amortized) -- largest value; None if empty
+    # O(log64(U)) -- largest value; None if empty
     def max(self):
-        if not self.n:
-            return None
-        if not self.mm:
-            self._startMinMax()
-        return self.mx
+        return self._kth(self.n) if self.n else None
 
-    # O(1 amortized) -- smallest value; None if empty
+    # O(log64(U)) -- smallest value; None if empty
     def min(self):
-        if not self.n:
-            return None
-        if not self.mm:
-            self._startMinMax()
-        return self.mn
+        return self._kth(1) if self.n else None
 
     # O(log64(U)) -- remove and return the largest value; None if empty
     def popMax(self):
         if not self.n:
             return None
-        v = self.mx if self.mm else self._kth(self.n)
+        v = self._kth(self.n)
         self._add(v, -1)
         return v
 
@@ -256,7 +198,7 @@ class FastSetMultiset:
     def popMin(self):
         if not self.n:
             return None
-        v = self.mn if self.mm else self._kth(1)
+        v = self._kth(1)
         self._add(v, -1)
         return v
 
@@ -281,6 +223,19 @@ class FastSetMultiset:
             return 0
         self._add(val, -k)
         return k
+
+    # O(log64(U) amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    def removeInValRange(self, lo, hi):
+        if lo > hi:
+            return 0
+        removed = 0
+        i = self._next(lo - self.lo)
+        while i >= 0 and self.lo + i <= hi:  # each present value in [lo, hi]: drop all its copies
+            k = self.cnt[i]
+            self._add(self.lo + i, -k)
+            removed += k
+            i = self._next(i + 1)
+        return removed
 
     # O(1) -- how many values (copies count)
     def size(self):

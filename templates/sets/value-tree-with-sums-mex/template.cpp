@@ -1,15 +1,17 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/value-tree-with-sums-mex/template.cpp
-// @operations: add addCount clear count countDistinct countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow mex min pop popMax popMin remove removeAll removeCount size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+// @operations: add addCount clear count countDistinct countDistinctInValRange countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max medianHigh medianLow mex min pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 // @data-structure-type: value-tree
 // @values: online-range
 // @keys: numbers
+// @tracks: none
 // @complexities:
 //   add: log(U)
 //   addCount: log(U)
 //   clear: N*log(U)
 //   count: log(U)
 //   countDistinct: 1
+//   countDistinctInValRange: log(U)
 //   countGtX: log(U)
 //   countGteX: log(U)
 //   countInValRange: log(U)
@@ -20,21 +22,22 @@
 //   largestLtX: log(U)
 //   largestLteX: log(U)
 //   lastIndex: log(U)
-//   max: 1 amortized
-//   medianHigh: 1 amortized
-//   medianLow: 1 amortized
-//   mex: 1 amortized
-//   min: 1 amortized
+//   max: log(U)
+//   medianHigh: log(U)
+//   medianLow: log(U)
+//   mex: log(U)
+//   min: log(U)
 //   pop: log(U)
 //   popMax: log(U)
 //   popMin: log(U)
 //   remove: log(U)
 //   removeAll: log(U)
 //   removeCount: log(U)
+//   removeInValRange: log(U) amortized
 //   size: 1
 //   smallestGtX: log(U)
 //   smallestGteX: log(U)
-//   sumAbsDiffToMedian: 1 amortized
+//   sumAbsDiffToMedian: log(U)
 //   sumAbsDiffToX: log(U)
 //   sumAll: 1
 //   sumGtX: log(U)
@@ -66,11 +69,6 @@ struct ValueTreeMultiset {
     static inline vector<Node> pool{Node{}};  // node 0: empty, its children are itself
     long long lo, hi, n = 0, d = 0;
     struct Info { T v; long long before, c; S sb; };  // a value, copies before it, its copies, sum before it
-    T mn{}, mx{};  // kept current by addRaw once min() / max() has been called (mm)
-    bool mm = false;
-    bool med = false;  // medians (low, high) are tracked from the first median query on
-    Info low{}, high{};
-    long long mexV = -1;  // -1 until mex() is first called, then kept current
     S total = 0;
     int root = 0;
 
@@ -88,7 +86,7 @@ struct ValueTreeMultiset {
         return (int)pool.size() - 1;
     }
 
-    void insert(T x, long long c) {
+    long long insert(T x, long long c) {  // returns x's new count
         if (!root) root = make();
         int path[130], dep = 0, y = root;
         long long a = lo, b = hi;
@@ -115,6 +113,7 @@ struct ValueTreeMultiset {
             v.p += pres;
             v.s += S(c) * x;
         }
+        return old + c;
     }
 
     // (copies, sum) of the values < x
@@ -196,50 +195,10 @@ struct ValueTreeMultiset {
         return res == LLONG_MAX ? hi + 1 : res;
     }
 
-    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max, medians, mex current once asked for
+    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes)
         n += c;
         total += S(c) * x;
         insert(x, c);
-        if (c > 0) {
-            if constexpr (is_integral_v<T>) if (x == T(mexV) && mexV >= 0) mexV = findMex();  // x filled the mex (mexV is -1 until mex() is first called)
-            if (n == c) {  // the set was empty
-                if (mm) mn = mx = x;
-                if (med) low = high = Info{x, 0, c, 0};
-                return;
-            }
-            if (mm) {
-                if (x < mn) mn = x;
-                if (x > mx) mx = x;
-            }
-        } else {
-            if constexpr (is_integral_v<T>) if (x >= 0 && x < T(mexV) && !countOf(x)) mexV = x;  // the last copy of a value below the mex
-            if (!n) return;
-            if (mm) {
-                if (x == mn) mn = kthAt(1);
-                if (x == mx) mx = kthAt(n);
-            }
-        }
-        if (!med) return;
-        // each median is a tracked rank: shift its (value, copies before, copies, sum before), and search again only
-        // when the rank leaves the tracked value
-        if (x < low.v) low.before += c, low.sb += S(c) * x;
-        else if (x == low.v) low.c += c;
-        long long r = (n + 1) / 2;
-        if (r <= low.before || r > low.before + low.c) low = kthInfo(r);
-        if (x < high.v) high.before += c, high.sb += S(c) * x;
-        else if (x == high.v) high.c += c;
-        r = n / 2 + 1;
-        if (r <= high.before || r > high.before + high.c) high = kthInfo(r);
-    }
-
-    void startMinMax() {  // the first min() / max() (n > 0): from now on addRaw keeps both current
-        mm = true;
-        mn = kthAt(1), mx = kthAt(n);
-    }
-
-    void startMedians() {  // the first median query (n > 0): from now on addRaw keeps both medians current
-        med = true;
-        low = kthInfo((n + 1) / 2), high = kthInfo(n / 2 + 1);
     }
 
     S sumFirst(long long k) {  // sum of the k smallest values
@@ -248,9 +207,7 @@ struct ValueTreeMultiset {
         return f.sb + S(k - f.before) * f.v;
     }
 
-    void resetCached() {  // nothing counted, nothing tracked: as newly built
-        mm = med = false;
-        mexV = -1;
+    void resetCached() {  // nothing counted: as newly built
         n = d = 0;
         total = 0;
     }
@@ -265,6 +222,19 @@ struct ValueTreeMultiset {
             if (v.l && pool[v.l].c) st.push_back(v.l);
             if (v.r && pool[v.r].c) st.push_back(v.r);
         }
+    }
+
+    long long distinctLt(T x) const {  // distinct values < x
+        if (x <= lo) return 0;
+        if (x > hi) return pool[root].p;
+        long long res = 0, a = lo, b = hi;
+        int y = root;
+        while (y && a < b) {
+            long long m = a + (b - a) / 2;
+            if (x <= m) y = pool[y].l, b = m;
+            else res += pool[pool[y].l].p, y = pool[y].r, a = m + 1;
+        }
+        return res;
     }
 
     // O(logU) -- add one copy of x
@@ -291,6 +261,12 @@ struct ValueTreeMultiset {
     // O(1) -- how many distinct values
     long long countDistinct() {
         return d;
+    }
+
+    // O(logU) -- how many distinct values v with lo <= v <= hi (0 if lo > hi)
+    long long countDistinctInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        return distinctLt(hi) - distinctLt(lo) + (countOf(hi) ? 1 : 0);
     }
 
     // O(logU) -- how many values > x
@@ -348,38 +324,33 @@ struct ValueTreeMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(1 amortized) -- largest value; nullopt if empty
+    // O(logU) -- largest value; nullopt if empty
     optional<T> max() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mx;
+        return kthAt(n);
     }
 
-    // O(1 amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
+    // O(logU) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
     optional<T> medianHigh() {
         if (!n) return nullopt;
-        if (!med) startMedians();
-        return high.v;
+        return kthAt(n / 2 + 1);
     }
 
-    // O(1 amortized) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
+    // O(logU) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
     optional<T> medianLow() {
         if (!n) return nullopt;
-        if (!med) startMedians();
-        return low.v;
+        return kthAt((n + 1) / 2);
     }
 
-    // O(1 amortized) -- smallest non-negative integer not in the set
+    // O(logU) -- smallest non-negative integer not in the set
     long long mex() {
-        if (mexV < 0) mexV = findMex();  // the first call: from now on addRaw keeps it current
-        return mexV;
+        return findMex();
     }
 
-    // O(1 amortized) -- smallest value; nullopt if empty
+    // O(logU) -- smallest value; nullopt if empty
     optional<T> min() {
         if (!n) return nullopt;
-        if (!mm) startMinMax();
-        return mn;
+        return kthAt(1);
     }
 
     // O(logU) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
@@ -393,7 +364,7 @@ struct ValueTreeMultiset {
     // O(logU) -- remove and return the largest value; nullopt if empty
     optional<T> popMax() {
         if (!n) return nullopt;
-        T v = mm ? mx : kthAt(n);
+        T v = kthAt(n);
         addRaw(v, -1);
         return v;
     }
@@ -401,7 +372,7 @@ struct ValueTreeMultiset {
     // O(logU) -- remove and return the smallest value; nullopt if empty
     optional<T> popMin() {
         if (!n) return nullopt;
-        T v = mm ? mn : kthAt(1);
+        T v = kthAt(1);
         addRaw(v, -1);
         return v;
     }
@@ -428,6 +399,21 @@ struct ValueTreeMultiset {
         return k;
     }
 
+    // O(logU amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    long long removeInValRange(T lo, T hi) {
+        if (hi < lo) return 0;
+        long long removed = 0;
+        while (n) {  // the smallest value >= lo, while it is <= hi: drop all its copies
+            long long c = lt(lo);
+            if (c == n) break;
+            T v = kthAt(c + 1);
+            if (hi < v) break;
+            long long k = countOf(v);
+            addRaw(v, -k), removed += k;
+        }
+        return removed;
+    }
+
     // O(1) -- how many values (copies count)
     long long size() {
         return n;
@@ -447,11 +433,10 @@ struct ValueTreeMultiset {
         return kthAt(c + 1);
     }
 
-    // O(1 amortized) -- sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty
+    // O(logU) -- sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty
     S sumAbsDiffToMedian() {
         if (!n) return 0;
-        if (!med) startMedians();
-        const Info& m = low;
+        Info m = kthInfo((n + 1) / 2);
         return S(m.v) * m.before - m.sb + (total - m.sb - S(m.v) * m.c) - S(m.v) * (n - m.before - m.c);
     }
 
