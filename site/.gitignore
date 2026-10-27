@@ -44,3 +44,6 @@ next-env.d.ts
 
 # strategy docs
 docs/STRATEGY.md
+
+# copies of templates/sets for `next dev` (npm run gen:sets): prod fetches those files from GitHub
+/public/set-templates/

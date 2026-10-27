@@ -14,7 +14,7 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DIR = os.path.join(os.path.dirname(HERE), "sets")
+DIR = os.environ.get("SETS_DIR") or os.path.join(os.path.dirname(HERE), "sets")
 sys.path.insert(0, os.path.join(HERE, "generators"))
 from gen_sets import OPS  # noqa: E402
 
@@ -22,7 +22,7 @@ SIZES = {"N": 2e5, "U": 1e9, "Q": 2e5}
 # Structures the user keeps as options although they lose to the AVL tree on paper (the value tree is often faster in
 # practice; treap / splay / pb_ds are the classic alternatives). Losing on paper is reported for them, not a problem.
 KEPT = {"value-tree", "treap", "splay", "pbds"}
-KNOWLEDGE = {"online": 0, "online-range": 1, "offline": 2}
+KNOWLEDGE = {"online": 0, "online-range": 1, "online-bits": 1, "offline": 2}  # (bits: values in [0, 2^bits), a range too)
 
 
 def value(expr):
@@ -112,9 +112,11 @@ def main():
                 (kept if b["dtype"] in KEPT else problems).append(f"{b['folder']} is dominated by {a['folder']}")
     for p in problems:
         print(p)
-    names = sorted({k.split(" ")[0] for k in kept})
-    if names:
-        print(f"kept on purpose although they lose on paper: {', '.join(names)}")
+    dtype = {t["folder"]: t["dtype"] for t in temps}
+    losers = {k.split(" ")[0] for k in kept}
+    if losers:  # (per structure: thousands of folders would bury the problems)
+        per = {d: sum(dtype[f] == d for f in losers) for d in sorted({dtype[f] for f in losers})}
+        print("kept on purpose although they lose on paper: " + ", ".join(f"{d} ({k} variants)" for d, k in per.items()))
     print(f"{len(temps)} templates, {len(covered)} ops: " + ("all good" if not problems else f"{len(problems)} problems"))
     sys.exit(1 if problems else 0)
 

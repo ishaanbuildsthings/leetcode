@@ -10,11 +10,14 @@ Random op sequences run on a plain sorted list and on the template, in Python an
     python3 test_sets.py avl blocks      # only folders whose name contains one of these
     python3 test_sets.py --py / --cpp    # one language only
     python3 test_sets.py --trials 300    # more random sequences per template (default 150)
+    python3 test_sets.py --shard 3/16    # every 16th folder from the 3rd (run 16 of these side by side)
 """
 import bisect
 from collections import Counter
+from functools import reduce
 import importlib.util
 import inspect
+import operator
 import os
 import random
 import re
@@ -33,6 +36,11 @@ OPS_PER_TRIAL = 80
 
 # op -> argument kind; results are printed for every op but add / addCount
 ARG_KINDS = {
+    "maxXor": "xv", "minXor": "xv", "kthXor": "xi", "countXorLtK": "xk", "countXorLteK": "xk", "countXorGtK": "xk",
+    "countXorGteK": "xk", "largestXorLtK": "xk", "largestXorLteK": "xk", "smallestXorGtK": "xk", "smallestXorGteK": "xk",
+    "mexXor": "xv", "sumXor": "xv", "maxXorWithVLtM": "xm", "maxXorWithVLteM": "xm", "maxXorWithVGtM": "xm",
+    "maxXorWithVGteM": "xm", "minXorWithVLtM": "xm", "minXorWithVLteM": "xm", "minXorWithVGtM": "xm", "minXorWithVGteM": "xm",
+    "maxXorWithVInValRange": "xlohi", "minXorWithVInValRange": "xlohi", "xorAll": "y", "shiftAll": "d",
     "clear": "", "removeInValRange": "lohi", "countDistinctInValRange": "lohi", "mode": "", "minAdjacentDiff": "", "maxGap": "",
     "add": "x", "addCount": "xc", "remove": "x", "removeCount": "xc", "removeAll": "x", "popMin": "", "popMax": "",
     "size": "", "count": "x", "sumAll": "", "countDistinct": "", "min": "", "max": "", "medianLow": "", "medianHigh": "",
@@ -41,11 +49,15 @@ ARG_KINDS = {
     "smallestGteX": "x", "countLtX": "x", "countLteX": "x", "countGtX": "x", "countGteX": "x", "countInValRange": "lohi", "firstIndex": "x", "lastIndex": "x",
     "sumLtX": "x", "sumLteX": "x", "sumGtX": "x", "sumGteX": "x", "sumInValRange": "lohi", "sumAbsDiffToX": "x",
 }
-NO_RESULT = {"add", "addCount", "clear"}
+AGG_KINDS = {"All": "", "LtX": "x", "LteX": "x", "GtX": "x", "GteX": "x", "InValRange": "lohi", "SmallestK": "k", "LargestK": "k",
+             "KthSmallestRange": "ij", "KthLargestRange": "ij"}
+ARG_KINDS.update({agg + "Of" + suf: kind for agg in ("xor", "or", "and") for suf, kind in AGG_KINDS.items()})
+NO_RESULT = {"add", "addCount", "clear", "xorAll", "shiftAll"}
 # ops that need the values to be numbers; a template tagged "@keys: any" is also run with tuple / pair keys on the rest
 NUMERIC_OPS = {"sumAll", "sumSmallestK", "sumLargestK", "sumKthSmallestRange", "sumKthLargestRange", "sumLtX", "sumLteX",
                "sumGtX", "sumGteX", "sumInValRange", "sumAbsDiffToX", "sumAbsDiffToMedian", "mex",
-               "minAdjacentDiff", "maxGap"}
+               "minAdjacentDiff", "maxGap"} | {op for op, k in ARG_KINDS.items() if k in ("xv", "xi", "xk", "xm", "xlohi", "y")} | {
+    op for op in ARG_KINDS if op.startswith(("xorOf", "orOf", "andOf"))}
 VALUE_ARGS = {"x": (0,), "xc": (0,), "lohi": (0, 1)}  # which arguments are values (the rest are counts / ranks)
 
 
@@ -72,6 +84,61 @@ def brute(a, op, args):
         cnt = Counter(a)
         f = max(cnt.values())
         return ("mode", f, frozenset(v for v, k in cnt.items() if k == f))
+    if op == "xorAll":
+        a[:] = sorted(v ^ args[0] for v in a)
+        return None
+    if op == "shiftAll":
+        a[:] = [v + args[0] for v in a]
+        return None
+    if ARG_KINDS[op] in ("xv", "xi", "xk", "xm", "xlohi"):  # questions about v ^ x
+        x = args[0]
+        xs = sorted(v ^ x for v in a)
+        if op == "maxXor": return xs[-1] if xs else None
+        if op == "minXor": return xs[0] if xs else None
+        if op == "kthXor": return xs[args[1]] if 0 <= args[1] < n else ERR
+        if op == "mexXor":
+            have, m = set(xs), 0
+            while m in have:
+                m += 1
+            return m
+        if op == "sumXor": return sum(xs)
+        if op.startswith(("countXor", "largestXor", "smallestXor")):
+            k = args[1]
+            rel = op[-3:-1] if op[-3:-1] in ("Lt", "Gt") else op[-4:-1]
+            keep = [w for w in xs if {"Lt": w < k, "Lte": w <= k, "Gt": w > k, "Gte": w >= k}[rel]]
+            if op.startswith("count"): return len(keep)
+            if not keep: return None
+            return keep[-1] if op.startswith("largest") else keep[0]
+        if op.endswith("InValRange"):
+            lo, hi = args[1], args[2]
+            keep = [v ^ x for v in a if lo <= v <= hi]
+        else:
+            m = args[1]
+            rel = op[len("maxXorWithV"):-1]
+            keep = [v ^ x for v in a if {"Lt": v < m, "Lte": v <= m, "Gt": v > m, "Gte": v >= m}[rel]]
+        if not keep: return None
+        return max(keep) if op.startswith("max") else min(keep)
+    if op.startswith(("xorOf", "orOf", "andOf")):  # bitwise aggregates (xor: copies count)
+        agg, suf = op.split("Of", 1)
+        f, ident = {"xor": (operator.xor, 0), "or": (operator.or_, 0), "and": (operator.and_, -1)}[agg]
+        if suf in ("SmallestK", "LargestK"):
+            k = args[0]
+            if not 0 <= k <= n:
+                return ERR
+            vals = a[:k] if suf == "SmallestK" else a[n - k:]
+        elif suf.startswith("Kth"):
+            i, j = args
+            if not 1 <= i <= j <= n:
+                return ERR
+            vals = (a if suf == "KthSmallestRange" else a[::-1])[i - 1:j]
+        elif suf == "InValRange":
+            vals = [v for v in a if args[0] <= v <= args[1]]
+        elif suf == "All":
+            vals = a
+        else:
+            x = args[0]
+            vals = [v for v in a if {"LtX": v < x, "LteX": v <= x, "GtX": v > x, "GteX": v >= x}[suf]]
+        return reduce(f, vals, ident)
     if op == "minAdjacentDiff":
         return min(a[i + 1] - a[i] for i in range(n - 1)) if n >= 2 else None
     if op == "maxGap":
@@ -165,7 +232,7 @@ def norm(v):
 def make_trials(ops, values_kind, trials, max_range=None):
     """[(ctor args, [(op, args)])]. Values mostly small (lots of duplicates, 0..few for mex) with some negatives; a
     third of the trials use huge values too. Offline trials pass every value the sequence will add."""
-    updates = [o for o in ops if o in ("add", "addCount", "remove", "removeCount", "removeAll", "popMin", "popMax", "pop", "clear", "removeInValRange")]
+    updates = [o for o in ops if o in ("add", "addCount", "remove", "removeCount", "removeAll", "popMin", "popMax", "pop", "clear", "removeInValRange", "xorAll", "shiftAll")]
     queries = [o for o in ops if o not in updates]
     out = []
     for t in range(trials):
@@ -175,12 +242,17 @@ def make_trials(ops, values_kind, trials, max_range=None):
         lo, hi = (-10**12, 10**12) if big else (-rng.randint(0, 6), rng.randint(4, 16))
         if long_trial:
             lo, hi = (-10**12, 10**12) if big else (-50, 5000)
+        bits = None
+        if values_kind == "online-bits":  # the trie: values in [0, 2^bits)
+            bits = 30 if big else 13 if long_trial else rng.randint(2, 5)
+            lo, hi = 0, (1 << bits) - 1
         pool = [rng.randint(lo, hi) for _ in range(4)] if big else []
         pool += [rng.randint(0, 6) for _ in range(6)] + [rng.randint(lo, hi) for _ in range(3)]
         if long_trial:
             pool += list(range(0, 1500)) + [rng.randint(lo, hi) for _ in range(1500)]
         pool = [v for v in pool if lo <= v <= hi]
         seq, added = [], set()
+        drift = 0  # how far shiftAll has moved the values: value arguments follow it
         for _ in range(4000 if long_trial else OPS_PER_TRIAL):
             op = rng.choice(updates) if updates and rng.random() < (0.75 if long_trial else 0.55) else rng.choice(queries)
             if op == "clear" and rng.random() > (0.02 if long_trial else 0.15):  # rare, so the set grows between clears
@@ -191,12 +263,14 @@ def make_trials(ops, values_kind, trials, max_range=None):
                 op = "add"  # grow past the block size
             kind = ARG_KINDS[op]
             x = rng.choice(pool) if rng.random() < 0.8 else rng.randint(lo - 3, hi + 3)
+            if drift and rng.random() < 0.8:
+                x += drift
             if kind == "x":
                 if op in ("add",):
-                    x = rng.choice(pool)
+                    x = rng.choice(pool) + drift
                 args = [x]
             elif kind == "xc":
-                args = [rng.choice(pool) if op == "addCount" else x, rng.randint(-1, 3)]
+                args = [rng.choice(pool) + drift if op == "addCount" else x, rng.randint(-1, 3)]
             elif kind == "k":
                 args = [rng.randint(-1, 3000 if long_trial else 12)]
             elif kind == "ij":
@@ -204,8 +278,20 @@ def make_trials(ops, values_kind, trials, max_range=None):
                 args = sorted((rng.randint(-1, top), rng.randint(-1, top)))
                 if rng.random() < 0.2:
                     args = args[::-1]
+            elif kind in ("xv", "y"):
+                args = [rng.choice(pool) if rng.random() < 0.5 else rng.randint(0, hi)]
+            elif kind in ("xk", "xm"):
+                args = [rng.randint(0, hi), rng.choice(pool) + rng.randint(-1, 1) if rng.random() < 0.7 else rng.randint(lo - 3, hi + 3)]
+            elif kind == "xi":
+                args = [rng.randint(0, hi), rng.randint(-1, 3000 if long_trial else 12)]
+            elif kind == "xlohi":
+                b = sorted((rng.choice(pool) + rng.randint(-1, 1), rng.randint(lo - 3, hi + 3)))
+                args = [rng.randint(0, hi)] + (b[::-1] if rng.random() < 0.15 else b)
+            elif kind == "d":
+                args = [rng.randint(-3, 3) if rng.random() < 0.9 else rng.randint(lo - hi, hi - lo)]
+                drift += args[0]
             elif kind == "lohi":
-                args = sorted((rng.choice(pool), rng.choice(pool)))
+                args = sorted((rng.choice(pool) + drift, rng.choice(pool) + drift))
                 if rng.random() < 0.2:
                     args = args[::-1]
             else:
@@ -214,7 +300,7 @@ def make_trials(ops, values_kind, trials, max_range=None):
                 added.add(args[0])
             seq.append((op, args))
         ctor = {"offline": (sorted(added | set(rng.sample(pool, min(3, len(pool))))),),
-                "online-range": (lo, hi), "online": ()}[values_kind]
+                "online-range": (lo, hi), "online": (), "online-bits": (bits,)}[values_kind]
         out.append((ctor, seq))
     return out
 
@@ -301,6 +387,8 @@ def run_cpp(path, ops, values_kind, trials, cxx, keyed=False):
                   f"    {name}<{K}> s(vals);"]
     elif values_kind == "online-range":
         lines += ["    long long lo, hi; cin >> lo >> hi;", f"    {name}<{K}> s(lo, hi);"]
+    elif values_kind == "online-bits":
+        lines += ["    int bits; cin >> bits;", f"    {name}<{K}> s(bits);"]
     else:
         lines += [f"    {name}<{K}> s;"]
     if "resetPool" in text:
@@ -308,7 +396,8 @@ def run_cpp(path, ops, values_kind, trials, cxx, keyed=False):
     lines += ["    int q; cin >> q;", "    while (q--) {", "      string op; cin >> op;", "      if (false) {}"]
     for op in ops:
         kind = ARG_KINDS[op]
-        names_ = {"x": ["x"], "xc": ["x", "c"], "k": ["k"], "ij": ["i", "j"], "lohi": ["lo", "hi"], "": []}[kind]
+        names_ = {"d": ["d"], "x": ["x"], "xc": ["x", "c"], "k": ["k"], "ij": ["i", "j"], "lohi": ["lo", "hi"], "": [], "xv": ["x"], "y": ["y"],
+                  "xi": ["x", "i"], "xk": ["x", "k"], "xm": ["x", "m"], "xlohi": ["x", "lo", "hi"]}[kind]
         decl = f"long long {', '.join(names_)}; cin >> {' >> '.join(names_)}; " if names_ else ""
         call = f"s.{op}({', '.join(f'key({a})' if keyed and k in VALUE_ARGS.get(kind, ()) else a for k, a in enumerate(names_))})"
         printer = "outMode" if op == "mode" and not keyed else "out"
@@ -328,6 +417,8 @@ def run_cpp(path, ops, values_kind, trials, cxx, keyed=False):
             inp.append(f"{len(ctor[0])} " + " ".join(map(str, ctor[0])))
         elif values_kind == "online-range":
             inp.append(f"{ctor[0]} {ctor[1]}")
+        elif values_kind == "online-bits":
+            inp.append(str(ctor[0]))
         inp.append(str(len(seq)))
         inp += [f"{op} {' '.join(map(str, args))}" for op, args in seq]
     run = subprocess.run([exe], input="\n".join(inp) + "\n", capture_output=True, text=True, timeout=300)
@@ -362,7 +453,11 @@ def main():
     trials_n = 150
     if "--trials" in args:
         trials_n = int(args[args.index("--trials") + 1])
-    filters = [a for a in args if not a.startswith("--") and not a.isdigit()]
+    shard = None
+    if "--shard" in args:
+        i, n = map(int, args[args.index("--shard") + 1].split("/"))
+        shard = (i, n)
+    filters = [a for k, a in enumerate(args) if not a.startswith("--") and not a.isdigit() and (k == 0 or args[k - 1] != "--shard")]
     cxx = find_cxx() if want_cpp else None
     if want_cpp and not cxx:
         print("no GCC with bits/stdc++.h found (set CXX); running Python only\n")
@@ -370,6 +465,8 @@ def main():
     folders = sorted(f for f in os.listdir(DIR) if os.path.isdir(os.path.join(DIR, f)))
     if filters:
         folders = [f for f in folders if any(x in f for x in filters)]
+    if shard:
+        folders = folders[shard[0]::shard[1]]
     failed, total = [], 0
     for folder in folders:
         results = []

@@ -35,7 +35,8 @@ export interface PickerTemplate {
   complexities: Partial<Record<string, string>>;
   build: string;
   memory: MemoryBreakdown;
-  usage: Partial<Record<TemplateLang, Usage>>;
+  // inline, or (sets) left out and fetched from <publicBase>/<folder>/<file>.usage.json when the drawer opens
+  usage?: Partial<Record<TemplateLang, Usage>>;
 }
 
 export type TemplateLang = "py" | "cpp";

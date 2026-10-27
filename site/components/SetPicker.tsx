@@ -9,19 +9,32 @@ import {
   SET_OP_GROUPS,
   SET_TYPES,
   SET_TYPE_LABELS,
+  decodeSetTemplates,
   type SetTemplate,
 } from "@/lib/set-picker";
-import { SET_TEMPLATES } from "@/lib/generated/set-templates";
+import {
+  SET_COSTS,
+  SET_MEMORIES,
+  SET_OP_LISTS,
+  SET_OP_NAMES,
+  SET_TEMPLATE_ROWS,
+} from "@/lib/generated/set-templates";
 
 type SetView = SetTemplate & { file: "template" | "distinct" };
 
-const VIEWS: SetView[] = SET_TEMPLATES.map((t) => ({ ...t, file: "template" }));
+const VIEWS: SetView[] = decodeSetTemplates({
+  opNames: SET_OP_NAMES,
+  costs: SET_COSTS,
+  opLists: SET_OP_LISTS,
+  memories: SET_MEMORIES,
+  rows: SET_TEMPLATE_ROWS,
+}).map((t) => ({ ...t, file: "template" }));
 
 // Knowing every value ahead (offline) allows everything, including the Fenwick tree on compressed values. Online
 // allows the comparison-based structures plus the value seg tree, which only needs a [lo, hi] all values lie in.
 const USABLE: Record<string, SetTemplate["values"][]> = {
-  known: ["offline", "online-range", "online"],
-  unknown: ["online-range", "online"],
+  known: ["offline", "online-range", "online-bits", "online"],
+  unknown: ["online-range", "online-bits", "online"],
 };
 
 // These structures come with and without mex (it costs them one more field per node / array); the sorted lists find
@@ -32,6 +45,7 @@ const OPTIONAL_MEX = new Set([
   "avl",
   "treap",
   "splay",
+  "trie",
 ]);
 
 const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
@@ -55,7 +69,10 @@ const SET_CATALOG: PickerCatalog<SetView> = {
   publicBase: "/set-templates",
   githubBase:
     "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/",
+  remoteBase:
+    "https://raw.githubusercontent.com/ishaanbuildsthings/leetcode/main/templates/sets",
   typeOrder: SET_TYPES,
+  onePerType: true,
   modes: {
     ariaLabel: "What you know about the values ahead of time",
     storageKey: "setPicker.values",
@@ -89,17 +106,27 @@ const SET_CATALOG: PickerCatalog<SetView> = {
   flag: {
     label: "Values are tuples",
     title:
-      "Values are tuples / pairs (anything that compares), not numbers: only templates that just compare values are offered, and ops that need numbers (sums, mex) are greyed out",
+      "Values are tuples / pairs (anything that compares), not numbers: only templates that just compare values are offered, and ops that need numbers (sums, mex, bitwise, shifts) are greyed out",
     storageKey: "setPicker.tuples",
     keep: (t) => t.keys === "any",
     disabledOps: NUMERIC_SET_OPS,
     disabledTitle: "Needs number values: not available with tuples",
   },
-  // "AVL tree — counts + sums, mex": what it keeps (counts only, or counts and sums), mex where it's optional, and
-  // what it needs to know up front
+  // "AVL tree — counts + sums + xor, mex": what it keeps (counts, and sums / xor / OR / AND), mex where it's optional,
+  // and what it needs to know up front
   kindLabel: (t) => {
+    const kept = (
+      [
+        ["sumAll", "sums"],
+        ["xorOfAll", "xor"],
+        ["orOfAll", "OR"],
+        ["andOfAll", "AND"],
+      ] as const
+    )
+      .filter(([op]) => t.operations.includes(op))
+      .map(([, word]) => word);
     const parts = [
-      t.operations.includes("sumAll") ? "counts + sums" : "counts only",
+      kept.length ? `counts + ${kept.join(" + ")}` : "counts only",
     ];
     // what it caches (kept current on every update); "mex" alone = computed per query
     if (t.tracks.includes("mex")) parts.push("mex cached");
@@ -112,6 +139,10 @@ const SET_CATALOG: PickerCatalog<SetView> = {
     if (t.tracks.includes("medians")) parts.push("medians cached");
     if (t.tracks.includes("mode")) parts.push("mode");
     if (t.tracks.includes("gaps")) parts.push("gaps");
+    if (t.tracks.includes("vbound")) parts.push("value bounds per node");
+    if (t.tracks.includes("sumxor")) parts.push("bit counts");
+    if (t.tracks.includes("mask")) parts.push("xorAll");
+    if (t.tracks.includes("shift")) parts.push("shiftAll");
     if (t.values === "offline") parts.push("offline");
     if (t.file === "distinct") parts.push("no duplicates");
     return `${SET_TYPE_LABELS[t.dataStructureType]} — ${parts.join(", ")}`;
@@ -132,7 +163,7 @@ const SET_CATALOG: PickerCatalog<SetView> = {
     return groups;
   },
   layoutLabel: () => null,
-  updateOps: new Set(["add", "addCount", "clear"]),
+  updateOps: new Set(["add", "addCount", "clear", "xorAll", "shiftAll"]),
   varName: "ms",
   pairResults: { mode: ["value", "freq"] },
   ctorNotes: CTOR_ARG_NOTES,
@@ -145,7 +176,11 @@ const SET_CATALOG: PickerCatalog<SetView> = {
         ? [
             "Every value added must lie in [lo, hi]; query arguments can be anything.",
           ]
-        : [],
+        : t.values === "online-bits"
+          ? [
+              "Every value added must lie in [0, 2^bits) (bits = 30 covers 10^9); so must x in the XOR queries. Other query arguments can be anything.",
+            ]
+          : [],
 };
 
 export function SetPicker() {

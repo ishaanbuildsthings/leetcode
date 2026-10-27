@@ -310,8 +310,12 @@ class AVLMultiset:
         if k:
             gc[g] = k
             if k == 1 and c > 0:  # (a size already present has an entry in both heaps)
-                heappush(self.gmin, g)
-                heappush(self.gmax, -g)
+                if len(self.gmin) > 2 * len(gc) + 8:  # mostly sizes no longer present: rebuild from the live ones
+                    self.gmin = sorted(gc)
+                    self.gmax = [-v for v in reversed(self.gmin)]
+                else:
+                    heappush(self.gmin, g)
+                    heappush(self.gmax, -g)
         else:
             del gc[g]
 

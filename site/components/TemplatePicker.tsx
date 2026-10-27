@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,7 +15,9 @@ import {
   type PickerTemplate,
   type TemplateLang,
   type TierKind,
+  type Usage,
 } from "@/lib/template-picker";
+import { readUsage } from "@/lib/template-usage";
 
 // The picker pages, shown as tabs above each one.
 const PICKER_PAGES = [
@@ -59,6 +61,9 @@ export interface PickerCatalog<V extends PickerTemplate> {
   // where the static copies live (fetched on click) and where the files are on GitHub
   publicBase: string;
   githubBase: string;
+  // in production, fetch the code from here instead of publicBase (sets: raw GitHub, so the CDN doesn't carry thousands
+  // of files); `next dev` always uses publicBase, the copies on disk, so it works offline
+  remoteBase?: string;
   // data structure types, lightest constant factor first (a ranking tie-breaker)
   typeOrder: readonly string[];
   // a switch above the grid choosing which templates compete (range queries: sparse versions; sets: what you know)
@@ -90,6 +95,8 @@ export interface PickerCatalog<V extends PickerTemplate> {
   };
   // a template may need a selected op before it is offered (range queries: mod-p templates)
   allowed?: (t: V, picked: string[]) => boolean;
+  // show only each data structure type's best match (sets: thousands of variants would bury the other structures)
+  onePerType?: boolean;
   kindLabel: (t: V) => string;
   memoryGroups: (t: V) => { id: "node" | "tags" | "other"; label: string }[];
   layoutLabel: (m: MemoryBreakdown) => string | null;
@@ -105,6 +112,32 @@ export interface PickerCatalog<V extends PickerTemplate> {
 }
 
 const opCost = (t: PickerTemplate, op: string) => t.complexities[op] ?? "?";
+
+// A template file's URL, and its text fetched once per page: hovering a card starts the fetch, so the drawer usually
+// opens on code that's already here. A failed fetch is forgotten, so the next open tries again.
+function codeUrl(
+  catalog: { publicBase: string; remoteBase?: string },
+  folder: string,
+  fileName: string,
+) {
+  const base =
+    process.env.NODE_ENV !== "development" && catalog.remoteBase
+      ? catalog.remoteBase
+      : catalog.publicBase;
+  return `${base}/${encodeURIComponent(folder)}/${fileName}`;
+}
+const texts = new Map<string, Promise<string>>();
+function loadText(url: string): Promise<string> {
+  let p = texts.get(url);
+  if (!p) {
+    p = fetch(url).then((res) =>
+      res.ok ? res.text() : Promise.reject(res.status),
+    );
+    p.catch(() => texts.delete(url));
+    texts.set(url, p);
+  }
+  return p;
+}
 // a cost without its amortized / expected / ? qualifiers: what a complexity cap compares
 const baseCost = (cost: string) =>
   cost.replace(/ \?$/, "").replace(/ (amortized|expected)$/, "");
@@ -303,13 +336,20 @@ function CodeDrawer<V extends PickerTemplate>({
   const code = loaded?.key === path ? loaded.code : null;
   const failed = loaded?.key === path && loaded.failed;
   const copied = copiedKey === path;
+  // (sets) no usage in the catalog: read it from the code, like the build script does
+  const usage = useMemo(
+    () =>
+      template.usage?.[lang] ??
+      (code === null
+        ? undefined
+        : (readUsage(code, lang, template.operations) ?? undefined)),
+    [template.usage, template.operations, code, lang],
+  );
+  const url = codeUrl(catalog, template.folder, fileName);
 
   useEffect(() => {
     let cancelled = false;
-    fetch(
-      `${catalog.publicBase}/${encodeURIComponent(template.folder)}/${fileName}`,
-    )
-      .then((res) => (res.ok ? res.text() : Promise.reject(res.status)))
+    loadText(url)
       .then(
         (text) =>
           !cancelled && setLoaded({ key: path, code: text, failed: false }),
@@ -320,7 +360,7 @@ function CodeDrawer<V extends PickerTemplate>({
     return () => {
       cancelled = true;
     };
-  }, [catalog.publicBase, template.folder, fileName, path]);
+  }, [url, path]);
 
   const chooseLang = (l: TemplateLang) => {
     setPreferred(l);
@@ -458,6 +498,7 @@ function CodeDrawer<V extends PickerTemplate>({
           <UsagePanel
             catalog={catalog}
             template={template}
+            usage={usage}
             selected={selected}
             lang={lang}
           />
@@ -475,15 +516,16 @@ function CodeDrawer<V extends PickerTemplate>({
 function UsagePanel<V extends PickerTemplate>({
   catalog,
   template,
+  usage,
   selected,
   lang,
 }: {
   catalog: PickerCatalog<V>;
   template: V;
+  usage: Usage | undefined;
   selected: Set<string>;
   lang: TemplateLang;
 }) {
-  const usage = template.usage[lang];
   if (!usage) return null;
   const ops = template.operations.filter((op) => selected.has(op));
   const shown = ops.length ? ops : template.operations;
@@ -671,7 +713,16 @@ export function TemplatePicker<V extends PickerTemplate>({
     Object.entries(caps).filter(([op]) => active.has(op)),
   );
   const uncapped = matchTemplates(catalog, active, mode, flagOn);
-  const matches = uncapped.filter((m) => withinCaps(m.template, activeCaps));
+  const capped = uncapped.filter((m) => withinCaps(m.template, activeCaps));
+  // matches come best first, so a type's first is its best; the rest of that type are only counted
+  const others = new Map<string, number>();
+  const matches = catalog.onePerType
+    ? capped.filter(({ template: { dataStructureType: type } }) => {
+        const seen = others.has(type);
+        others.set(type, (others.get(type) ?? -1) + 1);
+        return !seen;
+      })
+    : capped;
   // an op's choices come from the templates the other ops' caps allow, so every choice changes the result
   const choicesFor = (op: string) =>
     capChoices(
@@ -929,6 +980,8 @@ export function TemplatePicker<V extends PickerTemplate>({
                 {matches.length > 0 && (
                   <span className="ml-1.5 font-normal text-muted-foreground">
                     {matches.length}
+                    {capped.length > matches.length &&
+                      ` (best of ${capped.length} variants)`}
                   </span>
                 )}
               </h2>
@@ -949,6 +1002,20 @@ export function TemplatePicker<V extends PickerTemplate>({
                         <button
                           type="button"
                           onClick={() => setOpenTemplate(template)}
+                          // start fetching its code (in the language the drawer will show) before the click
+                          onMouseEnter={() => {
+                            const pref = readPreferredLang();
+                            const l = template.langs.includes(pref)
+                              ? pref
+                              : template.langs[0];
+                            loadText(
+                              codeUrl(
+                                catalog,
+                                template.folder,
+                                `${template.file}.${l}`,
+                              ),
+                            ).catch(() => {});
+                          }}
                           className="w-full rounded-lg border border-border bg-background p-2 text-left transition-colors hover:border-primary/50"
                         >
                           <span className="flex items-center justify-between gap-2">
@@ -1013,6 +1080,17 @@ export function TemplatePicker<V extends PickerTemplate>({
                           {extra.length > 0 && (
                             <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
                               Also supports: {extra.join(", ")}
+                            </span>
+                          )}
+                          {(others.get(template.dataStructureType) ?? 0) >
+                            0 && (
+                            <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
+                              {others.get(template.dataStructureType)} heavier{" "}
+                              {others.get(template.dataStructureType) === 1
+                                ? "variant"
+                                : "variants"}{" "}
+                              of this structure also match (they keep more
+                              current, or cost more)
                             </span>
                           )}
                         </button>

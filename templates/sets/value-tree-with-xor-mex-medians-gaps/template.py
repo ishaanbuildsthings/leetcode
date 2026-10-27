@@ -1,0 +1,516 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/value-tree-with-xor-mex-medians-gaps/template.py
+# @operations: add addCount clear count countDistinct countDistinctInValRange countGtX countGteX countInValRange countLtX countLteX firstIndex kth largestLtX largestLteX lastIndex max maxGap medianHigh medianLow mex min minAdjacentDiff pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX xorOfAll xorOfGtX xorOfGteX xorOfInValRange xorOfKthLargestRange xorOfKthSmallestRange xorOfLargestK xorOfLtX xorOfLteX xorOfSmallestK
+# @data-structure-type: value-tree
+# @values: online-range
+# @keys: numbers
+# @tracks: medians gaps
+# @complexities:
+#   add: log(U)
+#   addCount: log(U)
+#   clear: N*log(U)
+#   count: log(U)
+#   countDistinct: 1
+#   countDistinctInValRange: log(U)
+#   countGtX: log(U)
+#   countGteX: log(U)
+#   countInValRange: log(U)
+#   countLtX: log(U)
+#   countLteX: log(U)
+#   firstIndex: log(U)
+#   kth: log(U)
+#   largestLtX: log(U)
+#   largestLteX: log(U)
+#   lastIndex: log(U)
+#   max: log(U)
+#   maxGap: 1 amortized
+#   medianHigh: 1
+#   medianLow: 1
+#   mex: log(U)
+#   min: log(U)
+#   minAdjacentDiff: 1 amortized
+#   pop: log(U)
+#   popMax: log(U)
+#   popMin: log(U)
+#   remove: log(U)
+#   removeAll: log(U)
+#   removeCount: log(U)
+#   removeInValRange: log(U) amortized
+#   size: 1
+#   smallestGtX: log(U)
+#   smallestGteX: log(U)
+#   xorOfAll: 1
+#   xorOfGtX: log(U)
+#   xorOfGteX: log(U)
+#   xorOfInValRange: log(U)
+#   xorOfKthLargestRange: log(U)
+#   xorOfKthSmallestRange: log(U)
+#   xorOfLargestK: log(U)
+#   xorOfLtX: log(U)
+#   xorOfLteX: log(U)
+#   xorOfSmallestK: log(U)
+#   build: 1
+# @memory:
+#   layout: sparse
+#   node: c[1*log(U)] p[1*log(U)] x[1*log(U)]
+#   tags: none
+#   other: children[2*log(U)]
+#   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index
+from heapq import heappop, heappush
+
+# Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
+# each node keeping how many copies, their xor and how many distinct values (for mex) are below it. Sparse: dicts keyed by heap
+# index over a power-of-two cover of [lo, hi]; a missing key is an empty block. k-th / sums of the k smallest descend
+# by counts; mex descends to the first value >= 0 whose block isn't full.
+
+
+class ValueTreeMultiset:
+    __slots__ = ("lo", "hi", "cap", "c", "x", "p", "n", "lowV", "lowB", "lowC", "highV", "highB", "highC", "gc", "gmin", "gmax", "dups", "xtotal", "d")
+
+    # O(1) -- an empty multiset for values in [lo, hi] (any integers, negative is fine)
+    def __init__(self, lo, hi):
+        self.lo, self.hi = lo, hi
+        self.cap = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of value v is cap + (v - lo)
+        self.c = {}  # node -> copies below it
+        self.p = {}  # node -> distinct values below it
+        self.x = {}  # node -> xor of the values below it with an odd count
+        self.xtotal = 0  # xor of all values (copies count)
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
+        self.n = self.d = 0
+
+    def _insert(self, x, c):
+        cc = self.c
+        pp = self.p
+        xx = self.x
+        i = self.cap + x - self.lo
+        old = cc.get(i, 0)
+        pres = (old + c > 0) - (old > 0)
+        self.d += pres
+        while i:
+            cc[i] = cc.get(i, 0) + c
+            if c & 1:  # x's parity flips
+                xx[i] = xx.get(i, 0) ^ x
+            if pres:
+                pp[i] = pp.get(i, 0) + pres
+            i >>= 1
+        return old + c  # (x's new count)
+
+    def _prefix(self, f, x):  # f's total over the values < x
+        if x <= self.lo:
+            return 0
+        if x > self.hi:
+            return f.get(1, 0)
+        i = self.cap + x - self.lo
+        res = 0
+        while i > 1:
+            if i & 1:
+                res += f.get(i - 1, 0)
+            i >>= 1
+        return res
+
+    def _lt(self, x):
+        return self._prefix(self.c, x)
+
+    def _le(self, x):
+        return self._prefix(self.c, x + 1)
+
+    def _countOf(self, x):  # the leaf of x
+        return self.c.get(self.cap + x - self.lo, 0) if self.lo <= x <= self.hi else 0
+
+    def _kth(self, k):
+        c, i, size = self.c, 1, self.cap
+        while i < size:
+            i <<= 1
+            cl = c.get(i, 0)
+            if k > cl:
+                k -= cl
+                i += 1
+        return i - size + self.lo
+
+    def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies)
+        c, i, size, before = self.c, 1, self.cap, 0
+        while i < size:
+            i <<= 1
+            cl = c.get(i, 0)
+            if before + cl < k:
+                before += cl
+                i += 1
+        return i - size + self.lo, before, c[i]
+
+    # smallest non-negative integer not in the set (hi + 1 if all of [0, hi] are present)
+    def _findMex(self):
+        if self.lo > 0:
+            return 0
+        p, size = self.p, self.cap
+
+        def full(i):  # every value below node i is present
+            return p.get(i, 0) == size >> (i.bit_length() - 1)
+
+        i = size - self.lo  # the leaf of value 0
+        while True:
+            while i > 1 and not i & 1:  # climb while i is a left child: its parent starts at the same value
+                i >>= 1
+            if not full(i):  # the first missing value is inside i: descend, preferring the left child
+                while i < size:
+                    i <<= 1
+                    if full(i):
+                        i += 1
+                return min(i - size + self.lo, self.hi + 1)
+            i += 1
+            if not i & (i - 1):  # walked off the right edge
+                return self.hi + 1
+
+    def _add(self, x, c):  # c copies of x (c < 0 removes); keeps both medians current
+        self.n += c
+        if c & 1:  # an odd number of copies flips x in or out of the xor of everything
+            self.xtotal ^= x
+        f = self._insert(x, c)  # x's new count
+        g = f - c  # x's old count
+        if (g >= 2) != (f >= 2):  # values with 2+ copies (then the smallest difference is 0)
+            self.dups += 1 if f >= 2 else -1
+        if not g or not f:  # x appeared or disappeared: the gap between its neighbours splits or comes back
+            p, q = self.largestLtX(x), self.smallestGtX(x)
+            if f:
+                if p is not None and q is not None:
+                    self._gap(q - p, -1)
+                if p is not None:
+                    self._gap(x - p, 1)
+                if q is not None:
+                    self._gap(q - x, 1)
+            else:
+                if p is not None:
+                    self._gap(x - p, -1)
+                if q is not None:
+                    self._gap(q - x, -1)
+                if p is not None and q is not None:
+                    self._gap(q - p, 1)
+        n = self.n
+        if c > 0:
+            if n == c:  # the set was empty
+                self.lowV = self.highV = x
+                self.lowB = self.highB = 0
+                self.lowC = self.highC = c
+                return
+        else:
+            if not n:
+                return
+        # each median is a tracked rank: shift its (value, copies before, copies), and search again only
+        # when the rank leaves the tracked value
+        if x < self.lowV:
+            self.lowB += c
+        elif x == self.lowV:
+            self.lowC += c
+        r = (n + 1) >> 1
+        if not self.lowB < r <= self.lowB + self.lowC:
+            self.lowV, self.lowB, self.lowC = self._kthInfo(r)
+        if x < self.highV:
+            self.highB += c
+        elif x == self.highV:
+            self.highC += c
+        r = (n >> 1) + 1
+        if not self.highB < r <= self.highB + self.highC:
+            self.highV, self.highB, self.highC = self._kthInfo(r)
+
+    def _gap(self, g, c):  # one more (c = 1) / fewer (c = -1) gap of size g
+        gc = self.gc
+        k = gc.get(g, 0) + c
+        if k:
+            gc[g] = k
+            if k == 1 and c > 0:  # (a size already present has an entry in both heaps)
+                if len(self.gmin) > 2 * len(gc) + 8:  # mostly sizes no longer present: rebuild from the live ones
+                    self.gmin = sorted(gc)
+                    self.gmax = [-v for v in reversed(self.gmin)]
+                else:
+                    heappush(self.gmin, g)
+                    heappush(self.gmax, -g)
+        else:
+            del gc[g]
+
+    def _minGap(self):  # heap tops of sizes no longer present are dropped as they surface
+        h, gc = self.gmin, self.gc
+        while h[0] not in gc:
+            heappop(h)
+        return h[0]
+
+    def _maxGap(self):
+        h, gc = self.gmax, self.gc
+        while -h[0] not in gc:
+            heappop(h)
+        return -h[0]
+
+    def _resetCached(self):  # nothing counted: as newly built
+        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
+        self.n = self.d = 0
+        self.xtotal = 0
+
+    def _clearData(self):
+        self.c = {}
+        self.p = {}
+        self.x = {}
+
+    def _distinctLt(self, x):  # distinct values < x
+        return self._prefix(self.p, x)
+
+    def _xprefix(self, x):  # xor of the values < x (copies count)
+        if x <= self.lo:
+            return 0
+        if x > self.hi:
+            return self.xtotal
+        f = self.x
+        i = self.cap + x - self.lo
+        res = 0
+        while i > 1:
+            if i & 1:
+                res ^= f.get(i - 1, 0)
+            i >>= 1
+        return res
+
+    def _xlt(self, x):
+        return self._xprefix(x)
+
+    def _xle(self, x):
+        return self._xprefix(x + 1)
+
+    def _xorFirst(self, k):  # xor of the k smallest values (copies count)
+        if k <= 0:
+            return 0
+        c, f, i, size, res = self.c, self.x, 1, self.cap, 0
+        while i < size:
+            i <<= 1
+            cl = c.get(i, 0)
+            if k > cl:
+                k -= cl
+                res ^= f.get(i, 0)
+                i += 1
+        return res ^ (i - size + self.lo) if k & 1 else res  # k copies of the leaf's value left
+
+    # O(logU) -- add one copy of x
+    def add(self, x):
+        self._add(x, 1)
+
+    # O(logU) -- add cnt copies of val (nothing if cnt <= 0)
+    def addCount(self, val, cnt):
+        if cnt > 0:
+            self._add(val, cnt)
+
+    # O(N logU) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    def clear(self):
+        self._clearData()
+        self._resetCached()
+
+    # O(logU) -- how many copies of x
+    def count(self, x):
+        return self._countOf(x)
+
+    # O(1) -- how many distinct values
+    def countDistinct(self):
+        return self.d
+
+    # O(logU) -- how many distinct values v with lo <= v <= hi (0 if lo > hi)
+    def countDistinctInValRange(self, lo, hi):
+        if lo > hi:
+            return 0
+        return self._distinctLt(hi) - self._distinctLt(lo) + (1 if self._countOf(hi) else 0)
+
+    # O(logU) -- how many values > x
+    def countGtX(self, x):
+        return self.n - self._le(x)
+
+    # O(logU) -- how many values >= x
+    def countGteX(self, x):
+        return self.n - self._lt(x)
+
+    # O(logU) -- how many values v with lo <= v <= hi (0 if lo > hi)
+    def countInValRange(self, lo, hi):
+        return self._le(hi) - self._lt(lo) if lo <= hi else 0
+
+    # O(logU) -- how many values < x
+    def countLtX(self, x):
+        return self._lt(x)
+
+    # O(logU) -- how many values <= x
+    def countLteX(self, x):
+        return self._le(x)
+
+    # O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    def firstIndex(self, x):
+        return self._lt(x) if self._countOf(x) else -1
+
+    # O(logU) -- the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size
+    def kth(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"kth: needs 0 <= i < size, got i = {i}, size = {self.n}")
+        return self._kth(i + 1)
+
+    # O(logU) -- largest value < x; None if there is none
+    def largestLtX(self, x):
+        c = self._lt(x)
+        return self._kth(c) if c else None
+
+    # O(logU) -- largest value <= x; None if there is none
+    def largestLteX(self, x):
+        c = self._le(x)
+        return self._kth(c) if c else None
+
+    # O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    def lastIndex(self, x):
+        return self._le(x) - 1 if self._countOf(x) else -1
+
+    # O(logU) -- largest value; None if empty
+    def max(self):
+        return self._kth(self.n) if self.n else None
+
+    # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct values
+    def maxGap(self):
+        return self._maxGap() if self.d >= 2 else None
+
+    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    def medianHigh(self):
+        return self.highV if self.n else None
+
+    # O(1) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    def medianLow(self):
+        return self.lowV if self.n else None
+
+    # O(logU) -- smallest non-negative integer not in the set
+    def mex(self):
+        return self._findMex()
+
+    # O(logU) -- smallest value; None if empty
+    def min(self):
+        return self._kth(1) if self.n else None
+
+    # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer than 2 values
+    def minAdjacentDiff(self):
+        if self.n < 2:
+            return None
+        return 0 if self.dups else self._minGap()
+
+    # O(logU) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size
+    def pop(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")
+        v = self._kth(i + 1)
+        self._add(v, -1)
+        return v
+
+    # O(logU) -- remove and return the largest value; None if empty
+    def popMax(self):
+        if not self.n:
+            return None
+        v = self._kth(self.n)
+        self._add(v, -1)
+        return v
+
+    # O(logU) -- remove and return the smallest value; None if empty
+    def popMin(self):
+        if not self.n:
+            return None
+        v = self._kth(1)
+        self._add(v, -1)
+        return v
+
+    # O(logU) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    def remove(self, x):
+        if not self.count(x):
+            return 0
+        self._add(x, -1)
+        return 1
+
+    # O(logU) -- remove every copy of val; returns how many were removed
+    def removeAll(self, val):
+        k = self.count(val)
+        if k:
+            self._add(val, -k)
+        return k
+
+    # O(logU) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    def removeCount(self, val, cnt):
+        k = min(cnt, self.count(val))
+        if k <= 0:
+            return 0
+        self._add(val, -k)
+        return k
+
+    # O(logU amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    def removeInValRange(self, lo, hi):
+        if lo > hi:
+            return 0
+        removed = 0
+        while self.n:  # the smallest value >= lo, while it is <= hi: drop all its copies
+            c = self._lt(lo)
+            if c == self.n:
+                break
+            v = self._kth(c + 1)
+            if v > hi:
+                break
+            k = self._countOf(v)
+            self._add(v, -k)
+            removed += k
+        return removed
+
+    # O(1) -- how many values (copies count)
+    def size(self):
+        return self.n
+
+    # O(1) -- same as size()
+    def __len__(self):
+        return self.n
+
+    # O(logU) -- smallest value > x; None if there is none
+    def smallestGtX(self, x):
+        c = self._le(x)
+        return self._kth(c + 1) if c < self.n else None
+
+    # O(logU) -- smallest value >= x; None if there is none
+    def smallestGteX(self, x):
+        c = self._lt(x)
+        return self._kth(c + 1) if c < self.n else None
+
+    # O(1) -- xor of all values (copies count: a value with an even count cancels out); 0 if empty
+    def xorOfAll(self):
+        return self.xtotal
+
+    # O(logU) -- xor of the values > x (copies count)
+    def xorOfGtX(self, x):
+        return self.xtotal ^ self._xle(x)
+
+    # O(logU) -- xor of the values >= x (copies count)
+    def xorOfGteX(self, x):
+        return self.xtotal ^ self._xlt(x)
+
+    # O(logU) -- xor of the values v with lo <= v <= hi (copies count; 0 if lo > hi)
+    def xorOfInValRange(self, lo, hi):
+        return self._xle(hi) ^ self._xlt(lo) if lo <= hi else 0
+
+    # O(logU) -- xor of the kFrom-th..kTo-th largest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    def xorOfKthLargestRange(self, kFrom, kTo):
+        if not 1 <= kFrom <= kTo <= self.n:
+            raise IndexError(f"xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+        return self._xorFirst(self.n - kFrom + 1) ^ self._xorFirst(self.n - kTo)
+
+    # O(logU) -- xor of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    def xorOfKthSmallestRange(self, kFrom, kTo):
+        if not 1 <= kFrom <= kTo <= self.n:
+            raise IndexError(f"xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
+        return self._xorFirst(kTo) ^ self._xorFirst(kFrom - 1)
+
+    # O(logU) -- xor of the k largest values (copies count); raises IndexError unless 0 <= k <= size
+    def xorOfLargestK(self, k):
+        if not 0 <= k <= self.n:
+            raise IndexError(f"xorOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
+        return self.xtotal ^ self._xorFirst(self.n - k)
+
+    # O(logU) -- xor of the values < x (copies count)
+    def xorOfLtX(self, x):
+        return self._xlt(x)
+
+    # O(logU) -- xor of the values <= x (copies count)
+    def xorOfLteX(self, x):
+        return self._xle(x)
+
+    # O(logU) -- xor of the k smallest values (copies count); raises IndexError unless 0 <= k <= size
+    def xorOfSmallestK(self, k):
+        if not 0 <= k <= self.n:
+            raise IndexError(f"xorOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
+        return self._xorFirst(k)
