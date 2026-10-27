@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/trie-with-sums-xor-and-medians-sumxor/template.py
-# @operations: add addCount andOfAll andOfGtX andOfGteX andOfInValRange andOfKthLargestRange andOfKthSmallestRange andOfLargestK andOfLtX andOfLteX andOfSmallestK clear count countDistinct countGtX countGteX countInValRange countLtX countLteX countXorGtK countXorGteK countXorLtK countXorLteK firstIndex kth kthXor largestLtX largestLteX largestXorLtK largestXorLteK lastIndex max maxXor maxXorWithVGtM maxXorWithVGteM maxXorWithVInValRange maxXorWithVLtM maxXorWithVLteM medianHigh medianLow min minXor minXorWithVGtM minXorWithVGteM minXorWithVInValRange minXorWithVLtM minXorWithVLteM pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX smallestXorGtK smallestXorGteK sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK sumXor xorOfAll xorOfGtX xorOfGteX xorOfInValRange xorOfKthLargestRange xorOfKthSmallestRange xorOfLargestK xorOfLtX xorOfLteX xorOfSmallestK
+# @operations: add addCount andOfAll andOfGtX andOfGteX andOfInValRange andOfKthLargestRange andOfKthSmallestRange andOfLargestK andOfLtX andOfLteX andOfSmallestK clear count countDistinct countGtX countGteX countInValRange countLtX countLteX countXorGtK countXorGteK countXorLtK countXorLteK firstIndex kth kthXor largestLtX largestLteX largestXorLtK largestXorLteK lastIndex max maxXorAgainstX maxXorWithVGtM maxXorWithVGteM maxXorWithVInValRange maxXorWithVLtM maxXorWithVLteM medianHigh medianLow min minXorAgainstX minXorWithVGtM minXorWithVGteM minXorWithVInValRange minXorWithVLtM minXorWithVLteM pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX smallestXorGtK smallestXorGteK sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK sumXor xorOfAll xorOfGtX xorOfGteX xorOfInValRange xorOfKthLargestRange xorOfKthSmallestRange xorOfLargestK xorOfLtX xorOfLteX xorOfSmallestK
 # @data-structure-type: trie
 # @values: online-bits
 # @keys: numbers
@@ -39,7 +39,7 @@
 #   largestXorLteK: log(U)
 #   lastIndex: log(U)
 #   max: log(U)
-#   maxXor: log(U)
+#   maxXorAgainstX: log(U)
 #   maxXorWithVGtM: log(U)*log(U)
 #   maxXorWithVGteM: log(U)*log(U)
 #   maxXorWithVInValRange: log(U)*log(U)
@@ -48,7 +48,7 @@
 #   medianHigh: 1
 #   medianLow: 1
 #   min: log(U)
-#   minXor: log(U)
+#   minXorAgainstX: log(U)
 #   minXorWithVGtM: log(U)*log(U)
 #   minXorWithVGteM: log(U)*log(U)
 #   minXorWithVInValRange: log(U)*log(U)
@@ -583,8 +583,8 @@ class TrieMultiset:
     def max(self):
         return self._kth(self.n) if self.n else None
 
-    # O(logU) -- largest v ^ x over the values v; None if empty (needs 0 <= x < 2^bits)
-    def maxXor(self, x):
+    # O(logU) -- largest v ^ x over the values v in the set; None if the set is empty (needs 0 <= x < 2^bits)
+    def maxXorAgainstX(self, x):
         if not self.n:
             return None
         return self._extreme(1, self.B - 1, x, True)
@@ -621,8 +621,8 @@ class TrieMultiset:
     def min(self):
         return self._kth(1) if self.n else None
 
-    # O(logU) -- smallest v ^ x over the values v; None if empty (needs 0 <= x < 2^bits)
-    def minXor(self, x):
+    # O(logU) -- smallest v ^ x over the values v in the set; None if the set is empty (needs 0 <= x < 2^bits)
+    def minXorAgainstX(self, x):
         if not self.n:
             return None
         return self._extreme(1, self.B - 1, x, False)

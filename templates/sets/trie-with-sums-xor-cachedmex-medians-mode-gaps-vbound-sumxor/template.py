@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/trie-with-sums-xor-cachedmex-medians-mode-gaps-vbound-sumxor/template.py
-# @operations: add addCount clear count countDistinct countDistinctInValRange countGtX countGteX countInValRange countLtX countLteX countXorGtK countXorGteK countXorLtK countXorLteK firstIndex kth kthXor largestLtX largestLteX largestXorLtK largestXorLteK lastIndex max maxGap maxXor maxXorWithVGtM maxXorWithVGteM maxXorWithVInValRange maxXorWithVLtM maxXorWithVLteM medianHigh medianLow mex mexXor min minAdjacentDiff minXor minXorWithVGtM minXorWithVGteM minXorWithVInValRange minXorWithVLtM minXorWithVLteM mode pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX smallestXorGtK smallestXorGteK sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK sumXor xorOfAll xorOfGtX xorOfGteX xorOfInValRange xorOfKthLargestRange xorOfKthSmallestRange xorOfLargestK xorOfLtX xorOfLteX xorOfSmallestK
+# @operations: add addCount clear count countDistinct countDistinctInValRange countGtX countGteX countInValRange countLtX countLteX countXorGtK countXorGteK countXorLtK countXorLteK firstIndex kth kthXor largestLtX largestLteX largestXorLtK largestXorLteK lastIndex max maxGap maxXorAgainstX maxXorWithVGtM maxXorWithVGteM maxXorWithVInValRange maxXorWithVLtM maxXorWithVLteM medianHigh medianLow mex mexXor min minAdjacentDiff minXorAgainstX minXorWithVGtM minXorWithVGteM minXorWithVInValRange minXorWithVLtM minXorWithVLteM mode pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX smallestXorGtK smallestXorGteK sumAbsDiffToMedian sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK sumXor xorOfAll xorOfGtX xorOfGteX xorOfInValRange xorOfKthLargestRange xorOfKthSmallestRange xorOfLargestK xorOfLtX xorOfLteX xorOfSmallestK
 # @data-structure-type: trie
 # @values: online-bits
 # @keys: numbers
@@ -31,7 +31,7 @@
 #   lastIndex: log(U)
 #   max: 1
 #   maxGap: 1 amortized
-#   maxXor: log(U)
+#   maxXorAgainstX: log(U)
 #   maxXorWithVGtM: log(U)
 #   maxXorWithVGteM: log(U)
 #   maxXorWithVInValRange: log(U)
@@ -43,7 +43,7 @@
 #   mexXor: log(U)
 #   min: 1
 #   minAdjacentDiff: 1 amortized
-#   minXor: log(U)
+#   minXorAgainstX: log(U)
 #   minXorWithVGtM: log(U)
 #   minXorWithVGteM: log(U)
 #   minXorWithVInValRange: log(U)
@@ -633,8 +633,8 @@ class TrieMultiset:
     def maxGap(self):
         return self._maxGap() if self.d >= 2 else None
 
-    # O(logU) -- largest v ^ x over the values v; None if empty (needs 0 <= x < 2^bits)
-    def maxXor(self, x):
+    # O(logU) -- largest v ^ x over the values v in the set; None if the set is empty (needs 0 <= x < 2^bits)
+    def maxXorAgainstX(self, x):
         if not self.n:
             return None
         return self._extreme(1, self.B - 1, x, True)
@@ -687,8 +687,8 @@ class TrieMultiset:
             return None
         return 0 if self.dups else self._minGap()
 
-    # O(logU) -- smallest v ^ x over the values v; None if empty (needs 0 <= x < 2^bits)
-    def minXor(self, x):
+    # O(logU) -- smallest v ^ x over the values v in the set; None if the set is empty (needs 0 <= x < 2^bits)
+    def minXorAgainstX(self, x):
         if not self.n:
             return None
         return self._extreme(1, self.B - 1, x, False)

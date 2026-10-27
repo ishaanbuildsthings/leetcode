@@ -72,7 +72,7 @@ const SET_CATALOG: PickerCatalog<SetView> = {
   remoteBase:
     "https://raw.githubusercontent.com/ishaanbuildsthings/leetcode/main/templates/sets",
   typeOrder: SET_TYPES,
-  onePerType: true,
+  perType: 3,
   modes: {
     ariaLabel: "What you know about the values ahead of time",
     storageKey: "setPicker.values",

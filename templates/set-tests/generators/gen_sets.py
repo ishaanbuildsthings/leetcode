@@ -52,8 +52,8 @@ OPS = {
     "countDistinct": ("", "int", "how many distinct values"),
     "minAdjacentDiff": ("", "opt", "smallest difference between two values in the set (0 if some value has 2+ copies); {none} if fewer than 2 values"),
     "maxGap": ("", "opt", "largest difference between two neighbouring distinct values; {none} if fewer than 2 distinct values"),
-    "maxXor": ("xv", "opt", "largest v ^ x over the values v; {none} if empty (needs 0 <= x < 2^bits)"),
-    "minXor": ("xv", "opt", "smallest v ^ x over the values v; {none} if empty (needs 0 <= x < 2^bits)"),
+    "maxXorAgainstX": ("xv", "opt", "largest v ^ x over the values v in the set; {none} if the set is empty (needs 0 <= x < 2^bits)"),
+    "minXorAgainstX": ("xv", "opt", "smallest v ^ x over the values v in the set; {none} if the set is empty (needs 0 <= x < 2^bits)"),
     "kthXor": ("xi", "int", "the i-th smallest v ^ x over the values v (0-indexed, copies count); {err} unless 0 <= i < size"),
     "countXorLtK": ("xk", "int", "how many values v have v ^ x < k"),
     "countXorLteK": ("xk", "int", "how many values v have v ^ x <= k"),
@@ -146,7 +146,7 @@ AGG_SUFFIXES = ["All", "LtX", "LteX", "GtX", "GteX", "InValRange", "SmallestK", 
 AGG_OPS = {kind: [kind + "Of" + suf for suf in AGG_SUFFIXES] for kind in ("xor", "or", "and")}
 TRIE_GROUP2 = ["maxXorWithVLtM", "maxXorWithVLteM", "maxXorWithVGtM", "maxXorWithVGteM", "minXorWithVLtM", "minXorWithVLteM",
                "minXorWithVGtM", "minXorWithVGteM", "maxXorWithVInValRange", "minXorWithVInValRange"]
-TRIE_OPS = {"maxXor", "minXor", "kthXor", "countXorLtK", "countXorLteK", "countXorGtK", "countXorGteK", "largestXorLtK",
+TRIE_OPS = {"maxXorAgainstX", "minXorAgainstX", "kthXor", "countXorLtK", "countXorLteK", "countXorGtK", "countXorGteK", "largestXorLtK",
             "largestXorLteK", "smallestXorGtK", "smallestXorGteK", "mexXor", "sumXor", "xorAll", *TRIE_GROUP2}
 ARGS = {"d": ["d"], "xv": ["x"], "xi": ["x", "i"], "xk": ["x", "k"], "xm": ["x", "m"], "xlohi": ["x", "lo", "hi"], "y": ["y"], "i": ["i"], "x": ["x"], "xc": ["x", "c"], "v": ["val"], "vc": ["val", "cnt"], "k": ["k"], "kk": ["kFrom", "kTo"], "lohi": ["lo", "hi"], "": []}
 
@@ -3840,8 +3840,8 @@ TRIE_CPP_BEST_COVER = '''
 '''
 
 TRIE_OPS_PY = {
-    "maxXor": "if not self.n:\n    return None\nreturn self._extreme(1, self.B - 1, @KX@, True)",
-    "minXor": "if not self.n:\n    return None\nreturn self._extreme(1, self.B - 1, @KX@, False)",
+    "maxXorAgainstX": "if not self.n:\n    return None\nreturn self._extreme(1, self.B - 1, @KX@, True)",
+    "minXorAgainstX": "if not self.n:\n    return None\nreturn self._extreme(1, self.B - 1, @KX@, False)",
     "kthXor": "if not 0 <= i < self.n:\n    raise IndexError(f\"kthXor: needs 0 <= i < size, got i = {i}, size = {self.n}\")\nreturn self._kthX(i + 1, @KX@)",
     "countXorLtK": "return self._cntLt(k, @KX@)",
     "countXorLteK": "return self._cntLt(k + 1, @KX@)",
@@ -3867,8 +3867,8 @@ TRIE_OPS_PY = {
 }
 
 TRIE_OPS_CPP = {
-    "maxXor": ("optional<T>", "if (!n) return nullopt;\nreturn T(extreme(1, B - 1, @KX@, true));"),
-    "minXor": ("optional<T>", "if (!n) return nullopt;\nreturn T(extreme(1, B - 1, @KX@, false));"),
+    "maxXorAgainstX": ("optional<T>", "if (!n) return nullopt;\nreturn T(extreme(1, B - 1, @KX@, true));"),
+    "minXorAgainstX": ("optional<T>", "if (!n) return nullopt;\nreturn T(extreme(1, B - 1, @KX@, false));"),
     "kthXor": ("T", "if (i < 0 || i >= n) throw out_of_range(\"kthXor: needs 0 <= i < size\");\nreturn T(kthX(i + 1, @KX@));"),
     "countXorLtK": ("long long", "return cntLt(k, @KX@);"),
     "countXorLteK": ("long long", "return cntLt(k + 1, @KX@);"),

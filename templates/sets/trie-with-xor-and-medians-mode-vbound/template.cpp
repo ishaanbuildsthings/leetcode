@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/trie-with-xor-and-medians-mode-vbound/template.cpp
-// @operations: add addCount andOfAll andOfGtX andOfGteX andOfInValRange andOfKthLargestRange andOfKthSmallestRange andOfLargestK andOfLtX andOfLteX andOfSmallestK clear count countDistinct countGtX countGteX countInValRange countLtX countLteX countXorGtK countXorGteK countXorLtK countXorLteK firstIndex kth kthXor largestLtX largestLteX largestXorLtK largestXorLteK lastIndex max maxXor maxXorWithVGtM maxXorWithVGteM maxXorWithVInValRange maxXorWithVLtM maxXorWithVLteM medianHigh medianLow min minXor minXorWithVGtM minXorWithVGteM minXorWithVInValRange minXorWithVLtM minXorWithVLteM mode pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX smallestXorGtK smallestXorGteK xorOfAll xorOfGtX xorOfGteX xorOfInValRange xorOfKthLargestRange xorOfKthSmallestRange xorOfLargestK xorOfLtX xorOfLteX xorOfSmallestK
+// @operations: add addCount andOfAll andOfGtX andOfGteX andOfInValRange andOfKthLargestRange andOfKthSmallestRange andOfLargestK andOfLtX andOfLteX andOfSmallestK clear count countDistinct countGtX countGteX countInValRange countLtX countLteX countXorGtK countXorGteK countXorLtK countXorLteK firstIndex kth kthXor largestLtX largestLteX largestXorLtK largestXorLteK lastIndex max maxXorAgainstX maxXorWithVGtM maxXorWithVGteM maxXorWithVInValRange maxXorWithVLtM maxXorWithVLteM medianHigh medianLow min minXorAgainstX minXorWithVGtM minXorWithVGteM minXorWithVInValRange minXorWithVLtM minXorWithVLteM mode pop popMax popMin remove removeAll removeCount removeInValRange size smallestGtX smallestGteX smallestXorGtK smallestXorGteK xorOfAll xorOfGtX xorOfGteX xorOfInValRange xorOfKthLargestRange xorOfKthSmallestRange xorOfLargestK xorOfLtX xorOfLteX xorOfSmallestK
 // @data-structure-type: trie
 // @values: online-bits
 // @keys: numbers
@@ -39,7 +39,7 @@
 //   largestXorLteK: log(U)
 //   lastIndex: log(U)
 //   max: 1
-//   maxXor: log(U)
+//   maxXorAgainstX: log(U)
 //   maxXorWithVGtM: log(U)
 //   maxXorWithVGteM: log(U)
 //   maxXorWithVInValRange: log(U)
@@ -48,7 +48,7 @@
 //   medianHigh: 1
 //   medianLow: 1
 //   min: 1
-//   minXor: log(U)
+//   minXorAgainstX: log(U)
 //   minXorWithVGtM: log(U)
 //   minXorWithVGteM: log(U)
 //   minXorWithVInValRange: log(U)
@@ -521,8 +521,8 @@ struct TrieMultiset {
         return T(mxv[1]);
     }
 
-    // O(logU) -- largest v ^ x over the values v; nullopt if empty (needs 0 <= x < 2^bits)
-    optional<T> maxXor(T x) {
+    // O(logU) -- largest v ^ x over the values v in the set; nullopt if the set is empty (needs 0 <= x < 2^bits)
+    optional<T> maxXorAgainstX(T x) {
         if (!n) return nullopt;
         return T(extreme(1, B - 1, (long long)x, true));
     }
@@ -570,8 +570,8 @@ struct TrieMultiset {
         return T(mnv[1]);
     }
 
-    // O(logU) -- smallest v ^ x over the values v; nullopt if empty (needs 0 <= x < 2^bits)
-    optional<T> minXor(T x) {
+    // O(logU) -- smallest v ^ x over the values v in the set; nullopt if the set is empty (needs 0 <= x < 2^bits)
+    optional<T> minXorAgainstX(T x) {
         if (!n) return nullopt;
         return T(extreme(1, B - 1, (long long)x, false));
     }

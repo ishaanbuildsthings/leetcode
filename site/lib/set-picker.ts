@@ -29,8 +29,8 @@ export type SetOpId =
   | "countDistinct"
   | "mode"
   | "minAdjacentDiff"
-  | "maxXor"
-  | "minXor"
+  | "maxXorAgainstX"
+  | "minXorAgainstX"
   | "kthXor"
   | "countXorLtK"
   | "countXorLteK"
@@ -615,14 +615,16 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
         kind: "topic",
         ops: [
           {
-            id: "maxXor",
-            signature: "maxXor(x)",
-            description: "Largest v ^ x over the values v",
+            id: "maxXorAgainstX",
+            signature: "maxXorAgainstX(x)",
+            description:
+              "Largest v ^ x over the values v (None / nullopt if the set is empty)",
           },
           {
-            id: "minXor",
-            signature: "minXor(x)",
-            description: "Smallest v ^ x over the values v",
+            id: "minXorAgainstX",
+            signature: "minXorAgainstX(x)",
+            description:
+              "Smallest v ^ x over the values v (None / nullopt if the set is empty)",
           },
           {
             id: "kthXor",
@@ -786,8 +788,8 @@ export const NUMERIC_SET_OPS: ReadonlySet<SetOpId> = new Set<SetOpId>([
   "mex",
   "minAdjacentDiff",
   "maxGap",
-  "maxXor",
-  "minXor",
+  "maxXorAgainstX",
+  "minXorAgainstX",
   "kthXor",
   "countXorLtK",
   "countXorLteK",

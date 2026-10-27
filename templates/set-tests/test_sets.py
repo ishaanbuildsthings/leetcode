@@ -36,7 +36,7 @@ OPS_PER_TRIAL = 80
 
 # op -> argument kind; results are printed for every op but add / addCount
 ARG_KINDS = {
-    "maxXor": "xv", "minXor": "xv", "kthXor": "xi", "countXorLtK": "xk", "countXorLteK": "xk", "countXorGtK": "xk",
+    "maxXorAgainstX": "xv", "minXorAgainstX": "xv", "kthXor": "xi", "countXorLtK": "xk", "countXorLteK": "xk", "countXorGtK": "xk",
     "countXorGteK": "xk", "largestXorLtK": "xk", "largestXorLteK": "xk", "smallestXorGtK": "xk", "smallestXorGteK": "xk",
     "mexXor": "xv", "sumXor": "xv", "maxXorWithVLtM": "xm", "maxXorWithVLteM": "xm", "maxXorWithVGtM": "xm",
     "maxXorWithVGteM": "xm", "minXorWithVLtM": "xm", "minXorWithVLteM": "xm", "minXorWithVGtM": "xm", "minXorWithVGteM": "xm",
@@ -93,8 +93,8 @@ def brute(a, op, args):
     if ARG_KINDS[op] in ("xv", "xi", "xk", "xm", "xlohi"):  # questions about v ^ x
         x = args[0]
         xs = sorted(v ^ x for v in a)
-        if op == "maxXor": return xs[-1] if xs else None
-        if op == "minXor": return xs[0] if xs else None
+        if op == "maxXorAgainstX": return xs[-1] if xs else None
+        if op == "minXorAgainstX": return xs[0] if xs else None
         if op == "kthXor": return xs[args[1]] if 0 <= args[1] < n else ERR
         if op == "mexXor":
             have, m = set(xs), 0

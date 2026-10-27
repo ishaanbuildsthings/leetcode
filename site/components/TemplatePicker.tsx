@@ -95,8 +95,10 @@ export interface PickerCatalog<V extends PickerTemplate> {
   };
   // a template may need a selected op before it is offered (range queries: mod-p templates)
   allowed?: (t: V, picked: string[]) => boolean;
-  // show only each data structure type's best match (sets: thousands of variants would bury the other structures)
-  onePerType?: boolean;
+  // per data structure type, show only variants that are a real trade-off, at most this many (sets: thousands of
+  // variants would bury the other structures): one is left out when a shown one of its type costs no more on every
+  // selected op and uses no more memory
+  perType?: number;
   kindLabel: (t: V) => string;
   memoryGroups: (t: V) => { id: "node" | "tags" | "other"; label: string }[];
   layoutLabel: (m: MemoryBreakdown) => string | null;
@@ -714,15 +716,31 @@ export function TemplatePicker<V extends PickerTemplate>({
   );
   const uncapped = matchTemplates(catalog, active, mode, flagOn);
   const capped = uncapped.filter((m) => withinCaps(m.template, activeCaps));
-  // matches come best first, so a type's first is its best; the rest of that type are only counted
-  const others = new Map<string, number>();
-  const matches = catalog.onePerType
-    ? capped.filter(({ template: { dataStructureType: type } }) => {
-        const seen = others.has(type);
-        others.set(type, (others.get(type) ?? -1) + 1);
-        return !seen;
+  // matches come best first; each type's left-out variants are counted on its first card: those a shown one beats,
+  // and real trade-offs past the per-type limit
+  const hidden = new Map<string, number>();
+  const overflow = new Map<string, number>();
+  const shownOf = new Map<string, typeof capped>();
+  const matches = catalog.perType
+    ? capped.filter((m) => {
+        const type = m.template.dataStructureType;
+        const shown = shownOf.get(type) ?? [];
+        const covered = shown.some(
+          (s) =>
+            s.costs.every((c, k) => c.value <= m.costs[k].value) &&
+            memoryValue(s.template.memory) <= memoryValue(m.template.memory),
+        );
+        if (covered || shown.length >= catalog.perType!) {
+          const into = covered ? hidden : overflow;
+          into.set(type, (into.get(type) ?? 0) + 1);
+          return false;
+        }
+        shownOf.set(type, [...shown, m]);
+        return true;
       })
     : capped;
+  const firstOfType = (t: V) =>
+    shownOf.get(t.dataStructureType)?.[0]?.template === t;
   // an op's choices come from the templates the other ops' caps allow, so every choice changes the result
   const choicesFor = (op: string) =>
     capChoices(
@@ -1082,17 +1100,24 @@ export function TemplatePicker<V extends PickerTemplate>({
                               Also supports: {extra.join(", ")}
                             </span>
                           )}
-                          {(others.get(template.dataStructureType) ?? 0) >
-                            0 && (
-                            <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
-                              {others.get(template.dataStructureType)} heavier{" "}
-                              {others.get(template.dataStructureType) === 1
-                                ? "variant"
-                                : "variants"}{" "}
-                              of this structure also match (they keep more
-                              current, or cost more)
-                            </span>
-                          )}
+                          {firstOfType(template) &&
+                            (() => {
+                              const type = template.dataStructureType;
+                              const beaten = hidden.get(type) ?? 0;
+                              const more = overflow.get(type) ?? 0;
+                              const plural = (k: number) =>
+                                k === 1 ? "variant" : "variants";
+                              return (
+                                (beaten > 0 || more > 0) && (
+                                  <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
+                                    {beaten > 0 &&
+                                      `${beaten} more ${plural(beaten)} of this structure also match, none faster on your ops or lighter than one shown (they keep more current or support more). `}
+                                    {more > 0 &&
+                                      `${more} other ${plural(more)} trade speed for memory differently; cap an op's cost above to see them.`}
+                                  </span>
+                                )
+                              );
+                            })()}
                         </button>
                       </li>
                     );
