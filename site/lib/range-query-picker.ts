@@ -457,7 +457,8 @@ export function templateKindLabel(t: TemplateView): string {
   const base = DATA_STRUCTURE_TYPE_LABELS[t.dataStructureType] + mex + appendable;
   const fc = t.fractionalCascading === undefined ? "" : t.fractionalCascading ? " (FC)" : " (no FC)";
   if (t.file !== "sparse") return base + fc;
-  const lower = base === "BIT" ? base : base[0].toLowerCase() + base.slice(1);
+  // lowercase the first word after "Sparse", unless it's an acronym ("BIT", "BIT of value seg trees")
+  const lower = /^[A-Z]{2,}\b/.test(base) ? base : base[0].toLowerCase() + base.slice(1);
   const sparse = base.startsWith("Sparse") ? base : `Sparse ${lower}`; // "Sparse table" is already "sparse"
   return `${sparse}${isBuiltFromPoints(t.memory) ? " built from values" : ""}${fc}`;
 }

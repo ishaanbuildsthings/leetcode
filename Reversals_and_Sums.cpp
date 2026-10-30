@@ -124,8 +124,8 @@ int main() {
     }
     for (int i = 0; i < m; i++) {
         int qtype, a, b; cin >> qtype >> a >> b;
+        a--; b--;
         if (qtype == 1) {
-            a--; b--;
             auto [left, middle, right] = trisect(root, a, b);
             reverse(middle);
             root = join(left, middle, right);

@@ -53,19 +53,19 @@
 //   node: key[1*N] cnt[1*N] size[1*N] sum[1*N]
 //   tags: none
 //   other: children[2*N] parent[1*N]
-//   note: N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree
+//   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
 // keeps its value, its copies, and the copies, sum in its subtree; every operation splays the
-// last node it touched to the root, which makes each one O(log N) amortized. Nodes live in one pool shared by every
-// SplayMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused.
+// last node it touched to the root, which makes each one O(log N) amortized. Each multiset owns its node pool
+// (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // T: an integer type; sums in S (long long for small T).
 template <typename T>
 struct SplayMultiset {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; S s; int l, r, p; };  // copies; copies, sum below; parent
-    static inline vector<Node> pool{Node{}};
-    static inline vector<int> freeList;
+    vector<Node> pool{Node{}};
+    vector<int> freeList;
     int root = 0;
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; S sb; };  // a value, copies before it, its copies, sum before it
@@ -76,13 +76,11 @@ struct SplayMultiset {
     // O(1) -- an empty multiset
     SplayMultiset() {}
 
-    // O(1) -- forget every node of every SplayMultiset<T>; call between test cases, then build new ones
-    static void resetPool() { pool.resize(1), freeList.clear(); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make(T x, int parent) {
+    int make(T x, int parent) {
         int t;
         if (!freeList.empty()) t = freeList.back(), freeList.pop_back();
         else pool.push_back(Node{}), t = (int)pool.size() - 1;
@@ -91,14 +89,14 @@ struct SplayMultiset {
         return t;
     }
 
-    static void pull(int t) {
+    void pull(int t) {
         Node& v = pool[t];
         const Node &a = pool[v.l], &b = pool[v.r];
         v.z = a.z + b.z + v.c;
         v.s = a.s + b.s + S(v.c) * v.key;
     }
 
-    static void rotate(int x) {  // x moves above its parent
+    void rotate(int x) {  // x moves above its parent
         int p = pool[x].p, g = pool[p].p, b;
         if (pool[p].l == x) b = pool[x].r, pool[p].l = b, pool[x].r = p;
         else b = pool[x].l, pool[p].r = b, pool[x].l = p;
@@ -108,7 +106,7 @@ struct SplayMultiset {
         pull(p), pull(x);
     }
 
-    static int splay(int x) {  // x becomes the root of its tree
+    int splay(int x) {  // x becomes the root of its tree
         while (int p = pool[x].p) {
             if (int g = pool[p].p) rotate((pool[g].l == p) == (pool[p].l == x) ? p : x);
             rotate(x);
@@ -285,17 +283,8 @@ struct SplayMultiset {
         total = 0;
     }
 
-    void clearData() {  // hand this tree's nodes back to the shared pool's free list
-        vector<int> st;
-        if (root) st.push_back(root);
-        while (!st.empty()) {
-            int t = st.back();
-            st.pop_back();
-            if (pool[t].l) st.push_back(pool[t].l);
-            if (pool[t].r) st.push_back(pool[t].r);
-            freeList.push_back(t);
-        }
-        root = 0;
+    void clearData() {  // drop every node but keep the pool's memory for the next adds
+        pool.resize(1), freeList.clear(), root = 0;
     }
 
     // O(logN amortized) -- add one copy of x

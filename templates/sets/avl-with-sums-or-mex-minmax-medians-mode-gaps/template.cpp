@@ -68,18 +68,18 @@
 //   node: key[1*N] cnt[1*N] size[1*N] dn[1*N] sum[1*N] or[1*N]
 //   tags: none
 //   other: children[2*N] height[1*N]
-//   note: N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree
+//   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so every
 // operation is O(log N) worst case (height <= 1.44 log2 N). Each node keeps its value, its copies, and the copies, sum, OR
-// and distinct values in its subtree. Nodes live in one pool shared by every AVLMultiset<T> (call resetPool() between
-// test cases); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
+// and distinct values in its subtree. Each multiset owns its node pool (freed when it goes out of
+// scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
 template <typename T>
 struct AVLMultiset {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; S s; long long dn; T orv; int h, l, r; };  // copies; copies, sum, distinct below; height
-    static inline vector<Node> pool{Node{}};
-    static inline vector<int> freeList;
+    vector<Node> pool{Node{}};
+    vector<int> freeList;
     int root = 0;
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; S sb; };  // a value, copies before it, its copies, sum before it
@@ -93,13 +93,11 @@ struct AVLMultiset {
     // O(1) -- an empty multiset
     AVLMultiset() {}
 
-    // O(1) -- forget every node of every AVLMultiset<T>; call between test cases, then build new ones
-    static void resetPool() { pool.resize(1), freeList.clear(); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make(T x, long long c) {
+    int make(T x, long long c) {
         int t;
         if (!freeList.empty()) t = freeList.back(), freeList.pop_back();
         else pool.push_back(Node{}), t = (int)pool.size() - 1;
@@ -109,7 +107,7 @@ struct AVLMultiset {
         return t;
     }
 
-    static void pull(int t) {
+    void pull(int t) {
         Node& v = pool[t];
         const Node &a = pool[v.l], &b = pool[v.r];
         v.z = a.z + b.z + v.c, v.h = std::max(a.h, b.h) + 1;
@@ -118,21 +116,21 @@ struct AVLMultiset {
         v.s = a.s + b.s + S(v.c) * v.key;
     }
 
-    static int rotR(int t) {  // t's left child moves up
+    int rotR(int t) {  // t's left child moves up
         int l = pool[t].l;
         pool[t].l = pool[l].r, pool[l].r = t;
         pull(t), pull(l);
         return l;
     }
 
-    static int rotL(int t) {  // t's right child moves up
+    int rotL(int t) {  // t's right child moves up
         int r = pool[t].r;
         pool[t].r = pool[r].l, pool[r].l = t;
         pull(t), pull(r);
         return r;
     }
 
-    static int bal(int t) {  // pull t and restore |height(left) - height(right)| <= 1; returns the subtree's new root
+    int bal(int t) {  // pull t and restore |height(left) - height(right)| <= 1; returns the subtree's new root
         pull(t);
         int b = pool[pool[t].l].h - pool[pool[t].r].h;
         if (b > 1) {
@@ -148,7 +146,7 @@ struct AVLMultiset {
         return t;
     }
 
-    static int popMin(int t, int& m) {  // t without its smallest node, which goes to m
+    int popMin(int t, int& m) {  // t without its smallest node, which goes to m
         if (!pool[t].l) {
             m = t;
             return pool[t].r;
@@ -346,17 +344,8 @@ struct AVLMultiset {
         total = 0;
     }
 
-    void clearData() {  // hand this tree's nodes back to the shared pool's free list
-        vector<int> st;
-        if (root) st.push_back(root);
-        while (!st.empty()) {
-            int t = st.back();
-            st.pop_back();
-            if (pool[t].l) st.push_back(pool[t].l);
-            if (pool[t].r) st.push_back(pool[t].r);
-            freeList.push_back(t);
-        }
-        root = 0;
+    void clearData() {  // drop every node but keep the pool's memory for the next adds
+        pool.resize(1), freeList.clear(), root = 0;
     }
 
     T orLe(T x) {  // OR of the values <= x

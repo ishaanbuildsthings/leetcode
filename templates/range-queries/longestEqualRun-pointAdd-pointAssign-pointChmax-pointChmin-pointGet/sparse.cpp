@@ -15,32 +15,30 @@
 //   node: ln[1*log(U)] pre[1*log(U)] suf[1*log(U)] best[1*log(U)] lv[1*log(U)] rv[1*log(U)]
 //   tags: none
 //   other: children[2*log(U)]
-//   note: per update, one node per level of the touched path; a block of k zeros is one run of length k, so missing nodes are summarized from their length; one shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per update, one node per level of the touched path; a block of k zeros is one run of length k, so missing nodes are summarized from their length; a node pool per tree (node 0 = all zeros)
 
-// Longest run of equal adjacent values with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-// Sparse: only the nodes on updated paths exist, in one pool shared by every SparseEqualRunTree; a missing child is a block
-// of zeros. Each node keeps the summary (ln, pre, suf, best, lv, rv); merging is not commutative, so queries combine left to right.
-// T: int, long long, ...; sums are kept in S (long long for small T).
+// Longest run of equal adjacent values with point updates, over any index range [lo, hi] (huge or negative is fine);
+// every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; a missing child
+// is a block of zeros. Each node keeps the summary (ln, pre, suf, best, lv, rv); merging is not commutative, so queries
+// combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct SparseEqualRunTree {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr S NEG = numeric_limits<S>::lowest() / 4;  // an impossible (first sign, last sign) pair
     struct Agg { long long ln; long long pre; long long suf; long long best; T lv; T rv; };
     struct Node { Agg v; int l, r; };
-    static inline vector<Node> pool{Node{Agg{}, 0, 0}};  // node 0: the shared all-zeros block
+    vector<Node> pool{Node{Agg{}, 0, 0}};  // node 0: the all-zeros block
     long long lo, hi;
     int root = 0;
 
     // O(1) -- an all-zero array over [lo, hi]; any long long range works
     SparseEqualRunTree(long long lo, long long hi) : lo(lo), hi(hi) {}
 
-    // O(1) -- forget every node of every SparseEqualRunTree; call once per test case, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional: reserve room for this many nodes up front (about log U per update)
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{Agg{}, 0, 0});
         return (int)pool.size() - 1;
     }
@@ -82,7 +80,7 @@ struct SparseEqualRunTree {
     static Agg merge(const Agg& a, const Agg& b) { return Agg{a.ln + b.ln, (a.rv == b.lv && a.pre == a.ln) ? a.ln + b.pre : a.pre, (a.rv == b.lv && b.suf == b.ln) ? b.ln + a.suf : b.suf, max({a.best, b.best, a.rv == b.lv ? a.suf + b.pre : 0LL}), a.lv, b.rv}; }
     static Agg leaf(T v) { return Agg{1, 1, 1, 1, v, v}; }
     static Agg zero(long long len) { (void)len; return Agg{len, len, len, len, T(0), T(0)}; }  // a block of len zeros
-    static Agg agg(int x, long long len) { return x ? pool[x].v : zero(len); }
+    Agg agg(int x, long long len) { return x ? pool[x].v : zero(len); }
 
     // O(logU) -- a[i] = v
     void pointAssign(long long i, T v) {

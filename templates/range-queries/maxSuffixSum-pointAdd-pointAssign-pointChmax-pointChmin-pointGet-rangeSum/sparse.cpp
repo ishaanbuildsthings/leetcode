@@ -16,11 +16,11 @@
 //   node: sm[1*log(U)] suf[1*log(U)]
 //   tags: none
 //   other: children[2*log(U)]
-//   note: per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; one shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; a node pool per tree (node 0 = all zeros)
 
-// Max suffix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-// Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMaxSuffixSumTree; a missing child is a block
-// of zeros. Each node keeps the summary (sm, suf); merging is not commutative, so queries combine left to right.
+// Max suffix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every
+// position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; a missing child is a
+// block of zeros. Each node keeps the summary (sm, suf); merging is not commutative, so queries combine left to right.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct SparseMaxSuffixSumTree {
@@ -28,20 +28,18 @@ struct SparseMaxSuffixSumTree {
     static constexpr S NEG = numeric_limits<S>::lowest() / 4;  // an impossible (first sign, last sign) pair
     struct Agg { S sm; S suf; };
     struct Node { Agg v; int l, r; };
-    static inline vector<Node> pool{Node{Agg{0, 0}, 0, 0}};  // node 0: the shared all-zeros block
+    vector<Node> pool{Node{Agg{0, 0}, 0, 0}};  // node 0: the all-zeros block
     long long lo, hi;
     int root = 0;
 
     // O(1) -- an all-zero array over [lo, hi]; any long long range works
     SparseMaxSuffixSumTree(long long lo, long long hi) : lo(lo), hi(hi) {}
 
-    // O(1) -- forget every node of every SparseMaxSuffixSumTree; call once per test case, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional: reserve room for this many nodes up front (about log U per update)
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{Agg{0, 0}, 0, 0});
         return (int)pool.size() - 1;
     }
@@ -83,7 +81,7 @@ struct SparseMaxSuffixSumTree {
     static Agg merge(const Agg& a, const Agg& b) { return Agg{a.sm + b.sm, max(b.suf, b.sm + a.suf)}; }
     static Agg leaf(T v) { return Agg{S(v), S(v)}; }
     static Agg zero(long long len) { (void)len; return Agg{0, 0}; }  // a block of len zeros
-    static Agg agg(int x, long long len) { return pool[x].v; }
+    Agg agg(int x, long long len) { return pool[x].v; }
 
     // O(logU) -- a[i] = v
     void pointAssign(long long i, T v) {

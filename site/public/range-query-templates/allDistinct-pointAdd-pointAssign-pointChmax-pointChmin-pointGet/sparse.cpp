@@ -15,19 +15,19 @@
 //   node: mn[3*log(U)] cnt[3*log(U)]
 //   tags: none
 //   other: children[6*log(U)] chains[1] vals[1]
-//   note: per point write, at most 3 root paths (i, its old and new predecessor); each node keeps the min nxt and the number of nonzero positions below it; chains maps each nonzero value to its sorted positions (std::set). One shared node pool (node 0 = untouched), call resetPool() between test cases
+//   note: per point write, at most 3 root paths (i, its old and new predecessor); each node keeps the min nxt and the number of nonzero positions below it; chains maps each nonzero value to its sorted positions (std::set). A node pool per tree (node 0 = untouched)
 
 // "Are all values in a[l..r] distinct?" with point updates, over any index range [lo, hi] (huge or negative is fine);
 // every position starts at 0. Two zeros repeat, so a range with >= 2 positions holding 0 is not distinct. Among the
 // nonzero positions, nxt[i] = the next position with the same value (none: INF), and they are distinct iff
 // min(nxt[l..r]) > r. Sparse: a dynamic tree keeps, per node, the min nxt and the number of nonzero positions (and a
-// leaf keeps its position's value); nodes live in one pool shared by every SparseDistinctTree<T>, node 0 is the
-// untouched block. T: a std::map key type.
+// leaf keeps its position's value); nodes live in a pool the tree owns, node 0 is the untouched block. T: a std::map
+// key type.
 template <typename T>
 struct SparseDistinctTree {
     static constexpr long long INF = numeric_limits<long long>::max();
     struct Node { long long mn, cnt; T v; int l, r; };  // v: a leaf's value
-    static inline vector<Node> pool{Node{INF, 0, T(0), 0, 0}};  // node 0: untouched (no nxt, no nonzero, 0), children itself
+    vector<Node> pool{Node{INF, 0, T(0), 0, 0}};  // node 0: untouched (no nxt, no nonzero, 0), children itself
     long long lo, hi;
     int root = 0;
     map<T, set<long long>> chains;  // nonzero value -> sorted positions
@@ -35,13 +35,11 @@ struct SparseDistinctTree {
     // O(1) -- all zeros over [lo, hi]
     SparseDistinctTree(long long lo, long long hi) : lo(lo), hi(hi) {}
 
-    // O(1) -- forget every node of every SparseDistinctTree<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{INF, 0, T(0), 0, 0});
         return (int)pool.size() - 1;
     }

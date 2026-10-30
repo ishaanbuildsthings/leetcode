@@ -15,30 +15,27 @@
 //   node: d[2*log(U)]
 //   tags: none
 //   other: children[4*log(U)]
-//   note: per update, the O(logU) entries above each changed position; a range xor changes two xor-differences. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
+//   note: per update, the O(logU) entries above each changed position; a range xor changes two xor-differences. A dynamic prefix-sum tree in a node pool the tree owns
 
-// Range xor, point get: prefix xors of the xor-difference array d[i] = a[i] ^ a[i - 1].
-// Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic
-// prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseRangeXorBIT<T>; node 0 is the
-// shared all-zeros block. T: int, long long, ...
+// Range xor, point get: prefix xors of the xor-difference array d[i] = a[i] ^ a[i - 1]. Over any index range [lo, hi]
+// (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in
+// [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...
 template <typename T>
 struct SparseRangeXorBIT {
     using F = array<T, 1>;
     struct Node { F f; int l, r; };  // f: totals of the point changes under the node
-    static inline vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
+    vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
     long long lo, hi, n;
     int root = 0;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseRangeXorBIT(long long lo, long long hi) : lo(lo), hi(hi), n(hi - lo + 1) {}
 
-    // O(1) -- forget every node of every SparseRangeXorBIT<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{});
         return (int)pool.size() - 1;
     }

@@ -74,7 +74,7 @@
 #   node: key[1*N] cnt[1*N] size[1*N] sum[1*N] or[1*N] and[1*N]
 #   tags: none
 #   other: children[2*N] height[1*N]
-#   note: N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree
+#   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 # Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so every
 # operation is O(log N) worst case (height <= 1.44 log2 N). Each node keeps its value, its copies, and the copies, sum, OR, AND

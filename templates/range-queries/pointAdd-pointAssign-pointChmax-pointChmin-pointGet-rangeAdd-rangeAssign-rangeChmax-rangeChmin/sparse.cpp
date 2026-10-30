@@ -18,15 +18,14 @@
 //   node: v[4*log(U)]
 //   tags: hi[4*log(U)] lo[4*log(U)] add[4*log(U)]
 //   other: children[8*log(U)]
-//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). One shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). A node pool per tree (node 0 = all zeros)
 
-// Range add / assign / chmin / chmax + point ops. A tag is the map x -> min(hi, max(lo, x + add)); these
-// maps compose into the same form (assign v is hi = lo = v). Only leaves' values matter, so nothing is pulled.
-// Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's
-// tag into its children (creating them) before recursing past it; queries never push: they carry the
-// ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only
-// where updates reached, in one pool shared by every SparseClampTree<T>; node 0 is the shared all-zeros block.
-// T: int, long long, ...
+// Range add / assign / chmin / chmax + point ops. A tag is the map x -> min(hi, max(lo, x + add)); these maps compose
+// into the same form (assign v is hi = lo = v). Only leaves' values matter, so nothing is pulled. Over any index range
+// [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children
+// (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to
+// what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns;
+// node 0 is the all-zeros block. T: int, long long, ...
 template <typename T>
 struct SparseClampTree {
     static constexpr T INF = numeric_limits<T>::max(), NEG = numeric_limits<T>::lowest();
@@ -34,26 +33,24 @@ struct SparseClampTree {
     struct Tag { T hi, lo, c; };  // x -> min(hi, max(lo, x + c))
     static constexpr Tag ID = Tag{INF, NEG, 0};
     struct Node { Agg v; Tag t; int l, r; };
-    static inline vector<Node> pool{Node{Agg{}, ID, 0, 0}};  // node 0: all zeros, its children are itself
+    vector<Node> pool{Node{Agg{}, ID, 0, 0}};  // node 0: all zeros, its children are itself
     long long lo, hi;
     int root;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseClampTree(long long lo, long long hi) : lo(lo), hi(hi) { root = make(); }
 
-    // O(1) -- forget every node of every SparseClampTree<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{Agg{}, ID, 0, 0});
         return (int)pool.size() - 1;
     }
 
     // child of x, creating it (as a block of zeros) if missing
-    static int kid(int x, bool right) {
+    int kid(int x, bool right) {
         int y = right ? pool[x].r : pool[x].l;
         if (!y) {
             y = make();

@@ -15,21 +15,20 @@
 //   node: A[2*log(U)] B[2*log(U)] C[2*log(U)]
 //   tags: none
 //   other: children[4*log(U)]
-//   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
+//   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. A dynamic prefix-sum tree in a node pool the tree owns
 
-// Range add of an arithmetic sequence (and plain range add) + range sum, all mod p. Adding c0 + c1 * x (x = i - lo)
-// on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[lo + x] by c0 * (x - l + 1) + c1 * (tri(x) - tri(l - 1))
-// for x in [l, r] (tri(k) = k(k+1)/2), and by the whole added total past r. So P(x) = A(x) + B(x) * x +
-// C(x) * tri(x) with A, B, C prefix sums of point changes; tri keeps every coefficient an integer.
-// Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic
-// prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseArithSeqSumBITMod<T>; node 0 is the
-// shared all-zeros block. T: int, long long, ...
+// Range add of an arithmetic sequence (and plain range add) + range sum, all mod p. Adding c0 + c1 * x (x = i - lo) on
+// [l, r] changes the prefix sum P(x) = a[lo] + ... + a[lo + x] by c0 * (x - l + 1) + c1 * (tri(x) - tri(l - 1)) for x
+// in [l, r] (tri(k) = k(k+1)/2), and by the whole added total past r. So P(x) = A(x) + B(x) * x + C(x) * tri(x) with A,
+// B, C prefix sums of point changes; tri keeps every coefficient an integer. Over any index range [lo, hi] (huge or
+// negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n),
+// in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...
 template <typename T>
 struct SparseArithSeqSumBITMod {
     using W = conditional_t<sizeof(T) <= 4, long long, __int128>;
     using F = array<T, 3>;
     struct Node { F f; int l, r; };  // f: totals of the point changes under the node
-    static inline vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
+    vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
     long long lo, hi, n;
     int root = 0;
     T mod;
@@ -37,13 +36,11 @@ struct SparseArithSeqSumBITMod {
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseArithSeqSumBITMod(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), n(hi - lo + 1), mod(mod) {}
 
-    // O(1) -- forget every node of every SparseArithSeqSumBITMod<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{});
         return (int)pool.size() - 1;
     }

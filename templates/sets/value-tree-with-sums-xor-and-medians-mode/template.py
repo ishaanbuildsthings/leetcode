@@ -74,7 +74,7 @@
 #   node: c[1*log(U)] s[1*log(U)] x[1*log(U)] a[1*log(U)]
 #   tags: none
 #   other: children[2*log(U)]
-#   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index
+#   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset owns its node pool (node 0 = empty); Python: dicts keyed by heap index
 
 # Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
 # each node keeping how many copies, their sum,, their xor, their AND are below it. Sparse: dicts keyed by heap

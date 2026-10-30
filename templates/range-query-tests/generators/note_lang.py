@@ -10,6 +10,7 @@ Every file also starts with two attribution lines (template by <GitHub user>, th
 """
 import os
 import re
+import textwrap
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 LABELS = {"cpp": "C++: ", "py": "Python: "}
@@ -64,9 +65,93 @@ def lang_note(note, lang):
         i = j
 
 
+# C++ sparse trees used to keep their nodes in a static pool shared by every tree of the type (resetPool() between
+# test cases). Each tree now owns its pool: a plain member, freed when the tree goes out of scope, so a tree per test
+# case needs nothing between them. own_pool turns a generated file into that form, code and prose; a comment paragraph
+# it changes is re-wrapped at 120 columns.
+POOL_PROSE = [  # applied to whole comment paragraphs (lines joined by spaces) and to the note line
+    (r"\s*\(resetPool\(\) between test cases\)", ""),
+    (r"[;,]\s*call resetPool\(\) between test cases", ""),
+    (r"\s*Tree::resetPool\(\) between test cases is\b[^.]*\.", ""),
+    (r"in one pool shared by every \w+(?:<T>)?", "in a pool the tree owns"),
+    (r"one pool shared by every \w+(?:<T>)?", "a pool the tree owns"),
+    (r"in one shared node pool", "in a node pool the tree owns"),
+    (r"One shared node pool", "A node pool per tree"),
+    (r"one shared node pool", "a node pool per tree"),
+    (r"node 0 is the shared all-zeros block", "node 0 is the all-zeros block"),
+    (r"node 0 is the shared\b", "node 0 is the"),
+    (r"the shared all-zeros block", "the all-zeros block"),
+]
+
+
+def _prose(t):
+    for pat, rep in POOL_PROSE:
+        t = re.sub(pat, rep, t)
+    return t
+
+
+def own_pool(text):
+    if "resetPool" not in text:
+        return text
+    # the pool arrays: "static inline vector<T> a, b{0};" lines
+    names = set()
+    for decl in re.findall(r"^    static inline vector<.*?> (.*?);", text, flags=re.M):
+        while re.search(r"\{[^{}]*\}", decl):  # drop initializers, innermost first ("pool{Node{Agg{}, 0}}")
+            decl = re.sub(r"\{[^{}]*\}", "", decl)
+        names |= set(re.findall(r"(?:^|,)\s*([A-Za-z_]\w*)", re.sub(r"=[^,]*", "", decl)))
+    # const methods that create nodes on demand (the beats trees' queries) still write the pool: it becomes mutable
+    grows = any(re.search(rf"\b{n}\.(?:push_back|emplace_back|resize)\(|\b{n}\[[^\]]*\]\s*=[^=]", body)
+                for body in re.findall(r"\) const \{.*?\n    \}", text, flags=re.S) for n in names)
+    text = re.sub(r"^    static inline (vector<)", r"    mutable \1" if grows else r"    \1", text, flags=re.M)
+    text = re.sub(r"\n(    //[^\n]*\n)?    static void resetPool\(\) \{[^\n]*\}\n", "\n", text)
+    text = text.replace("    static void reservePool(", "    void reservePool(")
+    # a static member function becomes a plain one only if it touches the pool, or calls one that does; pure helpers
+    # stay static (const queries may call them)
+    funcs = {}  # name -> body
+    for m in re.finditer(r"^    static (?!constexpr|inline)[^\n(]*?\b(\w+)\(", text, flags=re.M):
+        i, depth = text.index("{", m.end()), 0
+        for j in range(i, len(text)):
+            depth += {"{": 1, "}": -1}.get(text[j], 0)
+            if not depth:
+                break
+        funcs[m.group(1)] = text[m.start():j + 1]
+    touch = {f for f, body in funcs.items() if any(re.search(rf"\b{n}\b", body) for n in names)}
+    while True:
+        more = {f for f, body in funcs.items() if f not in touch and any(re.search(rf"\b{g}\(", body) for g in touch)}
+        if not more:
+            break
+        touch |= more
+    for f in touch:
+        text = re.sub(rf"^    static ((?!constexpr|inline)[^\n(]*?\b{f}\()", r"    \1", text, flags=re.M)
+    text = text.replace("const {  // const: it only touches the shared pool", "const {  // const: it only grows the (mutable) pool")
+    text = text.replace("// node 0: the shared all-zeros block", "// node 0: the all-zeros block")
+    out, lines, i = [], text.split("\n"), 0
+    while i < len(lines):
+        m = re.match(r"^(\s*)// (?!@|  )", lines[i])
+        if not m:
+            out.append(_prose(lines[i]) if re.match(r"^\s*//   note: ", lines[i]) else lines[i])
+            i += 1
+            continue
+        j = i  # a paragraph: consecutive "// " lines at one indent (not the @ header)
+        while j < len(lines) and re.match(rf"^{m.group(1)}// (?!@|  )", lines[j]):
+            j += 1
+        block = lines[i:j]
+        joined = " ".join(l[len(m.group(1)) + 3:] for l in block)
+        changed = _prose(joined)
+        if changed == joined:
+            out += block
+        else:
+            out += textwrap.wrap(changed, 120, initial_indent=m.group(1) + "// ", subsequent_indent=m.group(1) + "// ",
+                                 break_long_words=False, break_on_hyphens=False)
+        i = j
+    return "\n".join(out)
+
+
 def fix_text(text, lang):
     def fix(m):
         return m.group(1) + lang_note(m.group(2), lang)
+    if lang == "cpp":
+        text = own_pool(text)
     return re.sub(r"^((?:#|//)   note: )(.*)$", fix, text, count=1, flags=re.M)
 
 

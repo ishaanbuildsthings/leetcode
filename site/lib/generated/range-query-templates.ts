@@ -250,7 +250,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "2+12*log(U)",
         "notes": {
           "py": "per point write, at most 3 root paths (i, its old and new predecessor); each node keeps the min nxt and the number of nonzero positions below it; chains maps each nonzero value to its sorted positions (a bucketed SortedList defined at the top of the file). Dicts keyed by heap index",
-          "cpp": "per point write, at most 3 root paths (i, its old and new predecessor); each node keeps the min nxt and the number of nonzero positions below it; chains maps each nonzero value to its sorted positions (std::set). One shared node pool (node 0 = untouched), call resetPool() between test cases"
+          "cpp": "per point write, at most 3 root paths (i, its old and new predecessor); each node keeps the min nxt and the number of nonzero positions below it; chains maps each nonzero value to its sorted positions (std::set). A node pool per tree (node 0 = untouched)"
         }
       },
       "usage": {
@@ -324,7 +324,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseDistinctTree",
-              "doc": "\"Are all values in a[l..r] distinct?\" with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Two zeros repeat, so a range with >= 2 positions holding 0 is not distinct. Among the nonzero positions, nxt[i] = the next position with the same value (none: INF), and they are distinct iff min(nxt[l..r]) > r. Sparse: a dynamic tree keeps, per node, the min nxt and the number of nonzero positions (and a leaf keeps its position's value); nodes live in one pool shared by every SparseDistinctTree<T>, node 0 is the untouched block. T: a std::map key type.",
+              "doc": "\"Are all values in a[l..r] distinct?\" with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Two zeros repeat, so a range with >= 2 positions holding 0 is not distinct. Among the nonzero positions, nxt[i] = the next position with the same value (none: INF), and they are distinct iff min(nxt[l..r]) > r. Sparse: a dynamic tree keeps, per node, the min nxt and the number of nonzero positions (and a leaf keeps its position's value); nodes live in a pool the tree owns, node 0 is the untouched block. T: a std::map key type.",
               "ctor": [
                 {
                   "name": "lo",
@@ -335,8 +335,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]"
             }
           ],
           "methods": {
@@ -6183,7 +6182,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "1+3*log(U)",
         "notes": {
           "py": "per point write, the O(logU) entries above it; every value's 64-bit tag is splitmix64(value ^ seed) (a keyed hash with a random per-run seed, no table) and position i stores tag(a[i]) ^ tag(0), so untouched positions store nothing and a range adds tag(0) once per odd length. A Fenwick tree in a dict",
-          "cpp": "per point write, the O(logU) entries above it; every value's 64-bit tag is splitmix64(value ^ seed) (a keyed hash with a random per-run seed, no table) and position i stores tag(a[i]) ^ tag(0), so untouched positions store nothing and a range adds tag(0) once per odd length. A dynamic prefix-xor tree in one shared node pool, call resetPool() between test cases"
+          "cpp": "per point write, the O(logU) entries above it; every value's 64-bit tag is splitmix64(value ^ seed) (a keyed hash with a random per-run seed, no table) and position i stores tag(a[i]) ^ tag(0), so untouched positions store nothing and a range adds tag(0) once per odd length. A dynamic prefix-xor tree in a node pool the tree owns"
         }
       },
       "usage": {
@@ -6257,7 +6256,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseXorEven",
-              "doc": "Range \"does every value appear an even number of times?\" via xor hashing, with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value's 64-bit tag is splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values share a tag, distinct integers never collide, and no table is needed. Xor over a range cancels tags in pairs, so an all-even range hashes to 0 (false positives ~q / 2^64). A position's value lives in its tree leaf. Sparse: position i stores tag(a[i]) ^ tag(0) in a dynamic prefix-xor tree (nothing for the untouched), so the xor of the real tags over [l, r] is the stored xor, plus tag(0) when the length is odd. Nodes live in one pool shared by every SparseXorEven<T>. T: an integer type (or anything std::hash takes).",
+              "doc": "Range \"does every value appear an even number of times?\" via xor hashing, with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value's 64-bit tag is splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values share a tag, distinct integers never collide, and no table is needed. Xor over a range cancels tags in pairs, so an all-even range hashes to 0 (false positives ~q / 2^64). A position's value lives in its tree leaf. Sparse: position i stores tag(a[i]) ^ tag(0) in a dynamic prefix-xor tree (nothing for the untouched), so the xor of the real tags over [l, r] is the stored xor, plus tag(0) when the length is odd. Nodes live in a pool the tree owns. T: an integer type (or anything std::hash takes).",
               "ctor": [
                 {
                   "name": "lo",
@@ -6268,8 +6267,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]. Seeded from the clock: a fixed seed is hackable.",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]. Seeded from the clock: a fixed seed is hackable."
             }
           ],
           "methods": {
@@ -10152,7 +10150,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "4*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path;  a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path;  one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path;  a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -10306,7 +10304,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMaxMinSearchTree",
-              "doc": "Range max / min and leftmost / rightmost index with a[i] >= / > / <= / < x, with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Searches return lo - 1 when nothing qualifies (-1 when lo = 0). Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMaxMinSearchTree; node 0 is the shared all-zeros block. A search prunes any node whose max / min can't pass, so it visits O(log U) nodes. T: int, long long, ...",
+              "doc": "Range max / min and leftmost / rightmost index with a[i] >= / > / <= / < x, with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Searches return lo - 1 when nothing qualifies (-1 when lo = 0). Sparse: only the nodes on updated paths exist, in a pool the tree owns; node 0 is the all-zeros block. A search prunes any node whose max / min can't pass, so it visits O(log U) nodes. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -10317,8 +10315,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -10785,7 +10782,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "3*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path;  a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path;  one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path;  a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -10895,7 +10892,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMaxSearchTree",
-              "doc": "Range max and leftmost / rightmost index with a[i] >= / > x, with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Searches return lo - 1 when nothing qualifies (-1 when lo = 0). Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMaxSearchTree; node 0 is the shared all-zeros block. A search prunes any node whose max can't pass, so it visits O(log U) nodes. T: int, long long, ...",
+              "doc": "Range max and leftmost / rightmost index with a[i] >= / > x, with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Searches return lo - 1 when nothing qualifies (-1 when lo = 0). Sparse: only the nodes on updated paths exist, in a pool the tree owns; node 0 is the all-zeros block. A search prunes any node whose max can't pass, so it visits O(log U) nodes. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -10906,8 +10903,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -11325,7 +11321,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "3*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path;  a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path;  one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path;  a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -11435,7 +11431,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMinSearchTree",
-              "doc": "Range min and leftmost / rightmost index with a[i] <= / < x, with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Searches return lo - 1 when nothing qualifies (-1 when lo = 0). Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMinSearchTree; node 0 is the shared all-zeros block. A search prunes any node whose min can't pass, so it visits O(log U) nodes. T: int, long long, ...",
+              "doc": "Range min and leftmost / rightmost index with a[i] <= / < x, with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Searches return lo - 1 when nothing qualifies (-1 when lo = 0). Sparse: only the nodes on updated paths exist, in a pool the tree owns; node 0 is the all-zeros block. A search prunes any node whose min can't pass, so it visits O(log U) nodes. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -11446,8 +11442,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -11865,7 +11860,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "3*log(U)",
         "notes": {
           "py": "per update, the O(logU) entries above each changed position; the prefix / suffix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. A Fenwick tree in a dict (no child pointers)",
-          "cpp": "per update, the O(logU) entries above each changed position; the prefix / suffix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the O(logU) entries above each changed position; the prefix / suffix-sum searches need every a[i] >= 0; they return lo - 1 (-1 when lo = 0) when nothing qualifies. A dynamic prefix-sum tree in a node pool the tree owns"
         }
       },
       "usage": {
@@ -11975,7 +11970,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseBIT",
-              "doc": "Point add, range sum, and the first index where a running sum from l reaches x. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseBIT<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Point add, range sum, and the first index where a running sum from l reaches x. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -11986,8 +11981,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -12357,7 +12351,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "8*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path; a block of k zeros is one run of length k, so missing nodes are summarized from their length; a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path; a block of k zeros is one run of length k, so missing nodes are summarized from their length; one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path; a block of k zeros is one run of length k, so missing nodes are summarized from their length; a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -12431,7 +12425,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseEqualRunTree",
-              "doc": "Longest run of equal adjacent values with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in one pool shared by every SparseEqualRunTree; a missing child is a block of zeros. Each node keeps the summary (ln, pre, suf, best, lv, rv); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
+              "doc": "Longest run of equal adjacent values with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; a missing child is a block of zeros. Each node keeps the summary (ln, pre, suf, best, lv, rv); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
               "ctor": [
                 {
                   "name": "lo",
@@ -12442,8 +12436,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -12761,7 +12754,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "6*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path; pairs (first sign, last sign) of a block of zeros: a single zero can't start + and end -; a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path; pairs (first sign, last sign) of a block of zeros: a single zero can't start + and end -; one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path; pairs (first sign, last sign) of a block of zeros: a single zero can't start + and end -; a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -12835,7 +12828,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAltSumTree",
-              "doc": "Max alternating subsequence sum +a - b + c ... with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in one pool shared by every SparseAltSumTree; a missing child is a block of zeros. Each node keeps the summary (pp, pm, mp, mm); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
+              "doc": "Max alternating subsequence sum +a - b + c ... with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; a missing child is a block of zeros. Each node keeps the summary (pp, pm, mp, mm); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
               "ctor": [
                 {
                   "name": "lo",
@@ -12846,8 +12839,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -13260,7 +13252,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "32*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Lists of nodes",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -13367,7 +13359,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMaxSubarrayAssignTree",
-              "doc": "Range assign with range sum and max prefix / suffix / subarray sum (non-empty pieces), plus point ops. A node assigned v over k slots is fully known: sum v * k, and its best prefix / suffix / subarray are v * k if v > 0, else v. A block of zeros summarizes to all zeros. Merging is not commutative. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseMaxSubarrayAssignTree<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range assign with range sum and max prefix / suffix / subarray sum (non-empty pieces), plus point ops. A node assigned v over k slots is fully known: sum v * k, and its best prefix / suffix / subarray are v * k if v > 0, else v. A block of zeros summarizes to all zeros. Merging is not commutative. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -13378,8 +13370,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -13789,7 +13780,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "6*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -13887,7 +13878,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMaxSubarrayTree",
-              "doc": "Max subarray / prefix / suffix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMaxSubarrayTree; a missing child is a block of zeros. Each node keeps the summary (sm, pre, suf, best); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
+              "doc": "Max subarray / prefix / suffix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; a missing child is a block of zeros. Each node keeps the summary (sm, pre, suf, best); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
               "ctor": [
                 {
                   "name": "lo",
@@ -13898,8 +13889,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -14271,7 +14261,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "5*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -14361,7 +14351,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMaxPrefixSuffixSumTree",
-              "doc": "Max prefix / suffix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMaxPrefixSuffixSumTree; a missing child is a block of zeros. Each node keeps the summary (sm, pre, suf); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
+              "doc": "Max prefix / suffix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; a missing child is a block of zeros. Each node keeps the summary (sm, pre, suf); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
               "ctor": [
                 {
                   "name": "lo",
@@ -14372,8 +14362,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -14708,7 +14697,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "4*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -14790,7 +14779,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMaxPrefixSumTree",
-              "doc": "Max prefix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMaxPrefixSumTree; a missing child is a block of zeros. Each node keeps the summary (sm, pre); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
+              "doc": "Max prefix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; a missing child is a block of zeros. Each node keeps the summary (sm, pre); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
               "ctor": [
                 {
                   "name": "lo",
@@ -14801,8 +14790,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -15128,7 +15116,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "4*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path; pieces are non-empty, so a block of zeros summarizes to all zeros; a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -15210,7 +15198,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMaxSuffixSumTree",
-              "doc": "Max suffix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMaxSuffixSumTree; a missing child is a block of zeros. Each node keeps the summary (sm, suf); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
+              "doc": "Max suffix sum + range sum with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; a missing child is a block of zeros. Each node keeps the summary (sm, suf); merging is not commutative, so queries combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).",
               "ctor": [
                 {
                   "name": "lo",
@@ -15221,8 +15209,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -22712,7 +22699,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "6*log(U)",
         "notes": {
           "py": "per update, the O(logU) entries above each changed position; a range add changes two differences. A Fenwick tree in a dict (no child pointers)",
-          "cpp": "per update, the O(logU) entries above each changed position; a range add changes two differences. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the O(logU) entries above each changed position; a range add changes two differences. A dynamic prefix-sum tree in a node pool the tree owns"
         }
       },
       "usage": {
@@ -22787,7 +22774,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeAddBIT",
-              "doc": "Range add, point get: prefix sums of the difference array d[i] = a[i] - a[i - 1]. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseRangeAddBIT<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range add, point get: prefix sums of the difference array d[i] = a[i] - a[i - 1]. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -22798,8 +22785,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -23123,7 +23109,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "8*log(U)",
         "notes": {
           "py": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A Fenwick tree in a dict (no child pointers)",
-          "cpp": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A dynamic prefix-sum tree in a node pool the tree owns"
         }
       },
       "usage": {
@@ -23208,7 +23194,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseArithSeqBIT",
-              "doc": "Range add of an arithmetic sequence (and plain range add), point get. Adding start + (i - l) * step on [l, r] is adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of two difference arrays. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseArithSeqBIT<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range add of an arithmetic sequence (and plain range add), point get. Adding start + (i - l) * step on [l, r] is adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of two difference arrays. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -23219,8 +23205,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -23583,7 +23568,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "10*log(U)",
         "notes": {
           "py": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. A Fenwick tree in a dict (no child pointers)",
-          "cpp": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. A dynamic prefix-sum tree in a node pool the tree owns"
         }
       },
       "usage": {
@@ -23676,7 +23661,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseArithSeqSumBIT",
-              "doc": "Range add of an arithmetic sequence (and plain range add) + range sum. Adding c0 + c1 * x (x = i - lo) on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[lo + x] by c0 * (x - l + 1) + c1 * (tri(x) - tri(l - 1)) for x in [l, r] (tri(k) = k(k+1)/2), and by the whole added total past r. So P(x) = A(x) + B(x) * x + C(x) * tri(x) with A, B, C prefix sums of point changes; tri keeps every coefficient an integer. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseArithSeqSumBIT<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range add of an arithmetic sequence (and plain range add) + range sum. Adding c0 + c1 * x (x = i - lo) on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[lo + x] by c0 * (x - l + 1) + c1 * (tri(x) - tri(l - 1)) for x in [l, r] (tri(k) = k(k+1)/2), and by the whole added total past r. So P(x) = A(x) + B(x) * x + C(x) * tri(x) with A, B, C prefix sums of point changes; tri keeps every coefficient an integer. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -23687,8 +23672,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -24092,7 +24076,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). Lists of nodes",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -24194,7 +24178,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseClampTree",
-              "doc": "Range add / assign / chmin / chmax + point ops. A tag is the map x -> min(hi, max(lo, x + add)); these maps compose into the same form (assign v is hi = lo = v). Only leaves' values matter, so nothing is pulled. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseClampTree<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range add / assign / chmin / chmax + point ops. A tag is the map x -> min(hi, max(lo, x + add)); these maps compose into the same form (assign v is hi = lo = v). Only leaves' values matter, so nothing is pulled. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -24205,8 +24189,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -24736,7 +24719,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "36*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -24881,8 +24864,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -25352,7 +25334,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -25462,7 +25444,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseClampMaxTree",
-              "doc": "Range add / assign / chmin / chmax with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x + c)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseClampMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add / assign / chmin / chmax with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x + c)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -25473,8 +25455,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -25945,7 +25926,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "28*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -26063,7 +26044,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseClampMinMaxTree",
-              "doc": "Range add / assign / chmin / chmax with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x + c)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseClampMinMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add / assign / chmin / chmax with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x + c)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -26074,8 +26055,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -26635,7 +26615,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "52*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -26772,8 +26752,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -27234,7 +27213,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -27344,7 +27323,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseClampMinTree",
-              "doc": "Range add / assign / chmin / chmax with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x + c)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseClampMinTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add / assign / chmin / chmax with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x + c)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -27355,8 +27334,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -27833,7 +27811,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "36*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -27953,8 +27931,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -28430,7 +28407,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "36*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -28550,8 +28527,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -29005,7 +28981,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "32*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -29113,7 +29089,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddAssignSumMinMaxTree",
-              "doc": "Range add / assign with range sum / min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign or add (an add on an assigned node shifts the assigned value). Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddAssignSumMinMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range add / assign with range sum / min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign or add (an add on an assigned node shifts the assigned value). Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -29124,8 +29100,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -29550,7 +29525,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "28*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -29650,7 +29625,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddAssignSumMaxTree",
-              "doc": "Range add / assign with range sum / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign or add (an add on an assigned node shifts the assigned value). Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddAssignSumMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range add / assign with range sum / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign or add (an add on an assigned node shifts the assigned value). Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -29661,8 +29636,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -30078,7 +30052,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "28*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -30178,7 +30152,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddAssignSumMinTree",
-              "doc": "Range add / assign with range sum / min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign or add (an add on an assigned node shifts the assigned value). Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddAssignSumMinTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range add / assign with range sum / min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign or add (an add on an assigned node shifts the assigned value). Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -30189,8 +30163,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -30578,7 +30551,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -30670,7 +30643,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddAssignSumTree",
-              "doc": "Range add / assign with range sum queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign or add (an add on an assigned node shifts the assigned value). Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddAssignSumTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range add / assign with range sum queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign or add (an add on an assigned node shifts the assigned value). Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -30681,8 +30654,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -31053,7 +31025,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -31145,7 +31117,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddChmaxMaxTree",
-              "doc": "Range add / chmax with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddChmaxMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add / chmax with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -31156,8 +31128,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -31556,7 +31527,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -31656,7 +31627,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddChmaxMinMaxTree",
-              "doc": "Range add / chmax with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddChmaxMinMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add / chmax with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -31667,8 +31638,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -32048,7 +32018,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -32140,7 +32110,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddChmaxMinTree",
-              "doc": "Range add / chmax with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddChmaxMinTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add / chmax with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -32151,8 +32121,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -32523,7 +32492,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -32615,7 +32584,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddChminMaxTree",
-              "doc": "Range add / chmin with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddChminMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add / chmin with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -32626,8 +32595,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -33026,7 +32994,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -33126,7 +33094,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddChminMinMaxTree",
-              "doc": "Range add / chmin with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddChminMinMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add / chmin with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -33137,8 +33105,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -33518,7 +33485,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -33610,7 +33577,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddChminMinTree",
-              "doc": "Range add / chmin with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddChminMinTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add / chmin with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x + c); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -33621,8 +33588,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -33967,7 +33933,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "8*log(U)",
         "notes": {
           "py": "per range add, the two root paths of the differences it changes; one tree over the differences keeps their sum (prefix sums are point values) and gcd; the gcd costs' second log is of the largest value. Dicts keyed by heap index",
-          "cpp": "per range add, the two root paths of the differences it changes; one tree over the differences keeps their sum (prefix sums are point values) and gcd; the gcd costs' second log is of the largest value. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per range add, the two root paths of the differences it changes; one tree over the differences keeps their sum (prefix sums are point values) and gcd; the gcd costs' second log is of the largest value. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -34050,7 +34016,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeAddRangeGcd",
-              "doc": "Range add + range gcd + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0. gcd(a[l], ..., a[r]) == gcd(a[l], a[l+1] - a[l], ..., a[r] - a[r-1]), and a range add only changes two adjacent differences. One sparse tree over the differences d[i] = a[i] - a[i-1] (d[lo] = a[lo]) keeps their sum (a prefix sum is a point value) and the gcd of their absolute values. Sparse: nodes in one pool shared by every SparseRangeAddRangeGcd<T>; node 0 is the shared block of zero differences. T: int, long long, ...",
+              "doc": "Range add + range gcd + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0. gcd(a[l], ..., a[r]) == gcd(a[l], a[l+1] - a[l], ..., a[r] - a[r-1]), and a range add only changes two adjacent differences. One sparse tree over the differences d[i] = a[i] - a[i-1] (d[lo] = a[lo]) keeps their sum (a prefix sum is a point value) and the gcd of their absolute values. Sparse: nodes in a pool the tree owns; node 0 is the block of zero differences. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -34061,8 +34027,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -34393,7 +34358,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -34476,7 +34441,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddMaxTree",
-              "doc": "Range add with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> x + c; these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> x + c; these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -34487,8 +34452,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -34847,7 +34811,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -34938,7 +34902,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddMinMaxTree",
-              "doc": "Range add with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> x + c; these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddMinMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> x + c; these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -34949,8 +34913,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -35346,7 +35309,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -35445,7 +35408,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddSumMinMaxTree",
-              "doc": "Range add with range sum / min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending add. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddSumMinMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range add with range sum / min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending add. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -35456,8 +35419,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -35834,7 +35796,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -35925,7 +35887,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddSumMaxTree",
-              "doc": "Range add with range sum / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending add. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddSumMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range add with range sum / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending add. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -35936,8 +35898,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -36277,7 +36238,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -36360,7 +36321,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddMinTree",
-              "doc": "Range add with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> x + c; these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddMinTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range add with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> x + c; these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -36371,8 +36332,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -36731,7 +36691,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -36822,7 +36782,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAddSumMinTree",
-              "doc": "Range add with range sum / min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending add. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddSumMinTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range add with range sum / min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending add. Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -36833,8 +36793,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -37172,7 +37131,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "8*log(U)",
         "notes": {
           "py": "per update, the O(logU) entries above each changed position; a range add changes two points of A and B. A Fenwick tree in a dict (no child pointers)",
-          "cpp": "per update, the O(logU) entries above each changed position; a range add changes two points of A and B. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the O(logU) entries above each changed position; a range add changes two points of A and B. A dynamic prefix-sum tree in a node pool the tree owns"
         }
       },
       "usage": {
@@ -37255,7 +37214,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeAddSumBIT",
-              "doc": "Range add + range sum: adding v on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[x] by v * (x - l + 1) for x in [l, r], and the whole v * (r - l + 1) past r, so P(x) = A(x) + B(x) * x with A, B prefix sums of two arrays of point changes. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseRangeAddSumBIT<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range add + range sum: adding v on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[x] by v * (x - l + 1) for x in [l, r], and the whole v * (r - l + 1) past r, so P(x) = A(x) + B(x) * x with A, B prefix sums of two arrays of point changes. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -37266,8 +37225,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -37573,7 +37531,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "12*log(U)",
         "notes": {
           "py": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A dict keyed by heap index",
-          "cpp": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A node pool per tree"
         }
       },
       "usage": {
@@ -37648,7 +37606,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeAndTree",
-              "doc": "Range and= + point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in one pool shared by every SparseRangeAndTree<T>. T: int, long long, ...",
+              "doc": "Range and= + point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in a pool the tree owns. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -37659,8 +37617,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -38101,7 +38058,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -38237,8 +38194,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "20"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -38753,7 +38709,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "28*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -38897,8 +38853,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "20"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -39366,7 +39321,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -39494,8 +39449,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "20"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -39973,7 +39927,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -40109,8 +40063,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "20"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -40569,7 +40522,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -40697,8 +40650,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "20"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -41176,7 +41128,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -41312,8 +41264,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "20"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -41744,7 +41695,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -41864,8 +41815,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "20"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -42306,7 +42256,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -42434,8 +42384,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "20"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -42895,7 +42844,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "4*log(U)*log(U)+16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. every node keeps BITS counts (BITS = 20, the second log); lists of nodes",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. every node keeps BITS counts (BITS = 20, the second log); one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. every node keeps BITS counts (BITS = 20, the second log); a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -43012,7 +42961,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseBitCountTree",
-              "doc": "Range and= / or= / xor= with range sum / and / or queries, plus point ops. Values live in [0, 2^BITS). Each node counts, for every bit, how many of its values have that bit set. Every update is a bit map v -> (v & a) ^ x, and per bit that is keep, force 0 (count = 0), force 1, or flip (count = length - count), so every update is an ordinary lazy tag. Sum = sum over bits of count * 2^bit. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseBitCountTree<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range and= / or= / xor= with range sum / and / or queries, plus point ops. Values live in [0, 2^BITS). Each node counts, for every bit, how many of its values have that bit set. Every update is a bit map v -> (v & a) ^ x, and per bit that is keep, force 0 (count = 0), force 1, or flip (count = length - count), so every update is an ordinary lazy tag. Sum = sum over bits of count * 2^bit. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -43023,8 +42972,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -43425,7 +43373,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). Lists of nodes",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is v (internal nodes keep no aggregate). A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -43518,7 +43466,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseBitOpTree",
-              "doc": "Range and= / or= / xor= + point ops. Every update is a bit map v -> (v & a) ^ x (and X = (X, 0), or X = (~X, X), xor X = (all ones, X)), and these maps compose into the same form. Only leaves' values matter, so nothing is pulled. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseBitOpTree<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range and= / or= / xor= + point ops. Every update is a bit map v -> (v & a) ^ x (and X = (X, 0), or X = (~X, X), xor X = (all ones, X)), and these maps compose into the same form. Only leaves' values matter, so nothing is pulled. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -43529,8 +43477,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -43859,7 +43806,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes a range update visits (at most 4 per level), each remembering the newest assignment covering it. A dict keyed by heap index, storing only the covering nodes (so point assign is O(1))",
-          "cpp": "per update, the nodes a range update visits (at most 4 per level), each remembering the newest assignment covering it. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes a range update visits (at most 4 per level), each remembering the newest assignment covering it. A node pool per tree"
         }
       },
       "usage": {
@@ -43934,7 +43881,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeAssignTree",
-              "doc": "Range assign + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0. No pushing anywhere: assignments are stamped with an increasing counter, every node remembers the newest one covering it, and pointGet returns the newest on the leaf's root path. Sparse: nodes exist only where updates reached, in one pool shared by every SparseRangeAssignTree<T>. T: int, long long, ...",
+              "doc": "Range assign + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0. No pushing anywhere: assignments are stamped with an increasing counter, every node remembers the newest one covering it, and pointGet returns the newest on the leaf's root path. Sparse: nodes exist only where updates reached, in a pool the tree owns. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -43945,8 +43892,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -44320,7 +44266,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -44421,7 +44367,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChminChmaxAssignMaxTree",
-              "doc": "Range assign / chmin / chmax with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseChminChmaxAssignMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range assign / chmin / chmax with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -44432,8 +44378,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -44864,7 +44809,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -44973,7 +44918,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChminChmaxAssignMinMaxTree",
-              "doc": "Range assign / chmin / chmax with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseChminChmaxAssignMinMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range assign / chmin / chmax with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -44984,8 +44929,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -45463,7 +45407,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "28*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -45591,8 +45535,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -46013,7 +45956,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -46114,7 +46057,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChminChmaxAssignMinTree",
-              "doc": "Range assign / chmin / chmax with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseChminChmaxAssignMinTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range assign / chmin / chmax with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, max(lo, x)); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -46125,8 +46068,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -46528,7 +46470,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -46639,8 +46581,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -47041,7 +46982,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -47152,8 +47093,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -47609,7 +47549,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "12*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -47745,8 +47685,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -48132,7 +48071,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. the gcd costs' second log is of the largest value. Lists of nodes",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. the gcd costs' second log is of the largest value. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. the gcd costs' second log is of the largest value. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -48215,7 +48154,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAssignGcdTree",
-              "doc": "Range assign + range gcd, plus point ops. Gcds are of |values|. A leaf keeps its value, an internal node the gcd of |values| below it, and a node assigned v has gcd |v|, so assign is an ordinary lazy tag. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAssignGcdTree<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range assign + range gcd, plus point ops. Gcds are of |values|. A leaf keeps its value, an internal node the gcd of |values| below it, and a node assigned v has gcd |v|, so assign is an ordinary lazy tag. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -48226,8 +48165,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -48622,7 +48560,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "28*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -48721,7 +48659,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAssignSumMinMaxTree",
-              "doc": "Range assign with range sum / min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAssignSumMinMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range assign with range sum / min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -48732,8 +48670,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -49118,7 +49055,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -49209,7 +49146,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAssignSumMaxTree",
-              "doc": "Range assign with range sum / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAssignSumMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range assign with range sum / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -49220,8 +49157,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -49597,7 +49533,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "24*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -49688,7 +49624,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAssignSumMinTree",
-              "doc": "Range assign with range sum / min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAssignSumMinTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range assign with range sum / min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -49699,8 +49635,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -50048,7 +49983,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -50131,7 +50066,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAssignSumTree",
-              "doc": "Range assign with range sum queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAssignSumTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
+              "doc": "Range assign with range sum queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is a pending assign. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S",
               "ctor": [
                 {
                   "name": "lo",
@@ -50142,8 +50077,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -50449,7 +50383,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "12*log(U)",
         "notes": {
           "py": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A dict keyed by heap index",
-          "cpp": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A node pool per tree"
         }
       },
       "usage": {
@@ -50524,7 +50458,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeChmaxTree",
-              "doc": "Range chmax + point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in one pool shared by every SparseRangeChmaxTree<T>. T: int, long long, ...",
+              "doc": "Range chmax + point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in a pool the tree owns. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -50535,8 +50469,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -50858,7 +50791,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -50941,7 +50874,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChmaxMaxTree",
-              "doc": "Range chmax with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseChmaxMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range chmax with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -50952,8 +50885,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -51312,7 +51244,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -51403,7 +51335,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChmaxMinMaxTree",
-              "doc": "Range chmax with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseChmaxMinMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range chmax with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -51414,8 +51346,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -51755,7 +51686,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -51838,7 +51769,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChmaxMinTree",
-              "doc": "Range chmax with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseChmaxMinTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range chmax with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> max(lo, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -51849,8 +51780,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -52156,7 +52086,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "12*log(U)",
         "notes": {
           "py": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A dict keyed by heap index",
-          "cpp": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A node pool per tree"
         }
       },
       "usage": {
@@ -52231,7 +52161,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeChminTree",
-              "doc": "Range chmin + point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in one pool shared by every SparseRangeChminTree<T>. T: int, long long, ...",
+              "doc": "Range chmin + point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in a pool the tree owns. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -52242,8 +52172,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -52565,7 +52494,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -52648,7 +52577,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChminMaxTree",
-              "doc": "Range chmin with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseChminMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range chmin with range max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -52659,8 +52588,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -53019,7 +52947,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -53110,7 +53038,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChminMinMaxTree",
-              "doc": "Range chmin with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseChminMinMaxTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range chmin with range min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -53121,8 +53049,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -53462,7 +53389,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Parallel lists",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -53545,7 +53472,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseChminMinTree",
-              "doc": "Range chmin with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseChminMinTree<T>; node 0 is the shared all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
+              "doc": "Range chmin with range min queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. The tag is the map x -> min(hi, x); these maps compose into the same form, and each is monotone, so it sends a node's min / max straight to the new min / max. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -53556,8 +53483,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -53863,7 +53789,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "12*log(U)",
         "notes": {
           "py": "a pending divisor is the product of the divisions, capped; per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A dict keyed by heap index",
-          "cpp": "a pending divisor is the product of the divisions, capped; per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. One shared node pool, call resetPool() between test cases"
+          "cpp": "a pending divisor is the product of the divisions, capped; per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A node pool per tree"
         }
       },
       "usage": {
@@ -53938,7 +53864,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeFloorDivTree",
-              "doc": "Range floor-divide + point ops (divisors >= 1, values may be negative), over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in one pool shared by every SparseRangeFloorDivTree<T>. floor(floor(x / a) / b) == floor(x / (a * b)), so pending divisors multiply; products are capped at CAP = max(T), past which every |value| < CAP floors to 0 or -1. T: int, long long, ...",
+              "doc": "Range floor-divide + point ops (divisors >= 1, values may be negative), over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in a pool the tree owns. floor(floor(x / a) / b) == floor(x / (a * b)), so pending divisors multiply; products are capped at CAP = max(T), past which every |value| < CAP floors to 0 or -1. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -53949,8 +53875,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -54328,7 +54253,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "8*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow",
-          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree"
         }
       },
       "usage": {
@@ -54447,8 +54372,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -54780,7 +54704,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "12*log(U)",
         "notes": {
           "py": "a pending tag counts floor-sqrts (at most 6 isqrts per point op); per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A dict keyed by heap index",
-          "cpp": "a pending tag counts floor-sqrts (at most 6 isqrts per point op); per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. One shared node pool, call resetPool() between test cases"
+          "cpp": "a pending tag counts floor-sqrts (at most 6 isqrts per point op); per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A node pool per tree"
         }
       },
       "usage": {
@@ -54854,7 +54778,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeFloorSqrtTree",
-              "doc": "Range floor-sqrt + point ops (values >= 0), over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in one pool shared by every SparseRangeFloorSqrtTree<T>. A pending tag counts floor-sqrts, capped at 6 (six take any value below 2^64 to 0 or 1, fixed points). T: int, long long, ...",
+              "doc": "Range floor-sqrt + point ops (values >= 0), over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in a pool the tree owns. A pending tag counts floor-sqrts, capped at 6 (six take any value below 2^64 to 0 or 1, fixed points). T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -54865,8 +54789,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -55156,7 +55079,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "3*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path; leaves hold the signed values, internal nodes the gcd of |values|; a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path; leaves hold the signed values, internal nodes the gcd of |values|; one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path; leaves hold the signed values, internal nodes the gcd of |values|; a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -55230,7 +55153,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseGcdTree",
-              "doc": "Point updates + range gcd (of |values|), over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in one pool shared by every SparseGcdTree; node 0 is the shared all-zeros block, so a missing child needs no special case. Point updates walk down, then recompute the path. T: int, long long, ....",
+              "doc": "Point updates + range gcd (of |values|), over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; node 0 is the all-zeros block, so a missing child needs no special case. Point updates walk down, then recompute the path. T: int, long long, ....",
               "ctor": [
                 {
                   "name": "lo",
@@ -55241,8 +55164,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -55532,7 +55454,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "3*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path;  a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path;  one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path;  a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -55606,7 +55528,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMaxTree",
-              "doc": "Point updates + range max, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMaxTree; node 0 is the shared all-zeros block, so a missing child needs no special case. Point updates walk down, then recompute the path. T: int, long long, ....",
+              "doc": "Point updates + range max, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; node 0 is the all-zeros block, so a missing child needs no special case. Point updates walk down, then recompute the path. T: int, long long, ....",
               "ctor": [
                 {
                   "name": "lo",
@@ -55617,8 +55539,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -55909,7 +55830,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "3*log(U)",
         "notes": {
           "py": "per point write, one node per level of its path (rangeMod creates nothing); rangeMod's second log is of the largest value. A dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per point write, one node per level of its path (rangeMod creates nothing); rangeMod's second log is of the largest value. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per point write, one node per level of its path (rangeMod creates nothing); rangeMod's second log is of the largest value. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -55984,7 +55905,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeModTree",
-              "doc": "Range mod + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Requires a[i] >= 0, mod >= 1. Mods don't compose into one tag, so rangeMod descends into every node in range whose max is still >= mod; each value that changes at least halves, so the work is amortized. Sparse: nodes in one pool shared by every SparseRangeModTree<T>; node 0 is the shared all-zeros block, which rangeMod never enters. T: int, long long, ...",
+              "doc": "Range mod + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Requires a[i] >= 0, mod >= 1. Mods don't compose into one tag, so rangeMod descends into every node in range whose max is still >= mod; each value that changes at least halves, so the work is amortized. Sparse: nodes in a pool the tree owns; node 0 is the all-zeros block, which rangeMod never enters. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -55995,8 +55916,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -56293,7 +56213,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "12*log(U)",
         "notes": {
           "py": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A dict keyed by heap index",
-          "cpp": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A node pool per tree"
         }
       },
       "usage": {
@@ -56368,7 +56288,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeOrTree",
-              "doc": "Range or= + point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in one pool shared by every SparseRangeOrTree<T>. T: int, long long, ...",
+              "doc": "Range or= + point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in a pool the tree owns. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -56379,8 +56299,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -56671,7 +56590,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "3*log(U)",
         "notes": {
           "py": "per update, one node per level of the touched path;  a dict keyed by heap index, a missing key is a block of zeros",
-          "cpp": "per update, one node per level of the touched path;  one shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, one node per level of the touched path;  a node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -56745,7 +56664,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseSumTree",
-              "doc": "Point updates + range sum, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in one pool shared by every SparseSumTree; node 0 is the shared all-zeros block, so a missing child needs no special case. Point updates walk down, then recompute the path. T: int, long long, ...; sums are kept in S (long long for small T).",
+              "doc": "Point updates + range sum, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; node 0 is the all-zeros block, so a missing child needs no special case. Point updates walk down, then recompute the path. T: int, long long, ...; sums are kept in S (long long for small T).",
               "ctor": [
                 {
                   "name": "lo",
@@ -56756,8 +56675,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works",
-              "pool": true
+              "ctorDoc": "an all-zero array over [lo, hi]; any long long range works"
             }
           ],
           "methods": {
@@ -57048,7 +56966,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "6*log(U)",
         "notes": {
           "py": "per update, the O(logU) entries above each changed position; a range xor changes two xor-differences. A Fenwick tree in a dict (no child pointers)",
-          "cpp": "per update, the O(logU) entries above each changed position; a range xor changes two xor-differences. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the O(logU) entries above each changed position; a range xor changes two xor-differences. A dynamic prefix-sum tree in a node pool the tree owns"
         }
       },
       "usage": {
@@ -57123,7 +57041,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeXorBIT",
-              "doc": "Range xor, point get: prefix xors of the xor-difference array d[i] = a[i] ^ a[i - 1]. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseRangeXorBIT<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range xor, point get: prefix xors of the xor-difference array d[i] = a[i] ^ a[i - 1]. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -57134,8 +57052,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "type": "long long"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -57428,7 +57345,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "8*log(U)",
         "notes": {
           "py": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A Fenwick tree in a dict (no child pointers)",
-          "cpp": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A dynamic prefix-sum tree in a node pool the tree owns"
         }
       },
       "usage": {
@@ -57501,7 +57418,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseArithSeqBITMod",
-              "doc": "Range add of an arithmetic sequence (and plain range add), point get, all mod p. Adding start + (i - l) * step on [l, r] is adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of two difference arrays. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseArithSeqBITMod<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range add of an arithmetic sequence (and plain range add), point get, all mod p. Adding start + (i - l) * step on [l, r] is adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of two difference arrays. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -57517,8 +57434,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "1000000007"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -57832,7 +57748,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "10*log(U)",
         "notes": {
           "py": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. A Fenwick tree in a dict (no child pointers)",
-          "cpp": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. A dynamic prefix-sum tree in a node pool the tree owns"
         }
       },
       "usage": {
@@ -57913,7 +57829,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseArithSeqSumBITMod",
-              "doc": "Range add of an arithmetic sequence (and plain range add) + range sum, all mod p. Adding c0 + c1 * x (x = i - lo) on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[lo + x] by c0 * (x - l + 1) + c1 * (tri(x) - tri(l - 1)) for x in [l, r] (tri(k) = k(k+1)/2), and by the whole added total past r. So P(x) = A(x) + B(x) * x + C(x) * tri(x) with A, B, C prefix sums of point changes; tri keeps every coefficient an integer. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseArithSeqSumBITMod<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range add of an arithmetic sequence (and plain range add) + range sum, all mod p. Adding c0 + c1 * x (x = i - lo) on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[lo + x] by c0 * (x - l + 1) + c1 * (tri(x) - tri(l - 1)) for x in [l, r] (tri(k) = k(k+1)/2), and by the whole added total past r. So P(x) = A(x) + B(x) * x + C(x) * tri(x) with A, B, C prefix sums of point changes; tri keeps every coefficient an integer. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -57929,8 +57845,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "1000000007"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -58279,7 +58194,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is sm (internal nodes keep no aggregate). Lists of nodes",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is sm (internal nodes keep no aggregate). One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is sm (internal nodes keep no aggregate). A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -58370,7 +58285,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAffineTree",
-              "doc": "Range affine maps mod p (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v), plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into the same form. Only leaves' values matter, so nothing is pulled. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAffineTree<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range affine maps mod p (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v), plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into the same form. Only leaves' values matter, so nothing is pulled. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -58386,8 +58301,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "1000000007"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -58767,7 +58681,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "20*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Lists of nodes",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -58866,7 +58780,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseAffineSumTree",
-              "doc": "Range affine maps mod p (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v) with range sum mod p, plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into the same form, and a node's sum of k slots becomes mul * sum + add * k. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseAffineSumTree<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range affine maps mod p (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v) with range sum mod p, plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into the same form, and a node's sum of k slots becomes mul * sum + add * k. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -58882,8 +58796,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "1000000007"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -59194,7 +59107,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "8*log(U)",
         "notes": {
           "py": "per update, the O(logU) entries above each changed position; a range add changes two points of A and B. A Fenwick tree in a dict (no child pointers)",
-          "cpp": "per update, the O(logU) entries above each changed position; a range add changes two points of A and B. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the O(logU) entries above each changed position; a range add changes two points of A and B. A dynamic prefix-sum tree in a node pool the tree owns"
         }
       },
       "usage": {
@@ -59265,7 +59178,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeAddSumBITMod",
-              "doc": "Range add + range sum: adding v on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[x] by v * (x - l + 1) for x in [l, r], and the whole v * (r - l + 1) past r, so P(x) = A(x) + B(x) * x with A, B prefix sums of two arrays of point changes. All mod p. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseRangeAddSumBITMod<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range add + range sum: adding v on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[x] by v * (x - l + 1) for x in [l, r], and the whole v * (r - l + 1) past r, so P(x) = A(x) + B(x) * x with A, B prefix sums of two arrays of point changes. All mod p. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -59281,8 +59194,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "1000000007"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -59539,7 +59451,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "12*log(U)",
         "notes": {
           "py": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A dict keyed by heap index",
-          "cpp": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. One shared node pool, call resetPool() between test cases"
+          "cpp": "per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A node pool per tree"
         }
       },
       "usage": {
@@ -59602,7 +59514,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseRangeMultModTree",
-              "doc": "rangeMultMod + point ops (values in [0, mod)), over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in one pool shared by every SparseRangeMultModTree<T>. T: int, long long, ...",
+              "doc": "rangeMultMod + point ops (values in [0, mod)), over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in a pool the tree owns. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -59618,8 +59530,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "1000000007"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {
@@ -59892,7 +59803,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "total": "16*log(U)",
         "notes": {
           "py": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Lists of nodes",
-          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases"
+          "cpp": "per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)"
         }
       },
       "usage": {
@@ -59963,7 +59874,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseMultSumTree",
-              "doc": "Range mult with range sum, all mod p, plus point ops. Values are residues in [0, mod). A tag is a pending multiplier; a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a modular inverse at point writes, and a multiplier can be 0.) Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in one pool shared by every SparseMultSumTree<T>; node 0 is the shared all-zeros block. T: int, long long, ...",
+              "doc": "Range mult with range sum, all mod p, plus point ops. Values are residues in [0, mod). A tag is a pending multiplier; a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a modular inverse at point writes, and a multiplier can be 0.) Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...",
               "ctor": [
                 {
                   "name": "lo",
@@ -59979,8 +59890,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
                   "default": "1000000007"
                 }
               ],
-              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)",
-              "pool": true
+              "ctorDoc": "all zeros over [lo, hi]; any long long range works (lo <= hi)"
             }
           ],
           "methods": {

@@ -18,14 +18,13 @@
 //   node: sm[4*log(U)] mn[4*log(U)] mx[4*log(U)]
 //   tags: add[4*log(U)]
 //   other: children[8*log(U)]
-//   note: per update, the nodes it visits (at most 4 per level); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per update, the nodes it visits (at most 4 per level); queries create nothing. A node pool per tree (node 0 = all zeros)
 
-// Range add with range sum / min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-// The tag is a pending add.
-// Adds commute, so nothing is ever pushed: a node's own add stays folded into its aggregate, and
-// queries and point writes add up the adds of the ancestors on the way down.
-// Sparse: nodes exist only where updates reached, in one pool shared by every SparseAddSumMinMaxTree<T>; node 0 is the shared
-// all-zeros block (its sum, min and max are 0 at any length). T: int, long long, ...; sums are kept in S
+// Range add with range sum / min / max queries, plus point ops, over any index range [lo, hi] (huge or negative is
+// fine); every position starts at 0. The tag is a pending add. Adds commute, so nothing is ever pushed: a node's own
+// add stays folded into its aggregate, and queries and point writes add up the adds of the ancestors on the way down.
+// Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block (its sum, min
+// and max are 0 at any length). T: int, long long, ...; sums are kept in S
 template <typename T>
 struct SparseAddSumMinMaxTree {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
@@ -33,26 +32,24 @@ struct SparseAddSumMinMaxTree {
     struct Tag { T add; };
     static constexpr Tag ID = Tag{0};
     struct Node { Agg v; Tag t; int l, r; };
-    static inline vector<Node> pool{Node{Agg{}, ID, 0, 0}};  // node 0: all zeros, its children are itself
+    vector<Node> pool{Node{Agg{}, ID, 0, 0}};  // node 0: all zeros, its children are itself
     long long lo, hi;
     int root;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseAddSumMinMaxTree(long long lo, long long hi) : lo(lo), hi(hi) { root = make(); }
 
-    // O(1) -- forget every node of every SparseAddSumMinMaxTree<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{Agg{}, ID, 0, 0});
         return (int)pool.size() - 1;
     }
 
     // child of x, creating it (as a block of zeros) if missing
-    static int kid(int x, bool right) {
+    int kid(int x, bool right) {
         int y = right ? pool[x].r : pool[x].l;
         if (!y) {
             y = make();

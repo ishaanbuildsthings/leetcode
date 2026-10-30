@@ -24,31 +24,28 @@
 //   node: mx[1*log(U)] mn[1*log(U)]
 //   tags: none
 //   other: children[2*log(U)]
-//   note: per update, one node per level of the touched path;  one shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per update, one node per level of the touched path;  a node pool per tree (node 0 = all zeros)
 
-// Range max / min and leftmost / rightmost index with a[i] >= / > / <= / < x, with point updates, over
-// any index range [lo, hi] (huge or negative is fine); every position starts at 0. Searches return lo - 1 when nothing
-// qualifies (-1 when lo = 0). Sparse: only the nodes on updated paths exist, in one pool shared by every SparseMaxMinSearchTree; node 0 is the
-// shared all-zeros block. A search prunes any node whose max / min can't pass, so it visits O(log U) nodes.
-// T: int, long long, ...
+// Range max / min and leftmost / rightmost index with a[i] >= / > / <= / < x, with point updates, over any index range
+// [lo, hi] (huge or negative is fine); every position starts at 0. Searches return lo - 1 when nothing qualifies (-1
+// when lo = 0). Sparse: only the nodes on updated paths exist, in a pool the tree owns; node 0 is the all-zeros block.
+// A search prunes any node whose max / min can't pass, so it visits O(log U) nodes. T: int, long long, ...
 template <typename T>
 struct SparseMaxMinSearchTree {
     struct Agg { T mx; T mn; };
     struct Node { Agg v; int l, r; };
-    static inline vector<Node> pool{Node{Agg{}, 0, 0}};  // node 0: the shared all-zeros block
+    vector<Node> pool{Node{Agg{}, 0, 0}};  // node 0: the all-zeros block
     long long lo, hi;
     int root = 0;
 
     // O(1) -- an all-zero array over [lo, hi]; any long long range works
     SparseMaxMinSearchTree(long long lo, long long hi) : lo(lo), hi(hi) {}
 
-    // O(1) -- forget every node of every SparseMaxMinSearchTree; call once per test case, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional: reserve room for this many nodes up front (about log U per update)
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{Agg{}, 0, 0});
         return (int)pool.size() - 1;
     }

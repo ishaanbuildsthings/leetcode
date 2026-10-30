@@ -62,7 +62,7 @@
 #   node: key[1*N] cnt[1*N] size[1*N] or[1*N] and[1*N]
 #   tags: none
 #   other: children[2*N] parent[1*N]
-#   note: N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree
+#   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 # Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
 # keeps its value, its copies, and the copies, OR, AND in its subtree; every operation splays the

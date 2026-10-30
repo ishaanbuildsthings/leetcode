@@ -65,18 +65,18 @@
 //   node: key[1*N] cnt[1*N] size[1*N] dn[1*N] xor[1*N] and[1*N]
 //   tags: none
 //   other: children[2*N] prio[1*N]
-//   note: N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, call resetPool() between test cases; Python: parallel lists per tree
+//   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 
 // Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-// its value, its copies, and the copies, xor, AND and distinct values in its subtree. Nodes live in one pool shared by every
-// TreapMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused.
+// its value, its copies, and the copies, xor, AND and distinct values in its subtree. Each multiset owns its node pool
+// (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
 template <typename T>
 struct TreapMultiset {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; long long dn; T xr; T andv = ~T(0); unsigned prio; int l, r; };  // copies; copies, distinct below
-    static inline vector<Node> pool{Node{}};
-    static inline vector<int> freeList;
+    vector<Node> pool{Node{}};
+    vector<int> freeList;
     static inline mt19937 rng{(unsigned)chrono::steady_clock::now().time_since_epoch().count()};
     int root = 0;
     long long n = 0, d = 0;
@@ -89,13 +89,11 @@ struct TreapMultiset {
     // O(1) -- an empty multiset
     TreapMultiset() {}
 
-    // O(1) -- forget every node of every TreapMultiset<T>; call between test cases, then build new ones
-    static void resetPool() { pool.resize(1), freeList.clear(); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make(T x) {
+    int make(T x) {
         int t;
         if (!freeList.empty()) t = freeList.back(), freeList.pop_back();
         else pool.push_back(Node{}), t = (int)pool.size() - 1;
@@ -104,7 +102,7 @@ struct TreapMultiset {
         return t;
     }
 
-    static void pull(int t) {
+    void pull(int t) {
         Node& v = pool[t];
         const Node &a = pool[v.l], &b = pool[v.r];
         v.z = a.z + b.z + v.c;
@@ -113,7 +111,7 @@ struct TreapMultiset {
         v.andv = a.andv & b.andv & v.key;
     }
 
-    static void split(int t, T x, int& a, int& b) {  // (keys < x, keys >= x)
+    void split(int t, T x, int& a, int& b) {  // (keys < x, keys >= x)
         if (!t) {
             a = b = 0;
             return;
@@ -129,7 +127,7 @@ struct TreapMultiset {
         }
     }
 
-    static void splitLe(int t, const T& x, int& a, int& b) {  // a: keys <= x, b: keys > x
+    void splitLe(int t, const T& x, int& a, int& b) {  // a: keys <= x, b: keys > x
         if (!t) {
             a = b = 0;
             return;
@@ -145,7 +143,7 @@ struct TreapMultiset {
         }
     }
 
-    static int merge(int a, int b) {  // every key in a < every key in b
+    int merge(int a, int b) {  // every key in a < every key in b
         if (!a || !b) return a ? a : b;
         if (pool[a].prio > pool[b].prio) {
             int r = merge(pool[a].r, b);
@@ -288,17 +286,8 @@ struct TreapMultiset {
         xtotal = 0;
     }
 
-    void clearData() {  // hand this tree's nodes back to the shared pool's free list
-        vector<int> st;
-        if (root) st.push_back(root);
-        while (!st.empty()) {
-            int t = st.back();
-            st.pop_back();
-            if (pool[t].l) st.push_back(pool[t].l);
-            if (pool[t].r) st.push_back(pool[t].r);
-            freeList.push_back(t);
-        }
-        root = 0;
+    void clearData() {  // drop every node but keep the pool's memory for the next adds
+        pool.resize(1), freeList.clear(), root = 0;
     }
 
     T xlt(T x) {  // xor of the values < x (copies count)

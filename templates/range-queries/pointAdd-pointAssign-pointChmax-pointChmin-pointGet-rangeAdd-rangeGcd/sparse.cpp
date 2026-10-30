@@ -16,30 +16,28 @@
 //   node: sum[2*log(U)] g[2*log(U)]
 //   tags: none
 //   other: children[4*log(U)]
-//   note: per range add, the two root paths of the differences it changes; one tree over the differences keeps their sum (prefix sums are point values) and gcd; the gcd costs' second log is of the largest value. One shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per range add, the two root paths of the differences it changes; one tree over the differences keeps their sum (prefix sums are point values) and gcd; the gcd costs' second log is of the largest value. A node pool per tree (node 0 = all zeros)
 
-// Range add + range gcd + point ops over any index range [lo, hi] (huge or negative is fine); every position
-// starts at 0. gcd(a[l], ..., a[r]) == gcd(a[l], a[l+1] - a[l], ..., a[r] - a[r-1]), and a range add only changes
-// two adjacent differences. One sparse tree over the differences d[i] = a[i] - a[i-1] (d[lo] = a[lo]) keeps their
-// sum (a prefix sum is a point value) and the gcd of their absolute values. Sparse: nodes in one pool shared by
-// every SparseRangeAddRangeGcd<T>; node 0 is the shared block of zero differences. T: int, long long, ...
+// Range add + range gcd + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at
+// 0. gcd(a[l], ..., a[r]) == gcd(a[l], a[l+1] - a[l], ..., a[r] - a[r-1]), and a range add only changes two adjacent
+// differences. One sparse tree over the differences d[i] = a[i] - a[i-1] (d[lo] = a[lo]) keeps their sum (a prefix sum
+// is a point value) and the gcd of their absolute values. Sparse: nodes in a pool the tree owns; node 0 is the block of
+// zero differences. T: int, long long, ...
 template <typename T>
 struct SparseRangeAddRangeGcd {
     struct Node { T sum, g; int l, r; };
-    static inline vector<Node> pool{Node{0, 0, 0, 0}};  // node 0: all-zero differences, its children are itself
+    vector<Node> pool{Node{0, 0, 0, 0}};  // node 0: all-zero differences, its children are itself
     long long lo, hi;
     int root = 0;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseRangeAddRangeGcd(long long lo, long long hi) : lo(lo), hi(hi) {}
 
-    // O(1) -- forget every node of every SparseRangeAddRangeGcd<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front (about 2 logU per range add)
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{0, 0, 0, 0});
         return (int)pool.size() - 1;
     }

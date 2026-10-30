@@ -14,16 +14,14 @@
 //   node: sm[4*log(U)]
 //   tags: mul[4*log(U)]
 //   other: children[8*log(U)]
-//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)
 
-// Range mult with range sum, all mod p, plus point ops. Values are residues in [0, mod). A tag is a pending
-// multiplier; a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a
-// modular inverse at point writes, and a multiplier can be 0.)
-// Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's
-// tag into its children (creating them) before recursing past it; queries never push: they carry the
-// ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only
-// where updates reached, in one pool shared by every SparseMultSumTree<T>; node 0 is the shared all-zeros block.
-// T: int, long long, ...
+// Range mult with range sum, all mod p, plus point ops. Values are residues in [0, mod). A tag is a pending multiplier;
+// a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a modular inverse at point
+// writes, and a multiplier can be 0.) Over any index range [lo, hi] (huge or negative is fine); every position starts
+// at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they
+// carry the ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only
+// where updates reached, in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...
 template <typename T>
 struct SparseMultSumTree {
     using W = conditional_t<sizeof(T) <= 4, long long, __int128>;
@@ -31,7 +29,7 @@ struct SparseMultSumTree {
     struct Tag { T mul; };
     static constexpr Tag ID = Tag{1};
     struct Node { Agg v; Tag t; int l, r; };
-    static inline vector<Node> pool{Node{Agg{}, ID, 0, 0}};  // node 0: all zeros, its children are itself
+    vector<Node> pool{Node{Agg{}, ID, 0, 0}};  // node 0: all zeros, its children are itself
     long long lo, hi;
     int root;
     T mod;
@@ -39,19 +37,17 @@ struct SparseMultSumTree {
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseMultSumTree(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), mod(mod) { root = make(); }
 
-    // O(1) -- forget every node of every SparseMultSumTree<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{Agg{}, ID, 0, 0});
         return (int)pool.size() - 1;
     }
 
     // child of x, creating it (as a block of zeros) if missing
-    static int kid(int x, bool right) {
+    int kid(int x, bool right) {
         int y = right ? pool[x].r : pool[x].l;
         if (!y) {
             y = make();

@@ -15,30 +15,27 @@
 //   node: v[1*log(U)]
 //   tags: none
 //   other: children[2*log(U)]
-//   note: per update, one node per level of the touched path; leaves hold the signed values, internal nodes the gcd of |values|; one shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per update, one node per level of the touched path; leaves hold the signed values, internal nodes the gcd of |values|; a node pool per tree (node 0 = all zeros)
 
-// Point updates + range gcd (of |values|), over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-// Sparse: only the nodes on updated paths exist, in one pool shared by every SparseGcdTree; node 0 is the shared
-// all-zeros block, so a missing child needs no special case. Point updates walk down, then recompute the path.
-// T: int, long long, ....
+// Point updates + range gcd (of |values|), over any index range [lo, hi] (huge or negative is fine); every position
+// starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; node 0 is the all-zeros block,
+// so a missing child needs no special case. Point updates walk down, then recompute the path. T: int, long long, ....
 template <typename T>
 struct SparseGcdTree {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T v; int l, r; };
-    static inline vector<Node> pool{Node{0, 0, 0}};  // node 0: the shared all-zeros block
+    vector<Node> pool{Node{0, 0, 0}};  // node 0: the all-zeros block
     long long lo, hi;
     int root = 0;
 
     // O(1) -- an all-zero array over [lo, hi]; any long long range works
     SparseGcdTree(long long lo, long long hi) : lo(lo), hi(hi) {}
 
-    // O(1) -- forget every node of every SparseGcdTree; call once per test case, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional: reserve room for this many nodes up front (about log U per update)
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{0, 0, 0});
         return (int)pool.size() - 1;
     }

@@ -15,36 +15,34 @@
 //   node: none
 //   tags: tag[4*log(U)]
 //   other: children[8*log(U)]
-//   note: per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. One shared node pool, call resetPool() between test cases
+//   note: per update, the nodes a range update visits (at most 4 per level; a point write creates its path and the path's siblings); a node's one field is its pending tag, or at a leaf its value. A node pool per tree
 
 // Range chmax + point ops, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-// Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its
-// O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags
-// on its path down, so they stop applying to it. Sparse: nodes exist only where updates reached, in one pool
-// shared by every SparseRangeChmaxTree<T>. T: int, long long, ...
+// Internal nodes hold a pending tag, leaves hold values. The tags commute, so a range update just tags its O(logU)
+// covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags on its path
+// down, so they stop applying to it. Sparse: nodes exist only where updates reached, in a pool the tree owns. T: int,
+// long long, ...
 template <typename T>
 struct SparseRangeChmaxTree {
     struct Node { T v; int l, r; };  // internal node: pending tag (numeric_limits<T>::lowest() = none); leaf: value
-    static inline vector<Node> pool{Node{}};  // node 0 is never used: a 0 link means "not created yet"
+    vector<Node> pool{Node{}};  // node 0 is never used: a 0 link means "not created yet"
     long long lo, hi;
     int root;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseRangeChmaxTree(long long lo, long long hi) : lo(lo), hi(hi) { root = make(lo == hi); }
 
-    // O(1) -- forget every node of every SparseRangeChmaxTree<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make(bool leaf) {
+    int make(bool leaf) {
         pool.push_back(Node{leaf ? T(0) : numeric_limits<T>::lowest(), 0, 0});
         return (int)pool.size() - 1;
     }
 
     // child of x (creating it if missing); leaf: whether the child is a single position
-    static int kid(int x, bool right, bool leaf) {
+    int kid(int x, bool right, bool leaf) {
         int y = right ? pool[x].r : pool[x].l;
         if (!y) {
             y = make(leaf);

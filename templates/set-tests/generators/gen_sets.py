@@ -21,7 +21,7 @@ Structures (each in a count-only version and a count + sum version, unless noted
     avl          online: AVL tree on a node pool (subtree counts / sums), freed nodes reused   log N worst case
     blocks       online: sorted blocks of distinct keys with per-block counts / sums + Fenwick over blocks   sqrt N
     blocks-fenwick   online: the same blocks with a Fenwick tree inside each block: queries log N, updates sqrt N
-    value-tree   online, values in [lo, hi]: a dynamic value tree (C++: shared node pool; Python: dict)   log U
+    value-tree   online, values in [lo, hi]: a dynamic value tree (C++: node pool per multiset; Python: dict)   log U
     treap        online: treap on a node pool, freed nodes reused   log N expected
     splay        online: splay tree on a node pool, freed nodes reused   log N amortized
     pbds         online, C++ only, count-only: GCC order-statistics tree, one node per copy   log N
@@ -829,28 +829,26 @@ class ValueTreeMultiset:
     sfield = "S s; " if s else ""
     cpp = f'''
 // Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
-// each node keeping how many copies{", their sum," if s else ""}{agg}{" and how many distinct values (for mex)" if M else ""} are below it. Nodes live in one pool
-// shared by every ValueTreeMultiset<T> (call resetPool() between test cases); node 0 is the shared empty block.
+// each node keeping how many copies{", their sum," if s else ""}{agg}{" and how many distinct values (for mex)" if M else ""} are below it. Each multiset owns
+// its node pool (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty block.
 // k-th / sums of the k smallest descend by counts{"; mex descends to the first value >= 0 whose block isn" + chr(39) + "t full" if M else ""}.
 // T: int, long long, ...; sums in S (long long for small T).
 template <typename T>
 struct ValueTreeMultiset {{
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node {{ long long c; {sfield}{"long long p; " if M else ""}{"T xr; " if X else ""}{"T orv; " if O else ""}{"T andv = ~T(0); " if A else ""}int l, r; }};  // copies{", sum" if s else ""}{", distinct values" if M else ""}{agg.replace(", their", ",")} below
-    static inline vector<Node> pool{{Node{{}}}};  // node 0: empty, its children are itself
+    vector<Node> pool{{Node{{}}}};  // node 0: empty, its children are itself
     long long lo, hi, n = 0, d = 0;
 {"    S total = 0;" + chr(10) if s else ""}    int root = 0;
 
     // O(1) -- an empty multiset for values in [lo, hi] (any long long range, negative is fine)
     ValueTreeMultiset(long long lo, long long hi) : lo(lo), hi(hi) {{}}
 
-    // O(1) -- forget every node of every ValueTreeMultiset<T>; call between test cases, then build new ones
-    static void resetPool() {{ pool.resize(1); }}
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
+    void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
 
-    static int make() {{
+    int make() {{
         pool.push_back(Node{{}});
         return (int)pool.size() - 1;
     }}
@@ -981,8 +979,8 @@ struct ValueTreeMultiset {{
                 cpp=keep_aggs(keep_mex(cpp, M), X, O, A), comps=comps, mex=M, bits=bits,
 
                 mem=("sparse", node, "none", "children[2*log(U)]"),
-                note="per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared "
-                     "node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index")
+                note="per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset "
+                     "owns its node pool (node 0 = empty); Python: dicts keyed by heap index")
 
 
 # ------------------------------------------------------------------------------------------------ AVL tree, treap, splay tree
@@ -1306,15 +1304,15 @@ class TreapMultiset:
     sfield = "S s; " if s else ""
     cpp = f'''
 // Ordered multiset (online: any values, nothing known ahead): a treap with one node per distinct value. Each node keeps
-// its value, its copies, and the copies{", sum" if s else ""}{agg}{" and distinct values" if M else ""} in its subtree. Nodes live in one pool shared by every
-// TreapMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused.
+// its value, its copies, and the copies{", sum" if s else ""}{agg}{" and distinct values" if M else ""} in its subtree. Each multiset owns its node pool
+// (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
 template <typename T>
 struct TreapMultiset {{
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node {{ T key; long long c, z; {sfield}{"long long dn; " if M else ""}{"T xr; " if X else ""}{"T orv; " if O else ""}{"T andv = ~T(0); " if A else ""}unsigned prio; int l, r; }};  // copies; copies{", sum" if s else ""}{", distinct" if M else ""} below
-    static inline vector<Node> pool{{Node{{}}}};
-    static inline vector<int> freeList;
+    vector<Node> pool{{Node{{}}}};
+    vector<int> freeList;
     static inline mt19937 rng{{(unsigned)chrono::steady_clock::now().time_since_epoch().count()}};
     int root = 0;
     long long n = 0, d = 0;
@@ -1322,13 +1320,11 @@ struct TreapMultiset {{
     // O(1) -- an empty multiset
     TreapMultiset() {{}}
 
-    // O(1) -- forget every node of every TreapMultiset<T>; call between test cases, then build new ones
-    static void resetPool() {{ pool.resize(1), freeList.clear(); }}
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
+    void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
 
-    static int make(T x) {{
+    int make(T x) {{
         int t;
         if (!freeList.empty()) t = freeList.back(), freeList.pop_back();
         else pool.push_back(Node{{}}), t = (int)pool.size() - 1;
@@ -1337,7 +1333,7 @@ struct TreapMultiset {{
         return t;
     }}
 
-    static void pull(int t) {{
+    void pull(int t) {{
         Node& v = pool[t];
         const Node &a = pool[v.l], &b = pool[v.r];
         v.z = a.z + b.z + v.c;
@@ -1347,7 +1343,7 @@ struct TreapMultiset {{
         v.andv = a.andv & b.andv & v.key;  @and
 {"        v.s = a.s + b.s + S(v.c) * v.key;" + chr(10) if s else ""}    }}
 
-    static void split(int t, T x, int& a, int& b) {{  // (keys < x, keys >= x)
+    void split(int t, T x, int& a, int& b) {{  // (keys < x, keys >= x)
         if (!t) {{
             a = b = 0;
             return;
@@ -1363,7 +1359,7 @@ struct TreapMultiset {{
         }}
     }}
 
-    static void splitLe(int t, const T& x, int& a, int& b) {{  // a: keys <= x, b: keys > x
+    void splitLe(int t, const T& x, int& a, int& b) {{  // a: keys <= x, b: keys > x
         if (!t) {{
             a = b = 0;
             return;
@@ -1379,7 +1375,7 @@ struct TreapMultiset {{
         }}
     }}
 
-    static int merge(int a, int b) {{  // every key in a < every key in b
+    int merge(int a, int b) {{  // every key in a < every key in b
         if (!a || !b) return a ? a : b;
         if (pool[a].prio > pool[b].prio) {{
             int r = merge(pool[a].r, b);
@@ -1411,8 +1407,8 @@ struct TreapMultiset {{
     return dict(name="TreapMultiset", dtype="treap", values="online", py=keep_aggs(keep_mex(py, M), X, O, A),
                 cpp=keep_aggs(keep_mex(cpp, M), X, O, A), comps=comps, mex=M, bits=bits,
                 mem=("none", node, "none", "children[2*N] prio[1*N]"),
-                note="N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, "
-                     "call resetPool() between test cases; Python: parallel lists per tree")
+                note="N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its "
+                     "node pool; Python: parallel lists per tree")
 
 
 def avl(sums, mex, bits=(False, False, False)):
@@ -1537,27 +1533,25 @@ class AVLMultiset:
     cpp = f'''
 // Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so every
 // operation is O(log N) worst case (height <= 1.44 log2 N). Each node keeps its value, its copies, and the copies{", sum" if s else ""}{agg}
-// {"and distinct values " if M else ""}in its subtree. Nodes live in one pool shared by every AVLMultiset<T> (call resetPool() between
-// test cases); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
+// {"and distinct values " if M else ""}in its subtree. Each multiset owns its node pool (freed when it goes out of
+// scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
 template <typename T>
 struct AVLMultiset {{
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node {{ T key; long long c, z; {sfield}{"long long dn; " if M else ""}{"T xr; " if X else ""}{"T orv; " if O else ""}{"T andv = ~T(0); " if A else ""}int h, l, r; }};  // copies; copies{", sum" if s else ""}{", distinct" if M else ""} below; height
-    static inline vector<Node> pool{{Node{{}}}};
-    static inline vector<int> freeList;
+    vector<Node> pool{{Node{{}}}};
+    vector<int> freeList;
     int root = 0;
     long long n = 0, d = 0;
 {"    S total = 0;" + chr(10) if s else ""}
     // O(1) -- an empty multiset
     AVLMultiset() {{}}
 
-    // O(1) -- forget every node of every AVLMultiset<T>; call between test cases, then build new ones
-    static void resetPool() {{ pool.resize(1), freeList.clear(); }}
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
+    void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
 
-    static int make(T x, long long c) {{
+    int make(T x, long long c) {{
         int t;
         if (!freeList.empty()) t = freeList.back(), freeList.pop_back();
         else pool.push_back(Node{{}}), t = (int)pool.size() - 1;
@@ -1567,7 +1561,7 @@ struct AVLMultiset {{
         return t;
     }}
 
-    static void pull(int t) {{
+    void pull(int t) {{
         Node& v = pool[t];
         const Node &a = pool[v.l], &b = pool[v.r];
         v.z = a.z + b.z + v.c, v.h = std::max(a.h, b.h) + 1;
@@ -1577,21 +1571,21 @@ struct AVLMultiset {{
         v.andv = a.andv & b.andv & v.key;  @and
 {"        v.s = a.s + b.s + S(v.c) * v.key;" + chr(10) if s else ""}    }}
 
-    static int rotR(int t) {{  // t's left child moves up
+    int rotR(int t) {{  // t's left child moves up
         int l = pool[t].l;
         pool[t].l = pool[l].r, pool[l].r = t;
         pull(t), pull(l);
         return l;
     }}
 
-    static int rotL(int t) {{  // t's right child moves up
+    int rotL(int t) {{  // t's right child moves up
         int r = pool[t].r;
         pool[t].r = pool[r].l, pool[r].l = t;
         pull(t), pull(r);
         return r;
     }}
 
-    static int bal(int t) {{  // pull t and restore |height(left) - height(right)| <= 1; returns the subtree's new root
+    int bal(int t) {{  // pull t and restore |height(left) - height(right)| <= 1; returns the subtree's new root
         pull(t);
         int b = pool[pool[t].l].h - pool[pool[t].r].h;
         if (b > 1) {{
@@ -1607,7 +1601,7 @@ struct AVLMultiset {{
         return t;
     }}
 
-    static int popMin(int t, int& m) {{  // t without its smallest node, which goes to m
+    int popMin(int t, int& m) {{  // t without its smallest node, which goes to m
         if (!pool[t].l) {{
             m = t;
             return pool[t].r;
@@ -1653,8 +1647,8 @@ struct AVLMultiset {{
     return dict(name="AVLMultiset", dtype="avl", values="online", py=keep_aggs(keep_mex(py, M), X, O, A),
                 cpp=keep_aggs(keep_mex(cpp, M), X, O, A), comps=comps, mex=M, bits=bits,
                 mem=("none", node, "none", "children[2*N] height[1*N]"),
-                note="N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, "
-                     "call resetPool() between test cases; Python: parallel lists per tree")
+                note="N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its "
+                     "node pool; Python: parallel lists per tree")
 
 
 def splay_walks_py(s):
@@ -2038,28 +2032,26 @@ class SplayMultiset:
     cpp = f'''
 // Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
 // keeps its value, its copies, and the copies{", sum" if s else ""}{agg}{" and distinct values" if M else ""} in its subtree; every operation splays the
-// last node it touched to the root, which makes each one O(log N) amortized. Nodes live in one pool shared by every
-// SplayMultiset<T> (call resetPool() between test cases); node 0 is the empty tree and removed nodes are reused.
+// last node it touched to the root, which makes each one O(log N) amortized. Each multiset owns its node pool
+// (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused.
 // T: an integer type; sums in S (long long for small T).
 template <typename T>
 struct SplayMultiset {{
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node {{ T key; long long c, z; {sfield}{"long long dn; " if M else ""}{"T xr; " if X else ""}{"T orv; " if O else ""}{"T andv = ~T(0); " if A else ""}int l, r, p; }};  // copies; copies{", sum" if s else ""}{", distinct" if M else ""} below; parent
-    static inline vector<Node> pool{{Node{{}}}};
-    static inline vector<int> freeList;
+    vector<Node> pool{{Node{{}}}};
+    vector<int> freeList;
     int root = 0;
     long long n = 0, d = 0;
 {"    S total = 0;" + chr(10) if s else ""}
     // O(1) -- an empty multiset
     SplayMultiset() {{}}
 
-    // O(1) -- forget every node of every SplayMultiset<T>; call between test cases, then build new ones
-    static void resetPool() {{ pool.resize(1), freeList.clear(); }}
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
+    void reservePool(size_t nodes) {{ pool.reserve(nodes); }}
 
-    static int make(T x, int parent) {{
+    int make(T x, int parent) {{
         int t;
         if (!freeList.empty()) t = freeList.back(), freeList.pop_back();
         else pool.push_back(Node{{}}), t = (int)pool.size() - 1;
@@ -2068,7 +2060,7 @@ struct SplayMultiset {{
         return t;
     }}
 
-    static void pull(int t) {{
+    void pull(int t) {{
         Node& v = pool[t];
         const Node &a = pool[v.l], &b = pool[v.r];
         v.z = a.z + b.z + v.c;
@@ -2078,7 +2070,7 @@ struct SplayMultiset {{
         v.andv = a.andv & b.andv & v.key;  @and
 {"        v.s = a.s + b.s + S(v.c) * v.key;" + chr(10) if s else ""}    }}
 
-    static void rotate(int x) {{  // x moves above its parent
+    void rotate(int x) {{  // x moves above its parent
         int p = pool[x].p, g = pool[p].p, b;
         if (pool[p].l == x) b = pool[x].r, pool[p].l = b, pool[x].r = p;
         else b = pool[x].l, pool[p].r = b, pool[x].l = p;
@@ -2088,7 +2080,7 @@ struct SplayMultiset {{
         pull(p), pull(x);
     }}
 
-    static int splay(int x) {{  // x becomes the root of its tree
+    int splay(int x) {{  // x becomes the root of its tree
         while (int p = pool[x].p) {{
             if (int g = pool[p].p) rotate((pool[g].l == p) == (pool[p].l == x) ? p : x);
             rotate(x);
@@ -2149,8 +2141,8 @@ struct SplayMultiset {{
     return dict(name="SplayMultiset", dtype="splay", values="online", py=keep_aggs(keep_mex(py, M), X, O, A),
                 cpp=keep_aggs(keep_mex(cpp, M), X, O, A), comps=comps, mex=M, bits=bits,
                 mem=("none", node, "none", "children[2*N] parent[1*N]"),
-                note="N = most distinct values present at once (removed nodes are reused). C++: one shared node pool, "
-                     "call resetPool() between test cases; Python: parallel lists per tree")
+                note="N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its "
+                     "node pool; Python: parallel lists per tree")
 
 
 def blocks(sums, bits=(False, False, False)):
@@ -4518,34 +4510,15 @@ def clear_cpp(dtype, sums, mex, mexc, mode=False, gaps=False, bits=(False, False
     }
 """)
     elif dtype == "value-tree":
-        zero = "v.c = 0" + (", v.s = 0" if sums else "") + (", v.p = 0" if mex else "") + (", v.xr = 0" if X else "") + (
-            ", v.orv = 0" if O else "") + (", v.andv = ~T(0)" if A else "")
-        out += f"""
-    void clearData() {{  // zero this tree's nonzero nodes in place: the next adds reuse them, so nothing leaks
-        vector<int> st;
-        if (root && pool[root].c) st.push_back(root);
-        while (!st.empty()) {{
-            Node& v = pool[st.back()];
-            st.pop_back();
-            {zero};
-            if (v.l && pool[v.l].c) st.push_back(v.l);
-            if (v.r && pool[v.r].c) st.push_back(v.r);
-        }}
-    }}
+        out += """
+    void clearData() {  // drop every node but keep the pool's memory for the next adds
+        pool.resize(1), root = 0;
+    }
 """
     elif dtype in ("avl", "treap", "splay"):
         out += """
-    void clearData() {  // hand this tree's nodes back to the shared pool's free list
-        vector<int> st;
-        if (root) st.push_back(root);
-        while (!st.empty()) {
-            int t = st.back();
-            st.pop_back();
-            if (pool[t].l) st.push_back(pool[t].l);
-            if (pool[t].r) st.push_back(pool[t].r);
-            freeList.push_back(t);
-        }
-        root = 0;
+    void clearData() {  // drop every node but keep the pool's memory for the next adds
+        pool.resize(1), freeList.clear(), root = 0;
     }
 """
     elif dtype == "blocks":

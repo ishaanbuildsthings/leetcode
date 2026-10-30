@@ -15,32 +15,30 @@
 //   node: pp[1*log(U)] pm[1*log(U)] mp[1*log(U)] mm[1*log(U)]
 //   tags: none
 //   other: children[2*log(U)]
-//   note: per update, one node per level of the touched path; pairs (first sign, last sign) of a block of zeros: a single zero can't start + and end -; one shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per update, one node per level of the touched path; pairs (first sign, last sign) of a block of zeros: a single zero can't start + and end -; a node pool per tree (node 0 = all zeros)
 
-// Max alternating subsequence sum +a - b + c ... with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-// Sparse: only the nodes on updated paths exist, in one pool shared by every SparseAltSumTree; a missing child is a block
-// of zeros. Each node keeps the summary (pp, pm, mp, mm); merging is not commutative, so queries combine left to right.
-// T: int, long long, ...; sums are kept in S (long long for small T).
+// Max alternating subsequence sum +a - b + c ... with point updates, over any index range [lo, hi] (huge or negative is
+// fine); every position starts at 0. Sparse: only the nodes on updated paths exist, in a pool the tree owns; a missing
+// child is a block of zeros. Each node keeps the summary (pp, pm, mp, mm); merging is not commutative, so queries
+// combine left to right. T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct SparseAltSumTree {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr S NEG = numeric_limits<S>::lowest() / 4;  // an impossible (first sign, last sign) pair
     struct Agg { S pp; S pm; S mp; S mm; };
     struct Node { Agg v; int l, r; };
-    static inline vector<Node> pool{Node{Agg{}, 0, 0}};  // node 0: the shared all-zeros block
+    vector<Node> pool{Node{Agg{}, 0, 0}};  // node 0: the all-zeros block
     long long lo, hi;
     int root = 0;
 
     // O(1) -- an all-zero array over [lo, hi]; any long long range works
     SparseAltSumTree(long long lo, long long hi) : lo(lo), hi(hi) {}
 
-    // O(1) -- forget every node of every SparseAltSumTree; call once per test case, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional: reserve room for this many nodes up front (about log U per update)
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{Agg{}, 0, 0});
         return (int)pool.size() - 1;
     }
@@ -82,7 +80,7 @@ struct SparseAltSumTree {
     static Agg merge(const Agg& a, const Agg& b) { return Agg{max({a.pp, b.pp, a.pp + b.mp, a.pm + b.pp}), max({a.pm, b.pm, a.pp + b.mm, a.pm + b.pm}), max({a.mp, b.mp, a.mp + b.mp, a.mm + b.pp}), max({a.mm, b.mm, a.mp + b.mm, a.mm + b.pm})}; }
     static Agg leaf(T v) { return Agg{S(v), NEG, NEG, -S(v)}; }
     static Agg zero(long long len) { (void)len; return Agg{0, len > 1 ? S(0) : NEG, len > 1 ? S(0) : NEG, 0}; }  // a block of len zeros
-    static Agg agg(int x, long long len) { return x ? pool[x].v : zero(len); }
+    Agg agg(int x, long long len) { return x ? pool[x].v : zero(len); }
 
     // O(logU) -- a[i] = v
     void pointAssign(long long i, T v) {

@@ -17,16 +17,15 @@
 //   node: sm[4*log(U)]
 //   tags: mul[4*log(U)] add[4*log(U)]
 //   other: children[8*log(U)]
-//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. One shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)
 
 // Range affine maps mod p (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v) with range sum mod p,
-// plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into
-// the same form, and a node's sum of k slots becomes mul * sum + add * k.
-// Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's
-// tag into its children (creating them) before recursing past it; queries never push: they carry the
-// ancestors' tags down and apply them to what they return, so they create no nodes. Sparse: nodes exist only
-// where updates reached, in one pool shared by every SparseAffineSumTree<T>; node 0 is the shared all-zeros block.
-// T: int, long long, ...
+// plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into the same
+// form, and a node's sum of k slots becomes mul * sum + add * k. Over any index range [lo, hi] (huge or negative is
+// fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past
+// it; queries never push: they carry the ancestors' tags down and apply them to what they return, so they create no
+// nodes. Sparse: nodes exist only where updates reached, in a pool the tree owns; node 0 is the all-zeros block. T:
+// int, long long, ...
 template <typename T>
 struct SparseAffineSumTree {
     using W = conditional_t<sizeof(T) <= 4, long long, __int128>;
@@ -34,7 +33,7 @@ struct SparseAffineSumTree {
     struct Tag { T mul, add; };  // x -> mul * x + add
     static constexpr Tag ID = Tag{1, 0};
     struct Node { Agg v; Tag t; int l, r; };
-    static inline vector<Node> pool{Node{Agg{}, ID, 0, 0}};  // node 0: all zeros, its children are itself
+    vector<Node> pool{Node{Agg{}, ID, 0, 0}};  // node 0: all zeros, its children are itself
     long long lo, hi;
     int root;
     T mod;
@@ -42,19 +41,17 @@ struct SparseAffineSumTree {
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseAffineSumTree(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), mod(mod) { root = make(); }
 
-    // O(1) -- forget every node of every SparseAffineSumTree<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{Agg{}, ID, 0, 0});
         return (int)pool.size() - 1;
     }
 
     // child of x, creating it (as a block of zeros) if missing
-    static int kid(int x, bool right) {
+    int kid(int x, bool right) {
         int y = right ? pool[x].r : pool[x].l;
         if (!y) {
             y = make();

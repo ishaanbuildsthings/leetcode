@@ -15,17 +15,16 @@
 //   node: mx[1*log(U)]
 //   tags: none
 //   other: children[2*log(U)]
-//   note: per point write, one node per level of its path (rangeMod creates nothing); rangeMod's second log is of the largest value. One shared node pool (node 0 = all zeros), call resetPool() between test cases
+//   note: per point write, one node per level of its path (rangeMod creates nothing); rangeMod's second log is of the largest value. A node pool per tree (node 0 = all zeros)
 
-// Range mod + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-// Requires a[i] >= 0, mod >= 1. Mods don't compose into one tag, so rangeMod descends into every node in range
-// whose max is still >= mod; each value that changes at least halves, so the work is amortized. Sparse: nodes in
-// one pool shared by every SparseRangeModTree<T>; node 0 is the shared all-zeros block, which rangeMod never enters.
-// T: int, long long, ...
+// Range mod + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Requires
+// a[i] >= 0, mod >= 1. Mods don't compose into one tag, so rangeMod descends into every node in range whose max is
+// still >= mod; each value that changes at least halves, so the work is amortized. Sparse: nodes in a pool the tree
+// owns; node 0 is the all-zeros block, which rangeMod never enters. T: int, long long, ...
 template <typename T>
 struct SparseRangeModTree {
     struct Node { T mx; int l, r; };  // max of the subtree
-    static inline vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
+    vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
     long long lo, hi;
     int root = 0;
     int path[130];
@@ -33,13 +32,11 @@ struct SparseRangeModTree {
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseRangeModTree(long long lo, long long hi) : lo(lo), hi(hi) {}
 
-    // O(1) -- forget every node of every SparseRangeModTree<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{T(0), 0, 0});
         return (int)pool.size() - 1;
     }

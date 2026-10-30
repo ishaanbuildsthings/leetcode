@@ -15,35 +15,33 @@
 //   node: none
 //   tags: stamp[4*log(U)] val[4*log(U)]
 //   other: children[8*log(U)]
-//   note: per update, the nodes a range update visits (at most 4 per level), each remembering the newest assignment covering it. One shared node pool, call resetPool() between test cases
+//   note: per update, the nodes a range update visits (at most 4 per level), each remembering the newest assignment covering it. A node pool per tree
 
-// Range assign + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
-// No pushing anywhere: assignments are stamped with an increasing counter, every node remembers the newest one
-// covering it, and pointGet returns the newest on the leaf's root path. Sparse: nodes exist only where updates
-// reached, in one pool shared by every SparseRangeAssignTree<T>. T: int, long long, ...
+// Range assign + point ops over any index range [lo, hi] (huge or negative is fine); every position starts at 0. No
+// pushing anywhere: assignments are stamped with an increasing counter, every node remembers the newest one covering
+// it, and pointGet returns the newest on the leaf's root path. Sparse: nodes exist only where updates reached, in a
+// pool the tree owns. T: int, long long, ...
 template <typename T>
 struct SparseRangeAssignTree {
     struct Node { int stamp; T v; int l, r; };  // the newest assignment covering the node (stamp 0: none)
-    static inline vector<Node> pool{Node{}};  // node 0 is never used: a 0 link means "not created yet"
+    vector<Node> pool{Node{}};  // node 0 is never used: a 0 link means "not created yet"
     long long lo, hi;
     int root, clock = 0;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseRangeAssignTree(long long lo, long long hi) : lo(lo), hi(hi) { root = make(); }
 
-    // O(1) -- forget every node of every SparseRangeAssignTree<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{0, T(0), 0, 0});
         return (int)pool.size() - 1;
     }
 
     // child of x, creating it if missing
-    static int kid(int x, bool right) {
+    int kid(int x, bool right) {
         int y = right ? pool[x].r : pool[x].l;
         if (!y) {
             y = make();

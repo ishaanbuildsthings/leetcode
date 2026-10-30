@@ -14,20 +14,19 @@
 //   node: c[2*log(U)] s[2*log(U)]
 //   tags: none
 //   other: children[4*log(U)]
-//   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A dynamic prefix-sum tree in one shared node pool, call resetPool() between test cases
+//   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A dynamic prefix-sum tree in a node pool the tree owns
 
-// Range add of an arithmetic sequence (and plain range add), point get, all mod p. Adding start + (i - l) * step on
-// [l, r] is adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of
-// two difference arrays.
-// Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic
-// prefix-sum tree over offsets x = i - lo in [0, n), in one pool shared by every SparseArithSeqBITMod<T>; node 0 is the
-// shared all-zeros block. T: int, long long, ...
+// Range add of an arithmetic sequence (and plain range add), point get, all mod p. Adding start + (i - l) * step on [l,
+// r] is adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of two difference
+// arrays. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic
+// prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int,
+// long long, ...
 template <typename T>
 struct SparseArithSeqBITMod {
     using W = conditional_t<sizeof(T) <= 4, long long, __int128>;
     using F = array<T, 2>;
     struct Node { F f; int l, r; };  // f: totals of the point changes under the node
-    static inline vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
+    vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
     long long lo, hi, n;
     int root = 0;
     T mod;
@@ -35,13 +34,11 @@ struct SparseArithSeqBITMod {
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseArithSeqBITMod(long long lo, long long hi, T mod = 1000000007) : lo(lo), hi(hi), n(hi - lo + 1), mod(mod) {}
 
-    // O(1) -- forget every node of every SparseArithSeqBITMod<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{});
         return (int)pool.size() - 1;
     }

@@ -15,31 +15,29 @@
 //   node: h[1*log(U)]
 //   tags: none
 //   other: children[2*log(U)] vals[1]
-//   note: per point write, the O(logU) entries above it; every value's 64-bit tag is splitmix64(value ^ seed) (a keyed hash with a random per-run seed, no table) and position i stores tag(a[i]) ^ tag(0), so untouched positions store nothing and a range adds tag(0) once per odd length. A dynamic prefix-xor tree in one shared node pool, call resetPool() between test cases
+//   note: per point write, the O(logU) entries above it; every value's 64-bit tag is splitmix64(value ^ seed) (a keyed hash with a random per-run seed, no table) and position i stores tag(a[i]) ^ tag(0), so untouched positions store nothing and a range adds tag(0) once per odd length. A dynamic prefix-xor tree in a node pool the tree owns
 
-// Range "does every value appear an even number of times?" via xor hashing, with point updates, over any index
-// range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value's 64-bit tag is
-// splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values share a tag,
-// distinct integers never collide, and no table is needed. Xor over a range cancels tags in pairs, so an all-even
-// range hashes to 0 (false positives ~q / 2^64). A position's value lives in its tree leaf.
-// Sparse: position i stores tag(a[i]) ^ tag(0) in a dynamic prefix-xor tree (nothing for the untouched), so the xor
-// of the real tags over [l, r] is the stored xor, plus tag(0) when the length is odd. Nodes live in one pool shared
-// by every SparseXorEven<T>. T: an integer type (or anything std::hash takes).
+// Range "does every value appear an even number of times?" via xor hashing, with point updates, over any index range
+// [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value's 64-bit tag is splitmix64(value
+// ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values share a tag, distinct integers
+// never collide, and no table is needed. Xor over a range cancels tags in pairs, so an all-even range hashes to 0
+// (false positives ~q / 2^64). A position's value lives in its tree leaf. Sparse: position i stores tag(a[i]) ^ tag(0)
+// in a dynamic prefix-xor tree (nothing for the untouched), so the xor of the real tags over [l, r] is the stored xor,
+// plus tag(0) when the length is odd. Nodes live in a pool the tree owns. T: an integer type (or anything std::hash
+// takes).
 template <typename T>
 struct SparseXorEven {
     using U64 = unsigned long long;
     struct Node { U64 f; T v; int l, r; };  // f: total of the stored changes under the node; v: a leaf's value
-    static inline vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
+    vector<Node> pool{Node{}};  // node 0: all zeros, its children are itself
     long long lo, hi;
     int root = 0;
 
-    // O(1) -- forget every node of every SparseXorEven<T>; call between test cases, then build new trees
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{});
         return (int)pool.size() - 1;
     }

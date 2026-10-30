@@ -21,13 +21,12 @@
 //   node: mx[4*log(U)] mn[4*log(U)] tot[4*log(U)]
 //   tags: none
 //   other: none
-//   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. One shared node pool, call resetPool() between test cases
+//   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree
 
-// Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root
-// is one block of zeros; children are created on demand as blocks of zeros (every count = their length)
-// right before anything descends past a node or pushes its tags. Nodes live in one pool shared by every
-// SparseShrinkSeg<T> (resetPool() between test cases). Otherwise the beats logic below is the dense tree's, with
-// children in Lc / Rc instead of at 2i / 2i + 1.
+// Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root is one
+// block of zeros; children are created on demand as blocks of zeros (every count = their length) right before anything
+// descends past a node or pushes its tags. Nodes live in a pool the tree owns. Otherwise the beats logic below is the
+// dense tree's, with children in Lc / Rc instead of at 2i / 2i + 1.
 
 // "Shrink" segment tree with range assign: range mod / floor-div / floor-sqrt / assign, range sum / min / max,
 // point ops. All indices 0-based, ranges inclusive. Values must be >= 0.
@@ -38,25 +37,23 @@
 template <typename T>
 struct SparseShrinkSeg {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    static inline vector<T> mx = vector<T>(1);
-    static inline vector<T> mn = vector<T>(1);
-    static inline vector<S> tot = vector<S>(1);
-    static inline vector<int> Lc{0}, Rc{0};  // children (0: none yet)
-    static inline vector<long long> ln{0};   // how many positions each node covers
+    mutable vector<T> mx = vector<T>(1);
+    mutable vector<T> mn = vector<T>(1);
+    mutable vector<S> tot = vector<S>(1);
+    mutable vector<int> Lc{0}, Rc{0};  // children (0: none yet)
+    mutable vector<long long> ln{0};   // how many positions each node covers
     long long lo, hi;
     int root;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
     SparseShrinkSeg(long long lo, long long hi) : lo(lo), hi(hi) { root = node(hi - lo + 1); }
 
-    // O(1) -- forget every node of every SparseShrinkSeg<T>; call between test cases, then build new trees
-    static void resetPool() { mx.resize(1); mn.resize(1); tot.resize(1); Lc.resize(1); Rc.resize(1); ln.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { mx.reserve(nodes); mn.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
+    void reservePool(size_t nodes) { mx.reserve(nodes); mn.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
 
     // a fresh node: a block of k zeros
-    int node(long long k) const {  // const: it only touches the shared pool
+    int node(long long k) const {  // const: it only grows the (mutable) pool
         mx.push_back(0); mn.push_back(0); tot.push_back(0);
         Lc.push_back(0), Rc.push_back(0), ln.push_back(k);
         return (int)ln.size() - 1;

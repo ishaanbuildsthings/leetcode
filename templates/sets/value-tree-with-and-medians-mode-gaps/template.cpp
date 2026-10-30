@@ -54,18 +54,18 @@
 //   node: c[1*log(U)] a[1*log(U)]
 //   tags: none
 //   other: children[2*log(U)]
-//   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: one shared node pool (node 0 = empty), call resetPool() between test cases; Python: dicts keyed by heap index
+//   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset owns its node pool (node 0 = empty); Python: dicts keyed by heap index
 
 // Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
-// each node keeping how many copies, their AND are below it. Nodes live in one pool
-// shared by every ValueTreeMultiset<T> (call resetPool() between test cases); node 0 is the shared empty block.
+// each node keeping how many copies, their AND are below it. Each multiset owns
+// its node pool (freed when it goes out of scope; clear() keeps it for reuse); node 0 is the empty block.
 // k-th / sums of the k smallest descend by counts.
 // T: int, long long, ...; sums in S (long long for small T).
 template <typename T>
 struct ValueTreeMultiset {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { long long c; T andv = ~T(0); int l, r; };  // copies, AND below
-    static inline vector<Node> pool{Node{}};  // node 0: empty, its children are itself
+    vector<Node> pool{Node{}};  // node 0: empty, its children are itself
     long long lo, hi, n = 0, d = 0;
     struct Info { T v; long long before, c; };  // a value, copies before it, its copies
     Info low{}, high{};  // both medians, kept current by addRaw while n > 0
@@ -77,13 +77,11 @@ struct ValueTreeMultiset {
     // O(1) -- an empty multiset for values in [lo, hi] (any long long range, negative is fine)
     ValueTreeMultiset(long long lo, long long hi) : lo(lo), hi(hi) {}
 
-    // O(1) -- forget every node of every ValueTreeMultiset<T>; call between test cases, then build new ones
-    static void resetPool() { pool.resize(1); }
 
     // optional -- reserve room for this many nodes up front
-    static void reservePool(size_t nodes) { pool.reserve(nodes); }
+    void reservePool(size_t nodes) { pool.reserve(nodes); }
 
-    static int make() {
+    int make() {
         pool.push_back(Node{});
         return (int)pool.size() - 1;
     }
@@ -236,16 +234,8 @@ struct ValueTreeMultiset {
         n = d = 0;
     }
 
-    void clearData() {  // zero this tree's nonzero nodes in place: the next adds reuse them, so nothing leaks
-        vector<int> st;
-        if (root && pool[root].c) st.push_back(root);
-        while (!st.empty()) {
-            Node& v = pool[st.back()];
-            st.pop_back();
-            v.c = 0, v.andv = ~T(0);
-            if (v.l && pool[v.l].c) st.push_back(v.l);
-            if (v.r && pool[v.r].c) st.push_back(v.r);
-        }
+    void clearData() {  // drop every node but keep the pool's memory for the next adds
+        pool.resize(1), root = 0;
     }
 
     T andWalk(int y, long long a, long long b, long long ql, long long qr) const {  // AND of node y's values in [ql, qr]
