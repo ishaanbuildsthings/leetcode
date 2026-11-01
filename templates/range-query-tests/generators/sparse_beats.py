@@ -13,7 +13,7 @@ The heap arithmetic (2 * i, 2 * i + 1) becomes L[i] / R[i]; indices, lengths and
 """
 import os
 
-from note_lang import strip_attribution, write_template
+from note_lang import drop_get_all, strip_attribution, write_template
 import re
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -167,7 +167,7 @@ def main():
         path = os.path.join(DIR, folder, "template.py")
         if not os.path.exists(path) or "@data-structure-type: beats" not in open(path).read():
             continue
-        head, body = split_header(open(path).read())
+        head, body = split_header(drop_get_all(open(path).read()))  # a sparse tree has no getAll
         m = re.search(r"^class (\w+)", body, re.M)
         name = "Sparse" + m.group(1).replace("_PERFORMANT", "")
         intro = ("\n# Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root\n"
@@ -178,7 +178,7 @@ def main():
         write_template(os.path.join(DIR, folder, "sparse.py"), py)
         if not only_py:
             from sparse_beats_cpp import convert_cpp  # noqa: E402
-            chead, cbody = split_header(open(os.path.join(DIR, folder, "template.cpp")).read())
+            chead, cbody = split_header(drop_get_all(open(os.path.join(DIR, folder, "template.cpp")).read()))
             cpp = "\n".join(sparse_header(chead, "//")) + "\n" + sparse_costs(convert_cpp(folder, cbody), "//")
             write_template(os.path.join(DIR, folder, "sparse.cpp"), cpp)
         print("wrote", folder)

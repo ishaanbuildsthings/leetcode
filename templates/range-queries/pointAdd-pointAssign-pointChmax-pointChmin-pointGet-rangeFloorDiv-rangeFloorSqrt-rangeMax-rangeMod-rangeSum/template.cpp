@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMod-rangeSum/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeSum
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeSum
 // @data-structure-type: beats
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -114,6 +115,20 @@ struct ShrinkTree {
 
     // O(logN) -- a[i]
     T pointGet(int i) const { return rangeMax(i, i); }
+
+    void getAllRec(int i, int tl, int tr, vector<T>& out) {
+        if (tl == tr) { out.push_back(mx[i]); return; }
+        int tm = (tl + tr) / 2;
+        getAllRec(2 * i, tl, tm, out), getAllRec(2 * i + 1, tm + 1, tr, out);
+    }
+
+    // O(N) -- the whole array: one DFS that reads the leaves left to right
+    vector<T> getAll() {
+        vector<T> out;
+        out.reserve(n);
+        if (n) getAllRec(1, 0, n - 1, out);
+        return out;
+    }
 
     // O(logN) -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }

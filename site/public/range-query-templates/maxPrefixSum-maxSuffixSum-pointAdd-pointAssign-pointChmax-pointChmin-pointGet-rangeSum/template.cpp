@@ -1,8 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxPrefixSum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum/template.cpp
-// @operations: maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
+// @operations: getAll maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
 // @data-structure-type: seg-tree
+// @letters: same
 // @complexities:
+//   getAll: N
 //   maxPrefixSum: log(N)
 //   maxSuffixSum: log(N)
 //   pointAdd: log(N)
@@ -72,6 +74,13 @@ struct MaxPrefixSuffixSumTree {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return T(t[i + n].sm); }
+
+    // O(N) -- the whole array (a copy of the leaves)
+    vector<T> getAll() const {
+        vector<T> out(n);
+        for (int i = 0; i < n; i++) out[i] = T(t[n + i].sm);
+        return out;
+    }
 
     // O(logN) -- a[i] += delta
     void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }

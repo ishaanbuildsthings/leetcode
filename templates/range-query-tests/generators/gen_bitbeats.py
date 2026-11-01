@@ -10,7 +10,7 @@ never pay for an aggregate you don't use. Sums need each node's length, which th
 import itertools
 import os
 
-from note_lang import write_template
+from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
@@ -96,7 +96,7 @@ DESC = {"rangeMax": "max of a[l..r]", "rangeMin": "min of a[l..r]", "rangeSum": 
 def header(cm, ops, fields):
     comp = {op: "log(N)" for op in ops}
     comp.update({op: "log(N) amortized" for op in ("pointAdd", "pointAssign", "pointChmax", "pointChmin")})
-    comp.update({"rangeAndApply": "log(N)*log(U) amortized", "rangeOrApply": "log(N)*log(U) amortized"})
+    comp.update({"rangeAndApply": "log(N)*log(U) amortized", "rangeOrApply": "log(N)*log(U) amortized", "getAll": "N"})
     lines = [f"@operations: {' '.join(ops)}", "@data-structure-type: beats", "@complexities:"]
     lines += [f"  {op}: {comp[op]}" for op in ops] + ["  build: N", "@memory:", "  layout: 4n-recursive",
               "  node: " + " ".join(f"{f}[4*N]" for f in fields), "  tags: tagAnd[4*N] tagXor[4*N]", "  other: none",
@@ -259,6 +259,21 @@ class BitBeats_PERFORMANT:
     out += '''    # O(logN) -- a[p]
     def pointGet(self, p): return self.rangeAndQuery(p, p)
 
+    def _getAllRec(self, i, tl, tr, out):
+        if tl == tr:
+            out.append(self.andAll[i])
+            return
+        self._push(i, tl, tr)
+        tm = (tl + tr) // 2
+        self._getAllRec(2 * i, tl, tm, out)
+        self._getAllRec(2 * i + 1, tm + 1, tr, out)
+
+    # O(N) -- the whole array: one DFS that pushes every tag down and reads the leaves left to right
+    def getAll(self):
+        out = []
+        if self.n: self._getAllRec(1, 0, self.n - 1, out)
+        return out
+
     # a[i] = max(a[i], val)
     def pointChmax(self, i, val):
         if val > self.pointGet(i):
@@ -418,6 +433,21 @@ struct BitBeats {{
     // O(logN) -- a[i]
     T pointGet(int i) { return rangeAndQuery(i, i); }
 
+    void getAllRec(int i, int tl, int tr, vector<T>& out) {
+        if (tl == tr) { out.push_back(andAll[i]); return; }
+        push(i, tl, tr);
+        int tm = (tl + tr) / 2;
+        getAllRec(2 * i, tl, tm, out), getAllRec(2 * i + 1, tm + 1, tr, out);
+    }
+
+    // O(N) -- the whole array: one DFS that pushes every tag down and reads the leaves left to right
+    vector<T> getAll() {
+        vector<T> out;
+        out.reserve(n);
+        if (n) getAllRec(1, 0, n - 1, out);
+        return out;
+    }
+
     // O(logN) -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
 
@@ -434,9 +464,9 @@ struct BitBeats {{
 def main():
     for r in range(4):
         for extra in itertools.combinations(["rangeMax", "rangeMin", "rangeSum"], r):
-            ops = sorted(POINT + BASE + list(extra))
+            ops = sorted(POINT + BASE + list(extra) + ["getAll"])
             aggs = [a for a in AGGS if a[1] in BASE or a[1] in extra]
-            folder = os.path.join(DIR, "-".join(ops))
+            folder = os.path.join(DIR, folder_name(ops))
             os.makedirs(folder, exist_ok=True)
             write_template(os.path.join(folder, "template.py"), python(ops, aggs))
             write_template(os.path.join(folder, "template.cpp"), cpp(ops, aggs))

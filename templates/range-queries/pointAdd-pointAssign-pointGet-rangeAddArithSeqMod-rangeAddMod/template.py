@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeAddArithSeqMod-rangeAddMod/template.py
-# @operations: pointAdd pointAssign pointGet rangeAddArithSeqMod rangeAddMod
+# @operations: getAll pointAdd pointAssign pointGet rangeAddArithSeqMod rangeAddMod
 # @data-structure-type: BIT
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointGet: log(N)
@@ -75,6 +76,24 @@ class ArithSeqBITMod:
             coef += s[j]
             j &= j - 1
         return (k + i * coef) % self.mod
+
+    # O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
+    # i + lowbit(i) once complete), then one pass of running prefix sums
+    def getAll(self):
+        n, mod = self.n, self.mod
+        c, s = self.c[:], self.s[:]
+        for i in range(n, 0, -1):
+            j = i + (i & -i)
+            if j <= n:
+                c[j] -= c[i]
+                s[j] -= s[i]
+        out = []
+        k = coef = 0
+        for i in range(n):
+            k += c[i + 1]
+            coef += s[i + 1]
+            out.append((k + i * coef) % mod)
+        return out
 
     # O(logN) -- a[i] += delta (mod p)
     def pointAdd(self, i, delta):

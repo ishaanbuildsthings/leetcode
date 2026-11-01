@@ -1,8 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
-// @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet
+// @operations: getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: seg-tree
+// @letters: same
 // @complexities:
+//   getAll: N
 //   longestEqualRun: log(N)
 //   pointAdd: log(N)
 //   pointAssign: log(N)
@@ -67,6 +69,13 @@ struct EqualRunTree {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return t[i + n].lv; }
+
+    // O(N) -- the whole array (a copy of the leaves)
+    vector<T> getAll() const {
+        vector<T> out(n);
+        for (int i = 0; i < n; i++) out[i] = t[n + i].lv;
+        return out;
+    }
 
     // O(logN) -- a[i] += delta
     void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }

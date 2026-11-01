@@ -11,20 +11,116 @@ the positives). The query methods are gen_wavelet.py's, with value thresholds in
 import os
 import re
 
-from gen_wavelet import BASE, CPP_OPS, ORDER, PY_OPS, SUMS
-from note_lang import write_template
+from gen_wavelet import BASE, BIT_SUFFIXES, CPP_OPS, ORDER, PY_OPS, SUMS
+from note_lang import add_get_all, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 POINT_UPD = ["pointAdd", "pointAssign", "pointChmax", "pointChmin"]
 DTYPE = "bit-of-trees"
+XOR_OPS = ["xor" + s for s in BIT_SUFFIXES]  # xor of the values in a value range: like a sum, removing is xor-ing again
 
 
-def header(cm, ops, sums, sparse):
+def py_xor(sparse):
+    """xor by value: X[t] = xor of the values below node t with an odd count; the BIT difference of xors is their xor."""
+    return '''
+    # O(logN logU) -- xor of the values < x in a[l..r] (copies count); 0 if there are none
+    def xorLtX(self, l, r, x):
+        return self._xorBelow(l, r, x)
+
+    # O(logN logU) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none
+    def xorLteX(self, l, r, x):
+        return self._xorBelow(l, r, x + 1)
+
+    # O(logN logU) -- xor of the values > x in a[l..r] (copies count); 0 if there are none
+    def xorGtX(self, l, r, x):
+        return self._xorBelow(l, r, self.vhi + 1) ^ self._xorBelow(l, r, x + 1)
+
+    # O(logN logU) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none
+    def xorGteX(self, l, r, x):
+        return self._xorBelow(l, r, self.vhi + 1) ^ self._xorBelow(l, r, x)
+
+    # O(logN logU) -- xor of the a[i] in [l, r] with lowVal <= a[i] <= highVal (copies count); 0 if there are none
+    def xorInValRange(self, l, r, lowVal, highVal):
+        if lowVal > highVal:
+            return 0
+        return self._xorBelow(l, r, highVal + 1) ^ self._xorBelow(l, r, lowVal)
+
+    # xor of the values < x in a[l..r]''' + (" (the zeros add nothing)" if sparse else "") + '''
+    def _xorBelow(self, l, r, x):
+        if x <= self.vlo:
+            return 0
+        pos, neg = self._sides(l, r)[:2]
+        L, R, X, res = self.L, self.R, self.X, 0
+        if x > self.vhi:
+            for t in pos + neg:
+                res ^= X[t]
+            return res
+        nl, nh = self.vlo, self.vhi
+        while nl != nh:
+            mid = (nl + nh) >> 1
+            if x <= mid:
+                pos, neg, nh = [L[t] for t in pos if L[t]], [L[t] for t in neg if L[t]], mid
+            else:  # the whole left half is below x
+                for t in pos + neg:
+                    res ^= X[L[t]]
+                pos, neg, nl = [R[t] for t in pos if R[t]], [R[t] for t in neg if R[t]], mid + 1
+        return res
+'''
+
+
+def cpp_xor(sparse):
+    sides = "sides(l, r, pos, neg);"
+    return f'''
+    // O(logN logU) -- xor of the values < x in a[l..r] (copies count); 0 if there are none
+    T xorLtX(long long l, long long r, T x) const {{ return xorBelow(l, r, lb(x)); }}
+
+    // O(logN logU) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none
+    T xorLteX(long long l, long long r, T x) const {{ return xorBelow(l, r, ub(x)); }}
+
+    // O(logN logU) -- xor of the values > x in a[l..r] (copies count); 0 if there are none
+    T xorGtX(long long l, long long r, T x) const {{ return xorBelow(l, r, vhi + 1) ^ xorBelow(l, r, ub(x)); }}
+
+    // O(logN logU) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none
+    T xorGteX(long long l, long long r, T x) const {{ return xorBelow(l, r, vhi + 1) ^ xorBelow(l, r, lb(x)); }}
+
+    // O(logN logU) -- xor of the a[i] in [l, r] with lowVal <= a[i] <= highVal (copies count); 0 if there are none
+    T xorInValRange(long long l, long long r, T lowVal, T highVal) const {{
+        if (highVal < lowVal) return T(0);
+        return xorBelow(l, r, ub(highVal)) ^ xorBelow(l, r, lb(lowVal));
+    }}
+
+    // xor of the values < x in a[l..r]{" (the zeros add nothing)" if sparse else ""}
+    T xorBelow(long long l, long long r, long long x) const {{
+        if (x <= vlo) return T(0);
+        vector<int> pos, neg;
+        {sides}
+        T res = 0;
+        if (x > vhi) {{
+            for (int t : pos) res ^= X[t];
+            for (int t : neg) res ^= X[t];
+            return res;
+        }}
+        long long nl = vlo, nh = vhi;
+        while (nl != nh) {{
+            long long mid = nl + (nh - nl) / 2;
+            if (x <= mid) goLeft(pos), goLeft(neg), nh = mid;
+            else {{  // the whole left half is below x
+                for (int t : pos) res ^= X[L[t]];
+                for (int t : neg) res ^= X[L[t]];
+                goRight(pos), goRight(neg), nl = mid + 1;
+            }}
+        }}
+        return res;
+    }}
+'''
+
+
+def header(cm, ops, sums, sparse, xr=False):
     q = "log(U)*log(U)" if sparse else "log(N)*log(U)"
     lines = [f"@operations: {' '.join(ops)}", f"@data-structure-type: {DTYPE}", "@complexities:"]
-    lines += [f"  {op}: {'1' if op == 'pointGet' else q}" for op in ops] + [f"  build: {'1' if sparse else 'N*log(N)*log(U)'}"]
+    lines += [f"  {op}: {'1' if op == 'pointGet' else 'N' if op == 'getAll' else q}" for op in ops] + [f"  build: {'1' if sparse else 'N*log(N)*log(U)'}"]
     per = "1*log(U)*log(U)" if sparse else "1*N*log(N)*log(U)"
-    node = " ".join(f"{a}[{per}]" for a in ["L", "R", "C"] + (["S"] if sums else []))
+    node = " ".join(f"{a}[{per}]" for a in ["L", "R", "C"] + (["S"] if sums else []) + (["X"] if xr else []))
     other = "root[1*log(U)] vals[1]" if sparse else "root[1*N] arr[1*N]"
     if sparse:
         note = ("any index range [lo, hi], every position starting at 0; only nonzero values are stored, and the zeros of "
@@ -43,7 +139,7 @@ def header(cm, ops, sums, sparse):
 def py_query_ops(ops):
     out = []
     for op in ORDER:
-        if op in ops and op != "pointGet" and op != "rangeMex":
+        if op in ops and op in PY_OPS and op != "pointGet" and op != "rangeMex":  # (xor by value: py_xor)
             t = PY_OPS[op]
             t = re.sub(r"bisect_left\(self\.srt, (\w+)\)", r"\1", t)
             t = re.sub(r"bisect_right\(self\.srt, (\w+)\)", r"\1 + 1", t)  # integer values: <= x is < x + 1
@@ -61,7 +157,7 @@ PY_CORE = '''
     # ---- internals: walks over the value trees in pos (added) and neg (subtracted) ----
 
     def _newNode(self):
-        self.L.append(0), self.R.append(0), self.C.append(0){snew}
+        self.L.append(0), self.R.append(0), self.C.append(0){snew}{xnew}
         return len(self.C) - 1
 
     # tree t (0: a new one) with d more copies of v
@@ -72,7 +168,7 @@ PY_CORE = '''
         top, nl, nh = t, self.vlo, self.vhi
         while True:
             C[t] += d
-{sins}            if nl == nh:
+{sins}{xins}            if nl == nh:
                 return top
             mid = (nl + nh) >> 1
             if v <= mid:
@@ -134,8 +230,8 @@ PY_SUM_CORE = '''
 '''
 
 
-def py_core(sums):
-    return PY_CORE.format(
+def py_core(sums, xr=False):
+    return PY_CORE.format(xnew=", self.X.append(0)" if xr else "", xins="            if d & 1:\n                self.X[t] ^= v\n" if xr else "",
         snew=", self.S.append(0)" if sums else "", scomma=", S" if sums else "", sself=", self.S" if sums else "",
         sins="            S[t] += d * v\n" if sums else "",
         sbelow="                sm += sum(S[L[t]] for t in pos) - sum(S[L[t]] for t in neg)\n" if sums else "") + (PY_SUM_CORE if sums else "")
@@ -165,8 +261,8 @@ PY_POINT = '''    # O(1) -- a[i]
 '''
 
 
-def py_dense(ops, sums):
-    slots = ["arr", "n", "vlo", "vhi", "root", "L", "R", "C"] + (["S"] if sums else [])
+def py_dense(ops, sums, xr=False):
+    slots = ["arr", "n", "vlo", "vhi", "root", "L", "R", "C"] + (["S"] if sums else []) + (["X"] if xr else [])
     return (PY_DOC + "\n\nclass DynamicOrderStats:\n" + f"    __slots__ = ({', '.join(repr(s) for s in slots)})\n\n" + '''    # O(N log N log U) -- arr: the initial array (a list), 0-indexed; every value a[i] ever holds must lie in
     # [valLo, valHi] (any integers, negative is fine; U = valHi - valLo + 1)
     def __init__(self, arr, valLo, valHi):
@@ -175,7 +271,7 @@ def py_dense(ops, sums):
         self.vlo, self.vhi = valLo, valHi
         self.root = [0] * (self.n + 1)  # BIT node j's value tree (0: empty)
         self.L, self.R, self.C = [0], [0], [0]  # node 0 = the empty tree
-''' + ("        self.S = [0]\n" if sums else "") + '''        for i, v in enumerate(arr):
+''' + ("        self.S = [0]\n" if sums else "") + ("        self.X = [0]  # xor of the values below with an odd count\n" if xr else "") + '''        for i, v in enumerate(arr):
             self._add(i, v, 1)
 
 ''' + PY_POINT.format(get="self.arr[i]", assign="self._add(i, old, -1)\n            self._add(i, v, 1)\n            self.arr[i] = v") + "\n" +
@@ -224,11 +320,11 @@ def py_dense(ops, sums):
             return 0
         pos, neg = self._sides(l, r)
         return self._total(pos, neg, self.S) if x > self.vhi else self._belowIn(pos, neg, x)[1]
-''' if sums else "") + py_core(sums))
+''' if sums else "") + (py_xor(False) if xr else "") + py_core(sums, xr))
 
 
-def py_sparse(ops, sums):
-    slots = ["lo", "hi", "vals", "vlo", "vhi", "root", "L", "R", "C"] + (["S"] if sums else [])
+def py_sparse(ops, sums, xr=False):
+    slots = ["lo", "hi", "vals", "vlo", "vhi", "root", "L", "R", "C"] + (["S"] if sums else []) + (["X"] if xr else [])
     return (PY_DOC.replace("over positions:", "over the index range [lo, hi]:") + '''# Sparse: every position of [lo, hi] starts at 0 and only nonzero values are stored; the zeros of [l, r] (its length
 # minus the stored values in it) sit between the stored negatives and positives.
 
@@ -242,7 +338,7 @@ class SparseDynamicOrderStats:
         self.vals = {}  # nonzero values only
         self.root = {}  # BIT node -> its value tree (missing: empty)
         self.L, self.R, self.C = [0], [0], [0]  # node 0 = the empty tree
-''' + ("        self.S = [0]\n" if sums else "") + "\n" +
+''' + ("        self.S = [0]\n" if sums else "") + ("        self.X = [0]  # xor of the values below with an odd count\n" if xr else "") + "\n" +
             PY_POINT.format(get="self.vals.get(i, 0)", assign='''if old:
                 self._add(i, old, -1)
             if v:
@@ -307,7 +403,7 @@ class SparseDynamicOrderStats:
             return 0
         pos, neg, _ = self._sides(l, r)
         return self._total(pos, neg, self.S) if x > self.vhi else self._belowIn(pos, neg, x)[1]
-''' if sums else "") + py_core(sums))
+''' if sums else "") + (py_xor(True) if xr else "") + py_core(sums, xr))
 
 
 # ------------------------------------------------------------------------------------------------ C++
@@ -315,7 +411,7 @@ class SparseDynamicOrderStats:
 def cpp_query_ops(ops):
     out = []
     for op in ORDER:
-        if op in ops and op != "pointGet" and op != "rangeMex":
+        if op in ops and op in CPP_OPS and op != "pointGet" and op != "rangeMex":  # (xor by value: cpp_xor)
             t = CPP_OPS[op]
             for a, b in (("(int l, int r", "(long long l, long long r"), (", int k)", ", long long k)"),
                          (", int kFrom, int kTo)", ", long long kFrom, long long kTo)"), ("    int count", "    long long count"),
@@ -340,7 +436,7 @@ CPP_CORE = '''
     static long long ub(T x) { return (long long)x + 1; }
 
     int newNode() {
-        L.push_back(0), R.push_back(0), C.push_back(0){snew};
+        L.push_back(0), R.push_back(0), C.push_back(0){snew}{xnew};
         return (int)C.size() - 1;
     }
 
@@ -351,7 +447,7 @@ CPP_CORE = '''
         long long nl = vlo, nh = vhi;
         while (true) {
             C[t] += d;
-{sins}            if (nl == nh) return top;
+{sins}{xins}            if (nl == nh) return top;
             long long mid = nl + (nh - nl) / 2;
             if (v <= mid) {
                 if (!L[t]) { int x = newNode(); L[t] = x; }
@@ -424,8 +520,8 @@ CPP_SUM_CORE = '''
 '''
 
 
-def cpp_core(sums):
-    return _fill(CPP_CORE, **dict(
+def cpp_core(sums, xr=False):
+    return _fill(CPP_CORE, **dict(xnew=", X.push_back(T(0))" if xr else "", xins="            if (d & 1) X[t] ^= v;\n" if xr else "",
         snew=", Sm.push_back(S(0))" if sums else "", sins="            Sm[t] += S(v) * d;\n" if sums else "",
         sbelowdoc=", and their sum" if sums else "", btype="pair<long long, S>" if sums else "long long",
         sbelowinit="        S sm = 0;\n" if sums else "",
@@ -461,19 +557,19 @@ CPP_POINT = '''    // O(1) -- a[i]
 USING = "    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n"
 
 
-def cpp_dense(ops, sums):
+def cpp_dense(ops, sums, xr=False):
     below = "belowIn(pos, neg, x).first" if sums else "belowIn(pos, neg, x)"
     return (CPP_DOC + "// T: int, long long, ..." + ("; sums are kept in S (long long for small T)" if sums else "") +
             ".\ntemplate <typename T>\nstruct DynamicOrderStats {\n" + (USING if sums else "") + '''    int n;
     long long vlo, vhi;
     vector<T> arr;
     vector<int> root, L, R, C;  // root[j]: BIT node j's value tree; node 0 = the empty tree
-''' + ("    vector<S> Sm;\n" if sums else "") + '''
+''' + ("    vector<S> Sm;\n" if sums else "") + ("    vector<T> X;  // xor of the values below with an odd count\n" if xr else "") + '''
     // O(N log N log U) -- arr: the initial array, 0-indexed; every value a[i] ever holds must lie in [valLo, valHi]
     // (any integers, negative is fine; U = valHi - valLo + 1)
     DynamicOrderStats(const vector<T>& a, long long valLo, long long valHi)
         : n((int)a.size()), vlo(valLo), vhi(valHi), arr(a), root(n + 1, 0), L(1, 0), R(1, 0), C(1, 0)''' +
-            (", Sm(1, S(0))" if sums else "") + ''' {
+            (", Sm(1, S(0))" if sums else "") + (", X(1, T(0))" if xr else "") + ''' {
         for (int i = 0; i < n; i++) add(i, a[i], 1);
     }
 
@@ -521,7 +617,7 @@ def cpp_dense(ops, sums):
         sides(l, r, pos, neg);
         return x > vhi ? total(pos, neg, Sm) : belowIn(pos, neg, x).second;
     }
-''' if sums else "") + cpp_core(sums) + "};\n")
+''' if sums else "") + (cpp_xor(False) if xr else "") + cpp_core(sums, xr) + "};\n")
 
 
 SAFE_HASH = '''    struct SafeHash {
@@ -536,7 +632,7 @@ SAFE_HASH = '''    struct SafeHash {
 '''
 
 
-def cpp_sparse(ops, sums):
+def cpp_sparse(ops, sums, xr=False):
     below = "belowIn(pos, neg, x).first" if sums else "belowIn(pos, neg, x)"
     return (CPP_DOC.replace("over positions:", "over the index range [lo, hi]:") + '''// Sparse: every position of [lo, hi] starts at 0 and only nonzero values are stored; the zeros of [l, r] (its length
 // minus the stored values in it) sit between the stored negatives and positives.
@@ -545,11 +641,11 @@ def cpp_sparse(ops, sums):
     unordered_map<long long, T, SafeHash> vals;     // nonzero values only
     unordered_map<long long, int, SafeHash> root;   // BIT node -> its value tree (missing: empty)
     vector<int> L, R, C;                            // node 0 = the empty tree
-''' + ("    vector<S> Sm;\n" if sums else "") + '''
+''' + ("    vector<S> Sm;\n" if sums else "") + ("    vector<T> X;  // xor of the values below with an odd count\n" if xr else "") + '''
     // O(1) -- indices: any integers in [lo, hi], every position starting at 0; every value a[i] ever holds must lie in
     // [valLo, valHi] (U = the larger of the two ranges' sizes)
     SparseDynamicOrderStats(long long lo, long long hi, long long valLo, long long valHi)
-        : lo(lo), hi(hi), vlo(valLo), vhi(valHi), L(1, 0), R(1, 0), C(1, 0)''' + (", Sm(1, S(0))" if sums else "") + ''' {}
+        : lo(lo), hi(hi), vlo(valLo), vhi(valHi), L(1, 0), R(1, 0), C(1, 0)''' + (", Sm(1, S(0))" if sums else "") + (", X(1, T(0))" if xr else "") + ''' {}
 
 ''' + CPP_POINT.format(get="vals.count(i) ? vals.at(i) : T(0)", assign='''        if (old != T(0)) add(i, old, -1);
         if (v != T(0)) add(i, v, 1), vals[i] = v;
@@ -610,20 +706,22 @@ def cpp_sparse(ops, sums):
         sides(l, r, pos, neg);
         return x > vhi ? total(pos, neg, Sm) : belowIn(pos, neg, x).second;
     }
-''' if sums else "") + cpp_core(sums) + "};\n")
+''' if sums else "") + (cpp_xor(True) if xr else "") + cpp_core(sums, xr) + "};\n")
 
 
 def main():
     for sums in (False, True):
-        ops = sorted(POINT_UPD + BASE + (SUMS if sums else []))
-        folder = f"{DTYPE}-order-stats" + ("-sums" if sums else "")
-        path = os.path.join(DIR, folder)
-        os.makedirs(path, exist_ok=True)
-        write_template(os.path.join(path, "template.py"), header("#", ops, sums, False) + "\n" + py_dense(ops, sums))
-        write_template(os.path.join(path, "template.cpp"), header("//", ops, sums, False) + "\n" + cpp_dense(ops, sums))
-        write_template(os.path.join(path, "sparse.py"), header("#", ops, sums, True) + "\n" + py_sparse(ops, sums))
-        write_template(os.path.join(path, "sparse.cpp"), header("//", ops, sums, True) + "\n" + cpp_sparse(ops, sums))
-        print("wrote", folder)
+        for xr in (False, True):
+            ops = sorted(POINT_UPD + BASE + (SUMS if sums else []) + (XOR_OPS if xr else []))
+            folder = f"{DTYPE}-order-stats" + ("-sums" if sums else "") + ("-xor" if xr else "")
+            path = os.path.join(DIR, folder)
+            os.makedirs(path, exist_ok=True)
+            dense = sorted(ops + ["getAll"])  # the sparse versions below have no getAll
+            write_template(os.path.join(path, "template.py"), header("#", dense, sums, False, xr) + "\n" + add_get_all(py_dense(ops, sums, xr), "py"))
+            write_template(os.path.join(path, "template.cpp"), header("//", dense, sums, False, xr) + "\n" + add_get_all(cpp_dense(ops, sums, xr), "cpp"))
+            write_template(os.path.join(path, "sparse.py"), header("#", ops, sums, True, xr) + "\n" + py_sparse(ops, sums, xr))
+            write_template(os.path.join(path, "sparse.cpp"), header("//", ops, sums, True, xr) + "\n" + cpp_sparse(ops, sums, xr))
+            print("wrote", folder)
 
 
 if __name__ == "__main__":

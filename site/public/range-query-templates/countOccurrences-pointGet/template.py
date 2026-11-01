@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointGet/template.py
 # @operations: countOccurrences pointGet
 # @data-structure-type: positions
+# @letters: same
 # @complexities:
 #   countOccurrences: log(N)
 #   pointGet: 1

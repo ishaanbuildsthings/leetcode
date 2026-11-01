@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeMax-rangeMin-rangeSum/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeSum
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeSum
 // @data-structure-type: lazy-seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -132,6 +133,18 @@ struct AssignSumMinMaxTree {
             if (r & 1) res = std::max(res, mx[--r]);
         }
         return res;
+    }
+
+    // O(N) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
+    // the leaves are (n >> s) .. ((2n - 1) >> s); their children cover k = 1 << (s - 1) leaves), then read the leaves
+    vector<T> getAll() {
+        for (int s = h; s > 0; s--) {
+            int k = 1 << (s - 1);
+            for (int x = max(1, n >> s); x <= (2 * n - 1) >> s; x++) {
+                if (hasAsg[x]) applyAssign(2 * x, k, asg[x]), applyAssign(2 * x + 1, k, asg[x]), hasAsg[x] = 0;
+            }
+        }
+        return vector<T>(sm.begin() + n, sm.end());
     }
 
     // O(logN) -- a[i]

@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeMultMod/template.py
-# @operations: pointAdd pointAssign pointGet rangeMultMod
+# @operations: getAll pointAdd pointAssign pointGet rangeMultMod
 # @data-structure-type: seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointGet: log(N)
@@ -67,6 +68,19 @@ class RangeMultModTree:
             a = a * t % mod
             p >>= 1
         return a
+
+    # O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    # each node's tag is complete when it is pushed), then read the leaves
+    def getAll(self):
+        tree, mod = self.tree, self.mod
+        for x in range(1, self.n):
+            t = tree[x]
+            if t != 1:
+                y = x << 1
+                tree[y] = tree[y] * t % mod
+                tree[y | 1] = tree[y | 1] * t % mod
+                tree[x] = 1
+        return self.tree[self.n:]
 
     # O(logN) -- a[i] = val
     def pointAssign(self, i, val):

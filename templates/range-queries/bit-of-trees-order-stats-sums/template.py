@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/bit-of-trees-order-stats-sums/template.py
-# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 # @data-structure-type: bit-of-trees
 # @complexities:
 #   countGtX: log(N)*log(U)
@@ -9,6 +9,7 @@
 #   countLtX: log(N)*log(U)
 #   countLteX: log(N)*log(U)
 #   countOccurrences: log(N)*log(U)
+#   getAll: N
 #   kthLargest: log(N)*log(U)
 #   kthSmallest: log(N)*log(U)
 #   largestLtX: log(N)*log(U)
@@ -68,6 +69,10 @@ class DynamicOrderStats:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.arr[i]
+
+    # O(N) -- the whole array (a copy)
+    def getAll(self):
+        return list(self.arr)
 
     # O(logN logU) -- a[i] = v
     def pointAssign(self, i, v):

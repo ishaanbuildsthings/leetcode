@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeMultMod/template.cpp
-// @operations: pointAdd pointAssign pointGet rangeMultMod
+// @operations: getAll pointAdd pointAssign pointGet rangeMultMod
 // @data-structure-type: seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointGet: log(N)
@@ -59,6 +60,20 @@ struct RangeMultModTree {
         T a = tree[p];
         for (p >>= 1; p; p >>= 1) a = T(W(a) * tree[p] % mod);
         return a;
+    }
+
+    // O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    // each node's tag is complete when it is pushed), then read the leaves
+    vector<T> getAll() {
+        for (int x = 1; x < n; x++) {
+            T t = tree[x];
+            if (t != T(1)) {
+                tree[2 * x] = T(W(tree[2 * x]) * t % mod);
+                tree[2 * x + 1] = T(W(tree[2 * x + 1]) * t % mod);
+                tree[x] = T(1);
+            }
+        }
+        return vector<T>(tree.begin() + n, tree.end());
     }
 
     // O(logN) -- a[i] = val

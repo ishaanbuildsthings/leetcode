@@ -1,8 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign
 # @data-structure-type: seg-tree
+# @letters: same
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: 1
 #   pointChmax: log(N)
@@ -63,6 +65,17 @@ class RangeAssignTree:
                 res = val[p]
             p >>= 1
         return res
+
+    # O(N) -- the whole array: hand each node's assign to its children when it is newer than theirs (a parent's
+    # index is below its children's, so in index order each node already holds the newest assign on its path)
+    def getAll(self):
+        stamp, val = self.stamp, self.val
+        for x in range(2, 2 * self.n):
+            p = x >> 1
+            if stamp[p] > stamp[x]:
+                stamp[x] = stamp[p]
+                val[x] = val[p]
+        return val[self.n:]
 
     # O(1) -- a[i] = v
     def pointAssign(self, i, v):

@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeGcd-rangeMax-rangeMin-rangeSum/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeGcd rangeMax rangeMin rangeSum
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeGcd rangeMax rangeMin rangeSum
 // @data-structure-type: beats
 // @complexities:
+//   getAll: N
 //   pointAdd: log^2(N)*log(U) amortized ?
 //   pointAssign: log^2(N)*log(U) amortized ?
 //   pointChmax: log^2(N)*log(U) amortized ?
@@ -224,6 +225,21 @@ struct BeatsGcd {
 
     // O(logN) -- a[i]
     T pointGet(int i) { return rangeMax(i, i); }
+
+    void getAllRec(int i, int tl, int tr, vector<T>& out) {
+        if (tl == tr) { out.push_back(t[i].mx); return; }
+        push(i, tl, tr);
+        int tm = (tl + tr) / 2;
+        getAllRec(2 * i, tl, tm, out), getAllRec(2 * i + 1, tm + 1, tr, out);
+    }
+
+    // O(N) -- the whole array: one DFS that pushes every tag down and reads the leaves left to right
+    vector<T> getAll() {
+        vector<T> out;
+        out.reserve(n);
+        if (n) getAllRec(1, 0, n - 1, out);
+        return out;
+    }
 
     // a[i] = v
     void pointAssign(int i, T v) { rangeAssign(i, i, v); }

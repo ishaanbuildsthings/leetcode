@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
 # @data-structure-type: seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)*log(U) ?
 #   pointAssign: log(N)*log(U) ?
 #   pointChmax: log(N)*log(U) ?
@@ -76,6 +77,10 @@ class GcdSegmentTree:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.tree[self.n + i]
+
+    # O(N) -- the whole array (a copy of the leaves)
+    def getAll(self):
+        return self.tree[self.n:]
 
     # a[i] = max(a[i], val)
     def pointChmax(self, i, val):

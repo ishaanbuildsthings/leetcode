@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -25,11 +31,12 @@ const PICKER_PAGES = [
   { href: "/templates/sets", label: "Ordered sets (no indices)" },
 ];
 
-function PickerTabs() {
+// the picker tabs, with the page's controls (children) at the right end of the same row
+function PickerTabs({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
   return (
     <nav
-      className="mb-4 flex gap-1 border-b border-border text-sm font-medium"
+      className="mb-4 flex items-center gap-1 border-b border-border text-sm font-medium"
       aria-label="Template pickers"
     >
       {PICKER_PAGES.map((p) => {
@@ -49,6 +56,9 @@ function PickerTabs() {
           </Link>
         );
       })}
+      {children && (
+        <div className="ml-auto flex items-center gap-2 pb-1">{children}</div>
+      )}
     </nav>
   );
 }
@@ -58,6 +68,8 @@ function PickerTabs() {
 export interface PickerCatalog<V extends PickerTemplate> {
   title: string;
   opGroups: PickerOpGroup[];
+  // a short "still to add" list shown under the op columns
+  planned?: string[];
   // where the static copies live (fetched on click) and where the files are on GitHub
   publicBase: string;
   githubBase: string;
@@ -82,6 +94,8 @@ export interface PickerCatalog<V extends PickerTemplate> {
     title: string;
     storageKey: string;
     keep: (t: V) => boolean;
+    // (optional) what a template becomes while the box is ticked (range queries: its letters version), null = left out
+    view?: (t: V) => V | null;
     disabledOps: ReadonlySet<string>;
     disabledTitle: string;
   };
@@ -107,7 +121,8 @@ export interface PickerCatalog<V extends PickerTemplate> {
   // usage panel: the variable name, notes per constructor argument name, comment lines before a constructor, a note
   // appended to a query's comment, and ops that return a pair to unpack
   varName: string;
-  ctorNotes: Record<string, { py: string; cpp: string }>;
+  // per constructor argument name; a function when they depend on the template (range queries: letters versions)
+  ctorNotes: Record<string, { py: string; cpp: string }> | ((t: V) => Record<string, { py: string; cpp: string }>);
   ctorComments?: (t: V, lang: TemplateLang) => string[];
   queryNote?: (t: V, op: string) => string;
   pairResults?: Record<string, [string, string]>;
@@ -148,7 +163,8 @@ const withinCaps = (t: PickerTemplate, caps: Record<string, number>) =>
 
 // The cost levels the given matches offer for op (cheapest first): the choices of op's complexity cap
 function capChoices(matches: { template: PickerTemplate }[], op: string) {
-  const byValue = new Map<number, string>();
+  // O(1) is always offered, even when nothing reaches it (picking it then shows that no template does)
+  const byValue = new Map<number, string>([[costValue("1"), "1"]]);
   for (const { template } of matches) {
     const cost = baseCost(opCost(template, op));
     byValue.set(costValue(cost), cost);
@@ -169,9 +185,12 @@ function matchTemplates<V extends PickerTemplate>(
 ) {
   if (selected.size === 0) return [];
   const picked = [...selected];
+  const flag = catalog.flag;
   return catalog.modes
     .views(mode)
-    .filter((t) => !flagOn || (catalog.flag?.keep(t) ?? true))
+    .map((t) => (flagOn && flag?.view ? flag.view(t) : t))
+    .filter((t): t is V => t !== null)
+    .filter((t) => !flagOn || (flag?.keep(t) ?? true))
     .filter(
       (t) =>
         picked.every((op) => t.operations.includes(op)) &&
@@ -533,7 +552,8 @@ function UsagePanel<V extends PickerTemplate>({
   const shown = ops.length ? ops : template.operations;
   const cpp = lang === "cpp";
   const cm = cpp ? "//" : "#";
-  const notes = catalog.ctorNotes;
+  const notes = typeof catalog.ctorNotes === "function" ? catalog.ctorNotes(template) : catalog.ctorNotes;
+  const elem = (template as { chars?: boolean }).chars ? "char" : "long long"; // what T is in the usage lines
   const neededClasses = [
     ...new Set(shown.map((op) => usage.methods[op]!.cls)),
   ].sort((a, b) => a - b);
@@ -543,7 +563,7 @@ function UsagePanel<V extends PickerTemplate>({
       : usage.classes[k].className[0].toLowerCase() +
         usage.classes[k].className.slice(1);
   const typeOf = (ret = "") =>
-    ret.replace(/\bT\b/g, "long long").replace(/\bS\b/g, "long long");
+    ret.replace(/\bT\b/g, elem).replace(/\bS\b/g, "long long");
 
   const blocks: { comments: string[]; code: string }[] = [];
   for (const k of neededClasses) {
@@ -666,7 +686,7 @@ function TierBadge({
   const label = labelOverride ?? kindLabel;
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 font-[family-name:var(--font-dm-sans)] text-[10px] font-bold uppercase tracking-wider ${badge}`}
+      className={`inline-flex items-center rounded-full border px-1.5 font-[family-name:var(--font-dm-sans)] text-[9px] font-bold uppercase leading-[14px] tracking-wider ${badge}`}
     >
       {label}
     </span>
@@ -682,6 +702,20 @@ export function TemplatePicker<V extends PickerTemplate>({
   // per selected op, the most it may cost (a cost value); templates over any cap are left out
   const [caps, setCaps] = useState<Record<string, number>>({});
   const [openTemplate, setOpenTemplate] = useState<V | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set()); // collapsible groups clicked open
+  const [query, setQuery] = useState(""); // the search box: only ops whose name or description contains it
+  // the bottom sheet (selection + templates) and its current height
+  const sheetRef = useRef<HTMLElement>(null);
+  const [sheetHeight, setSheetHeight] = useState(0);
+  const [sheetHidden, setSheetHidden] = useState(false); // closed with its x; picking an op opens it again
+  const sheetOpen = selected.size > 0 && !sheetHidden;
+  useEffect(() => {
+    const el = sheetRef.current;
+    if (!sheetOpen || !el) return;
+    const ro = new ResizeObserver(() => setSheetHeight(el.offsetHeight + 24));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [sheetOpen]);
   const { modes } = catalog;
   const mode = useSyncExternalStore(
     subscribeMode,
@@ -698,6 +732,7 @@ export function TemplatePicker<V extends PickerTemplate>({
 
   const toggle = (id: string) => {
     if (isDisabled(id)) return;
+    setSheetHidden(false);
     if (selected.has(id)) setCap(id, null);
     setSelected((prev) => {
       const next = new Set(prev);
@@ -763,175 +798,242 @@ export function TemplatePicker<V extends PickerTemplate>({
     });
 
   return (
-    <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-24 font-[family-name:var(--font-dm-sans)]">
-      <PickerTabs />
-      <header className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="font-[family-name:var(--font-playfair)] text-3xl font-bold text-foreground">
-          {catalog.title}
-        </h1>
-        <div className="flex items-center gap-2">
-          {flag && (
-            <label
-              title={flag.title}
-              className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
-            >
-              <input
-                type="checkbox"
-                checked={flagOn}
-                onChange={(e) =>
-                  writeStored(flag.storageKey, e.target.checked ? "1" : "0")
-                }
-                className="accent-primary"
-              />
-              {flag.label}
-            </label>
-          )}
-          <div
-            className="flex overflow-hidden rounded-md border border-border text-xs font-medium"
-            role="radiogroup"
-            aria-label={modes.ariaLabel}
-          >
-            {modes.options.map((o) => (
-              <button
-                key={o.mode}
-                type="button"
-                role="radio"
-                aria-checked={mode === o.mode}
-                title={o.title}
-                onClick={() => writeStored(modes.storageKey, o.mode)}
-                className={`px-3 py-1.5 transition-colors ${
-                  mode === o.mode
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-muted"
-                }`}
+    <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-16 font-[family-name:var(--font-dm-sans)]">
+      {/* the tab row and the selection stay put; only the operations scroll */}
+      <div className="sticky top-16 z-30 -mx-6 bg-background px-6 pt-2">
+        <h1 className="sr-only">{catalog.title}</h1>
+        <PickerTabs>
+          <>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search operations…"
+              aria-label="Search operations"
+              className="w-56 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+            />
+            {flag && (
+              <label
+                title={flag.title}
+                className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
               >
-                {o.label}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => setSelected(new Set())}
-            disabled={selectedOps.length === 0}
-            className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent"
-          >
-            Unselect all
-          </button>
-        </div>
-      </header>
-
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="columns-1 gap-4 md:columns-2 xl:columns-3">
-          {catalog.opGroups.map((group) => (
-            <section
-              key={group.id}
-              className="mb-4 break-inside-avoid rounded-xl border border-border bg-card p-4"
+                <input
+                  type="checkbox"
+                  checked={flagOn}
+                  onChange={(e) =>
+                    writeStored(flag.storageKey, e.target.checked ? "1" : "0")
+                  }
+                  className="accent-primary"
+                />
+                {flag.label}
+              </label>
+            )}
+            <div
+              className="flex overflow-hidden rounded-md border border-border text-xs font-medium"
+              role="radiogroup"
+              aria-label={modes.ariaLabel}
             >
-              <div className="mb-2.5 flex items-baseline justify-between gap-3">
-                <h2 className="text-sm font-semibold text-foreground">
-                  {group.title}
-                </h2>
-                {group.blurb && (
-                  <span className="text-xs text-muted-foreground">
-                    {group.blurb}
+              {modes.options.map((o) => (
+                <button
+                  key={o.mode}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === o.mode}
+                  title={o.title}
+                  onClick={() => writeStored(modes.storageKey, o.mode)}
+                  className={`px-3 py-1.5 transition-colors ${
+                    mode === o.mode
+                      ? "bg-primary text-primary-foreground"
+                      : "text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelected(new Set())}
+              disabled={selectedOps.length === 0}
+              className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent"
+            >
+              Unselect all
+            </button>
+          </>
+        </PickerTabs>
+      </div>
+
+      <div className="columns-1 gap-3 md:columns-2 xl:columns-3">
+        {catalog.opGroups.map((group) => {
+          // while searching: only the matching ops, groups without one hidden, collapsed groups open
+          const q = query.trim().toLowerCase();
+          const tiers = q
+            ? group.tiers
+                .map((t) => ({
+                  ...t,
+                  ops: t.ops.filter((op) =>
+                    `${op.signature} ${op.description}`
+                      .toLowerCase()
+                      .includes(q),
+                  ),
+                }))
+                .filter((t) => t.ops.length > 0)
+            : group.tiers;
+          if (q && tiers.length === 0) return null;
+          const closed = !q && group.collapsible && !expanded.has(group.id);
+          const picked = group.tiers.reduce(
+            (n, t) => n + t.ops.filter((op) => active.has(op.id)).length,
+            0,
+          );
+          const heading = (
+            <>
+              <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                {group.collapsible && (
+                  <span
+                    aria-hidden
+                    className={`inline-block text-[10px] text-muted-foreground transition-transform ${closed ? "" : "rotate-90"}`}
+                  >
+                    ▶
                   </span>
                 )}
-              </div>
-              <div className="-mx-2 grid grid-cols-[auto_auto_minmax(0,1fr)]">
-                {group.tiers.flatMap((tier, tierIdx) => [
-                  // a "topic" tier with no label is just the group's list: no header
-                  tier.kind === "topic" && !tier.label ? null : (
-                    <h3
-                      key={tier.label ?? tier.kind}
-                      className={`col-span-3 flex items-center gap-2 px-2 pb-1 ${tierIdx === 0 ? "" : "mt-3"}`}
-                    >
-                      <TierBadge kind={tier.kind} label={tier.label} />
-                      <span
-                        aria-hidden
-                        className="h-px flex-1 bg-gradient-to-r from-border to-transparent"
-                      />
-                    </h3>
-                  ),
-                  ...tier.ops.map((op) => {
-                    const off = isDisabled(op.id);
-                    const isOn = active.has(op.id);
-                    return (
-                      <button
-                        key={op.id}
-                        type="button"
-                        aria-pressed={isOn}
-                        disabled={off}
-                        onClick={() => toggle(op.id)}
-                        title={off ? flag?.disabledTitle : op.signature}
-                        className={`col-span-3 grid grid-cols-subgrid items-baseline gap-x-3 rounded-md px-2 py-1 text-left transition-colors ${
-                          off
-                            ? "cursor-not-allowed opacity-35"
-                            : isOn
-                              ? "bg-primary/15"
-                              : "hover:bg-muted"
-                        }`}
-                      >
-                        <span
-                          aria-hidden
-                          className={`relative top-0.5 flex h-3.5 w-3.5 items-center justify-center self-start rounded-sm border text-[9px] leading-none ${
-                            isOn
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-border bg-background"
-                          }`}
-                        >
-                          {isOn ? "✓" : ""}
-                        </span>
-                        <span
-                          className={`whitespace-nowrap font-mono text-[13px] ${isOn ? "font-medium text-primary" : "text-foreground"}`}
-                        >
-                          {opName(op)}
-                          <span className="font-normal text-muted-foreground">
-                            {opArgs(op)}
-                          </span>
-                        </span>
-                        <span className="min-w-0 text-xs text-muted-foreground">
-                          {op.description}
-                        </span>
-                      </button>
-                    );
-                  }),
-                ])}
-              </div>
-            </section>
-          ))}
-        </div>
-
-        <aside className="self-start lg:sticky lg:top-20">
-          <div className="rounded-xl border border-border bg-card p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-foreground">
-                Selection
-                {selectedOps.length > 0 && (
-                  <span className="ml-1.5 font-normal text-muted-foreground">
-                    {selectedOps.length}
+                {group.title}
+                {closed && picked > 0 && (
+                  <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[11px] font-medium text-primary">
+                    {picked} selected
                   </span>
                 )}
               </h2>
-              {selectedOps.length > 0 && (
+            </>
+          );
+          return (
+            <section
+              key={group.id}
+              className="mb-3 break-inside-avoid rounded-xl border border-border bg-card px-3 py-2.5"
+            >
+              {group.collapsible ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelected(new Set());
-                    setCaps({});
-                  }}
-                  className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                  aria-expanded={!closed}
+                  onClick={() =>
+                    setExpanded((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(group.id)) next.delete(group.id);
+                      else next.add(group.id);
+                      return next;
+                    })
+                  }
+                  className={`flex w-full items-baseline justify-between gap-3 text-left ${closed ? "" : "mb-1.5"}`}
                 >
-                  Clear
+                  {heading}
                 </button>
+              ) : (
+                <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                  {heading}
+                </div>
               )}
-            </div>
+              {!closed && (
+                <div className="-mx-2 grid grid-cols-[auto_auto_minmax(0,1fr)]">
+                  {tiers.flatMap((tier, tierIdx) => [
+                    // a "topic" tier with no label is just the group's list: no header
+                    // the "common" tier is just the top of the list (no header); a "topic" tier with no label too
+                    tier.kind === "common" ||
+                    (tier.kind === "topic" && !tier.label) ? null : (
+                      <h3
+                        key={tier.label ?? tier.kind}
+                        className={`col-span-3 flex items-center gap-2 px-2 ${tierIdx === 0 ? "" : "mt-1.5"}`}
+                      >
+                        <TierBadge kind={tier.kind} label={tier.label} />
+                        <span
+                          aria-hidden
+                          className="h-px flex-1 bg-gradient-to-r from-border to-transparent"
+                        />
+                      </h3>
+                    ),
+                    ...tier.ops.map((op) => {
+                      const off = isDisabled(op.id);
+                      const isOn = active.has(op.id);
+                      return (
+                        <button
+                          key={op.id}
+                          type="button"
+                          aria-pressed={isOn}
+                          disabled={off}
+                          onClick={() => toggle(op.id)}
+                          title={off ? flag?.disabledTitle : op.signature}
+                          className={`col-span-3 grid grid-cols-subgrid items-baseline gap-x-2 rounded-md px-2 py-0.5 text-left transition-colors ${
+                            off
+                              ? "cursor-not-allowed opacity-35"
+                              : isOn
+                                ? "bg-primary/15"
+                                : "hover:bg-muted"
+                          }`}
+                        >
+                          <span
+                            aria-hidden
+                            className={`relative top-0.5 flex h-3.5 w-3.5 items-center justify-center self-start rounded-sm border text-[9px] leading-none ${
+                              isOn
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border bg-background"
+                            }`}
+                          >
+                            {isOn ? "✓" : ""}
+                          </span>
+                          <span
+                            className={`whitespace-nowrap font-mono text-xs ${isOn ? "font-medium text-primary" : "text-foreground"}`}
+                          >
+                            {opName(op)}
+                            <span className="font-normal text-muted-foreground">
+                              {opArgs(op)}
+                            </span>
+                          </span>
+                          <span className="min-w-0 text-[11px] leading-snug text-muted-foreground">
+                            {op.description}
+                          </span>
+                        </button>
+                      );
+                    }),
+                  ])}
+                </div>
+              )}
+            </section>
+          );
+        })}
+      </div>
 
-            {selectedOps.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                Nothing picked yet.
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
+      {catalog.planned && catalog.planned.length > 0 && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          <span className="font-medium">Still to add:</span> {catalog.planned.join(" · ")}
+        </p>
+      )}
+
+      {/* room below the content for the bottom sheet, so it can always be scrolled clear of it */}
+      {sheetOpen && <div aria-hidden style={{ height: sheetHeight }} />}
+      {selected.size > 0 && sheetHidden && (
+        <button
+          type="button"
+          onClick={() => setSheetHidden(false)}
+          className="fixed bottom-0 left-1/2 z-40 -translate-x-1/2 rounded-t-lg border border-b-0 border-border bg-card px-4 py-1.5 text-xs font-medium text-foreground shadow-[0_-4px_16px_rgba(0,0,0,0.10)] hover:bg-muted"
+        >
+          ▲ {selectedOps.length} selected · {matches.length} template
+          {matches.length === 1 ? "" : "s"}
+        </button>
+      )}
+      {sheetOpen && (
+        <section
+          ref={sheetRef}
+          className="fixed inset-x-3 bottom-0 z-40 mx-auto max-h-[45vh] max-w-[1760px] overflow-y-auto rounded-t-xl border border-b-0 border-border bg-card px-4 pb-3 pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
+        >
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <h2 className="text-sm font-semibold text-foreground">
+              Selection
+              {selectedOps.length > 0 && (
+                <span className="ml-1.5 font-normal text-muted-foreground">
+                  {selectedOps.length}
+                </span>
+              )}
+            </h2>
+            {selectedOps.length > 0 && (
+              <ul className="flex flex-wrap gap-2">
                 {selectedOps.map((op) => {
                   const cap = activeCaps[op.id];
                   let choices = choicesFor(op.id);
@@ -947,9 +1049,9 @@ export function TemplatePicker<V extends PickerTemplate>({
                   return (
                     <li
                       key={op.id}
-                      className="flex items-center justify-between gap-2"
+                      className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-2 py-1"
                     >
-                      <code className="min-w-0 flex-1 truncate font-mono text-xs text-foreground">
+                      <code className="font-mono text-xs text-foreground">
                         {op.signature}
                       </code>
                       {(choices.length > 1 || op.id in activeCaps) && (
@@ -991,75 +1093,102 @@ export function TemplatePicker<V extends PickerTemplate>({
                 })}
               </ul>
             )}
+            {selectedOps.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelected(new Set());
+                  setCaps({});
+                }}
+                className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Clear
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setSheetHidden(true)}
+              aria-label="Close the templates panel"
+              title="Close (pick an op to open it again)"
+              className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-2xl leading-none text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              ×
+            </button>
+          </div>
 
-            <div className="mt-4 border-t border-border pt-3">
-              <h2 className="text-sm font-semibold text-foreground">
-                Templates
-                {matches.length > 0 && (
-                  <span className="ml-1.5 font-normal text-muted-foreground">
-                    {matches.length}
-                    {capped.length > matches.length &&
-                      ` (best of ${capped.length} variants)`}
-                  </span>
-                )}
-              </h2>
-              {selected.size === 0 ? (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Pick operations to see templates that cover them.
-                </p>
-              ) : matches.length === 0 ? (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  No template covers this selection yet.
-                </p>
-              ) : (
-                <ul className="mt-2 space-y-1.5">
-                  {matches.map(({ template, extra, costs }, i) => {
-                    const layout = catalog.layoutLabel(template.memory);
-                    return (
-                      <li key={`${template.folder}/${template.file}`}>
-                        <button
-                          type="button"
-                          onClick={() => setOpenTemplate(template)}
-                          // start fetching its code (in the language the drawer will show) before the click
-                          onMouseEnter={() => {
-                            const pref = readPreferredLang();
-                            const l = template.langs.includes(pref)
-                              ? pref
-                              : template.langs[0];
-                            loadText(
-                              codeUrl(
-                                catalog,
-                                template.folder,
-                                `${template.file}.${l}`,
-                              ),
-                            ).catch(() => {});
-                          }}
-                          className="w-full rounded-lg border border-border bg-background p-2 text-left transition-colors hover:border-primary/50"
-                        >
-                          <span className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-medium text-foreground">
-                              {catalog.kindLabel(template)}
-                            </span>
-                            {i === 0 && (
-                              <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                                Best match
-                              </span>
-                            )}
+          <div className="mt-2 border-t border-border pt-2">
+            <h2 className="text-sm font-semibold text-foreground">
+              Templates
+              {matches.length > 0 && (
+                <span className="ml-1.5 font-normal text-muted-foreground">
+                  {matches.length}
+                  {capped.length > matches.length &&
+                    ` (best of ${capped.length} variants)`}
+                </span>
+              )}
+            </h2>
+            {selected.size === 0 ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pick operations to see templates that cover them.
+              </p>
+            ) : matches.length === 0 ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                No template covers this selection yet.
+              </p>
+            ) : (
+              <ul className="mt-2 flex gap-3 overflow-x-auto pb-2">
+                {matches.map(({ template, extra, costs }, i) => {
+                  const layout = catalog.layoutLabel(template.memory);
+                  return (
+                    <li
+                      key={`${template.folder}/${template.file}`}
+                      className="w-[26rem] flex-shrink-0"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setOpenTemplate(template)}
+                        // start fetching its code (in the language the drawer will show) before the click
+                        onMouseEnter={() => {
+                          const pref = readPreferredLang();
+                          const l = template.langs.includes(pref)
+                            ? pref
+                            : template.langs[0];
+                          loadText(
+                            codeUrl(
+                              catalog,
+                              template.folder,
+                              `${template.file}.${l}`,
+                            ),
+                          ).catch(() => {});
+                        }}
+                        className="flex h-full w-full flex-col justify-start rounded-lg border border-border bg-background px-2.5 py-1.5 text-left transition-colors hover:border-primary/50"
+                      >
+                        <span className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-medium text-foreground">
+                            {catalog.kindLabel(template)}
                           </span>
-                          <span className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px] leading-snug">
-                            {costs.map((c) => (
-                              <span key={c.op} className="contents">
-                                <span className="font-mono text-muted-foreground">
-                                  {c.op}
-                                </span>
-                                <span className="text-foreground">
-                                  {formatCost(c.cost)}
-                                </span>
+                          {i === 0 && (
+                            <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                              Best match
+                            </span>
+                          )}
+                        </span>
+                        {/* costs as one wrapped line of "op cost" pairs */}
+                        <span className="mt-1 flex flex-wrap gap-x-3 text-[11px] leading-snug">
+                          {costs.map((c) => (
+                            <span key={c.op}>
+                              <span className="font-mono text-muted-foreground">
+                                {c.op}
+                              </span>{" "}
+                              <span className="text-foreground">
+                                {formatCost(c.cost)}
                               </span>
-                            ))}
+                            </span>
+                          ))}
+                          <span>
                             <span className="font-mono text-muted-foreground">
                               build
-                            </span>
+                            </span>{" "}
                             <span className="text-foreground">
                               {formatCost(template.build)}
                               {(() => {
@@ -1073,61 +1202,64 @@ export function TemplatePicker<V extends PickerTemplate>({
                               })()}
                             </span>
                           </span>
-                          <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
-                            <span className="block">
-                              Memory{" "}
-                              <span className="text-foreground">
-                                {formatMemoryOf(
-                                  template.memory,
-                                  template.memory.total,
-                                )}
-                              </span>
-                              {layout && ` (${layout})`}
-                            </span>
-                            {catalog
-                              .memoryGroups(template)
-                              .map(({ id, label }) => (
-                                <span key={id} className="block pl-3">
-                                  {label} —{" "}
-                                  {template.memory[id].arrays
-                                    .map((a) => a.name)
-                                    .join(", ") || "none"}
-                                </span>
-                              ))}
+                        </span>
+                        {/* memory on one line: the total, then each group's arrays */}
+                        <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">
+                          Memory{" "}
+                          <span className="text-foreground">
+                            {formatMemoryOf(
+                              template.memory,
+                              template.memory.total,
+                            )}
                           </span>
-                          {extra.length > 0 && (
-                            <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
-                              Also supports: {extra.join(", ")}
-                            </span>
-                          )}
-                          {firstOfType(template) &&
-                            (() => {
-                              const type = template.dataStructureType;
-                              const beaten = hidden.get(type) ?? 0;
-                              const more = overflow.get(type) ?? 0;
-                              const plural = (k: number) =>
-                                k === 1 ? "variant" : "variants";
-                              return (
-                                (beaten > 0 || more > 0) && (
-                                  <span className="mt-1.5 block text-[11px] leading-snug text-muted-foreground">
-                                    {beaten > 0 &&
-                                      `${beaten} more ${plural(beaten)} of this structure also match, none faster on your ops or lighter than one shown (they keep more current or support more). `}
-                                    {more > 0 &&
-                                      `${more} other ${plural(more)} trade speed for memory differently; cap an op's cost above to see them.`}
-                                  </span>
-                                )
-                              );
-                            })()}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
+                          {layout && ` (${layout})`}
+                          {catalog
+                            .memoryGroups(template)
+                            .map(
+                              ({ id, label }) =>
+                                ` · ${label}: ${
+                                  template.memory[id].arrays
+                                    .map((a) => a.name)
+                                    .join(", ") || "none"
+                                }`,
+                            )
+                            .join("")}
+                        </span>
+                        {extra.length > 0 && (
+                          <span
+                            title={extra.join(", ")}
+                            className="mt-1 line-clamp-2 text-[11px] leading-snug text-muted-foreground"
+                          >
+                            Also: {extra.join(", ")}
+                          </span>
+                        )}
+                        {firstOfType(template) &&
+                          (() => {
+                            const type = template.dataStructureType;
+                            const beaten = hidden.get(type) ?? 0;
+                            const more = overflow.get(type) ?? 0;
+                            const plural = (k: number) =>
+                              k === 1 ? "variant" : "variants";
+                            return (
+                              (beaten > 0 || more > 0) && (
+                                <span className="mt-1 block text-[11px] leading-snug text-muted-foreground/80">
+                                  {beaten > 0 &&
+                                    `+${beaten} more ${plural(beaten)}, none faster or lighter. `}
+                                  {more > 0 &&
+                                    `${more} trade speed for memory: cap a cost to see them.`}
+                                </span>
+                              )
+                            );
+                          })()}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
-        </aside>
-      </div>
+        </section>
+      )}
 
       {openTemplate && (
         <CodeDrawer

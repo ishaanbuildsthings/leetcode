@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply
 // @data-structure-type: lazy-seg-tree
 // @complexities:
+//   getAll: N*log(U)
 //   pointAdd: log(N)*log(U)
 //   pointAssign: log(N)*log(U)
 //   pointChmax: log(N)*log(U)
@@ -147,6 +148,23 @@ struct BitCountTree {
         T v = 0;
         for (int b = 0; b < bits; b++) v |= T(cnt[p * bits + b]) << b;
         return v;
+    }
+
+    // O(N) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
+    // the leaves are (n >> s) .. ((2n - 1) >> s); their children cover k = 1 << (s - 1) leaves), then read the leaves
+    vector<T> getAll() {
+        for (int s = h; s > 0; s--) {
+            int k = 1 << (s - 1);
+            for (int x = max(1, n >> s); x <= (2 * n - 1) >> s; x++)
+                if (andTag[x] != full || xorTag[x]) {
+                    apply(2 * x, k, andTag[x], xorTag[x]), apply(2 * x + 1, k, andTag[x], xorTag[x]);
+                    andTag[x] = full, xorTag[x] = 0;
+                }
+        }
+        vector<T> out(n, 0);
+        for (int i = 0; i < n; i++)
+            for (int b = 0; b < bits; b++) out[i] |= T(cnt[(n + i) * bits + b]) << b;
+        return out;
     }
 
     // O(logN * bits) -- a[i] = v & FULL

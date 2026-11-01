@@ -16,8 +16,8 @@
 //   build: 1
 // @memory:
 //   layout: sparse
-//   node: mx[4*log(U)] mx2[4*log(U)] cntMx[4*log(U)] tot[4*log(U)] sz[4*log(U)]
-//   tags: addMx[4*log(U)] addOther[4*log(U)] hasAssign[4*log(U)] assignVal[4*log(U)]
+//   node: mx[4*log(U)] mx2[4*log(U)] cntMx[4*log(U)] tot[4*log(U)]
+//   tags: addTag[4*log(U)]
 //   other: none
 //   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree
 
@@ -26,39 +26,39 @@
 // descends past a node or pushes its tags. Nodes live in a pool the tree owns. Otherwise the beats logic below is the
 // dense tree's, with children in Lc / Rc instead of at 2i / 2i + 1.
 
-// Segment tree beats, one side only: range rangeChmin / add / assign, range sum / rangeMax, point ops. 0-based, inclusive.
-// Each node keeps its max (mx), strict second max (mx2) and how many times the max appears, plus two add tags: one for
-// the max group and one for everything else. A rangeChmin with mx2 < x < mx only moves the max group, so it becomes
-// an add on that group alone. Amortized O(log^2 U) with rangeAdd in the mix (O(log U) without).
-// T: int, long long, ...; sums accumulate in S (long long for small T). Sentinels are numeric_limits<T>.
+// Segment tree beats: range chmin (a[i] = min(a[i], x)), range add and range assign, with range sums and the range
+// max, plus point ops. All indices 0-based, ranges inclusive. How it works: a chmin only changes the max values of a
+// node it covers, so a node keeps its max, its strict second max and how many copies of the max it has; a chmin x with
+// mx2 < x < mx moves just those copies (the sum drops by (mx - x) * cntMx) and stops there, and only x <= mx2 has to
+// go further down. A node's own mx doubles as its pending clamp: push clamps each child to it, so there is no chmin /
+// chmax tag. There is no assign tag either: when all of a node's values are equal (no second max), push hands that
+// value to both children as an assign. An add shifts everything a node keeps and goes in the one add tag. Amortized
+// O(log^2 U) per update with range add, O(log U) without it (beats: every extra descent removes a distinct value).
+// T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
-struct SparseBeatsChmin {
+struct SparseChminChmaxBeats {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    static constexpr T INF = numeric_limits<T>::lowest();  // "no second max"
-    struct Node {
-        T mx, mx2, addMx, addOther, assignVal;
-        long long cntMx, sz;
-        S tot;
-        bool hasAssign;
-    };
-    mutable vector<Node> t{Node{}};  // node 0 is a placeholder
+    static constexpr T NEG_INF = numeric_limits<T>::lowest(), POS_INF = numeric_limits<T>::max();
+    mutable vector<T> mx = vector<T>(1);
+    mutable vector<T> mx2 = vector<T>(1);
+    mutable vector<T> addTag = vector<T>(1);
+    mutable vector<long long> cntMx = vector<long long>(1);
+    mutable vector<S> tot = vector<S>(1);
     mutable vector<int> Lc{0}, Rc{0};  // children (0: none yet)
     mutable vector<long long> ln{0};   // how many positions each node covers
     long long lo, hi;
     int root;
 
-    static bool better(T a, T b) { return a > b; }  // a is strictly more extreme than b
-
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseBeatsChmin(long long lo, long long hi) : lo(lo), hi(hi) { root = node(hi - lo + 1); }
+    SparseChminChmaxBeats(long long lo, long long hi) : lo(lo), hi(hi) { root = node(hi - lo + 1); }
 
 
     // optional -- reserve room for this many nodes up front
-    void reservePool(size_t nodes) { t.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
+    void reservePool(size_t nodes) { mx.reserve(nodes); mx2.reserve(nodes); addTag.reserve(nodes); cntMx.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
 
     // a fresh node: a block of k zeros
     int node(long long k) const {  // const: it only grows the (mutable) pool
-        t.push_back(Node{0, INF, 0, 0, 0, k, k, S(0), false});
+        mx.push_back(0); mx2.push_back(NEG_INF); addTag.push_back(0); cntMx.push_back(k); tot.push_back(0);
         Lc.push_back(0), Rc.push_back(0), ln.push_back(k);
         return (int)ln.size() - 1;
     }
@@ -71,56 +71,50 @@ struct SparseBeatsChmin {
     }
 
     void pull(int i) {
-        Node& nd = t[i];
-        const Node &a = t[Lc[i]], &b = t[Rc[i]];
-        nd.sz = a.sz + b.sz;
-        nd.tot = a.tot + b.tot;
-        if (better(a.mx, b.mx)) nd.mx = a.mx, nd.cntMx = a.cntMx, nd.mx2 = better(a.mx2, b.mx) ? a.mx2 : b.mx;
-        else if (better(b.mx, a.mx)) nd.mx = b.mx, nd.cntMx = b.cntMx, nd.mx2 = better(b.mx2, a.mx) ? b.mx2 : a.mx;
-        else nd.mx = a.mx, nd.cntMx = a.cntMx + b.cntMx, nd.mx2 = better(a.mx2, b.mx2) ? a.mx2 : b.mx2;
-        nd.hasAssign = false;
-        nd.addMx = nd.addOther = 0;
-    }
-
-    void applyAdd(int i, T vMx, T vOther) {
-        Node& nd = t[i];
-        nd.tot += S(vMx) * nd.cntMx + S(vOther) * (nd.sz - nd.cntMx);
-        if (nd.mx2 != INF) nd.mx2 += vOther;
-        nd.mx += vMx;
-        if (nd.hasAssign) nd.assignVal = nd.mx;
-        else nd.addMx += vMx, nd.addOther += vOther;
-    }
-
-    void applyAssign(int i, T v) {
-        Node& nd = t[i];
-        nd.mx = v, nd.mx2 = INF, nd.cntMx = nd.sz;
-        nd.tot = S(v) * nd.sz;
-        nd.addMx = nd.addOther = 0;
-        nd.hasAssign = true, nd.assignVal = v;
-    }
-
-    void push(int i) {
-        kids(i);
-        Node& nd = t[i];
-        if (nd.sz == 1) return;
         int l = Lc[i], r = Rc[i];
-        if (nd.hasAssign) {
-            applyAssign(l, nd.assignVal), applyAssign(r, nd.assignVal);
-            nd.hasAssign = false;
-            return;
+        tot[i] = tot[l] + tot[r];
+        if (mx[l] > mx[r]) mx[i] = mx[l], cntMx[i] = cntMx[l], mx2[i] = max(mx2[l], mx[r]);
+        else if (mx[l] < mx[r]) mx[i] = mx[r], cntMx[i] = cntMx[r], mx2[i] = max(mx2[r], mx[l]);
+        else mx[i] = mx[l], cntMx[i] = cntMx[l] + cntMx[r], mx2[i] = max(mx2[l], mx2[r]);
+        addTag[i] = 0;
+    }
+
+    // every value under node i (sz of them) becomes v
+    void applyAssign(int i, long long sz, T v) { mx[i] = v, mx2[i] = NEG_INF, cntMx[i] = sz, tot[i] = S(v) * sz, addTag[i] = 0; }
+
+    // every value under node i gains v
+    void applyAdd(int i, long long sz, T v) {
+        if (mx2[i] == NEG_INF) { applyAssign(i, sz, mx[i] + v); return; }
+        mx[i] += v;
+        if (mx2[i] != NEG_INF) mx2[i] += v;
+        tot[i] += S(v) * sz, addTag[i] += v;
+    }
+
+    // chmin by v on node i, with mx2 < v: only the copies of the max move
+    void applyChmin(int i, long long sz, T v) {
+        if (mx[i] > v) {
+            tot[i] -= S(mx[i] - v) * cntMx[i];
+            mx[i] = v;
         }
-        T aMx = nd.addMx, aO = nd.addOther;
-        if (aMx == 0 && aO == 0) return;
-        T c = better(t[l].mx, t[r].mx) ? t[l].mx : t[r].mx;
-        applyAdd(l, t[l].mx == c ? aMx : aO, aO);
-        applyAdd(r, t[r].mx == c ? aMx : aO, aO);
-        nd.addMx = nd.addOther = 0;
+        (void)sz;
+    }
+
+    // hand node i's pending changes to its children: all one value (an assign), else the add, then its own clamp
+    void push(int i, long long tl, long long tr) {
+        kids(i);
+        if (tl == tr) return;
+        kids(i);
+        long long tm = tl + (tr - tl) / 2, l = Lc[i], r = Rc[i];
+        long long lsz = tm - tl + 1, rsz = tr - tm;
+        if (mx2[i] == NEG_INF) { applyAssign(l, lsz, mx[i]), applyAssign(r, rsz, mx[i]); return; }
+        if (T a = addTag[i]) applyAdd(l, lsz, a), applyAdd(r, rsz, a), addTag[i] = 0;
+        applyChmin(l, lsz, mx[i]), applyChmin(r, rsz, mx[i]);
     }
 
     void chmin(int i, long long tl, long long tr, long long ql, long long qr, T x) {
-        if (qr < tl || ql > tr || !better(t[i].mx, x)) return;
-        if (ql <= tl && tr <= qr && better(x, t[i].mx2)) { applyAdd(i, x - t[i].mx, 0); return; }
-        push(i);
+        if (qr < tl || ql > tr || x >= mx[i]) return;
+        if (ql <= tl && tr <= qr && x > mx2[i]) { applyChmin(i, tr - tl + 1, x); return; }
+        push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
         chmin(Lc[i], tl, tm, ql, qr, x), chmin(Rc[i], tm + 1, tr, ql, qr, x);
@@ -129,8 +123,8 @@ struct SparseBeatsChmin {
 
     void add(int i, long long tl, long long tr, long long ql, long long qr, T v) {
         if (qr < tl || ql > tr) return;
-        if (ql <= tl && tr <= qr) { applyAdd(i, v, v); return; }
-        push(i);
+        if (ql <= tl && tr <= qr) { applyAdd(i, tr - tl + 1, v); return; }
+        push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
         add(Lc[i], tl, tm, ql, qr, v), add(Rc[i], tm + 1, tr, ql, qr, v);
@@ -139,8 +133,8 @@ struct SparseBeatsChmin {
 
     void assign(int i, long long tl, long long tr, long long ql, long long qr, T v) {
         if (qr < tl || ql > tr) return;
-        if (ql <= tl && tr <= qr) { applyAssign(i, v); return; }
-        push(i);
+        if (ql <= tl && tr <= qr) { applyAssign(i, tr - tl + 1, v); return; }
+        push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
         assign(Lc[i], tl, tm, ql, qr, v), assign(Rc[i], tm + 1, tr, ql, qr, v);
@@ -149,21 +143,20 @@ struct SparseBeatsChmin {
 
     S qsum(int i, long long tl, long long tr, long long ql, long long qr) {
         if (qr < tl || ql > tr) return 0;
-        if (ql <= tl && tr <= qr) return t[i].tot;
-        push(i);
+        if (ql <= tl && tr <= qr) return tot[i];
+        push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
         return qsum(Lc[i], tl, tm, ql, qr) + qsum(Rc[i], tm + 1, tr, ql, qr);
     }
 
-    T qext(int i, long long tl, long long tr, long long ql, long long qr) {
-        if (qr < tl || ql > tr) return INF;
-        if (ql <= tl && tr <= qr) return t[i].mx;
-        push(i);
+    T qmax(int i, long long tl, long long tr, long long ql, long long qr) {
+        if (qr < tl || ql > tr) return NEG_INF;
+        if (ql <= tl && tr <= qr) return mx[i];
+        push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        T a = qext(Lc[i], tl, tm, ql, qr), b = qext(Rc[i], tm + 1, tr, ql, qr);
-        return better(a, b) ? a : b;
+        return max(qmax(Lc[i], tl, tm, ql, qr), qmax(Rc[i], tm + 1, tr, ql, qr));
     }
 
     // amortized O(log^2 U) -- a[i] = min(a[i], x) for i in [l, r]
@@ -172,27 +165,27 @@ struct SparseBeatsChmin {
     // amortized O(log^2 U) -- a[i] += x for i in [l, r]
     void rangeAdd(long long l, long long r, T x) { if (l <= r) add(root, lo, hi, l, r, x); }
 
-    // O(logU) -- a[i] = x for i in [l, r]
+    // amortized O(log^2 U) -- a[i] = x for i in [l, r]
     void rangeAssign(long long l, long long r, T x) { if (l <= r) assign(root, lo, hi, l, r, x); }
 
     // O(logU) -- a[l] + ... + a[r]
     S rangeSum(long long l, long long r) { return l > r ? S(0) : qsum(root, lo, hi, l, r); }
 
     // O(logU) -- max of a[l..r]
-    T rangeMax(long long l, long long r) { return l > r ? INF : qext(root, lo, hi, l, r); }
+    T rangeMax(long long l, long long r) { return l > r ? NEG_INF : qmax(root, lo, hi, l, r); }
 
     // O(logU) -- a[i]
     T pointGet(long long i) { return rangeMax(i, i); }
 
-    // a[i] = v
+    // amortized O(log^2 U) -- a[i] = v
     void pointAssign(long long i, T v) { rangeAssign(i, i, v); }
 
-    // a[i] = min(a[i], v)
+    // amortized O(log^2 U) -- a[i] += v
+    void pointAdd(long long i, T v) { rangeAdd(i, i, v); }
+
+    // amortized O(log^2 U) -- a[i] = max(a[i], v)
+    void pointChmax(long long i, T v) { if (v > pointGet(i)) rangeAssign(i, i, v); }
+
+    // amortized O(log^2 U) -- a[i] = min(a[i], v)
     void pointChmin(long long i, T v) { rangeChmin(i, i, v); }
-
-    // a[i] = max(a[i], v): the other side is not a beats op here, so it is a point assign
-    void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
-
-    // a[i] += delta
-    void pointAdd(long long i, T delta) { rangeAdd(i, i, delta); }
 };

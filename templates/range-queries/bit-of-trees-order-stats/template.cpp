@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/bit-of-trees-order-stats/template.cpp
-// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX
+// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX
 // @data-structure-type: bit-of-trees
 // @complexities:
 //   countGtX: log(N)*log(U)
@@ -9,6 +9,7 @@
 //   countLtX: log(N)*log(U)
 //   countLteX: log(N)*log(U)
 //   countOccurrences: log(N)*log(U)
+//   getAll: N
 //   kthLargest: log(N)*log(U)
 //   kthSmallest: log(N)*log(U)
 //   largestLtX: log(N)*log(U)
@@ -53,6 +54,9 @@ struct DynamicOrderStats {
 
     // O(1) -- a[i]
     T pointGet(long long i) const { return arr[i]; }
+
+    // O(N) -- the whole array (a copy)
+    vector<T> getAll() const { return arr; }
 
     // O(logN logU) -- a[i] = v
     void pointAssign(long long i, T v) {

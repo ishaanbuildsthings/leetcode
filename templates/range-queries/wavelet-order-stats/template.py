@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/wavelet-order-stats/template.py
 # @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet rangeMax rangeMin smallestGtX smallestGteX
 # @data-structure-type: wavelet
+# @letters: same
 # @complexities:
 #   countGtX: log(N)
 #   countGteX: log(N)

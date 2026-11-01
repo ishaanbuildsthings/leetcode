@@ -1,9 +1,11 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/doAllElementsAppearEvenFrequency-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
-# @operations: doAllElementsAppearEvenFrequency pointAdd pointAssign pointChmax pointChmin pointGet
+# @operations: doAllElementsAppearEvenFrequency getAll pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: BIT
+# @letters: same
 # @complexities:
 #   doAllElementsAppearEvenFrequency: log(N)
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -96,6 +98,10 @@ class XorEven:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.vals[i]
+
+    # O(N) -- the whole array (a copy)
+    def getAll(self):
+        return list(self.vals)
 
     # a[i] = max(a[i], val)
     def pointChmax(self, i, val):

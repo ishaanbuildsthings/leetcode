@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rightmostGtX-rightmostGteX/template.cpp
-// @operations: leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rightmostGtX rightmostGteX
+// @operations: getAll leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rightmostGtX rightmostGteX
 // @data-structure-type: seg-tree
 // @complexities:
+//   getAll: N
 //   leftmostGtX: log(N)
 //   leftmostGteX: log(N)
 //   pointAdd: log(N)
@@ -61,6 +62,9 @@ struct MaxSegTree {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return tree[size + i]; }
+
+    // O(N) -- the whole array (a copy of the leaves)
+    vector<T> getAll() const { return vector<T>(tree.begin() + size, tree.begin() + size + n); }
 
     // O(logN) -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) { if (v > tree[size + i]) pointAssign(i, v); }

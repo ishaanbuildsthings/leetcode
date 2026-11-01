@@ -1,9 +1,11 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
-# @operations: countOccurrences pointAdd pointAssign pointChmax pointChmin pointGet
+# @operations: countOccurrences getAll pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: positions
+# @letters: same
 # @complexities:
 #   countOccurrences: log(N)
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -163,6 +165,10 @@ class DynamicOccurrenceLists:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.a[i]
+
+    # O(N) -- the whole array (a copy)
+    def getAll(self):
+        return list(self.a)
 
     # O(logN) -- a[i] += delta
     def pointAdd(self, i, delta):

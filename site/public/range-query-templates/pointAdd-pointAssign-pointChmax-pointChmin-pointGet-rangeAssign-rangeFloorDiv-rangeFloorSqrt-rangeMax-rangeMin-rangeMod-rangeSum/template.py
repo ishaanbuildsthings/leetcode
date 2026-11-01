@@ -1,8 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod-rangeSum/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeSum
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeSum
 # @data-structure-type: beats
+# @letters: same
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N) amortized
 #   pointAssign: log(N) amortized
 #   pointChmax: log(N) amortized
@@ -252,6 +254,22 @@ class ShrinkSeg_PERFORMANT:
     # O(logN) -- a[pos]
     def pointGet(self, pos):
         return self.rangeMax(pos, pos)
+
+    def _getAllRec(self, i, tl, tr, out):
+        if tl == tr:
+            out.append(self.mx[i])
+            return
+        self._push(i, tl, tr)
+        tm = (tl + tr) // 2
+        self._getAllRec(2 * i, tl, tm, out)
+        self._getAllRec(2 * i + 1, tm + 1, tr, out)
+
+    # O(N) -- the whole array: one DFS that pushes every tag down and reads the leaves left to right
+    def getAll(self):
+        out = []
+        if self.n:
+            self._getAllRec(1, 0, self.n - 1, out)
+        return out
 
     # a[i] = max(a[i], val)
     def pointChmax(self, i, val):

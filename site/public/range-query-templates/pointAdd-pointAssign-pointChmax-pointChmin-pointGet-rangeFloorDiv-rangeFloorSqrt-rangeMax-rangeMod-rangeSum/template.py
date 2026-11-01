@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMod-rangeSum/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeSum
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeSum
 # @data-structure-type: beats
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -180,6 +181,21 @@ class SegTree_PERFORMANT:
     # O(logN) -- a[pos]
     def pointGet(self, pos):
         return self._rangeMax(1, 0, self.n - 1, pos, pos)
+
+    def _getAllRec(self, i, tl, tr, out):
+        if tl == tr:
+            out.append(self.mx[i])
+            return
+        tm = (tl + tr) // 2
+        self._getAllRec(2 * i, tl, tm, out)
+        self._getAllRec(2 * i + 1, tm + 1, tr, out)
+
+    # O(N) -- the whole array: one DFS that reads the leaves left to right
+    def getAll(self):
+        out = []
+        if self.n:
+            self._getAllRec(1, 0, self.n - 1, out)
+        return out
 
     # O(log n) -- sum of l...r
     def rangeSum(self, l, r):

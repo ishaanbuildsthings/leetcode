@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorSqrt/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorSqrt
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorSqrt
 // @data-structure-type: seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)+log(log(U))
 //   pointAssign: log(N)+log(log(U))
 //   pointChmax: log(N)+log(log(U))
@@ -70,6 +71,15 @@ struct RangeFloorSqrtTree {
         T k = 0;
         for (int x = p >> 1; x; x >>= 1) k += tree[x];
         return sqrtTimes(tree[p], min(k, MAX_SQRTS));
+    }
+
+    // O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    // each node's tag is complete when it is pushed), then read the leaves
+    vector<T> getAll() {
+        for (int x = 1; x < n; x++) {
+            if (tree[x]) apply(2 * x, tree[x]), apply(2 * x + 1, tree[x]), tree[x] = 0;
+        }
+        return vector<T>(tree.begin() + n, tree.end());
     }
 
     // O(logN + loglogU) -- a[i] = v

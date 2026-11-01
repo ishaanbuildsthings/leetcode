@@ -1,8 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum__seg-tree/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
 # @data-structure-type: seg-tree
+# @letters: same
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -72,6 +74,10 @@ class SumSegTree:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.tree[self.size + i]
+
+    # O(N) -- the whole array (a copy of the leaves)
+    def getAll(self):
+        return self.tree[self.size:self.size + self.n]
 
     # a[i] = max(a[i], val)
     def pointChmax(self, i, val):

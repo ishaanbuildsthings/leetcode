@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeMax/template.py
 # @operations: pointGet rangeMax
 # @data-structure-type: sparse-table
+# @letters: same
 # @complexities:
 #   pointGet: 1
 #   rangeMax: 1

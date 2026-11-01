@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeOrApply-rangeXorApply/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeOrApply rangeXorApply
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeOrApply rangeXorApply
 # @data-structure-type: lazy-seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -98,6 +99,20 @@ class BitOpTree:
             v = (v & AND[p]) ^ XOR[p]
             p >>= 1
         return v
+
+    # O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    # each node's tag is complete when it is pushed), then read the leaves
+    def getAll(self):
+        AND, XOR = self.AND, self.XOR
+        apply = self._apply
+        for y in range(1, self.n):
+            a, x = AND[y], XOR[y]
+            if a != -1 or x:
+                apply(2 * y, a, x)
+                apply(2 * y + 1, a, x)
+                AND[y] = -1
+                XOR[y] = 0
+        return list(self.val)
 
     # O(logN) -- a[i] = v
     def pointAssign(self, i, v):

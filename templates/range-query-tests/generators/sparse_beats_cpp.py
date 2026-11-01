@@ -15,6 +15,8 @@ ZERO_FLAT = {
     "BitBeats": {"mx": "0", "mn": "0", "andAll": "0", "orAll": "0", "tagAnd": "FULL", "tagXor": "0", "tot": "0"},
     "ShrinkSeg": {"mx": "0", "mn": "0", "tot": "0"},
     "ShrinkTree": {"mx": "0", "tot": "0"},
+    "ChminChmaxBeats": {"mx": "0", "mx2": "NEG_INF", "cntMx": "k", "mn": "0", "mn2": "POS_INF", "cntMn": "k", "tot": "0",
+                        "addTag": "0"},  # (gen_beats.py's variants keep only some of the fields)
 }
 INDEX_PARAMS = r"tl|tr|ql|qr|l|r|pos|p|sz|len|length|k"
 

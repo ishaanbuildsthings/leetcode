@@ -27,113 +27,21 @@
 # right before anything descends past a node or pushes its tags. Otherwise the beats logic below is the
 # dense tree's, with children in L / R instead of at 2i / 2i + 1.
 
-# ========================
-# COMPLEXITIES
-#
-# O(n) build
-# seg = BeatsChminChmaxNoAdd_PERFORMANT(arr)
-#
-# AMORTIZED O(logU):  rangeChmin(l, r, x)    -- a[i] = min(a[i], x)
-# AMORTIZED O(logU):  rangeChmax(l, r, x)    -- a[i] = max(a[i], x)
-# AMORTIZED O(logU):  rangeAssign(l, r, x)   -- a[i] = x
-# AMORTIZED O(logU):  pointAssign(pos, newVal)  -- OVERWRITE, may RAISE the value
-#
-# O(logU):  rangeSum(l, r)
-# O(logU):  rangeMin(l, r)
-# O(logU):  rangeMax(l, r)
-# O(logU):  pointGet(pos)
-# O(n) space
-#
-# Whole structure is O((n + q) logU). THERE IS NO rangeAdd HERE ON PURPOSE -- adding it forces
-# O((n + q) log^2 U), and that log^2 is proven tight (Tony2_CF, Dec 2025,
-# codeforces.com/blog/entry/149516). If you need add, take the Chmin-Chmax-Add variant instead;
-# measured at n = q = 300000 it runs about 1.2x slower than this file on an add-free workload,
-# because its node is 104 bytes against 56 here.
-#
-# THE NODE CARRIES NO TAG FIELDS AT ALL. mx doubles as the pending chmin tag and mn as the pending
-# chmax tag -- if a child's mx is above my mx, that IS a pending chmin, and re-pushing a value the
-# child already satisfies is a no-op, so nothing needs clearing and there is no sentinel to get
-# wrong. There is no assign tag either: an assign leaves the node with mn == mx, and mn == mx
-# already means "every value in my interval is this number", so _push just forwards that to both
-# children as an assign.
-#
-# NOT A PLAIN MERGE OF A CHMIN TREE AND A CHMAX TREE. Holding both sides in one node needs glue
-# neither one-sided version has, and it only fires when the two sides meet -- which random tests
-# hit rarely, so stress test it if you touch it:
-#   - a chmin on a UNIFORM node (mn == mx) moves the min too, so mn must follow mx down
-#   - a chmin on a node with EXACTLY TWO distinct values has mn2 == mx, so the second-min is the
-#     thing being clamped and mn2 must follow
-#   - and the mirror of both for chmax
-#
-# Values may be negative. Python ints are arbitrary precision so there is
-# nothing to overflow; the sentinels are float infinities.
-#
-# ========================
-#
-"""
-HOW DO POTENTIALS WORK? (segment tree beats)
-
-Think about the "potential" of the entire segment tree. Each of the N values appears in logN
-nodes, so the tree captures N logN element-slots. A node's potential is the number of DISTINCT
-values in its interval, so the potential across the whole tree is at most N logN.
-
-chmin / chmax / assign can never RAISE this. They apply the SAME function to every element of a
-covered node, and a function can merge two distinct values into one but can never split one value
-into two. That is the whole requirement -- it is not about monotonicity. (Range add is the one
-that breaks it, because at a node STRADDLING the range boundary half the elements get shifted and
-half do not, so two different functions are applied and equal values come apart. That is why this
-file does not have one.)
-
-There are 3 types of nodes in a seg tree:
-
-1) STRADDLES THE QUERY RANGE (always recurses)
-at most 2*logN visited per query
-
-2) DEAD-END NODE (does not recurse)
-always comes from one of the other nodes so these are free
-
-3) FULLY COVERED NODES THAT DO RECURSE
-in a normal segment tree we stop as soon as we hit one, here we do not
-We must show the # of fully covered nodes we visit is bounded, as the others are bounded, then
-our total visits is bounded
-
-For a chmin with value x at a fully covered node:
-  case 1, x >= mx       -- nothing here is above x, return immediately (this falls into case 2)
-  case 2, mx2 < x < mx  -- ONLY the copies of the max move, and they all move to x. We know how
-                           many there are (cntMx) so we can patch the sum in O(1) and return.
-                           cntMx does NOT change: everything below the max is at most mx2, which
-                           is strictly under x, so the tie set is the same set. Nothing got glued,
-                           so NO potential was spent -- which is exactly why we are not allowed to
-                           descend here, and exactly why we need a tag: we fixed this node and
-                           left its children stale.
-  case 3, x <= mx2      -- mx and mx2 both land on x, so two distinct values get GLUED together
-                           and this node's potential drops by at least one, paying for the visit.
-                           We recurse to the children.
-
-So we can only descend when potential actually drops. (Contrast rangeMod, where the prune test and
-the potential test are the SAME test -- max >= mod always means a real halving is waiting below --
-so you can always descend and never need a lazy tag at all.)
-
-WHY A PUSHED TAG IS ALWAYS LEGAL:
-_applyChmin has a precondition, x > mx2, that nothing in the code checks. It holds for two reasons
-and they are worth writing down. Case 2 above is the ONLY place a tag is born, and it tests the
-condition directly. And a parent's mx is at least its child's mx, which is strictly above the
-child's mx2, so a tag that cleared the parent's bar clears the child's too. Mirror for chmax.
-
-ASSIGN / POINT SET:
-assign collapses a covered node to one distinct value, so it DRAINS potential; it is free.
-pointAssign can raise a value, injecting at most logN distinct values (one per node on its path), so
-Q of them add Q logN. The bound stays O((n + q) logN).
-"""
-
-# ========================
-
+# Segment tree beats: range chmin (a[i] = min(a[i], x)) and chmax (a[i] = max(a[i], x)) and range assign, with range
+# sums and the range max / min, plus point ops. All indices 0-based, ranges inclusive. How it works: a chmin only
+# changes the max values of a node it covers, so a node keeps its max, its strict second max and how many copies of
+# the max it has; a chmin x with mx2 < x < mx moves just those copies (the sum drops by (mx - x) * cntMx) and stops
+# there, and only x <= mx2 has to go further down. a chmax is the same with the min: mn, mn2 and cntMn. A node's own
+# mx / mn doubles as its pending clamp: push clamps each child to it, so there is no chmin / chmax tag. There is no
+# assign tag either: when all of a node's values are equal (mn == mx), push hands that value to both children as an
+# assign. Amortized O(log U) per update (beats: every extra descent removes a distinct value).
 
 NEG_INF = float('-inf')
 POS_INF = float('inf')
 
 
-class SparseBeatsChminChmaxNoAdd:
+class SparseChminChmaxBeats:
+    # O(N)
     # O(1) -- all zeros over [lo, hi]; any range of integers works
     def __init__(self, lo, hi):
         self.lo, self.hi = lo, hi
@@ -179,9 +87,8 @@ class SparseBeatsChminChmaxNoAdd:
 
     def _pull(self, i):
         l = self.L[i]; r = self.R[i]
-        mx = self.mx; mx2 = self.mx2; cntMx = self.cntMx
-        mn = self.mn; mn2 = self.mn2; cntMn = self.cntMn
         self.tot[i] = self.tot[l] + self.tot[r]
+        mx = self.mx; mx2 = self.mx2; cntMx = self.cntMx
         if mx[l] > mx[r]:
             mx[i] = mx[l]; cntMx[i] = cntMx[l]
             mx2[i] = mx2[l] if mx2[l] > mx[r] else mx[r]
@@ -191,6 +98,7 @@ class SparseBeatsChminChmaxNoAdd:
         else:
             mx[i] = mx[l]; cntMx[i] = cntMx[l] + cntMx[r]
             mx2[i] = mx2[l] if mx2[l] > mx2[r] else mx2[r]
+        mn = self.mn; mn2 = self.mn2; cntMn = self.cntMn
         if mn[l] < mn[r]:
             mn[i] = mn[l]; cntMn[i] = cntMn[l]
             mn2[i] = mn2[l] if mn2[l] < mn[r] else mn[r]
@@ -201,51 +109,49 @@ class SparseBeatsChminChmaxNoAdd:
             mn[i] = mn[l]; cntMn[i] = cntMn[l] + cntMn[r]
             mn2[i] = mn2[l] if mn2[l] < mn2[r] else mn2[r]
 
-    def _applyChmin(self, i, x):
-        if x >= self.mx[i]:
-            return
-        self.tot[i] -= (self.mx[i] - x) * self.cntMx[i]
-        if self.mn[i] == self.mx[i]:
-            self.mn[i] = x
-        elif self.mn2[i] == self.mx[i]:
-            self.mn2[i] = x
-        self.mx[i] = x
-
-    def _applyChmax(self, i, x):
-        if x <= self.mn[i]:
-            return
-        self.tot[i] += (x - self.mn[i]) * self.cntMn[i]
-        if self.mx[i] == self.mn[i]:
-            self.mx[i] = x
-        elif self.mx2[i] == self.mn[i]:
-            self.mx2[i] = x
-        self.mn[i] = x
-
-    def _applyAssign(self, i, v, sz):
+    # every value under node i (sz of them) becomes v
+    def _applyAssign(self, i, sz, v):
         self.mx[i] = v; self.mx2[i] = NEG_INF; self.cntMx[i] = sz
         self.mn[i] = v; self.mn2[i] = POS_INF; self.cntMn[i] = sz
         self.tot[i] = v * sz
 
+    # chmin by v on node i, with mx2 < v: only the copies of the max move
+    def _applyChmin(self, i, sz, v):
+        if self.mn[i] >= v:
+            self._applyAssign(i, sz, v); return
+        if self.mx[i] > v:
+            if self.mn2[i] == self.mx[i]: self.mn2[i] = v
+            self.tot[i] -= (self.mx[i] - v) * self.cntMx[i]
+            self.mx[i] = v
+
+    # chmax by v on node i, with v < mn2: only the copies of the min move
+    def _applyChmax(self, i, sz, v):
+        if self.mx[i] <= v:
+            self._applyAssign(i, sz, v); return
+        if self.mn[i] < v:
+            if self.mx2[i] == self.mn[i]: self.mx2[i] = v
+            self.tot[i] += (v - self.mn[i]) * self.cntMn[i]
+            self.mn[i] = v
+
+    # hand node i's pending changes to its children: all one value (an assign), else the add, then its own clamp
     def _push(self, i, tl, tr):
         self._kids(i)
-        if tl == tr:
-            return
+        if tl == tr: return
         self._kids(i)
         tm = (tl + tr) // 2
+        lsz = tm - tl + 1; rsz = tr - tm
         l = self.L[i]; r = self.R[i]
         if self.mn[i] == self.mx[i]:
             v = self.mx[i]
-            self._applyAssign(l, v, tm - tl + 1)
-            self._applyAssign(r, v, tr - tm)
+            self._applyAssign(l, lsz, v); self._applyAssign(r, rsz, v)
             return
-        self._applyChmin(l, self.mx[i]); self._applyChmin(r, self.mx[i])
-        self._applyChmax(l, self.mn[i]); self._applyChmax(r, self.mn[i])
+        self._applyChmin(l, lsz, self.mx[i]); self._applyChmin(r, rsz, self.mx[i])
+        self._applyChmax(l, lsz, self.mn[i]); self._applyChmax(r, rsz, self.mn[i])
 
     def _chmin(self, i, tl, tr, ql, qr, x):
-        if qr < tl or ql > tr or x >= self.mx[i]:
-            return
+        if qr < tl or ql > tr or x >= self.mx[i]: return
         if ql <= tl and qr >= tr and x > self.mx2[i]:
-            self._applyChmin(i, x); return
+            self._applyChmin(i, tr - tl + 1, x); return
         self._push(i, tl, tr)
         self._kids(i)
         tm = (tl + tr) // 2
@@ -253,16 +159,14 @@ class SparseBeatsChminChmaxNoAdd:
         self._chmin(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(logU) -- a[i] = min(a[i], x) for i in [l, r]
+    # amortized O(logU) -- a[i] = min(a[i], x) for i in [l, r]
     def rangeChmin(self, l, r, x):
-        if l <= r:
-            self._chmin(1, self.lo, self.hi, l, r, x)
+        if l <= r: self._chmin(1, self.lo, self.hi, l, r, x)
 
     def _chmax(self, i, tl, tr, ql, qr, x):
-        if qr < tl or ql > tr or x <= self.mn[i]:
-            return
+        if qr < tl or ql > tr or x <= self.mn[i]: return
         if ql <= tl and qr >= tr and x < self.mn2[i]:
-            self._applyChmax(i, x); return
+            self._applyChmax(i, tr - tl + 1, x); return
         self._push(i, tl, tr)
         self._kids(i)
         tm = (tl + tr) // 2
@@ -270,16 +174,14 @@ class SparseBeatsChminChmaxNoAdd:
         self._chmax(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(logU) -- a[i] = max(a[i], x) for i in [l, r]
+    # amortized O(logU) -- a[i] = max(a[i], x) for i in [l, r]
     def rangeChmax(self, l, r, x):
-        if l <= r:
-            self._chmax(1, self.lo, self.hi, l, r, x)
+        if l <= r: self._chmax(1, self.lo, self.hi, l, r, x)
 
     def _assign(self, i, tl, tr, ql, qr, v):
-        if qr < tl or ql > tr:
-            return
+        if qr < tl or ql > tr: return
         if ql <= tl and qr >= tr:
-            self._applyAssign(i, v, tr - tl + 1); return
+            self._applyAssign(i, tr - tl + 1, v); return
         self._push(i, tl, tr)
         self._kids(i)
         tm = (tl + tr) // 2
@@ -287,20 +189,13 @@ class SparseBeatsChminChmaxNoAdd:
         self._assign(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(logU) -- a[i] = v for i in [l, r]
+    # amortized O(logU) -- a[i] = v for i in [l, r]
     def rangeAssign(self, l, r, v):
-        if l <= r:
-            self._assign(1, self.lo, self.hi, l, r, v)
-
-    # O(logU) -- a[p] = v
-    def pointAssign(self, p, v):
-        self.rangeAssign(p, p, v)
+        if l <= r: self._assign(1, self.lo, self.hi, l, r, v)
 
     def _sum(self, i, tl, tr, ql, qr):
-        if qr < tl or ql > tr:
-            return 0
-        if ql <= tl and qr >= tr:
-            return self.tot[i]
+        if qr < tl or ql > tr: return 0
+        if ql <= tl and qr >= tr: return self.tot[i]
         self._push(i, tl, tr)
         self._kids(i)
         tm = (tl + tr) // 2
@@ -311,10 +206,8 @@ class SparseBeatsChminChmaxNoAdd:
         return 0 if (l > r) else self._sum(1, self.lo, self.hi, l, r)
 
     def _qmax(self, i, tl, tr, ql, qr):
-        if qr < tl or ql > tr:
-            return NEG_INF
-        if ql <= tl and qr >= tr:
-            return self.mx[i]
+        if qr < tl or ql > tr: return NEG_INF
+        if ql <= tl and qr >= tr: return self.mx[i]
         self._push(i, tl, tr)
         self._kids(i)
         tm = (tl + tr) // 2
@@ -327,10 +220,8 @@ class SparseBeatsChminChmaxNoAdd:
         return NEG_INF if (l > r) else self._qmax(1, self.lo, self.hi, l, r)
 
     def _qmin(self, i, tl, tr, ql, qr):
-        if qr < tl or ql > tr:
-            return POS_INF
-        if ql <= tl and qr >= tr:
-            return self.mn[i]
+        if qr < tl or ql > tr: return POS_INF
+        if ql <= tl and qr >= tr: return self.mn[i]
         self._push(i, tl, tr)
         self._kids(i)
         tm = (tl + tr) // 2
@@ -346,14 +237,18 @@ class SparseBeatsChminChmaxNoAdd:
     def pointGet(self, p):
         return self.rangeMax(p, p)
 
-    # a[i] = max(a[i], val)
-    def pointChmax(self, i, val):
-        self.rangeChmax(i, i, val)
+    # amortized O(logU) -- a[p] = v
+    def pointAssign(self, p, v):
+        self.rangeAssign(p, p, v)
 
-    # a[i] = min(a[i], val)
-    def pointChmin(self, i, val):
-        self.rangeChmin(i, i, val)
+    # amortized O(logU) -- a[i] += v
+    def pointAdd(self, i, v):
+        self.rangeAssign(i, i, self.pointGet(i) + v)
 
-    # a[i] += delta
-    def pointAdd(self, i, delta):
-        self.pointAssign(i, self.pointGet(i) + delta)
+    # amortized O(logU) -- a[i] = max(a[i], v)
+    def pointChmax(self, i, v):
+        self.rangeChmax(i, i, v)
+
+    # amortized O(logU) -- a[i] = min(a[i], v)
+    def pointChmin(self, i, v):
+        self.rangeChmin(i, i, v)

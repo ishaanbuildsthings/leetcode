@@ -1,9 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign/template.py
-# @operations: countOccurrences pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign
+# @operations: countOccurrences getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign
 # @data-structure-type: sqrt
 # @complexities:
 #   countOccurrences: sqrt(N)
+#   getAll: N
 #   pointAdd: sqrt(N)
 #   pointAssign: sqrt(N)
 #   pointChmax: sqrt(N)
@@ -133,6 +134,10 @@ class SqrtOccurrences:
         b = i // self.B
         asg = self.asg[b]
         return (asg if asg is not None else self.vals[i]) + self.add[b]
+
+    # O(N) -- the whole array (each a[i] is O(1))
+    def getAll(self):
+        return [self.pointGet(i) for i in range(self.n)]
 
     # O(sqrt N) -- a[i] = val
     def pointAssign(self, i, val):

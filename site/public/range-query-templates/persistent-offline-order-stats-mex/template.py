@@ -1,15 +1,17 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-offline-order-stats-mex/template.py
-# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet pushBack rangeMax rangeMex rangeMin smallestGtX smallestGteX
+# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet rangeMax rangeMex rangeMin smallestGtX smallestGteX
 # @data-structure-type: persistent
 # @values: offline
 # @complexities:
+#   append: log(N)
 #   countGtX: log(N)
 #   countGteX: log(N)
 #   countInValRange: log(N)
 #   countLtX: log(N)
 #   countLteX: log(N)
 #   countOccurrences: log(N)
+#   getAll: N
 #   kthLargest: log(N)
 #   kthSmallest: log(N)
 #   largestLtX: log(N)
@@ -17,7 +19,6 @@
 #   medianHigh: log(N)
 #   medianLow: log(N)
 #   pointGet: 1
-#   pushBack: log(N)
 #   rangeMax: log(N)
 #   rangeMex: log(N)
 #   rangeMin: log(N)
@@ -29,9 +30,9 @@
 #   node: L[1*N*log(N)] R[1*N*log(N)] C[1*N*log(N)]
 #   tags: none
 #   other: root[1*N] arr[1*N] srt[1*N] mexRoot[1*N] ML[1*N*log(N)] MR[1*N*log(N)] MN[1*N*log(N)]
-#   note: N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values (and one in the mex tree)
+#   note: N = every value ever added (initial array plus each append); each adds one root-to-leaf path of log N nodes over the compressed values (and one in the mex tree)
 
-# An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Every value that will
+# An array that grows: append(v) appends, and queries on any a[l..r] can come in between. Every value that will
 # ever be added is given up front (only to compress them: nothing is added until you push it), so the persistent seg
 # tree is over compressed ranks and costs are log N, never log U: version p holds a[0..p-1], a[l..r] is version r + 1
 # minus version l, and each append adds one version. Query arguments (x, lowVal, ...) can be anything. 0-indexed.
@@ -43,7 +44,7 @@ class PersistentOfflineOrderStats:
     __slots__ = ('arr', 'n', 'srt', 'm', 'where', 'klo', 'khi', 'root', 'L', 'R', 'C', 'mexHi', 'mexRoot', 'ML', 'MR', 'MN')
 
     # O(N log N) -- arr: the initial array (a list, may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value
-    # pushBack will ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
+    # append will ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
     def __init__(self, arr, allValuesThatWillEverBeInsertedForOfflineCompression):
         self.srt = srt = sorted(set(allValuesThatWillEverBeInsertedForOfflineCompression) | set(arr))
         self.m = len(srt)
@@ -56,13 +57,13 @@ class PersistentOfflineOrderStats:
         self.ML, self.MR, self.MN = [0], [0], [-1]  # node 0 = the empty tree (every last index -1)
         self.mexRoot = [0]
         for v in arr:
-            self.pushBack(v)
+            self.append(v)
 
     # O(logN) -- append v (one of the values given to the constructor, else ValueError): it becomes a[n], n grows by 1
-    def pushBack(self, v):
+    def append(self, v):
         k = self.where.get(v)
         if k is None:
-            raise ValueError(f"pushBack: {v} was not in the values given to the constructor")
+            raise ValueError(f"append: {v} was not in the values given to the constructor")
         self.root.append(self._ins(self.root[-1], k, v))
         prev = self.mexRoot[-1]
         self.mexRoot.append(self._mexSet(prev, v, self.n) if 0 <= v <= self.mexHi else prev)
@@ -72,6 +73,10 @@ class PersistentOfflineOrderStats:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.arr[i]
+
+    # O(N) -- the whole array (a copy)
+    def getAll(self):
+        return list(self.arr)
 
     # O(logN) -- # of i in [l, r] with a[i] == x
     def countOccurrences(self, l, r, x):

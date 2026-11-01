@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod/template.py
-# @operations: pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod
+# @operations: getAll pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod
 # @data-structure-type: lazy-seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointGet: log(N)
@@ -102,6 +103,20 @@ class AffineTree:
             v = (v * M[p] + K[p]) % mod
             p >>= 1
         return v
+
+    # O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    # each node's tag is complete when it is pushed), then read the leaves
+    def getAll(self):
+        M, K = self.M, self.K
+        apply = self._apply
+        for x in range(1, self.n):
+            m, k = M[x], K[x]
+            if m != 1 or k:
+                apply(2 * x, m, k)
+                apply(2 * x + 1, m, k)
+                M[x] = 1
+                K[x] = 0
+        return list(self.val)
 
     # O(logN) -- a[i] = v (mod p)
     def pointAssign(self, i, v):

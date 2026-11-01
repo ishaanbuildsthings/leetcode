@@ -29,21 +29,22 @@ MEX = ["rangeMex"]
 LOGN = "1*N*log(N)"
 
 
-def header(cm, ops, dtype, sparse, node, other, note):
+def header(cm, ops, dtype, sparse, node, other, note, costs=None, build="N*log(N)"):
     lines = [f"@operations: {' '.join(ops)}", f"@data-structure-type: {dtype}", "@complexities:"]
-    lines += [f"  {op}: {'1' if op == 'pointGet' and not sparse else 'log(N)'}" for op in ops] + ["  build: N*log(N)"]
+    lines += [f"  {op}: {(costs or {}).get(op) or ('1' if op == 'pointGet' and not sparse else 'log(N)')}" for op in ops] + [f"  build: {build}"]
     lines += ["@memory:", f"  layout: {'sparse' if sparse else 'none'}", f"  node: {node}", "  tags: none", f"  other: {other}",
               "  note: " + (("built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; "
                              "costs are in N; ") if sparse else "") + note]
     return "\n".join(f"{cm} {x}" for x in lines) + "\n"
 
 
-def memory(sums, mex, sparse):
+def memory(sums, mex, sparse, bits=None):
     if sums is None:  # persistent mex alone
         node, other = f"ML[{LOGN}] MR[{LOGN}] MN[{LOGN}]", "root[1*N] arr[1*N]"
     else:  # no nodes in a wavelet matrix: every array is listed together
         node = f"zeros[{LOGN}]" + (f" zsum[{LOGN}]" if sums else "") + " arr[1*N] srt[1*N]" + \
-            (f" mexRoot[1*N] ML[{LOGN}] MR[{LOGN}] MN[{LOGN}]" if mex else "")
+            (f" mexRoot[1*N] ML[{LOGN}] MR[{LOGN}] MN[{LOGN}]" if mex else "") + "".join(
+            f" {BIT_FIELD[a]}[{ {'prefix': LOGN, 'table': '1*N*log^2(N)', 'tree': '2*N*log(N)'}[i] }]" for a, i in (bits or {}).items() if i)
         if sparse:
             node = "idx[1*N] vals[1*N] " + node
         return node, "none"
@@ -52,14 +53,18 @@ def memory(sums, mex, sparse):
     return node, other
 
 
-def note(sums, mex, sparse):
+def note(sums, mex, sparse, bits=None):
     if sums is None:
         n = ("persistent seg tree over the values 0..N+1; version p holds each value's last index before p, and the mex of "
              "a[l..r] is the first value whose last index is < l")
     else:
         n = ("wavelet matrix: one row of N + 1 prefix counts per bit of the compressed value"
              + (", plus one row of prefix sums of the values that go left" if sums else "")
-             + ("; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index" if mex else ""))
+             + ("; rangeMex uses a persistent seg tree over the values 0..N+1 holding each value's last index" if mex else "")
+             + "".join(f"; {BIT_WORD[a]} by value: per level, " + {"prefix": "prefix xors of its order",
+                                                                    "table": "a sparse table over its order (O(1) a window)",
+                                                                    "tree": "a segment tree over its order (O(log N) a window)"}[i]
+                       for a, i in (bits or {}).items() if i))
     if sparse:
         n += "; the structure is over the given values only, and the zeros of [l, r] are added in closed form (they sit " \
              "between the negatives and the positives)"
@@ -349,8 +354,10 @@ PY_MEX_CORE = '''
 '''
 
 
-def py_dense(ops, sums, mex):
-    slots = ["arr", "n", "srt", "m", "bits", "zeros"] + (["zsum"] if sums else []) + (["mexRoot", "ML", "MR", "MN"] if mex else [])
+def py_dense(ops, sums, mex, bits=None):
+    bits = {a: i for a, i in (bits or {}).items() if i}
+    slots = ["arr", "n", "srt", "m", "bits", "zeros"] + (["zsum"] if sums else []) + (["mexRoot", "ML", "MR", "MN"] if mex else []) + [
+        BIT_FIELD[a] for a in bits]
     init = '''    # O(N log N) -- arr: the initial array (a list), 0-indexed
     def __init__(self, arr):
         self.arr = arr
@@ -361,16 +368,21 @@ def py_dense(ops, sums, mex):
         where = {v: k for k, v in enumerate(srt)}
         cur = [where[v] for v in arr]
         self.zeros = []
-''' + ("        self.zsum = []\n" if sums else "") + '''        for d in range(bits - 1, -1, -1):
-            self.zeros.append(list(accumulate((((v >> d) & 1) ^ 1 for v in cur), initial=0)))
+''' + ("        self.zsum = []\n" if sums else "") + "".join(f"        self.{BIT_FIELD[a]} = []  # per level, {BIT_WORD[a]} over its order\n" for a in bits) + '''        for d in range(bits - 1, -1, -1):
+''' + "".join(f"            self.{BIT_FIELD[a]}.append(self._{a}Tab([srt[v] for v in cur]))\n" for a in bits) + '''            self.zeros.append(list(accumulate((((v >> d) & 1) ^ 1 for v in cur), initial=0)))
 ''' + ("            self.zsum.append(list(accumulate((0 if (v >> d) & 1 else srt[v] for v in cur), initial=0)))\n" if sums else "") + \
         '''            cur = [v for v in cur if not (v >> d) & 1] + [v for v in cur if (v >> d) & 1]
-''' + ("        self._buildMex()\n" if mex else "")
-    body = "\n".join(PY_OPS[op] for op in ORDER if op in ops)
+''' + "".join(f"        self.{BIT_FIELD[a]}.append(self._{a}Tab([srt[v] for v in cur]))  # (the final order)\n" for a in bits) + \
+        ("        self._buildMex()\n" if mex else "")
+    own = {op: b for a, i in bits.items() for op, b in py_bit_ops(a, "log^2 N" if i == "tree" else "logN")}
+    body = "\n".join(own.get(op) or PY_OPS[op] for op in ORDER if op in ops)
+    fns = [f for a, f in (("xor", "xor"), ("or", "or_"), ("and", "and_")) if a in bits and (a == "xor" or bits[a] == "table")]
     return (PY_DOC + (PY_SUM_DOC if sums else "") + (PY_MEX_DOC if mex else "") +
-            "from bisect import bisect_left, bisect_right\nfrom itertools import accumulate\n\n\nclass WaveletMatrix:\n"
+            "from bisect import bisect_left, bisect_right\nfrom itertools import accumulate\n" +
+            (f"from operator import {', '.join(sorted(fns))}\n" if fns else "") + "\n\nclass WaveletMatrix:\n"
             f"    __slots__ = ({', '.join(repr(s) for s in slots)})\n\n" + init + "\n" + body + PY_CORE +
-            (PY_SUM_CORE if sums else "") + (PY_MEX_CORE.format(R="mexRoot", n="self.n") if mex else ""))
+            (PY_SUM_CORE if sums else "") + (PY_MEX_CORE.format(R="mexRoot", n="self.n") if mex else "") +
+            "".join("\n" + py_bit_core(a, i) for a, i in bits.items()))
 
 
 def py_mex_only():
@@ -653,13 +665,16 @@ CPP_MEX_CORE = '''
 '''
 
 
-def cpp_dense(ops, sums, mex):
+def cpp_dense(ops, sums, mex, bits=None):
+    bits = {a: i for a, i in (bits or {}).items() if i}
     fields = ["    int n, m, bits;", "    vector<T> arr, srt;  // srt: sorted distinct values",
               "    vector<int> zeros;   // level lv's row is zeros[lv * (n + 1) .. lv * (n + 1) + n]"]
     if sums:
         fields.append("    vector<S> zsum;      // same layout as zeros")
     if mex:
         fields.append("    vector<int> mexRoot, ML, MR, MN;  // the persistent mex tree")
+    for a, i in bits.items():
+        fields.append(f"    vector<{'vector<vector<T>>' if i == 'table' else 'vector<T>'}> {BIT_FIELD[a]};  // per level, {BIT_WORD[a]} over its order")
     ctor = '''    // O(N log N) -- arr: the initial array, 0-indexed
     explicit WaveletMatrix(const vector<T>& a) : n((int)a.size()), arr(a), srt(a) {
         sort(srt.begin(), srt.end());
@@ -668,10 +683,11 @@ def cpp_dense(ops, sums, mex):
         bits = 1;
         while ((1 << bits) < m) bits++;
         zeros.assign((size_t)bits * (n + 1), 0);
-''' + ("        zsum.assign((size_t)bits * (n + 1), S(0));\n" if sums else "") + '''        vector<int> cur(n), nxt(n);
+''' + ("        zsum.assign((size_t)bits * (n + 1), S(0));\n" if sums else "") + "".join(f"        {BIT_FIELD[a]}.resize(bits + 1);\n" for a in bits) + '''        vector<int> cur(n), nxt(n);
         for (int i = 0; i < n; i++) cur[i] = lb(a[i]);
-        for (int lv = 0; lv < bits; lv++) {
-            int d = bits - 1 - lv, k = 0, *z = &zeros[(size_t)lv * (n + 1)];
+''' + ("        vector<T> vals(n);\n        auto order = [&](int lv) {  // the level's order, as values\n            for (int i = 0; i < n; i++) vals[i] = srt[cur[i]];\n" +
+       "".join(f"            {a}Build(lv, vals);\n" for a in bits) + "        };\n" if bits else "") + '''        for (int lv = 0; lv < bits; lv++) {
+''' + ("            order(lv);\n" if bits else "") + '''            int d = bits - 1 - lv, k = 0, *z = &zeros[(size_t)lv * (n + 1)];
 ''' + ("            S* zs = &zsum[(size_t)lv * (n + 1)];\n" if sums else "") + '''            for (int i = 0; i < n; i++) {
                 bool one = (cur[i] >> d) & 1;
                 z[i + 1] = z[i] + !one;
@@ -680,14 +696,15 @@ def cpp_dense(ops, sums, mex):
             for (int v : cur) if ((v >> d) & 1) nxt[k++] = v;
             swap(cur, nxt);
         }
-''' + ("        buildMex();\n" if mex else "") + "    }\n"
-    body = "\n".join(CPP_OPS[op] for op in ORDER if op in ops)
+''' + ("        order(bits);  // (the final order)\n" if bits else "") + ("        buildMex();\n" if mex else "") + "    }\n"
+    own = {op: b for a, i in bits.items() for op, b in cpp_bit_ops(a, "log^2 N" if i == "tree" else "logN")}
+    body = "\n".join(own.get(op) or CPP_OPS[op] for op in ORDER if op in ops)
     return (CPP_DOC + (CPP_SUM_DOC if sums else "") + (CPP_MEX_DOC if mex else "") +
             "// T: int, long long, ..." + ("; sums are kept in S (long long for small T)" if sums else "") +
             ".\ntemplate <typename T>\nstruct WaveletMatrix {\n" +
             ("    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n" if sums else "") +
             "\n".join(fields) + "\n\n" + ctor + "\n" + body + CPP_CORE + (CPP_SUM_CORE if sums else "") +
-            (CPP_MEX_CORE.replace("{R}", "mexRoot") if mex else "") + "};\n")
+            (CPP_MEX_CORE.replace("{R}", "mexRoot") if mex else "") + "".join("\n" + cpp_bit_core(a, i) for a, i in bits.items()) + "};\n")
 
 
 def cpp_mex_only():
@@ -1088,27 +1105,281 @@ def cpp_sparse(ops, sums, mex_only, names=None):
             ("" if mex_only else CPP_SPARSE_KTH) + (CPP_SPARSE_SUM if sums else "") + "};\n")
 
 
+
+# ================================================================================================ xor / OR / AND by value
+# xor / OR / AND of the a[i], i in [l, r], whose value is in a range. The values with ranks in [a, b) are, level by
+# level, at most two partial windows plus whole windows: a whole window is one contiguous stretch of that level's order,
+# so the answer combines one range query per window, O(log N) of them. Each aggregate keeps, per level (bits + 1 of
+# them, the last being the final order), a structure over that level's order:
+#   xor  prefix xors                O(1) a window       N log N
+#   OR / AND "table": sparse table  O(1) a window       N log^2 N
+#   OR / AND "tree": segment tree   O(log N) a window   2 N log N
+BIT_SUFFIXES = ["LtX", "LteX", "GtX", "GteX", "InValRange"]
+BIT_IDENT = {"xor": ("0", "T(0)"), "or": ("0", "T(0)"), "and": ("-1", "~T(0)")}
+BIT_OP = {"xor": ("^", "xor"), "or": ("|", "or_"), "and": ("&", "and_")}
+BIT_WORD = {"xor": "xor", "or": "OR", "and": "AND"}
+BIT_FIELD = {"xor": "xt", "or": "ot", "and": "at"}
+
+
+def bit_ops(agg):
+    return [agg + s for s in BIT_SUFFIXES]
+
+
+def _bit_doc(agg, suf):
+    what = {"LtX": "the values < x", "LteX": "the values <= x", "GtX": "the values > x", "GteX": "the values >= x",
+            "InValRange": "the a[i] with lowVal <= a[i] <= highVal"}[suf]
+    empty = BIT_IDENT[agg][0] + (" (every bit)" if agg == "and" else "")
+    return f"{BIT_WORD[agg]} of {what} in a[l..r]" + (" (copies count)" if agg == "xor" else "") + f"; {empty} if there are none"
+
+
+def _bit_ranks_py(suf):
+    return {"LtX": "0, bisect_left(self.srt, x)", "LteX": "0, bisect_right(self.srt, x)",
+            "GtX": "bisect_right(self.srt, x), self.m", "GteX": "bisect_left(self.srt, x), self.m",
+            "InValRange": "bisect_left(self.srt, lowVal), bisect_right(self.srt, highVal)"}[suf]
+
+
+def _bit_ranks_cpp(suf):
+    return {"LtX": "0, lb(x)", "LteX": "0, ub(x)", "GtX": "ub(x), m", "GteX": "lb(x), m",
+            "InValRange": "lb(lowVal), ub(highVal)"}[suf]
+
+
+def py_bit_ops(agg, cost):
+    out = []
+    for suf in BIT_SUFFIXES:
+        op = agg + suf
+        args = "lowVal, highVal" if suf == "InValRange" else "x"
+        guard = f"        if lowVal > highVal:\n            return {BIT_IDENT[agg][0]}\n" if suf == "InValRange" else ""
+        out.append((op, f'''    # O({cost}) -- {_bit_doc(agg, suf)}
+    def {op}(self, l, r, {args}):
+{guard}        return self._{agg}Ranks(l, r, {_bit_ranks_py(suf)})
+'''))
+    return out
+
+
+def cpp_bit_ops(agg, cost):
+    out = []
+    for suf in BIT_SUFFIXES:
+        op = agg + suf
+        params = "T lowVal, T highVal" if suf == "InValRange" else "T x"
+        guard = f"        if (highVal < lowVal) return {BIT_IDENT[agg][1]};\n" if suf == "InValRange" else ""
+        out.append((op, f'''    // O({cost}) -- {_bit_doc(agg, suf)}
+    T {op}(int l, int r, {params}) const {{
+{guard}        return {agg}Ranks(l, r, {_bit_ranks_cpp(suf)});
+    }}
+'''))
+    return out
+
+
+def py_bit_core(agg, impl):
+    op, fn = BIT_OP[agg]
+    ident, f = BIT_IDENT[agg][0], BIT_FIELD[agg]
+    if impl == "prefix":
+        build = f'''    @staticmethod
+    def _{agg}Tab(vals):  # prefix xors
+        return list(accumulate(vals, xor, initial=0))
+
+    def _{agg}Q(self, lv, lo, hi):  # xor of level lv's order at positions [lo, hi)
+        t = self.{f}[lv]
+        return t[hi] ^ t[lo]
+'''
+    elif impl == "table":
+        build = f'''    @staticmethod
+    def _{agg}Tab(vals):  # sparse table: row j = {BIT_WORD[agg]} of every window of 2^j, in C-level passes
+        rows, h = [vals], 1
+        while 2 * h <= len(vals):
+            p = rows[-1]
+            rows.append(list(map({fn}, p[:len(p) - h], p[h:])))
+            h *= 2
+        return rows
+
+    def _{agg}Q(self, lv, lo, hi):  # {BIT_WORD[agg]} of level lv's order at positions [lo, hi), lo < hi
+        rows = self.{f}[lv]
+        j = (hi - lo).bit_length() - 1
+        return rows[j][lo] {op} rows[j][hi - (1 << j)]
+'''
+    else:
+        build = f'''    @staticmethod
+    def _{agg}Tab(vals):  # bottom-up segment tree: leaves at n..2n-1
+        n = len(vals)
+        t = [{ident}] * n + vals
+        for i in range(n - 1, 0, -1):
+            t[i] = t[2 * i] {op} t[2 * i + 1]
+        return t
+
+    def _{agg}Q(self, lv, lo, hi):  # {BIT_WORD[agg]} of level lv's order at positions [lo, hi)
+        t, res = self.{f}[lv], {ident}
+        lo += self.n
+        hi += self.n
+        while lo < hi:
+            if lo & 1:
+                res {op}= t[lo]
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                res {op}= t[hi]
+            lo >>= 1
+            hi >>= 1
+        return res
+'''
+    return build + f'''
+    # {BIT_WORD[agg]} of the a[i], i in [l, r], whose rank is in [a, b): whole windows of the levels' orders
+    def _{agg}Ranks(self, l, r, a, b):
+        res = {ident}
+        if a >= b:
+            return res
+        bits, Z = self.bits, self.zeros
+        stack = [(0, l, r + 1, 0)]  # (level, window [lo, hi) of its order, first rank under it)
+        while stack:
+            lv, lo, hi, nl = stack.pop()
+            nr = nl + (1 << (bits - lv))
+            if lo >= hi or nr <= a or b <= nl:
+                continue
+            if a <= nl and nr <= b:  # every rank under it counts: one window
+                res {op}= self._{agg}Q(lv, lo, hi)
+                continue
+            z = Z[lv]
+            zl, zh = z[lo], z[hi]
+            stack.append((lv + 1, zl, zh, nl))
+            stack.append((lv + 1, z[-1] + lo - zl, z[-1] + hi - zh, nl + (1 << (bits - lv - 1))))
+        return res
+'''
+
+
+def cpp_bit_core(agg, impl):
+    op = BIT_OP[agg][0]
+    ident, f = BIT_IDENT[agg][1], BIT_FIELD[agg]
+    if impl == "prefix":
+        build = f'''    void {agg}Build(int lv, const vector<T>& vals) {{  // prefix xors of level lv's order
+        auto& t = {f}[lv];
+        t.assign(n + 1, T(0));
+        for (int i = 0; i < n; i++) t[i + 1] = t[i] ^ vals[i];
+    }}
+    T {agg}Q(int lv, int lo, int hi) const {{ return {f}[lv][hi] ^ {f}[lv][lo]; }}
+'''
+    elif impl == "table":
+        build = f'''    void {agg}Build(int lv, const vector<T>& vals) {{  // sparse table: row j = {BIT_WORD[agg]} of every window of 2^j
+        auto& rows = {f}[lv];
+        rows.assign(1, vals);
+        for (int h = 1; 2 * h <= n; h *= 2) {{
+            const vector<T>& p = rows.back();
+            vector<T> q(p.size() - h);
+            for (size_t i = 0; i < q.size(); i++) q[i] = p[i] {op} p[i + h];
+            rows.push_back(move(q));
+        }}
+    }}
+    T {agg}Q(int lv, int lo, int hi) const {{  // lo < hi
+        int j = 31 - __builtin_clz(hi - lo);
+        return {f}[lv][j][lo] {op} {f}[lv][j][hi - (1 << j)];
+    }}
+'''
+    else:
+        build = f'''    void {agg}Build(int lv, const vector<T>& vals) {{  // bottom-up segment tree: leaves at n..2n-1
+        auto& t = {f}[lv];
+        t.assign(2 * n, {ident});
+        for (int i = 0; i < n; i++) t[n + i] = vals[i];
+        for (int i = n - 1; i > 0; i--) t[i] = t[2 * i] {op} t[2 * i + 1];
+    }}
+    T {agg}Q(int lv, int lo, int hi) const {{
+        const vector<T>& t = {f}[lv];
+        T res = {ident};
+        for (lo += n, hi += n; lo < hi; lo >>= 1, hi >>= 1) {{
+            if (lo & 1) res {op}= t[lo++];
+            if (hi & 1) res {op}= t[--hi];
+        }}
+        return res;
+    }}
+'''
+    return build + f'''
+    // {BIT_WORD[agg]} of the a[i], i in [l, r], whose rank is in [a, b): whole windows of the levels' orders
+    T {agg}Ranks(int l, int r, int a, int b) const {{
+        T res = {ident};
+        if (a >= b) return res;
+        array<int, 4> st[2 * 64];  // (level, window [lo, hi) of its order, first rank under it)
+        int sp = 0;
+        st[sp++] = {{0, l, r + 1, 0}};
+        while (sp) {{
+            auto [lv, lo, hi, nl] = st[--sp];
+            int nr = nl + (1 << (bits - lv));
+            if (lo >= hi || nr <= a || b <= nl) continue;
+            if (a <= nl && nr <= b) {{  // every rank under it counts: one window
+                res {op}= {agg}Q(lv, lo, hi);
+                continue;
+            }}
+            const int* z = row(lv);
+            int zl = z[lo], zh = z[hi];
+            st[sp++] = {{lv + 1, zl, zh, nl}};
+            st[sp++] = {{lv + 1, z[n] + lo - zl, z[n] + hi - zh, nl + (1 << (bits - lv - 1))}};
+        }}
+        return res;
+    }}
+'''
+
+
+def _py_sparse_bit(agg, suf):
+    op = agg + suf
+    args = "lowVal, highVal" if suf == "InValRange" else "x"
+    zero_in = {"LtX": "0 < x", "LteX": "0 <= x", "GtX": "0 > x", "GteX": "0 >= x", "InValRange": "lowVal <= 0 <= highVal"}[suf]
+    ident = BIT_IDENT[agg][0]
+    tail = (f"        if zeros and {zero_in}:  # a 0 in range makes the AND 0\n            return 0\n" if agg == "and" else "")
+    return op, f'''    # O(logN) -- {_bit_doc(agg, suf)}{" (the zeros add nothing)" if agg != "and" else ""}
+    def {op}(self, l, r, {args}):
+        i0, i1, zeros = self._span(l, r)
+{tail}        return self.inner.{op}(i0, i1, {args}) if i0 <= i1 else {ident}
+'''
+
+
+def _cpp_sparse_bit(agg, suf):
+    op = agg + suf
+    params, args = ("T lowVal, T highVal", "lowVal, highVal") if suf == "InValRange" else ("T x", "x")
+    zero_in = {"LtX": "T(0) < x", "LteX": "T(0) <= x", "GtX": "x < T(0)", "GteX": "x <= T(0)",
+               "InValRange": "lowVal <= T(0) && T(0) <= highVal"}[suf]
+    ident = BIT_IDENT[agg][1]
+    tail = f"        if (zeros && {zero_in}) return T(0);  // a 0 in range makes the AND 0\n" if agg == "and" else ""
+    return op, f'''    // O(logN) -- {_bit_doc(agg, suf)}{" (the zeros add nothing)" if agg != "and" else ""}
+    T {op}(long long l, long long r, {params}) const {{
+        auto [i0, i1, zeros] = span(l, r);
+{tail}        return i0 <= i1 ? inner.{op}(i0, i1, {args}) : {ident};
+    }}
+'''
+
+
+for _agg in BIT_FIELD:
+    for _suf in BIT_SUFFIXES:
+        _op, _b = _py_sparse_bit(_agg, _suf)
+        PY_SPARSE_OPS[_op] = _b
+        _op, _b = _cpp_sparse_bit(_agg, _suf)
+        CPP_SPARSE_OPS[_op] = _b
+ORDER += [a + s for a in BIT_FIELD for s in BIT_SUFFIXES]
+
+
 # ================================================================================================ write
 
-def write(folder, ops, dtype, sums, mex, py, cpp, spy, scpp):
+def write(folder, ops, dtype, sums, mex, py, cpp, spy, scpp, bits=None):
     path = os.path.join(DIR, folder)
     os.makedirs(path, exist_ok=True)
+    costs = {op: "log^2(N)" for a, i in (bits or {}).items() if i == "tree" for op in bit_ops(a)}
+    build = "N*log^2(N)" if "table" in (bits or {}).values() else "N*log(N)"
     for sparse, files in ((False, (py, cpp)), (True, (py + spy, cpp + scpp))):
-        node, other = memory(sums, mex, sparse)
-        nt = note(sums, mex, sparse)
+        node, other = memory(sums, mex, sparse, bits)
+        nt = note(sums, mex, sparse, bits)
         stem = "sparse" if sparse else "template"
-        write_template(os.path.join(path, f"{stem}.py"), header("#", ops, dtype, sparse, node, other, nt) + "\n" + files[0])
-        write_template(os.path.join(path, f"{stem}.cpp"), header("//", ops, dtype, sparse, node, other, nt) + "\n" + files[1])
+        for ext, cm, f in (("py", "#", files[0]), ("cpp", "//", files[1])):
+            write_template(os.path.join(path, f"{stem}.{ext}"), header(cm, ops, dtype, sparse, node, other, nt, costs, build) + "\n" + f)
     print("wrote", folder)
 
 
 def main():
     for sums in (False, True):
         for mex in (False, True):
-            ops = sorted(BASE + (SUMS if sums else []) + (MEX if mex else []))
-            folder = "wavelet-order-stats" + ("-sums" if sums else "") + ("-mex" if mex else "")
-            write(folder, ops, "wavelet", sums, mex, py_dense(ops, sums, mex), cpp_dense(ops, sums, mex),
-                  py_sparse(ops, sums, False), cpp_sparse(ops, sums, False))
+            for xr in (None, "prefix"):  # xor / OR / AND by value: each its own choice (OR / AND: fast table or light tree)
+                for orv in (None, "table", "tree"):
+                    for andv in (None, "table", "tree"):
+                        bits = {"xor": xr, "or": orv, "and": andv}
+                        ops = sorted(BASE + (SUMS if sums else []) + (MEX if mex else []) + [op for a, i in bits.items() if i for op in bit_ops(a)])
+                        folder = ("wavelet-order-stats" + ("-sums" if sums else "") + ("-xor" if xr else "") +
+                                  (f"-or-{orv}" if orv else "") + (f"-and-{andv}" if andv else "") + ("-mex" if mex else ""))
+                        write(folder, ops, "wavelet", sums, mex, py_dense(ops, sums, mex, bits), cpp_dense(ops, sums, mex, bits),
+                              py_sparse(ops, sums, False), cpp_sparse(ops, sums, False), bits)
     ops = ["pointGet", "rangeMex"]
     write("pointGet-rangeMex", ops, "persistent", None, True, py_mex_only(), cpp_mex_only(), py_sparse(ops, False, True),
           cpp_sparse(ops, False, True))

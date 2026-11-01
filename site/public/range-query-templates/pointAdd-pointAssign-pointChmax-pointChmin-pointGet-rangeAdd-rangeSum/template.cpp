@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeSum/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum
 // @data-structure-type: BIT
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -64,6 +65,24 @@ struct RangeAddSumBIT {
 
     // O(logN) -- a[i]
     T pointGet(int i) const { return T(rangeSum(i, i)); }
+
+    // O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
+    // i + lowbit(i) once complete), then one pass of running prefix sums
+    vector<T> getAll() const {
+        vector<S> B1(b1), B2(b2);
+        for (int i = n; i > 0; i--) {
+            int j = i + (i & -i);
+            if (j <= n) B1[j] -= B1[i], B2[j] -= B2[i];
+        }
+        vector<T> out(n);
+        S s1 = 0, s2 = 0, prev = 0;
+        for (int x = 0; x < n; x++) {
+            s1 += B1[x + 1], s2 += B2[x + 1];
+            S p = s1 * (x + 1) - s2;
+            out[x] = T(p - prev), prev = p;
+        }
+        return out;
+    }
 
     // O(logN) -- a[i] += delta
     void pointAdd(int i, T delta) { rangeAdd(i, i, delta); }

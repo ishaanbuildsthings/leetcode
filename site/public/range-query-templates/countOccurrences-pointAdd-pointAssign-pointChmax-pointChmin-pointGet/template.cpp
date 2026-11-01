@@ -1,9 +1,11 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
-// @operations: countOccurrences pointAdd pointAssign pointChmax pointChmin pointGet
+// @operations: countOccurrences getAll pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: positions
+// @letters: same
 // @complexities:
 //   countOccurrences: log(N)
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -54,6 +56,9 @@ struct DynamicOccurrenceLists {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return a[i]; }
+
+    // O(N) -- the whole array (a copy)
+    vector<T> getAll() const { return a; }
 
     // O(logN) -- a[i] += delta
     void pointAdd(int i, const T& delta) { pointAssign(i, a[i] + delta); }

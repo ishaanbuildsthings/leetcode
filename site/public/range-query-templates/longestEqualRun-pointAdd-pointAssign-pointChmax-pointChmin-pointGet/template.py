@@ -1,8 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
-# @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet
+# @operations: getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: seg-tree
+# @letters: same
 # @complexities:
+#   getAll: N
 #   longestEqualRun: log(N)
 #   pointAdd: log(N)
 #   pointAssign: log(N)
@@ -88,6 +90,10 @@ class EqualRunTree:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.lv[i + self.n]
+
+    # O(N) -- the whole array (a copy of the leaves)
+    def getAll(self):
+        return self.lv[self.n:]
 
     # O(logN) -- a[i] += delta
     def pointAdd(self, i, delta):

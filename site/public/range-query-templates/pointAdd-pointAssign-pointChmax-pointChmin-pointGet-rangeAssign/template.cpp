@@ -1,8 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign
 // @data-structure-type: seg-tree
+// @letters: same
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: 1
 //   pointChmax: log(N)
@@ -48,6 +50,14 @@ struct RangeAssignTree {
         for (p >>= 1; p; p >>= 1)
             if (stamp[p] > best) best = stamp[p], res = val[p];
         return res;
+    }
+
+    // O(N) -- the whole array: hand each node's assign to its children when it is newer than theirs (a parent's
+    // index is below its children's, so in index order each node already holds the newest assign on its path)
+    vector<T> getAll() {
+        for (int x = 2; x < 2 * n; x++)
+            if (stamp[x >> 1] > stamp[x]) stamp[x] = stamp[x >> 1], val[x] = val[x >> 1];
+        return vector<T>(val.begin() + n, val.end());
     }
 
     // O(1) -- a[i] = v

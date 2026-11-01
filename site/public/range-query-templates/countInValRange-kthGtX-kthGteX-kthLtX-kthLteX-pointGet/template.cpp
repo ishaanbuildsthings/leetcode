@@ -3,6 +3,7 @@
 // @operations: countInValRange kthGtX kthGteX kthLtX kthLteX pointGet
 // @data-structure-type: merge-sort-tree
 // @fractional-cascading: yes
+// @letters: same
 // @complexities:
 //   countInValRange: log(N)
 //   kthGtX: log(N)

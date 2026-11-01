@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
 // @data-structure-type: seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)*log(U) ?
 //   pointAssign: log(N)*log(U) ?
 //   pointChmax: log(N)*log(U) ?
@@ -75,6 +76,14 @@ struct RangeAddRangeGcd {
 
     // O(logN) -- a[i]
     T pointGet(int i) const { return prefix(i); }
+
+    // O(N) -- the whole array: prefix sums of the differences
+    vector<T> getAll() const {
+        vector<T> out(n);
+        T s = 0;
+        for (int i = 0; i < n; i++) out[i] = s += diff[i];
+        return out;
+    }
 
     // O(logN + logU) -- gcd of a[l..r]
     T rangeGcd(int l, int r) const {

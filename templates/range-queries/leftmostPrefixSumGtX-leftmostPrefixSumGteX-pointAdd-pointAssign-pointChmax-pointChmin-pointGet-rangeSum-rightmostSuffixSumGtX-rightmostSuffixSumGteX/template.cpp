@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX/template.cpp
-// @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
 // @data-structure-type: BIT
 // @complexities:
+//   getAll: N
 //   leftmostPrefixSumGtX: log(N)
 //   leftmostPrefixSumGteX: log(N)
 //   pointAdd: log(N)
@@ -58,6 +59,17 @@ struct BIT {
         int stop = i - (i & -i);
         for (i--; i > stop; i &= i - 1) v -= tree[i];
         return v;
+    }
+
+    // O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
+    // i + lowbit(i) once complete)
+    vector<T> getAll() const {
+        vector<T> t(tree);
+        for (int i = n; i > 0; i--) {
+            int j = i + (i & -i);
+            if (j <= n) t[j] -= t[i];
+        }
+        return vector<T>(t.begin() + 1, t.end());
     }
 
     // O(logN) -- a[i] = v

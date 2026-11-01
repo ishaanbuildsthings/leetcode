@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod-rangeSumMod/template.py
-# @operations: pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeSumMod
+# @operations: getAll pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeSumMod
 # @data-structure-type: lazy-seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointGet: log(N)
@@ -114,6 +115,20 @@ class AffineSumTree:
         p = i + self.n
         self._push(p)
         return self.tot[p]
+
+    # O(N) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
+    # the leaves are (n >> s) .. ((2n - 1) >> s); their children cover k = 1 << (s - 1) leaves), then read the leaves
+    def getAll(self):
+        n = self.n
+        for s in range(self.h, 0, -1):
+            k = 1 << (s - 1)
+            for x in range(max(1, n >> s), ((2 * n - 1) >> s) + 1):
+                if self.mul[x] != 1 or self.add[x]:
+                    self._apply(2 * x, k, self.mul[x], self.add[x])
+                    self._apply(2 * x + 1, k, self.mul[x], self.add[x])
+                    self.mul[x] = 1
+                    self.add[x] = 0
+        return self.tot[n:]
 
     # O(logN) -- a[i] = a[i] * mult + add (mod p) for i in [l, r]; every other update is this one
     def rangeAffineMod(self, l, r, mult, add):

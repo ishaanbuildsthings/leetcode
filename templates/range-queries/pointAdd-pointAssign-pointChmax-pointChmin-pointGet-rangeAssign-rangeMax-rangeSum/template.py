@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeMax-rangeSum/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeSum
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeSum
 # @data-structure-type: lazy-seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -141,6 +142,19 @@ class AssignSumMaxTree:
             l >>= 1
             r >>= 1
         return res
+
+    # O(N) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
+    # the leaves are (n >> s) .. ((2n - 1) >> s); their children cover k = 1 << (s - 1) leaves), then read the leaves
+    def getAll(self):
+        n = self.n
+        for s in range(self.h, 0, -1):
+            k = 1 << (s - 1)
+            for x in range(max(1, n >> s), ((2 * n - 1) >> s) + 1):
+                if self.hasAsg[x]:
+                    self._applyAssign(2 * x, k, self.asg[x])
+                    self._applyAssign(2 * x + 1, k, self.asg[x])
+                    self.hasAsg[x] = False
+        return self.sm[n:]
 
     # O(logN) -- a[i]
     def pointGet(self, i):

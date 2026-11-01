@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin
 # @data-structure-type: lazy-seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -126,6 +127,21 @@ class ClampTree:
                 v = a
             p >>= 1
         return v
+
+    # O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    # each node's tag is complete when it is pushed), then read the leaves
+    def getAll(self):
+        A, B, C = self.A, self.B, self.C
+        apply = self._apply
+        for x in range(1, self.n):
+            a, b, c = A[x], B[x], C[x]
+            if a != INF or b != -INF or c:
+                apply(2 * x, a, b, c)
+                apply(2 * x + 1, a, b, c)
+                A[x] = INF
+                B[x] = -INF
+                C[x] = 0
+        return list(self.val)
 
     # O(logN) -- a[i] = v
     def pointAssign(self, i, v):

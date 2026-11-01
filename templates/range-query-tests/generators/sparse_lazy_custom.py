@@ -375,6 +375,87 @@ write({
     },
 })
 
+# the clamp tree's three two-op slices, each tag only what its ops need
+write({
+    "name": "SparseAddChminTree", "ops": PLAIN + ["rangeAdd", "rangeChmin"], "point": "plain",
+    "desc": ["Range add / chmin + point ops. A tag is the map x -> min(hi, x + add); these maps compose into the same",
+             "form. Only leaves' values matter, so nothing is pulled."],
+    "mem": ("v[4*log(U)]", "hi[4*log(U)] add[4*log(U)]", "children[8*log(U)]"),
+    "note": VISIT + "a leaf's value is v (internal nodes keep no aggregate). ",
+    "cpp": {
+        "types": "    static constexpr T INF = numeric_limits<T>::max();\n",
+        "agg": "T v;", "tag": "T hi, c;  // x -> min(hi, x + c)", "ident": "Tag{INF, 0}",
+        "is_id": "t.hi == INF && t.c == 0",
+        "compose": "return Tag{std::min(t.hi, o.hi == INF ? INF : o.hi + t.c), o.c + t.c};",
+        "apply": "        (void)k;\n        v.v = std::min(t.hi, v.v + t.c);",
+        "leaf": "Agg{v}", "get": "res.v",
+        "updates": [("rangeAdd", "T v", "a[i] += v", "Tag{INF, v}"), ("rangeChmin", "T v", "a[i] = min(a[i], v)", "Tag{v, 0}")],
+        "queries": [],
+    },
+    "py": {
+        "helpers": '\nINF = float("inf")\n', "zero": "0",
+        "apply": "        v += t[1]\n        return t[0] if v > t[0] else v",
+        "compose": "        return min(t[0], o[0] + t[1]), o[1] + t[1]",
+        "leaf": "val", "get": "res",
+        "updates": [("rangeAdd", "v", "a[i] += v", "(INF, v)"), ("rangeChmin", "v", "a[i] = min(a[i], v)", "(v, 0)")],
+        "queries": [],
+    },
+})
+
+write({
+    "name": "SparseAddChmaxTree", "ops": PLAIN + ["rangeAdd", "rangeChmax"], "point": "plain",
+    "desc": ["Range add / chmax + point ops. A tag is the map x -> max(lo, x + add); these maps compose into the same",
+             "form. Only leaves' values matter, so nothing is pulled."],
+    "mem": ("v[4*log(U)]", "lo[4*log(U)] add[4*log(U)]", "children[8*log(U)]"),
+    "note": VISIT + "a leaf's value is v (internal nodes keep no aggregate). ",
+    "cpp": {
+        "types": "    static constexpr T NEG = numeric_limits<T>::lowest();\n",
+        "agg": "T v;", "tag": "T lo, c;  // x -> max(lo, x + c)", "ident": "Tag{NEG, 0}",
+        "is_id": "t.lo == NEG && t.c == 0",
+        "compose": "return Tag{std::max(t.lo, o.lo == NEG ? NEG : o.lo + t.c), o.c + t.c};",
+        "apply": "        (void)k;\n        v.v = std::max(t.lo, v.v + t.c);",
+        "leaf": "Agg{v}", "get": "res.v",
+        "updates": [("rangeAdd", "T v", "a[i] += v", "Tag{NEG, v}"), ("rangeChmax", "T v", "a[i] = max(a[i], v)", "Tag{v, 0}")],
+        "queries": [],
+    },
+    "py": {
+        "helpers": '\nNEG = float("-inf")\n', "zero": "0",
+        "apply": "        v += t[1]\n        return t[0] if v < t[0] else v",
+        "compose": "        return max(t[0], o[0] + t[1]), o[1] + t[1]",
+        "leaf": "val", "get": "res",
+        "updates": [("rangeAdd", "v", "a[i] += v", "(NEG, v)"), ("rangeChmax", "v", "a[i] = max(a[i], v)", "(v, 0)")],
+        "queries": [],
+    },
+})
+
+write({
+    "name": "SparseChminChmaxTree", "ops": PLAIN + ["rangeAssign", "rangeChmax", "rangeChmin"], "point": "plain",
+    "desc": ["Range assign / chmin / chmax + point ops. A tag is the map x -> min(hi, max(lo, x)); these maps compose",
+             "into the same form (assign v is hi = lo = v). Only leaves' values matter, so nothing is pulled."],
+    "mem": ("v[4*log(U)]", "hi[4*log(U)] lo[4*log(U)]", "children[8*log(U)]"),
+    "note": VISIT + "a leaf's value is v (internal nodes keep no aggregate). ",
+    "cpp": {
+        "types": "    static constexpr T INF = numeric_limits<T>::max(), NEG = numeric_limits<T>::lowest();\n",
+        "agg": "T v;", "tag": "T hi, lo;  // x -> min(hi, max(lo, x))", "ident": "Tag{INF, NEG}",
+        "is_id": "t.hi == INF && t.lo == NEG",
+        "compose": "T h = std::min(t.hi, std::max(t.lo, o.hi));\n        return Tag{h, std::min(std::max(t.lo, o.lo), h)};",
+        "apply": "        (void)k;\n        v.v = std::min(t.hi, std::max(t.lo, v.v));",
+        "leaf": "Agg{v}", "get": "res.v",
+        "updates": [("rangeChmin", "T v", "a[i] = min(a[i], v)", "Tag{v, NEG}"), ("rangeChmax", "T v", "a[i] = max(a[i], v)", "Tag{INF, v}"),
+                    ("rangeAssign", "T v", "a[i] = v", "Tag{v, v}")],
+        "queries": [],
+    },
+    "py": {
+        "helpers": PY_CLAMP_HELP, "zero": "0",
+        "apply": "        if v < t[1]:\n            v = t[1]\n        return t[0] if v > t[0] else v",
+        "compose": "        h = min(t[0], max(t[1], o[0]))\n        return h, min(max(t[1], o[1]), h)",
+        "leaf": "val", "get": "res",
+        "updates": [("rangeChmin", "v", "a[i] = min(a[i], v)", "(v, NEG)"), ("rangeChmax", "v", "a[i] = max(a[i], v)", "(INF, v)"),
+                    ("rangeAssign", "v", "a[i] = v", "(v, v)")],
+        "queries": [],
+    },
+})
+
 # ------------------------------------------------------------------------------------------------ and= / or= / xor=, point get only
 
 write({

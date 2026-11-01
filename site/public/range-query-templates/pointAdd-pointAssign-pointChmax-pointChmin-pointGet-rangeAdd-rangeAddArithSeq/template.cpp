@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAddArithSeq/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAddArithSeq
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAddArithSeq
 // @data-structure-type: BIT
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -59,6 +60,19 @@ struct ArithSeqBIT {
         T k = 0, coef = 0;
         for (int j = i + 1; j > 0; j &= j - 1) k += c[j], coef += s[j];
         return k + T(i) * coef;
+    }
+
+    // O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
+    // i + lowbit(i) once complete), then one pass of running prefix sums
+    vector<T> getAll() const {
+        vector<T> C(c), D(s), out(n);
+        for (int i = n; i > 0; i--) {
+            int j = i + (i & -i);
+            if (j <= n) C[j] -= C[i], D[j] -= D[i];
+        }
+        T k = 0, coef = 0;
+        for (int i = 0; i < n; i++) k += C[i + 1], coef += D[i + 1], out[i] = k + T(i) * coef;
+        return out;
     }
 
     // O(logN) -- a[i] += delta

@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeChmax-rangeChmin-rangeMin/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmax rangeChmin rangeMin
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmax rangeChmin rangeMin
 // @data-structure-type: lazy-seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -108,6 +109,17 @@ struct ChminChmaxAssignMinTree {
             if (r & 1) res = std::min(res, mn[--r]);
         }
         return res;
+    }
+
+    // O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    // each node's tag is complete when it is pushed), then read the leaves
+    vector<T> getAll() {
+        for (int x = 1; x < n; x++)
+            if (hi[x] != INF || lo[x] != NEG) {
+                apply(2 * x, hi[x], lo[x]), apply(2 * x + 1, hi[x], lo[x]);
+                hi[x] = INF, lo[x] = NEG;
+            }
+        return vector<T>(mn.begin() + n, mn.end());
     }
 
     // O(logN) -- a[i]

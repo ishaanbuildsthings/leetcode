@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeMax
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax
 # @data-structure-type: seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -74,6 +75,10 @@ class MaxSegTree:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.tree[self.size + i]
+
+    # O(N) -- the whole array (a copy of the leaves)
+    def getAll(self):
+        return self.tree[self.size:self.size + self.n]
 
     # a[i] = max(a[i], val)
     def pointChmax(self, i, val):

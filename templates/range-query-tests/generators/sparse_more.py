@@ -306,16 +306,21 @@ struct SparseXorEven {
 # ------------------------------------------------------------------------------------------------ count occurrences of x
 
 SL = sorted_list_src()
-write(PLAIN + ["countOccurrences"], "positions", {"pointGet": "1"},
+IDX_ZERO = "log(U)*log(U)"  # (x == 0: a binary search over [l, r] for the first never-written index)
+write(PLAIN + ["countOccurrences", "leftmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOf", "rightmostIndexOfInRange"], "positions",
+      {"pointGet": "1", "leftmostIndexOf": IDX_ZERO, "leftmostIndexOfInRange": IDX_ZERO, "rightmostIndexOf": IDX_ZERO,
+       "rightmostIndexOfInRange": IDX_ZERO},
       ("pos[2]", "none", "vals[1]"),
       "per point write, one index in its value's sorted list and one in the list of nonzero positions (C++: "
       "order-statistics trees; Python: bucketed SortedLists defined at the top of the file); zeros are counted as the range length minus the "
       "nonzero positions in it. No shared pool: every tree owns its memory", f'''
 from bisect import bisect_left, bisect_right, insort
 
-# "How many times does x appear in a[l..r]?" with point updates, over any index range [lo, hi] (huge or negative is
-# fine); every position starts at 0. Each nonzero value keeps its sorted indices, and so does "any nonzero value";
-# x != 0 is two rank queries in x's list, and x == 0 is the range length minus the nonzero positions in it.
+# "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?" with point updates,
+# over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Each nonzero value keeps its
+# sorted indices, and so does "any nonzero value"; x != 0 is two rank queries in x's list, and x == 0 is the range
+# length minus the nonzero positions in it. x == 0's first / last copy is a binary search over [l, r] for the first
+# never-written index, O(log^2 U).
 
 
 class SparseOccurrenceLists:
@@ -337,6 +342,56 @@ class SparseOccurrenceLists:
             return (r - l + 1) - (nz.countLess(r + 1) - nz.countLess(l))
         s = self.pos.get(x)
         return 0 if s is None else s.countLess(r + 1) - s.countLess(l)
+
+    # O(logU) (x == 0: O(log^2 U)) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    def leftmostIndexOf(self, x):
+        return self.leftmostIndexOfInRange(self.lo, self.hi, x)
+
+    # O(logU) (x == 0: O(log^2 U)) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    def rightmostIndexOf(self, x):
+        return self.rightmostIndexOfInRange(self.lo, self.hi, x)
+
+    # O(logU) (x == 0: O(log^2 U)) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    def leftmostIndexOfInRange(self, l, r, x):
+        if l > r:
+            return self.lo - 1
+        if x == 0:
+            if l not in self.vals:
+                return l
+            nz = self.nz
+            base = nz.countLess(l)
+            a, b = l, r + 1  # the smallest m with a zero in [l, m] (r + 1: none)
+            while a < b:
+                m = (a + b) // 2
+                if nz.countLess(m + 1) - base < m - l + 1:
+                    b = m
+                else:
+                    a = m + 1
+            return a if a <= r else self.lo - 1
+        s = self.pos.get(x)
+        i = s.succ(l - 1) if s is not None else None
+        return i if i is not None and i <= r else self.lo - 1
+
+    # O(logU) (x == 0: O(log^2 U)) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    def rightmostIndexOfInRange(self, l, r, x):
+        if l > r:
+            return self.lo - 1
+        if x == 0:
+            if r not in self.vals:
+                return r
+            nz = self.nz
+            top = nz.countLess(r + 1)
+            a, b = l - 1, r  # the largest m with a zero in [m, r] (l - 1: none)
+            while a < b:
+                m = (a + b + 1) // 2
+                if top - nz.countLess(m) < r - m + 1:
+                    a = m
+                else:
+                    b = m - 1
+            return a if a >= l else self.lo - 1
+        s = self.pos.get(x)
+        i = s.pred(r + 1) if s is not None else None
+        return i if i is not None and i >= l else self.lo - 1
 
     # O(logU) -- a[i] = val
     def pointAssign(self, i, val):
@@ -360,10 +415,11 @@ class SparseOccurrenceLists:
             self.nz.remove(i)
             del self.vals[i]
 ''' + PY_POINTS + "\n\n" + SL, '''
-// "How many times does x appear in a[l..r]?" with point updates, over any index range [lo, hi] (huge or negative is
-// fine); every position starts at 0. Each nonzero value keeps its indices in an order-statistics tree (GCC pb_ds),
-// and so does "any nonzero value"; x != 0 is two order_of_key calls, x == 0 is the range length minus the nonzero
-// positions in it. T: any type usable as a std::map key (0 must be a value).
+// "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?" with point updates,
+// over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Each nonzero value keeps its
+// indices in an order-statistics tree (GCC pb_ds), and so does "any nonzero value"; x != 0 is two order_of_key calls,
+// x == 0 is the range length minus the nonzero positions in it. x == 0's first / last copy is a binary search over
+// [l, r] for the first never-written index, O(log^2 U). T: any type usable as a std::map key (0 must be a value).
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 
@@ -402,6 +458,51 @@ struct SparseOccurrenceLists {
         auto it = pos.find(x);
         if (it == pos.end()) return 0;
         return (long long)(it->second.order_of_key(r + 1) - it->second.order_of_key(l));
+    }
+
+    // O(logU) (x == 0: O(log^2 U)) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    long long leftmostIndexOf(const T& x) const { return leftmostIndexOfInRange(lo, hi, x); }
+
+    // O(logU) (x == 0: O(log^2 U)) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    long long rightmostIndexOf(const T& x) const { return rightmostIndexOfInRange(lo, hi, x); }
+
+    // O(logU) (x == 0: O(log^2 U)) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    long long leftmostIndexOfInRange(long long l, long long r, const T& x) const {
+        if (l > r) return lo - 1;
+        if (x == T(0)) {
+            if (!vals.count(l)) return l;
+            long long base = nz.order_of_key(l), a = l, b = r + 1;  // the smallest m with a zero in [l, m] (r + 1: none)
+            while (a < b) {
+                long long m = a + (b - a) / 2;
+                if ((long long)nz.order_of_key(m + 1) - base < m - l + 1) b = m;
+                else a = m + 1;
+            }
+            return a <= r ? a : lo - 1;
+        }
+        auto it = pos.find(x);
+        if (it == pos.end()) return lo - 1;
+        auto j = it->second.lower_bound(l);
+        return j != it->second.end() && *j <= r ? *j : lo - 1;
+    }
+
+    // O(logU) (x == 0: O(log^2 U)) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    long long rightmostIndexOfInRange(long long l, long long r, const T& x) const {
+        if (l > r) return lo - 1;
+        if (x == T(0)) {
+            if (!vals.count(r)) return r;
+            long long top = nz.order_of_key(r + 1), a = l - 1, b = r;  // the largest m with a zero in [m, r] (l - 1: none)
+            while (a < b) {
+                long long m = a + (b - a + 1) / 2;
+                if (top - (long long)nz.order_of_key(m) < r - m + 1) a = m;
+                else b = m - 1;
+            }
+            return a >= l ? a : lo - 1;
+        }
+        auto it = pos.find(x);
+        if (it == pos.end()) return lo - 1;
+        auto j = it->second.upper_bound(r);
+        if (j == it->second.begin()) return lo - 1;
+        return *prev(j) >= l ? *prev(j) : lo - 1;
     }
 
     // O(logU) -- a[i] = v

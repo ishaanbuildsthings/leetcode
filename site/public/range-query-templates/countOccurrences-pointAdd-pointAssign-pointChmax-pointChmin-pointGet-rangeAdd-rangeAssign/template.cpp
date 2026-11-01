@@ -1,9 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign/template.cpp
-// @operations: countOccurrences pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign
+// @operations: countOccurrences getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign
 // @data-structure-type: sqrt
 // @complexities:
 //   countOccurrences: sqrt(N)
+//   getAll: N
 //   pointAdd: sqrt(N)
 //   pointAssign: sqrt(N)
 //   pointChmax: sqrt(N)
@@ -119,6 +120,13 @@ struct SqrtOccurrences {
     T pointGet(int i) const {
         int b = i / B;
         return (hasAsg[b] ? asg[b] : vals[i]) + add[b];
+    }
+
+    // O(N) -- the whole array (each a[i] is O(1))
+    vector<T> getAll() const {
+        vector<T> out(n);
+        for (int i = 0; i < n; i++) out[i] = pointGet(i);
+        return out;
     }
 
     // O(sqrt N) -- a[i] = v

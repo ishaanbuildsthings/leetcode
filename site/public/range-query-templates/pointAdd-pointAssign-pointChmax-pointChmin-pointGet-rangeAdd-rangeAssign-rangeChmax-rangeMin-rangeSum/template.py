@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeMin-rangeSum/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeMin rangeSum
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeMin rangeSum
 # @data-structure-type: beats
 # @complexities:
+#   getAll: N
 #   pointAdd: log^2(N) amortized
 #   pointAssign: log^2(N) amortized
 #   pointChmax: log^2(N) amortized
@@ -16,99 +17,26 @@
 #   build: N
 # @memory:
 #   layout: 4n-recursive
-#   node: mn[4*N] mn2[4*N] cntMn[4*N] tot[4*N] sz[4*N]
-#   tags: addMn[4*N] addOther[4*N] hasAssign[4*N] assignVal[4*N]
+#   node: mn[4*N] mn2[4*N] cntMn[4*N] tot[4*N]
+#   tags: addTag[4*N]
 #   other: none
-#   note: 4n slots per array; every node field and tag is its own flat list
-# @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/beats/rangeChmax-Add-Assign-Sum-Min-PointSet-Beats.py
+#   note: no chmin / chmax / assign tags: a node's own mn is its pending clamp, and a node whose values are all equal pushes that value as an assign
 
+# Segment tree beats: range chmax (a[i] = max(a[i], x)), range add and range assign, with range sums and the range
+# min, plus point ops. All indices 0-based, ranges inclusive. How it works: a chmax only changes the min values of a
+# node it covers, so a node keeps its min, its strict second min and how many copies of the min it has; a chmax x with
+# mn < x < mn2 moves just those copies (the sum rises by (x - mn) * cntMn) and stops there, and only x >= mn2 has to
+# go further down. A node's own mn doubles as its pending clamp: push clamps each child to it, so there is no chmin /
+# chmax tag. There is no assign tag either: when all of a node's values are equal (no second min), push hands that
+# value to both children as an assign. An add shifts everything a node keeps and goes in the one add tag. Amortized
+# O(log^2 N) per update with range add, O(log N) without it (beats: every extra descent removes a distinct value).
 
-# ========================
-# COMPLEXITIES
-
-# O(n) build
-# BeatsChmax_PERFORMANT(arr)
-
-# AMORTIZED O(logN):     rangeChmax(l, r, x)    -- a[i] = max(a[i], x)
-# AMORTIZED O(logN):     rangeAssign(l, r, x)   -- a[i] = x
-# AMORTIZED O(logN):     pointAssign(pos, newVal)  -- OVERWRITE, may RAISE the value
-# AMORTIZED O(log^2 N):  rangeAdd(l, r, x)      -- a[i] += x
-
-# O(logN):  rangeSum(l, r)
-# O(logN):  rangeMin(l, r)
-# O(logN):  pointGet(pos)
-# O(n) space
-
-# IF YOU NEVER CALL rangeAdd, the whole structure is O((n + q) logN).
-# The moment rangeAdd is in the mix EVERYTHING becomes O((n + q) log^2 N). That log^2 was proven
-# TIGHT by Tony2_CF in Dec 2025 (codeforces.com/blog/entry/149516), so it is not worth hunting for
-# a one-log version. If you need a rangeMax too, use the Chmin+Chmax variant instead.
-
-# Values may be negative. Python ints are arbitrary precision so there is nothing to overflow.
-# Sentinels are float infinities, which absorb add tags correctly.
-
-# ========================
-"""
-HOW DO POTENTIALS WORK? (segment tree beats)
-
-Think about the "potential" of the entire segment tree. Each of the N values appears in logN
-nodes, so the tree captures N logN element-slots. A node's potential is the number of DISTINCT
-values in its interval, so the potential across the whole tree is at most N logN.
-
-chmax / chmin / assign can never RAISE this. They apply the SAME function to every element of a
-covered node, and a function can merge two distinct values into one but can never split one value
-into two. That is the whole requirement -- it is not about monotonicity.
-
-There are 3 types of nodes in a seg tree:
-
-1) STRADDLES THE QUERY RANGE (always recurses)
-at most 2*logN visited per query
-
-2) DEAD-END NODE (does not recurse)
-always comes from one of the other nodes so these are free
-
-3) FULLY COVERED NODES THAT DO RECURSE
-in a normal segment tree we stop as soon as we hit one, here we do not
-We must show the # of fully covered nodes we visit is bounded, as the others are bounded, then
-our total visits is bounded
-
-For a chmin with value x at a fully covered node:
-  case 1, x >= mx           -- nothing here is above x, return immediately (this falls into case 2)
-  case 2, mx2 < x < mx      -- ONLY the copies of the max move, and they all move to x. We know how
-                               many there are (cntMx) so we can patch the sum in O(1) and return.
-                               Nothing got glued, so NO potential was spent -- which is exactly why
-                               we are not allowed to descend here, and exactly why we need a lazy
-                               tag: we fixed this node but left its children stale.
-  case 3, x <= mx2          -- mx and mx2 both land on x, so two distinct values get GLUED together
-                               and this node's potential drops by at least one, paying for the visit.
-                               We recurse to the children.
-
-So we can only descend when potential actually drops. (Contrast rangeMod, where the prune test and
-the potential test are the SAME test -- max >= mod always means a real halving is waiting below --
-so you can always descend and never need a lazy tag at all.)
-
-RANGE ADD IS THE ONE THAT BREAKS IT:
-A node fully inside the add range has every value shifted by the same amount, so its distinct count
-is unchanged. A node fully outside is untouched. But a node STRADDLING the boundary gets half its
-elements shifted and half not, so two different functions are applied and equal values come apart.
-Each add creates O(logN) such boundary nodes, so the potential refills and the distinct-value
-argument dies. jiry_2 switches to a TAG-BASED potential there, which gives O((n + q) log^2 N).
-Tony2_CF proved in Dec 2025 that this log^2 is TIGHT -- it is not a gap in the proof.
-
-POINT SET / ASSIGN:
-assign collapses a covered node to one distinct value, so it DRAINS potential; it is free.
-pointAssign can raise a value, injecting at most logN distinct values (one per node on its path), so
-Q of them add Q logN. The bound stays O((n + q) logN).
-"""
-
-# ========================
-
-
-
+NEG_INF = float('-inf')
 POS_INF = float('inf')
 
 
-class BeatsChmax_PERFORMANT:
+class ChminChmaxBeats:
+    # O(N)
     def __init__(self, arr):
         self.n = n = len(arr)
         size = 4 * max(1, n)
@@ -116,11 +44,7 @@ class BeatsChmax_PERFORMANT:
         self.mn2 = [POS_INF] * size
         self.cntMn = [0] * size
         self.tot = [0] * size
-        self.sz = [0] * size
-        self.addMn = [0] * size
-        self.addOther = [0] * size
-        self.hasAssign = [False] * size
-        self.assignVal = [0] * size
+        self.addTag = [0] * size
         if n:
             self._build(1, 0, n - 1, arr)
 
@@ -128,7 +52,7 @@ class BeatsChmax_PERFORMANT:
         if tl == tr:
             v = arr[tl]
             self.mn[i] = v; self.mn2[i] = POS_INF; self.cntMn[i] = 1
-            self.tot[i] = v; self.sz[i] = 1
+            self.tot[i] = v; self.addTag[i] = 0
             return
         tm = (tl + tr) // 2
         self._build(2 * i, tl, tm, arr)
@@ -137,9 +61,8 @@ class BeatsChmax_PERFORMANT:
 
     def _pull(self, i):
         l = 2 * i; r = l + 1
-        mn = self.mn; mn2 = self.mn2; cntMn = self.cntMn
-        self.sz[i] = self.sz[l] + self.sz[r]
         self.tot[i] = self.tot[l] + self.tot[r]
+        mn = self.mn; mn2 = self.mn2; cntMn = self.cntMn
         if mn[l] < mn[r]:
             mn[i] = mn[l]; cntMn[i] = cntMn[l]
             mn2[i] = mn2[l] if mn2[l] < mn[r] else mn[r]
@@ -149,104 +72,90 @@ class BeatsChmax_PERFORMANT:
         else:
             mn[i] = mn[l]; cntMn[i] = cntMn[l] + cntMn[r]
             mn2[i] = mn2[l] if mn2[l] < mn2[r] else mn2[r]
-        self.hasAssign[i] = False
-        self.addMn[i] = 0; self.addOther[i] = 0
+        self.addTag[i] = 0
 
-    def _applyAdd(self, i, vMin, vOther):
-        self.tot[i] += vMin * self.cntMn[i] + vOther * (self.sz[i] - self.cntMn[i])
-        if self.mn2[i] != POS_INF:
-            self.mn2[i] += vOther
-        self.mn[i] += vMin
-        if self.hasAssign[i]:
-            self.assignVal[i] = self.mn[i]
-        else:
-            self.addMn[i] += vMin; self.addOther[i] += vOther
-
-    def _applyAssign(self, i, v):
-        sz = self.sz[i]
+    # every value under node i (sz of them) becomes v
+    def _applyAssign(self, i, sz, v):
         self.mn[i] = v; self.mn2[i] = POS_INF; self.cntMn[i] = sz
-        self.tot[i] = v * sz
-        self.addMn[i] = 0; self.addOther[i] = 0
-        self.hasAssign[i] = True; self.assignVal[i] = v
+        self.tot[i] = v * sz; self.addTag[i] = 0
 
-    def _push(self, i):
-        if self.sz[i] == 1:
-            return
+    # every value under node i gains v
+    def _applyAdd(self, i, sz, v):
+        if self.mn2[i] == POS_INF:
+            self._applyAssign(i, sz, self.mn[i] + v); return
+        self.mn[i] += v
+        if self.mn2[i] != POS_INF: self.mn2[i] += v
+        self.tot[i] += sz * v
+        self.addTag[i] += v
+
+    # chmax by v on node i, with v < mn2: only the copies of the min move
+    def _applyChmax(self, i, sz, v):
+        if self.mn[i] < v:
+            self.tot[i] += (v - self.mn[i]) * self.cntMn[i]
+            self.mn[i] = v
+
+    # hand node i's pending changes to its children: all one value (an assign), else the add, then its own clamp
+    def _push(self, i, tl, tr):
+        if tl == tr: return
+        tm = (tl + tr) // 2
+        lsz = tm - tl + 1; rsz = tr - tm
         l = 2 * i; r = l + 1
-        if self.hasAssign[i]:
-            v = self.assignVal[i]
-            self._applyAssign(l, v); self._applyAssign(r, v)
-            self.hasAssign[i] = False
+        if self.mn2[i] == POS_INF:
+            v = self.mn[i]
+            self._applyAssign(l, lsz, v); self._applyAssign(r, rsz, v)
             return
-        aMn = self.addMn[i]; aO = self.addOther[i]
-        if aMn == 0 and aO == 0:
-            return
-        mnc = self.mn[l] if self.mn[l] < self.mn[r] else self.mn[r]
-        self._applyAdd(l, aMn if self.mn[l] == mnc else aO, aO)
-        self._applyAdd(r, aMn if self.mn[r] == mnc else aO, aO)
-        self.addMn[i] = 0; self.addOther[i] = 0
+        a = self.addTag[i]
+        if a:
+            self._applyAdd(l, lsz, a); self._applyAdd(r, rsz, a)
+            self.addTag[i] = 0
+        self._applyChmax(l, lsz, self.mn[i]); self._applyChmax(r, rsz, self.mn[i])
 
     def _chmax(self, i, tl, tr, ql, qr, x):
-        if qr < tl or ql > tr or x <= self.mn[i]:
-            return
+        if qr < tl or ql > tr or x <= self.mn[i]: return
         if ql <= tl and qr >= tr and x < self.mn2[i]:
-            self._applyAdd(i, x - self.mn[i], 0)
-            return
-        self._push(i)
+            self._applyChmax(i, tr - tl + 1, x); return
+        self._push(i, tl, tr)
         tm = (tl + tr) // 2
         self._chmax(2 * i, tl, tm, ql, qr, x)
         self._chmax(2 * i + 1, tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(log^2 N) -- a[i] = max(a[i], x) for i in [l, r]
+    # amortized O(log^2 N) -- a[i] = max(a[i], x) for i in [l, r]
     def rangeChmax(self, l, r, x):
-        if l <= r and self.n:
-            self._chmax(1, 0, self.n - 1, l, r, x)
+        if l <= r and self.n: self._chmax(1, 0, self.n - 1, l, r, x)
 
     def _add(self, i, tl, tr, ql, qr, v):
-        if qr < tl or ql > tr:
-            return
+        if qr < tl or ql > tr: return
         if ql <= tl and qr >= tr:
-            self._applyAdd(i, v, v)
-            return
-        self._push(i)
+            self._applyAdd(i, tr - tl + 1, v); return
+        self._push(i, tl, tr)
         tm = (tl + tr) // 2
         self._add(2 * i, tl, tm, ql, qr, v)
         self._add(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(log^2 N) -- a[i] += v for i in [l, r]
+    # amortized O(log^2 N) -- a[i] += v for i in [l, r]
     def rangeAdd(self, l, r, v):
-        if l <= r and self.n:
-            self._add(1, 0, self.n - 1, l, r, v)
+        if l <= r and self.n: self._add(1, 0, self.n - 1, l, r, v)
 
     def _assign(self, i, tl, tr, ql, qr, v):
-        if qr < tl or ql > tr:
-            return
+        if qr < tl or ql > tr: return
         if ql <= tl and qr >= tr:
-            self._applyAssign(i, v)
-            return
-        self._push(i)
+            self._applyAssign(i, tr - tl + 1, v); return
+        self._push(i, tl, tr)
         tm = (tl + tr) // 2
         self._assign(2 * i, tl, tm, ql, qr, v)
         self._assign(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(log^2 N) -- a[i] = v for i in [l, r]
+    # amortized O(log^2 N) -- a[i] = v for i in [l, r]
     def rangeAssign(self, l, r, v):
-        if l <= r and self.n:
-            self._assign(1, 0, self.n - 1, l, r, v)
-
-    # O(log^2 N) -- a[pos] = v
-    def pointAssign(self, pos, v):
-        self.rangeAssign(pos, pos, v)
+        if l <= r and self.n: self._assign(1, 0, self.n - 1, l, r, v)
 
     def _sum(self, i, tl, tr, ql, qr):
-        if qr < tl or ql > tr:
-            return 0
-        if ql <= tl and qr >= tr:
-            return self.tot[i]
-        self._push(i)
+        if qr < tl or ql > tr: return 0
+        if ql <= tl and qr >= tr: return self.tot[i]
+        self._push(i, tl, tr)
         tm = (tl + tr) // 2
         return self._sum(2 * i, tl, tm, ql, qr) + self._sum(2 * i + 1, tm + 1, tr, ql, qr)
 
@@ -255,11 +164,9 @@ class BeatsChmax_PERFORMANT:
         return 0 if (l > r or not self.n) else self._sum(1, 0, self.n - 1, l, r)
 
     def _qmin(self, i, tl, tr, ql, qr):
-        if qr < tl or ql > tr:
-            return POS_INF
-        if ql <= tl and qr >= tr:
-            return self.mn[i]
-        self._push(i)
+        if qr < tl or ql > tr: return POS_INF
+        if ql <= tl and qr >= tr: return self.mn[i]
+        self._push(i, tl, tr)
         tm = (tl + tr) // 2
         a = self._qmin(2 * i, tl, tm, ql, qr)
         b = self._qmin(2 * i + 1, tm + 1, tr, ql, qr)
@@ -269,19 +176,38 @@ class BeatsChmax_PERFORMANT:
     def rangeMin(self, l, r):
         return POS_INF if (l > r or not self.n) else self._qmin(1, 0, self.n - 1, l, r)
 
-    # O(logN) -- a[pos]
-    def pointGet(self, pos):
-        return self.rangeMin(pos, pos)
+    # O(logN) -- a[p]
+    def pointGet(self, p):
+        return self.rangeMin(p, p)
 
-    # a[i] = max(a[i], val)
-    def pointChmax(self, i, val):
-        self.rangeChmax(i, i, val)
+    def _getAllRec(self, i, tl, tr, out):
+        if tl == tr:
+            out.append(self.mn[i])
+            return
+        self._push(i, tl, tr)
+        tm = (tl + tr) // 2
+        self._getAllRec(2 * i, tl, tm, out)
+        self._getAllRec(2 * i + 1, tm + 1, tr, out)
 
-    # a[i] = min(a[i], val)
-    def pointChmin(self, i, val):
-        if val < self.pointGet(i):
-            self.pointAssign(i, val)
+    # O(N) -- the whole array: one DFS that pushes every tag down and reads the leaves left to right
+    def getAll(self):
+        out = []
+        if self.n:
+            self._getAllRec(1, 0, self.n - 1, out)
+        return out
 
-    # a[i] += delta
-    def pointAdd(self, i, delta):
-        self.rangeAdd(i, i, delta)
+    # amortized O(log^2 N) -- a[p] = v
+    def pointAssign(self, p, v):
+        self.rangeAssign(p, p, v)
+
+    # amortized O(log^2 N) -- a[i] += v
+    def pointAdd(self, i, v):
+        self.rangeAdd(i, i, v)
+
+    # amortized O(log^2 N) -- a[i] = max(a[i], v)
+    def pointChmax(self, i, v):
+        self.rangeChmax(i, i, v)
+
+    # amortized O(log^2 N) -- a[i] = min(a[i], v)
+    def pointChmin(self, i, v):
+        if v < self.pointGet(i): self.rangeAssign(i, i, v)

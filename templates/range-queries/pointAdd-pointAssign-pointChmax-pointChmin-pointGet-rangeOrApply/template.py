@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeOrApply/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeOrApply
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeOrApply
 # @data-structure-type: seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -67,6 +68,19 @@ class RangeOrTree:
             a = a | t
             p >>= 1
         return a
+
+    # O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    # each node's tag is complete when it is pushed), then read the leaves
+    def getAll(self):
+        tree = self.tree
+        for x in range(1, self.n):
+            t = tree[x]
+            if t != 0:
+                y = x << 1
+                tree[y] = tree[y] | t
+                tree[y | 1] = tree[y | 1] | t
+                tree[x] = 0
+        return self.tree[self.n:]
 
     # O(logN) -- a[i] = val
     def pointAssign(self, i, val):

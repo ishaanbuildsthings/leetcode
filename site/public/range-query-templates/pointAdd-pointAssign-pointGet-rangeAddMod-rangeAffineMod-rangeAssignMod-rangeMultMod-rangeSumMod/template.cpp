@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod-rangeSumMod/template.cpp
-// @operations: pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeSumMod
+// @operations: getAll pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeSumMod
 // @data-structure-type: lazy-seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointGet: log(N)
@@ -94,6 +95,17 @@ struct AffineSumTree {
     T pointGet(int i) {
         push(i + n);
         return tot[i + n];
+    }
+
+    // O(N) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
+    // the leaves are (n >> s) .. ((2n - 1) >> s); their children cover k = 1 << (s - 1) leaves), then read the leaves
+    vector<T> getAll() {
+        for (int s = h; s > 0; s--) {
+            int k = 1 << (s - 1);
+            for (int x = max(1, n >> s); x <= (2 * n - 1) >> s; x++)
+                if (mul[x] != 1 || add[x]) apply(2 * x, k, mul[x], add[x]), apply(2 * x + 1, k, mul[x], add[x]), mul[x] = 1, add[x] = 0;
+        }
+        return vector<T>(tot.begin() + n, tot.end());
     }
 
     // O(logN) -- a[i] = a[i] * mult + add (mod p) for i in [l, r]; every other update is this one

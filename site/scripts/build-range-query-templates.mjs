@@ -2,10 +2,11 @@
 //   - lib/generated/range-query-templates.ts  (typed manifest; tsc rejects unknown operations or data structure types)
 //   - public/range-query-templates/<folder>/{template,sparse}.{py,cpp}  (static copies the picker fetches on click)
 //
-// A folder may also hold sparse.py / sparse.cpp: the same operations over any index range [lo, hi]. Their header
-// has the same format, with layout "sparse". For a template with updates every position starts at 0, memory sizes
-// are counted per update (e.g. node: sum[1*log(U)]) and U is the size of the index range; a static template's
-// sparse version is built from N given values ((index, value) pairs; every other index 0), with costs and memory in N.
+// A folder may also hold sparse.py / sparse.cpp: the same operations (getAll may be left out) over any index range
+// [lo, hi]. Their header has the same format, with layout "sparse". For a template with updates every position
+// starts at 0, memory sizes are counted per update (e.g. node: sum[1*log(U)]) and U is the size of the index range;
+// a static template's sparse version is built from N given values ((index, value) pairs; every other index 0), with
+// costs and memory in N.
 // Run with: npm run gen:range-queries
 //
 // Header format (Python shown; C++ uses //):
@@ -35,9 +36,11 @@ const manifestPath = path.join(siteDir, "lib/generated/range-query-templates.ts"
 
 // @original-file-url is optional: templates written fresh in this folder have no original.
 // @fractional-cascading (yes / no) is required on, and only allowed on, merge sort trees.
-// @values: offline (optional) = the constructor needs every value that will ever be added (e.g. by pushBack) up front.
-const TAGS = ["operations", "data-structure-type", "fractional-cascading", "values", "complexities", "memory", "original-file-url"];
-const OPTIONAL_TAGS = ["original-file-url", "fractional-cascading", "values"];
+// @values: offline (optional) = the constructor needs every value that will ever be added (e.g. by append) up front.
+// @letters: same (optional) = the very same file takes a list of characters for its character ops (see gen_letters.py);
+// a template that needs a different file for that has letters.py / letters.cpp instead.
+const TAGS = ["operations", "data-structure-type", "fractional-cascading", "values", "letters", "complexities", "memory", "original-file-url"];
+const OPTIONAL_TAGS = ["original-file-url", "fractional-cascading", "values", "letters"];
 
 const errors = [];
 const entries = [];
@@ -52,19 +55,21 @@ function readTemplateFile(where, filePath) {
   if (tags["data-structure-type"] !== "merge-sort-tree" && fc !== undefined)
     errs.push(`${where}: @fractional-cascading is only for merge sort trees`);
   if (tags.values !== undefined && tags.values !== "offline") errs.push(`${where}: @values can only be "offline"`);
+  if (tags.letters !== undefined && tags.letters !== "same") errs.push(`${where}: @letters can only be "same"`);
   return {
     errs,
     data: {
       ...data,
       ...(fc !== undefined ? { fractionalCascading: fc === "yes" } : {}),
       ...(tags.values === "offline" ? { valuesOffline: true } : {}),
+      ...(tags.letters === "same" ? { lettersSame: true } : {}),
       ...(tags["original-file-url"] ? { originalFileUrl: tags["original-file-url"] } : {}),
     },
   };
 }
 
 // Each template is a folder holding template.py and/or template.cpp. The folder is named by its operations
-// (alphabetical, "-" joined), with a __<data-structure-type> suffix when two templates share operations; an op list
+// (alphabetical, "-" joined, leaving out getAll: nearly every structure with updates has it), with a __<data-structure-type> suffix when two templates share operations; an op list
 // longer than LONG_FOLDER characters may instead be named "<data-structure-type>-<anything>".
 // Both language files carry the same header; they may differ only in the original-file-url and the @memory note
 // (each language's note describes its own implementation).
@@ -103,14 +108,15 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
   };
   const { langs, data, usage } = readVariant("template");
   const sparse = readVariant("sparse");
-  const STEMS = ["template", "sparse"];
+  const letters = readVariant("letters");
+  const STEMS = ["template", "sparse", "letters"];
   for (const f of fs.readdirSync(folderPath))
     if (!STEMS.some((stem) => Object.keys(LANGS).some((ext) => f === `${stem}${ext}`))) errors.push(`${folder}: unexpected file ${f}`);
   if (!data) {
     errors.push(`${folder}: no template.py or template.cpp`);
     continue;
   }
-  const base = data.operations.join("-");
+  const base = data.operations.filter((op) => op !== "getAll").join("-");
   const allowed = [base, `${base}__${data.dataStructureType}`];
   // an op list too long for a folder name (filenames stop at 255 bytes) may name the structure instead: "<type>-..."
   const named = base.length > LONG_FOLDER && folder.startsWith(`${data.dataStructureType}-`);
@@ -120,9 +126,26 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
   const entry = { folder, langs, ...data, usage };
   if (sparse.data) {
     const s = sparse.data;
-    if (s.operations.join(" ") !== data.operations.join(" ")) errors.push(`${folder}: sparse @operations must match the template's`);
+    // a sparse tree may leave out getAll (its index range can be huge); every other op must match
+    const dense = data.operations.join(" ");
+    if (s.operations.join(" ") !== dense && s.operations.join(" ") !== data.operations.filter((op) => op !== "getAll").join(" "))
+      errors.push(`${folder}: sparse @operations must match the template's (getAll may be left out)`);
     if (s.memory.layout !== "sparse") errors.push(`${folder}: sparse files must use layout "sparse"`);
-    entry.sparse = { langs: sparse.langs, complexities: s.complexities, build: s.build, memory: s.memory, usage: sparse.usage };
+    entry.sparse = {
+      langs: sparse.langs,
+      ...(s.operations.join(" ") !== dense ? { operations: s.operations } : {}),
+      complexities: s.complexities,
+      build: s.build,
+      memory: s.memory,
+      usage: sparse.usage,
+    };
+  }
+  if (letters.data) {
+    const v = letters.data;
+    // the letters version: the template's character ops only, and the same structure
+    if (v.operations.some((op) => !data.operations.includes(op))) errors.push(`${folder}: letters @operations must be some of the template's`);
+    if (data.lettersSame) errors.push(`${folder}: a template marked "@letters: same" needs no letters files`);
+    entry.letters = { langs: letters.langs, operations: v.operations, complexities: v.complexities, build: v.build, memory: v.memory, usage: letters.usage };
   }
   entries.push(entry);
 }
@@ -134,9 +157,13 @@ if (errors.length) {
 
 fs.rmSync(publicDir, { recursive: true, force: true });
 fs.mkdirSync(publicDir, { recursive: true });
-for (const { folder, langs, sparse } of entries) {
+for (const { folder, langs, sparse, letters } of entries) {
   fs.mkdirSync(path.join(publicDir, folder), { recursive: true });
-  const files = [...langs.map((l) => `template.${l}`), ...(sparse?.langs ?? []).map((l) => `sparse.${l}`)];
+  const files = [
+    ...langs.map((l) => `template.${l}`),
+    ...(sparse?.langs ?? []).map((l) => `sparse.${l}`),
+    ...(letters?.langs ?? []).map((l) => `letters.${l}`),
+  ];
   for (const name of files) fs.copyFileSync(path.join(srcDir, folder, name), path.join(publicDir, folder, name));
 }
 

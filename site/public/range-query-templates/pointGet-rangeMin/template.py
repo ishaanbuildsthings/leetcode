@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeMin/template.py
 # @operations: pointGet rangeMin
 # @data-structure-type: sparse-table
+# @letters: same
 # @complexities:
 #   pointGet: 1
 #   rangeMin: 1

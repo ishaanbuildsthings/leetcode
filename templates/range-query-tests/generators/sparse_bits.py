@@ -47,6 +47,38 @@ write(PLAIN + ["rangeAdd"], ("d[2*log(U)]", "children[4*log(U)]"), "a range add 
     T pointGet(long long i) const { return T(prefix(i - lo)[0]); }
 ''' + cp))
 
+pp, cp = point_ops("rangeAddMod", chm=False)
+write(MOD_POINT + ["rangeAddMod"], ("d[2*log(U)]", "children[4*log(U)]"), "a range add changes two differences",
+      py_class("SparseRangeAddBITMod", "Range add, point get, all mod p: prefix sums of the difference array d[i] = a[i] - a[i - 1].",
+               ["d"], "mod", '''
+    # O(logU) -- a[i] += v (mod p) for i in [l, r]
+    def rangeAddMod(self, l, r, v):
+        if l > r:
+            return
+        self._add(l - self.lo, v)
+        if r < self.hi:
+            self._add(r + 1 - self.lo, -v)
+
+    # O(logU) -- a[i], in [0, mod)
+    def pointGet(self, i):
+        return self._prefix(i - self.lo) % self.mod
+''' + pp),
+      cpp_struct("SparseRangeAddBITMod", "Range add, point get, all mod p: prefix sums of the difference array d[i] = a[i] - a[i - 1].",
+                 1, "mod", '''
+    T norm(W x) const { return T((x % mod + mod) % mod); }
+
+    // O(logU) -- a[i] += v (mod p) for i in [l, r]
+    void rangeAddMod(long long l, long long r, T v) {
+        if (l > r) return;
+        T x = norm(v);
+        add(l - lo, F{x});
+        if (r < hi) add(r + 1 - lo, F{norm(-W(x))});
+    }
+
+    // O(logU) -- a[i], in [0, mod)
+    T pointGet(long long i) const { return norm(prefix(i - lo)[0]); }
+''' + cp))
+
 # ---------------------------------------------------------------- range xor, point get
 
 write(PLAIN + ["rangeXorApply"], ("d[2*log(U)]", "children[4*log(U)]"), "a range xor changes two xor-differences",

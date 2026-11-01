@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd
 // @data-structure-type: BIT
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -49,6 +50,19 @@ struct RangeAddBIT {
         T s = 0;
         for (i++; i > 0; i &= i - 1) s += tree[i];
         return s;
+    }
+
+    // O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
+    // i + lowbit(i) once complete), then one pass of running prefix sums
+    vector<T> getAll() const {
+        vector<T> d(tree), out(n);
+        for (int i = n; i > 0; i--) {
+            int j = i + (i & -i);
+            if (j <= n) d[j] -= d[i];
+        }
+        T s = 0;
+        for (int i = 0; i < n; i++) out[i] = s += d[i + 1];
+        return out;
     }
 
     // O(logN) -- a[i] += delta

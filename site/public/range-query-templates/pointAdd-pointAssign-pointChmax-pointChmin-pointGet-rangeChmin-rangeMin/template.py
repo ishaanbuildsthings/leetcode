@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmin-rangeMin/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeChmin rangeMin
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeChmin rangeMin
 # @data-structure-type: lazy-seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -115,6 +116,17 @@ class ChminMinTree:
             l >>= 1
             r >>= 1
         return res
+
+    # O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    # each node's tag is complete when it is pushed), then read the leaves
+    def getAll(self):
+        for x in range(1, self.n):
+            if self.hi[x] != INF:
+                hi = self.hi[x]
+                self._apply(2 * x, hi)
+                self._apply(2 * x + 1, hi)
+                self.hi[x] = INF
+        return self.mn[self.n:]
 
     # O(logN) -- a[i]
     def pointGet(self, i):

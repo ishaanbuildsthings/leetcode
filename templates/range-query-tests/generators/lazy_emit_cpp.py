@@ -138,6 +138,17 @@ struct {name} {{
         rebuild(l0), rebuild(r0);
     }}
 {upd_text}{queries}
+    // O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    // each node's tag is complete when it is pushed), then read the leaves
+    vector<T> getAll() {{
+        for (int x = 1; x < n; x++)
+            if ({cond}) {{
+                apply(2 * x, {tagvals}), apply(2 * x + 1, {tagvals});
+                {reset};
+            }}
+        return vector<T>({arrs[0]}.begin() + n, {arrs[0]}.end());
+    }}
+
     // O(logN) -- a[i]
     T pointGet(int i) {{
         push(i + n);
@@ -292,6 +303,18 @@ struct {name} {{
         }}
     }}
 {upd}{q}
+    // O(N) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
+    // the leaves are (n >> s) .. ((2n - 1) >> s); their children cover k = 1 << (s - 1) leaves), then read the leaves
+    vector<T> getAll() {{
+        for (int s = h; s > 0; s--) {{
+            int k = 1 << (s - 1);
+            for (int x = max(1, n >> s); x <= (2 * n - 1) >> s; x++) {{
+{chr(10).join("    " + b for b in push_lines)}
+            }}
+        }}
+        return vector<T>(sm.begin() + n, sm.end());
+    }}
+
     // O(logN) -- a[i]
     T pointGet(int i) {{
         push(i + n);

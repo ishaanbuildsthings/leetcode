@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeGcd/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd
 # @data-structure-type: lazy-seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)*log(U) ?
 #   pointAssign: log(N)*log(U) ?
 #   pointChmax: log(N)*log(U) ?
@@ -107,6 +108,16 @@ class AssignGcdTree:
         p = i + self.n
         self._push(p)
         return self.t[p]
+
+    # O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    # each node's tag is complete when it is pushed), then read the leaves
+    def getAll(self):
+        for x in range(1, self.n):
+            if self.hasAsg[x]:
+                self._apply(2 * x, self.asg[x])
+                self._apply(2 * x + 1, self.asg[x])
+                self.hasAsg[x] = False
+        return self.t[self.n:]
 
     # O(logN logU) -- a[i] = val
     def pointAssign(self, i, val):

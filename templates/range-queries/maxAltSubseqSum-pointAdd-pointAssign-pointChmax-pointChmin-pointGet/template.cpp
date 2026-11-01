@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
-// @operations: maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet
+// @operations: getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: seg-tree
 // @complexities:
+//   getAll: N
 //   maxAltSubseqSum: log(N)
 //   pointAdd: log(N)
 //   pointAssign: log(N)
@@ -68,6 +69,9 @@ struct AltSumTree {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return vals[i]; }
+
+    // O(N) -- the whole array (a copy)
+    vector<T> getAll() const { return vals; }
 
     // O(logN) -- a[i] += delta
     void pointAdd(int i, T delta) { pointAssign(i, vals[i] + delta); }

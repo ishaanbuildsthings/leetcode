@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeOrApply/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeOrApply
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeOrApply
 // @data-structure-type: seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -58,6 +59,20 @@ struct RangeOrTree {
         T a = tree[p];
         for (p >>= 1; p; p >>= 1) a = (a | tree[p]);
         return a;
+    }
+
+    // O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    // each node's tag is complete when it is pushed), then read the leaves
+    vector<T> getAll() {
+        for (int x = 1; x < n; x++) {
+            T t = tree[x];
+            if (t != T(0)) {
+                tree[2 * x] = (tree[2 * x] | t);
+                tree[2 * x + 1] = (tree[2 * x + 1] | t);
+                tree[x] = T(0);
+            }
+        }
+        return vector<T>(tree.begin() + n, tree.end());
     }
 
     // O(logN) -- a[i] = val

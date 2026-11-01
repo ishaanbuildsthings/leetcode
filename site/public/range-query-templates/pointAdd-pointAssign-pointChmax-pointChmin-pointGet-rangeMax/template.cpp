@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeMax
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax
 // @data-structure-type: seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -61,6 +62,9 @@ struct MaxSegTree {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return tree[size + i]; }
+
+    // O(N) -- the whole array (a copy of the leaves)
+    vector<T> getAll() const { return vector<T>(tree.begin() + size, tree.begin() + size + n); }
 
     // O(logN) -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) { if (v > tree[size + i]) pointAssign(i, v); }

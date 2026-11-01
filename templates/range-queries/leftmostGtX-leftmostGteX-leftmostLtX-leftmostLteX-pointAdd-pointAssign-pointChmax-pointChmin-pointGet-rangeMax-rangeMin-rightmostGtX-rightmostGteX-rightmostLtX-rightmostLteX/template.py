@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rangeMin-rightmostGtX-rightmostGteX-rightmostLtX-rightmostLteX/template.py
-# @operations: leftmostGtX leftmostGteX leftmostLtX leftmostLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rightmostGtX rightmostGteX rightmostLtX rightmostLteX
+# @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 # @data-structure-type: seg-tree
 # @complexities:
+#   getAll: N
 #   leftmostGtX: log(N)
 #   leftmostGteX: log(N)
 #   leftmostLtX: log(N)
@@ -248,6 +249,10 @@ class MaxMinTree:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.mx[self.size + i]
+
+    # O(N) -- the whole array (a copy of the leaves)
+    def getAll(self):
+        return self.mx[self.size:self.size + self.n]
 
     # O(logN) -- a[i] = max(a[i], val)
     def pointChmax(self, i, val):

@@ -1,14 +1,16 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-online-order-stats-sums-mex/template.py
-# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet pushBack rangeMax rangeMex rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet rangeMax rangeMex rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 # @data-structure-type: persistent
 # @complexities:
+#   append: log(U)
 #   countGtX: log(U)
 #   countGteX: log(U)
 #   countInValRange: log(U)
 #   countLtX: log(U)
 #   countLteX: log(U)
 #   countOccurrences: log(U)
+#   getAll: N
 #   kthLargest: log(U)
 #   kthSmallest: log(U)
 #   largestLtX: log(U)
@@ -16,7 +18,6 @@
 #   medianHigh: log(U)
 #   medianLow: log(U)
 #   pointGet: 1
-#   pushBack: log(U)
 #   rangeMax: log(U)
 #   rangeMex: log(U)
 #   rangeMin: log(U)
@@ -40,9 +41,9 @@
 #   node: L[1*N*log(U)] R[1*N*log(U)] C[1*N*log(U)] S[1*N*log(U)]
 #   tags: none
 #   other: root[1*N] arr[1*N] mexRoot[1*N] ML[1*N*log(U)] MR[1*N*log(U)] MN[1*N*log(U)]
-#   note: N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi] (and one in the mex tree)
+#   note: N = every value ever added (initial array plus each append); each adds one root-to-leaf path of log U nodes over the value range [valLo, valHi] (and one in the mex tree)
 
-# An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up
+# An array that grows: append(v) appends, and queries on any a[l..r] can come in between. Nothing is known up
 # front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is
 # version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal,
 # ...) can be anything. 0-indexed, inclusive.
@@ -64,10 +65,10 @@ class PersistentOnlineOrderStats:
         self.ML, self.MR, self.MN = [0], [0], [-1]  # node 0 = the empty tree (every last index -1)
         self.mexRoot = [0]
         for v in arr:
-            self.pushBack(v)
+            self.append(v)
 
     # O(logU) -- append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1
-    def pushBack(self, v):
+    def append(self, v):
         self.root.append(self._ins(self.root[-1], v, v))
         prev = self.mexRoot[-1]
         self.mexRoot.append(self._mexSet(prev, v, self.n) if 0 <= v <= self.mexHi else prev)
@@ -77,6 +78,10 @@ class PersistentOnlineOrderStats:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.arr[i]
+
+    # O(N) -- the whole array (a copy)
+    def getAll(self):
+        return list(self.arr)
 
     # O(logN) -- # of i in [l, r] with a[i] == x
     def countOccurrences(self, l, r, x):

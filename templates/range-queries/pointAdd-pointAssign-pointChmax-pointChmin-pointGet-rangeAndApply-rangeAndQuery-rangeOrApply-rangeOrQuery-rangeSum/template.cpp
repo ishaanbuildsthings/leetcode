@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum
 // @data-structure-type: beats
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N) amortized
 //   pointAssign: log(N) amortized
 //   pointChmax: log(N) amortized
@@ -154,6 +155,21 @@ struct BitBeats {
 
     // O(logN) -- a[i]
     T pointGet(int i) { return rangeAndQuery(i, i); }
+
+    void getAllRec(int i, int tl, int tr, vector<T>& out) {
+        if (tl == tr) { out.push_back(andAll[i]); return; }
+        push(i, tl, tr);
+        int tm = (tl + tr) / 2;
+        getAllRec(2 * i, tl, tm, out), getAllRec(2 * i + 1, tm + 1, tr, out);
+    }
+
+    // O(N) -- the whole array: one DFS that pushes every tag down and reads the leaves left to right
+    vector<T> getAll() {
+        vector<T> out;
+        out.reserve(n);
+        if (n) getAllRec(1, 0, n - 1, out);
+        return out;
+    }
 
     // O(logN) -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }

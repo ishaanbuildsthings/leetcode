@@ -46,11 +46,43 @@ POINT_UPDATES = ("pointAssign", "pointAdd", "pointChmax", "pointChmin")
 RANGE_UPDATES = {  # op -> number of args after (l, r)
     "rangeAdd": 1, "rangeAssign": 1, "rangeAddMod": 1, "rangeAssignMod": 1, "rangeChmax": 1, "rangeChmin": 1, "rangeMultMod": 1, "rangeAffineMod": 2,
     "rangeAddArithSeq": 2, "rangeAddArithSeqMod": 2, "rangeMod": 1, "rangeFloorDiv": 1, "rangeFloorSqrt": 0,
-    "rangeAndApply": 1, "rangeOrApply": 1, "rangeXorApply": 1,
+    "rangeAndApply": 1, "rangeOrApply": 1, "rangeXorApply": 1, "rangeFlip": 0,
 }
 # sequence edits (implicit treap): op -> arg kind; they change the array's length
-SEQ_OPS = {"pushBack": "v", "insertAt": "iv", "eraseAt": "i", "eraseRange": "lr", "rangeReverse": "lr", "rangeRotateLeft": "lrk", "rangeRotateRight": "lrk", "moveRange": "lri"}
+SEQ_OPS = {"append": "v", "appendLeft": "v", "insertAt": "iv", "pop": "i", "popLeft": "none", "eraseRange": "lr", "rangeReverse": "lr", "rangeRotateLeft": "lrk", "rangeRotateRight": "lrk", "moveRange": "lri",
+           "cut": "lr", "paste": "ib", "split": "k", "trisect": "lr", "concat": "b", "insertCopiesAt": "ivk",
+           "rangeTwinSpin": "lr", "rangeSortAsc": "lr", "rangeSortDesc": "lr", "copyRange": "lrc"}
+# cut(l, r) hands a[l..r] back as a new structure, which the test keeps on a stack; split(k) / trisect(l, r) hand back
+# every part (the structure itself is left empty): the test concats the first part back into it and stacks the rest.
+# paste(i, rv) and concat(rv) pop the newest piece, reverse it first when rv (so the piece is used as a structure of its
+# own), and put it back in at index i / at the end
+PIECE_OPS = ("cut", "paste", "split", "trisect", "concat")
+SEQ_OUT = {"pop", "popLeft"}  # sequence edits that also return something (the removed value)
 MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod", "rangeAssignMod", "rangeSumMod"}  # any: values live mod p
+
+
+# ops that only compare, copy, move or hash values: they make sense on letters (a list of characters), not just numbers.
+# --letters reruns every template on order-preserving letters using just these ops (the others do arithmetic).
+CHAR_SAFE = {
+    "pointGet", "pointAssign", "pointChmax", "pointChmin", "rangeAssign", "rangeChmax", "rangeChmin", "rangeSortAsc",
+    "rangeSortDesc", "getAll", "append", "appendLeft", "insertAt", "insertCopiesAt", "pop", "popLeft", "eraseRange",
+    "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "concat",
+    "copyRange", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
+    "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange", "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome", "rangeHash",
+    "rangeHashReversed", "rangesEqual", "doAllElementsAppearEvenFrequency", "kthSmallest", "kthLargest", "medianLow",
+    "medianHigh", "countLtX", "countLteX", "countGtX", "countGteX", "countInValRange", "smallestGtX", "smallestGteX",
+    "largestLtX", "largestLteX", "kthLtX", "kthLteX", "kthGtX", "kthGteX",
+} | {f"{side}{c}X" for side in ("leftmost", "rightmost") for c in ("Gt", "Gte", "Lt", "Lte")}
+
+
+LETTER_BASE = int(os.environ.get("LETTER_BASE", 0x4E00))  # LETTER_BASE=91: plain ASCII ("(", digits, capitals, "[", ...)
+
+
+def letter(v):
+    """An order-preserving one-character string for value v (clamped: domains this wide are numbers-only anyway)."""
+    if LETTER_BASE < 128:  # ASCII: printable only (33 .. 126), so C++ chars print exactly what Python expects
+        return chr(max(33, min(126, LETTER_BASE + v)))
+    return chr(LETTER_BASE + max(1 - LETTER_BASE, min(9000, v)))
 
 
 def is_update(op):
@@ -92,10 +124,19 @@ def _suffix_search(a, l, r, x, strict):
     return -1
 
 
-def _lis(seq):
+def _rbs(seq):  # brackets are tested as character codes, 40 is "(" and 41 is ")" (or their letters, in --letters)
+    bal = 0
+    for v in seq:
+        bal += 1 if v in (40, letter(40)) else -1
+        if bal < 0:
+            return False
+    return bal == 0
+
+
+def _lis(seq, strict=True):
     tails = []
     for v in seq:
-        k = bisect.bisect_left(tails, v)
+        k = (bisect.bisect_left if strict else bisect.bisect_right)(tails, v)
         if k == len(tails):
             tails.append(v)
         else:
@@ -143,6 +184,10 @@ ORDER_OPS = {
     "sumKthSmallestRange": "lrij", "sumKthLargestRange": "lrij", "sumAbsDiffToX": "lrx", "sumAbsDiffToMedian": "lr",
     "rangeMex": "lr",
 }
+# xor / OR / AND of the values in a value range inside a[l..r] (xor: copies count; AND of nothing: -1, every bit)
+BIT_AGG = {"xor": (lambda x, y: x ^ y, 0), "or": (lambda x, y: x | y, 0), "and": (lambda x, y: x & y, -1)}
+ORDER_OPS.update({f"{a}{s}X": "lrx" for a in BIT_AGG for s in ("Lt", "Lte", "Gt", "Gte")})
+ORDER_OPS.update({f"{a}InValRange": "lrlohi" for a in BIT_AGG})
 
 
 def order_stat(op, tot, n, xs):
@@ -189,6 +234,15 @@ def order_stat(op, tot, n, xs):
         while tot.get(v):
             v += 1
         return v
+    for agg, (f, ident) in BIT_AGG.items():
+        if op.startswith(agg) and op[len(agg):len(agg) + 1].isupper():
+            suf = op[len(agg):]
+            keep = (lambda v: xs[0] <= v <= xs[1]) if suf == "InValRange" else (lambda v, c=CMP[suf[:-1]]: c(v, x))
+            res = ident
+            for v in keys:
+                if keep(v) and (agg != "xor" or tot[v] % 2):
+                    res = f(res, v)
+            return res
     raise KeyError(op)
 
 
@@ -202,14 +256,30 @@ BRUTE_QUERIES = {
     "rangeGcd": ("lr", lambda a, l, r, c: reduce(math.gcd, (abs(v) for v in a[l:r + 1]), 0)),
     "rangeAndQuery": ("lr", lambda a, l, r, c: reduce(lambda x, y: x & y, a[l:r + 1])),
     "rangeOrQuery": ("lr", lambda a, l, r, c: reduce(lambda x, y: x | y, a[l:r + 1])),
+    "rangeXorQuery": ("lr", lambda a, l, r, c: reduce(lambda x, y: x ^ y, a[l:r + 1])),
     "maxSubarraySum": ("lr", lambda a, l, r, c: _max_sub(a[l:r + 1])),
+    "getAll": ("all", lambda a, c: list(a)),
+    "isPalindrome": ("lr", lambda a, l, r, c: a[l:r + 1] == a[l:r + 1][::-1]),
+    "rangesEqual": ("lr2", lambda a, l, r, l2, r2, c: a[l:r + 1] == a[l2:r2 + 1]),
+    # hashes are random per run, so the test asks what they promise: rangeHash(l, r) == rangeHash(l2, r2) exactly when the
+    # ranges are equal, and rangeHashReversed(l, r) == rangeHash(l2, r2) when the second is the first reversed
+    "rangeHash": ("lr2", lambda a, l, r, l2, r2, c: a[l:r + 1] == a[l2:r2 + 1]),
+    "rangeHashReversed": ("lr2", lambda a, l, r, l2, r2, c: a[l:r + 1][::-1] == a[l2:r2 + 1]),
     "maxPrefixSum": ("lr", lambda a, l, r, c: max(sum(a[l:i + 1]) for i in range(l, r + 1))),
     "maxSuffixSum": ("lr", lambda a, l, r, c: max(sum(a[i:r + 1]) for i in range(l, r + 1))),
     "countOccurrences": ("lrx", lambda a, l, r, x, c: a[l:r + 1].count(x)),
+    "leftmostIndexOf": ("x", lambda a, x, c: _first(a, range(len(a)), lambda v: v == x)),
+    "rightmostIndexOf": ("x", lambda a, x, c: _first(a, range(len(a) - 1, -1, -1), lambda v: v == x)),
+    "leftmostIndexOfInRange": ("lrx", lambda a, l, r, x, c: _first(a, range(l, r + 1), lambda v: v == x)),
+    "rightmostIndexOfInRange": ("lrx", lambda a, l, r, x, c: _first(a, range(r, l - 1, -1), lambda v: v == x)),
     "countDistinct": ("lr", lambda a, l, r, c: len(set(a[l:r + 1]))),
     "allDistinct": ("lr", lambda a, l, r, c: len(set(a[l:r + 1])) == r - l + 1),
     "rangeMode": ("lr", None),  # ties may return any mode: checked by _check_mode
     "rangeLIS": ("lr", lambda a, l, r, c: _lis(a[l:r + 1])),
+    "isRBS": ("lr", lambda a, l, r, c: _rbs(a[l:r + 1])),
+    "rangeLNDS": ("lr", lambda a, l, r, c: _lis(a[l:r + 1], False)),
+    "rangeLDS": ("lr", lambda a, l, r, c: _lis(a[l:r + 1][::-1])),
+    "rangeLNIS": ("lr", lambda a, l, r, c: _lis(a[l:r + 1][::-1], False)),
     "costMonoIncreasing": ("lr", lambda a, l, r, c: _cost_mono_inc(a[l:r + 1])),
     "costMonoDecreasing": ("lr", lambda a, l, r, c: _cost_mono_dec(a[l:r + 1])),
     "costStrictIncreasing": ("lr", lambda a, l, r, c: _cost_mono_inc([v - i for i, v in enumerate(a[l:r + 1])])),
@@ -243,18 +313,53 @@ def _check_mode(a, l, r, got):
 def brute_update(a, op, args, ctx):
     mod, full = ctx["mod"], ctx["full"]
     if op in SEQ_OPS:
-        if op == "pushBack":
+        if op == "cut":
+            ctx["pieces"].append(a[args[0]:args[1] + 1])
+            del a[args[0]:args[1] + 1]
+            return
+        if op == "paste":
+            seg = ctx["pieces"].pop()
+            a[args[0]:args[0]] = seg[::-1] if args[1] else seg
+            return
+        if op == "split":
+            ctx["pieces"].append(a[args[0]:])
+            del a[args[0]:]
+            return
+        if op == "trisect":
+            ctx["pieces"] += [a[args[0]:args[1] + 1], a[args[1] + 1:]]
+            del a[args[0]:]
+            return
+        if op == "concat":
+            seg = ctx["pieces"].pop()
+            a += seg[::-1] if args[0] else seg
+            return
+        if op == "copyRange":
+            a[args[2]:args[2]] = a[args[0]:args[1] + 1]
+            return
+        if op == "insertCopiesAt":
+            a[args[0]:args[0]] = [args[1]] * max(0, args[2])
+            return
+        if op == "append":
             a.append(args[0])
+        elif op == "appendLeft":
+            a.insert(0, args[0])
         elif op == "insertAt":
             a.insert(args[0], args[1])
-        elif op == "eraseAt":
-            del a[args[0]]
+        elif op == "pop":
+            return a.pop(args[0])
+        elif op == "popLeft":
+            return a.pop(0)
         else:
             l, r = args[0], args[1]
             seg = a[l:r + 1]
             del a[l:r + 1]
             if op == "rangeReverse":
                 seg.reverse()
+            elif op in ("rangeSortAsc", "rangeSortDesc"):
+                seg.sort(reverse=op == "rangeSortDesc")
+            elif op == "rangeTwinSpin":
+                for p in range(0, len(seg) - 1, 2):
+                    seg[p], seg[p + 1] = seg[p + 1], seg[p]
             elif op in ("rangeRotateLeft", "rangeRotateRight"):
                 k = (args[2] if op == "rangeRotateLeft" else -args[2]) % len(seg)
                 seg = seg[k:] + seg[:k]
@@ -286,10 +391,17 @@ def brute_update(a, op, args, ctx):
         elif op == "rangeAndApply": v &= xs[0]
         elif op == "rangeOrApply": v |= xs[0]
         elif op == "rangeXorApply": v ^= xs[0]
+        elif op == "rangeFlip": v = {40: 41, 41: 40, letter(40): letter(41), letter(41): letter(40)}[v]  # brackets: ( <-> )
         a[i] = v % mod if mod else v
 
 
 # ------------------------------------------------------------------------------------------------ value domains
+
+def rbs_extra(folder, as_letters=False):
+    """ctor args after the brackets: openChar, and closeChar too for the templates that take one"""
+    takes_close = "closeChar" in open(os.path.join(DIR, folder, "template.py")).read()
+    return [(letter if as_letters else int)(v) for v in ((40, 41) if takes_close else (40,))]
+
 
 def domain(folder, ops):
     """Random-input rules for one template: values, point-add deltas, ctor extra args, and the brute context.
@@ -297,6 +409,10 @@ def domain(folder, ops):
     ctx = {"mod": None, "full": None}
     small = lambda r: r.randint(-10, 10)  # noqa: E731
     nonneg_small = lambda r: r.randint(0, 10)  # noqa: E731
+    if "isRBS" in ops:  # brackets: "(" and ")" as character codes, with "(" passed as the opening character (and ")" as the
+        return (lambda r: r.choice((40, 41))), small, rbs_extra(folder), ctx  # closing one, to the templates that take it)
+    if "rangeSortAsc" in ops:  # range sort: a value range for its value trees, values with many repeats
+        return (lambda r: r.randint(0, 2) if "isPalindrome" in ops else r.randint(-8, 8)), small, [-10**9, 10**9], ctx
     if MOD_OPS & set(ops):
         ctx["mod"] = 97
         return (lambda r: r.randint(0, 96)), (lambda r: r.randint(0, 96)), [97], ctx
@@ -321,10 +437,14 @@ def domain(folder, ops):
         extra = []
         if "offline" in folder:
             extra = [list(range(lo, hi + 1))]
-        elif "pointAssign" in ops or "pushBack" in ops:
+        elif "pointAssign" in ops or "append" in ops:
             extra = [-10**9, 10**9]
         return (lambda r: r.randint(lo, hi)), small, extra, ctx
-    if {"countDistinct", "allDistinct", "rangeMode", "doAllElementsAppearEvenFrequency", "countOccurrences"} & set(ops):
+    if "isPalindrome" in ops:
+        return (lambda r: r.randint(0, 2)), (lambda r: r.randint(-1, 1)), [], ctx
+    if {"orLtX", "andLtX"} & set(ops):  # by-value OR / AND with point updates (seg tree of value trees): a value range too
+        return (lambda r: r.randint(-30, 30)), small, ([-10**9, 10**9] if "pointAssign" in ops else []), ctx
+    if {"countDistinct", "allDistinct", "rangeMode", "doAllElementsAppearEvenFrequency", "countOccurrences", "leftmostIndexOf"} & set(ops):
         return (lambda r: r.randint(0, 6)), nonneg_small, [], ctx
     if "longestEqualRun" in ops:
         return (lambda r: r.randint(0, 2)), (lambda r: r.randint(-1, 1)), [], ctx
@@ -342,31 +462,72 @@ def update_args(op, rng, gen, mod):
         return [rng.choice([2, 2, 3, 5, 7, 10**6, 10**12])]
     if op == "rangeMod":
         return [rng.randint(1, 60)]
-    if op == "rangeFloorSqrt":
+    if op in ("rangeFloorSqrt", "rangeFlip"):
         return []
     return [gen(rng)]
 
 
-def make_trials(folder, ops, trials):
-    """Deterministic random op sequences: [(initial array, [(op, args)])]."""
+def make_trials(folder, ops, trials, letters=False):
+    """Deterministic random op sequences: [(initial array, [(op, args)])]. letters: every value is a letter instead."""
     gen, delta, _, ctx = domain(folder, ops)
+    if letters:
+        gen = (lambda g: lambda r: letter(g(r)))(gen)
     updates = [o for o in ops if is_update(o)]
     queries = [o for o in ops if o not in updates]
+    lazy = [o for o in updates if o in RANGE_UPDATES]  # (half the updates are range ones: their tags interact the most)
+    if "isRBS" in ops:  # (a wrong bracket aggregate only shows on a balanced range: rare, so many more trials)
+        trials *= 40
     out = []
     for t in range(trials):
         rng = random.Random(t)
-        n = rng.randint(1, 30)
+        n = rng.randint(1, 8 if "isRBS" in ops and t % 2 else 30)  # (short bracket runs are often balanced: hard cases)
         a = [gen(rng) for _ in range(n)]
-        seq = []
+        seq, pieces = [], []  # (lengths of the pieces cut and not yet pasted)
         for _ in range(OPS_PER_TRIAL):
-            op = rng.choice(updates) if updates and rng.random() < 0.5 else rng.choice(queries or updates)
-            if op in ("eraseAt", "eraseRange") and n == 1 or op in ("insertAt", "pushBack") and n >= 40:  # keep 1 <= n <= 40
-                op = "insertAt" if n == 1 else "eraseAt" if "eraseAt" in ops else "pointGet"
+            if updates and rng.random() < 0.5:
+                op = rng.choice(lazy) if lazy and rng.random() < 0.5 else rng.choice(updates)
+            else:
+                op = rng.choice(queries or updates)
+            # every structure and piece keeps at least one value; at most 4 pieces at once
+            if (op in ("paste", "concat") and not pieces or op in ("cut", "split", "trisect") and len(pieces) >= 3
+                    or op in ("cut", "split") and n < 2 or op == "trisect" and n < 3):
+                op = rng.choice([o for o in ("paste", "concat") if o in ops]) if pieces else "pointGet"
+            if op == "cut":
+                l = rng.randrange(n)
+                r = rng.randint(l, min(n - 1, l + n - 2))
+                pieces.append(r - l + 1)
+                n -= r - l + 1
+                seq.append((op, [l, r]))
+                continue
+            if op == "split":
+                k = rng.randint(1, n - 1)
+                pieces.append(n - k)
+                n = k
+                seq.append((op, [k]))
+                continue
+            if op == "trisect":
+                l = rng.randint(1, n - 2)
+                r = rng.randint(l, n - 2)
+                pieces += [r - l + 1, n - 1 - r]
+                n = l
+                seq.append((op, [l, r]))
+                continue
+            if op in ("paste", "concat"):
+                rv = rng.randint(0, 1) if "rangeReverse" in ops else 0  # (a piece is reversed first only if it can be)
+                seq.append((op, [rng.randint(0, n), rv] if op == "paste" else [rv]))
+                n += pieces.pop()
+                continue
+            if op in ("pop", "popLeft", "eraseRange") and n == 1 or op in ("insertAt", "append", "appendLeft", "insertCopiesAt", "copyRange") and n >= 40:  # keep 1 <= n <= 40
+                op = "insertAt" if n == 1 else "pop" if "pop" in ops else "pointGet"
             if op in SEQ_OPS:
                 l, r = sorted((rng.randrange(n), rng.randrange(n)))
                 kind = SEQ_OPS[op]
                 if kind == "v":
                     args = [gen(rng)]
+                elif kind == "none":
+                    args = []
+                elif kind == "ivk":
+                    args = [rng.randint(0, n), gen(rng), rng.randint(-1, 3)]
                 elif kind == "iv":
                     args = [rng.randint(0, n), gen(rng)]
                 elif kind == "i":
@@ -375,11 +536,14 @@ def make_trials(folder, ops, trials):
                     args = [l, r - (r - l + 1 == n)]  # never empty the array
                 elif kind == "lrk":
                     args = [l, r, rng.randint(-2 * (r - l + 1), 2 * (r - l + 1))]
+                elif kind == "lrc":
+                    args = [l, r, rng.randint(0, n)]
                 elif kind == "lri":
                     args = [l, r, rng.randint(0, n - (r - l + 1))]
                 else:
                     args = [l, r]
-                n += 1 if op in ("insertAt", "pushBack") else -1 if op == "eraseAt" else -(args[1] - args[0] + 1) if op == "eraseRange" else 0
+                n += (1 if op in ("insertAt", "append", "appendLeft") else -1 if op in ("pop", "popLeft") else -(args[1] - args[0] + 1) if op == "eraseRange"
+                      else max(0, args[2]) if op == "insertCopiesAt" else args[1] - args[0] + 1 if op == "copyRange" else 0)
             elif op == "pointGet":
                 args = [rng.randrange(n)]
             elif op in POINT_UPDATES:
@@ -387,7 +551,16 @@ def make_trials(folder, ops, trials):
             else:
                 l, r = sorted((rng.randrange(n), rng.randrange(n)))
                 kind = "upd" if op in RANGE_UPDATES else BRUTE_QUERIES[op][0]
-                if kind == "upd":
+                if kind == "all":
+                    args = []
+                elif kind == "x":  # a value only (the whole array)
+                    args = [gen(rng)]
+                elif kind == "lr2":  # a second range, mostly of the same length
+                    m = r - l + 1
+                    l2 = rng.randint(0, n - m) if rng.random() < 0.8 else rng.randrange(n)
+                    r2 = l2 + m - 1 if l2 + m - 1 < n and rng.random() < 0.9 else rng.randint(l2, n - 1)
+                    args = [l, r, l2, r2]
+                elif kind == "upd":
                     args = [l, r] + update_args(op, rng, gen, ctx["mod"])
                 elif kind == "lrx":
                     args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op or "SuffixSum" in op else gen(rng)]
@@ -415,11 +588,14 @@ def expected_outputs(trials, ctx):
     exp = []
     for a0, seq in trials:
         a = list(a0)
+        ctx["pieces"] = []
         if ctx["mod"]:
             a = [v % ctx["mod"] for v in a]
         for op, args in seq:
             if op == "pointGet":
                 exp.append(a[args[0]])
+            elif op in SEQ_OUT:
+                exp.append(brute_update(a, op, args, ctx))
             elif is_update(op):
                 brute_update(a, op, args, ctx)
             elif op == "rangeMode":
@@ -439,13 +615,16 @@ def matches(got_text, want, wrap64=False):
     if isinstance(want, tuple) and want and want[0] == "mode":
         _, a, l, r = want
         parts = got_text.split()
-        return len(parts) == 2 and _check_mode(a, l, r, (int(parts[0]), int(parts[1])))
+        value = int(parts[0]) if parts and parts[0].lstrip("-").isdigit() else parts[0] if parts else None  # (a letter, in --letters)
+        return len(parts) == 2 and _check_mode(a, l, r, (value, int(parts[1])))
     return got_text == norm(want)
 
 
 def norm(v):
     if isinstance(v, bool):
         return str(int(v))
+    if isinstance(v, list):
+        return " ".join(norm(x) for x in v)
     if isinstance(v, tuple):
         return " ".join(norm(x) for x in v)
     return str(v)
@@ -555,6 +734,8 @@ def _runs_prefix_search(runs, x, strict):
 
 
 def sparse_query(op, R, args, ctx):
+    if op in ("leftmostIndexOf", "rightmostIndexOf"):  # (the whole index range)
+        op, args = op + "InRange", [R.lo, R.hi, *args]
     l, r, *xs = args
     runs = R.runs(l, r)
     vals = [v for _, _, v in runs]
@@ -582,6 +763,10 @@ def sparse_query(op, R, args, ctx):
                 order = runs if side == "leftmost" else runs[::-1]
                 hit = next(((s_, e) for s_, e, v in order if cmp(v, xs[0])), None)
                 return R.lo - 1 if hit is None else (hit[0] if side == "leftmost" else hit[1])
+    if op in ("leftmostIndexOfInRange", "rightmostIndexOfInRange"):  # not found: lo - 1
+        order = runs if op.startswith("left") else runs[::-1]
+        hit = next(((s_, e) for s_, e, v in order if v == xs[0]), None)
+        return R.lo - 1 if hit is None else (hit[0] if op.startswith("left") else hit[1])
     n_of = lambda run: run[1] - run[0] + 1  # noqa: E731
     if op == "countOccurrences": return sum(n_of(x) for x in runs if x[2] == xs[0])
     if op == "countDistinct": return len(set(vals))
@@ -597,6 +782,7 @@ def sparse_query(op, R, args, ctx):
             tot[x[2]] += n_of(x)
         return ("modecounts", tot)
     if op == "rangeLIS": return _lis(vals)
+    if op == "rangeLDS": return _lis(vals[::-1])
     if op == "countInValRange": return sum(n_of(x) for x in runs if xs[0] <= x[2] <= xs[1])
     if op == "sumInValRange": return sum(n_of(x) * x[2] for x in runs if xs[0] <= x[2] <= xs[1])
     if op in ORDER_OPS:
@@ -735,7 +921,9 @@ def make_sparse_trials(folder, ops, trials):
                 else:
                     kind = BRUTE_QUERIES.get(op, ("lr",))[0]
                     k = rng.choice([rng.randint(0, 5), rng.randint(1, 10**12)])
-                    if kind == "lrx":
+                    if kind == "x":
+                        args = [gen(rng)]
+                    elif kind == "lrx":
                         args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op or "SuffixSum" in op else gen(rng)]
                     elif kind == "lrkx":
                         args = [l, r, k, gen(rng)]
@@ -783,13 +971,35 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
         raise RuntimeError(f"{stem}.py has no method for {missing}")
     out = []
     for a0, seq in trials:
-        objs = {}
+        objs, pieces = {}, []
         for op, args in seq:
             name = owner(op, table)
+            if op in PIECE_OPS:
+                obj = objs.setdefault(name, classes[name](list(a0), *ctor_extra))
+                if op == "cut":
+                    pieces.append(obj.cut(*args))
+                elif op in ("split", "trisect"):
+                    first, *rest = getattr(obj, op)(*args)
+                    if obj.size():
+                        raise RuntimeError(f"{op} left {obj.size()} values behind")
+                    obj.concat(first)
+                    pieces += rest
+                else:
+                    piece = pieces.pop()
+                    if args[-1]:
+                        piece.rangeReverse(0, piece.size() - 1)
+                    if op == "paste":
+                        obj.paste(args[0], piece)
+                    else:
+                        obj.concat(piece)
+                continue
             if name not in objs:
                 objs[name] = classes[name](*a0, *ctor_extra) if stem == "sparse" else classes[name](list(a0), *ctor_extra)
-            res = getattr(objs[name], op)(*args)
-            if not is_update(op):
+            if op in ("rangeHash", "rangeHashReversed"):
+                res = getattr(objs[name], op)(*args[:2]) == objs[name].rangeHash(*args[2:])
+            else:
+                res = getattr(objs[name], op)(*args)
+            if not is_update(op) or op in SEQ_OUT:
                 out.append(norm(res))
     return out
 
@@ -832,21 +1042,25 @@ def cpp_structs(path):
     return out
 
 
-def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
+def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
     table = {n: ms & set(ops) for n, ms in structs.items()}  # rank structs by the operations they implement
     owners = {op: owner(op, table) for op in ops}
     missing = [op for op, o in owners.items() if o is None]
     if missing:
         raise RuntimeError(f"{stem}.cpp has no method for {missing}")
     used = sorted(set(owners.values()))
-    extra = "".join(f", vector<long long>{{{', '.join(map(str, e))}}}" if isinstance(e, list) else f", {e}" for e in ctor_extra)
+    extra = "".join(f", vector<long long>{{{', '.join(map(str, e))}}}" if isinstance(e, list) else
+                    f", (char){ord(e)}" if isinstance(e, str) else f", {e}" for e in ctor_extra)
     lines = ["#include <bits/stdc++.h>", "using namespace std;", f'#include "{os.path.join(DIR, folder, stem + ".cpp")}"']
     lines += [f"template struct {s}<int>;" for s in used]  # type-check the generic code for int too
+    if stem == "letters":  # and for char: the letters version runs with T = char
+        lines += [f"template struct {s}<char>;" for s in used]
     lines += [
         "template <class X> void out(const X& x) { cout << x << '\\n'; }",
         "void out(bool b) { cout << (b ? 1 : 0) << '\\n'; }",
         "template <class A, class B> void out(const pair<A, B>& p) { cout << p.first << ' ' << p.second << '\\n'; }",
         "template <class X> void out(const optional<X>& o) { if (o) cout << *o << '\\n'; else cout << \"None\\n\"; }",
+        "template <class X> void out(const vector<X>& v) { for (size_t i = 0; i < v.size(); i++) cout << (i ? \" \" : \"\") << v[i]; cout << '\\n'; }",
         "int main() {",
         "  ios::sync_with_stdio(false); cin.tie(nullptr);",
         "  int cases; cin >> cases;",
@@ -860,14 +1074,33 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
         lines += ["    long long lo, hi; cin >> lo >> hi;", "    int q; cin >> q;"]
         lines += [f"    {s}<long long> s_{s}(lo, hi{extra});" for s in used]
     else:
-        lines += ["    int n; cin >> n; vector<long long> a(n); for (auto& x : a) cin >> x;", "    int q; cin >> q;"]
-        lines += [f"    {s}<long long> s_{s}(a{extra});" for s in used]
+        elem = "char" if chars else "long long"  # chars: values come in as their codes, the structure holds char
+        lines += [f"    int n; cin >> n; vector<{elem}> a(n); for (auto& x : a) {{ long long v; cin >> v; x = ({elem})v; }}", "    int q; cin >> q;"]
+        lines += [f"    {s}<{elem}> s_{s}(a{extra});" for s in used]
+    if any(o in ops for o in PIECE_OPS):
+        lines += [f"    vector<{owners[next(o for o in PIECE_OPS if o in ops)]}<{'char' if chars else 'long long'}>> pieces;"]
     lines += ["    while (q--) {", "      string op; cin >> op;", "      if (false) {}"]
     for op in ops:
         s = f"s_{owners[op]}"
-        if op in SEQ_OPS:
-            names = {"v": ["v"], "iv": ["i", "v"], "i": ["i"], "lr": ["l", "r"], "lrk": ["l", "r", "k"], "lri": ["l", "r", "i"]}[SEQ_OPS[op]]
-            body = f"long long {', '.join(names)}; cin{''.join(f' >> {x}' for x in names)}; {s}.{op}({', '.join(names)});"
+        if op == "cut":
+            body = f"long long l, r; cin >> l >> r; pieces.push_back({s}.cut(l, r));"
+        elif op == "split":
+            body = (f"long long k; cin >> k; auto [x, y] = {s}.split(k); if ({s}.size()) return 2; "
+                    f"{s}.concat(x); pieces.push_back(std::move(y));")
+        elif op == "trisect":
+            body = (f"long long l, r; cin >> l >> r; auto [x, y, z] = {s}.trisect(l, r); if ({s}.size()) return 2; "
+                    f"{s}.concat(x); pieces.push_back(std::move(y)), pieces.push_back(std::move(z));")
+        elif op in ("paste", "concat"):
+            read = "long long i, rv; cin >> i >> rv;" if op == "paste" else "long long rv; cin >> rv;"
+            body = (f"{read} auto p = std::move(pieces.back()); pieces.pop_back(); " +
+                    (f"if (rv) p.rangeReverse(0, p.size() - 1); " if "rangeReverse" in ops else "(void)rv; ") +
+                    (f"{s}.paste(i, p);" if op == "paste" else f"{s}.concat(p);"))
+        elif op in SEQ_OPS:
+            names = {"v": ["v"], "iv": ["i", "v"], "i": ["i"], "lr": ["l", "r"], "lrk": ["l", "r", "k"], "lri": ["l", "r", "i"],
+                     "ivk": ["i", "v", "k"], "lrc": ["l", "r", "i"], "none": []}[SEQ_OPS[op]]
+            call = f"{s}.{op}({', '.join(names)})"
+            body = ((f"long long {', '.join(names)}; cin{''.join(f' >> {x}' for x in names)}; " if names else "") +
+                    (f"out({call});" if op in SEQ_OUT else f"{call};"))
         elif op == "pointGet":
             body = f"long long i; cin >> i; out({s}.pointGet(i));"
         elif op in POINT_UPDATES:
@@ -880,7 +1113,15 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
                     else f"long long l, r; cin >> l >> r; {s}.{op}(l, r);")
         else:
             kind = BRUTE_QUERIES[op][0]
-            if kind == "lr":
+            if kind == "all":
+                body = f"out({s}.{op}());"
+            elif kind == "x":
+                body = f"long long x; cin >> x; out({s}.{op}(x));"
+            elif op in ("rangeHash", "rangeHashReversed"):
+                body = f"long long l, r, l2, r2; cin >> l >> r >> l2 >> r2; out({s}.{op}(l, r) == {s}.rangeHash(l2, r2));"
+            elif kind == "lr2":
+                body = f"long long l, r, l2, r2; cin >> l >> r >> l2 >> r2; out({s}.{op}(l, r, l2, r2));"
+            elif kind == "lr":
                 body = f"long long l, r; cin >> l >> r; out({s}.{op}(l, r));"
             elif kind == "lrx":
                 body = f"long long l, r, x; cin >> l >> r >> x; out({s}.{op}(l, r, x));"
@@ -897,12 +1138,16 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template"):
     return "\n".join(lines) + "\n"
 
 
-def run_cpp(folder, ops, trials, ctor_extra, cxx, stem="template"):
+def code(v):  # a value as the C++ driver reads it: characters go in as their codes
+    return str(ord(v)) if isinstance(v, str) else str(v)
+
+
+def run_cpp(folder, ops, trials, ctor_extra, cxx, stem="template", chars=False):
     path = os.path.join(DIR, folder, f"{stem}.cpp")
     os.makedirs(BUILD, exist_ok=True)
-    src = os.path.join(BUILD, (folder[:140] + ("__sparse" if stem == "sparse" else "")) + ".cpp")
+    src = os.path.join(BUILD, (folder[:140] + ("" if stem == "template" else "__" + stem)) + ".cpp")
     exe = src[:-4]
-    open(src, "w").write(cpp_driver(folder, ops, cpp_structs(path), ctor_extra, stem))
+    open(src, "w").write(cpp_driver(folder, ops, cpp_structs(path), ctor_extra, stem, chars))
     comp = subprocess.run([cxx, "-std=c++17", "-O2", "-Wall", "-o", exe, src], capture_output=True, text=True)
     if comp.returncode:
         raise RuntimeError("compile error:\n" + comp.stderr[:3000])
@@ -911,9 +1156,9 @@ def run_cpp(folder, ops, trials, ctor_extra, cxx, stem="template"):
         if stem == "sparse":
             inp += [f"{a0[0]} {a0[1]}"] + ([f"{len(a0[2])} " + " ".join(f"{i} {v}" for i, v in a0[2])] if len(a0) > 2 else [])
         else:
-            inp += [str(len(a0)), " ".join(map(str, a0))]
+            inp += [str(len(a0)), " ".join(map(code, a0))]
         inp += [str(len(seq))]
-        inp += [f"{op} {' '.join(map(str, args))}" for op, args in seq]
+        inp += [f"{op} {' '.join(map(code, args))}" for op, args in seq]
     run = subprocess.run([exe], input="\n".join(inp) + "\n", capture_output=True, text=True, timeout=300)
     if run.returncode:
         raise RuntimeError(f"binary exited {run.returncode}: {run.stderr[:500]}")
@@ -935,6 +1180,7 @@ def main():
     if "--trials" in args:
         trials_n = int(args[args.index("--trials") + 1])
         args = [x for k, x in enumerate(args) if x != "--trials" and (k == 0 or args[k - 1] != "--trials")]
+    letters = "--letters" in args
     filters = [x for x in args if not x.startswith("--")]
     cxx = find_cxx() if want_cpp else None
     if want_cpp and not cxx:
@@ -955,11 +1201,28 @@ def main():
             print(f"FAIL  {folder}\n      no brute force for {unknown}: add it to BRUTE_QUERIES / RANGE_UPDATES")
             continue
         ctor_extra = domain(folder, ops)[2]
-        variants = [("template", *make_trials(folder, ops, trials_n))]
-        if any(os.path.exists(os.path.join(DIR, folder, f"sparse.{x}")) for x in ("py", "cpp")):
-            variants.append(("sparse", *make_sparse_trials(folder, ops, trials_n)))
+        if letters:  # each template as it is offered for characters: its letters version, or itself if it takes them
+            if os.path.exists(os.path.join(DIR, folder, "letters.py")):
+                stem0, ops = "letters", parse_ops(os.path.join(DIR, folder, "letters.py"), "#")
+            else:
+                stem0, ops = "template", [o for o in ops if o in CHAR_SAFE]
+                if "@letters: same" not in open(py).read():
+                    continue  # numbers only
+            if "isRBS" in ops:
+                ctor_extra = rbs_extra(folder, True)
+            variants = [(stem0, *make_trials(folder, ops, trials_n, letters))]
+        else:
+            variants = [("template", *make_trials(folder, ops, trials_n))]
+        sparse_ops = [o for o in ops if o != "getAll"]  # a sparse tree over a huge index range has no getAll
+        if not letters and any(os.path.exists(os.path.join(DIR, folder, f"sparse.{x}")) for x in ("py", "cpp")):
+            variants.append(("sparse", *make_sparse_trials(folder, sparse_ops, trials_n)))
+        lpath = os.path.join(DIR, folder, "letters.py")
+        lops = parse_ops(lpath, "#") if not letters and os.path.exists(lpath) else None
+        if lops:  # a letters version: Python on letters; C++ (generic over T) on the usual numbers
+            variants.append(("letters", *make_trials(folder, lops, trials_n, letters=True)))
         for stem, trials, ctx in variants:
-            exp = expected_outputs(trials, ctx) if stem == "template" else sparse_expected(trials, ctx, ops)
+            vops = ops if stem == "template" or letters else lops if stem == "letters" else sparse_ops
+            exp = sparse_expected(trials, ctx, vops) if stem == "sparse" else expected_outputs(trials, ctx)
             total_queries += len(exp)
             results = []
             for lang, ok_lang, path in (("py", want_py, os.path.join(DIR, folder, f"{stem}.py")),
@@ -967,18 +1230,28 @@ def main():
                 if not ok_lang or not os.path.exists(path):
                     continue
                 try:
-                    if parse_ops(path, "#" if lang == "py" else "//") != ops:
-                        raise RuntimeError(f"{stem}.{lang} @operations differ from template.py")
+                    if not letters and parse_ops(path, "#" if lang == "py" else "//") != vops:
+                        raise RuntimeError(f"{stem}.{lang} @operations differ from template.py's" + (" (less getAll)" if stem == "sparse" else ""))
+                    if letters and lang == "cpp":  # the real thing: T = char
+                        got, warn = run_cpp(folder, vops, trials, ctor_extra, cxx, stem, chars=True)
+                        results.append((lang, first_mismatch(got, exp, trials, False), warn))
+                        continue
+                    if stem == "letters" and lang == "cpp":
+                        ntrials, nctx = make_trials(folder, vops, trials_n)
+                        got, warn = run_cpp(folder, vops, ntrials, ctor_extra, cxx, stem)
+                        results.append((lang, first_mismatch(got, expected_outputs(ntrials, nctx), ntrials, False), warn))
+                        continue
                     if lang == "py":
-                        got, warn = run_python(folder, ops, trials, ctor_extra, stem), ""
+                        extra = rbs_extra(folder, True) if stem == "letters" and "isRBS" in vops else ctor_extra
+                        got, warn = run_python(folder, vops, trials, extra, stem), ""
                     else:
-                        got, warn = run_cpp(folder, ops, trials, ctor_extra, cxx, stem)
+                        got, warn = run_cpp(folder, vops, trials, ctor_extra, cxx, stem)
                     results.append((lang, first_mismatch(got, exp, trials, lang == "cpp" and stem == "sparse"), warn))
                 except Exception as e:  # noqa: BLE001 -- report and keep going
                     results.append((lang, f"{type(e).__name__}: {e}", ""))
             bad = [(lang, msg) for lang, msg, _ in results if msg]
             warns = [(lang, w) for lang, _, w in results if w]
-            label = folder + ("  [sparse]" if stem == "sparse" else "")
+            label = folder + ("  [sparse]" if stem == "sparse" else "  [letters]" if stem == "letters" else "")
             print(f"{'FAIL' if bad else 'PASS'}  {label}  [{' '.join(lang for lang, _, _ in results)}]")
             for lang, msg in bad:
                 print(f"      {lang}: {msg}")

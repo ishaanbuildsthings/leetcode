@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX/template.py
-# @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
+# @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
 # @data-structure-type: BIT
 # @complexities:
+#   getAll: N
 #   leftmostPrefixSumGtX: log(N)
 #   leftmostPrefixSumGteX: log(N)
 #   pointAdd: log(N)
@@ -70,6 +71,17 @@ class BIT:
             val -= tree[i]
             i -= i & -i
         return val
+
+    # O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
+    # i + lowbit(i) once complete)
+    def getAll(self):
+        n = self.n
+        t = self.tree[:]
+        for i in range(n, 0, -1):
+            j = i + (i & -i)
+            if j <= n:
+                t[j] -= t[i]
+        return t[1:]
 
     # O(logN) -- a[i] = val
     def pointAssign(self, i, val):

@@ -1,8 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMod/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeMod
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMod
 # @data-structure-type: seg-tree
+# @letters: same
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -80,6 +82,10 @@ class RangeModTree:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.mx[i + self.n]
+
+    # O(N) -- the whole array (a copy of the leaves)
+    def getAll(self):
+        return self.mx[self.n:]
 
     # O(logN) -- a[i] = v
     def pointAssign(self, i, v):

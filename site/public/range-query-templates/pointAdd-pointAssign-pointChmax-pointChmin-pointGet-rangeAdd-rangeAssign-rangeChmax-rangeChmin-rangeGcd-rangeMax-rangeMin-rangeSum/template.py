@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeGcd-rangeMax-rangeMin-rangeSum/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeGcd rangeMax rangeMin rangeSum
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeGcd rangeMax rangeMin rangeSum
 # @data-structure-type: beats
 # @complexities:
+#   getAll: N
 #   pointAdd: log^2(N)*log(U) amortized ?
 #   pointAssign: log^2(N)*log(U) amortized ?
 #   pointChmax: log^2(N)*log(U) amortized ?
@@ -315,6 +316,22 @@ class BeatsGcd_PERFORMANT:
     # O(logN) -- a[p]
     def pointGet(self, p):
         return self.rangeMax(p, p)
+
+    def _getAllRec(self, i, tl, tr, out):
+        if tl == tr:
+            out.append(self.mx[i])
+            return
+        self._push(i, tl, tr)
+        tm = (tl + tr) // 2
+        self._getAllRec(2 * i, tl, tm, out)
+        self._getAllRec(2 * i + 1, tm + 1, tr, out)
+
+    # O(N) -- the whole array: one DFS that pushes every tag down and reads the leaves left to right
+    def getAll(self):
+        out = []
+        if self.n:
+            self._getAllRec(1, 0, self.n - 1, out)
+        return out
 
     def _nodeGcd(self, i):
         ans = self.diffGcd[i]

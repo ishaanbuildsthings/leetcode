@@ -1,9 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeSum/template.cpp
-// @operations: countInValRange pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeSum
+// @operations: countInValRange getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeSum
 // @data-structure-type: sqrt
 // @complexities:
 //   countInValRange: sqrt(N)*log(N)
+//   getAll: N
 //   pointAdd: sqrt(N)
 //   pointAssign: sqrt(N)
 //   pointChmax: sqrt(N)
@@ -192,6 +193,13 @@ struct SqrtBlocks {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return applyTag(i / B, vals[i]); }
+
+    // O(N) -- the whole array (each a[i] is O(1))
+    vector<T> getAll() const {
+        vector<T> out(n);
+        for (int i = 0; i < n; i++) out[i] = pointGet(i);
+        return out;
+    }
 
     // O(sqrt N) -- a[i] = v; one value moves inside the sorted copy, so no re-sort
     void pointAssign(int i, T v) {

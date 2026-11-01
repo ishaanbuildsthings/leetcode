@@ -1,9 +1,11 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/doAllElementsAppearEvenFrequency-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
-// @operations: doAllElementsAppearEvenFrequency pointAdd pointAssign pointChmax pointChmin pointGet
+// @operations: doAllElementsAppearEvenFrequency getAll pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: BIT
+// @letters: same
 // @complexities:
 //   doAllElementsAppearEvenFrequency: log(N)
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -82,6 +84,9 @@ struct XorEven {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return vals[i]; }
+
+    // O(N) -- the whole array (a copy)
+    vector<T> getAll() const { return vals; }
 
     // O(logN) -- a[i] = max(a[i], v)
     void pointChmax(int i, const T& v) { if (v > vals[i]) pointAssign(i, v); }

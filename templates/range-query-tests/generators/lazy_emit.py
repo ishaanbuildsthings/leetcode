@@ -164,6 +164,17 @@ class {name}:
         self._rebuild(l0)
         self._rebuild(r0)
 {upd_text}{queries}
+    # O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    # each node's tag is complete when it is pushed), then read the leaves
+    def getAll(self):
+        for x in range(1, self.n):
+            if {cond}:
+                {params} = {tagvals}
+                self._apply(2 * x, {params})
+                self._apply(2 * x + 1, {params})
+{reset}
+        return self.{arrs[0]}[self.n:]
+
     # O(logN) -- a[i]
     def pointGet(self, i):
         p = i + self.n
@@ -314,6 +325,16 @@ class {name}:
             k <<= 1
 {chr(10).join(rb)}
 {"".join(upd)}{"".join(queries)}
+    # O(N) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
+    # the leaves are (n >> s) .. ((2n - 1) >> s); their children cover k = 1 << (s - 1) leaves), then read the leaves
+    def getAll(self):
+        n = self.n
+        for s in range(self.h, 0, -1):
+            k = 1 << (s - 1)
+            for x in range(max(1, n >> s), ((2 * n - 1) >> s) + 1):
+{chr(10).join("    " + b for b in push_body)}
+        return self.sm[n:]
+
     # O(logN) -- a[i]
     def pointGet(self, i):
         p = i + self.n

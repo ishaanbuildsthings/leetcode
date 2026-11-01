@@ -180,6 +180,32 @@ def attribute(text, path):
     return "\n".join(attribution_lines(path)) + "\n" + body
 
 
+def folder_name(ops):
+    """A template's folder: its operations, "-" joined. getAll is left out (nearly every structure with updates has
+    it, and its sparse version, which can't, shares the folder)."""
+    return "-".join(o for o in ops if o != "getAll")
+
+
+def drop_get_all(text):
+    """A dense template's header or body without getAll, for the sparse version generated from it: the header lines
+    naming it, and every blank-line-separated block that mentions it (getAll and its helper, named getAllRec)."""
+    text = re.sub(r"^((?:#|//) @operations:.*?) getAll\b", r"\1", text, flags=re.M)
+    text = re.sub(r"^(?:#|//)   getAll: .*\n", "", text, flags=re.M)
+    return "\n\n".join(b for b in text.split("\n\n") if "getAll" not in b)
+
+
+def add_get_all(code, lang):
+    """code with getAll() (a copy of arr, the plain array the structure keeps) right after its O(1) pointGet."""
+    if lang == "py":
+        m = re.search(r"\n    def pointGet\(self, i\):\n        return self\.arr\[i\]\n", code)
+        block = "\n    # O(N) -- the whole array (a copy)\n    def getAll(self):\n        return list(self.arr)\n"
+    else:
+        m = re.search(r"\n    T pointGet\((?:long long|int) i\) const \{ return arr\[i\]; \}\n", code)
+        block = "\n    // O(N) -- the whole array (a copy)\n    vector<T> getAll() const { return arr; }\n"
+    assert m, "no O(1) pointGet over arr"
+    return code[:m.end()] + block + code[m.end():]
+
+
 def write_template(path, text):
     open(path, "w").write(attribute(fix_text(text, "py" if path.endswith(".py") else "cpp"), path))
 

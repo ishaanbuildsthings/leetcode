@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAddArithSeq-rangeSum/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAddArithSeq rangeSum
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAddArithSeq rangeSum
 # @data-structure-type: BIT
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -91,6 +92,28 @@ class ArithSeqSumBIT:
     # O(logN) -- a[i]
     def pointGet(self, i):
         return self.rangeSum(i, i)
+
+    # O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
+    # i + lowbit(i) once complete), then one pass of running prefix sums
+    def getAll(self):
+        n = self.n
+        bA, bB, bC = self.bA[:], self.bB[:], self.bC[:]
+        for i in range(n, 0, -1):
+            j = i + (i & -i)
+            if j <= n:
+                bA[j] -= bA[i]
+                bB[j] -= bB[i]
+                bC[j] -= bC[i]
+        out = []
+        sa = sb = sc = prev = 0
+        for x in range(n):
+            sa += bA[x + 1]
+            sb += bB[x + 1]
+            sc += bC[x + 1]
+            p = sa + sb * x + sc * _tri(x)
+            out.append(p - prev)
+            prev = p
+        return out
 
     # O(logN) -- a[i] += delta
     def pointAdd(self, i, delta):

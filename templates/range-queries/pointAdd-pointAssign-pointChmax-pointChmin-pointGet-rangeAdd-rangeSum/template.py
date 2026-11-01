@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeSum/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum
 # @data-structure-type: BIT
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -78,6 +79,26 @@ class RangeAddSumBIT:
     # O(logN) -- a[i]
     def pointGet(self, i):
         return self.rangeSum(i, i)
+
+    # O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
+    # i + lowbit(i) once complete), then one pass of running prefix sums
+    def getAll(self):
+        n = self.n
+        b1, b2 = self.b1[:], self.b2[:]
+        for i in range(n, 0, -1):
+            j = i + (i & -i)
+            if j <= n:
+                b1[j] -= b1[i]
+                b2[j] -= b2[i]
+        out = []
+        s1 = s2 = prev = 0
+        for x in range(n):
+            s1 += b1[x + 1]
+            s2 += b2[x + 1]
+            p = s1 * (x + 1) - s2
+            out.append(p - prev)
+            prev = p
+        return out
 
     # O(logN) -- a[i] += delta
     def pointAdd(self, i, delta):

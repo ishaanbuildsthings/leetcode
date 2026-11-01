@@ -15,7 +15,7 @@
 //   build: 1
 // @memory:
 //   layout: sparse
-//   node: mn[4*log(U)] mn2[4*log(U)] cnt[4*log(U)] tot[4*log(U)]
+//   node: mn[4*log(U)] mn2[4*log(U)] cntMn[4*log(U)] tot[4*log(U)]
 //   tags: none
 //   other: none
 //   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree
@@ -25,37 +25,38 @@
 // descends past a node or pushes its tags. Nodes live in a pool the tree owns. Otherwise the beats logic below is the
 // dense tree's, with children in Lc / Rc instead of at 2i / 2i + 1.
 
-// Segment tree beats, one side, no add: range chmax / assign, range sum / min, point ops. 0-based, inclusive.
-// Each node keeps its min (mn), strict second min (mn2), how many times the min appears, and the sum. A chmax
-// with x strictly between mn2 and mn only moves the min copies, so it is O(1) at that node; otherwise it
-// descends, and each descent glues two distinct values together, which pays for it: O(log U) amortized, with no
-// add tags at all (that is the saving over the beats trees that support range add).
-// No tag arrays either: a node's own mn is its pending chmax for the children, and a node holding a single distinct
-// value (mn2 == SENT) is its own pending assign.
-// T: int, long long, ...; sums accumulate in S (long long for small T).
+// Segment tree beats: range chmax (a[i] = max(a[i], x)) and range assign, with range sums and the range min, plus
+// point ops. All indices 0-based, ranges inclusive. How it works: a chmax only changes the min values of a node it
+// covers, so a node keeps its min, its strict second min and how many copies of the min it has; a chmax x with mn < x
+// < mn2 moves just those copies (the sum rises by (x - mn) * cntMn) and stops there, and only x >= mn2 has to go
+// further down. A node's own mn doubles as its pending clamp: push clamps each child to it, so there is no chmin /
+// chmax tag. There is no assign tag either: when all of a node's values are equal (no second min), push hands that
+// value to both children as an assign. Amortized O(log U) per update (beats: every extra descent removes a distinct
+// value).
+// T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
-struct SparseChmaxSumBeats {
+struct SparseChminChmaxBeats {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    static constexpr T SENT = numeric_limits<T>::max();
-    struct Node { T mn, mn2; long long cnt; S tot; };
-    mutable vector<Node> t{Node{}};  // node 0 is a placeholder
+    static constexpr T NEG_INF = numeric_limits<T>::lowest(), POS_INF = numeric_limits<T>::max();
+    mutable vector<T> mn = vector<T>(1);
+    mutable vector<T> mn2 = vector<T>(1);
+    mutable vector<long long> cntMn = vector<long long>(1);
+    mutable vector<S> tot = vector<S>(1);
     mutable vector<int> Lc{0}, Rc{0};  // children (0: none yet)
     mutable vector<long long> ln{0};   // how many positions each node covers
     long long lo, hi;
     int root;
 
-    static bool better(T a, T b) { return a < b; }
-
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseChmaxSumBeats(long long lo, long long hi) : lo(lo), hi(hi) { root = node(hi - lo + 1); }
+    SparseChminChmaxBeats(long long lo, long long hi) : lo(lo), hi(hi) { root = node(hi - lo + 1); }
 
 
     // optional -- reserve room for this many nodes up front
-    void reservePool(size_t nodes) { t.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
+    void reservePool(size_t nodes) { mn.reserve(nodes); mn2.reserve(nodes); cntMn.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
 
     // a fresh node: a block of k zeros
     int node(long long k) const {  // const: it only grows the (mutable) pool
-        t.push_back(Node{0, SENT, k, S(0)});
+        mn.push_back(0); mn2.push_back(POS_INF); cntMn.push_back(k); tot.push_back(0);
         Lc.push_back(0), Rc.push_back(0), ln.push_back(k);
         return (int)ln.size() - 1;
     }
@@ -68,95 +69,98 @@ struct SparseChmaxSumBeats {
     }
 
     void pull(int i) {
-        const Node &a = t[Lc[i]], &b = t[Rc[i]];
-        Node& x = t[i];
-        x.tot = a.tot + b.tot;
-        if (better(a.mn, b.mn)) x.mn = a.mn, x.cnt = a.cnt, x.mn2 = better(a.mn2, b.mn) ? a.mn2 : b.mn;
-        else if (better(b.mn, a.mn)) x.mn = b.mn, x.cnt = b.cnt, x.mn2 = better(b.mn2, a.mn) ? b.mn2 : a.mn;
-        else x.mn = a.mn, x.cnt = a.cnt + b.cnt, x.mn2 = better(a.mn2, b.mn2) ? a.mn2 : b.mn2;
+        int l = Lc[i], r = Rc[i];
+        tot[i] = tot[l] + tot[r];
+        if (mn[l] < mn[r]) mn[i] = mn[l], cntMn[i] = cntMn[l], mn2[i] = min(mn2[l], mn[r]);
+        else if (mn[l] > mn[r]) mn[i] = mn[r], cntMn[i] = cntMn[r], mn2[i] = min(mn2[r], mn[l]);
+        else mn[i] = mn[l], cntMn[i] = cntMn[l] + cntMn[r], mn2[i] = min(mn2[l], mn2[r]);
     }
 
-    // every min copy in node i becomes x (only valid while x is strictly between mn2 and mn)
-    void moveExtreme(int i, T x) { t[i].tot += S(x - t[i].mn) * t[i].cnt, t[i].mn = x; }
+    // every value under node i (sz of them) becomes v
+    void applyAssign(int i, long long sz, T v) { mn[i] = v, mn2[i] = POS_INF, cntMn[i] = sz, tot[i] = S(v) * sz; }
 
-    void setAll(int i, long long len, T v) { t[i] = Node{v, SENT, len, S(v) * len}; }
+    // chmax by v on node i, with v < mn2: only the copies of the min move
+    void applyChmax(int i, long long sz, T v) {
+        if (mn[i] < v) {
+            tot[i] += S(v - mn[i]) * cntMn[i];
+            mn[i] = v;
+        }
+        (void)sz;
+    }
 
+    // hand node i's pending changes to its children: all one value (an assign), else the add, then its own clamp
     void push(int i, long long tl, long long tr) {
         kids(i);
         if (tl == tr) return;
         kids(i);
-        long long tm = tl + (tr - tl) / 2;
-        if (t[i].mn2 == SENT) {  // one distinct value: a pending assign
-            setAll(Lc[i], tm - tl + 1, t[i].mn), setAll(Rc[i], tr - tm, t[i].mn);
-            return;
-        }
-        for (int c : {Lc[i], Rc[i]})
-            if (better(t[c].mn, t[i].mn)) moveExtreme(c, t[i].mn);  // the child still has values past the parent's cap
+        long long tm = tl + (tr - tl) / 2, l = Lc[i], r = Rc[i];
+        long long lsz = tm - tl + 1, rsz = tr - tm;
+        if (mn2[i] == POS_INF) { applyAssign(l, lsz, mn[i]), applyAssign(r, rsz, mn[i]); return; }
+        applyChmax(l, lsz, mn[i]), applyChmax(r, rsz, mn[i]);
     }
 
-    void ch(int i, long long tl, long long tr, long long l, long long r, T x) {
-        if (r < tl || tr < l || !better(t[i].mn, x)) return;
-        if (l <= tl && tr <= r && better(x, t[i].mn2)) { moveExtreme(i, x); return; }
+    void chmax(int i, long long tl, long long tr, long long ql, long long qr, T x) {
+        if (qr < tl || ql > tr || x <= mn[i]) return;
+        if (ql <= tl && tr <= qr && x < mn2[i]) { applyChmax(i, tr - tl + 1, x); return; }
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        ch(Lc[i], tl, tm, l, r, x), ch(Rc[i], tm + 1, tr, l, r, x);
+        chmax(Lc[i], tl, tm, ql, qr, x), chmax(Rc[i], tm + 1, tr, ql, qr, x);
         pull(i);
     }
 
-    void assign(int i, long long tl, long long tr, long long l, long long r, T v) {
-        if (r < tl || tr < l) return;
-        if (l <= tl && tr <= r) { setAll(i, tr - tl + 1, v); return; }
+    void assign(int i, long long tl, long long tr, long long ql, long long qr, T v) {
+        if (qr < tl || ql > tr) return;
+        if (ql <= tl && tr <= qr) { applyAssign(i, tr - tl + 1, v); return; }
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        assign(Lc[i], tl, tm, l, r, v), assign(Rc[i], tm + 1, tr, l, r, v);
+        assign(Lc[i], tl, tm, ql, qr, v), assign(Rc[i], tm + 1, tr, ql, qr, v);
         pull(i);
     }
 
-    S qsum(int i, long long tl, long long tr, long long l, long long r) {
-        if (r < tl || tr < l) return 0;
-        if (l <= tl && tr <= r) return t[i].tot;
+    S qsum(int i, long long tl, long long tr, long long ql, long long qr) {
+        if (qr < tl || ql > tr) return 0;
+        if (ql <= tl && tr <= qr) return tot[i];
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        return qsum(Lc[i], tl, tm, l, r) + qsum(Rc[i], tm + 1, tr, l, r);
+        return qsum(Lc[i], tl, tm, ql, qr) + qsum(Rc[i], tm + 1, tr, ql, qr);
     }
 
-    T qext(int i, long long tl, long long tr, long long l, long long r) {
-        if (r < tl || tr < l) return SENT;
-        if (l <= tl && tr <= r) return t[i].mn;
+    T qmin(int i, long long tl, long long tr, long long ql, long long qr) {
+        if (qr < tl || ql > tr) return POS_INF;
+        if (ql <= tl && tr <= qr) return mn[i];
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        T a = qext(Lc[i], tl, tm, l, r), b = qext(Rc[i], tm + 1, tr, l, r);
-        return better(a, b) ? a : b;
+        return min(qmin(Lc[i], tl, tm, ql, qr), qmin(Rc[i], tm + 1, tr, ql, qr));
     }
 
     // amortized O(logU) -- a[i] = max(a[i], x) for i in [l, r]
-    void rangeChmax(long long l, long long r, T x) { if (l <= r) ch(root, lo, hi, l, r, x); }
+    void rangeChmax(long long l, long long r, T x) { if (l <= r) chmax(root, lo, hi, l, r, x); }
 
     // amortized O(logU) -- a[i] = x for i in [l, r]
     void rangeAssign(long long l, long long r, T x) { if (l <= r) assign(root, lo, hi, l, r, x); }
 
     // O(logU) -- a[l] + ... + a[r]
-    S rangeSum(long long l, long long r) { return l <= r ? qsum(root, lo, hi, l, r) : S(0); }
+    S rangeSum(long long l, long long r) { return l > r ? S(0) : qsum(root, lo, hi, l, r); }
 
     // O(logU) -- min of a[l..r]
-    T rangeMin(long long l, long long r) { return qext(root, lo, hi, l, r); }
+    T rangeMin(long long l, long long r) { return l > r ? POS_INF : qmin(root, lo, hi, l, r); }
 
     // O(logU) -- a[i]
-    T pointGet(long long i) { return qext(root, lo, hi, i, i); }
+    T pointGet(long long i) { return rangeMin(i, i); }
 
     // amortized O(logU) -- a[i] = v
     void pointAssign(long long i, T v) { rangeAssign(i, i, v); }
+
+    // amortized O(logU) -- a[i] += v
+    void pointAdd(long long i, T v) { rangeAssign(i, i, pointGet(i) + v); }
 
     // amortized O(logU) -- a[i] = max(a[i], v)
     void pointChmax(long long i, T v) { rangeChmax(i, i, v); }
 
     // amortized O(logU) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
-
-    // amortized O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    void pointChmin(long long i, T v) { if (v < pointGet(i)) rangeAssign(i, i, v); }
 };

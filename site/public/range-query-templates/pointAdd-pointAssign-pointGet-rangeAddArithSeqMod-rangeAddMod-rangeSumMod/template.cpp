@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeAddArithSeqMod-rangeAddMod-rangeSumMod/template.cpp
-// @operations: pointAdd pointAssign pointGet rangeAddArithSeqMod rangeAddMod rangeSumMod
+// @operations: getAll pointAdd pointAssign pointGet rangeAddArithSeqMod rangeAddMod rangeSumMod
 // @data-structure-type: BIT
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointGet: log(N)
@@ -75,6 +76,24 @@ struct ArithSeqSumBITMod {
 
     // O(logN) -- a[i], in [0, mod)
     T pointGet(int i) const { return rangeSumMod(i, i); }
+
+    // O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
+    // i + lowbit(i) once complete), then one pass of running prefix sums
+    vector<T> getAll() const {
+        vector<T> A(bA), B(bB), C(bC);
+        for (int i = n; i > 0; i--) {
+            int j = i + (i & -i);
+            if (j <= n) A[j] = norm(W(A[j]) - A[i]), B[j] = norm(W(B[j]) - B[i]), C[j] = norm(W(C[j]) - C[i]);
+        }
+        vector<T> out(n);
+        T sa = 0, sb = 0, sc = 0, prev = 0;
+        for (int x = 0; x < n; x++) {
+            sa = norm(W(sa) + A[x + 1]), sb = norm(W(sb) + B[x + 1]), sc = norm(W(sc) + C[x + 1]);
+            T p = norm(W(sa) + W(sb) * x % mod + W(sc) * tri(x) % mod);
+            out[x] = norm(W(p) - prev), prev = p;
+        }
+        return out;
+    }
 
     // O(logN) -- a[i] += delta (mod p)
     void pointAdd(int i, T delta) { rangeAddMod(i, i, delta); }

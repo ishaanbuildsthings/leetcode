@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeGcd/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd
 // @data-structure-type: lazy-seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)*log(U) ?
 //   pointAssign: log(N)*log(U) ?
 //   pointChmax: log(N)*log(U) ?
@@ -82,6 +83,14 @@ struct AssignGcdTree {
     T pointGet(int i) {
         push(i + n);
         return t[i + n];
+    }
+
+    // O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    // each node's tag is complete when it is pushed), then read the leaves
+    vector<T> getAll() {
+        for (int x = 1; x < n; x++)
+            if (hasAsg[x]) apply(2 * x, asg[x]), apply(2 * x + 1, asg[x]), hasAsg[x] = 0;
+        return vector<T>(t.begin() + n, t.end());
     }
 
     // O(logN logU) -- a[i] = v

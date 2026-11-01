@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply
 # @data-structure-type: lazy-seg-tree
 # @complexities:
+#   getAll: N*log(U)
 #   pointAdd: log(N)*log(U)
 #   pointAssign: log(N)*log(U)
 #   pointChmax: log(N)*log(U)
@@ -163,6 +164,21 @@ class BitCountTree:
         p = i + self.n
         self._push(p)
         return sum(self.cnt[b][p] << b for b in range(self.bits))
+
+    # O(N) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
+    # the leaves are (n >> s) .. ((2n - 1) >> s); their children cover k = 1 << (s - 1) leaves), then read the leaves
+    def getAll(self):
+        n, full = self.n, self.full
+        for s in range(self.h, 0, -1):
+            k = 1 << (s - 1)
+            for x in range(max(1, n >> s), ((2 * n - 1) >> s) + 1):
+                a, xr = self.andTag[x], self.xorTag[x]
+                if a != full or xr:
+                    self._apply(2 * x, k, a, xr)
+                    self._apply(2 * x + 1, k, a, xr)
+                    self.andTag[x], self.xorTag[x] = full, 0
+        cnt = self.cnt
+        return [sum(cnt[b][p] << b for b in range(self.bits)) for p in range(n, 2 * n)]
 
     # O(logN * bits) -- a[i] = val & FULL
     def pointAssign(self, i, val):

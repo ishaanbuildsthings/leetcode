@@ -1,8 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMod/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeMod
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMod
 // @data-structure-type: seg-tree
+// @letters: same
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
@@ -66,6 +68,9 @@ struct RangeModTree {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return mx[i + n]; }
+
+    // O(N) -- the whole array (a copy of the leaves)
+    vector<T> getAll() const { return vector<T>(mx.begin() + n, mx.end()); }
 
     // O(logN) -- a[i] = v
     void pointAssign(int i, T v) { mx[i + n] = v; pull(i + n); }

@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod/template.cpp
-// @operations: pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod
+// @operations: getAll pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod
 // @data-structure-type: lazy-seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointGet: log(N)
@@ -86,6 +87,17 @@ struct AffineTree {
         T v = val[i];
         for (int p = (i + n) >> 1; p; p >>= 1) v = norm(W(v) * M[p] + K[p]);
         return v;
+    }
+
+    // O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    // each node's tag is complete when it is pushed), then read the leaves
+    vector<T> getAll() {
+        for (int x = 1; x < n; x++)
+            if (!(M[x] == 1 && K[x] == 0)) {
+                apply(2 * x, M[x], K[x]), apply(2 * x + 1, M[x], K[x]);
+                M[x] = 1, K[x] = 0;
+            }
+        return val;
     }
 
     // O(logN) -- a[i] = v

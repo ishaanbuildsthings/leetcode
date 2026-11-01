@@ -1,9 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeSum/template.py
-# @operations: countInValRange pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeSum
+# @operations: countInValRange getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeSum
 # @data-structure-type: sqrt
 # @complexities:
 #   countInValRange: sqrt(N)*log(N)
+#   getAll: N
 #   pointAdd: sqrt(N)
 #   pointAssign: sqrt(N)
 #   pointChmax: sqrt(N)
@@ -148,6 +149,10 @@ class SqrtBlocks_PERFORMANT:
         cn = self.lazyChmin[b]
         if v > cn: return cn
         return v
+
+    # O(N) -- the whole array (each a[i] is O(1))
+    def getAll(self):
+        return [self.pointGet(i) for i in range(self.n)]
 
     # O(root N) -- one element moves in the sorted copy, so pop + insort, no re-sort
     def pointAssign(self, i, newVal):
@@ -565,6 +570,10 @@ class SqrtBlocks_CLEAN_CODE:
         valBeforeTag = self.valsBeforeTags[i]
         nval = valBeforeTag + add
         return self._clamp(nval, chmin, chmax)
+
+    # O(N) -- the whole array (each a[i] is O(1))
+    def getAll(self):
+        return [self.pointGet(i) for i in range(self.n)]
 
 
     # O(sqrtN) -- a[i] = newVal

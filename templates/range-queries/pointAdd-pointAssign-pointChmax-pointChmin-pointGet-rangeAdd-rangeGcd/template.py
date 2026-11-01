@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
 # @data-structure-type: seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)*log(U) ?
 #   pointAssign: log(N)*log(U) ?
 #   pointChmax: log(N)*log(U) ?
@@ -139,6 +140,14 @@ class RangeAddRangeGcd:
     # O(log n) -- current value of arr[i]
     def pointGet(self, i):
         return self._fenPrefix(i)
+
+    # O(N) -- the whole array: prefix sums of the differences
+    def getAll(self):
+        out, s = [], 0
+        for d in self.diff:
+            s += d
+            out.append(s)
+        return out
 
     # O(log n + log maxVal) -- gcd of arr[l...r] inclusive, always >= 0. requires 0 <= l <= r < n
     # returns 0 only if every value in the range is 0

@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxPrefixSum-maxSubarraySum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum/template.cpp
-// @operations: maxPrefixSum maxSubarraySum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum
+// @operations: getAll maxPrefixSum maxSubarraySum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum
 // @data-structure-type: lazy-seg-tree
 // @complexities:
+//   getAll: N
 //   maxPrefixSum: log(N)
 //   maxSubarraySum: log(N)
 //   maxSuffixSum: log(N)
@@ -119,6 +120,15 @@ struct MaxSubarrayAssignTree {
     T pointGet(int i) {
         pushToRoot(i + size);
         return T(t[i + size].sm);
+    }
+
+    // O(N) -- the whole array: push every tag down one level at a time from the root, then read the leaves
+    vector<T> getAll() {
+        for (int s = H; s > 0; s--)
+            for (int x = 1 << (H - s); x < 1 << (H - s + 1); x++) push(x, 1 << (s - 1));
+        vector<T> out(n);
+        for (int i = 0; i < n; i++) out[i] = T(t[size + i].sm);
+        return out;
     }
 
     // O(logN) -- a[i] = v

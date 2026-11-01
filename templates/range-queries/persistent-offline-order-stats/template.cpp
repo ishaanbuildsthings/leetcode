@@ -1,15 +1,17 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-offline-order-stats/template.cpp
-// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet pushBack rangeMax rangeMin smallestGtX smallestGteX
+// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet rangeMax rangeMin smallestGtX smallestGteX
 // @data-structure-type: persistent
 // @values: offline
 // @complexities:
+//   append: log(N)
 //   countGtX: log(N)
 //   countGteX: log(N)
 //   countInValRange: log(N)
 //   countLtX: log(N)
 //   countLteX: log(N)
 //   countOccurrences: log(N)
+//   getAll: N
 //   kthLargest: log(N)
 //   kthSmallest: log(N)
 //   largestLtX: log(N)
@@ -17,7 +19,6 @@
 //   medianHigh: log(N)
 //   medianLow: log(N)
 //   pointGet: 1
-//   pushBack: log(N)
 //   rangeMax: log(N)
 //   rangeMin: log(N)
 //   smallestGtX: log(N)
@@ -28,9 +29,9 @@
 //   node: L[1*N*log(N)] R[1*N*log(N)] C[1*N*log(N)]
 //   tags: none
 //   other: root[1*N] arr[1*N] srt[1*N]
-//   note: N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N nodes over the compressed values
+//   note: N = every value ever added (initial array plus each append); each adds one root-to-leaf path of log N nodes over the compressed values
 
-// An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Every value that will
+// An array that grows: append(v) appends, and queries on any a[l..r] can come in between. Every value that will
 // ever be added is given up front (only to compress them: nothing is added until you push it), so the persistent seg
 // tree is over compressed ranks and costs are log N, never log U: version p holds a[0..p-1], a[l..r] is version r + 1
 // minus version l, and each append adds one version. Query arguments (x, lowVal, ...) can be anything. 0-indexed.
@@ -42,7 +43,7 @@ struct PersistentOfflineOrderStats {
     vector<T> arr, srt;            // srt: sorted distinct values
     vector<int> root, L, R, C;     // node 0 = the empty tree
 
-    // O(N log N) -- arr: the initial array (may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value pushBack will
+    // O(N log N) -- arr: the initial array (may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value append will
     // ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
     PersistentOfflineOrderStats(const vector<T>& a, vector<T> allValuesThatWillEverBeInsertedForOfflineCompression)
         : srt(move(allValuesThatWillEverBeInsertedForOfflineCompression)), root(1, 0), L(1, 0), R(1, 0), C(1, 0) {
@@ -51,20 +52,23 @@ struct PersistentOfflineOrderStats {
         srt.erase(unique(srt.begin(), srt.end()), srt.end());
         m = (int)srt.size();
         klo = 0, khi = max(m - 1, 0);
-        for (const T& v : a) pushBack(v);
+        for (const T& v : a) append(v);
     }
 
     // O(logN) -- append v (one of the values given to the constructor, else throws invalid_argument): it becomes a[n],
     // and n grows by 1
-    void pushBack(T v) {
+    void append(T v) {
         int k = lb(v);
-        if (k == m || srt[k] != v) throw invalid_argument("pushBack: v was not in the values given to the constructor");
+        if (k == m || srt[k] != v) throw invalid_argument("append: v was not in the values given to the constructor");
         root.push_back(ins(root.back(), k, v));
         arr.push_back(v), n++;
     }
 
     // O(1) -- a[i]
     T pointGet(int i) const { return arr[i]; }
+
+    // O(N) -- the whole array (a copy)
+    vector<T> getAll() const { return arr; }
 
     // O(logN) -- # of i in [l, r] with a[i] == x
     int countOccurrences(int l, int r, T x) const { return countInValRange(l, r, x, x); }

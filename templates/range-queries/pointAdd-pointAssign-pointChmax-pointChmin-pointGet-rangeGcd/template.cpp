@@ -1,8 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd/template.cpp
-// @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
 // @data-structure-type: seg-tree
 // @complexities:
+//   getAll: N
 //   pointAdd: log(N)*log(U) ?
 //   pointAssign: log(N)*log(U) ?
 //   pointChmax: log(N)*log(U) ?
@@ -60,6 +61,9 @@ struct GcdSegmentTree {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return tree[n + i]; }
+
+    // O(N) -- the whole array (a copy of the leaves)
+    vector<T> getAll() const { return vector<T>(tree.begin() + n, tree.end()); }
 
     // O(logN logU) -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) { if (v > tree[n + i]) pointAssign(i, v); }

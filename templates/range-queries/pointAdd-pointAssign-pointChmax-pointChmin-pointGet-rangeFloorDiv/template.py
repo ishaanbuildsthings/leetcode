@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorDiv/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv
 # @data-structure-type: seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -86,6 +87,23 @@ class RangeFloorDivTree:
                 d = CAP
             p >>= 1
         return v // d
+
+    # O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    # each node's tag is complete when it is pushed), then read the leaves
+    def getAll(self):
+        tree, n = self.tree, self.n
+        for x in range(1, self.n):
+            t = tree[x]
+            if t != 1:
+                y = x << 1
+                for c in (y, y | 1):
+                    if c >= n:
+                        tree[c] //= t
+                    else:
+                        u = tree[c] * t
+                        tree[c] = u if u < CAP else CAP
+                tree[x] = 1
+        return self.tree[self.n:]
 
     # O(logN) -- a[i] = val
     def pointAssign(self, i, val):

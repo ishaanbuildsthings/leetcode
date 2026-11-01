@@ -21,7 +21,8 @@ export interface PickerOpTier {
 export interface PickerOpGroup {
   id: string;
   title: string;
-  blurb?: string;
+  // shown as just its header until clicked open (closed on every page load)
+  collapsible?: boolean;
   tiers: PickerOpTier[];
 }
 

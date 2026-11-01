@@ -3,6 +3,7 @@
 // @operations: pointGet rangeLIS
 // @data-structure-type: merge-sort-tree
 // @fractional-cascading: yes
+// @letters: same
 // @complexities:
 //   pointGet: 1
 //   rangeLIS: log(N)

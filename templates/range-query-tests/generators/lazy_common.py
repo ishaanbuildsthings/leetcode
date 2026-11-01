@@ -56,9 +56,9 @@ def tag_arrays(kind, tags):
 
 
 def header(cm, kind, fields, tags):
-    ops = ops_of(kind, fields, tags)
+    ops = sorted(ops_of(kind, fields, tags) + ["getAll"])  # the sparse versions (sparse_lazy.py) have no getAll
     lines = [f"{cm} @operations: {' '.join(ops)}", f"{cm} @data-structure-type: lazy-seg-tree", f"{cm} @complexities:"]
-    lines += [f"{cm}   {o}: log(N)" for o in ops] + [f"{cm}   build: N"]
+    lines += [f"{cm}   {o}: {'N' if o == 'getAll' else 'log(N)'}" for o in ops] + [f"{cm}   build: N"]
     node = " ".join(f"{FIELD_ARR[f]}[2*N]" for f in fields)
     tagm = " ".join(f"{t}[1*N]" for t in tag_arrays(kind, tags))
     if kind == "clamp":

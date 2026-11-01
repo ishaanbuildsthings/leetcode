@@ -1,9 +1,11 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
-// @operations: countDistinct pointAdd pointAssign pointChmax pointChmin pointGet
+// @operations: countDistinct getAll pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: BIT
+// @letters: same
 // @complexities:
 //   countDistinct: log^2(N)
+//   getAll: N
 //   pointAdd: log^2(N)
 //   pointAssign: log^2(N)
 //   pointChmax: log^2(N)
@@ -105,6 +107,9 @@ struct DynamicDistinctBIT {
 
     // O(1) -- a[i]
     T pointGet(int i) const { return a[i]; }
+
+    // O(N) -- the whole array (a copy)
+    vector<T> getAll() const { return a; }
 
     // O(log^2 N) -- a[i] += delta
     void pointAdd(int i, const T& delta) { pointAssign(i, a[i] + delta); }

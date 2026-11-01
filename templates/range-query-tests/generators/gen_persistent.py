@@ -6,7 +6,7 @@ version r + 1 minus version l.
   persistent-order-stats[-sums]          static array, values compressed to ranks: O(log N). Dominated by the wavelet
                                           matrix (same costs, less memory) but kept on purpose (check_catalog KEPT).
   persistent-online-order-stats[-sums][-mex]
-                                          the array grows with pushBack(v) and is queried in between; nothing is known
+                                          the array grows with append(v) and is queried in between; nothing is known
                                           up front, so the tree is over the value range [valLo, valHi]: O(log U). The
                                           mex versions add a persistent tree of each value's last index.
 The query methods are gen_wavelet.py's (static: thresholds are compressed ranks) or gen_dynamic_order.py's (online:
@@ -16,7 +16,7 @@ import os
 
 import gen_wavelet as W
 from gen_dynamic_order import cpp_query_ops, py_query_ops
-from note_lang import write_template
+from note_lang import add_get_all, write_template
 
 DIR = W.DIR
 LOGN, LOGU = "1*N*log(N)", "1*N*log(U)"
@@ -25,7 +25,7 @@ LOGN, LOGU = "1*N*log(N)", "1*N*log(U)"
 def header(cm, ops, online, sums, mex, node, other, note, offline=False):
     q = "log(U)" if online else "log(N)"
     lines = [f"@operations: {' '.join(ops)}", "@data-structure-type: persistent"] + (["@values: offline"] if offline else []) + ["@complexities:"]
-    lines += [f"  {op}: {'1' if op == 'pointGet' else q}" for op in ops] + [f"  build: N*{q}"]
+    lines += [f"  {op}: {'1' if op == 'pointGet' else 'N' if op == 'getAll' else q}" for op in ops] + [f"  build: N*{q}"]
     lines += ["@memory:", "  layout: none", f"  node: {node}", "  tags: none", f"  other: {other}", f"  note: {note}"]
     return "\n".join(f"{cm} {x}" for x in lines) + "\n"
 
@@ -169,7 +169,7 @@ class PersistentOrderStats:
 
 def py_online(ops, sums, mex):
     slots = ["arr", "n", "klo", "khi", "root", "L", "R", "C"] + (["S"] if sums else []) + (["mexHi", "mexRoot", "ML", "MR", "MN"] if mex else [])
-    return ('''# An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up
+    return ('''# An array that grows: append(v) appends, and queries on any a[l..r] can come in between. Nothing is known up
 # front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is
 # version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal,
 # ...) can be anything. 0-indexed, inclusive.
@@ -188,10 +188,10 @@ class PersistentOnlineOrderStats:
         self.ML, self.MR, self.MN = [0], [0], [-1]  # node 0 = the empty tree (every last index -1)
         self.mexRoot = [0]
 ''' if mex else "") + '''        for v in arr:
-            self.pushBack(v)
+            self.append(v)
 
     # O(logU) -- append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1
-    def pushBack(self, v):
+    def append(self, v):
         self.root.append(self._ins(self.root[-1], v, v))
 ''' + ('''        prev = self.mexRoot[-1]
         self.mexRoot.append(self._mexSet(prev, v, self.n) if 0 <= v <= self.mexHi else prev)
@@ -325,7 +325,7 @@ struct PersistentOrderStats {
 
 
 def cpp_online(ops, sums, mex):
-    return ('''// An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Nothing is known up
+    return ('''// An array that grows: append(v) appends, and queries on any a[l..r] can come in between. Nothing is known up
 // front, so the persistent seg tree is over the value range [valLo, valHi]: version p holds a[0..p-1], a[l..r] is
 // version r + 1 minus version l, and each append adds one version. Values are integers; query arguments (x, lowVal,
 // ...) can be anything. 0-indexed, inclusive.
@@ -345,11 +345,11 @@ struct PersistentOnlineOrderStats {
     PersistentOnlineOrderStats(const vector<T>& a, long long valLo, long long valHi)
         : klo(valLo), khi(valHi), root(1, 0), L(1, 0), R(1, 0), C(1, 0)''' + (", Sm(1, S(0))" if sums else "") +
             (", mexHi(int(min(max(valHi, 0LL), 1LL << 30) + 1)), mexRoot(1, 0), ML(1, 0), MR(1, 0), MN(1, -1)" if mex else "") + ''' {
-        for (const T& v : a) pushBack(v);
+        for (const T& v : a) append(v);
     }
 
     // O(logU) -- append v (valLo <= v <= valHi): it becomes a[n], and n grows by 1
-    void pushBack(T v) {
+    void append(T v) {
         root.push_back(ins(root.back(), (long long)v, v));
 ''' + ('''        int prev = mexRoot.back();
         mexRoot.push_back(T(0) <= v && (long long)v <= mexHi ? mexSet(prev, 0, mexHi, int(v), n) : prev);
@@ -365,7 +365,7 @@ struct PersistentOnlineOrderStats {
 # ------------------------------------------------------------------------------------------------ appends, offline
 
 OFFLINE_ARG = "allValuesThatWillEverBeInsertedForOfflineCompression"
-OFFLINE_DOC = '''{c} An array that grows: pushBack(v) appends, and queries on any a[l..r] can come in between. Every value that will
+OFFLINE_DOC = '''{c} An array that grows: append(v) appends, and queries on any a[l..r] can come in between. Every value that will
 {c} ever be added is given up front (only to compress them: nothing is added until you push it), so the persistent seg
 {c} tree is over compressed ranks and costs are log N, never log U: version p holds a[0..p-1], a[l..r] is version r + 1
 {c} minus version l, and each append adds one version. Query arguments (x, lowVal, ...) can be anything. 0-indexed.
@@ -381,7 +381,7 @@ def py_offline(ops, sums, mex):
 
 class PersistentOfflineOrderStats:
 ''' + f"    __slots__ = ({', '.join(repr(s) for s in slots)})\n\n" + f'''    # O(N log N) -- arr: the initial array (a list, may be empty), 0-indexed; {OFFLINE_ARG}: every value
-    # pushBack will ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
+    # append will ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
     def __init__(self, arr, {OFFLINE_ARG}):
         self.srt = srt = sorted(set({OFFLINE_ARG}) | set(arr))
 ''' + '''        self.m = len(srt)
@@ -394,13 +394,13 @@ class PersistentOfflineOrderStats:
         self.ML, self.MR, self.MN = [0], [0], [-1]  # node 0 = the empty tree (every last index -1)
         self.mexRoot = [0]
 ''' if mex else "") + '''        for v in arr:
-            self.pushBack(v)
+            self.append(v)
 
     # O(logN) -- append v (one of the values given to the constructor, else ValueError): it becomes a[n], n grows by 1
-    def pushBack(self, v):
+    def append(self, v):
         k = self.where.get(v)
         if k is None:
-            raise ValueError(f"pushBack: {v} was not in the values given to the constructor")
+            raise ValueError(f"append: {v} was not in the values given to the constructor")
         self.root.append(self._ins(self.root[-1], k, v))
 ''' + ('''        prev = self.mexRoot[-1]
         self.mexRoot.append(self._mexSet(prev, v, self.n) if 0 <= v <= self.mexHi else prev)
@@ -422,7 +422,7 @@ struct PersistentOfflineOrderStats {
 ''' + ("    vector<S> Sm;\n" if sums else "") + ('''    int mexHi;                     // mex <= (# of distinct values) < this
     vector<int> mexRoot, ML, MR, MN;
 ''' if mex else "") + f'''
-    // O(N log N) -- arr: the initial array (may be empty), 0-indexed; {OFFLINE_ARG}: every value pushBack will
+    // O(N log N) -- arr: the initial array (may be empty), 0-indexed; {OFFLINE_ARG}: every value append will
     // ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
     PersistentOfflineOrderStats(const vector<T>& a, vector<T> {OFFLINE_ARG})
         : srt(move({OFFLINE_ARG})), root(1, 0), L(1, 0), R(1, 0), C(1, 0)''' + (", Sm(1, S(0))" if sums else "") + ''' {
@@ -433,14 +433,14 @@ struct PersistentOfflineOrderStats {
         klo = 0, khi = max(m - 1, 0);
 ''' + ('''        mexHi = min(m, 1 << 30) + 1;
         mexRoot.assign(1, 0), ML.assign(1, 0), MR.assign(1, 0), MN.assign(1, -1);
-''' if mex else "") + '''        for (const T& v : a) pushBack(v);
+''' if mex else "") + '''        for (const T& v : a) append(v);
     }
 
     // O(logN) -- append v (one of the values given to the constructor, else throws invalid_argument): it becomes a[n],
     // and n grows by 1
-    void pushBack(T v) {
+    void append(T v) {
         int k = lb(v);
-        if (k == m || srt[k] != v) throw invalid_argument("pushBack: v was not in the values given to the constructor");
+        if (k == m || srt[k] != v) throw invalid_argument("append: v was not in the values given to the constructor");
         root.push_back(ins(root.back(), k, v));
 ''' + ('''        int prev = mexRoot.back();
         mexRoot.push_back(T(0) <= v && (long long)v <= mexHi ? mexSet(prev, 0, mexHi, int(v), n) : prev);
@@ -478,28 +478,28 @@ def main():
         print("wrote", folder)
     for sums in (False, True):
         for mex in (False, True):
-            ops = sorted(["pushBack"] + W.BASE + (W.SUMS if sums else []) + (W.MEX if mex else []))
+            ops = sorted(["getAll", "append"] + W.BASE + (W.SUMS if sums else []) + (W.MEX if mex else []))
             folder = "persistent-online-order-stats" + ("-sums" if sums else "") + ("-mex" if mex else "")
             path = os.path.join(DIR, folder)
             os.makedirs(path, exist_ok=True)
             node = " ".join(f"{a}[{LOGU}]" for a in ["L", "R", "C"] + (["S"] if sums else []))
             other = "root[1*N] arr[1*N]" + (f" mexRoot[1*N] ML[{LOGU}] MR[{LOGU}] MN[{LOGU}]" if mex else "")
-            note = ("N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log U "
+            note = ("N = every value ever added (initial array plus each append); each adds one root-to-leaf path of log U "
                     "nodes over the value range [valLo, valHi]" + (" (and one in the mex tree)" if mex else ""))
-            for ext, cm, code in (("py", "#", py_online(ops, sums, mex)), ("cpp", "//", cpp_online(ops, sums, mex))):
+            for ext, cm, code in (("py", "#", add_get_all(py_online(ops, sums, mex), "py")), ("cpp", "//", add_get_all(cpp_online(ops, sums, mex), "cpp"))):
                 write_template(os.path.join(path, f"template.{ext}"), header(cm, ops, True, sums, mex, node, other, note) + "\n" + code)
             print("wrote", folder)
     for sums in (False, True):
         for mex in (False, True):
-            ops = sorted(["pushBack"] + W.BASE + (W.SUMS if sums else []) + (W.MEX if mex else []))
+            ops = sorted(["getAll", "append"] + W.BASE + (W.SUMS if sums else []) + (W.MEX if mex else []))
             folder = "persistent-offline-order-stats" + ("-sums" if sums else "") + ("-mex" if mex else "")
             path = os.path.join(DIR, folder)
             os.makedirs(path, exist_ok=True)
             node = " ".join(f"{a}[{LOGN}]" for a in ["L", "R", "C"] + (["S"] if sums else []))
             other = "root[1*N] arr[1*N] srt[1*N]" + (f" mexRoot[1*N] ML[{LOGN}] MR[{LOGN}] MN[{LOGN}]" if mex else "")
-            note = ("N = every value ever added (initial array plus each pushBack); each adds one root-to-leaf path of log N "
+            note = ("N = every value ever added (initial array plus each append); each adds one root-to-leaf path of log N "
                     "nodes over the compressed values" + (" (and one in the mex tree)" if mex else ""))
-            for ext, cm, code in (("py", "#", py_offline(ops, sums, mex)), ("cpp", "//", cpp_offline(ops, sums, mex))):
+            for ext, cm, code in (("py", "#", add_get_all(py_offline(ops, sums, mex), "py")), ("cpp", "//", add_get_all(cpp_offline(ops, sums, mex), "cpp"))):
                 write_template(os.path.join(path, f"template.{ext}"),
                                header(cm, ops, False, sums, mex, node, other, note, offline=True) + "\n" + code)
             print("wrote", folder)

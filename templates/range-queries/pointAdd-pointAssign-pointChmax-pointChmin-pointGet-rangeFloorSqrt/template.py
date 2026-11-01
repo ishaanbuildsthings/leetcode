@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorSqrt/template.py
-# @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorSqrt
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorSqrt
 # @data-structure-type: seg-tree
 # @complexities:
+#   getAll: N
 #   pointAdd: log(N)+log(log(U))
 #   pointAssign: log(N)+log(log(U))
 #   pointChmax: log(N)+log(log(U))
@@ -90,6 +91,28 @@ class RangeFloorSqrtTree:
                 break
             v = isqrt(v)
         return v
+
+    # O(N) -- the whole array: push every tag down (a parent's index is below its children's, so in index order
+    # each node's tag is complete when it is pushed), then read the leaves
+    def getAll(self):
+        tree, n = self.tree, self.n
+        for x in range(1, self.n):
+            k = tree[x]
+            if k:
+                y = x << 1
+                for c in (y, y | 1):
+                    if c >= n:
+                        v = tree[c]
+                        for _ in range(k):
+                            if v < 2:
+                                break
+                            v = isqrt(v)
+                        tree[c] = v
+                    else:
+                        u = tree[c] + k
+                        tree[c] = u if u < MAX_SQRTS else MAX_SQRTS
+                tree[x] = 0
+        return self.tree[self.n:]
 
     # O(logN + loglogU) -- a[i] = val
     def pointAssign(self, i, val):

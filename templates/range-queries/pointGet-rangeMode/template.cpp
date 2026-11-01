@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeMode/template.cpp
 // @operations: pointGet rangeMode
 // @data-structure-type: sqrt
+// @letters: same
 // @complexities:
 //   pointGet: 1
 //   rangeMode: sqrt(N)

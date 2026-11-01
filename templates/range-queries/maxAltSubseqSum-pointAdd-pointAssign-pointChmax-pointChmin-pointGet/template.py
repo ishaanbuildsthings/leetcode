@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
-# @operations: maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet
+# @operations: getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: seg-tree
 # @complexities:
+#   getAll: N
 #   maxAltSubseqSum: log(N)
 #   pointAdd: log(N)
 #   pointAssign: log(N)
@@ -85,6 +86,10 @@ class AltSumTree:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.vals[i]
+
+    # O(N) -- the whole array (a copy)
+    def getAll(self):
+        return list(self.vals)
 
     # O(logN) -- a[i] += delta
     def pointAdd(self, i, delta):

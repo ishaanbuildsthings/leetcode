@@ -1,9 +1,11 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/allDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
-# @operations: allDistinct pointAdd pointAssign pointChmax pointChmin pointGet
+# @operations: allDistinct getAll pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: seg-tree
+# @letters: same
 # @complexities:
 #   allDistinct: log(N)
+#   getAll: N
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
@@ -202,6 +204,10 @@ class DistinctTree:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.a[i]
+
+    # O(N) -- the whole array (a copy)
+    def getAll(self):
+        return list(self.a)
 
     # O(logN) -- a[i] += delta
     def pointAdd(self, i, delta):

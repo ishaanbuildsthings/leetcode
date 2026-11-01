@@ -1,8 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxPrefixSum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum/template.py
-# @operations: maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
+# @operations: getAll maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
 # @data-structure-type: seg-tree
+# @letters: same
 # @complexities:
+#   getAll: N
 #   maxPrefixSum: log(N)
 #   maxSuffixSum: log(N)
 #   pointAdd: log(N)
@@ -95,6 +97,10 @@ class MaxPrefixSuffixSumTree:
     # O(1) -- a[i]
     def pointGet(self, i):
         return self.sm[i + self.n]
+
+    # O(N) -- the whole array (a copy of the leaves)
+    def getAll(self):
+        return self.sm[self.n:]
 
     # O(logN) -- a[i] += delta
     def pointAdd(self, i, delta):

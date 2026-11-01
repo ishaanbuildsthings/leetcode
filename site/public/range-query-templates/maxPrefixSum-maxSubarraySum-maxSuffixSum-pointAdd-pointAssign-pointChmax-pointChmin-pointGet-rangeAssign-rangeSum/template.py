@@ -1,8 +1,9 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxPrefixSum-maxSubarraySum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum/template.py
-# @operations: maxPrefixSum maxSubarraySum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum
+# @operations: getAll maxPrefixSum maxSubarraySum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum
 # @data-structure-type: lazy-seg-tree
 # @complexities:
+#   getAll: N
 #   maxPrefixSum: log(N)
 #   maxSubarraySum: log(N)
 #   maxSuffixSum: log(N)
@@ -163,6 +164,14 @@ class MaxSubarrayAssignTree:
         p = i + self.size
         self._pushToRoot(p)
         return self.sm[p]
+
+    # O(N) -- the whole array: push every tag down one level at a time from the root, then read the leaves
+    def getAll(self):
+        H = self.H
+        for s in range(H, 0, -1):
+            for x in range(1 << (H - s), 1 << (H - s + 1)):
+                self._push(x, 1 << (s - 1))
+        return self.sm[self.size:self.size + self.n]
 
     # O(logN) -- a[i] = val
     def pointAssign(self, i, val):

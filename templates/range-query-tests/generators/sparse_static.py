@@ -164,6 +164,12 @@ compressed("pointGet-rangeLIS", "RangeLIS", "SparseStaticLIS", "rangeLIS",
            {"rangeLIS": "log(N)", "pointGet": "log(N)", "build": "N*log^2(N)"},
            ("cnt[2*N*log(N)]", "none", "idx[1*N] vals[1*N] starts[2*N] E[2*N] sortedVals[2*N]"),
            "the seaweed LIS structure runs on the given values plus one 0 per gap (at most 2N + 1 elements)", rtype="int")
+compressed("pointGet-rangeLDS", "RangeLDS", "SparseStaticLDS", "rangeLDS",
+           "Range LDS (longest strictly decreasing subsequence; a run of zeros adds at most one element)",
+           {"rangeLDS": "log(N)", "pointGet": "log(N)", "build": "N*log^2(N)"},
+           ("cnt[2*N*log(N)]", "none", "idx[1*N] vals[1*N] starts[2*N] E[2*N] sortedVals[2*N]"),
+           "the seaweed LDS structure runs on the given values plus one 0 per gap (at most 2N + 1 elements)", rtype="int")
+# (no sparse rangeLNDS / rangeLNIS: a run of equal zeros can add many elements to a non-strict subsequence)
 
 # ------------------------------------------------------------------------------------------------ given values-only wrappers
 
@@ -443,14 +449,17 @@ struct SparseStaticRangeMode {
 ''' + CPP_POINT_GET + "};\n")
 
 # count occurrences (no inner structure needed: positions are kept as absolute indices)
-write("countOccurrences-pointGet", "positions", {"countOccurrences": "log(N)", "pointGet": "log(N)", "build": "N*log(N)"},
+write("countOccurrences-leftmostIndexOf-leftmostIndexOfInRange-pointGet-rightmostIndexOf-rightmostIndexOfInRange", "positions",
+      {"countOccurrences": "log(N)", "leftmostIndexOf": "log(N)", "leftmostIndexOfInRange": "log(N)", "pointGet": "log(N)",
+       "rightmostIndexOf": "log(N)", "rightmostIndexOfInRange": "log(N)", "build": "N*log(N)"},
       ("pos[1*N]", "none", "idx[1*N] vals[1*N]"),
       "pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the given values inside)",
       '''from bisect import bisect_left, bisect_right
 
-# "How many times does x appear in a[l..r]?" over any index range [lo, hi], built from given values (index, value pairs); every
-# other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the
-# given values inside).
+# "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?" over any index range
+# [lo, hi], built from given values (index, value pairs); every other index is 0. Each value keeps its sorted indices;
+# x == 0 also counts the zeros of [l, r] (its length minus the given values inside), and its first / last copy may be
+# an index nobody gave: the end of a run of consecutive given indices, found by a binary search on idx[k] - k.
 
 
 class SparseStaticOccurrences:
@@ -478,10 +487,72 @@ class SparseStaticOccurrences:
         if x == 0:
             res += (r - l + 1) - (bisect_right(self.idx, r) - bisect_left(self.idx, l))
         return res
+
+    # O(logN) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    def leftmostIndexOf(self, x):
+        return self.leftmostIndexOfInRange(self.lo, self.hi, x)
+
+    # O(logN) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    def rightmostIndexOf(self, x):
+        return self.rightmostIndexOfInRange(self.lo, self.hi, x)
+
+    # O(logN) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    def leftmostIndexOfInRange(self, l, r, x):
+        best = r + 1
+        p = self.pos.get(x)
+        if p:
+            k = bisect_left(p, l)
+            if k < len(p):
+                best = p[k]
+        if x == 0:
+            best = min(best, self._firstGap(l))
+        return best if best <= r else self.lo - 1
+
+    # O(logN) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    def rightmostIndexOfInRange(self, l, r, x):
+        best = l - 1
+        p = self.pos.get(x)
+        if p:
+            k = bisect_right(p, r) - 1
+            if k >= 0:
+                best = p[k]
+        if x == 0:
+            best = max(best, self._lastGap(r))
+        return best if best >= l else self.lo - 1
+
+    def _firstGap(self, i):  # the smallest index >= i that wasn't given (it holds 0)
+        idx = self.idx
+        k = bisect_left(idx, i)
+        if k == len(idx) or idx[k] != i:
+            return i
+        a, b = k, len(idx) - 1  # idx[k..a] = i, i + 1, ...: the largest such a (idx[j] - j stays i - k along it)
+        while a < b:
+            m = (a + b + 1) // 2
+            if idx[m] - m == i - k:
+                a = m
+            else:
+                b = m - 1
+        return i + (a - k) + 1
+
+    def _lastGap(self, i):  # the largest index <= i that wasn't given (it holds 0)
+        idx = self.idx
+        k = bisect_right(idx, i) - 1
+        if k < 0 or idx[k] != i:
+            return i
+        a, b = 0, k  # idx[a..k] = ..., i - 1, i: the smallest such a
+        while a < b:
+            m = (a + b) // 2
+            if idx[m] - m == i - k:
+                b = m
+            else:
+                a = m + 1
+        return i - (k - a) - 1
 ''' + PY_POINT_GET, '''
-// "How many times does x appear in a[l..r]?" over any index range [lo, hi], built from given values (index, value pairs); every
-// other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the
-// given values inside). T: any type usable as a std::map key.
+// "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?" over any index range
+// [lo, hi], built from given values (index, value pairs); every other index is 0. Each value keeps its sorted indices;
+// x == 0 also counts the zeros of [l, r] (its length minus the given values inside), and its first / last copy may be
+// an index nobody gave: the end of a run of consecutive given indices, found by a binary search on idx[k] - k.
+// T: any type usable as a std::map key.
 template <typename T>
 struct SparseStaticOccurrences {
     long long lo, hi;
@@ -506,6 +577,60 @@ struct SparseStaticOccurrences {
         long long res = it == pos.end() ? 0 : countIn(it->second, l, r);
         if (x == T(0)) res += (r - l + 1) - countIn(idx, l, r);
         return res;
+    }
+
+    // O(logN) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    long long leftmostIndexOf(const T& x) const { return leftmostIndexOfInRange(lo, hi, x); }
+
+    // O(logN) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    long long rightmostIndexOf(const T& x) const { return rightmostIndexOfInRange(lo, hi, x); }
+
+    // O(logN) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    long long leftmostIndexOfInRange(long long l, long long r, const T& x) const {
+        long long best = r + 1;
+        auto it = pos.find(x);
+        if (it != pos.end()) {
+            auto j = lower_bound(it->second.begin(), it->second.end(), l);
+            if (j != it->second.end()) best = *j;
+        }
+        if (x == T(0)) best = min(best, firstGap(l));
+        return best <= r ? best : lo - 1;
+    }
+
+    // O(logN) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    long long rightmostIndexOfInRange(long long l, long long r, const T& x) const {
+        long long best = l - 1;
+        auto it = pos.find(x);
+        if (it != pos.end()) {
+            auto j = upper_bound(it->second.begin(), it->second.end(), r);
+            if (j != it->second.begin()) best = *prev(j);
+        }
+        if (x == T(0)) best = max(best, lastGap(r));
+        return best >= l ? best : lo - 1;
+    }
+
+    long long firstGap(long long i) const {  // the smallest index >= i that wasn't given (it holds 0)
+        long long k = lower_bound(idx.begin(), idx.end(), i) - idx.begin();
+        if (k == (long long)idx.size() || idx[k] != i) return i;
+        long long a = k, b = (long long)idx.size() - 1;  // idx[k..a] = i, i + 1, ...: the largest such a
+        while (a < b) {
+            long long m = (a + b + 1) / 2;
+            if (idx[m] - m == i - k) a = m;
+            else b = m - 1;
+        }
+        return i + (a - k) + 1;
+    }
+
+    long long lastGap(long long i) const {  // the largest index <= i that wasn't given (it holds 0)
+        long long k = (upper_bound(idx.begin(), idx.end(), i) - idx.begin()) - 1;
+        if (k < 0 || idx[k] != i) return i;
+        long long a = 0, b = k;  // idx[a..k] = ..., i - 1, i: the smallest such a
+        while (a < b) {
+            long long m = (a + b) / 2;
+            if (idx[m] - m == i - k) b = m;
+            else a = m + 1;
+        }
+        return i - (k - a) - 1;
     }
 ''' + CPP_POINT_GET + "};\n")
 
