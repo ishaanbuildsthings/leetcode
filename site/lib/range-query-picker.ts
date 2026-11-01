@@ -608,7 +608,8 @@ export interface RangeQueryTemplate {
   // file for that (character sentinels, ord() in hashes), listing just those ops
   lettersSame?: boolean;
   letters?: SparseVariant & { operations: OpId[] };
-  usage: Partial<Record<TemplateLang, Usage>>;
+  // (not in the catalog: the drawer reads the usage panel from the code it fetches)
+  usage?: Partial<Record<TemplateLang, Usage>>;
 }
 
 export interface SparseVariant {
@@ -617,7 +618,54 @@ export interface SparseVariant {
   complexities: Partial<Record<OpId, string>>;
   build: string;
   memory: MemoryBreakdown;
-  usage: Partial<Record<TemplateLang, Usage>>;
+  usage?: Partial<Record<TemplateLang, Usage>>;
+}
+
+// One template as the generated manifest stores it (see scripts/build-range-query-templates.mjs): table indices
+// instead of op lists, cost strings and memory layouts.
+type VariantRow = 0 | readonly [langs: string, opList: number, costList: number, build: number, memory: number, ownOps: number];
+export type RangeTemplateRow = readonly [
+  folder: string, langs: string, type: DataStructureType, flags: string, originalFileUrl: string,
+  opList: number, costList: number, build: number, memory: number, sparse: VariantRow, letters: VariantRow,
+];
+
+export function decodeRangeTemplates(data: {
+  opNames: readonly OpId[];
+  costs: readonly string[];
+  opLists: readonly (readonly number[])[];
+  costLists: readonly (readonly number[])[];
+  memories: readonly MemoryBreakdown[];
+  rows: readonly RangeTemplateRow[];
+}): RangeQueryTemplate[] {
+  const lists = data.opLists.map((l) => l.map((i) => data.opNames[i]));
+  const unpack = (list: number, costList: number, build: number, memory: number) => {
+    const operations = lists[list];
+    const complexities: Partial<Record<OpId, string>> = {};
+    data.costLists[costList].forEach((c, i) => (complexities[operations[i]] = data.costs[c]));
+    return { operations, complexities, build: data.costs[build], memory: data.memories[memory] };
+  };
+  const variant = (v: VariantRow) => {
+    if (!v) return undefined;
+    const { operations, ...rest } = unpack(v[1], v[2], v[3], v[4]);
+    return { langs: v[0].split(" ") as TemplateLang[], ...(v[5] ? { operations } : {}), ...rest };
+  };
+  return data.rows.map(([folder, langs, type, flags, url, list, costList, build, memory, sparse, letters]) => {
+    const t: RangeQueryTemplate = {
+      folder,
+      langs: langs.split(" ") as TemplateLang[],
+      dataStructureType: type,
+      ...unpack(list, costList, build, memory),
+      ...(flags.includes("f") ? { fractionalCascading: true } : flags.includes("F") ? { fractionalCascading: false } : {}),
+      ...(flags.includes("o") ? { valuesOffline: true as const } : {}),
+      ...(flags.includes("s") ? { lettersSame: true } : {}),
+      ...(url ? { originalFileUrl: url } : {}),
+    };
+    const sv = variant(sparse);
+    if (sv) t.sparse = sv;
+    const lv = variant(letters);
+    if (lv) t.letters = { ...lv, operations: lv.operations ?? t.operations };
+    return t;
+  });
 }
 
 // A template as the picker shows it in the current mode: in sparse mode, its costs / memory / files are the sparse ones.

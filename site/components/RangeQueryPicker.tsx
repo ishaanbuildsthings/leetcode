@@ -13,9 +13,25 @@ import {
   viewOf,
   templateKindLabel,
   isBuiltFromPoints,
+  decodeRangeTemplates,
 } from "@/lib/range-query-picker";
-import { RANGE_QUERY_TEMPLATES } from "@/lib/generated/range-query-templates";
+import {
+  RANGE_COST_LISTS,
+  RANGE_COSTS,
+  RANGE_MEMORIES,
+  RANGE_OP_LISTS,
+  RANGE_OP_NAMES,
+  RANGE_TEMPLATE_ROWS,
+} from "@/lib/generated/range-query-templates";
 
+const RANGE_QUERY_TEMPLATES = decodeRangeTemplates({
+  opNames: RANGE_OP_NAMES,
+  costs: RANGE_COSTS,
+  opLists: RANGE_OP_LISTS,
+  costLists: RANGE_COST_LISTS,
+  memories: RANGE_MEMORIES,
+  rows: RANGE_TEMPLATE_ROWS,
+});
 const ALL_OPS = OP_GROUPS.flatMap((g) => g.tiers.flatMap((t) => t.ops.map((o) => o.id)));
 // The mod p ops (rangeAddMod, ..., rangeSumMod; not rangeMod, which is a[i] %= m). A template with any of them does all
 // its arithmetic mod p, so it is only offered once you pick one of them; otherwise a selection like pointGet + pointAdd

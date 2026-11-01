@@ -27,12 +27,12 @@
 #   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N]
 #   tags: add[1*N]
 #   other: none
-#   note: N = every value ever inserted (the initial array plus each insertAt; erased nodes are not reused); split / merge recurse O(log N) deep in expectation
+#   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
 
-# Implicit treap: an array you can insert into / erase from anywhere, rotate and cut-and-paste, each in O(logN)
-# expected, plus point ops, rangeAdd. All indices 0-based, ranges inclusive [l, r], and an index always means the
-# position in the CURRENT array. Nodes keep their values in array order (an in-order walk); a node's position is the
-# size of everything left of it. Lazy tags mean "already applied to this node, not yet to its children".
+# Implicit treap with composable aggregates: an array you can insert into / erase from anywhere, rotate, move in
+# O(logN) expected each, with rangeAdd. All indices 0-based, ranges inclusive [l, r], an index always the position in
+# the CURRENT array; searches return -1 when nothing qualifies. Lazy tags mean "already applied to this node, not yet
+# to its children".
 import random
 
 
@@ -41,50 +41,28 @@ class ImplicitTreap:
 
     # O(N) -- arr: the initial array (may be empty)
     def __init__(self, arr):
-        n = len(arr)
-        self.val = [0] + list(arr)  # node 0 is the empty tree
-        self.pri = [0] + [random.getrandbits(62) for _ in range(n)]
-        self.L = [0] * (n + 1)
-        self.R = [0] * (n + 1)
-        self.sz = [0] + [1] * n
-        self.add = [0] * (n + 1)
-        # Cartesian tree on (position, priority) in one pass: the stack is the current right spine
-        pri, L, R = self.pri, self.L, self.R
-        stack = []
-        for x in range(1, n + 1):
-            last = 0
-            while stack and pri[stack[-1]] < pri[x]:
-                last = stack.pop()
-            L[x] = last
-            if stack:
-                R[stack[-1]] = x
-            stack.append(x)
-        self.root = stack[0] if stack else 0
-        order, todo = [], ([self.root] if n else [])
-        while todo:  # pre-order; pulled in reverse, so children before parents
-            x = todo.pop()
-            order.append(x)
-            if L[x]:
-                todo.append(L[x])
-            if R[x]:
-                todo.append(R[x])
-        for x in reversed(order):
-            self._pull(x)
+        self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
+        self.add = [0]
+        self.root = self._build(list(arr))
 
     # O(1) -- the current length of the array
     def size(self):
         return self.sz[self.root]
 
-    # O(logN) expected -- append v to the end (it becomes a[size()])
+    # O(logN) expected -- append v to the end
     def append(self, v):
         self.root = self._merge(self.root, self._newNode(v))
 
-    # O(logN) expected -- remove a[l..r]; everything after it shifts left by r - l + 1
+    # O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
+    def appendLeft(self, v):
+        self.insertAt(0, v)
+
+    # O(logN) expected -- remove a[l..r]
     def eraseRange(self, l, r):
         a, _, c = self._cut(l, r)
         self.root = self._merge(a, c)
 
-    # O(N) -- the whole current array a[0..size()-1], every pending tag applied on the way
+    # O(N) -- the whole current array, every pending tag applied on the way
     def getAll(self):
         L, R, val = self.L, self.R, self.val
         out, stack, t = [], [], self.root
@@ -103,16 +81,13 @@ class ImplicitTreap:
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, self._newNode(v)), c)
 
-    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0): they are built as
-    # one treap in O(k), then spliced in
+    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
     def insertCopiesAt(self, i, v, k):
-        if k <= 0:
-            return
-        a, c = self._split(self.root, i)
-        self.root = self._merge(self._merge(a, self._build([v] * k)), c)
+        if k > 0:
+            a, c = self._split(self.root, i)
+            self.root = self._merge(self._merge(a, self._build([v] * k)), c)
 
     # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
-    # (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)
     def moveRange(self, l, r, i):
         a, b, c = self._cut(l, r)
         x, y = self._split(self._merge(a, c), i)
@@ -140,21 +115,7 @@ class ImplicitTreap:
 
     # O(logN) expected -- a[i]
     def pointGet(self, i):
-        L, sz, t = self.L, self.sz, self.root
-        while True:
-            self._push(t)
-            ls = sz[L[t]]
-            if i < ls:
-                t = L[t]
-            elif i == ls:
-                return self.val[t]
-            else:
-                i -= ls + 1
-                t = self.R[t]
-
-    # O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
-    def appendLeft(self, v):
-        self.insertAt(0, v)
+        return self.val[self._find(i)[0]]
 
     # O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
     def pop(self, i):
@@ -181,8 +142,7 @@ class ImplicitTreap:
             b = self._merge(b2, b1)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k,
-    # negative shifts left
+    # O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 
@@ -198,76 +158,6 @@ class ImplicitTreap:
         self.add.append(0)
         return x
 
-    # recompute x from its children
-    def _pull(self, x):
-        l, r = self.L[x], self.R[x]
-        self.sz[x] = self.sz[l] + self.sz[r] + 1
-
-    def _applyAdd(self, x, v):
-        if not x:
-            return
-        self.val[x] += v
-        self.add[x] += v
-
-    # hand x's pending tags to its children
-    def _push(self, x):
-        if self.add[x]:
-            self._applyAdd(self.L[x], self.add[x])
-            self._applyAdd(self.R[x], self.add[x])
-            self.add[x] = 0
-
-    # (first k elements of t, the rest)
-    def _split(self, t, k):
-        if not t:
-            return 0, 0
-        self._push(t)
-        L, R = self.L, self.R
-        if self.sz[L[t]] >= k:
-            a, L[t] = self._split(L[t], k)
-            self._pull(t)
-            return a, t
-        R[t], b = self._split(R[t], k - self.sz[L[t]] - 1)
-        self._pull(t)
-        return t, b
-
-    # a's elements, then b's
-    def _merge(self, a, b):
-        if not a or not b:
-            return a or b
-        if self.pri[a] > self.pri[b]:
-            self._push(a)
-            self.R[a] = self._merge(self.R[a], b)
-            self._pull(a)
-            return a
-        self._push(b)
-        self.L[b] = self._merge(a, self.L[b])
-        self._pull(b)
-        return b
-
-    # (a[0..l-1], a[l..r], a[r+1..]) as three trees; put them back with _join
-    def _cut(self, l, r):
-        a, b = self._split(self.root, l)
-        b, c = self._split(b, r - l + 1)
-        return a, b, c
-
-    def _join(self, a, b, c):
-        self.root = self._merge(self._merge(a, b), c)
-
-    # (node holding a[i], the nodes above it), with every tag on the way pushed
-    def _find(self, i):
-        L, sz, t, path = self.L, self.sz, self.root, []
-        while True:
-            self._push(t)
-            ls = sz[L[t]]
-            if i == ls:
-                return t, path
-            path.append(t)
-            if i < ls:
-                t = L[t]
-            else:
-                i -= ls + 1
-                t = self.R[t]
-
     # a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
     def _build(self, vals):
         pri, L, R = self.pri, self.L, self.R
@@ -282,7 +172,7 @@ class ImplicitTreap:
             stack.append(x)
         root = stack[0] if stack else 0
         order, todo = [], ([root] if root else [])
-        while todo:  # pre-order; pulled in reverse, so children before parents
+        while todo:
             x = todo.pop()
             order.append(x)
             if L[x]:
@@ -292,3 +182,66 @@ class ImplicitTreap:
         for x in reversed(order):
             self._pull(x)
         return root
+
+    def _pull(self, x):  # recompute x from its children
+        l, r = self.L[x], self.R[x]
+        self.sz[x] = self.sz[l] + self.sz[r] + 1
+
+    def _applyAdd(self, x, v):  # every value of x's subtree gains v
+        if x:
+            self.val[x] += v
+            self.add[x] += v
+
+    def _push(self, x):  # hand x's pending tags to its children
+        if self.add[x]:
+            self._applyAdd(self.L[x], self.add[x])
+            self._applyAdd(self.R[x], self.add[x])
+            self.add[x] = 0
+
+    def _split(self, t, k):  # (first k of t, the rest)
+        if not t:
+            return 0, 0
+        self._push(t)
+        L, R = self.L, self.R
+        if self.sz[L[t]] >= k:
+            a, L[t] = self._split(L[t], k)
+            self._pull(t)
+            return a, t
+        R[t], b = self._split(R[t], k - self.sz[L[t]] - 1)
+        self._pull(t)
+        return t, b
+
+    def _merge(self, a, b):  # a's elements, then b's
+        if not a or not b:
+            return a or b
+        if self.pri[a] > self.pri[b]:
+            self._push(a)
+            self.R[a] = self._merge(self.R[a], b)
+            self._pull(a)
+            return a
+        self._push(b)
+        self.L[b] = self._merge(a, self.L[b])
+        self._pull(b)
+        return b
+
+    def _cut(self, l, r):  # (a[0..l-1], a[l..r], a[r+1..])
+        a, b = self._split(self.root, l)
+        b, c = self._split(b, r - l + 1)
+        return a, b, c
+
+    def _join(self, a, b, c):
+        self.root = self._merge(self._merge(a, b), c)
+
+    def _find(self, i):  # (node holding a[i], the nodes above it), every tag on the way pushed
+        L, sz, t, path = self.L, self.sz, self.root, []
+        while True:
+            self._push(t)
+            ls = sz[L[t]]
+            if i == ls:
+                return t, path
+            path.append(t)
+            if i < ls:
+                t = L[t]
+            else:
+                i -= ls + 1
+                t = self.R[t]

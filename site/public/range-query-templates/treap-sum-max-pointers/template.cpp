@@ -35,168 +35,129 @@
 //   layout: none
 //   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N] sm[1*N] mx[1*N]
 //   tags: none
-//   other: alloc[2*N]
-//   note: N = the values in this treap; every node is allocated on its own (alloc: the allocator's per-node overhead), so cut / paste move nodes between treaps in O(log N) and erased nodes are freed; a treap frees its nodes when it goes out of scope (move-only)
+//   other: none
+//   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused); every ImplicitTreap<T> shares one node pool (cut / paste move nodes between them): resetPool() between test cases
 
-// Implicit treap: an array you can insert into / erase from anywhere, rotate, move ranges, and cut out into a treap
-// of its own / paste a treap into, each in O(logN) expected, plus point ops, rangeSum, rangeMax. All indices 0-based,
-// ranges inclusive [l, r], and an index always means the position in the CURRENT array. Nodes keep their values in
-// array order (an in-order walk); a node's position is the size of everything left of it. Lazy tags mean "already
-// applied to this node, not yet to its children".
+// Implicit treap with composable aggregates: an array you can insert into / erase from anywhere, rotate, move and cut
+// / paste between treaps in O(logN) expected each; each node keeps its sum, its max over its subtree. All indices
+// 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when
+// nothing qualifies.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct ImplicitTreap {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    struct Node {
-        T val;
-        unsigned long long pri;
-        Node *l = nullptr, *r = nullptr;
-        int sz = 1;
-        S sm;
-        T mx;
-        explicit Node(T v) : val(v), pri(rnd()), sm(v), mx(v) {}
-    };
-    Node* root = nullptr;
+    int root = 0;
+    // one node pool shared by every ImplicitTreap<T>: cut / paste move nodes between them (node 0 = the empty tree)
+    static inline vector<T> val{T(0)};
+    static inline vector<unsigned long long> pri{0};
+    static inline vector<int> L{0}, R{0}, sz{0};
+    static inline vector<S> sm{0};
+    static inline vector<T> mx{T(0)};
 
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
         return g();
     }
 
-    // O(1) -- an empty array
-    ImplicitTreap() {}
-
     // O(N) -- arr: the initial array (may be empty)
-    explicit ImplicitTreap(const vector<T>& arr) {
-        vector<Node*> stk;  // Cartesian tree on (position, priority) in one pass: the stack is the current right spine
-        for (const T& v : arr) {
-            Node *x = new Node(v), *last = nullptr;
-            while (!stk.empty() && stk.back()->pri < x->pri) last = stk.back(), stk.pop_back();
-            x->l = last;
-            if (!stk.empty()) stk.back()->r = x;
-            stk.push_back(x);
-        }
-        root = stk.empty() ? nullptr : stk[0];
-        vector<Node*> order, todo;
-        if (root) todo.push_back(root);
-        while (!todo.empty()) {  // pre-order; pulled in reverse, so children before parents
-            Node* x = todo.back();
-            todo.pop_back(), order.push_back(x);
-            if (x->l) todo.push_back(x->l);
-            if (x->r) todo.push_back(x->r);
-        }
-        for (int k = (int)order.size() - 1; k >= 0; k--) pull(order[k]);
-    }
+    explicit ImplicitTreap(const vector<T>& arr = {}) { root = build(arr); }
 
-    // a treap owns its nodes: it can be moved (cut returns one), not copied
-    ImplicitTreap(ImplicitTreap&& o) noexcept : root(o.root) { o.root = nullptr; }
-    ImplicitTreap& operator=(ImplicitTreap&& o) noexcept {
-        if (this != &o) destroy(root), root = o.root, o.root = nullptr;
-        return *this;
+    // O(1) -- forget every node of every ImplicitTreap<T> (call between test cases, then build new ones)
+    static void resetPool() {
+        val.resize(1);
+        pri.resize(1);
+        L.resize(1);
+        R.resize(1);
+        sz.resize(1);
+        sm.resize(1);
+        mx.resize(1);
     }
-    ImplicitTreap(const ImplicitTreap&) = delete;
-    ImplicitTreap& operator=(const ImplicitTreap&) = delete;
-    ~ImplicitTreap() { destroy(root); }
 
     // O(1) -- the current length of the array
-    int size() const { return sz(root); }
+    int size() const { return sz[root]; }
 
-    // O(logN) expected -- append v to the end (it becomes a[size()])
-    void append(T v) { root = merge(root, new Node(v)); }
+    // O(logN) expected -- append v to the end
+    void append(T v) { root = merge(root, newNode(v)); }
+
+    // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
+    void appendLeft(T v) { insertAt(0, v); }
 
     // O(logN) expected -- append all of other at the end; other is left empty
-    void concat(ImplicitTreap& other) {
-        root = merge(root, other.root);
-        other.root = nullptr;
-    }
+    void concat(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
 
-    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0 again); everything after
-    // it shifts left by r - l + 1
+    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0 again)
     ImplicitTreap cut(int l, int r) {
-        Node *a, *b, *c;
-        cut3(l, r, a, b, c);
+        int a, b, c;
+        cut(l, r, a, b, c);
         root = merge(a, c);
         ImplicitTreap piece;
         piece.root = b;
         return piece;
     }
 
-    // O(logN) expected -- remove a[l..r] (its nodes are freed: O(r - l + 1) more); everything after it shifts left
-    // by r - l + 1
+    // O(logN) expected -- remove a[l..r]
     void eraseRange(int l, int r) {
-        Node *a, *b, *c;
-        cut3(l, r, a, b, c);
-        destroy(b);
+        int a, b, c;
+        cut(l, r, a, b, c);
         root = merge(a, c);
     }
 
-    // O(N) -- the whole current array a[0..size()-1], every pending tag applied on the way
+    // O(N) -- the whole current array, every pending tag applied on the way
     vector<T> getAll() {
         vector<T> out;
         out.reserve(size());
-        vector<Node*> st;
-        Node* t = root;
+        vector<int> st;
+        int t = root;
         while (!st.empty() || t) {
-            while (t) st.push_back(t), t = t->l;
+            while (t) st.push_back(t), t = L[t];
             t = st.back(), st.pop_back();
-            out.push_back(t->val);
-            t = t->r;
+            out.push_back(val[t]);
+            t = R[t];
         }
         return out;
     }
 
     // O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
     void insertAt(int i, T v) {
-        Node *a, *c;
+        int a, c;
         split(root, i, a, c);
-        root = merge(merge(a, new Node(v)), c);
+        root = merge(merge(a, newNode(v)), c);
     }
 
-    // O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0): they are built as
-    // one treap in O(k), then spliced in
+    // O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
     void insertCopiesAt(int i, T v, long long k) {
         if (k <= 0) return;
-        Node *a, *c;
+        int a, c;
         split(root, i, a, c);
         root = merge(merge(a, build(vector<T>(k, v))), c);
     }
 
-    // O(logN) expected -- the first i in [l, r] with a[i] > x, or -1: a walk down a[l..r]'s tree, pruned by the
-    // subtree max
+    // O(logN) expected -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max)
     int leftmostGtX(int l, int r, T x) {
-        Node *a, *b, *c;
-        cut3(l, r, a, b, c);
-        int res = -1;
-        if (b && b->mx > x) {  // some value in a[l..r] passes
-            Node* t = b;
-            int i = 0;
+        int a, b, c;
+        cut(l, r, a, b, c);
+        int t = b, i = 0, res = -1;
+        if (t && mx[t] > x) {  // some value in a[l..r] passes
             while (true) {
-                if (t->l && t->l->mx > x) t = t->l;
-                else if (t->val > x) {
-                    res = l + i + sz(t->l);
-                    break;
-                } else i += sz(t->l) + 1, t = t->r;
+                if (L[t] && mx[L[t]] > x) t = L[t];
+                else if (val[t] > x) { res = l + i + sz[L[t]]; break; }
+                else i += sz[L[t]] + 1, t = R[t];
             }
         }
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- the first i in [l, r] with a[i] >= x, or -1: a walk down a[l..r]'s tree, pruned by the
-    // subtree max
+    // O(logN) expected -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max)
     int leftmostGteX(int l, int r, T x) {
-        Node *a, *b, *c;
-        cut3(l, r, a, b, c);
-        int res = -1;
-        if (b && b->mx >= x) {  // some value in a[l..r] passes
-            Node* t = b;
-            int i = 0;
+        int a, b, c;
+        cut(l, r, a, b, c);
+        int t = b, i = 0, res = -1;
+        if (t && mx[t] >= x) {  // some value in a[l..r] passes
             while (true) {
-                if (t->l && t->l->mx >= x) t = t->l;
-                else if (t->val >= x) {
-                    res = l + i + sz(t->l);
-                    break;
-                } else i += sz(t->l) + 1, t = t->r;
+                if (L[t] && mx[L[t]] >= x) t = L[t];
+                else if (val[t] >= x) { res = l + i + sz[L[t]]; break; }
+                else i += sz[L[t]] + 1, t = R[t];
             }
         }
         root = merge(merge(a, b), c);
@@ -204,64 +165,59 @@ struct ImplicitTreap {
     }
 
     // O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
-    // (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)
     void moveRange(int l, int r, int i) {
-        Node *a, *b, *c, *x, *y;
-        cut3(l, r, a, b, c);
+        int a, b, c, x, y;
+        cut(l, r, a, b, c);
         split(merge(a, c), i, x, y);
         root = merge(merge(x, b), y);
     }
 
-    // O(logN) expected -- insert all of other so it starts at a[i] (0 <= i <= size(); i = size() appends); other is
-    // left empty
+    // O(logN) expected -- insert all of other so it starts at a[i] (0 <= i <= size()); other is left empty
     void paste(int i, ImplicitTreap& other) {
-        Node *a, *c;
+        int a, c;
         split(root, i, a, c);
         root = merge(merge(a, other.root), c);
-        other.root = nullptr;
+        other.root = 0;
     }
 
     // O(logN) expected -- a[i] += v
     void pointAdd(int i, T v) {
-        vector<Node*> path;
-        Node* t = find(i, &path);
-        t->val = t->val + v;
+        vector<int> path;
+        int t = find(i, &path);
+        val[t] = val[t] + v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
     // O(logN) expected -- a[i] = v
     void pointAssign(int i, T v) {
-        vector<Node*> path;
-        Node* t = find(i, &path);
-        t->val = v;
+        vector<int> path;
+        int t = find(i, &path);
+        val[t] = v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
     // O(logN) expected -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) {
-        vector<Node*> path;
-        Node* t = find(i, &path);
-        t->val = max(t->val, v);
+        vector<int> path;
+        int t = find(i, &path);
+        val[t] = max(val[t], v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
     // O(logN) expected -- a[i] = min(a[i], v)
     void pointChmin(int i, T v) {
-        vector<Node*> path;
-        Node* t = find(i, &path);
-        t->val = min(t->val, v);
+        vector<int> path;
+        int t = find(i, &path);
+        val[t] = min(val[t], v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
     // O(logN) expected -- a[i]
-    T pointGet(int i) { return find(i)->val; }
-
-    // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
-    void appendLeft(T v) { insertAt(0, v); }
+    T pointGet(int i) { return val[find(i)]; }
 
     // O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
     T pop(int i) {
@@ -275,182 +231,158 @@ struct ImplicitTreap {
 
     // O(logN) expected -- max of a[l..r]
     T rangeMax(int l, int r) {
-        Node *a, *b, *c;
-        cut3(l, r, a, b, c);
-        T res = b->mx;
+        int a, b, c;
+        cut(l, r, a, b, c);
+        T res = mx[b];
         root = merge(merge(a, b), c);
         return res;
     }
 
     // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
     void rangeRotateLeft(int l, int r, long long k) {
-        Node *a, *b, *c;
-        int len = r - l + 1;
-        cut3(l, r, a, b, c);
+        int a, b, c, len = r - l + 1;
+        cut(l, r, a, b, c);
         k = ((k % len) + len) % len;
         if (k) {
-            Node *b1, *b2;
+            int b1, b2;
             split(b, (int)k, b1, b2);
             b = merge(b2, b1);
         }
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k,
-    // negative shifts left
+    // O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
     void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
 
     // O(logN) expected -- a[l] + ... + a[r]
     S rangeSum(int l, int r) {
-        Node *a, *b, *c;
-        cut3(l, r, a, b, c);
-        S res = b->sm;
+        int a, b, c;
+        cut(l, r, a, b, c);
+        S res = sm[b];
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- the last i in [l, r] with a[i] > x, or -1: a walk down a[l..r]'s tree, pruned by the
-    // subtree max
+    // O(logN) expected -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max)
     int rightmostGtX(int l, int r, T x) {
-        Node *a, *b, *c;
-        cut3(l, r, a, b, c);
-        int res = -1;
-        if (b && b->mx > x) {  // some value in a[l..r] passes
-            Node* t = b;
-            int i = 0;
+        int a, b, c;
+        cut(l, r, a, b, c);
+        int t = b, i = 0, res = -1;
+        if (t && mx[t] > x) {  // some value in a[l..r] passes
             while (true) {
-                if (t->r && t->r->mx > x) i += sz(t->l) + 1, t = t->r;
-                else if (t->val > x) {
-                    res = l + i + sz(t->l);
-                    break;
-                } else t = t->l;
+                if (R[t] && mx[R[t]] > x) i += sz[L[t]] + 1, t = R[t];
+                else if (val[t] > x) { res = l + i + sz[L[t]]; break; }
+                else t = L[t];
             }
         }
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- the last i in [l, r] with a[i] >= x, or -1: a walk down a[l..r]'s tree, pruned by the
-    // subtree max
+    // O(logN) expected -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max)
     int rightmostGteX(int l, int r, T x) {
-        Node *a, *b, *c;
-        cut3(l, r, a, b, c);
-        int res = -1;
-        if (b && b->mx >= x) {  // some value in a[l..r] passes
-            Node* t = b;
-            int i = 0;
+        int a, b, c;
+        cut(l, r, a, b, c);
+        int t = b, i = 0, res = -1;
+        if (t && mx[t] >= x) {  // some value in a[l..r] passes
             while (true) {
-                if (t->r && t->r->mx >= x) i += sz(t->l) + 1, t = t->r;
-                else if (t->val >= x) {
-                    res = l + i + sz(t->l);
-                    break;
-                } else t = t->l;
+                if (R[t] && mx[R[t]] >= x) i += sz[L[t]] + 1, t = R[t];
+                else if (val[t] >= x) { res = l + i + sz[L[t]]; break; }
+                else t = L[t];
             }
         }
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own (0 <= k <= size()); this one is left empty
+    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
     pair<ImplicitTreap, ImplicitTreap> split(int k) {
-        pair<ImplicitTreap, ImplicitTreap> res;
-        split(root, k, res.first.root, res.second.root);
-        root = nullptr;
-        return res;
+        ImplicitTreap left, right;
+        split(root, k, left.root, right.root);
+        root = 0;
+        return {left, right};
     }
 
     // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
     tuple<ImplicitTreap, ImplicitTreap, ImplicitTreap> trisect(int l, int r) {
-        tuple<ImplicitTreap, ImplicitTreap, ImplicitTreap> res;
-        cut3(l, r, get<0>(res).root, get<1>(res).root, get<2>(res).root);
-        root = nullptr;
-        return res;
+        ImplicitTreap left, mid, right;
+        cut(l, r, left.root, mid.root, right.root);
+        root = 0;
+        return {left, mid, right};
     }
 
     // ---- internals ----
 
-    static int sz(Node* x) { return x ? x->sz : 0; }
+    int newNode(T v) {
+        val.push_back(v), pri.push_back(rnd()), L.push_back(0), R.push_back(0), sz.push_back(1);
+        sm.push_back(S(v)), mx.push_back(v);
+        return (int)val.size() - 1;
+    }
 
-    static void destroy(Node* x) {  // free a whole subtree (iteratively: a long one would overflow the stack)
-        vector<Node*> st;
-        if (x) st.push_back(x);
-        while (!st.empty()) {
-            Node* y = st.back();
-            st.pop_back();
-            if (y->l) st.push_back(y->l);
-            if (y->r) st.push_back(y->r);
-            delete y;
+    // a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
+    int build(const vector<T>& vals) {
+        vector<int> stk, order, todo;
+        for (const T& v : vals) {
+            int x = newNode(v), last = 0;
+            while (!stk.empty() && pri[stk.back()] < pri[x]) last = stk.back(), stk.pop_back();
+            L[x] = last;
+            if (!stk.empty()) R[stk.back()] = x;
+            stk.push_back(x);
         }
+        int rt = stk.empty() ? 0 : stk[0];
+        if (rt) todo.push_back(rt);
+        while (!todo.empty()) {
+            int x = todo.back();
+            todo.pop_back(), order.push_back(x);
+            if (L[x]) todo.push_back(L[x]);
+            if (R[x]) todo.push_back(R[x]);
+        }
+        for (int k = (int)order.size() - 1; k >= 0; k--) pull(order[k]);
+        return rt;
     }
 
-    // recompute x from its children
-    static void pull(Node* x) {
-        Node *l = x->l, *r = x->r;
-        x->sz = 1 + sz(l) + sz(r);
-        x->sm = S(x->val) + (l ? l->sm : S(0)) + (r ? r->sm : S(0));
-        x->mx = x->val;
-        if (l) x->mx = max(x->mx, l->mx);
-        if (r) x->mx = max(x->mx, r->mx);
+    void pull(int x) {  // recompute x from its children
+        int l = L[x], r = R[x];
+        sz[x] = sz[l] + sz[r] + 1;
+        T v = val[x];
+        sm[x] = sm[l] + S(v) + sm[r];
+        mx[x] = v;
+        if (l && mx[l] > mx[x]) mx[x] = mx[l];
+        if (r && mx[r] > mx[x]) mx[x] = mx[r];
     }
 
-    // a = first k elements of t, b = the rest
-    static void split(Node* t, int k, Node*& a, Node*& b) {
-        if (!t) { a = b = nullptr; return; }
-        if (sz(t->l) >= k) split(t->l, k, a, t->l), b = t;
-        else split(t->r, k - sz(t->l) - 1, t->r, b), a = t;
+    void split(int t, int k, int& a, int& b) {  // a = first k of t, b = the rest
+        if (!t) { a = b = 0; return; }
+        if (sz[L[t]] >= k) split(L[t], k, a, L[t]), b = t;
+        else split(R[t], k - sz[L[t]] - 1, R[t], b), a = t;
         pull(t);
     }
 
-    // a's elements, then b's
-    static Node* merge(Node* a, Node* b) {
-        if (!a || !b) return a ? a : b;
-        if (a->pri > b->pri) {
-            a->r = merge(a->r, b);
+    int merge(int a, int b) {  // a's elements, then b's
+        if (!a || !b) return a | b;
+        if (pri[a] > pri[b]) {
+            R[a] = merge(R[a], b);
             pull(a);
             return a;
         }
-        b->l = merge(a, b->l);
+        L[b] = merge(a, L[b]);
         pull(b);
         return b;
     }
 
-    // a = a[0..l-1], b = a[l..r], c = a[r+1..] as three trees; put them back with merge(merge(a, b), c)
-    void cut3(int l, int r, Node*& a, Node*& b, Node*& c) {
+    void cut(int l, int r, int& a, int& b, int& c) {  // a[0..l-1], a[l..r], a[r+1..]
         split(root, l, a, b);
         split(b, r - l + 1, b, c);
     }
 
-    // the node holding a[i], with every tag on the way pushed; path (if given) gets the nodes above it
-    Node* find(int i, vector<Node*>* path = nullptr) {
-        Node* t = root;
+    int find(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
+        int t = root;
         while (true) {
-            int ls = sz(t->l);
+            int ls = sz[L[t]];
             if (i == ls) return t;
             if (path) path->push_back(t);
-            if (i < ls) t = t->l;
-            else i -= ls + 1, t = t->r;
+            if (i < ls) t = L[t];
+            else i -= ls + 1, t = R[t];
         }
-    }
-
-    // a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
-    static Node* build(const vector<T>& vals) {
-        vector<Node*> stk, order, todo;
-        for (const T& v : vals) {
-            Node *x = new Node(v), *last = nullptr;
-            while (!stk.empty() && stk.back()->pri < x->pri) last = stk.back(), stk.pop_back();
-            x->l = last;
-            if (!stk.empty()) stk.back()->r = x;
-            stk.push_back(x);
-        }
-        Node* rt = stk.empty() ? nullptr : stk[0];
-        if (rt) todo.push_back(rt);
-        while (!todo.empty()) {  // pre-order; pulled in reverse, so children before parents
-            Node* x = todo.back();
-            todo.pop_back(), order.push_back(x);
-            if (x->l) todo.push_back(x->l);
-            if (x->r) todo.push_back(x->r);
-        }
-        for (int k = (int)order.size() - 1; k >= 0; k--) pull(order[k]);
-        return rt;
     }
 };

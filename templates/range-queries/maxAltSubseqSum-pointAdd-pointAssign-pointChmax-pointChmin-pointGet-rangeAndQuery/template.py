@@ -1,0 +1,147 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery/template.py
+# @operations: getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery
+# @data-structure-type: seg-tree
+# @complexities:
+#   getAll: N
+#   maxAltSubseqSum: log(N)
+#   pointAdd: log(N)
+#   pointAssign: log(N)
+#   pointChmax: log(N)
+#   pointChmin: log(N)
+#   pointGet: log(N)
+#   rangeAndQuery: log(N)
+#   build: N
+# @memory:
+#   layout: 2n-iterative
+#   node: an[2*N] a00[2*N] a01[2*N] a10[2*N] a11[2*N]
+#   tags: none
+#   other: none
+#   note: leaves [n, 2n) hold each value's own aggregates
+
+# Segment tree with composable aggregates (2N iterative): point updates and range queries in O(logN); each node keeps
+# its AND, its best alternating (+ - + ...) subsequence sum for each start / end sign over its range. All indices
+# 0-based, ranges inclusive [l, r]; searches return -1 when nothing qualifies. Leaves tree[n..2n); a node used by a
+# query or update is a perfect subtree of 2^s leaves (s = its level); an update rewrites a leaf, then its ancestors.
+
+INF, NEG = float("inf"), float("-inf")
+
+
+def _altJoin(A, B):  # A's part, then B's: (++, +-, -+, --) = best by (start sign, end sign)
+    a0, a1, a2, a3 = A
+    b0, b1, b2, b3 = B
+    return (max(a0, b0, a0 + b2, a1 + b0), max(a1, b1, a0 + b3, a1 + b1),
+            max(a2, b2, a2 + b2, a3 + b0), max(a3, b3, a2 + b3, a3 + b1))
+
+
+class SegTree:
+    __slots__ = ('n', 'h', 'an', 'a00', 'a01', 'a10', 'a11')
+
+
+    # O(N) -- arr: the initial array (non-empty)
+    def __init__(self, arr):
+        n = self.n = len(arr)
+        self.h = n.bit_length()
+        self.an = [0] * n + list(arr)
+        self.a00 = [0] * n + list(arr)
+        self.a01 = [0] * n + [NEG] * n
+        self.a10 = [0] * n + [NEG] * n
+        self.a11 = [0] * n + [-v for v in arr]
+        for x in range(n - 1, 0, -1):
+            self._pull(x)
+
+    # O(N) -- the whole array
+    def getAll(self):
+        return self.an[self.n:]
+
+    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
+    def maxAltSubseqSum(self, l, r):
+        a00, a01, a10, a11 = self.a00, self.a01, self.a10, self.a11
+        ns = self._nodes(l, r)
+        t = ns[0][0]
+        c = (a00[t], a01[t], a10[t], a11[t])
+        for t, _ in ns[1:]:
+            c = _altJoin(c, (a00[t], a01[t], a10[t], a11[t]))
+        return max(c[0], c[1])
+
+    # O(logN) -- a[i] += v
+    def pointAdd(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, self._leaf(p) + v)
+        self._rebuild(p)
+
+    # O(logN) -- a[i] = v
+    def pointAssign(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, v)
+        self._rebuild(p)
+
+    # O(logN) -- a[i] = max(a[i], v)
+    def pointChmax(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, max(self._leaf(p), v))
+        self._rebuild(p)
+
+    # O(logN) -- a[i] = min(a[i], v)
+    def pointChmin(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, min(self._leaf(p), v))
+        self._rebuild(p)
+
+    # O(logN) -- a[i]
+    def pointGet(self, i):
+        p = i + self.n
+        return self._leaf(p)
+
+    # O(logN) -- a[l] & ... & a[r]
+    def rangeAndQuery(self, l, r):
+        n, an = self.n, self.an
+        res, lo, hi = -1, l + n, r + n + 1
+        while lo < hi:
+            if lo & 1:
+                res &= an[lo]
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                res &= an[hi]
+            lo >>= 1
+            hi >>= 1
+        return res
+
+    # ---- internals ----
+
+    def _setLeaf(self, p, v):  # leaf p holds v alone
+        self.an[p] = v
+        self.a00[p] = v
+        self.a01[p] = NEG
+        self.a10[p] = NEG
+        self.a11[p] = -v
+
+    def _leaf(self, p):  # the value at leaf p
+        return self.an[p]
+
+    def _pull(self, x):  # recompute node x from its children
+        a, b = 2 * x, 2 * x + 1
+        self.an[x] = self.an[a] & self.an[b]
+        self.a00[x], self.a01[x], self.a10[x], self.a11[x] = _altJoin((self.a00[a], self.a01[a], self.a10[a], self.a11[a]),
+                                                                      (self.a00[b], self.a01[b], self.a10[b], self.a11[b]))
+
+    def _rebuild(self, p):  # recompute every ancestor of leaf p
+        while p > 1:
+            p >>= 1
+            self._pull(p)
+
+    def _nodes(self, l, r):  # the O(logN) nodes covering a[l..r], left to right, each with its level
+        n = self.n
+        lo, hi, s, left, right = l + n, r + n + 1, 0, [], []
+        while lo < hi:
+            if lo & 1:
+                left.append((lo, s))
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                right.append((hi, s))
+            lo >>= 1
+            hi >>= 1
+            s += 1
+        return left + right[::-1]

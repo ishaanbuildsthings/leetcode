@@ -41,296 +41,222 @@
 #   layout: none
 #   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N] mn[1*N] mx[1*N]
 #   tags: rev[1*N]
-#   other: alloc[2*N]
-#   note: N = the values in this treap; every node is allocated on its own (alloc: the allocator's per-node overhead), so cut / paste move nodes between treaps in O(log N) and erased nodes are freed; node objects
+#   other: none
+#   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused); every ImplicitTreap<T> shares one node pool (cut / paste move nodes between them): resetPool() between test cases
 
-# Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate, move ranges, and cut out into a
-# treap of its own / paste a treap into, each in O(logN) expected, plus point ops, rangeMin, rangeMax. All indices
-# 0-based, ranges inclusive [l, r], and an index always means the position in the CURRENT array. Nodes keep their
-# values in array order (an in-order walk); a node's position is the size of everything left of it. Lazy tags mean
-# "already applied to this node, not yet to its children".
+# Implicit treap with composable aggregates: an array you can insert into / erase from anywhere, reverse, rotate, move
+# and cut / paste between treaps in O(logN) expected each; each node keeps its min, its max over its subtree. All
+# indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when
+# nothing qualifies. Lazy tags mean "already applied to this node, not yet to its children".
 import random
 
 
-class _Node:
-    __slots__ = ('val', 'pri', 'l', 'r', 'sz', 'rev', 'mn', 'mx')
-
-    def __init__(self, v):
-        self.val = v
-        self.pri = random.getrandbits(62)
-        self.l = self.r = None
-        self.sz = 1
-        self.rev = False
-        self.mn = v
-        self.mx = v
-
-
-def _pull(x):  # recompute x from its children
-    l, r = x.l, x.r
-    x.sz = 1 + (l.sz if l else 0) + (r.sz if r else 0)
-    m = x.val
-    if l and l.mn < m:
-        m = l.mn
-    if r and r.mn < m:
-        m = r.mn
-    x.mn = m
-    m = x.val
-    if l and l.mx > m:
-        m = l.mx
-    if r and r.mx > m:
-        m = r.mx
-    x.mx = m
-
-
-def _applyRev(x):
-    if x:
-        x.l, x.r = x.r, x.l
-        x.rev = not x.rev
-
-
-def _push(x):  # hand x's pending tags to its children
-    if x.rev:
-        _applyRev(x.l)
-        _applyRev(x.r)
-        x.rev = False
-
-
-def _split(t, k):  # (first k elements of t, the rest)
-    if not t:
-        return None, None
-    _push(t)
-    ls = t.l.sz if t.l else 0
-    if ls >= k:
-        a, t.l = _split(t.l, k)
-        _pull(t)
-        return a, t
-    t.r, b = _split(t.r, k - ls - 1)
-    _pull(t)
-    return t, b
-
-
-def _merge(a, b):  # a's elements, then b's
-    if not a or not b:
-        return a or b
-    if a.pri > b.pri:
-        _push(a)
-        a.r = _merge(a.r, b)
-        _pull(a)
-        return a
-    _push(b)
-    b.l = _merge(a, b.l)
-    _pull(b)
-    return b
-
-
 class ImplicitTreap:
+    # one node pool shared by every ImplicitTreap: cut / paste move nodes between them (node 0 = the empty tree)
+    val = [0]
+    pri = [0]
+    L = [0]
+    R = [0]
+    sz = [0]
+    mn = [0]
+    mx = [0]
+    rev = [0]
     __slots__ = ("root",)
 
     # O(N) -- arr: the initial array (may be empty)
     def __init__(self, arr=()):
-        stack = []  # Cartesian tree on (position, priority) in one pass: the stack is the current right spine
-        for v in arr:
-            x, last = _Node(v), None
-            while stack and stack[-1].pri < x.pri:
-                last = stack.pop()
-            x.l = last
-            if stack:
-                stack[-1].r = x
-            stack.append(x)
-        self.root = stack[0] if stack else None
-        order, todo = [], ([self.root] if self.root else [])
-        while todo:  # pre-order; pulled in reverse, so children before parents
-            x = todo.pop()
-            order.append(x)
-            if x.l:
-                todo.append(x.l)
-            if x.r:
-                todo.append(x.r)
-        for x in reversed(order):
-            _pull(x)
+        self.root = self._build(list(arr))
+
+    # O(1) -- forget every node of every ImplicitTreap (call between test cases, then build new ones)
+    @classmethod
+    def resetPool(cls):
+        del cls.val[1:]
+        del cls.pri[1:]
+        del cls.L[1:]
+        del cls.R[1:]
+        del cls.sz[1:]
+        del cls.mn[1:]
+        del cls.mx[1:]
+        del cls.rev[1:]
 
     # O(1) -- the current length of the array
     def size(self):
-        return self.root.sz if self.root else 0
+        return self.sz[self.root]
 
-    # O(logN) expected -- append v to the end (it becomes a[size()])
+    # O(logN) expected -- append v to the end
     def append(self, v):
-        self.root = _merge(self.root, _Node(v))
-
-    # O(logN) expected -- append all of other at the end; other is left empty
-    def concat(self, other):
-        self.root = _merge(self.root, other.root)
-        other.root = None
-
-    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0 again); everything after
-    # it shifts left by r - l + 1
-    def cut(self, l, r):
-        a, b, c = self._cut(l, r)
-        self.root = _merge(a, c)
-        piece = ImplicitTreap()
-        piece.root = b
-        return piece
-
-    # O(logN) expected -- remove a[l..r]; everything after it shifts left by r - l + 1
-    def eraseRange(self, l, r):
-        a, _, c = self._cut(l, r)
-        self.root = _merge(a, c)
-
-    # O(N) -- the whole current array a[0..size()-1], every pending tag applied on the way
-    def getAll(self):
-        out, stack, t = [], [], self.root
-        while stack or t:
-            while t:
-                _push(t)
-                stack.append(t)
-                t = t.l
-            t = stack.pop()
-            out.append(t.val)
-            t = t.r
-        return out
-
-    # O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
-    def insertAt(self, i, v):
-        a, c = _split(self.root, i)
-        self.root = _merge(_merge(a, _Node(v)), c)
-
-    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0): they are built as
-    # one treap in O(k), then spliced in
-    def insertCopiesAt(self, i, v, k):
-        if k <= 0:
-            return
-        a, c = _split(self.root, i)
-        self.root = _merge(_merge(a, _build([v] * k)), c)
-
-    # O(logN) expected -- the first i in [l, r] with a[i] > x, or -1: a walk down a[l..r]'s tree, pruned by the
-    # subtree max
-    def leftmostGtX(self, l, r, x):
-        a, b, c = self._cut(l, r)
-        t, i, res = b, 0, -1
-        if t and t.mx > x:  # some value in a[l..r] passes
-            while True:
-                _push(t)
-                if t.l and t.l.mx > x:
-                    t = t.l
-                elif t.val > x:
-                    res = l + i + (t.l.sz if t.l else 0)
-                    break
-                else:
-                    i += (t.l.sz if t.l else 0) + 1
-                    t = t.r
-        self.root = _merge(_merge(a, b), c)
-        return res
-
-    # O(logN) expected -- the first i in [l, r] with a[i] >= x, or -1: a walk down a[l..r]'s tree, pruned by the
-    # subtree max
-    def leftmostGteX(self, l, r, x):
-        a, b, c = self._cut(l, r)
-        t, i, res = b, 0, -1
-        if t and t.mx >= x:  # some value in a[l..r] passes
-            while True:
-                _push(t)
-                if t.l and t.l.mx >= x:
-                    t = t.l
-                elif t.val >= x:
-                    res = l + i + (t.l.sz if t.l else 0)
-                    break
-                else:
-                    i += (t.l.sz if t.l else 0) + 1
-                    t = t.r
-        self.root = _merge(_merge(a, b), c)
-        return res
-
-    # O(logN) expected -- the first i in [l, r] with a[i] < x, or -1: a walk down a[l..r]'s tree, pruned by the
-    # subtree min
-    def leftmostLtX(self, l, r, x):
-        a, b, c = self._cut(l, r)
-        t, i, res = b, 0, -1
-        if t and t.mn < x:  # some value in a[l..r] passes
-            while True:
-                _push(t)
-                if t.l and t.l.mn < x:
-                    t = t.l
-                elif t.val < x:
-                    res = l + i + (t.l.sz if t.l else 0)
-                    break
-                else:
-                    i += (t.l.sz if t.l else 0) + 1
-                    t = t.r
-        self.root = _merge(_merge(a, b), c)
-        return res
-
-    # O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1: a walk down a[l..r]'s tree, pruned by the
-    # subtree min
-    def leftmostLteX(self, l, r, x):
-        a, b, c = self._cut(l, r)
-        t, i, res = b, 0, -1
-        if t and t.mn <= x:  # some value in a[l..r] passes
-            while True:
-                _push(t)
-                if t.l and t.l.mn <= x:
-                    t = t.l
-                elif t.val <= x:
-                    res = l + i + (t.l.sz if t.l else 0)
-                    break
-                else:
-                    i += (t.l.sz if t.l else 0) + 1
-                    t = t.r
-        self.root = _merge(_merge(a, b), c)
-        return res
-
-    # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
-    # (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)
-    def moveRange(self, l, r, i):
-        a, b, c = self._cut(l, r)
-        x, y = _split(_merge(a, c), i)
-        self.root = _merge(_merge(x, b), y)
-
-    # O(logN) expected -- insert all of other so it starts at a[i] (0 <= i <= size(); i = size() appends); other is
-    # left empty
-    def paste(self, i, other):
-        a, c = _split(self.root, i)
-        self.root = _merge(_merge(a, other.root), c)
-        other.root = None
-
-    # O(logN) expected -- a[i] += v
-    def pointAdd(self, i, v):
-        t, path = self._find(i)
-        t.val = t.val + v
-        _pull(t)
-        for x in reversed(path):
-            _pull(x)
-
-    # O(logN) expected -- a[i] = v
-    def pointAssign(self, i, v):
-        t, path = self._find(i)
-        t.val = v
-        _pull(t)
-        for x in reversed(path):
-            _pull(x)
-
-    # O(logN) expected -- a[i] = max(a[i], v)
-    def pointChmax(self, i, v):
-        t, path = self._find(i)
-        t.val = max(t.val, v)
-        _pull(t)
-        for x in reversed(path):
-            _pull(x)
-
-    # O(logN) expected -- a[i] = min(a[i], v)
-    def pointChmin(self, i, v):
-        t, path = self._find(i)
-        t.val = min(t.val, v)
-        _pull(t)
-        for x in reversed(path):
-            _pull(x)
-
-    # O(logN) expected -- a[i]
-    def pointGet(self, i):
-        return self._find(i)[0].val
+        self.root = self._merge(self.root, self._newNode(v))
 
     # O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     def appendLeft(self, v):
         self.insertAt(0, v)
+
+    # O(logN) expected -- append all of other at the end; other is left empty
+    def concat(self, other):
+        self.root = self._merge(self.root, other.root)
+        other.root = 0
+
+    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0 again)
+    def cut(self, l, r):
+        a, b, c = self._cut(l, r)
+        self.root = self._merge(a, c)
+        piece = ImplicitTreap()
+        piece.root = b
+        return piece
+
+    # O(logN) expected -- remove a[l..r]
+    def eraseRange(self, l, r):
+        a, _, c = self._cut(l, r)
+        self.root = self._merge(a, c)
+
+    # O(N) -- the whole current array, every pending tag applied on the way
+    def getAll(self):
+        L, R, val = self.L, self.R, self.val
+        out, stack, t = [], [], self.root
+        while stack or t:
+            while t:
+                self._push(t)
+                stack.append(t)
+                t = L[t]
+            t = stack.pop()
+            out.append(val[t])
+            t = R[t]
+        return out
+
+    # O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    def insertAt(self, i, v):
+        a, c = self._split(self.root, i)
+        self.root = self._merge(self._merge(a, self._newNode(v)), c)
+
+    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    def insertCopiesAt(self, i, v, k):
+        if k > 0:
+            a, c = self._split(self.root, i)
+            self.root = self._merge(self._merge(a, self._build([v] * k)), c)
+
+    # O(logN) expected -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max)
+    def leftmostGtX(self, l, r, x):
+        a, b, c = self._cut(l, r)
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
+        t, i, res = b, 0, -1
+        if t and F[t] > x:  # some value in a[l..r] passes
+            while True:
+                self._push(t)
+                if L[t] and F[L[t]] > x:
+                    t = L[t]
+                elif val[t] > x:
+                    res = l + i + sz[L[t]]
+                    break
+                else:
+                    i += sz[L[t]] + 1
+                    t = R[t]
+        self._join(a, b, c)
+        return res
+
+    # O(logN) expected -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max)
+    def leftmostGteX(self, l, r, x):
+        a, b, c = self._cut(l, r)
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
+        t, i, res = b, 0, -1
+        if t and F[t] >= x:  # some value in a[l..r] passes
+            while True:
+                self._push(t)
+                if L[t] and F[L[t]] >= x:
+                    t = L[t]
+                elif val[t] >= x:
+                    res = l + i + sz[L[t]]
+                    break
+                else:
+                    i += sz[L[t]] + 1
+                    t = R[t]
+        self._join(a, b, c)
+        return res
+
+    # O(logN) expected -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min)
+    def leftmostLtX(self, l, r, x):
+        a, b, c = self._cut(l, r)
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
+        t, i, res = b, 0, -1
+        if t and F[t] < x:  # some value in a[l..r] passes
+            while True:
+                self._push(t)
+                if L[t] and F[L[t]] < x:
+                    t = L[t]
+                elif val[t] < x:
+                    res = l + i + sz[L[t]]
+                    break
+                else:
+                    i += sz[L[t]] + 1
+                    t = R[t]
+        self._join(a, b, c)
+        return res
+
+    # O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min)
+    def leftmostLteX(self, l, r, x):
+        a, b, c = self._cut(l, r)
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
+        t, i, res = b, 0, -1
+        if t and F[t] <= x:  # some value in a[l..r] passes
+            while True:
+                self._push(t)
+                if L[t] and F[L[t]] <= x:
+                    t = L[t]
+                elif val[t] <= x:
+                    res = l + i + sz[L[t]]
+                    break
+                else:
+                    i += sz[L[t]] + 1
+                    t = R[t]
+        self._join(a, b, c)
+        return res
+
+    # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
+    def moveRange(self, l, r, i):
+        a, b, c = self._cut(l, r)
+        x, y = self._split(self._merge(a, c), i)
+        self.root = self._merge(self._merge(x, b), y)
+
+    # O(logN) expected -- insert all of other so it starts at a[i] (0 <= i <= size()); other is left empty
+    def paste(self, i, other):
+        a, c = self._split(self.root, i)
+        self.root = self._merge(self._merge(a, other.root), c)
+        other.root = 0
+
+    # O(logN) expected -- a[i] += v
+    def pointAdd(self, i, v):
+        t, path = self._find(i)
+        self.val[t] = self.val[t] + v
+        self._pull(t)
+        for x in reversed(path):
+            self._pull(x)
+
+    # O(logN) expected -- a[i] = v
+    def pointAssign(self, i, v):
+        t, path = self._find(i)
+        self.val[t] = v
+        self._pull(t)
+        for x in reversed(path):
+            self._pull(x)
+
+    # O(logN) expected -- a[i] = max(a[i], v)
+    def pointChmax(self, i, v):
+        t, path = self._find(i)
+        self.val[t] = max(self.val[t], v)
+        self._pull(t)
+        for x in reversed(path):
+            self._pull(x)
+
+    # O(logN) expected -- a[i] = min(a[i], v)
+    def pointChmin(self, i, v):
+        t, path = self._find(i)
+        self.val[t] = min(self.val[t], v)
+        self._pull(t)
+        for x in reversed(path):
+            self._pull(x)
+
+    # O(logN) expected -- a[i]
+    def pointGet(self, i):
+        return self.val[self._find(i)[0]]
 
     # O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
     def pop(self, i):
@@ -345,170 +271,237 @@ class ImplicitTreap:
     # O(logN) expected -- max of a[l..r]
     def rangeMax(self, l, r):
         a, b, c = self._cut(l, r)
-        res = b.mx
-        self.root = _merge(_merge(a, b), c)
+        res = self.mx[b]
+        self._join(a, b, c)
         return res
 
     # O(logN) expected -- min of a[l..r]
     def rangeMin(self, l, r):
         a, b, c = self._cut(l, r)
-        res = b.mn
-        self.root = _merge(_merge(a, b), c)
+        res = self.mn[b]
+        self._join(a, b, c)
         return res
 
     # O(logN) expected -- reverse a[l..r] in place
     def rangeReverse(self, l, r):
         a, b, c = self._cut(l, r)
-        _applyRev(b)
-        self.root = _merge(_merge(a, b), c)
+        self._applyRev(b)
+        self._join(a, b, c)
 
     # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1
         if k:
-            b1, b2 = _split(b, k)
-            b = _merge(b2, b1)
-        self.root = _merge(_merge(a, b), c)
+            b1, b2 = self._split(b, k)
+            b = self._merge(b2, b1)
+        self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] right by k (a[r - k + 1..r] move to the front); any integer k,
-    # negative shifts left
+    # O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 
-    # O(logN) expected -- the last i in [l, r] with a[i] > x, or -1: a walk down a[l..r]'s tree, pruned by the
-    # subtree max
+    # O(logN) expected -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max)
     def rightmostGtX(self, l, r, x):
         a, b, c = self._cut(l, r)
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
         t, i, res = b, 0, -1
-        if t and t.mx > x:  # some value in a[l..r] passes
+        if t and F[t] > x:  # some value in a[l..r] passes
             while True:
-                _push(t)
-                if t.r and t.r.mx > x:
-                    i += (t.l.sz if t.l else 0) + 1
-                    t = t.r
-                elif t.val > x:
-                    res = l + i + (t.l.sz if t.l else 0)
+                self._push(t)
+                if R[t] and F[R[t]] > x:
+                    i += sz[L[t]] + 1
+                    t = R[t]
+                elif val[t] > x:
+                    res = l + i + sz[L[t]]
                     break
                 else:
-                    t = t.l
-        self.root = _merge(_merge(a, b), c)
+                    t = L[t]
+        self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the last i in [l, r] with a[i] >= x, or -1: a walk down a[l..r]'s tree, pruned by the
-    # subtree max
+    # O(logN) expected -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max)
     def rightmostGteX(self, l, r, x):
         a, b, c = self._cut(l, r)
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
         t, i, res = b, 0, -1
-        if t and t.mx >= x:  # some value in a[l..r] passes
+        if t and F[t] >= x:  # some value in a[l..r] passes
             while True:
-                _push(t)
-                if t.r and t.r.mx >= x:
-                    i += (t.l.sz if t.l else 0) + 1
-                    t = t.r
-                elif t.val >= x:
-                    res = l + i + (t.l.sz if t.l else 0)
+                self._push(t)
+                if R[t] and F[R[t]] >= x:
+                    i += sz[L[t]] + 1
+                    t = R[t]
+                elif val[t] >= x:
+                    res = l + i + sz[L[t]]
                     break
                 else:
-                    t = t.l
-        self.root = _merge(_merge(a, b), c)
+                    t = L[t]
+        self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the last i in [l, r] with a[i] < x, or -1: a walk down a[l..r]'s tree, pruned by the
-    # subtree min
+    # O(logN) expected -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min)
     def rightmostLtX(self, l, r, x):
         a, b, c = self._cut(l, r)
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
         t, i, res = b, 0, -1
-        if t and t.mn < x:  # some value in a[l..r] passes
+        if t and F[t] < x:  # some value in a[l..r] passes
             while True:
-                _push(t)
-                if t.r and t.r.mn < x:
-                    i += (t.l.sz if t.l else 0) + 1
-                    t = t.r
-                elif t.val < x:
-                    res = l + i + (t.l.sz if t.l else 0)
+                self._push(t)
+                if R[t] and F[R[t]] < x:
+                    i += sz[L[t]] + 1
+                    t = R[t]
+                elif val[t] < x:
+                    res = l + i + sz[L[t]]
                     break
                 else:
-                    t = t.l
-        self.root = _merge(_merge(a, b), c)
+                    t = L[t]
+        self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1: a walk down a[l..r]'s tree, pruned by the
-    # subtree min
+    # O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min)
     def rightmostLteX(self, l, r, x):
         a, b, c = self._cut(l, r)
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
         t, i, res = b, 0, -1
-        if t and t.mn <= x:  # some value in a[l..r] passes
+        if t and F[t] <= x:  # some value in a[l..r] passes
             while True:
-                _push(t)
-                if t.r and t.r.mn <= x:
-                    i += (t.l.sz if t.l else 0) + 1
-                    t = t.r
-                elif t.val <= x:
-                    res = l + i + (t.l.sz if t.l else 0)
+                self._push(t)
+                if R[t] and F[R[t]] <= x:
+                    i += sz[L[t]] + 1
+                    t = R[t]
+                elif val[t] <= x:
+                    res = l + i + sz[L[t]]
                     break
                 else:
-                    t = t.l
-        self.root = _merge(_merge(a, b), c)
+                    t = L[t]
+        self._join(a, b, c)
         return res
 
-    # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own (0 <= k <= size()); this one is left empty
+    # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
     def split(self, k):
         left, right = ImplicitTreap(), ImplicitTreap()
-        left.root, right.root = _split(self.root, k)
-        self.root = None
+        left.root, right.root = self._split(self.root, k)
+        self.root = 0
         return left, right
 
     # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
     def trisect(self, l, r):
         left, mid, right = ImplicitTreap(), ImplicitTreap(), ImplicitTreap()
         left.root, mid.root, right.root = self._cut(l, r)
-        self.root = None
+        self.root = 0
         return left, mid, right
 
     # ---- internals ----
 
-    # (a[0..l-1], a[l..r], a[r+1..]) as three trees
-    def _cut(self, l, r):
-        a, b = _split(self.root, l)
-        b, c = _split(b, r - l + 1)
+    def _newNode(self, v):
+        x = len(self.val)
+        self.val.append(v)
+        self.pri.append(random.getrandbits(62))
+        self.L.append(0)
+        self.R.append(0)
+        self.sz.append(1)
+        self.mn.append(v)
+        self.mx.append(v)
+        self.rev.append(0)
+        return x
+
+    # a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
+    def _build(self, vals):
+        pri, L, R = self.pri, self.L, self.R
+        stack = []
+        for v in vals:
+            x, last = self._newNode(v), 0
+            while stack and pri[stack[-1]] < pri[x]:
+                last = stack.pop()
+            L[x] = last
+            if stack:
+                R[stack[-1]] = x
+            stack.append(x)
+        root = stack[0] if stack else 0
+        order, todo = [], ([root] if root else [])
+        while todo:
+            x = todo.pop()
+            order.append(x)
+            if L[x]:
+                todo.append(L[x])
+            if R[x]:
+                todo.append(R[x])
+        for x in reversed(order):
+            self._pull(x)
+        return root
+
+    def _pull(self, x):  # recompute x from its children
+        l, r = self.L[x], self.R[x]
+        self.sz[x] = self.sz[l] + self.sz[r] + 1
+        v = self.val[x]
+        m = v
+        if l and self.mn[l] < m:
+            m = self.mn[l]
+        if r and self.mn[r] < m:
+            m = self.mn[r]
+        self.mn[x] = m
+        m = v
+        if l and self.mx[l] > m:
+            m = self.mx[l]
+        if r and self.mx[r] > m:
+            m = self.mx[r]
+        self.mx[x] = m
+
+    def _applyRev(self, x):  # reverse x's subtree
+        if x:
+            self.L[x], self.R[x] = self.R[x], self.L[x]
+            self.rev[x] ^= 1
+
+    def _push(self, x):  # hand x's pending tags to its children
+        if self.rev[x]:
+            self._applyRev(self.L[x])
+            self._applyRev(self.R[x])
+            self.rev[x] = 0
+
+    def _split(self, t, k):  # (first k of t, the rest)
+        if not t:
+            return 0, 0
+        self._push(t)
+        L, R = self.L, self.R
+        if self.sz[L[t]] >= k:
+            a, L[t] = self._split(L[t], k)
+            self._pull(t)
+            return a, t
+        R[t], b = self._split(R[t], k - self.sz[L[t]] - 1)
+        self._pull(t)
+        return t, b
+
+    def _merge(self, a, b):  # a's elements, then b's
+        if not a or not b:
+            return a or b
+        if self.pri[a] > self.pri[b]:
+            self._push(a)
+            self.R[a] = self._merge(self.R[a], b)
+            self._pull(a)
+            return a
+        self._push(b)
+        self.L[b] = self._merge(a, self.L[b])
+        self._pull(b)
+        return b
+
+    def _cut(self, l, r):  # (a[0..l-1], a[l..r], a[r+1..])
+        a, b = self._split(self.root, l)
+        b, c = self._split(b, r - l + 1)
         return a, b, c
 
-    # (node holding a[i], the nodes above it), with every tag on the way pushed
-    def _find(self, i):
-        t, path = self.root, []
+    def _join(self, a, b, c):
+        self.root = self._merge(self._merge(a, b), c)
+
+    def _find(self, i):  # (node holding a[i], the nodes above it), every tag on the way pushed
+        L, sz, t, path = self.L, self.sz, self.root, []
         while True:
-            _push(t)
-            ls = t.l.sz if t.l else 0
+            self._push(t)
+            ls = sz[L[t]]
             if i == ls:
                 return t, path
             path.append(t)
             if i < ls:
-                t = t.l
+                t = L[t]
             else:
                 i -= ls + 1
-                t = t.r
-
-
-def _build(vals):  # a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
-    stack = []
-    for v in vals:
-        x, last = _Node(v), None
-        while stack and stack[-1].pri < x.pri:
-            last = stack.pop()
-        x.l = last
-        if stack:
-            stack[-1].r = x
-        stack.append(x)
-    root = stack[0] if stack else None
-    order, todo = [], ([root] if root else [])
-    while todo:  # pre-order; pulled in reverse, so children before parents
-        x = todo.pop()
-        order.append(x)
-        if x.l:
-            todo.append(x.l)
-        if x.r:
-            todo.append(x.r)
-    for x in reversed(order):
-        _pull(x)
-    return root
+                t = self.R[t]

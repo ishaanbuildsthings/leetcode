@@ -28,9 +28,9 @@
 #   other: none
 #   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
 
-# Implicit treap: an array you can insert into / erase from anywhere, rotate and move ranges, each in O(logN)
-# expected; each node keeps its subtree's AND. All indices 0-based, ranges inclusive [l, r], an index always the
-# position in the CURRENT array.
+# Implicit treap with composable aggregates: an array you can insert into / erase from anywhere, rotate, move in
+# O(logN) expected each; each node keeps its AND over its subtree. All indices 0-based, ranges inclusive [l, r], an
+# index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 import random
 
 
@@ -41,7 +41,7 @@ class ImplicitTreap:
     def __init__(self, arr):
         self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
         self.an = [-1]
-        self.root = self._build([v for v in arr])
+        self.root = self._build(list(arr))
 
     # O(1) -- the current length of the array
     def size(self):
@@ -93,7 +93,7 @@ class ImplicitTreap:
     # O(logN) expected -- a[i] += v
     def pointAdd(self, i, v):
         t, path = self._find(i)
-        self.val[t] = (self.val[t] + v)
+        self.val[t] = self.val[t] + v
         self._pull(t)
         for x in reversed(path):
             self._pull(x)

@@ -2,7 +2,6 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/append-appendLeft-eraseRange-insertAt-insertCopiesAt-isRBS-moveRange-pointAssign-pointGet-pop-popLeft-rangeRotateLeft-rangeRotateRight/template.py
 # @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt isRBS moveRange pointAssign pointGet pop popLeft rangeRotateLeft rangeRotateRight
 # @data-structure-type: treap
-# @letters: same
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected

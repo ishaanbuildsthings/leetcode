@@ -21,6 +21,7 @@ Each template.cpp is compiled with T = long long and also explicitly instantiate
 import bisect
 import importlib.util
 import inspect
+import hashlib
 import math
 import os
 import random
@@ -1145,7 +1146,8 @@ def code(v):  # a value as the C++ driver reads it: characters go in as their co
 def run_cpp(folder, ops, trials, ctor_extra, cxx, stem="template", chars=False):
     path = os.path.join(DIR, folder, f"{stem}.cpp")
     os.makedirs(BUILD, exist_ok=True)
-    src = os.path.join(BUILD, (folder[:140] + ("" if stem == "template" else "__" + stem)) + ".cpp")
+    tag = hashlib.md5(folder.encode()).hexdigest()[:8] if len(folder) > 140 else ""  # (long names cut short stay distinct)
+    src = os.path.join(BUILD, (folder[:140] + tag + ("" if stem == "template" else "__" + stem) + ("__chars" if chars else "")) + ".cpp")
     exe = src[:-4]
     open(src, "w").write(cpp_driver(folder, ops, cpp_structs(path), ctor_extra, stem, chars))
     comp = subprocess.run([cxx, "-std=c++17", "-O2", "-Wall", "-o", exe, src], capture_output=True, text=True)
@@ -1180,6 +1182,11 @@ def main():
     if "--trials" in args:
         trials_n = int(args[args.index("--trials") + 1])
         args = [x for k, x in enumerate(args) if x != "--trials" and (k == 0 or args[k - 1] != "--trials")]
+    exact = None
+    if "--from" in args:  # --from FILE: exactly the folders listed in FILE (one per line)
+        k = args.index("--from")
+        exact = set(open(args[k + 1]).read().split())
+        args = args[:k] + args[k + 2:]
     letters = "--letters" in args
     filters = [x for x in args if not x.startswith("--")]
     cxx = find_cxx() if want_cpp else None
@@ -1190,6 +1197,8 @@ def main():
     folders = sorted(f for f in os.listdir(DIR) if os.path.isdir(os.path.join(DIR, f)))
     if filters:
         folders = [f for f in folders if any(x in f for x in filters)]
+    if exact is not None:
+        folders = [f for f in folders if f in exact]
     failed, total_queries = [], 0
     for folder in folders:
         py = os.path.join(DIR, folder, "template.py")

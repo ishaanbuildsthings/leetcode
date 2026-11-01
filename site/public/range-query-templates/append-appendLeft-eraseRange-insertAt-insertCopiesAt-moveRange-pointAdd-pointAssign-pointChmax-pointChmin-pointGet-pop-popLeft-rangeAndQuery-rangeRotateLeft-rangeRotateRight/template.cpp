@@ -28,17 +28,17 @@
 //   other: none
 //   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
 
-// Implicit treap: an array you can insert into / erase from anywhere, rotate and move ranges, each in O(logN)
-// expected; each node keeps its subtree's AND. All indices 0-based, ranges inclusive [l, r], an index always the
-// position in the CURRENT array.
+// Implicit treap with composable aggregates: an array you can insert into / erase from anywhere, rotate, move in
+// O(logN) expected each; each node keeps its AND over its subtree. All indices 0-based, ranges inclusive [l, r], an
+// index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 // T: int, long long, ...
 template <typename T>
 struct ImplicitTreap {
     int root = 0;
-    vector<T> val{T(0)};  // node 0 is the empty tree
+    vector<T> val{T(0)};
     vector<unsigned long long> pri{0};
     vector<int> L{0}, R{0}, sz{0};
-    vector<T> an{~T(0)};  // AND of the subtree (node 0: of nothing)
+    vector<T> an{~T(0)};
 
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
@@ -46,9 +46,7 @@ struct ImplicitTreap {
     }
 
     // O(N) -- arr: the initial array (may be empty)
-    explicit ImplicitTreap(const vector<T>& arr) {
-        root = build(arr);
-    }
+    explicit ImplicitTreap(const vector<T>& arr = {}) { root = build(arr); }
 
     // O(1) -- the current length of the array
     int size() const { return sz[root]; }
@@ -69,6 +67,7 @@ struct ImplicitTreap {
     // O(N) -- the whole current array, every pending tag applied on the way
     vector<T> getAll() {
         vector<T> out;
+        out.reserve(size());
         vector<int> st;
         int t = root;
         while (!st.empty() || t) {
@@ -210,7 +209,8 @@ struct ImplicitTreap {
     void pull(int x) {  // recompute x from its children
         int l = L[x], r = R[x];
         sz[x] = sz[l] + sz[r] + 1;
-        an[x] = an[l] & val[x] & an[r];
+        T v = val[x];
+        an[x] = an[l] & v & an[r];  // (node 0: the AND of nothing, ~0)
     }
 
     void split(int t, int k, int& a, int& b) {  // a = first k of t, b = the rest

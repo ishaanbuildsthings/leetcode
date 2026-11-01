@@ -53,9 +53,35 @@ def dominates(y, x):
     return strict
 
 
-def main():
+def load_manifest():
+    """the templates in the site's compact manifest (tables + one row per template), as dicts like decodeRangeTemplates"""
     src = open(MANIFEST).read()
-    templates = json.loads(src[src.index("= [") + 2: src.rindex("]") + 1])
+    t = {}
+    for name in ("RANGE_OP_NAMES", "RANGE_COSTS", "RANGE_OP_LISTS", "RANGE_COST_LISTS", "RANGE_MEMORIES", "RANGE_TEMPLATE_ROWS"):
+        start = src.index("= ", src.index(f"export const {name}")) + 2
+        body = src[start: src.index(";\n", start)].strip()
+        t[name] = json.loads(re.sub(r",\s*\]$", "]", body))
+    lists = [[t["RANGE_OP_NAMES"][i] for i in l] for l in t["RANGE_OP_LISTS"]]
+
+    def unpack(lst, cl, build, mem):
+        ops = lists[lst]
+        return {"operations": ops, "complexities": {op: t["RANGE_COSTS"][c] for op, c in zip(ops, t["RANGE_COST_LISTS"][cl])},
+                "build": t["RANGE_COSTS"][build], "memory": t["RANGE_MEMORIES"][mem]}
+    out = []
+    for folder, langs, typ, flags, url, lst, cl, build, mem, sparse, letters in t["RANGE_TEMPLATE_ROWS"]:
+        d = {"folder": folder, "langs": langs.split(), "dataStructureType": typ, **unpack(lst, cl, build, mem)}
+        if "o" in flags:
+            d["valuesOffline"] = True
+        if "f" in flags or "F" in flags:
+            d["fractionalCascading"] = "f" in flags
+        if sparse:
+            d["sparse"] = {"langs": sparse[0].split(), **unpack(*sparse[1:5])}
+        out.append(d)
+    return out
+
+
+def main():
+    templates = load_manifest()
     picker = open(PICKER).read()
     start = picker.index("export type OpId")
     picker_ops = set(re.findall(r'"(\w+)"', picker[start: picker.index(";", start)]))

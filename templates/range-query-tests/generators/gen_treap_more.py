@@ -45,16 +45,7 @@ IDENT = {"mn": "0", "mx": "0", "mnS": "0", "mxS": "0", "flp": "0", "sm": "0", "p
 def variants():
     """(kind, spec) for every variant: maxsub fields / assign, bitwise queries / updates, affine tags; each with rev or not"""
     out = []
-    for rev in (False, True):
-        for F in (("pre",), ("suf",), ("pre", "suf"), ("pre", "suf", "best")):
-            if rev and len(F) == 1:
-                continue  # a reverse swaps prefix and suffix: it needs both
-            for asg in (False, True):
-                out.append(("maxsub", dict(rev=rev, F=F, asg=asg)))
-        for Q in (("an",), ("orr",), ("an", "orr")):
-            for k in range(4):
-                for U in itertools.combinations(("and", "or", "assign"), k):
-                    out.append(("bitwise", dict(rev=rev, Q=Q, U=U)))
+    for rev in (False, True):  # (max-subarray and bitwise treaps: gen_treap_algebra.py, mixable with every other aggregate)
         for aff in ("add", "mult", "full"):
             out.append(("affine", dict(rev=rev, aff=aff)))
         for k in range(3):

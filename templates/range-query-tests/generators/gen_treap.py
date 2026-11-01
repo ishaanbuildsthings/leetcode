@@ -1646,6 +1646,12 @@ def folder_for(ops, vals, H, upd, rev, ptr):
 
 
 def main():
+    """Superseded: gen_treap_algebra.py writes every one of these treaps (and their mixes with more aggregates). Kept for
+    the shared helpers above (wrap, no_push, the hash text) and as the reference for the pointer-node layout."""
+    raise SystemExit("gen_treap.py's treaps are written by gen_treap_algebra.py now; run that instead")
+
+
+def _old_main():
     for d in os.listdir(DIR):  # this generator's treap folders are regenerated (names follow the op lists)
         t = os.path.join(DIR, d, "template.py")
         if os.path.exists(t):

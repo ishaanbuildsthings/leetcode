@@ -91,7 +91,7 @@ def _prose(t):
 
 
 def own_pool(text):
-    if "resetPool" not in text:
+    if "resetPool" not in text or "move nodes between them" in text:  # (cut / paste treaps: pieces move between treaps)
         return text
     # the pool arrays: "static inline vector<T> a, b{0};" lines
     names = set()

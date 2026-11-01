@@ -110,10 +110,16 @@ def letters_pass(folder, ops, stem, cpp_stem=None):
 
 
 def main():
-    filters = [a for a in sys.argv[1:] if not a.startswith("--")]
+    args = sys.argv[1:]
+    exact = None
+    if "--from" in args:  # --from FILE: exactly the folders listed in FILE (one per line)
+        k = args.index("--from")
+        exact = set(open(args[k + 1]).read().split())
+        args = args[:k] + args[k + 2:]
+    filters = [a for a in args if not a.startswith("--")]
     same = made = numbers = 0
     for folder in sorted(os.listdir(DIR)):
-        if filters and not any(f in folder for f in filters):
+        if filters and not any(f in folder for f in filters) or exact is not None and folder not in exact:
             continue
         base = os.path.join(DIR, folder)
         py, cpp = os.path.join(base, "template.py"), os.path.join(base, "template.cpp")
