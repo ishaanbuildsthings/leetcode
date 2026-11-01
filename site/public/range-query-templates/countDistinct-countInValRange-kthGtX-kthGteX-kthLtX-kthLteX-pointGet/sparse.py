@@ -226,7 +226,11 @@ class MergeSortTree:
 
     # O(log n) — count elements in value range [valLow, valHigh] (inclusive) in index range [ql, qr]
     def countInValRange(self, ql, qr, valLow, valHigh):
-        return self.countLteX(ql, qr, valHigh) - self.countLteX(ql, qr, valLow - 1)
+        ql, qr = max(ql, 0), min(qr, self.n - 1)
+        if ql > qr or valHigh < valLow:
+            return 0
+        # (<= valHigh) - (< valLow), with "< valLow" as the range minus ">= valLow": no valLow - 1, so any values work
+        return self.countLteX(ql, qr, valHigh) - (qr - ql + 1 - self.countGteX(ql, qr, valLow))
 
     # --- find k-th by position ---
 

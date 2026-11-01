@@ -1,16 +1,20 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
-// @operations: countOccurrences getAll pointAdd pointAssign pointChmax pointChmin pointGet
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-leftmostIndexOf-leftmostIndexOfInRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rightmostIndexOf-rightmostIndexOfInRange/template.cpp
+// @operations: countOccurrences getAll leftmostIndexOf leftmostIndexOfInRange pointAdd pointAssign pointChmax pointChmin pointGet rightmostIndexOf rightmostIndexOfInRange
 // @data-structure-type: positions
 // @letters: same
 // @complexities:
 //   countOccurrences: log(N)
 //   getAll: N
+//   leftmostIndexOf: log(N)
+//   leftmostIndexOfInRange: log(N)
 //   pointAdd: log(N)
 //   pointAssign: log(N)
 //   pointChmax: log(N)
 //   pointChmin: log(N)
 //   pointGet: 1
+//   rightmostIndexOf: log(N)
+//   rightmostIndexOfInRange: log(N)
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -19,7 +23,8 @@
 //   other: a[1*N]
 //   note: pos maps each value to its sorted indices (an order-statistics tree per value)
 
-// "How many times does x appear in a[l..r]?" with point updates. All indices 0-based, ranges inclusive.
+// "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?", with point updates.
+// All indices 0-based, ranges inclusive.
 // Each value keeps its indices in an order-statistics tree (GCC pb_ds), so a query is two order_of_key calls and an
 // assign moves one index from the old value's tree to the new one's. T: any type usable as a std::map key.
 #include <ext/pb_ds/assoc_container.hpp>
@@ -42,6 +47,36 @@ struct DynamicOccurrenceLists {
         auto it = pos.find(x);
         if (it == pos.end() || l > r) return 0;
         return int(it->second.order_of_key(r + 1) - it->second.order_of_key(l));
+    }
+
+    // O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array
+    int leftmostIndexOf(const T& x) const {
+        auto it = pos.find(x);
+        return it == pos.end() ? -1 : *it->second.begin();
+    }
+
+    // O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
+    int rightmostIndexOf(const T& x) const {
+        auto it = pos.find(x);
+        return it == pos.end() ? -1 : *it->second.rbegin();
+    }
+
+    // O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
+    int leftmostIndexOfInRange(int l, int r, const T& x) const {
+        auto it = pos.find(x);
+        if (it == pos.end()) return -1;
+        auto j = it->second.lower_bound(l);
+        return j != it->second.end() && *j <= r ? *j : -1;
+    }
+
+    // O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
+    int rightmostIndexOfInRange(int l, int r, const T& x) const {
+        auto it = pos.find(x);
+        if (it == pos.end()) return -1;
+        auto j = it->second.upper_bound(r);
+        if (j == it->second.begin()) return -1;
+        --j;
+        return *j >= l ? *j : -1;
     }
 
     // O(logN) -- a[i] = v

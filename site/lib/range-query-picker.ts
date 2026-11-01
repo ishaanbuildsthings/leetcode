@@ -37,6 +37,10 @@ export type OpId =
   | "rangeOrQuery"
   | "rangeXorQuery"
   | "countOccurrences"
+  | "leftmostIndexOf"
+  | "rightmostIndexOf"
+  | "leftmostIndexOfInRange"
+  | "rightmostIndexOfInRange"
   | "countDistinct"
   | "allDistinct"
   | "rangeMode"
@@ -210,6 +214,10 @@ export const OP_GROUPS: OpGroup[] = [
       {
         kind: "common",
         ops: [
+          { id: "leftmostIndexOf", signature: "leftmostIndexOf(x)", description: "First i with a[i] = x" },
+          { id: "rightmostIndexOf", signature: "rightmostIndexOf(x)", description: "Last i with a[i] = x" },
+          { id: "leftmostIndexOfInRange", signature: "leftmostIndexOfInRange(l, r, x)", description: "First i in [l, r] with a[i] = x" },
+          { id: "rightmostIndexOfInRange", signature: "rightmostIndexOfInRange(l, r, x)", description: "Last i in [l, r] with a[i] = x" },
           { id: "leftmostGteX", signature: "leftmostGteX(l, r, x)", description: "First i in [l, r] with a[i] ≥ x" },
           { id: "leftmostGtX", signature: "leftmostGtX(l, r, x)", description: "First i in [l, r] with a[i] > x" },
           { id: "rightmostGteX", signature: "rightmostGteX(l, r, x)", description: "Last i in [l, r] with a[i] ≥ x" },
@@ -537,6 +545,7 @@ export const OP_GROUPS: OpGroup[] = [
 // Ordered lightest to heaviest constant factor; used to break ties between templates.
 export const DATA_STRUCTURE_TYPES = [
   "positions",
+  "interval-map",
   "sparse-table",
   "BIT",
   "seg-tree",
@@ -558,6 +567,7 @@ export type DataStructureType = (typeof DATA_STRUCTURE_TYPES)[number];
 
 export const DATA_STRUCTURE_TYPE_LABELS: Record<DataStructureType, string> = {
   positions: "Position lists",
+  "interval-map": "Interval map (runs of equal values)",
   "sparse-table": "Sparse table",
   BIT: "BIT",
   "seg-tree": "Seg tree",
@@ -621,6 +631,7 @@ export const CHAR_SAFE_OPS: ReadonlySet<string> = new Set([
   "rangeSortDesc", "getAll", "append", "appendLeft", "insertAt", "insertCopiesAt", "pop", "popLeft", "eraseRange",
   "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "concat",
   "copyRange", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
+  "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange",
   "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome",
   "rangeHash", "rangeHashReversed", "rangesEqual", "doAllElementsAppearEvenFrequency", "kthSmallest", "kthLargest", "medianLow",
   "medianHigh", "countLtX", "countLteX", "countGtX", "countGteX", "countInValRange", "smallestGtX", "smallestGteX",

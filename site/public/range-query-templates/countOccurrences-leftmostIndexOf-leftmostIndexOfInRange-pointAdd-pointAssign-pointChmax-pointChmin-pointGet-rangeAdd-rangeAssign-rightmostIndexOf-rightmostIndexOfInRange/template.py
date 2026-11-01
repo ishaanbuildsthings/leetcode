@@ -1,10 +1,12 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign/template.py
-# @operations: countOccurrences getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-leftmostIndexOf-leftmostIndexOfInRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rightmostIndexOf-rightmostIndexOfInRange/template.py
+# @operations: countOccurrences getAll leftmostIndexOf leftmostIndexOfInRange pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rightmostIndexOf rightmostIndexOfInRange
 # @data-structure-type: sqrt
 # @complexities:
 #   countOccurrences: sqrt(N)
 #   getAll: N
+#   leftmostIndexOf: sqrt(N)
+#   leftmostIndexOfInRange: sqrt(N)
 #   pointAdd: sqrt(N)
 #   pointAssign: sqrt(N)
 #   pointChmax: sqrt(N)
@@ -12,6 +14,8 @@
 #   pointGet: 1
 #   rangeAdd: sqrt(N)
 #   rangeAssign: sqrt(N)
+#   rightmostIndexOf: sqrt(N)
+#   rightmostIndexOfInRange: sqrt(N)
 #   build: N
 # @memory:
 #   layout: none
@@ -22,11 +26,13 @@
 
 from math import isqrt
 
-# "How many times does x appear in a[l..r]?" with range add, range assign and point updates. 0-based, inclusive.
+# "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?", with range add, range
+# assign and point updates. 0-based, inclusive.
 # Sqrt decomposition: each block keeps its stored values, a value -> count table of them, and one pending tag
 # "value = (asg if assigned else stored) + add". A whole block answers a count from its table in O(1): look up
 # x - add (or compare x to asg + add when the block is assigned). A partial block bakes its tag in, edits the few
-# slots it covers, and patches its table one slot at a time.
+# slots it covers, and patches its table one slot at a time. A first / last search skips every block whose table
+# lacks x and scans only the first block that has it.
 
 
 class SqrtOccurrences:
@@ -128,6 +134,44 @@ class SqrtOccurrences:
                     if (asg if asg is not None else vals[i]) + add == x:
                         res += 1
         return res
+
+    # O(sqrt N) -- the smallest i with a[i] == x, or -1 if x isn't in the array
+    def leftmostIndexOf(self, x):
+        return self._search(0, self.n - 1, x, False)
+
+    # O(sqrt N) -- the largest i with a[i] == x, or -1 if x isn't in the array
+    def rightmostIndexOf(self, x):
+        return self._search(0, self.n - 1, x, True)
+
+    # O(sqrt N) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
+    def leftmostIndexOfInRange(self, l, r, x):
+        return self._search(l, r, x, False)
+
+    # O(sqrt N) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
+    def rightmostIndexOfInRange(self, l, r, x):
+        return self._search(l, r, x, True)
+
+    # the first (rev: last) i in [l, r] with a[i] == x, or -1
+    def _search(self, l, r, x, rev):
+        if l > r:
+            return -1
+        B, vals = self.B, self.vals
+        blocks = range(l // B, r // B + 1)
+        for b in reversed(blocks) if rev else blocks:
+            lo, hi = self._range(b)
+            lo, hi = max(l, lo), min(r, hi)
+            add, asg = self.add[b], self.asg[b]
+            if asg is not None:
+                if asg + add == x:
+                    return hi if rev else lo
+                continue
+            want = x - add
+            if want not in self.cnt[b]:  # (a partial block too: x isn't anywhere in it)
+                continue
+            for i in range(hi, lo - 1, -1) if rev else range(lo, hi + 1):
+                if vals[i] == want:
+                    return i
+        return -1
 
     # O(1) -- a[i]
     def pointGet(self, i):

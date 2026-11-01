@@ -1,16 +1,20 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
-# @operations: countOccurrences getAll pointAdd pointAssign pointChmax pointChmin pointGet
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-leftmostIndexOf-leftmostIndexOfInRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rightmostIndexOf-rightmostIndexOfInRange/template.py
+# @operations: countOccurrences getAll leftmostIndexOf leftmostIndexOfInRange pointAdd pointAssign pointChmax pointChmin pointGet rightmostIndexOf rightmostIndexOfInRange
 # @data-structure-type: positions
 # @letters: same
 # @complexities:
 #   countOccurrences: log(N)
 #   getAll: N
+#   leftmostIndexOf: log(N)
+#   leftmostIndexOfInRange: log(N)
 #   pointAdd: log(N)
 #   pointAssign: log(N)
 #   pointChmax: log(N)
 #   pointChmin: log(N)
 #   pointGet: 1
+#   rightmostIndexOf: log(N)
+#   rightmostIndexOfInRange: log(N)
 #   build: N*log(N)
 # @memory:
 #   layout: none
@@ -122,7 +126,8 @@ class SortedList:
             i &= i - 1
         return s + bisect_left(self.lists[k], x)
 
-# "How many times does x appear in a[l..r]?" with point updates. All indices 0-based, ranges inclusive.
+# "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?", with point updates.
+# All indices 0-based, ranges inclusive.
 # Each value keeps the sorted list of its indices; a query is two binary searches in x's list, and an assign moves
 # one index from the old value's list to the new one's.
 
@@ -145,6 +150,28 @@ class DynamicOccurrenceLists:
     def countOccurrences(self, l, r, x):
         p = self.pos.get(x)
         return p.countLess(r + 1) - p.countLess(l) if p is not None and l <= r else 0
+
+    # O(1) -- the smallest i with a[i] == x, or -1 if x isn't in the array
+    def leftmostIndexOf(self, x):
+        p = self.pos.get(x)
+        return p.lists[0][0] if p is not None else -1
+
+    # O(1) -- the largest i with a[i] == x, or -1 if x isn't in the array
+    def rightmostIndexOf(self, x):
+        p = self.pos.get(x)
+        return p.lists[-1][-1] if p is not None else -1
+
+    # O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
+    def leftmostIndexOfInRange(self, l, r, x):
+        p = self.pos.get(x)
+        i = p.succ(l - 1) if p is not None else None
+        return i if i is not None and i <= r else -1
+
+    # O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
+    def rightmostIndexOfInRange(self, l, r, x):
+        p = self.pos.get(x)
+        i = p.pred(r + 1) if p is not None else None
+        return i if i is not None and i >= l else -1
 
     # O(logN) -- a[i] = val
     def pointAssign(self, i, val):

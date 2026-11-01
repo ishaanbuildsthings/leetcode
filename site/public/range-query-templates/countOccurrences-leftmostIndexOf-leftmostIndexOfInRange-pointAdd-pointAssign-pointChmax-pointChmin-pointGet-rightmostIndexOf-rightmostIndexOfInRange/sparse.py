@@ -1,14 +1,18 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/sparse.py
-# @operations: countOccurrences pointAdd pointAssign pointChmax pointChmin pointGet
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-leftmostIndexOf-leftmostIndexOfInRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rightmostIndexOf-rightmostIndexOfInRange/sparse.py
+# @operations: countOccurrences leftmostIndexOf leftmostIndexOfInRange pointAdd pointAssign pointChmax pointChmin pointGet rightmostIndexOf rightmostIndexOfInRange
 # @data-structure-type: positions
 # @complexities:
 #   countOccurrences: log(U)
+#   leftmostIndexOf: log(U)*log(U)
+#   leftmostIndexOfInRange: log(U)*log(U)
 #   pointAdd: log(U)
 #   pointAssign: log(U)
 #   pointChmax: log(U)
 #   pointChmin: log(U)
 #   pointGet: 1
+#   rightmostIndexOf: log(U)*log(U)
+#   rightmostIndexOfInRange: log(U)*log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -120,9 +124,11 @@ class SortedList:
             i &= i - 1
         return s + bisect_left(self.lists[k], x)
 
-# "How many times does x appear in a[l..r]?" with point updates, over any index range [lo, hi] (huge or negative is
-# fine); every position starts at 0. Each nonzero value keeps its sorted indices, and so does "any nonzero value";
-# x != 0 is two rank queries in x's list, and x == 0 is the range length minus the nonzero positions in it.
+# "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?" with point updates,
+# over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Each nonzero value keeps its
+# sorted indices, and so does "any nonzero value"; x != 0 is two rank queries in x's list, and x == 0 is the range
+# length minus the nonzero positions in it. x == 0's first / last copy is a binary search over [l, r] for the first
+# never-written index, O(log^2 U).
 
 
 class SparseOccurrenceLists:
@@ -144,6 +150,56 @@ class SparseOccurrenceLists:
             return (r - l + 1) - (nz.countLess(r + 1) - nz.countLess(l))
         s = self.pos.get(x)
         return 0 if s is None else s.countLess(r + 1) - s.countLess(l)
+
+    # O(logU) (x == 0: O(log^2 U)) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    def leftmostIndexOf(self, x):
+        return self.leftmostIndexOfInRange(self.lo, self.hi, x)
+
+    # O(logU) (x == 0: O(log^2 U)) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    def rightmostIndexOf(self, x):
+        return self.rightmostIndexOfInRange(self.lo, self.hi, x)
+
+    # O(logU) (x == 0: O(log^2 U)) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    def leftmostIndexOfInRange(self, l, r, x):
+        if l > r:
+            return self.lo - 1
+        if x == 0:
+            if l not in self.vals:
+                return l
+            nz = self.nz
+            base = nz.countLess(l)
+            a, b = l, r + 1  # the smallest m with a zero in [l, m] (r + 1: none)
+            while a < b:
+                m = (a + b) // 2
+                if nz.countLess(m + 1) - base < m - l + 1:
+                    b = m
+                else:
+                    a = m + 1
+            return a if a <= r else self.lo - 1
+        s = self.pos.get(x)
+        i = s.succ(l - 1) if s is not None else None
+        return i if i is not None and i <= r else self.lo - 1
+
+    # O(logU) (x == 0: O(log^2 U)) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    def rightmostIndexOfInRange(self, l, r, x):
+        if l > r:
+            return self.lo - 1
+        if x == 0:
+            if r not in self.vals:
+                return r
+            nz = self.nz
+            top = nz.countLess(r + 1)
+            a, b = l - 1, r  # the largest m with a zero in [m, r] (l - 1: none)
+            while a < b:
+                m = (a + b + 1) // 2
+                if top - nz.countLess(m) < r - m + 1:
+                    a = m
+                else:
+                    b = m - 1
+            return a if a >= l else self.lo - 1
+        s = self.pos.get(x)
+        i = s.pred(r + 1) if s is not None else None
+        return i if i is not None and i >= l else self.lo - 1
 
     # O(logU) -- a[i] = val
     def pointAssign(self, i, val):

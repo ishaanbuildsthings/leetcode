@@ -177,7 +177,7 @@ class RangeLDS:
         self.cnt = []
         if n == 0:
             return
-        order = sorted(range(n), key=lambda i: (-arr[i], -i))  # equal values ranked right-to-left => strict
+        order = sorted(range(n), key=lambda i: (arr[i], i), reverse=True)  # equal values ranked right-to-left => strict
         perm = [0] * n
         for rk, i in enumerate(order):
             perm[i] = rk

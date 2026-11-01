@@ -1,10 +1,12 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign/template.cpp
-// @operations: countOccurrences getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-leftmostIndexOf-leftmostIndexOfInRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rightmostIndexOf-rightmostIndexOfInRange/template.cpp
+// @operations: countOccurrences getAll leftmostIndexOf leftmostIndexOfInRange pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rightmostIndexOf rightmostIndexOfInRange
 // @data-structure-type: sqrt
 // @complexities:
 //   countOccurrences: sqrt(N)
 //   getAll: N
+//   leftmostIndexOf: sqrt(N)
+//   leftmostIndexOfInRange: sqrt(N)
 //   pointAdd: sqrt(N)
 //   pointAssign: sqrt(N)
 //   pointChmax: sqrt(N)
@@ -12,6 +14,8 @@
 //   pointGet: 1
 //   rangeAdd: sqrt(N)
 //   rangeAssign: sqrt(N)
+//   rightmostIndexOf: sqrt(N)
+//   rightmostIndexOfInRange: sqrt(N)
 //   build: N
 // @memory:
 //   layout: none
@@ -20,11 +24,13 @@
 //   other: none
 //   note: sqrt(N) blocks; cnt[b] counts the block's stored values, and the block tag (assign, then add) is applied on read
 
-// "How many times does x appear in a[l..r]?" with range add, range assign and point updates. 0-based, inclusive.
+// "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?", with range add, range
+// assign and point updates. 0-based, inclusive.
 // Sqrt decomposition: each block keeps its stored values, a value -> count table of them, and one pending tag
 // "value = (asg if assigned else stored) + add". A whole block answers a count from its table in O(1): look up
 // x - add (or compare x to asg + add when the block is assigned). A partial block bakes its tag in, edits the few
-// slots it covers, and patches its table one slot at a time. T: int, long long, ... (an integer type: the tables hash it).
+// slots it covers, and patches its table one slot at a time. A first / last search skips every block whose table
+// lacks x and scans only the first block that has it. T: int, long long, ... (an integer type: the tables hash it).
 template <typename T>
 struct SqrtOccurrences {
     // splitmix64 with a random per-run offset: anti-hash tests can't predict buckets, so tables stay O(1)
@@ -114,6 +120,38 @@ struct SqrtOccurrences {
             }
         }
         return res;
+    }
+
+    // O(sqrt N) -- the smallest i with a[i] == x, or -1 if x isn't in the array
+    int leftmostIndexOf(T x) const { return search(0, n - 1, x, false); }
+
+    // O(sqrt N) -- the largest i with a[i] == x, or -1 if x isn't in the array
+    int rightmostIndexOf(T x) const { return search(0, n - 1, x, true); }
+
+    // O(sqrt N) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
+    int leftmostIndexOfInRange(int l, int r, T x) const { return search(l, r, x, false); }
+
+    // O(sqrt N) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
+    int rightmostIndexOfInRange(int l, int r, T x) const { return search(l, r, x, true); }
+
+    // the first (rev: last) i in [l, r] with a[i] == x, or -1
+    int search(int l, int r, T x, bool rev) const {
+        if (l > r) return -1;
+        for (int k = 0, nbk = r / B - l / B + 1; k < nbk; k++) {
+            int b = rev ? r / B - k : l / B + k, s = max(l, lo(b)), e = min(r, hi(b));
+            if (hasAsg[b]) {
+                if (asg[b] + add[b] == x) return rev ? e : s;
+                continue;
+            }
+            T want = x - add[b];
+            if (!cnt[b].count(want)) continue;  // (a partial block too: x isn't anywhere in it)
+            if (rev) {
+                for (int i = e; i >= s; i--) if (vals[i] == want) return i;
+            } else {
+                for (int i = s; i <= e; i++) if (vals[i] == want) return i;
+            }
+        }
+        return -1;
     }
 
     // O(1) -- a[i]

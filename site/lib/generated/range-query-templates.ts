@@ -45249,7 +45249,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     }
   },
   {
-    "folder": "countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet",
+    "folder": "countOccurrences-leftmostIndexOf-leftmostIndexOfInRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rightmostIndexOf-rightmostIndexOfInRange",
     "langs": [
       "py",
       "cpp"
@@ -45257,430 +45257,33 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
     "operations": [
       "countOccurrences",
       "getAll",
-      "pointAdd",
-      "pointAssign",
-      "pointChmax",
-      "pointChmin",
-      "pointGet"
-    ],
-    "dataStructureType": "positions",
-    "complexities": {
-      "countOccurrences": "log(N)",
-      "getAll": "N",
-      "pointAdd": "log(N)",
-      "pointAssign": "log(N)",
-      "pointChmax": "log(N)",
-      "pointChmin": "log(N)",
-      "pointGet": "1"
-    },
-    "build": "N*log(N)",
-    "memory": {
-      "layout": "none",
-      "node": {
-        "arrays": [
-          {
-            "name": "pos",
-            "size": "1*N"
-          }
-        ],
-        "total": "1*N"
-      },
-      "tags": {
-        "arrays": [],
-        "total": "0"
-      },
-      "other": {
-        "arrays": [
-          {
-            "name": "a",
-            "size": "1*N"
-          }
-        ],
-        "total": "1*N"
-      },
-      "note": "pos maps each value to its sorted indices (a bucketed SortedList, defined at the top of the file, so each change is a few binary searches plus a C-level shift of at most 1024 elements)",
-      "total": "2*N",
-      "notes": {
-        "py": "pos maps each value to its sorted indices (a bucketed SortedList, defined at the top of the file, so each change is a few binary searches plus a C-level shift of at most 1024 elements)",
-        "cpp": "pos maps each value to its sorted indices (an order-statistics tree per value)"
-      }
-    },
-    "lettersSame": true,
-    "usage": {
-      "py": {
-        "classes": [
-          {
-            "className": "DynamicOccurrenceLists",
-            "doc": "\"How many times does x appear in a[l..r]?\" with point updates. All indices 0-based, ranges inclusive. Each value keeps the sorted list of its indices; a query is two binary searches in x's list, and an assign moves one index from the old value's list to the new one's.",
-            "ctor": [
-              {
-                "name": "arr"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "countOccurrences": {
-            "params": [
-              "l",
-              "r",
-              "x"
-            ],
-            "doc": "# of i in [l, r] with a[i] == x",
-            "cls": 0
-          },
-          "getAll": {
-            "params": [],
-            "doc": "the whole array (a copy)",
-            "cls": 0
-          },
-          "pointAdd": {
-            "params": [
-              "i",
-              "delta"
-            ],
-            "doc": "a[i] += delta",
-            "cls": 0
-          },
-          "pointAssign": {
-            "params": [
-              "i",
-              "val"
-            ],
-            "doc": "a[i] = val",
-            "cls": 0
-          },
-          "pointChmax": {
-            "params": [
-              "i",
-              "val"
-            ],
-            "doc": "a[i] = max(a[i], val)",
-            "cls": 0
-          },
-          "pointChmin": {
-            "params": [
-              "i",
-              "val"
-            ],
-            "doc": "a[i] = min(a[i], val)",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "doc": "a[i]",
-            "cls": 0
-          }
-        }
-      },
-      "cpp": {
-        "classes": [
-          {
-            "className": "DynamicOccurrenceLists",
-            "doc": "",
-            "ctor": [
-              {
-                "name": "arr",
-                "type": "const vector<T>&"
-              }
-            ],
-            "ctorDoc": ""
-          }
-        ],
-        "methods": {
-          "countOccurrences": {
-            "params": [
-              "l",
-              "r",
-              "x"
-            ],
-            "returns": "int",
-            "doc": "# of i in [l, r] with a[i] == x",
-            "cls": 0
-          },
-          "getAll": {
-            "params": [],
-            "returns": "vector<T>",
-            "doc": "the whole array (a copy)",
-            "cls": 0
-          },
-          "pointAdd": {
-            "params": [
-              "i",
-              "delta"
-            ],
-            "returns": "void",
-            "doc": "a[i] += delta",
-            "cls": 0
-          },
-          "pointAssign": {
-            "params": [
-              "i",
-              "v"
-            ],
-            "returns": "void",
-            "doc": "a[i] = v",
-            "cls": 0
-          },
-          "pointChmax": {
-            "params": [
-              "i",
-              "v"
-            ],
-            "returns": "void",
-            "doc": "a[i] = max(a[i], v)",
-            "cls": 0
-          },
-          "pointChmin": {
-            "params": [
-              "i",
-              "v"
-            ],
-            "returns": "void",
-            "doc": "a[i] = min(a[i], v)",
-            "cls": 0
-          },
-          "pointGet": {
-            "params": [
-              "i"
-            ],
-            "returns": "T",
-            "doc": "a[i]",
-            "cls": 0
-          }
-        }
-      }
-    },
-    "sparse": {
-      "langs": [
-        "py",
-        "cpp"
-      ],
-      "operations": [
-        "countOccurrences",
-        "pointAdd",
-        "pointAssign",
-        "pointChmax",
-        "pointChmin",
-        "pointGet"
-      ],
-      "complexities": {
-        "countOccurrences": "log(U)",
-        "pointAdd": "log(U)",
-        "pointAssign": "log(U)",
-        "pointChmax": "log(U)",
-        "pointChmin": "log(U)",
-        "pointGet": "1"
-      },
-      "build": "1",
-      "memory": {
-        "layout": "sparse",
-        "node": {
-          "arrays": [
-            {
-              "name": "pos",
-              "size": "2"
-            }
-          ],
-          "total": "2"
-        },
-        "tags": {
-          "arrays": [],
-          "total": "0"
-        },
-        "other": {
-          "arrays": [
-            {
-              "name": "vals",
-              "size": "1"
-            }
-          ],
-          "total": "1"
-        },
-        "note": "per point write, one index in its value's sorted list and one in the list of nonzero positions (bucketed SortedLists defined at the top of the file); zeros are counted as the range length minus the nonzero positions in it. No shared pool: every tree owns its memory",
-        "total": "3",
-        "notes": {
-          "py": "per point write, one index in its value's sorted list and one in the list of nonzero positions (bucketed SortedLists defined at the top of the file); zeros are counted as the range length minus the nonzero positions in it. No shared pool: every tree owns its memory",
-          "cpp": "per point write, one index in its value's sorted list and one in the list of nonzero positions (order-statistics trees); zeros are counted as the range length minus the nonzero positions in it. No shared pool: every tree owns its memory"
-        }
-      },
-      "usage": {
-        "py": {
-          "classes": [
-            {
-              "className": "SparseOccurrenceLists",
-              "doc": "\"How many times does x appear in a[l..r]?\" with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Each nonzero value keeps its sorted indices, and so does \"any nonzero value\"; x != 0 is two rank queries in x's list, and x == 0 is the range length minus the nonzero positions in it.",
-              "ctor": [
-                {
-                  "name": "lo"
-                },
-                {
-                  "name": "hi"
-                }
-              ],
-              "ctorDoc": ""
-            }
-          ],
-          "methods": {
-            "countOccurrences": {
-              "params": [
-                "l",
-                "r",
-                "x"
-              ],
-              "doc": "# of i in [l, r] with a[i] == x",
-              "cls": 0
-            },
-            "pointAdd": {
-              "params": [
-                "i",
-                "delta"
-              ],
-              "doc": "a[i] += delta",
-              "cls": 0
-            },
-            "pointAssign": {
-              "params": [
-                "i",
-                "val"
-              ],
-              "doc": "a[i] = val",
-              "cls": 0
-            },
-            "pointChmax": {
-              "params": [
-                "i",
-                "val"
-              ],
-              "doc": "a[i] = max(a[i], val)",
-              "cls": 0
-            },
-            "pointChmin": {
-              "params": [
-                "i",
-                "val"
-              ],
-              "doc": "a[i] = min(a[i], val)",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "doc": "a[i]",
-              "cls": 0
-            }
-          }
-        },
-        "cpp": {
-          "classes": [
-            {
-              "className": "SparseOccurrenceLists",
-              "doc": "",
-              "ctor": [
-                {
-                  "name": "lo",
-                  "type": "long long"
-                },
-                {
-                  "name": "hi",
-                  "type": "long long"
-                }
-              ],
-              "ctorDoc": "all zeros over [lo, hi]"
-            }
-          ],
-          "methods": {
-            "countOccurrences": {
-              "params": [
-                "l",
-                "r",
-                "x"
-              ],
-              "returns": "long long",
-              "doc": "# of i in [l, r] with a[i] == x",
-              "cls": 0
-            },
-            "pointAdd": {
-              "params": [
-                "i",
-                "delta"
-              ],
-              "returns": "void",
-              "doc": "a[i] += delta",
-              "cls": 0
-            },
-            "pointAssign": {
-              "params": [
-                "i",
-                "v"
-              ],
-              "returns": "void",
-              "doc": "a[i] = v",
-              "cls": 0
-            },
-            "pointChmax": {
-              "params": [
-                "i",
-                "v"
-              ],
-              "returns": "void",
-              "doc": "a[i] = max(a[i], v)",
-              "cls": 0
-            },
-            "pointChmin": {
-              "params": [
-                "i",
-                "v"
-              ],
-              "returns": "void",
-              "doc": "a[i] = min(a[i], v)",
-              "cls": 0
-            },
-            "pointGet": {
-              "params": [
-                "i"
-              ],
-              "returns": "T",
-              "doc": "a[i]",
-              "cls": 0
-            }
-          }
-        }
-      }
-    }
-  },
-  {
-    "folder": "countOccurrences-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign",
-    "langs": [
-      "py",
-      "cpp"
-    ],
-    "operations": [
-      "countOccurrences",
-      "getAll",
+      "leftmostIndexOf",
+      "leftmostIndexOfInRange",
       "pointAdd",
       "pointAssign",
       "pointChmax",
       "pointChmin",
       "pointGet",
       "rangeAdd",
-      "rangeAssign"
+      "rangeAssign",
+      "rightmostIndexOf",
+      "rightmostIndexOfInRange"
     ],
     "dataStructureType": "sqrt",
     "complexities": {
       "countOccurrences": "sqrt(N)",
       "getAll": "N",
+      "leftmostIndexOf": "sqrt(N)",
+      "leftmostIndexOfInRange": "sqrt(N)",
       "pointAdd": "sqrt(N)",
       "pointAssign": "sqrt(N)",
       "pointChmax": "sqrt(N)",
       "pointChmin": "sqrt(N)",
       "pointGet": "1",
       "rangeAdd": "sqrt(N)",
-      "rangeAssign": "sqrt(N)"
+      "rangeAssign": "sqrt(N)",
+      "rightmostIndexOf": "sqrt(N)",
+      "rightmostIndexOfInRange": "sqrt(N)"
     },
     "build": "N",
     "memory": {
@@ -45727,7 +45330,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "classes": [
           {
             "className": "SqrtOccurrences",
-            "doc": "\"How many times does x appear in a[l..r]?\" with range add, range assign and point updates. 0-based, inclusive. Sqrt decomposition: each block keeps its stored values, a value -> count table of them, and one pending tag \"value = (asg if assigned else stored) + add\". A whole block answers a count from its table in O(1): look up x - add (or compare x to asg + add when the block is assigned). A partial block bakes its tag in, edits the few slots it covers, and patches its table one slot at a time.",
+            "doc": "\"How many times does x appear in a[l..r]?\" and \"where is x's first / last copy (in a[l..r])?\", with range add, range assign and point updates. 0-based, inclusive. Sqrt decomposition: each block keeps its stored values, a value -> count table of them, and one pending tag \"value = (asg if assigned else stored) + add\". A whole block answers a count from its table in O(1): look up x - add (or compare x to asg + add when the block is assigned). A partial block bakes its tag in, edits the few slots it covers, and patches its table one slot at a time. A first / last search skips every block whose table lacks x and scans only the first block that has it.",
             "ctor": [
               {
                 "name": "arr"
@@ -45749,6 +45352,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "getAll": {
             "params": [],
             "doc": "the whole array (each a[i] is O(1))",
+            "cls": 0
+          },
+          "leftmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "doc": "the smallest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "leftmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "the smallest i in [l, r] with a[i] == x, or -1 if there is none",
             "cls": 0
           },
           "pointAdd": {
@@ -45807,6 +45426,22 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             ],
             "doc": "a[i] = x for i in [l, r]",
             "cls": 0
+          },
+          "rightmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "doc": "the largest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "rightmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "the largest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
           }
         }
       },
@@ -45814,7 +45449,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "classes": [
           {
             "className": "SqrtOccurrences",
-            "doc": "\"How many times does x appear in a[l..r]?\" with range add, range assign and point updates. 0-based, inclusive. Sqrt decomposition: each block keeps its stored values, a value -> count table of them, and one pending tag \"value = (asg if assigned else stored) + add\". A whole block answers a count from its table in O(1): look up x - add (or compare x to asg + add when the block is assigned). A partial block bakes its tag in, edits the few slots it covers, and patches its table one slot at a time. T: int, long long, ... (an integer type: the tables hash it).",
+            "doc": "\"How many times does x appear in a[l..r]?\" and \"where is x's first / last copy (in a[l..r])?\", with range add, range assign and point updates. 0-based, inclusive. Sqrt decomposition: each block keeps its stored values, a value -> count table of them, and one pending tag \"value = (asg if assigned else stored) + add\". A whole block answers a count from its table in O(1): look up x - add (or compare x to asg + add when the block is assigned). A partial block bakes its tag in, edits the few slots it covers, and patches its table one slot at a time. A first / last search skips every block whose table lacks x and scans only the first block that has it. T: int, long long, ... (an integer type: the tables hash it).",
             "ctor": [
               {
                 "name": "a",
@@ -45839,6 +45474,24 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "params": [],
             "returns": "vector<T>",
             "doc": "the whole array (each a[i] is O(1))",
+            "cls": 0
+          },
+          "leftmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the smallest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "leftmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the smallest i in [l, r] with a[i] == x, or -1 if there is none",
             "cls": 0
           },
           "pointAdd": {
@@ -45904,25 +45557,608 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "returns": "void",
             "doc": "a[i] = x for i in [l, r]",
             "cls": 0
+          },
+          "rightmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the largest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "rightmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the largest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
           }
         }
       }
     }
   },
   {
-    "folder": "countOccurrences-pointGet",
+    "folder": "countOccurrences-leftmostIndexOf-leftmostIndexOfInRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rightmostIndexOf-rightmostIndexOfInRange",
     "langs": [
       "py",
       "cpp"
     ],
     "operations": [
       "countOccurrences",
-      "pointGet"
+      "getAll",
+      "leftmostIndexOf",
+      "leftmostIndexOfInRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rightmostIndexOf",
+      "rightmostIndexOfInRange"
     ],
     "dataStructureType": "positions",
     "complexities": {
       "countOccurrences": "log(N)",
-      "pointGet": "1"
+      "getAll": "N",
+      "leftmostIndexOf": "log(N)",
+      "leftmostIndexOfInRange": "log(N)",
+      "pointAdd": "log(N)",
+      "pointAssign": "log(N)",
+      "pointChmax": "log(N)",
+      "pointChmin": "log(N)",
+      "pointGet": "1",
+      "rightmostIndexOf": "log(N)",
+      "rightmostIndexOfInRange": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "pos",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [
+          {
+            "name": "a",
+            "size": "1*N"
+          }
+        ],
+        "total": "1*N"
+      },
+      "note": "pos maps each value to its sorted indices (a bucketed SortedList, defined at the top of the file, so each change is a few binary searches plus a C-level shift of at most 1024 elements)",
+      "total": "2*N",
+      "notes": {
+        "py": "pos maps each value to its sorted indices (a bucketed SortedList, defined at the top of the file, so each change is a few binary searches plus a C-level shift of at most 1024 elements)",
+        "cpp": "pos maps each value to its sorted indices (an order-statistics tree per value)"
+      }
+    },
+    "lettersSame": true,
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "DynamicOccurrenceLists",
+            "doc": "\"How many times does x appear in a[l..r]?\" and \"where is x's first / last copy (in a[l..r])?\", with point updates. All indices 0-based, ranges inclusive. Each value keeps the sorted list of its indices; a query is two binary searches in x's list, and an assign moves one index from the old value's list to the new one's.",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "getAll": {
+            "params": [],
+            "doc": "the whole array (a copy)",
+            "cls": 0
+          },
+          "leftmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "doc": "the smallest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "leftmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "the smallest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = val",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = max(a[i], val)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "val"
+            ],
+            "doc": "a[i] = min(a[i], val)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rightmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "doc": "the largest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "rightmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "the largest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "DynamicOccurrenceLists",
+            "doc": "",
+            "ctor": [
+              {
+                "name": "arr",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": ""
+          }
+        ],
+        "methods": {
+          "countOccurrences": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "# of i in [l, r] with a[i] == x",
+            "cls": 0
+          },
+          "getAll": {
+            "params": [],
+            "returns": "vector<T>",
+            "doc": "the whole array (a copy)",
+            "cls": 0
+          },
+          "leftmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the smallest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "leftmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the smallest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "returns": "void",
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rightmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the largest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "rightmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the largest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
+          }
+        }
+      }
+    },
+    "sparse": {
+      "langs": [
+        "py",
+        "cpp"
+      ],
+      "operations": [
+        "countOccurrences",
+        "leftmostIndexOf",
+        "leftmostIndexOfInRange",
+        "pointAdd",
+        "pointAssign",
+        "pointChmax",
+        "pointChmin",
+        "pointGet",
+        "rightmostIndexOf",
+        "rightmostIndexOfInRange"
+      ],
+      "complexities": {
+        "countOccurrences": "log(U)",
+        "leftmostIndexOf": "log(U)*log(U)",
+        "leftmostIndexOfInRange": "log(U)*log(U)",
+        "pointAdd": "log(U)",
+        "pointAssign": "log(U)",
+        "pointChmax": "log(U)",
+        "pointChmin": "log(U)",
+        "pointGet": "1",
+        "rightmostIndexOf": "log(U)*log(U)",
+        "rightmostIndexOfInRange": "log(U)*log(U)"
+      },
+      "build": "1",
+      "memory": {
+        "layout": "sparse",
+        "node": {
+          "arrays": [
+            {
+              "name": "pos",
+              "size": "2"
+            }
+          ],
+          "total": "2"
+        },
+        "tags": {
+          "arrays": [],
+          "total": "0"
+        },
+        "other": {
+          "arrays": [
+            {
+              "name": "vals",
+              "size": "1"
+            }
+          ],
+          "total": "1"
+        },
+        "note": "per point write, one index in its value's sorted list and one in the list of nonzero positions (bucketed SortedLists defined at the top of the file); zeros are counted as the range length minus the nonzero positions in it. No shared pool: every tree owns its memory",
+        "total": "3",
+        "notes": {
+          "py": "per point write, one index in its value's sorted list and one in the list of nonzero positions (bucketed SortedLists defined at the top of the file); zeros are counted as the range length minus the nonzero positions in it. No shared pool: every tree owns its memory",
+          "cpp": "per point write, one index in its value's sorted list and one in the list of nonzero positions (order-statistics trees); zeros are counted as the range length minus the nonzero positions in it. No shared pool: every tree owns its memory"
+        }
+      },
+      "usage": {
+        "py": {
+          "classes": [
+            {
+              "className": "SparseOccurrenceLists",
+              "doc": "\"How many times does x appear in a[l..r]?\" and \"where is x's first / last copy (in a[l..r])?\" with point updates, over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Each nonzero value keeps its sorted indices, and so does \"any nonzero value\"; x != 0 is two rank queries in x's list, and x == 0 is the range length minus the nonzero positions in it. x == 0's first / last copy is a binary search over [l, r] for the first never-written index, O(log^2 U).",
+              "ctor": [
+                {
+                  "name": "lo"
+                },
+                {
+                  "name": "hi"
+                }
+              ],
+              "ctorDoc": ""
+            }
+          ],
+          "methods": {
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "leftmostIndexOf": {
+              "params": [
+                "x"
+              ],
+              "doc": "O(logU) (x == 0: O(log^2 U)) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
+            "leftmostIndexOfInRange": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "O(logU) (x == 0: O(log^2 U)) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "doc": "a[i] += delta",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = val",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = max(a[i], val)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "val"
+              ],
+              "doc": "a[i] = min(a[i], val)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rightmostIndexOf": {
+              "params": [
+                "x"
+              ],
+              "doc": "O(logU) (x == 0: O(log^2 U)) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
+            "rightmostIndexOfInRange": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "O(logU) (x == 0: O(log^2 U)) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            }
+          }
+        },
+        "cpp": {
+          "classes": [
+            {
+              "className": "SparseOccurrenceLists",
+              "doc": "",
+              "ctor": [
+                {
+                  "name": "lo",
+                  "type": "long long"
+                },
+                {
+                  "name": "hi",
+                  "type": "long long"
+                }
+              ],
+              "ctorDoc": "all zeros over [lo, hi]"
+            }
+          ],
+          "methods": {
+            "countOccurrences": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "# of i in [l, r] with a[i] == x",
+              "cls": 0
+            },
+            "leftmostIndexOf": {
+              "params": [
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "O(logU) (x == 0: O(log^2 U)) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
+            "leftmostIndexOfInRange": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "O(logU) (x == 0: O(log^2 U)) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
+            "pointAdd": {
+              "params": [
+                "i",
+                "delta"
+              ],
+              "returns": "void",
+              "doc": "a[i] += delta",
+              "cls": 0
+            },
+            "pointAssign": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = v",
+              "cls": 0
+            },
+            "pointChmax": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = max(a[i], v)",
+              "cls": 0
+            },
+            "pointChmin": {
+              "params": [
+                "i",
+                "v"
+              ],
+              "returns": "void",
+              "doc": "a[i] = min(a[i], v)",
+              "cls": 0
+            },
+            "pointGet": {
+              "params": [
+                "i"
+              ],
+              "returns": "T",
+              "doc": "a[i]",
+              "cls": 0
+            },
+            "rightmostIndexOf": {
+              "params": [
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "O(logU) (x == 0: O(log^2 U)) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
+            "rightmostIndexOfInRange": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "O(logU) (x == 0: O(log^2 U)) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "countOccurrences-leftmostIndexOf-leftmostIndexOfInRange-pointGet-rightmostIndexOf-rightmostIndexOfInRange",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "countOccurrences",
+      "leftmostIndexOf",
+      "leftmostIndexOfInRange",
+      "pointGet",
+      "rightmostIndexOf",
+      "rightmostIndexOfInRange"
+    ],
+    "dataStructureType": "positions",
+    "complexities": {
+      "countOccurrences": "log(N)",
+      "leftmostIndexOf": "log(N)",
+      "leftmostIndexOfInRange": "log(N)",
+      "pointGet": "1",
+      "rightmostIndexOf": "log(N)",
+      "rightmostIndexOfInRange": "log(N)"
     },
     "build": "N*log(N)",
     "memory": {
@@ -45962,7 +46198,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
         "classes": [
           {
             "className": "OccurrenceLists",
-            "doc": "Static \"how many times does x appear in a[l..r]?\". All indices 0-based, ranges inclusive. Each value keeps the sorted list of its indices; a query is two binary searches in x's list.",
+            "doc": "Static \"how many times does x appear in a[l..r]?\" and \"where is x's first / last copy (in a[l..r])?\". All indices 0-based, ranges inclusive. Each value keeps the sorted list of its indices; a query is a binary search or two in x's list.",
             "ctor": [
               {
                 "name": "arr"
@@ -45981,11 +46217,43 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "# of i in [l, r] with a[i] == x",
             "cls": 0
           },
+          "leftmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "doc": "the smallest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "leftmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "the smallest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
+          },
           "pointGet": {
             "params": [
               "i"
             ],
             "doc": "a[i]",
+            "cls": 0
+          },
+          "rightmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "doc": "the largest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "rightmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "the largest i in [l, r] with a[i] == x, or -1 if there is none",
             "cls": 0
           }
         }
@@ -46015,12 +46283,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
             "doc": "# of i in [l, r] with a[i] == x",
             "cls": 0
           },
+          "leftmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the smallest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "leftmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the smallest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
+          },
           "pointGet": {
             "params": [
               "i"
             ],
             "returns": "T",
             "doc": "a[i]",
+            "cls": 0
+          },
+          "rightmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the largest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "rightmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the largest i in [l, r] with a[i] == x, or -1 if there is none",
             "cls": 0
           }
         }
@@ -46033,7 +46337,11 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
       ],
       "complexities": {
         "countOccurrences": "log(N)",
-        "pointGet": "log(N)"
+        "leftmostIndexOf": "log(N)",
+        "leftmostIndexOfInRange": "log(N)",
+        "pointGet": "log(N)",
+        "rightmostIndexOf": "log(N)",
+        "rightmostIndexOfInRange": "log(N)"
       },
       "build": "N*log(N)",
       "memory": {
@@ -46076,7 +46384,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticOccurrences",
-              "doc": "\"How many times does x appear in a[l..r]?\" over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the given values inside).",
+              "doc": "\"How many times does x appear in a[l..r]?\" and \"where is x's first / last copy (in a[l..r])?\" over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the given values inside), and its first / last copy may be an index nobody gave: the end of a run of consecutive given indices, found by a binary search on idx[k] - k.",
               "ctor": [
                 {
                   "name": "lo"
@@ -46101,11 +46409,43 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "doc": "# of i in [l, r] with a[i] == x",
               "cls": 0
             },
+            "leftmostIndexOf": {
+              "params": [
+                "x"
+              ],
+              "doc": "the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
+            "leftmostIndexOfInRange": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
             "pointGet": {
               "params": [
                 "i"
               ],
               "doc": "a[i]",
+              "cls": 0
+            },
+            "rightmostIndexOf": {
+              "params": [
+                "x"
+              ],
+              "doc": "the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
+            "rightmostIndexOfInRange": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "doc": "the largest i in [l, r] with a[i] == x, or lo - 1 if there is none",
               "cls": 0
             }
           }
@@ -46114,7 +46454,7 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
           "classes": [
             {
               "className": "SparseStaticOccurrences",
-              "doc": "\"How many times does x appear in a[l..r]?\" over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the given values inside). T: any type usable as a std::map key.",
+              "doc": "\"How many times does x appear in a[l..r]?\" and \"where is x's first / last copy (in a[l..r])?\" over any index range [lo, hi], built from given values (index, value pairs); every other index is 0. Each value keeps its sorted indices; x == 0 also counts the zeros of [l, r] (its length minus the given values inside), and its first / last copy may be an index nobody gave: the end of a run of consecutive given indices, found by a binary search on idx[k] - k. T: any type usable as a std::map key.",
               "ctor": [
                 {
                   "name": "lo",
@@ -46143,12 +46483,48 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "doc": "# of i in [l, r] with a[i] == x",
               "cls": 0
             },
+            "leftmostIndexOf": {
+              "params": [
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
+            "leftmostIndexOfInRange": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
             "pointGet": {
               "params": [
                 "i"
               ],
               "returns": "T",
               "doc": "a[i]",
+              "cls": 0
+            },
+            "rightmostIndexOf": {
+              "params": [
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none",
+              "cls": 0
+            },
+            "rightmostIndexOfInRange": {
+              "params": [
+                "l",
+                "r",
+                "x"
+              ],
+              "returns": "long long",
+              "doc": "the largest i in [l, r] with a[i] == x, or lo - 1 if there is none",
               "cls": 0
             }
           }
@@ -67611,6 +67987,288 @@ export const RANGE_QUERY_TEMPLATES: RangeQueryTemplate[] = [
               "doc": "last i in [l, r] with a[i] >= x, or -1; climbs from r, then descends into the last hit",
               "cls": 0
             }
+          }
+        }
+      }
+    }
+  },
+  {
+    "folder": "leftmostIndexOf-leftmostIndexOfInRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rightmostIndexOf-rightmostIndexOfInRange",
+    "langs": [
+      "py",
+      "cpp"
+    ],
+    "operations": [
+      "getAll",
+      "leftmostIndexOf",
+      "leftmostIndexOfInRange",
+      "pointAdd",
+      "pointAssign",
+      "pointChmax",
+      "pointChmin",
+      "pointGet",
+      "rangeAssign",
+      "rightmostIndexOf",
+      "rightmostIndexOfInRange"
+    ],
+    "dataStructureType": "interval-map",
+    "complexities": {
+      "getAll": "N",
+      "leftmostIndexOf": "log(N)",
+      "leftmostIndexOfInRange": "log(N)",
+      "pointAdd": "log(N) amortized",
+      "pointAssign": "log(N) amortized",
+      "pointChmax": "log(N) amortized",
+      "pointChmin": "log(N) amortized",
+      "pointGet": "log(N)",
+      "rangeAssign": "log(N) amortized",
+      "rightmostIndexOf": "log(N)",
+      "rightmostIndexOfInRange": "log(N)"
+    },
+    "build": "N*log(N)",
+    "memory": {
+      "layout": "none",
+      "node": {
+        "arrays": [
+          {
+            "name": "runs",
+            "size": "1*N"
+          },
+          {
+            "name": "byVal",
+            "size": "1*N"
+          }
+        ],
+        "total": "2*N"
+      },
+      "tags": {
+        "arrays": [],
+        "total": "0"
+      },
+      "other": {
+        "arrays": [],
+        "total": "0"
+      },
+      "note": "one entry per run of equal values (at most N, usually far fewer), in the run map and in its value's set",
+      "total": "2*N",
+      "notes": {
+        "py": "one entry per run of equal values (at most N, usually far fewer), in the run map and in its value's set",
+        "cpp": "one entry per run of equal values (at most N, usually far fewer), in the run map and in its value's set"
+      }
+    },
+    "lettersSame": true,
+    "usage": {
+      "py": {
+        "classes": [
+          {
+            "className": "IntervalMap",
+            "doc": "\"Where is x's first / last copy, in the whole array or inside a[l..r]?\" with RANGE ASSIGN and point updates. All indices 0-based, ranges inclusive; -1 when there is no such index. The array is kept as runs of one value: an ordered map start -> value, and per value the ordered set of its runs' starts. An assign splits the runs at l and r + 1, deletes the runs inside and adds one, so it adds at most 3 runs and pays for every run it later deletes (O(log N) amortized). x's first index in [l, r] is l if the run holding l has x, else the start of x's next run.",
+            "ctor": [
+              {
+                "name": "arr"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (equal neighbours become one run)"
+          }
+        ],
+        "methods": {
+          "getAll": {
+            "params": [],
+            "doc": "the whole array",
+            "cls": 0
+          },
+          "leftmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "doc": "the smallest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "leftmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "the smallest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "a[i] = x for i in [l, r]",
+            "cls": 0
+          },
+          "rightmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "doc": "the largest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "rightmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "doc": "the largest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
+          }
+        }
+      },
+      "cpp": {
+        "classes": [
+          {
+            "className": "IntervalMap",
+            "doc": "\"Where is x's first / last copy, in the whole array or inside a[l..r]?\" with RANGE ASSIGN and point updates. All indices 0-based, ranges inclusive; -1 when there is no such index. The array is kept as runs of one value: an ordered map start -> value, and per value the ordered set of its runs' starts. An assign splits the runs at l and r + 1, deletes the runs inside and adds one, so it adds at most 3 runs and pays for every run it later deletes (O(log N) amortized). x's first index in [l, r] is l if the run holding l has x, else the start of x's next run. T: int, long long, char, ... (any type usable as a std::map key).",
+            "ctor": [
+              {
+                "name": "arr",
+                "type": "const vector<T>&"
+              }
+            ],
+            "ctorDoc": "arr: the initial array (equal neighbours become one run)"
+          }
+        ],
+        "methods": {
+          "getAll": {
+            "params": [],
+            "returns": "vector<T>",
+            "doc": "the whole array",
+            "cls": 0
+          },
+          "leftmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the smallest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "leftmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the smallest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
+          },
+          "pointAdd": {
+            "params": [
+              "i",
+              "delta"
+            ],
+            "returns": "void",
+            "doc": "a[i] += delta",
+            "cls": 0
+          },
+          "pointAssign": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = v",
+            "cls": 0
+          },
+          "pointChmax": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = max(a[i], v)",
+            "cls": 0
+          },
+          "pointChmin": {
+            "params": [
+              "i",
+              "v"
+            ],
+            "returns": "void",
+            "doc": "a[i] = min(a[i], v)",
+            "cls": 0
+          },
+          "pointGet": {
+            "params": [
+              "i"
+            ],
+            "returns": "T",
+            "doc": "a[i]",
+            "cls": 0
+          },
+          "rangeAssign": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "void",
+            "doc": "a[i] = x for i in [l, r]",
+            "cls": 0
+          },
+          "rightmostIndexOf": {
+            "params": [
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the largest i with a[i] == x, or -1 if x isn't in the array",
+            "cls": 0
+          },
+          "rightmostIndexOfInRange": {
+            "params": [
+              "l",
+              "r",
+              "x"
+            ],
+            "returns": "int",
+            "doc": "the largest i in [l, r] with a[i] == x, or -1 if there is none",
+            "cls": 0
           }
         }
       }

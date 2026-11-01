@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostIndexOf-leftmostIndexOfInRange-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rightmostIndexOf-rightmostIndexOfInRange/template.cpp
 // @operations: getAll leftmostIndexOf leftmostIndexOfInRange pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rightmostIndexOf rightmostIndexOfInRange
 // @data-structure-type: interval-map
+// @letters: same
 // @complexities:
 //   getAll: N
 //   leftmostIndexOf: log(N)
