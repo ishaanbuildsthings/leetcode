@@ -10,101 +10,132 @@
 #   pointAssign: log(N)
 #   pointChmax: log(N)
 #   pointChmin: log(N)
-#   pointGet: 1
+#   pointGet: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
-#   node: ln[2*N] pre[2*N] suf[2*N] best[2*N] lv[2*N] rv[2*N]
+#   node: fv[2*N] lv[2*N] pr[2*N] sr[2*N] br[2*N]
 #   tags: none
 #   other: none
-#   note: per node: length, equal-run at the left / right end, best run inside, and the end values; queries fold a left and a right accumulator
-# @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/LongestContiguousBlockSeg.cpp
+#   note: leaves [n, 2n) hold each value's own aggregates
 
-# Longest run of equal adjacent values inside a[l..r], with point updates. All indices 0-based, ranges inclusive.
-# Iterative 2N tree. Merging A then B: the runs at the seam join when A's last value == B's first value. The merge
-# is not commutative, so a query folds a left accumulator and a right accumulator, then joins them.
+# Segment tree with composable aggregates (2N iterative): point updates and range queries in O(logN); each node keeps
+# its first / last value and the equal runs at its ends and inside over its range. All indices 0-based, ranges
+# inclusive [l, r]; searches return -1 when nothing qualifies. Leaves tree[n..2n); a node used by a query or update is
+# a perfect subtree of 2^s leaves (s = its level); an update rewrites a leaf, then its ancestors.
+
+class SegTree:
+    __slots__ = ('n', 'h', 'fv', 'lv', 'pr', 'sr', 'br')
 
 
-class EqualRunTree:
-    __slots__ = ("n", "ln", "pre", "suf", "best", "lv", "rv")
-
-    # O(N)
+    # O(N) -- arr: the initial array (non-empty)
     def __init__(self, arr):
         n = self.n = len(arr)
-        self.ln = [0] * n + [1] * n
-        self.pre = [0] * n + [1] * n
-        self.suf = [0] * n + [1] * n
-        self.best = [0] * n + [1] * n
+        self.h = n.bit_length()
+        self.fv = [0] * n + list(arr)
         self.lv = [0] * n + list(arr)
-        self.rv = [0] * n + list(arr)
+        self.pr = [0] * n + [1] * n
+        self.sr = [0] * n + [1] * n
+        self.br = [0] * n + [1] * n
         for x in range(n - 1, 0, -1):
-            self._pull(x)
+            s, y = 0, x
+            while y < n:  # (x's level: down its left edge to the leaves)
+                y <<= 1
+                s += 1
+            self._pull(x, s)
 
-    @staticmethod
-    def _merge(a, b):
-        aln, apre, asuf, abest, alv, arv = a
-        bln, bpre, bsuf, bbest, blv, brv = b
-        join = arv == blv
-        pre = apre + bpre if join and apre == aln else apre
-        suf = bsuf + asuf if join and bsuf == bln else bsuf
-        best = abest if abest > bbest else bbest
-        if join and asuf + bpre > best:
-            best = asuf + bpre
-        return aln + bln, pre, suf, best, alv, brv
-
-    def _node(self, x):
-        return self.ln[x], self.pre[x], self.suf[x], self.best[x], self.lv[x], self.rv[x]
-
-    def _pull(self, x):
-        self.ln[x], self.pre[x], self.suf[x], self.best[x], self.lv[x], self.rv[x] = self._merge(self._node(2 * x), self._node(2 * x + 1))
-
-    # O(logN) -- length of the longest block of equal adjacent values inside a[l..r]
-    def longestEqualRun(self, l, r):
-        left = right = None
-        l += self.n
-        r += self.n + 1
-        while l < r:
-            if l & 1:
-                left = self._node(l) if left is None else self._merge(left, self._node(l))
-                l += 1
-            if r & 1:
-                r -= 1
-                right = self._node(r) if right is None else self._merge(self._node(r), right)
-            l >>= 1
-            r >>= 1
-        if left is None:
-            return right[3]
-        if right is None:
-            return left[3]
-        return self._merge(left, right)[3]
-
-    # O(logN) -- a[i] = val
-    def pointAssign(self, i, val):
-        p = i + self.n
-        self.lv[p] = self.rv[p] = val
-        p >>= 1
-        while p:
-            self._pull(p)
-            p >>= 1
-
-    # O(1) -- a[i]
-    def pointGet(self, i):
-        return self.lv[i + self.n]
-
-    # O(N) -- the whole array (a copy of the leaves)
+    # O(N) -- the whole array
     def getAll(self):
-        return self.lv[self.n:]
+        return self.fv[self.n:]
 
-    # O(logN) -- a[i] += delta
-    def pointAdd(self, i, delta):
-        self.pointAssign(i, self.lv[i + self.n] + delta)
+    # O(logN) -- the longest run of equal adjacent values in a[l..r]
+    def longestEqualRun(self, l, r):
+        pr, sr, br, fv, lv = self.pr, self.sr, self.br, self.fv, self.lv
+        ns = self._nodes(l, r)
+        t, s = ns[0]
+        p, q, res, k, last = pr[t], sr[t], br[t], 1 << s, lv[t]  # (prefix run, suffix run, best, length, last value)
+        for t, s in ns[1:]:
+            j = last == fv[t]
+            if j and q + pr[t] > res:
+                res = q + pr[t]
+            if br[t] > res:
+                res = br[t]
+            if j and p == k:
+                p += pr[t]
+            q = q + sr[t] if j and sr[t] == 1 << s else sr[t]
+            k += 1 << s
+            last = lv[t]
+        return res
 
-    # O(logN) -- a[i] = max(a[i], val)
-    def pointChmax(self, i, val):
-        if val > self.lv[i + self.n]:
-            self.pointAssign(i, val)
+    # O(logN) -- a[i] += v
+    def pointAdd(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, self._leaf(p) + v)
+        self._rebuild(p)
 
-    # O(logN) -- a[i] = min(a[i], val)
-    def pointChmin(self, i, val):
-        if val < self.lv[i + self.n]:
-            self.pointAssign(i, val)
+    # O(logN) -- a[i] = v
+    def pointAssign(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, v)
+        self._rebuild(p)
+
+    # O(logN) -- a[i] = max(a[i], v)
+    def pointChmax(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, max(self._leaf(p), v))
+        self._rebuild(p)
+
+    # O(logN) -- a[i] = min(a[i], v)
+    def pointChmin(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, min(self._leaf(p), v))
+        self._rebuild(p)
+
+    # O(logN) -- a[i]
+    def pointGet(self, i):
+        p = i + self.n
+        return self._leaf(p)
+
+    # ---- internals ----
+
+    def _setLeaf(self, p, v):  # leaf p holds v alone
+        self.fv[p] = v
+        self.lv[p] = v
+        self.pr[p] = 1
+        self.sr[p] = 1
+        self.br[p] = 1
+
+    def _leaf(self, p):  # the value at leaf p
+        return self.fv[p]
+
+    def _pull(self, x, s):  # recompute node x (level s) from its children
+        a, b = 2 * x, 2 * x + 1
+        h, j = 1 << (s - 1), self.lv[a] == self.fv[b]
+        pa, sb = self.pr[a], self.sr[b]
+        self.br[x] = max(self.br[a], self.br[b], self.sr[a] + self.pr[b] if j else 0)
+        self.pr[x] = pa + self.pr[b] if j and pa == h else pa
+        self.sr[x] = sb + self.sr[a] if j and sb == h else sb
+        self.fv[x] = self.fv[a]
+        self.lv[x] = self.lv[b]
+
+    def _rebuild(self, p):  # recompute every ancestor of leaf p
+        s = 0
+        while p > 1:
+            p >>= 1
+            s += 1
+            self._pull(p, s)
+
+    def _nodes(self, l, r):  # the O(logN) nodes covering a[l..r], left to right, each with its level
+        n = self.n
+        lo, hi, s, left, right = l + n, r + n + 1, 0, [], []
+        while lo < hi:
+            if lo & 1:
+                left.append((lo, s))
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                right.append((hi, s))
+            lo >>= 1
+            hi >>= 1
+            s += 1
+        return left + right[::-1]

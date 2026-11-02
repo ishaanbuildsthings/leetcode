@@ -38,6 +38,7 @@ struct LazySegTree {
     vector<S> sm;
     vector<T> mx;
     vector<T> add;
+
     // O(N) -- arr: the initial array (non-empty)
     explicit LazySegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         sm.assign(2 * n, 0);
@@ -65,7 +66,7 @@ struct LazySegTree {
 
     // O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
     int leftmostGtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             if (!(mx[t] > x)) continue;
@@ -77,7 +78,7 @@ struct LazySegTree {
 
     // O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
     int leftmostGteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             if (!(mx[t] >= x)) continue;
@@ -156,7 +157,7 @@ struct LazySegTree {
 
     // O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
     int rightmostGtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             if (!(mx[t] > x)) continue;
@@ -168,7 +169,7 @@ struct LazySegTree {
 
     // O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
     int rightmostGteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             if (!(mx[t] >= x)) continue;

@@ -35,6 +35,7 @@ struct SegTree {
     vector<T> mx;
     vector<T> orr;
     vector<T> g;
+
     // O(N log U) -- arr: the initial array (non-empty)
     explicit SegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         mx.assign(2 * n, T(0));
@@ -53,7 +54,7 @@ struct SegTree {
 
     // O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
     int leftmostGtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i];
             if (!(mx[t] > x)) continue;
@@ -65,7 +66,7 @@ struct SegTree {
 
     // O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
     int leftmostGteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i];
             if (!(mx[t] >= x)) continue;
@@ -137,7 +138,7 @@ struct SegTree {
 
     // O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
     int rightmostGtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
             if (!(mx[t] > x)) continue;
@@ -149,7 +150,7 @@ struct SegTree {
 
     // O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
     int rightmostGteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
             if (!(mx[t] >= x)) continue;

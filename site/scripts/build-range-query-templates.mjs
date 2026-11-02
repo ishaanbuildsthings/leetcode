@@ -126,10 +126,10 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
   const entry = { folder, langs, ...data };
   if (sparse.data) {
     const s = sparse.data;
-    // a sparse tree may leave out getAll (its index range can be huge); every other op must match
+    // a sparse tree may leave out getAll (its index range can be huge) and ops it has no version of (beats searches)
     const dense = data.operations.join(" ");
-    if (s.operations.join(" ") !== dense && s.operations.join(" ") !== data.operations.filter((op) => op !== "getAll").join(" "))
-      errors.push(`${folder}: sparse @operations must match the template's (getAll may be left out)`);
+    if (s.operations.some((op) => !data.operations.includes(op)))
+      errors.push(`${folder}: sparse @operations must be some of the template's`);
     if (s.memory.layout !== "sparse") errors.push(`${folder}: sparse files must use layout "sparse"`);
     entry.sparse = {
       langs: sparse.langs,

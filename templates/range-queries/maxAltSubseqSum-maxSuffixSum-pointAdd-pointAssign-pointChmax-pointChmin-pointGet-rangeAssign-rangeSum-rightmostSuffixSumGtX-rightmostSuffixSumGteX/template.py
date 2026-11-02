@@ -174,8 +174,8 @@ class LazySegTree:
         for t, s in reversed(self._nodes(l, r)):
             if acc + P[t] > x:
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     if acc + P[2 * t + 1] > x:
                         t = 2 * t + 1
                     else:
@@ -192,8 +192,8 @@ class LazySegTree:
         for t, s in reversed(self._nodes(l, r)):
             if acc + P[t] >= x:
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     if acc + P[2 * t + 1] >= x:
                         t = 2 * t + 1
                     else:
@@ -221,8 +221,9 @@ class LazySegTree:
         sm = self.sm
         self.suf[x] = max(self.suf[b], sm[b] + self.suf[a])
         sm[x] = sm[a] + sm[b]
-        self.a00[x], self.a01[x], self.a10[x], self.a11[x] = _altJoin((self.a00[a], self.a01[a], self.a10[a], self.a11[a]),
-                                                                      (self.a00[b], self.a01[b], self.a10[b], self.a11[b]))
+        A = (self.a00[a], self.a01[a], self.a10[a], self.a11[a])
+        B = (self.a00[b], self.a01[b], self.a10[b], self.a11[b])
+        self.a00[x], self.a01[x], self.a10[x], self.a11[x] = _altJoin(A, B)
         if self.hasAsg[x]:
             self._setAssign(x, s, self.asg[x])
 

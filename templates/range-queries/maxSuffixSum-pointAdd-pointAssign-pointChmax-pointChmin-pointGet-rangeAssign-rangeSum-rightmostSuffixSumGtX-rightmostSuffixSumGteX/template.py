@@ -148,8 +148,8 @@ class LazySegTree:
         for t, s in reversed(self._nodes(l, r)):
             if acc + P[t] > x:
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     if acc + P[2 * t + 1] > x:
                         t = 2 * t + 1
                     else:
@@ -166,8 +166,8 @@ class LazySegTree:
         for t, s in reversed(self._nodes(l, r)):
             if acc + P[t] >= x:
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     if acc + P[2 * t + 1] >= x:
                         t = 2 * t + 1
                     else:

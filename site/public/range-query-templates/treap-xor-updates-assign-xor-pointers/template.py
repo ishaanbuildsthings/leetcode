@@ -192,7 +192,7 @@ class ImplicitTreap:
         self._applyAssign(b, v)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1

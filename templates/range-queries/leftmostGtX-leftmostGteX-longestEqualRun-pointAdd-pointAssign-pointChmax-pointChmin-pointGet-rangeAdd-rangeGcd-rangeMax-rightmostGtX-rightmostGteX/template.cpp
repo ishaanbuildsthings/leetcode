@@ -43,6 +43,7 @@ struct LazySegTree {
     vector<int> sr;
     vector<int> br;
     vector<T> add;
+
     // O(N log U) -- arr: the initial array (non-empty)
     explicit LazySegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         mx.assign(2 * n, T(0));
@@ -71,7 +72,7 @@ struct LazySegTree {
 
     // O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
     int leftmostGtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i];
             if (!(mx[t] > x)) continue;
@@ -83,7 +84,7 @@ struct LazySegTree {
 
     // O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
     int leftmostGteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i];
             if (!(mx[t] >= x)) continue;
@@ -95,7 +96,7 @@ struct LazySegTree {
 
     // O(logN) -- the longest run of equal adjacent values in a[l..r]
     int longestEqualRun(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         int t = ns[0], p = pr[t], q = sr[t], res = br[t], k = 1 << ls[0];  // (prefix run, suffix run, best, length)
         T last = lv[t];
         for (int i = 1; i < c; i++) {
@@ -157,7 +158,7 @@ struct LazySegTree {
 
     // O(logN + logU) -- gcd of |a[l]|, ..., |a[r]|
     T rangeGcd(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         T res = gcd(fv[ns[0]], g[ns[0]]), last = lv[ns[0]];  // the first value, then every adjacent difference
         for (int i = 1; i < c; i++) res = gcd(gcd(res, T(fv[ns[i]] - last)), g[ns[i]]), last = lv[ns[i]];
         return res;
@@ -176,7 +177,7 @@ struct LazySegTree {
 
     // O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
     int rightmostGtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
             if (!(mx[t] > x)) continue;
@@ -188,7 +189,7 @@ struct LazySegTree {
 
     // O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
     int rightmostGteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
             if (!(mx[t] >= x)) continue;

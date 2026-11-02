@@ -423,9 +423,10 @@ def domain(folder, ops):
         return (lambda r: r.randint(0, 63)), nonneg_small, [], ctx
     if "leftmostPrefixSumGteX" in ops:
         return (lambda r: r.randint(0, 6)), nonneg_small, [], ctx
-    if "rangeFloorSqrt" in ops and "rangeSum" not in ops:
+    sums = {"rangeSum", "maxAltSubseqSum", "maxSubarraySum", "maxPrefixSum", "maxSuffixSum"} & set(ops)  # (these add values up)
+    if "rangeFloorSqrt" in ops and not sums:
         return (lambda r: r.choice([r.randint(0, 200), r.randint(0, (1 << 62) - 1)])), nonneg_small, [], ctx
-    if "rangeFloorDiv" in ops and "rangeSum" not in ops:
+    if "rangeFloorDiv" in ops and not sums:
         return (lambda r: r.choice([r.randint(-60, 60), r.randint(-10**17, 10**17)])), small, [], ctx
     if {"rangeMod", "rangeFloorSqrt", "rangeFloorDiv"} & set(ops):
         return (lambda r: r.randint(0, 200)), nonneg_small, [], ctx
@@ -726,6 +727,11 @@ def _runs_prefix_search(runs, x, strict):
             if acc > x or (not strict and acc == x):
                 return s_
             continue
+        if v < 0:  # the sums only fall along this run: just its first position can pass
+            if acc + v > x or (not strict and acc + v == x):
+                return s_
+            acc += v * n
+            continue
         need = x - acc  # smallest t >= 1 with acc + v * t >= x (or > x)
         t = max(1, (need // v + 1) if strict else -(-need // v))
         if t <= n:
@@ -746,6 +752,20 @@ def sparse_query(op, R, args, ctx):
     if op == "rangeMax": return max(vals)
     if op == "rangeGcd": return reduce(math.gcd, (abs(v) for v in vals), 0)
     if op == "rangeAndQuery": return reduce(lambda a, b: a & b, vals)
+    if op == "rangeXorQuery": return reduce(lambda a, b: a ^ b, (v for s_, e, v in runs if (e - s_) % 2 == 0), 0)
+    if op in ("rangeHash", "rangeHashReversed", "rangesEqual", "isPalindrome"):  # (what hashes promise: equal sequences)
+        def seq(a, b):
+            out = []
+            for s_, e, v in R.runs(a, b):
+                if out and out[-1][0] == v:
+                    out[-1][1] += e - s_ + 1
+                else:
+                    out.append([v, e - s_ + 1])
+            return out
+        if op == "isPalindrome":
+            return seq(l, r) == seq(l, r)[::-1]
+        first = seq(l, r)
+        return (first[::-1] if op == "rangeHashReversed" else first) == seq(xs[0], xs[1])
     if op == "rangeOrQuery": return reduce(lambda a, b: a | b, vals)
     if op == "maxSubarraySum": return _runs_sub(runs)[3]
     if op == "maxPrefixSum": return _runs_sub(runs)[1]
@@ -827,19 +847,36 @@ AP_OPS = {"rangeAddArithSeq", "rangeAddArithSeqMod"}
 
 
 class Linear:
-    """For arithmetic-progression adds: the array is the sum of linear pieces c0 + c1 * i on [l, r]."""
-    def __init__(self):
-        self.ups = []
+    """For arithmetic-progression adds: the array as disjoint pieces [a, b] holding c0 + c1 * i (assign overwrites)."""
+    def __init__(self, lo=None, hi=None):
+        self.pieces = [[lo, hi, 0, 0]] if lo is not None else []
+
+    def _split(self, i):  # make a piece start at i
+        for k, (a, b, c0, c1) in enumerate(self.pieces):
+            if a < i <= b:
+                self.pieces[k:k + 1] = [[a, i - 1, c0, c1], [i, b, c0, c1]]
+                return
+
+    def _inside(self, l, r):
+        self._split(l)
+        self._split(r + 1)
+        return [p for p in self.pieces if l <= p[0] and p[1] <= r]
 
     def add(self, l, r, c0, c1):
-        self.ups.append((l, r, c0, c1))
+        for p in self._inside(l, r):
+            p[2] += c0
+            p[3] += c1
+
+    def assign(self, l, r, v):
+        for p in self._inside(l, r):
+            p[2], p[3] = v, 0
 
     def get(self, i):
-        return sum(c0 + c1 * i for l, r, c0, c1 in self.ups if l <= i <= r)
+        return next(c0 + c1 * i for a, b, c0, c1 in self.pieces if a <= i <= b)
 
     def sum(self, l, r):
         tot = 0
-        for a, b, c0, c1 in self.ups:
+        for a, b, c0, c1 in self.pieces:
             a, b = max(a, l), min(b, r)
             if a <= b:
                 tot += c0 * (b - a + 1) + c1 * (a + b) * (b - a + 1) // 2
@@ -852,7 +889,7 @@ def sparse_expected(trials, ctx, ops):
     exp = []
     for head, seq in trials:
         lo, hi = head[:2]
-        R = Linear() if linear else Runs(lo, hi)
+        R = Linear(lo, hi) if linear else Runs(lo, hi)
         for i, v in (head[2] if len(head) > 2 else []):
             R.update(i, i, lambda _v, v=v: v)
         get = (lambda i: R.get(i) % mod) if (linear and mod) else R.get
@@ -876,6 +913,8 @@ def sparse_expected(trials, ctx, ops):
                 if linear:
                     if op in AP_OPS:
                         R.add(l, r, xs[0] - xs[1] * l, xs[1])
+                    elif op in ("rangeAssign", "rangeAssignMod"):
+                        R.assign(l, r, xs[0])
                     else:
                         R.add(l, r, xs[0], 0)
                 else:
@@ -941,6 +980,10 @@ def make_sparse_trials(folder, ops, trials):
                             args = [l, r, *sorted((pick(), pick()))]
                     elif kind == "lrlohi":
                         args = [l, r, *sorted((gen(rng), gen(rng)))]
+                    elif kind == "lr2":  # a second range, mostly of the same length (equal when both are all zeros)
+                        l2 = rng.choice(pool)
+                        r2 = l2 + (r - l) if l2 + (r - l) <= hi and rng.random() < 0.9 else max(l2, rng.choice(pool))
+                        args = [l, r, l2, r2]
                     else:
                         args = [l, r]
             seq.append((op, args))
@@ -1223,6 +1266,9 @@ def main():
         else:
             variants = [("template", *make_trials(folder, ops, trials_n))]
         sparse_ops = [o for o in ops if o != "getAll"]  # a sparse tree over a huge index range has no getAll
+        spath = os.path.join(DIR, folder, "sparse.py")
+        if os.path.exists(spath) and set(parse_ops(spath, "#")) < set(sparse_ops):
+            sparse_ops = parse_ops(spath, "#")  # (and may lack ops it has no version of: the beats searches)
         if not letters and any(os.path.exists(os.path.join(DIR, folder, f"sparse.{x}")) for x in ("py", "cpp")):
             variants.append(("sparse", *make_sparse_trials(folder, sparse_ops, trials_n)))
         lpath = os.path.join(DIR, folder, "letters.py")

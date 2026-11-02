@@ -10,79 +10,127 @@
 //   pointAssign: log(N)
 //   pointChmax: log(N)
 //   pointChmin: log(N)
-//   pointGet: 1
+//   pointGet: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
-//   node: ln[2*N] pre[2*N] suf[2*N] best[2*N] lv[2*N] rv[2*N]
+//   node: fv[2*N] lv[2*N] pr[2*N] sr[2*N] br[2*N]
 //   tags: none
 //   other: none
-//   note: per node: length, equal-run at the left / right end, best run inside, and the end values; queries fold a left and a right accumulator
-// @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/LongestContiguousBlockSeg.cpp
+//   note: leaves [n, 2n) hold each value's own aggregates
 
-// Longest run of equal adjacent values inside a[l..r], with point updates. All indices 0-based, ranges inclusive.
-// Iterative 2N tree. Merging A then B: the runs at the seam join when A's last value == B's first value. The merge
-// is not commutative, so a query folds a left accumulator and a right accumulator, then joins them.
-// T: any type with ==.
+// Segment tree with composable aggregates (2N iterative): point updates and range queries in O(logN); each node keeps
+// its first / last value and the equal runs at its ends and inside over its range. All indices 0-based, ranges
+// inclusive [l, r]; searches return -1 when nothing qualifies. Leaves tree[n..2n); a node used by a query or update
+// is a perfect subtree of 2^s leaves (s = its level); an update rewrites a leaf, then its ancestors.
+// T: int, long long, ...
 template <typename T>
-struct EqualRunTree {
-    struct Node { int ln, pre, suf, best; T lv, rv; };
-    int n;
-    vector<Node> t;
+struct SegTree {
+    int n, h;
+    vector<T> fv;
+    vector<T> lv;
+    vector<int> pr;
+    vector<int> sr;
+    vector<int> br;
 
-    static Node leaf(T v) { return {1, 1, 1, 1, v, v}; }
-
-    static Node merge(const Node& a, const Node& b) {
-        bool join = a.rv == b.lv;
-        Node r{a.ln + b.ln, a.pre, b.suf, max(a.best, b.best), a.lv, b.rv};
-        if (join && a.pre == a.ln) r.pre = a.ln + b.pre;
-        if (join && b.suf == b.ln) r.suf = b.ln + a.suf;
-        if (join) r.best = max(r.best, a.suf + b.pre);
-        return r;
-    }
-
-    // O(N)
-    explicit EqualRunTree(const vector<T>& a) : n((int)a.size()), t(2 * a.size()) {
-        for (int i = 0; i < n; i++) t[n + i] = leaf(a[i]);
-        for (int x = n - 1; x > 0; x--) t[x] = merge(t[2 * x], t[2 * x + 1]);
-    }
-
-    // O(logN) -- length of the longest block of equal adjacent values inside a[l..r]
-    int longestEqualRun(int l, int r) const {
-        Node left{}, right{};
-        bool lEmpty = true, rEmpty = true;
-        for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
-            if (l & 1) left = lEmpty ? t[l] : merge(left, t[l]), lEmpty = false, l++;
-            if (r & 1) --r, right = rEmpty ? t[r] : merge(t[r], right), rEmpty = false;
+    // O(N) -- arr: the initial array (non-empty)
+    explicit SegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
+        fv.assign(2 * n, T(0));
+        lv.assign(2 * n, T(0));
+        pr.assign(2 * n, 0);
+        sr.assign(2 * n, 0);
+        br.assign(2 * n, 0);
+        for (int i = 0; i < n; i++) setLeaf(n + i, arr[i]);
+        for (int x = n - 1; x > 0; x--) {
+            int s = 0;
+            for (int y = x; y < n; y <<= 1) s++;  // (x's level: down its left edge to the leaves)
+            pull(x, s);
         }
-        if (rEmpty) return left.best;
-        if (lEmpty) return right.best;
-        return merge(left, right).best;
+    }
+
+    // O(N) -- the whole array
+    vector<T> getAll() const {
+        vector<T> out(n);
+        for (int i = 0; i < n; i++) out[i] = leaf(n + i);
+        return out;
+    }
+
+    // O(logN) -- the longest run of equal adjacent values in a[l..r]
+    int longestEqualRun(int l, int r) {
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        int t = ns[0], p = pr[t], q = sr[t], res = br[t], k = 1 << ls[0];  // (prefix run, suffix run, best, length)
+        T last = lv[t];
+        for (int i = 1; i < c; i++) {
+            t = ns[i];
+            int w = 1 << ls[i];
+            bool j = last == fv[t];
+            res = max({res, br[t], j ? q + pr[t] : 0});
+            if (j && p == k) p += pr[t];
+            q = j && sr[t] == w ? q + sr[t] : sr[t];
+            k += w, last = lv[t];
+        }
+        return res;
+    }
+
+    // O(logN) -- a[i] += v
+    void pointAdd(int i, T v) {
+        int p = i + n;
+        setLeaf(p, T(leaf(p) + v)), rebuild(p);
     }
 
     // O(logN) -- a[i] = v
     void pointAssign(int i, T v) {
         int p = i + n;
-        t[p] = leaf(v);
-        for (p >>= 1; p; p >>= 1) t[p] = merge(t[2 * p], t[2 * p + 1]);
+        setLeaf(p, v), rebuild(p);
     }
-
-    // O(1) -- a[i]
-    T pointGet(int i) const { return t[i + n].lv; }
-
-    // O(N) -- the whole array (a copy of the leaves)
-    vector<T> getAll() const {
-        vector<T> out(n);
-        for (int i = 0; i < n; i++) out[i] = t[n + i].lv;
-        return out;
-    }
-
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
 
     // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    void pointChmax(int i, T v) {
+        int p = i + n;
+        setLeaf(p, max(leaf(p), v)), rebuild(p);
+    }
 
     // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    void pointChmin(int i, T v) {
+        int p = i + n;
+        setLeaf(p, min(leaf(p), v)), rebuild(p);
+    }
+
+    // O(logN) -- a[i]
+    T pointGet(int i) {
+        int p = i + n;
+        return leaf(p);
+    }
+
+    // ---- internals ----
+
+    void setLeaf(int p, T v) {  // leaf p holds v alone
+        fv[p] = v, lv[p] = v, pr[p] = 1, sr[p] = 1, br[p] = 1;
+    }
+
+    T leaf(int p) const { return T(fv[p]); }  // the value at leaf p
+
+    void pull(int x, int s) {  // recompute node x (level s) from its children
+        int a = 2 * x, b = 2 * x + 1;
+        int hl = 1 << (s - 1);
+        bool j = lv[a] == fv[b];
+        br[x] = max({br[a], br[b], j ? sr[a] + pr[b] : 0});
+        pr[x] = j && pr[a] == hl ? pr[a] + pr[b] : pr[a];
+        sr[x] = j && sr[b] == hl ? sr[b] + sr[a] : sr[b];
+        fv[x] = fv[a], lv[x] = lv[b];
+    }
+
+    void rebuild(int p) {  // recompute every ancestor of leaf p
+        for (int s = 1; p > 1; s++) p >>= 1, pull(p, s);
+    }
+
+    int cover(int l, int r, int* ns, int* ls) {  // the nodes covering a[l..r] left to right (ns) and their levels (ls)
+        int c = 0, rc = 0, rn[32], rl[32];
+        for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {
+            if (lo & 1) ns[c] = lo++, ls[c++] = s;
+            if (hi & 1) rn[rc] = --hi, rl[rc++] = s;
+        }
+        while (rc) rc--, ns[c] = rn[rc], ls[c++] = rl[rc];
+        return c;
+    }
 };

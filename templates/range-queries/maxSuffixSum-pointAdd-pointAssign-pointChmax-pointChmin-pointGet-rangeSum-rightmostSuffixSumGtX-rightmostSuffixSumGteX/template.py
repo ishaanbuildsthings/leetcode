@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX/template.py
 # @operations: getAll maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
 # @data-structure-type: seg-tree
+# @letters: same
 # @complexities:
 #   getAll: N
 #   maxSuffixSum: log(N)

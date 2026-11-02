@@ -37,6 +37,7 @@ struct LazySegTree {
     vector<S> pre;
     vector<T> asg;
     vector<char> hasAsg;
+
     // O(N) -- arr: the initial array (non-empty)
     explicit LazySegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         sm.assign(2 * n, 0);
@@ -65,7 +66,7 @@ struct LazySegTree {
 
     // O(logN) -- first i in [l, r] with a[l] + ... + a[i] > x, or -1 (a walk pruned by best prefix sums)
     int leftmostPrefixSumGtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
@@ -84,7 +85,7 @@ struct LazySegTree {
 
     // O(logN) -- first i in [l, r] with a[l] + ... + a[i] >= x, or -1 (a walk pruned by best prefix sums)
     int leftmostPrefixSumGteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
@@ -103,7 +104,7 @@ struct LazySegTree {
 
     // O(logN) -- max of a[l] + ... + a[i] over i in [l, r]
     S maxPrefixSum(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S res = pre[ns[0]], acc = sm[ns[0]];
         for (int i = 1; i < c; i++) res = max(res, acc + pre[ns[i]]), acc += sm[ns[i]];
         return res;

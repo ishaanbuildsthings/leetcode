@@ -47,6 +47,7 @@ struct SegTree {
     vector<S> a01;
     vector<S> a10;
     vector<S> a11;
+
     // O(N log U) -- arr: the initial array (non-empty)
     explicit SegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         xr.assign(2 * n, T(0));
@@ -79,7 +80,7 @@ struct SegTree {
 
     // O(logN) -- the longest run of equal adjacent values in a[l..r]
     int longestEqualRun(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         int t = ns[0], p = pr[t], q = sr[t], res = br[t], k = 1 << ls[0];  // (prefix run, suffix run, best, length)
         T last = lv[t];
         for (int i = 1; i < c; i++) {
@@ -96,7 +97,7 @@ struct SegTree {
 
     // O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
     S maxAltSubseqSum(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         array<S, 4> a{a00[ns[0]], a01[ns[0]], a10[ns[0]], a11[ns[0]]};
         for (int i = 1; i < c; i++) a = altJoin(a, {a00[ns[i]], a01[ns[i]], a10[ns[i]], a11[ns[i]]});
         return max(a[0], a[1]);

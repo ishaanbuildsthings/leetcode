@@ -561,39 +561,7 @@ write({
     },
 })
 
-# ------------------------------------------------------------------------------------------------ max subarray + assign
-
-write({
-    "name": "SparseMaxSubarrayAssignTree",
-    "ops": PLAIN + ["maxPrefixSum", "maxSubarraySum", "maxSuffixSum", "rangeAssign", "rangeSum"], "point": "plain",
-    "desc": ["Range assign with range sum and max prefix / suffix / subarray sum (non-empty pieces), plus point ops.",
-             "A node assigned v over k slots is fully known: sum v * k, and its best prefix / suffix / subarray are",
-             "v * k if v > 0, else v. A block of zeros summarizes to all zeros. Merging is not commutative."],
-    "mem": ("sm[4*log(U)] pre[4*log(U)] suf[4*log(U)] best[4*log(U)]", "asg[4*log(U)] hasAsg[4*log(U)]", "children[8*log(U)]"),
-    "note": VISIT,
-    "cpp": {
-        "types": "    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n",
-        "agg": "S sm, pre, suf, best;", "tag": "T asg; bool has;", "ident": "Tag{0, false}", "is_id": "!t.has",
-        "compose": "return t.has ? t : o;",
-        "apply": "        if (t.has) {\n            v.sm = S(t.asg) * k;\n            v.pre = v.suf = v.best = t.asg > 0 ? v.sm : S(t.asg);\n        }",
-        "merge": "return Agg{a.sm + b.sm, max(a.pre, a.sm + b.pre), max(b.suf, b.sm + a.suf), max({a.best, b.best, a.suf + b.pre})};",
-        "leaf": "Agg{S(v), S(v), S(v), S(v)}", "get": "T(res.sm)",
-        "updates": [("rangeAssign", "T v", "a[i] = v", "Tag{v, true}")],
-        "queries": [("rangeSum", "S", "a[l] + ... + a[r]", "res.sm"), ("maxPrefixSum", "S", "best sum of a non-empty prefix of a[l..r]", "res.pre"),
-                    ("maxSuffixSum", "S", "best sum of a non-empty suffix of a[l..r]", "res.suf"),
-                    ("maxSubarraySum", "S", "best sum of a non-empty subarray of a[l..r]", "res.best")],
-    },
-    "py": {
-        "zero": "(0, 0, 0, 0)",
-        "apply": "        s = t * k\n        b = s if t > 0 else t\n        return s, b, b, b", "compose": "        return t",
-        "merge": "        return a[0] + b[0], max(a[1], a[0] + b[1]), max(b[2], b[0] + a[2]), max(a[3], b[3], a[2] + b[1])",
-        "leaf": "(val, val, val, val)", "get": "res[0]",
-        "updates": [("rangeAssign", "v", "a[i] = v", "v")],
-        "queries": [("rangeSum", "a[l] + ... + a[r]", "res[0]"), ("maxPrefixSum", "best sum of a non-empty prefix of a[l..r]", "res[1]"),
-                    ("maxSuffixSum", "best sum of a non-empty suffix of a[l..r]", "res[2]"),
-                    ("maxSubarraySum", "best sum of a non-empty subarray of a[l..r]", "res[3]")],
-    },
-})
+# (max subarray + assign: gen_seg_algebra.py's tree, with its own sparse version, replaced this one)
 
 # ------------------------------------------------------------------------------------------------ mod p: affine maps, mult
 

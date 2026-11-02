@@ -68,7 +68,6 @@ struct SegTree {
         return hadd(hraw(v), off);
     }
 
-
     // O(N) -- arr: the initial array (non-empty)
     explicit SegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         mn.assign(2 * n, T(0));
@@ -93,15 +92,17 @@ struct SegTree {
 
     // O(logN) -- is a[l..r] a palindrome (its two hashes agree)
     bool isPalindrome(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 f = 0, b = 0, p = 1;
-        for (int i = 0; i < c; i++) f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+        for (int i = 0; i < c; i++) {
+            f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+        }
         return f == b;
     }
 
     // O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
     int leftmostLtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i];
             if (!(mn[t] < x)) continue;
@@ -113,7 +114,7 @@ struct SegTree {
 
     // O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
     int leftmostLteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i];
             if (!(mn[t] <= x)) continue;
@@ -153,9 +154,9 @@ struct SegTree {
         return leaf(p);
     }
 
-    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal
+    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     U64 rangeHash(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0;
         for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), fh[ns[i]]);
         return res;
@@ -163,9 +164,9 @@ struct SegTree {
 
     // O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
     U64 rangeHashReversed(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0, p = 1;
-        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (each node in front)
+        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (in front)
         return res;
     }
 
@@ -186,7 +187,7 @@ struct SegTree {
 
     // O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
     int rightmostLtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
             if (!(mn[t] < x)) continue;
@@ -198,7 +199,7 @@ struct SegTree {
 
     // O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
     int rightmostLteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
             if (!(mn[t] <= x)) continue;

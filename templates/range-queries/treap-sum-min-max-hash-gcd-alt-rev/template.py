@@ -3,41 +3,41 @@
 # @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum moveRange pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeHash rangeHashReversed rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 # @data-structure-type: treap
 # @complexities:
-#   append: log(N) expected
-#   appendLeft: log(N) expected
-#   eraseRange: log(N) expected
+#   append: log(N)*log(U) expected ?
+#   appendLeft: log(N)*log(U) expected ?
+#   eraseRange: log(N)*log(U) expected ?
 #   getAll: N
-#   insertAt: log(N) expected
-#   insertCopiesAt: log(N) expected
-#   isPalindrome: log(N) expected
-#   leftmostGtX: log(N) expected
-#   leftmostGteX: log(N) expected
-#   leftmostLtX: log(N) expected
-#   leftmostLteX: log(N) expected
-#   maxAltSubseqSum: log(N) expected
-#   moveRange: log(N) expected
-#   pointAdd: log(N) expected
-#   pointAssign: log(N) expected
-#   pointChmax: log(N) expected
-#   pointChmin: log(N) expected
+#   insertAt: log(N)*log(U) expected ?
+#   insertCopiesAt: log(N)*log(U) expected ?
+#   isPalindrome: log(N)*log(U) expected ?
+#   leftmostGtX: log(N)*log(U) expected ?
+#   leftmostGteX: log(N)*log(U) expected ?
+#   leftmostLtX: log(N)*log(U) expected ?
+#   leftmostLteX: log(N)*log(U) expected ?
+#   maxAltSubseqSum: log(N)*log(U) expected ?
+#   moveRange: log(N)*log(U) expected ?
+#   pointAdd: log(N)*log(U) expected ?
+#   pointAssign: log(N)*log(U) expected ?
+#   pointChmax: log(N)*log(U) expected ?
+#   pointChmin: log(N)*log(U) expected ?
 #   pointGet: log(N) expected
-#   pop: log(N) expected
-#   popLeft: log(N) expected
-#   rangeGcd: log(N) expected
-#   rangeHash: log(N) expected
-#   rangeHashReversed: log(N) expected
-#   rangeMax: log(N) expected
-#   rangeMin: log(N) expected
-#   rangeReverse: log(N) expected
-#   rangeRotateLeft: log(N) expected
-#   rangeRotateRight: log(N) expected
-#   rangeSum: log(N) expected
-#   rangesEqual: log(N) expected
-#   rightmostGtX: log(N) expected
-#   rightmostGteX: log(N) expected
-#   rightmostLtX: log(N) expected
-#   rightmostLteX: log(N) expected
-#   build: N
+#   pop: log(N)*log(U) expected ?
+#   popLeft: log(N)*log(U) expected ?
+#   rangeGcd: log(N)*log(U) expected ?
+#   rangeHash: log(N)*log(U) expected ?
+#   rangeHashReversed: log(N)*log(U) expected ?
+#   rangeMax: log(N)*log(U) expected ?
+#   rangeMin: log(N)*log(U) expected ?
+#   rangeReverse: log(N)*log(U) expected ?
+#   rangeRotateLeft: log(N)*log(U) expected ?
+#   rangeRotateRight: log(N)*log(U) expected ?
+#   rangeSum: log(N)*log(U) expected ?
+#   rangesEqual: log(N)*log(U) expected ?
+#   rightmostGtX: log(N)*log(U) expected ?
+#   rightmostGteX: log(N)*log(U) expected ?
+#   rightmostLtX: log(N)*log(U) expected ?
+#   rightmostLteX: log(N)*log(U) expected ?
+#   build: N*log(U) ?
 # @memory:
 #   layout: none
 #   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N] sm[1*N] mn[1*N] mx[1*N] fh[1*N] bh[1*N] pw[1*N] g[1*N] a00[1*N] a01[1*N] a10[1*N] a11[1*N]
@@ -94,15 +94,15 @@ class ImplicitTreap:
     def size(self):
         return self.sz[self.root]
 
-    # O(logN) expected -- append v to the end
+    # O(logN * logU) expected -- append v to the end
     def append(self, v):
         self.root = self._merge(self.root, self._newNode(v))
 
-    # O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
+    # O(logN * logU) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- remove a[l..r]
+    # O(logN * logU) expected -- remove a[l..r]
     def eraseRange(self, l, r):
         a, _, c = self._cut(l, r)
         self.root = self._merge(a, c)
@@ -121,25 +121,25 @@ class ImplicitTreap:
             t = R[t]
         return out
 
-    # O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    # O(logN * logU) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
     def insertAt(self, i, v):
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, self._newNode(v)), c)
 
-    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    # O(k + logN * logU) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
     def insertCopiesAt(self, i, v, k):
         if k > 0:
             a, c = self._split(self.root, i)
             self.root = self._merge(self._merge(a, self._build([v] * k)), c)
 
-    # O(logN) expected -- is a[l..r] a palindrome (its two hashes agree)
+    # O(logN * logU) expected -- is a[l..r] a palindrome (its two hashes agree)
     def isPalindrome(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.fh[b] == self.bh[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max)
+    # O(logN * logU) expected -- the first i in [l, r] with a[i] > x, or -1 (pruned by the subtree max)
     def leftmostGtX(self, l, r, x):
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
@@ -158,7 +158,7 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max)
+    # O(logN * logU) expected -- the first i in [l, r] with a[i] >= x, or -1 (pruned by the subtree max)
     def leftmostGteX(self, l, r, x):
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
@@ -177,7 +177,7 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min)
+    # O(logN * logU) expected -- the first i in [l, r] with a[i] < x, or -1 (pruned by the subtree min)
     def leftmostLtX(self, l, r, x):
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
@@ -196,7 +196,7 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min)
+    # O(logN * logU) expected -- the first i in [l, r] with a[i] <= x, or -1 (pruned by the subtree min)
     def leftmostLteX(self, l, r, x):
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
@@ -215,20 +215,20 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
+    # O(logN * logU) expected -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
     def maxAltSubseqSum(self, l, r):
         a, b, c = self._cut(l, r)
         res = max(self.a00[b], self.a01[b])
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
+    # O(logN * logU) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     def moveRange(self, l, r, i):
         a, b, c = self._cut(l, r)
         x, y = self._split(self._merge(a, c), i)
         self.root = self._merge(self._merge(x, b), y)
 
-    # O(logN) expected -- a[i] += v
+    # O(logN * logU) expected -- a[i] += v
     def pointAdd(self, i, v):
         t, path = self._find(i)
         self.val[t] = self.val[t] + v
@@ -236,7 +236,7 @@ class ImplicitTreap:
         for x in reversed(path):
             self._pull(x)
 
-    # O(logN) expected -- a[i] = v
+    # O(logN * logU) expected -- a[i] = v
     def pointAssign(self, i, v):
         t, path = self._find(i)
         self.val[t] = v
@@ -244,7 +244,7 @@ class ImplicitTreap:
         for x in reversed(path):
             self._pull(x)
 
-    # O(logN) expected -- a[i] = max(a[i], v)
+    # O(logN * logU) expected -- a[i] = max(a[i], v)
     def pointChmax(self, i, v):
         t, path = self._find(i)
         self.val[t] = max(self.val[t], v)
@@ -252,7 +252,7 @@ class ImplicitTreap:
         for x in reversed(path):
             self._pull(x)
 
-    # O(logN) expected -- a[i] = min(a[i], v)
+    # O(logN * logU) expected -- a[i] = min(a[i], v)
     def pointChmin(self, i, v):
         t, path = self._find(i)
         self.val[t] = min(self.val[t], v)
@@ -264,58 +264,58 @@ class ImplicitTreap:
     def pointGet(self, i):
         return self.val[self._find(i)[0]]
 
-    # O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
+    # O(logN * logU) expected -- remove a[i] and return it; everything after it shifts left by one
     def pop(self, i):
         v = self.pointGet(i)
         self.eraseRange(i, i)
         return v
 
-    # O(logN) expected -- remove a[0] and return it
+    # O(logN * logU) expected -- remove a[0] and return it
     def popLeft(self):
         return self.pop(0)
 
-    # O(logN) expected -- gcd of |a[l]|, ..., |a[r]|
+    # O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|
     def rangeGcd(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.g[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal
+    # O(logN * logU) expected -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     def rangeHash(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.fh[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
+    # O(logN * logU) expected -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
     def rangeHashReversed(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.bh[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- max of a[l..r]
+    # O(logN * logU) expected -- max of a[l..r]
     def rangeMax(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.mx[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- min of a[l..r]
+    # O(logN * logU) expected -- min of a[l..r]
     def rangeMin(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.mn[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- reverse a[l..r] in place
+    # O(logN * logU) expected -- reverse a[l..r] in place
     def rangeReverse(self, l, r):
         a, b, c = self._cut(l, r)
         self._applyRev(b)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    # O(logN * logU) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1
@@ -324,22 +324,22 @@ class ImplicitTreap:
             b = self._merge(b2, b1)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
+    # O(logN * logU) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 
-    # O(logN) expected -- a[l] + ... + a[r]
+    # O(logN * logU) expected -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.sm[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- are a[l1..r1] and a[l2..r2] equal (same length and hash)
+    # O(logN * logU) expected -- are a[l1..r1] and a[l2..r2] equal (same length and hash)
     def rangesEqual(self, l1, r1, l2, r2):
         return r1 - l1 == r2 - l2 and self.rangeHash(l1, r1) == self.rangeHash(l2, r2)
 
-    # O(logN) expected -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max)
+    # O(logN * logU) expected -- the last i in [l, r] with a[i] > x, or -1 (pruned by the subtree max)
     def rightmostGtX(self, l, r, x):
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
@@ -358,7 +358,7 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max)
+    # O(logN * logU) expected -- the last i in [l, r] with a[i] >= x, or -1 (pruned by the subtree max)
     def rightmostGteX(self, l, r, x):
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
@@ -377,7 +377,7 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min)
+    # O(logN * logU) expected -- the last i in [l, r] with a[i] < x, or -1 (pruned by the subtree min)
     def rightmostLtX(self, l, r, x):
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
@@ -396,7 +396,7 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min)
+    # O(logN * logU) expected -- the last i in [l, r] with a[i] <= x, or -1 (pruned by the subtree min)
     def rightmostLteX(self, l, r, x):
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn

@@ -1,6 +1,6 @@
 """Segment tree beats for range chmin / chmax with range sums: every combination, each paying only for what it has.
 
-    python3 gen_beats.py      (then python3 sparse_beats.py for the sparse versions, then gen_letters.py)
+    python3 gen_beats.py      (then beats_search.py, sparse_beats.py for the sparse versions, then gen_letters.py)
 
 One design for all (the one BeatsGcd uses): a node keeps, for the side(s) it supports,
   chmin: mx, mx2 (strict second max), cntMx      chmax: mn, mn2 (strict second min), cntMn

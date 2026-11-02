@@ -3,31 +3,31 @@
 # @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt isPalindrome moveRange pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeGcd rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangesEqual
 # @data-structure-type: treap
 # @complexities:
-#   append: log(N) expected
-#   appendLeft: log(N) expected
-#   eraseRange: log(N) expected
+#   append: log(N)*log(U) expected ?
+#   appendLeft: log(N)*log(U) expected ?
+#   eraseRange: log(N)*log(U) expected ?
 #   getAll: N
-#   insertAt: log(N) expected
-#   insertCopiesAt: log(N) expected
-#   isPalindrome: log(N) expected
-#   moveRange: log(N) expected
-#   pointAdd: log(N) expected
-#   pointAssign: log(N) expected
-#   pointChmax: log(N) expected
-#   pointChmin: log(N) expected
+#   insertAt: log(N)*log(U) expected ?
+#   insertCopiesAt: log(N)*log(U) expected ?
+#   isPalindrome: log(N)*log(U) expected ?
+#   moveRange: log(N)*log(U) expected ?
+#   pointAdd: log(N)*log(U) expected ?
+#   pointAssign: log(N)*log(U) expected ?
+#   pointChmax: log(N)*log(U) expected ?
+#   pointChmin: log(N)*log(U) expected ?
 #   pointGet: log(N) expected
-#   pop: log(N) expected
-#   popLeft: log(N) expected
-#   rangeAssign: log(N) expected
-#   rangeGcd: log(N) expected
-#   rangeHash: log(N) expected
-#   rangeHashReversed: log(N) expected
-#   rangeOrQuery: log(N) expected
-#   rangeReverse: log(N) expected
-#   rangeRotateLeft: log(N) expected
-#   rangeRotateRight: log(N) expected
-#   rangesEqual: log(N) expected
-#   build: N
+#   pop: log(N)*log(U) expected ?
+#   popLeft: log(N)*log(U) expected ?
+#   rangeAssign: log(N)*log(U) expected ?
+#   rangeGcd: log(N)*log(U) expected ?
+#   rangeHash: log(N)*log(U) expected ?
+#   rangeHashReversed: log(N)*log(U) expected ?
+#   rangeOrQuery: log(N)*log(U) expected ?
+#   rangeReverse: log(N)*log(U) expected ?
+#   rangeRotateLeft: log(N)*log(U) expected ?
+#   rangeRotateRight: log(N)*log(U) expected ?
+#   rangesEqual: log(N)*log(U) expected ?
+#   build: N*log(U) ?
 # @memory:
 #   layout: none
 #   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N] fh[1*N] bh[1*N] pw[1*N] gs[1*N] orr[1*N] g[1*N]
@@ -70,15 +70,15 @@ class ImplicitTreap:
     def size(self):
         return self.sz[self.root]
 
-    # O(logN) expected -- append v to the end
+    # O(logN * logU) expected -- append v to the end
     def append(self, v):
         self.root = self._merge(self.root, self._newNode(v))
 
-    # O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
+    # O(logN * logU) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- remove a[l..r]
+    # O(logN * logU) expected -- remove a[l..r]
     def eraseRange(self, l, r):
         a, _, c = self._cut(l, r)
         self.root = self._merge(a, c)
@@ -97,31 +97,31 @@ class ImplicitTreap:
             t = R[t]
         return out
 
-    # O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    # O(logN * logU) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
     def insertAt(self, i, v):
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, self._newNode(v)), c)
 
-    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    # O(k + logN * logU) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
     def insertCopiesAt(self, i, v, k):
         if k > 0:
             a, c = self._split(self.root, i)
             self.root = self._merge(self._merge(a, self._build([v] * k)), c)
 
-    # O(logN) expected -- is a[l..r] a palindrome (its two hashes agree)
+    # O(logN * logU) expected -- is a[l..r] a palindrome (its two hashes agree)
     def isPalindrome(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.fh[b] == self.bh[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
+    # O(logN * logU) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     def moveRange(self, l, r, i):
         a, b, c = self._cut(l, r)
         x, y = self._split(self._merge(a, c), i)
         self.root = self._merge(self._merge(x, b), y)
 
-    # O(logN) expected -- a[i] += v
+    # O(logN * logU) expected -- a[i] += v
     def pointAdd(self, i, v):
         t, path = self._find(i)
         self.val[t] = self.val[t] + v
@@ -129,7 +129,7 @@ class ImplicitTreap:
         for x in reversed(path):
             self._pull(x)
 
-    # O(logN) expected -- a[i] = v
+    # O(logN * logU) expected -- a[i] = v
     def pointAssign(self, i, v):
         t, path = self._find(i)
         self.val[t] = v
@@ -137,7 +137,7 @@ class ImplicitTreap:
         for x in reversed(path):
             self._pull(x)
 
-    # O(logN) expected -- a[i] = max(a[i], v)
+    # O(logN * logU) expected -- a[i] = max(a[i], v)
     def pointChmax(self, i, v):
         t, path = self._find(i)
         self.val[t] = max(self.val[t], v)
@@ -145,7 +145,7 @@ class ImplicitTreap:
         for x in reversed(path):
             self._pull(x)
 
-    # O(logN) expected -- a[i] = min(a[i], v)
+    # O(logN * logU) expected -- a[i] = min(a[i], v)
     def pointChmin(self, i, v):
         t, path = self._find(i)
         self.val[t] = min(self.val[t], v)
@@ -157,57 +157,57 @@ class ImplicitTreap:
     def pointGet(self, i):
         return self.val[self._find(i)[0]]
 
-    # O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
+    # O(logN * logU) expected -- remove a[i] and return it; everything after it shifts left by one
     def pop(self, i):
         v = self.pointGet(i)
         self.eraseRange(i, i)
         return v
 
-    # O(logN) expected -- remove a[0] and return it
+    # O(logN * logU) expected -- remove a[0] and return it
     def popLeft(self):
         return self.pop(0)
 
-    # O(logN) expected -- a[i] = v for i in [l, r]
+    # O(logN * logU) expected -- a[i] = v for i in [l, r]
     def rangeAssign(self, l, r, v):
         a, b, c = self._cut(l, r)
         self._applyAssign(b, v)
         self._join(a, b, c)
 
-    # O(logN) expected -- gcd of |a[l]|, ..., |a[r]|
+    # O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|
     def rangeGcd(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.g[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal
+    # O(logN * logU) expected -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     def rangeHash(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.fh[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
+    # O(logN * logU) expected -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
     def rangeHashReversed(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.bh[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- a[l] | ... | a[r]
+    # O(logN * logU) expected -- a[l] | ... | a[r]
     def rangeOrQuery(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.orr[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- reverse a[l..r] in place
+    # O(logN * logU) expected -- reverse a[l..r] in place
     def rangeReverse(self, l, r):
         a, b, c = self._cut(l, r)
         self._applyRev(b)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    # O(logN * logU) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1
@@ -216,11 +216,11 @@ class ImplicitTreap:
             b = self._merge(b2, b1)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
+    # O(logN * logU) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 
-    # O(logN) expected -- are a[l1..r1] and a[l2..r2] equal (same length and hash)
+    # O(logN * logU) expected -- are a[l1..r1] and a[l2..r2] equal (same length and hash)
     def rangesEqual(self, l1, r1, l2, r2):
         return r1 - l1 == r2 - l2 and self.rangeHash(l1, r1) == self.rangeHash(l2, r2)
 

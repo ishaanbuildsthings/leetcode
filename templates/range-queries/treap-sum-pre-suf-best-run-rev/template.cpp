@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-pre-suf-best-run-rev/template.cpp
 // @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxPrefixSum maxSubarraySum maxSuffixSum moveRange pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
 // @data-structure-type: treap
+// @letters: same
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected
@@ -256,7 +257,7 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     void rangeRotateLeft(int l, int r, long long k) {
         int a, b, c, len = r - l + 1;
         cut(l, r, a, b, c);
@@ -368,20 +369,20 @@ struct ImplicitTreap {
             s = ns, p = np, q = nq, b = nb;
         }
         sm[x] = s, pre[x] = p, suf[x] = q, best[x] = b;
-        int p = 1, q = 1, bb = 1;
+        int rp = 1, rq = 1, bb = 1;
         if (l) {
             bool j = lv[l] == v;
-            p = pr[l] + (j && pr[l] == sz[l]);
-            q = j ? sr[l] + 1 : 1;
-            bb = max(br[l], q);
+            rp = pr[l] + (j && pr[l] == sz[l]);
+            rq = j ? sr[l] + 1 : 1;
+            bb = max(br[l], rq);
         }
         if (r) {
             bool j = v == fv[r];
-            bb = max({bb, br[r], j ? q + pr[r] : 0});
-            if (j && p == sz[l] + 1) p += pr[r];
-            q = j && sr[r] == sz[r] ? sr[r] + q : sr[r];
+            bb = max({bb, br[r], j ? rq + pr[r] : 0});
+            if (j && rp == sz[l] + 1) rp += pr[r];
+            rq = j && sr[r] == sz[r] ? sr[r] + rq : sr[r];
         }
-        pr[x] = p, sr[x] = q, br[x] = bb;
+        pr[x] = rp, sr[x] = rq, br[x] = bb;
         fv[x] = l ? fv[l] : v;
         lv[x] = r ? lv[r] : v;
     }

@@ -35,6 +35,7 @@ struct LazySegTree {
     vector<T> xr;
     vector<T> asg;
     vector<char> hasAsg;
+
     // O(N) -- arr: the initial array (non-empty)
     explicit LazySegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         sm.assign(2 * n, 0);

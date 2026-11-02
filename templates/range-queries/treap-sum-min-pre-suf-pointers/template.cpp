@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-pre-suf-pointers/template.cpp
 // @operations: append appendLeft concat cut eraseRange getAll insertAt insertCopiesAt leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
 // @data-structure-type: treap
+// @letters: same
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected
@@ -304,7 +305,7 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     void rangeRotateLeft(int l, int r, long long k) {
         int a, b, c, len = r - l + 1;
         cut(l, r, a, b, c);

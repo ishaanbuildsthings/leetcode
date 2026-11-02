@@ -13,6 +13,8 @@ The heap arithmetic (2 * i, 2 * i + 1) becomes L[i] / R[i]; indices, lengths and
 """
 import os
 
+import beats_search as BS
+from beats_search import drop_searches
 from note_lang import drop_get_all, strip_attribution, write_template
 import re
 
@@ -167,7 +169,9 @@ def main():
         path = os.path.join(DIR, folder, "template.py")
         if not os.path.exists(path) or "@data-structure-type: beats" not in open(path).read():
             continue
-        head, body = split_header(drop_get_all(open(path).read()))  # a sparse tree has no getAll
+        if "with composable aggregates (2N iterative)" in open(path).read():
+            continue  # (gen_seg_algebra.py's tree replaced a heavier dense one: the sparse version made from that stays)
+        head, body = split_header(drop_searches(drop_get_all(open(path).read())))  # a sparse tree has no getAll (or searches)
         m = re.search(r"^class (\w+)", body, re.M)
         name = "Sparse" + m.group(1).replace("_PERFORMANT", "")
         intro = ("\n# Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root\n"
@@ -175,11 +179,22 @@ def main():
                  "# right before anything descends past a node or pushes its tags. Otherwise the beats logic below is the\n"
                  "# dense tree's, with children in L / R instead of at 2i / 2i + 1.\n")
         py = "\n".join(sparse_header(head, "#")) + "\n" + intro + sparse_costs(convert_py(body, name), "#")
+        dense = open(path).read()
+        have = re.search(r"^# @operations: (.*)$", dense, re.M).group(1).split()
+        searches = [op for op in BS.searches_for(BS.fields(dense)) if op in have]  # (beats_search.py's, in sparse form)
+        if searches:
+            py, _ = BS.add_ops(py, searches, "#", "log(U)")
+            py = py.rstrip("\n") + "\n\n" + "\n".join(BS.py_sparse_block(searches))
         write_template(os.path.join(DIR, folder, "sparse.py"), py)
         if not only_py:
             from sparse_beats_cpp import convert_cpp  # noqa: E402
-            chead, cbody = split_header(drop_get_all(open(os.path.join(DIR, folder, "template.cpp")).read()))
+            chead, cbody = split_header(drop_searches(drop_get_all(open(os.path.join(DIR, folder, "template.cpp")).read())))
             cpp = "\n".join(sparse_header(chead, "//")) + "\n" + sparse_costs(convert_cpp(folder, cbody), "//")
+            if searches:
+                cpp, _ = BS.add_ops(cpp, searches, "//", "log(U)")
+                end = cpp.rindex("};")
+                node = "static inline vector<Node> t" in cpp
+                cpp = cpp[:end].rstrip("\n") + "\n\n" + "\n".join(BS.cpp_sparse_block(searches, node)) + cpp[end:]
             write_template(os.path.join(DIR, folder, "sparse.cpp"), cpp)
         print("wrote", folder)
 

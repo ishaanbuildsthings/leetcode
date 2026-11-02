@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum/template.cpp
 // @operations: getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
 // @data-structure-type: seg-tree
+// @letters: same
 // @complexities:
 //   getAll: N
 //   longestEqualRun: log(N)
@@ -34,6 +35,7 @@ struct SegTree {
     vector<int> pr;
     vector<int> sr;
     vector<int> br;
+
     // O(N) -- arr: the initial array (non-empty)
     explicit SegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         sm.assign(2 * n, 0);
@@ -59,7 +61,7 @@ struct SegTree {
 
     // O(logN) -- the longest run of equal adjacent values in a[l..r]
     int longestEqualRun(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         int t = ns[0], p = pr[t], q = sr[t], res = br[t], k = 1 << ls[0];  // (prefix run, suffix run, best, length)
         T last = lv[t];
         for (int i = 1; i < c; i++) {

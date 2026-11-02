@@ -79,8 +79,8 @@ class LazySegTree:
         for t, s in self._nodes(l, r):
             if F[t] > x:  # the first covering node with a passing value: walk down it
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     t = 2 * t if F[2 * t] > x else 2 * t + 1
                 return t - n
         return -1
@@ -91,8 +91,8 @@ class LazySegTree:
         for t, s in self._nodes(l, r):
             if F[t] >= x:  # the first covering node with a passing value: walk down it
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     t = 2 * t if F[2 * t] >= x else 2 * t + 1
                 return t - n
         return -1
@@ -222,8 +222,8 @@ class LazySegTree:
         for t, s in reversed(self._nodes(l, r)):
             if F[t] > x:  # the last covering node with a passing value: walk down it
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     t = 2 * t + 1 if F[2 * t + 1] > x else 2 * t
                 return t - n
         return -1
@@ -234,8 +234,8 @@ class LazySegTree:
         for t, s in reversed(self._nodes(l, r)):
             if F[t] >= x:  # the last covering node with a passing value: walk down it
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     t = 2 * t + 1 if F[2 * t + 1] >= x else 2 * t
                 return t - n
         return -1

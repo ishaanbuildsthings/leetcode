@@ -1,6 +1,6 @@
 """Bitwise segment tree beats (range and= / or=), one template per set of extra aggregates it keeps.
 
-    python3 gen_bitbeats.py      (then python3 sparse_beats.py for the sparse versions)
+    python3 gen_bitbeats.py      (then beats_search.py, then sparse_beats.py for the sparse versions)
 
 andAll / orAll are always kept (the beats rule needs them, and they answer rangeAndQuery / rangeOrQuery); max, min
 and sum each cost one more array, so every subset of {rangeMax, rangeMin, rangeSum} gets its own template and you
@@ -462,7 +462,7 @@ struct BitBeats {{
 
 
 def main():
-    for r in range(4):
+    for r in range(1, 4):  # (with no extra aggregate: gen_seg_algebra.py's and / or lazy tree is lighter, sparse version too)
         for extra in itertools.combinations(["rangeMax", "rangeMin", "rangeSum"], r):
             ops = sorted(POINT + BASE + list(extra) + ["getAll"])
             aggs = [a for a in AGGS if a[1] in BASE or a[1] in extra]

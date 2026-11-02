@@ -41,6 +41,7 @@ struct LazySegTree {
     vector<S> a11;
     vector<T> asg;
     vector<char> hasAsg;
+
     // O(N log U) -- arr: the initial array (non-empty)
     explicit LazySegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         sm.assign(2 * n, 0);
@@ -73,7 +74,7 @@ struct LazySegTree {
 
     // O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
     S maxAltSubseqSum(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         array<S, 4> a{a00[ns[0]], a01[ns[0]], a10[ns[0]], a11[ns[0]]};
         for (int i = 1; i < c; i++) a = altJoin(a, {a00[ns[i]], a01[ns[i]], a10[ns[i]], a11[ns[i]]});
         return max(a[0], a[1]);

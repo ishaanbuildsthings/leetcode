@@ -75,7 +75,6 @@ struct LazySegTree {
         return hadd(hraw(v), off);
     }
 
-
     // O(N log U) -- arr: the initial array (non-empty)
     explicit LazySegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         fh.assign(2 * n, 0);
@@ -113,15 +112,17 @@ struct LazySegTree {
 
     // O(logN) -- is a[l..r] a palindrome (its two hashes agree)
     bool isPalindrome(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 f = 0, b = 0, p = 1;
-        for (int i = 0; i < c; i++) f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+        for (int i = 0; i < c; i++) {
+            f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+        }
         return f == b;
     }
 
     // O(logN) -- the longest run of equal adjacent values in a[l..r]
     int longestEqualRun(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         int t = ns[0], p = pr[t], q = sr[t], res = br[t], k = 1 << ls[0];  // (prefix run, suffix run, best, length)
         T last = lv[t];
         for (int i = 1; i < c; i++) {
@@ -183,15 +184,15 @@ struct LazySegTree {
 
     // O(logN + logU) -- gcd of |a[l]|, ..., |a[r]|
     T rangeGcd(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         T res = gcd(fv[ns[0]], g[ns[0]]), last = lv[ns[0]];  // the first value, then every adjacent difference
         for (int i = 1; i < c; i++) res = gcd(gcd(res, T(fv[ns[i]] - last)), g[ns[i]]), last = lv[ns[i]];
         return res;
     }
 
-    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal
+    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     U64 rangeHash(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0;
         for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), fh[ns[i]]);
         return res;
@@ -199,9 +200,9 @@ struct LazySegTree {
 
     // O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
     U64 rangeHashReversed(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0, p = 1;
-        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (each node in front)
+        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (in front)
         return res;
     }
 

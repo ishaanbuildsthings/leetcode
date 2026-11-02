@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-maxPrefixSum-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX/template.cpp
 // @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
 // @data-structure-type: seg-tree
+// @letters: same
 // @complexities:
 //   getAll: N
 //   leftmostPrefixSumGtX: log(N)
@@ -36,6 +37,7 @@ struct SegTree {
     vector<S> sm;
     vector<S> pre;
     vector<S> suf;
+
     // O(N) -- arr: the initial array (non-empty)
     explicit SegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         sm.assign(2 * n, 0);
@@ -54,7 +56,7 @@ struct SegTree {
 
     // O(logN) -- first i in [l, r] with a[l] + ... + a[i] > x, or -1 (a walk pruned by best prefix sums)
     int leftmostPrefixSumGtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = 0; i < c; i++) {
             int t = ns[i];
@@ -72,7 +74,7 @@ struct SegTree {
 
     // O(logN) -- first i in [l, r] with a[l] + ... + a[i] >= x, or -1 (a walk pruned by best prefix sums)
     int leftmostPrefixSumGteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = 0; i < c; i++) {
             int t = ns[i];
@@ -90,7 +92,7 @@ struct SegTree {
 
     // O(logN) -- max of a[l] + ... + a[i] over i in [l, r]
     S maxPrefixSum(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S res = pre[ns[0]], acc = sm[ns[0]];
         for (int i = 1; i < c; i++) res = max(res, acc + pre[ns[i]]), acc += sm[ns[i]];
         return res;
@@ -98,7 +100,7 @@ struct SegTree {
 
     // O(logN) -- max of a[i] + ... + a[r] over i in [l, r]
     S maxSuffixSum(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S res = suf[ns[c - 1]], acc = sm[ns[c - 1]];
         for (int i = c - 2; i >= 0; i--) res = max(res, acc + suf[ns[i]]), acc += sm[ns[i]];
         return res;
@@ -146,7 +148,7 @@ struct SegTree {
 
     // O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums)
     int rightmostSuffixSumGtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
@@ -164,7 +166,7 @@ struct SegTree {
 
     // O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums)
     int rightmostSuffixSumGteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];

@@ -327,4 +327,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit("retired: gen_seg_algebra.py trees dominate its three (deleted)")

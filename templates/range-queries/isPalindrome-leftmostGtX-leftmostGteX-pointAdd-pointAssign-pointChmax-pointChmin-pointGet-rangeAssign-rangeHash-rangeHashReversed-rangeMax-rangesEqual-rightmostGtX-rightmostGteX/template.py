@@ -96,8 +96,8 @@ class LazySegTree:
         for t, s in self._nodes(l, r):
             if F[t] > x:  # the first covering node with a passing value: walk down it
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     t = 2 * t if F[2 * t] > x else 2 * t + 1
                 return t - n
         return -1
@@ -108,8 +108,8 @@ class LazySegTree:
         for t, s in self._nodes(l, r):
             if F[t] >= x:  # the first covering node with a passing value: walk down it
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     t = 2 * t if F[2 * t] >= x else 2 * t + 1
                 return t - n
         return -1
@@ -167,7 +167,7 @@ class LazySegTree:
         self._rebuild(l + n)
         self._rebuild(r + n)
 
-    # O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal
+    # O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     def rangeHash(self, l, r):
         fh, pw, P, res = self.fh, self.PW, _HP, 0
         for t, s in self._nodes(l, r):
@@ -211,8 +211,8 @@ class LazySegTree:
         for t, s in reversed(self._nodes(l, r)):
             if F[t] > x:  # the last covering node with a passing value: walk down it
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     t = 2 * t + 1 if F[2 * t + 1] > x else 2 * t
                 return t - n
         return -1
@@ -223,8 +223,8 @@ class LazySegTree:
         for t, s in reversed(self._nodes(l, r)):
             if F[t] >= x:  # the last covering node with a passing value: walk down it
                 while t < n:
-                self._push(t, s)
-                s -= 1
+                    self._push(t, s)
+                    s -= 1
                     t = 2 * t + 1 if F[2 * t + 1] >= x else 2 * t
                 return t - n
         return -1

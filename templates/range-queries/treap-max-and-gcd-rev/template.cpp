@@ -3,31 +3,31 @@
 // @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt leftmostGtX leftmostGteX moveRange pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeGcd rangeMax rangeReverse rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX
 // @data-structure-type: treap
 // @complexities:
-//   append: log(N) expected
-//   appendLeft: log(N) expected
-//   eraseRange: log(N) expected
+//   append: log(N)*log(U) expected ?
+//   appendLeft: log(N)*log(U) expected ?
+//   eraseRange: log(N)*log(U) expected ?
 //   getAll: N
-//   insertAt: log(N) expected
-//   insertCopiesAt: log(N) expected
-//   leftmostGtX: log(N) expected
-//   leftmostGteX: log(N) expected
-//   moveRange: log(N) expected
-//   pointAdd: log(N) expected
-//   pointAssign: log(N) expected
-//   pointChmax: log(N) expected
-//   pointChmin: log(N) expected
+//   insertAt: log(N)*log(U) expected ?
+//   insertCopiesAt: log(N)*log(U) expected ?
+//   leftmostGtX: log(N)*log(U) expected ?
+//   leftmostGteX: log(N)*log(U) expected ?
+//   moveRange: log(N)*log(U) expected ?
+//   pointAdd: log(N)*log(U) expected ?
+//   pointAssign: log(N)*log(U) expected ?
+//   pointChmax: log(N)*log(U) expected ?
+//   pointChmin: log(N)*log(U) expected ?
 //   pointGet: log(N) expected
-//   pop: log(N) expected
-//   popLeft: log(N) expected
-//   rangeAndQuery: log(N) expected
-//   rangeGcd: log(N) expected
-//   rangeMax: log(N) expected
-//   rangeReverse: log(N) expected
-//   rangeRotateLeft: log(N) expected
-//   rangeRotateRight: log(N) expected
-//   rightmostGtX: log(N) expected
-//   rightmostGteX: log(N) expected
-//   build: N
+//   pop: log(N)*log(U) expected ?
+//   popLeft: log(N)*log(U) expected ?
+//   rangeAndQuery: log(N)*log(U) expected ?
+//   rangeGcd: log(N)*log(U) expected ?
+//   rangeMax: log(N)*log(U) expected ?
+//   rangeReverse: log(N)*log(U) expected ?
+//   rangeRotateLeft: log(N)*log(U) expected ?
+//   rangeRotateRight: log(N)*log(U) expected ?
+//   rightmostGtX: log(N)*log(U) expected ?
+//   rightmostGteX: log(N)*log(U) expected ?
+//   build: N*log(U) ?
 // @memory:
 //   layout: none
 //   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N] mx[1*N] an[1*N] g[1*N]
@@ -62,13 +62,13 @@ struct ImplicitTreap {
     // O(1) -- the current length of the array
     int size() const { return sz[root]; }
 
-    // O(logN) expected -- append v to the end
+    // O(logN * logU) expected -- append v to the end
     void append(T v) { root = merge(root, newNode(v)); }
 
-    // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
+    // O(logN * logU) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN) expected -- remove a[l..r]
+    // O(logN * logU) expected -- remove a[l..r]
     void eraseRange(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -90,14 +90,14 @@ struct ImplicitTreap {
         return out;
     }
 
-    // O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    // O(logN * logU) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
     void insertAt(int i, T v) {
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, newNode(v)), c);
     }
 
-    // O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    // O(k + logN * logU) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
     void insertCopiesAt(int i, T v, long long k) {
         if (k <= 0) return;
         int a, c;
@@ -105,7 +105,7 @@ struct ImplicitTreap {
         root = merge(merge(a, build(vector<T>(k, v))), c);
     }
 
-    // O(logN) expected -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max)
+    // O(logN * logU) expected -- the first i in [l, r] with a[i] > x, or -1 (pruned by the subtree max)
     int leftmostGtX(int l, int r, T x) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -122,7 +122,7 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN) expected -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max)
+    // O(logN * logU) expected -- the first i in [l, r] with a[i] >= x, or -1 (pruned by the subtree max)
     int leftmostGteX(int l, int r, T x) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -139,7 +139,7 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
+    // O(logN * logU) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     void moveRange(int l, int r, int i) {
         int a, b, c, x, y;
         cut(l, r, a, b, c);
@@ -147,7 +147,7 @@ struct ImplicitTreap {
         root = merge(merge(x, b), y);
     }
 
-    // O(logN) expected -- a[i] += v
+    // O(logN * logU) expected -- a[i] += v
     void pointAdd(int i, T v) {
         vector<int> path;
         int t = find(i, &path);
@@ -156,7 +156,7 @@ struct ImplicitTreap {
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i] = v
+    // O(logN * logU) expected -- a[i] = v
     void pointAssign(int i, T v) {
         vector<int> path;
         int t = find(i, &path);
@@ -165,7 +165,7 @@ struct ImplicitTreap {
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i] = max(a[i], v)
+    // O(logN * logU) expected -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) {
         vector<int> path;
         int t = find(i, &path);
@@ -174,7 +174,7 @@ struct ImplicitTreap {
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i] = min(a[i], v)
+    // O(logN * logU) expected -- a[i] = min(a[i], v)
     void pointChmin(int i, T v) {
         vector<int> path;
         int t = find(i, &path);
@@ -186,17 +186,17 @@ struct ImplicitTreap {
     // O(logN) expected -- a[i]
     T pointGet(int i) { return val[find(i)]; }
 
-    // O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
+    // O(logN * logU) expected -- remove a[i] and return it; everything after it shifts left by one
     T pop(int i) {
         T v = pointGet(i);
         eraseRange(i, i);
         return v;
     }
 
-    // O(logN) expected -- remove a[0] and return it
+    // O(logN * logU) expected -- remove a[0] and return it
     T popLeft() { return pop(0); }
 
-    // O(logN) expected -- a[l] & ... & a[r]
+    // O(logN * logU) expected -- a[l] & ... & a[r]
     T rangeAndQuery(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -205,7 +205,7 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN) expected -- gcd of |a[l]|, ..., |a[r]|
+    // O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|
     T rangeGcd(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -214,7 +214,7 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN) expected -- max of a[l..r]
+    // O(logN * logU) expected -- max of a[l..r]
     T rangeMax(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -223,7 +223,7 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN) expected -- reverse a[l..r] in place
+    // O(logN * logU) expected -- reverse a[l..r] in place
     void rangeReverse(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -231,7 +231,7 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    // O(logN * logU) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     void rangeRotateLeft(int l, int r, long long k) {
         int a, b, c, len = r - l + 1;
         cut(l, r, a, b, c);
@@ -244,10 +244,10 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
+    // O(logN * logU) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
     void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
 
-    // O(logN) expected -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max)
+    // O(logN * logU) expected -- the last i in [l, r] with a[i] > x, or -1 (pruned by the subtree max)
     int rightmostGtX(int l, int r, T x) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -264,7 +264,7 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN) expected -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max)
+    // O(logN * logU) expected -- the last i in [l, r] with a[i] >= x, or -1 (pruned by the subtree max)
     int rightmostGteX(int l, int r, T x) {
         int a, b, c;
         cut(l, r, a, b, c);

@@ -45,10 +45,13 @@ MAXSUB = {"pre", "suf", "best"}
 MS_SETS = [("pre",), ("suf",), ("pre", "suf"), ("pre", "suf", "best")]
 OTHER = ["ms", "xor", "and", "or", "gcd", "run", "alt"]  # ms = one of MS_SETS
 # which update families each aggregate can absorb
-OK = {"sum": {"assign", "add", "ap"}, "min": {"assign", "add", "clamp"}, "max": {"assign", "add", "clamp"},
-      "hash": {"assign", "add"}, "pre": {"assign"}, "suf": {"assign"}, "best": {"assign"}, "xor": {"assign", "xor"},
-      "and": {"assign", "bits"}, "or": {"assign", "bits"}, "gcd": {"assign", "add"}, "run": {"assign", "add"},
-      "alt": {"assign"}}
+OK = {"sum": {"assign", "add", "ap", "shrink"}, "min": {"assign", "add", "clamp", "shrink"}, "max": {"assign", "add", "clamp", "shrink"},
+      "hash": {"assign", "add", "shrink"}, "pre": {"assign", "shrink"}, "suf": {"assign", "shrink"}, "best": {"assign", "shrink"},
+      "xor": {"assign", "xor", "shrink"}, "and": {"assign", "bits", "shrink"}, "or": {"assign", "bits", "shrink"},
+      "gcd": {"assign", "add"}, "run": {"assign", "add", "shrink"}, "alt": {"assign", "shrink"}}
+# (shrink = range mod / floor div / floor sqrt: a walk down every node whose max still changes, pulling on the way
+# back, so any aggregate with a cheap pull keeps up; it needs the max to prune, and with assign the min too: a node
+# whose values are all equal takes the shrink as one assign)
 # update sets (op sets) per family, dominated ones left out
 UPDATE_SETS = [
     ("", ()), ("assign", ("assign",)),
@@ -58,9 +61,11 @@ UPDATE_SETS = [
     ("clamp", ("add", "chmin")), ("clamp", ("add", "chmax")), ("clamp", ("add", "assign", "chmax", "chmin")),
     ("bits", ("and",)), ("bits", ("or",)), ("bits", ("and", "assign", "or")),
     ("xor", ("xor",)), ("xor", ("assign", "xor")),
+    ("shrink", ("div", "mod", "sqrt")), ("shrink", ("assign", "div", "mod", "sqrt")),
 ]
 UOP = {"assign": "rangeAssign", "add": "rangeAdd", "ap": "rangeAddArithSeq", "chmin": "rangeChmin", "chmax": "rangeChmax",
-       "and": "rangeAndApply", "or": "rangeOrApply", "xor": "rangeXorApply"}
+       "and": "rangeAndApply", "or": "rangeOrApply", "xor": "rangeXorApply", "mod": "rangeMod", "div": "rangeFloorDiv",
+       "sqrt": "rangeFloorSqrt"}
 QOPS = {"sum": ["rangeSum"], "min": ["rangeMin"], "max": ["rangeMax"], "hash": HASH_OPS,
         "pre": ["leftmostPrefixSumGtX", "leftmostPrefixSumGteX", "maxPrefixSum"],
         "suf": ["maxSuffixSum", "rightmostSuffixSumGtX", "rightmostSuffixSumGteX"], "best": ["maxSubarraySum"],
@@ -77,7 +82,7 @@ class Spec:
         self.mods, self.fam, self.ups, self.rev, self.ptr = mods, fam, set(ups), rev, ptr
         m, u = set(mods), self.ups
         self.ms = MAXSUB & m
-        self.clamp, self.bits, self.xorf = fam == "clamp", fam == "bits", fam == "xor"
+        self.clamp, self.bits, self.xorf, self.shrink = fam == "clamp", fam == "bits", fam == "xor", fam == "shrink"
         self.asgTag = "assign" in u and not self.clamp and not self.bits
         self.addTag = "add" in u and fam == "add"
         self.ap = fam == "ap"
@@ -160,6 +165,8 @@ def allowed(mods):
             continue
         if "assign" in ups and any("assign" not in OK[m] for m in mods):
             continue
+        if fam == "shrink" and ("max" not in mods or ("assign" in ups and "min" not in mods)):
+            continue  # (the walk prunes by the max; with assign, a node whose min == max takes it as one assign)
         out.append((fam, ups))
     return out
 
@@ -181,7 +188,7 @@ def mod_sets():
                             seen.append((base + ms + tuple(groups), False))
                 for fam, ups in UPDATE_SETS:  # (the cover: every other family this update set allows)
                     ex = [g for g in OTHER if g != "ms" and fam in OK[g] | {""} and ("assign" not in ups or "assign" in OK[g])]
-                    ms = ("pre", "suf", "best") if "sum" in core and (not fam or fam == "assign") else ()
+                    ms = ("pre", "suf", "best") if "sum" in core and (not fam or fam in OK["pre"]) else ()
                     if len(ex) + bool(ms) > 2:
                         seen.append((base + ms + tuple(ex), (fam, ups)))
     return seen
@@ -210,7 +217,7 @@ def header(cm, s):
     fields, tags = s.fields(), s.tags()
     lines = [f"@operations: {' '.join(s.ops)}", "@data-structure-type: treap", "@complexities:"]
     g = s.has("gcd")  # (a pull pays a gcd: every op that splits / merges, i.e. all but pointGet and getAll)
-    lines += [f"  {op}: {'N' if op == 'getAll' else 'log(N)*log(U) expected ?' if g and op != 'pointGet' else 'log(N) expected'}"
+    lines += [f"  {op}: {SHRINK_COST[op] if op in SHRINK_COST else 'N' if op == 'getAll' else 'log(N)*log(U) expected ?' if g and op != 'pointGet' else 'log(N) expected'}"
               for op in s.ops] + [f"  build: {'N*log(U) ?' if g else 'N'}", "@memory:", "  layout: none"]
     lines += ["  node: " + " ".join(f"{f}[1*N]" for f in ["val", "sz", "L", "R", "pri"] + [f[0] for f in fields]),
               "  tags: " + (" ".join(f"{t[0]}[1*N]" for t in tags) or "none"), "  other: none",
@@ -238,7 +245,7 @@ def py(s):
     F, TG = s.fields(), s.tags()
     names = ["val", "pri", "L", "R", "sz"] + [f[0] for f in F] + [t[0] for t in TG]
     NEED_INF = s.clamp or s.has("alt")
-    out = [header("#", s), "\n", wrap(describe(s), "#"), "import random\n" + ("from math import gcd\n" if s.has("gcd") else "") + "\n\n"]
+    out = [header("#", s), "\n", wrap(describe(s), "#"), "import random\n" + ("from math import gcd\n" if s.has("gcd") else "") + ("from math import isqrt\n" if s.shrink else "") + "\n\n"]
     if s.has("hash"):
         out.append(PY_HASH_CONST)
     if NEED_INF:
@@ -284,6 +291,7 @@ def gcd_costs(s, text):  # with gcd every pull pays a gcd: the method comments s
     if not s.has("gcd"):
         return text
     text = text.replace("O(logN) expected -- ", "O(logN * logU) expected -- ").replace("O(k + logN) expected", "O(k + logN * logU) expected")
+    text = text.replace("(a walk pruned by ", "(pruned by ")  # (room for the longer cost)
     return text.replace("O(logN * logU) expected -- a[i]\n", "O(logN) expected -- a[i]\n")
 
 
@@ -397,7 +405,19 @@ def py_public(s):
            "and": ("v", "self._applyBits(b, " + bits_args(s, "v", "0") + ")"),
            "or": ("v", "self._applyBits(b, " + bits_args(s, "-1", "v") + ")"),
            "xor": ("v", "self._applyXor(b, v)")}
+    shr = {"mod": ("x", "if x >= 1:\n            self._shrink(b, x, lambda v: v % x)", "logN * logU"),
+           "div": ("x", "if x >= 2:\n            self._shrink(b, 1, lambda v: v // x)", "logN * logU"),
+           "sqrt": ("", "self._shrink(b, 2, isqrt)", "logN * loglogU")}
     for u in s.ups:
+        if u in shr:
+            args, call, c = shr[u]
+            pub[UOP[u]] = f'''    # amortized O({c}) expected -- {UDOC[u]}
+    def {UOP[u]}(self, l, r{", " + args if args else ""}):
+        a, b, c = self._cut(l, r)
+        {call}
+        {J}
+'''
+            continue
         args, call = upd[u]
         pub[UOP[u]] = f'''    # O(logN) expected -- {UDOC[u]}
     def {UOP[u]}(self, l, r, {args}):
@@ -428,20 +448,24 @@ def bits_args(s, A, O):
     return ", ".join(v for n, v in (("tA", A), ("tO", O)) if n in names)
 
 
+SHRINK_COST = {"rangeMod": "log(N)*log(U) amortized", "rangeFloorDiv": "log(N)*log(U) amortized",
+               "rangeFloorSqrt": "log(N)*log(log(U)) amortized"}
 QDOC = {"rangeSum": "a[l] + ... + a[r]", "rangeMin": "min of a[l..r]", "rangeMax": "max of a[l..r]",
         "maxPrefixSum": "max of a[l] + ... + a[i] over i in [l, r]", "maxSuffixSum": "max of a[i] + ... + a[r] over i in [l, r]",
         "maxSubarraySum": "max sum of a non-empty contiguous subarray of a[l..r]", "rangeXorQuery": "a[l] ^ ... ^ a[r]",
         "rangeAndQuery": "a[l] & ... & a[r]", "rangeOrQuery": "a[l] | ... | a[r]", "rangeGcd": "gcd of |a[l]|, ..., |a[r]|",
         "longestEqualRun": "the longest run of equal adjacent values in a[l..r]",
         "maxAltSubseqSum": "max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]",
-        "rangeHash": "hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal",
+        "rangeHash": "hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal",
         "rangeHashReversed": "hash of a[l..r] read right to left (= rangeHash of the reversed range)",
         "isPalindrome": "is a[l..r] a palindrome (its two hashes agree)",
         "rangesEqual": "are a[l1..r1] and a[l2..r2] equal (same length and hash)"}
 UDOC = {"assign": "a[i] = v for i in [l, r]", "add": "a[i] += v for i in [l, r]",
         "ap": "a[l + k] += start + k * step for k in [0, r - l]", "chmin": "a[i] = min(a[i], v) for i in [l, r]",
         "chmax": "a[i] = max(a[i], v) for i in [l, r]", "and": "a[i] &= v for i in [l, r]", "or": "a[i] |= v for i in [l, r]",
-        "xor": "a[i] ^= v for i in [l, r]"}
+        "xor": "a[i] ^= v for i in [l, r]", "mod": "a[i] %= x for i in [l, r] (values >= 0, x >= 1)",
+        "div": "a[i] //= x for i in [l, r] (values >= 0; x >= 2, x = 1 does nothing)",
+        "sqrt": "a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0)"}
 
 
 def py_pull(s):
@@ -683,6 +707,22 @@ def py_internals(s):
         push.append("        if self.tx[x]:\n            self._applyXor(self.L[x], self.tx[x])\n            self._applyXor(self.R[x], self.tx[x])\n            self.tx[x] = 0\n")
     if push:
         out.append("\n    def _push(self, x):  # hand x's pending tags to its children\n" + "".join(push))
+    if s.shrink:
+        out.append('''
+    def _shrink(self, t, lim, f):  # every value v >= lim under t becomes f(v) (the rest are fixed)
+        if not t or self.mx[t] < lim:
+            return
+''' + ('''        if self.mn[t] == self.mx[t]:  # all equal: one assign
+            self._applyAssign(t, f(self.mx[t]))
+            return
+''' if s.asgTag else "") + '''        self._push(t)
+        v = self.val[t]
+        if v >= lim:
+            self.val[t] = f(v)
+        self._shrink(self.L[t], lim, f)
+        self._shrink(self.R[t], lim, f)
+        self._pull(t)
+''')
     out.append(PY_TAIL)
     return "".join(out)
 
@@ -732,7 +772,7 @@ PY_SEQ = {
         self._applyRev(b)
         self._join(a, b, c)
 ''',
-    "rangeRotateLeft": '''    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    "rangeRotateLeft": '''    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1
@@ -1002,7 +1042,20 @@ def cpp_public(s):
            "and": ("T v", "applyBits(b, " + bits_args(s, "v", "T(0)") + ")"),
            "or": ("T v", "applyBits(b, " + bits_args(s, "~T(0)", "v") + ")"),
            "xor": ("T v", "applyXor(b, v)")}
+    shr = {"mod": ("T x", "if (x >= 1) shrink(b, x, [x](T v) { return T(v % x); });", "logN * logU"),
+           "div": ("T x", "if (x >= 2) shrink(b, T(1), [x](T v) { return T(v / x); });", "logN * logU"),
+           "sqrt": ("", "shrink(b, T(2), isqrtT);", "logN * loglogU")}
     for u in s.ups:
+        if u in shr:
+            params, call, c = shr[u]
+            pub[UOP[u]] = f'''    // amortized O({c}) expected -- {UDOC[u]}
+    void {UOP[u]}(int l, int r{", " + params if params else ""}) {{
+        {cut}
+        {call}
+        {J}
+    }}
+'''
+            continue
         params, call = upd[u]
         pub[UOP[u]] = f'''    // O(logN) expected -- {UDOC[u]}
     void {UOP[u]}(int l, int r, {params}) {{
@@ -1067,11 +1120,11 @@ def cpp_pull(s):
         else:
             L.append("        g[x] = gcd(gcd(g[l], v), g[r]);")
     if "pr" in fl:  # (prefix run, suffix run, best run): the left part joins the node, then the right part joins them
-        L += ["        int p = 1, q = 1, bb = 1;", "        if (l) {", "            bool j = lv[l] == v;",
-              "            p = pr[l] + (j && pr[l] == sz[l]);", "            q = j ? sr[l] + 1 : 1;", "            bb = max(br[l], q);", "        }",
-              "        if (r) {", "            bool j = v == fv[r];", "            bb = max({bb, br[r], j ? q + pr[r] : 0});",
-              "            if (j && p == sz[l] + 1) p += pr[r];", "            q = j && sr[r] == sz[r] ? sr[r] + q : sr[r];", "        }",
-              "        pr[x] = p, sr[x] = q, br[x] = bb;"]
+        L += ["        int rp = 1, rq = 1, bb = 1;", "        if (l) {", "            bool j = lv[l] == v;",
+              "            rp = pr[l] + (j && pr[l] == sz[l]);", "            rq = j ? sr[l] + 1 : 1;", "            bb = max(br[l], rq);", "        }",
+              "        if (r) {", "            bool j = v == fv[r];", "            bb = max({bb, br[r], j ? rq + pr[r] : 0});",
+              "            if (j && rp == sz[l] + 1) rp += pr[r];", "            rq = j && sr[r] == sz[r] ? sr[r] + rq : sr[r];", "        }",
+              "        pr[x] = rp, sr[x] = rq, br[x] = bb;"]
     if s.ends:
         L += ["        fv[x] = l ? fv[l] : v;", "        lv[x] = r ? lv[r] : v;"]
     if "a00" in fl:
@@ -1261,6 +1314,25 @@ def cpp_internals(s):
         push.append("        if (tx[x] != T(0)) applyXor(L[x], tx[x]), applyXor(R[x], tx[x]), tx[x] = T(0);\n")
     if push:
         out.append("\n    void push(int x) {  // hand x's pending tags to its children\n" + "".join(push) + "    }\n")
+    if s.shrink:
+        out.append('''
+    // floor(sqrt(v)) for v >= 0, exact for every 64-bit value
+    static T isqrtT(T v) {
+        T r = (T)sqrtl((long double)v);
+        while (r > 0 && (__int128)r * r > v) r--;
+        while ((__int128)(r + 1) * (r + 1) <= v) r++;
+        return r;
+    }
+
+    template <class F>
+    void shrink(int t, T lim, const F& f) {  // every value v >= lim under t becomes f(v) (the rest are fixed)
+        if (!t || mx[t] < lim) return;
+''' + ("        if (mn[t] == mx[t]) { applyAssign(t, f(mx[t])); return; }  // all equal: one assign\n" if s.asgTag else "") + '''        push(t);
+        if (val[t] >= lim) val[t] = f(val[t]);
+        shrink(L[t], lim, f), shrink(R[t], lim, f);
+        pull(t);
+    }
+''')
     out.append(CPP_TAIL)
     return "".join(out)
 
@@ -1307,7 +1379,7 @@ CPP_SEQ = {
         root = merge(merge(a, b), c);
     }
 ''',
-    "rangeRotateLeft": '''    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    "rangeRotateLeft": '''    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     void rangeRotateLeft(int l, int r, long long k) {
         int a, b, c, len = r - l + 1;
         cut(l, r, a, b, c);

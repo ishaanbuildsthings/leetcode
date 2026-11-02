@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-max-pointers/template.py
 # @operations: append appendLeft concat cut eraseRange getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMax rangeMin rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX rightmostLtX rightmostLteX split trisect
 # @data-structure-type: treap
+# @letters: same
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected
@@ -273,7 +274,7 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1

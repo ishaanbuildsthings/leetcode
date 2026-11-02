@@ -36,6 +36,7 @@ struct LazySegTree {
     vector<T> fv;
     vector<T> lv;
     vector<T> add;
+
     // O(N log U) -- arr: the initial array (non-empty)
     explicit LazySegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         sm.assign(2 * n, 0);
@@ -110,7 +111,7 @@ struct LazySegTree {
 
     // O(logN + logU) -- gcd of |a[l]|, ..., |a[r]|
     T rangeGcd(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         T res = gcd(fv[ns[0]], g[ns[0]]), last = lv[ns[0]];  // the first value, then every adjacent difference
         for (int i = 1; i < c; i++) res = gcd(gcd(res, T(fv[ns[i]] - last)), g[ns[i]]), last = lv[ns[i]];
         return res;

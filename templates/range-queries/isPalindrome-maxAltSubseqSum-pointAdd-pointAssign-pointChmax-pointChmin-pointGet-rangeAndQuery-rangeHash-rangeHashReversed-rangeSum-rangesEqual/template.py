@@ -140,7 +140,7 @@ class SegTree:
             hi >>= 1
         return res
 
-    # O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal
+    # O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     def rangeHash(self, l, r):
         fh, pw, P, res = self.fh, self.PW, _HP, 0
         for t, s in self._nodes(l, r):
@@ -196,8 +196,9 @@ class SegTree:
         self.fh[x] = (self.fh[a] * k + self.fh[b]) % _HP
         self.bh[x] = (self.bh[b] * k + self.bh[a]) % _HP
         self.an[x] = self.an[a] & self.an[b]
-        self.a00[x], self.a01[x], self.a10[x], self.a11[x] = _altJoin((self.a00[a], self.a01[a], self.a10[a], self.a11[a]),
-                                                                      (self.a00[b], self.a01[b], self.a10[b], self.a11[b]))
+        A = (self.a00[a], self.a01[a], self.a10[a], self.a11[a])
+        B = (self.a00[b], self.a01[b], self.a10[b], self.a11[b])
+        self.a00[x], self.a01[x], self.a10[x], self.a11[x] = _altJoin(A, B)
 
     def _rebuild(self, p):  # recompute every ancestor of leaf p
         s = 0

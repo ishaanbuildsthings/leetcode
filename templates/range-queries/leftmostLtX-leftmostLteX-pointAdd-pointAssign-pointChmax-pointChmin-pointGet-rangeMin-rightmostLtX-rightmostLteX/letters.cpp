@@ -9,138 +9,156 @@
 //   pointAssign: log(N)
 //   pointChmax: log(N)
 //   pointChmin: log(N)
-//   pointGet: 1
+//   pointGet: log(N)
 //   rangeMin: log(N)
 //   rightmostLtX: log(N)
 //   rightmostLteX: log(N)
 //   build: N
 // @memory:
-//   layout: pow2-iterative
-//   node: tree[4*N]
+//   layout: 2n-iterative
+//   node: mn[2*N]
 //   tags: none
 //   other: none
-//   note: tree holds each node's min; tree is 2*size where size is the next power of two >= n, so between 2N and 4N slots; arr is a reference
+//   note: leaves [n, 2n) hold each value's own aggregates
 
 // Letters version: the values are characters (Python: a list of characters, e.g. list(s); C++: T = char), and only the
 // operations that make sense on characters are listed.
-// Point update + rangeMin segment tree, iterative over 2 * size slots (size = next power of two >= n).
-// All indices 0-based, ranges inclusive [l, r]. T: int, long long, ...
+// Segment tree with composable aggregates (2N iterative): point updates and range queries in O(logN); each node keeps
+// its min over its range. All indices 0-based, ranges inclusive [l, r]; searches return -1 when nothing qualifies.
+// Leaves tree[n..2n); a node used by a query or update is a perfect subtree of 2^s leaves (s = its level); an update
+// rewrites a leaf, then its ancestors.
+// T: int, long long, ...
 template <typename T>
-struct MinSegTree {
-    int n, size;
-    vector<T> tree;  // tree[size + i] = a[i]; tree[x] = min of x's children
+struct SegTree {
+    int n, h;
+    vector<T> mn;
 
-    // O(N)
-    explicit MinSegTree(const vector<T>& a) : n((int)a.size()), size(1) {
-        while (size < n) size <<= 1;
-        tree.assign(2 * size, numeric_limits<T>::max());
-        for (int i = 0; i < n; i++) tree[size + i] = a[i];
-        for (int x = size - 1; x > 0; x--) tree[x] = min(tree[2 * x], tree[2 * x + 1]);
+    // O(N) -- arr: the initial array (non-empty)
+    explicit SegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
+        mn.assign(2 * n, T(0));
+        for (int i = 0; i < n; i++) mn[n + i] = arr[i];
+        for (int x = n - 1; x > 0; x--) pull(x);
     }
 
-    // O(logN) -- min of a[l..r]
-    T rangeMin(int l, int r) const {
-        T res = numeric_limits<T>::max();
-        for (l += size, r += size + 1; l < r; l >>= 1, r >>= 1) {
-            if (l & 1) res = min(res, tree[l++]);
-            if (r & 1) res = min(res, tree[--r]);
+    // O(N) -- the whole array
+    vector<T> getAll() const {
+        vector<T> out(n);
+        for (int i = 0; i < n; i++) out[i] = leaf(n + i);
+        return out;
+    }
+
+    // O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    int leftmostLtX(int l, int r, T x) {
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        for (int i = 0; i < c; i++) {
+            int t = ns[i];
+            if (!(mn[t] < x)) continue;
+            while (t < n) t = mn[2 * t] < x ? 2 * t : 2 * t + 1;  // walk down the passing node
+            return t - n;
         }
-        return res;
+        return -1;
+    }
+
+    // O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    int leftmostLteX(int l, int r, T x) {
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        for (int i = 0; i < c; i++) {
+            int t = ns[i];
+            if (!(mn[t] <= x)) continue;
+            while (t < n) t = mn[2 * t] <= x ? 2 * t : 2 * t + 1;  // walk down the passing node
+            return t - n;
+        }
+        return -1;
+    }
+
+    // O(logN) -- a[i] += v
+    void pointAdd(int i, T v) {
+        int p = i + n;
+        setLeaf(p, T(leaf(p) + v)), rebuild(p);
     }
 
     // O(logN) -- a[i] = v
     void pointAssign(int i, T v) {
-        int p = size + i;
-        tree[p] = v;
-        for (p >>= 1; p; p >>= 1) tree[p] = min(tree[2 * p], tree[2 * p + 1]);
+        int p = i + n;
+        setLeaf(p, v), rebuild(p);
     }
-
-    // O(logN) -- same as pointAssign, but also writes v into the array you pass in
-    void pointAssignAndMutateArray(vector<T>& arr, int i, T v) {
-        arr[i] = v;
-        pointAssign(i, v);
-    }
-
-    // O(1) -- a[i]
-    T pointGet(int i) const { return tree[size + i]; }
-
-    // O(N) -- the whole array (a copy of the leaves)
-    vector<T> getAll() const { return vector<T>(tree.begin() + size, tree.begin() + size + n); }
 
     // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > tree[size + i]) pointAssign(i, v); }
+    void pointChmax(int i, T v) {
+        int p = i + n;
+        setLeaf(p, max(leaf(p), v)), rebuild(p);
+    }
 
     // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < tree[size + i]) pointAssign(i, v); }
-
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, tree[size + i] + delta); }
-
-    // O(logN) -- first i in [l, r] with a[i] <= x, or -1; climbs from l, then descends into the first hit
-    int leftmostLteX(int l, int r, T x) const {
-        int p = l + size;
-        for (;;) {
-            while (!(p & 1)) p >>= 1;
-            if (tree[p] <= x) {
-                while (p < size) {
-                    p <<= 1;
-                    if (!(tree[p] <= x)) p++;
-                }
-                return p - size <= r ? p - size : -1;
-            }
-            p++;
-            if (!(p & (p - 1))) return -1;
-        }
+    void pointChmin(int i, T v) {
+        int p = i + n;
+        setLeaf(p, min(leaf(p), v)), rebuild(p);
     }
 
-    // O(logN) -- first i in [l, r] with a[i] < x, or -1; climbs from l, then descends into the first hit
-    int leftmostLtX(int l, int r, T x) const {
-        int p = l + size;
-        for (;;) {
-            while (!(p & 1)) p >>= 1;
-            if (tree[p] < x) {
-                while (p < size) {
-                    p <<= 1;
-                    if (!(tree[p] < x)) p++;
-                }
-                return p - size <= r ? p - size : -1;
-            }
-            p++;
-            if (!(p & (p - 1))) return -1;
-        }
+    // O(logN) -- a[i]
+    T pointGet(int i) {
+        int p = i + n;
+        return leaf(p);
     }
 
-    // O(logN) -- last i in [l, r] with a[i] <= x, or -1; climbs from r, then descends into the last hit
-    int rightmostLteX(int l, int r, T x) const {
-        int p = r + size + 1;
-        for (;;) {
-            p--;
-            while (p > 1 && (p & 1)) p >>= 1;
-            if (tree[p] <= x) {
-                while (p < size) {
-                    p = 2 * p + 1;
-                    if (!(tree[p] <= x)) p--;
-                }
-                return p - size >= l ? p - size : -1;
-            }
-            if (!(p & (p - 1))) return -1;
+    // O(logN) -- min of a[l..r]
+    T rangeMin(int l, int r) {
+        T res = numeric_limits<T>::max();
+        for (int lo = l + n, hi = r + n + 1; lo < hi; lo >>= 1, hi >>= 1) {
+            if (lo & 1) res = min(res, mn[lo++]);
+            if (hi & 1) res = min(res, mn[--hi]);
         }
+        return res;
     }
 
-    // O(logN) -- last i in [l, r] with a[i] < x, or -1; climbs from r, then descends into the last hit
-    int rightmostLtX(int l, int r, T x) const {
-        int p = r + size + 1;
-        for (;;) {
-            p--;
-            while (p > 1 && (p & 1)) p >>= 1;
-            if (tree[p] < x) {
-                while (p < size) {
-                    p = 2 * p + 1;
-                    if (!(tree[p] < x)) p--;
-                }
-                return p - size >= l ? p - size : -1;
-            }
-            if (!(p & (p - 1))) return -1;
+    // O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    int rightmostLtX(int l, int r, T x) {
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        for (int i = c - 1; i >= 0; i--) {
+            int t = ns[i];
+            if (!(mn[t] < x)) continue;
+            while (t < n) t = mn[2 * t + 1] < x ? 2 * t + 1 : 2 * t;  // walk down the passing node
+            return t - n;
         }
+        return -1;
+    }
+
+    // O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    int rightmostLteX(int l, int r, T x) {
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        for (int i = c - 1; i >= 0; i--) {
+            int t = ns[i];
+            if (!(mn[t] <= x)) continue;
+            while (t < n) t = mn[2 * t + 1] <= x ? 2 * t + 1 : 2 * t;  // walk down the passing node
+            return t - n;
+        }
+        return -1;
+    }
+
+    // ---- internals ----
+
+    void setLeaf(int p, T v) {  // leaf p holds v alone
+        mn[p] = v;
+    }
+
+    T leaf(int p) const { return T(mn[p]); }  // the value at leaf p
+
+    void pull(int x) {  // recompute node x from its children
+        int a = 2 * x, b = 2 * x + 1;
+        mn[x] = min(mn[a], mn[b]);
+    }
+
+    void rebuild(int p) {  // recompute every ancestor of leaf p
+        while (p > 1) p >>= 1, pull(p);
+    }
+
+    int cover(int l, int r, int* ns, int* ls) {  // the nodes covering a[l..r] left to right (ns) and their levels (ls)
+        int c = 0, rc = 0, rn[32], rl[32];
+        for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {
+            if (lo & 1) ns[c] = lo++, ls[c++] = s;
+            if (hi & 1) rn[rc] = --hi, rl[rc++] = s;
+        }
+        while (rc) rc--, ns[c] = rn[rc], ls[c++] = rl[rc];
+        return c;
     }
 };

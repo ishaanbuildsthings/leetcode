@@ -9,76 +9,116 @@
 //   pointAssign: log(N)
 //   pointChmax: log(N)
 //   pointChmin: log(N)
-//   pointGet: 1
+//   pointGet: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
-//   node: pp[2*N] pm[2*N] mp[2*N] mm[2*N]
+//   node: a00[2*N] a01[2*N] a10[2*N] a11[2*N]
 //   tags: none
-//   other: vals[1*N]
-//   note: f[s][e] = best alternating sum inside the node that starts with sign s and ends with sign e; queries fold a left and a right accumulator
+//   other: none
+//   note: leaves [n, 2n) hold each value's own aggregates
 
-// Max alternating subsequence sum  +a[i1] - a[i2] + a[i3] - ...  (i1 < i2 < ..., non-empty, starts with +) inside
-// a[l..r], with point updates. All indices 0-based, ranges inclusive.
-// Each node keeps the best sum for each (first sign, last sign) pair. Joining A then B either takes one side alone
-// or glues A's piece ending in sign x to B's piece starting with the opposite sign. Not commutative, so a query
-// folds a left and a right accumulator. Only a single leaf has impossible pairs (+..- and -..+); they hold NEG,
-// which is small enough to lose every max and big enough that NEG + NEG cannot overflow.
+// Segment tree with composable aggregates (2N iterative): point updates and range queries in O(logN); each node keeps
+// its best alternating (+ - + ...) subsequence sum for each start / end sign over its range. All indices 0-based,
+// ranges inclusive [l, r]; searches return -1 when nothing qualifies. Leaves tree[n..2n); a node used by a query or
+// update is a perfect subtree of 2^s leaves (s = its level); an update rewrites a leaf, then its ancestors.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
-struct AltSumTree {
+struct SegTree {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    static constexpr S NEG = numeric_limits<S>::lowest() / 4;
-    struct Node { S pp, pm, mp, mm; };  // starts + / -, ends + / -
-    int n;
-    vector<T> vals;
-    vector<Node> t;
+    static constexpr S NEG = numeric_limits<S>::lowest() / 4;  // (no alternating subsequence of that shape)
+    int n, h;
+    vector<S> a00;
+    vector<S> a01;
+    vector<S> a10;
+    vector<S> a11;
 
-    static Node leaf(T v) { return {S(v), NEG, NEG, -S(v)}; }
-
-    static Node merge(const Node& a, const Node& b) {
-        return {max({a.pp, b.pp, a.pp + b.mp, a.pm + b.pp}), max({a.pm, b.pm, a.pp + b.mm, a.pm + b.pm}),
-                max({a.mp, b.mp, a.mp + b.mp, a.mm + b.pp}), max({a.mm, b.mm, a.mp + b.mm, a.mm + b.pm})};
+    // O(N) -- arr: the initial array (non-empty)
+    explicit SegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
+        a00.assign(2 * n, 0);
+        a01.assign(2 * n, 0);
+        a10.assign(2 * n, 0);
+        a11.assign(2 * n, 0);
+        for (int i = 0; i < n; i++) setLeaf(n + i, arr[i]);
+        for (int x = n - 1; x > 0; x--) pull(x);
     }
 
-    // O(N)
-    explicit AltSumTree(const vector<T>& a) : n((int)a.size()), vals(a), t(2 * a.size()) {
-        for (int i = 0; i < n; i++) t[n + i] = leaf(a[i]);
-        for (int x = n - 1; x > 0; x--) t[x] = merge(t[2 * x], t[2 * x + 1]);
+    // O(N) -- the whole array
+    vector<T> getAll() const {
+        vector<T> out(n);
+        for (int i = 0; i < n; i++) out[i] = leaf(n + i);
+        return out;
     }
 
-    // O(logN) -- max over non-empty subsequences of a[l..r] of +first - second + third - ...
-    S maxAltSubseqSum(int l, int r) const {
-        Node left{}, right{};
-        bool lEmpty = true, rEmpty = true;
-        for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
-            if (l & 1) left = lEmpty ? t[l] : merge(left, t[l]), lEmpty = false, l++;
-            if (r & 1) --r, right = rEmpty ? t[r] : merge(t[r], right), rEmpty = false;
-        }
-        Node res = rEmpty ? left : lEmpty ? right : merge(left, right);
-        return max(res.pp, res.pm);
+    // O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
+    S maxAltSubseqSum(int l, int r) {
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        array<S, 4> a{a00[ns[0]], a01[ns[0]], a10[ns[0]], a11[ns[0]]};
+        for (int i = 1; i < c; i++) a = altJoin(a, {a00[ns[i]], a01[ns[i]], a10[ns[i]], a11[ns[i]]});
+        return max(a[0], a[1]);
+    }
+
+    // O(logN) -- a[i] += v
+    void pointAdd(int i, T v) {
+        int p = i + n;
+        setLeaf(p, T(leaf(p) + v)), rebuild(p);
     }
 
     // O(logN) -- a[i] = v
     void pointAssign(int i, T v) {
-        vals[i] = v;
         int p = i + n;
-        t[p] = leaf(v);
-        for (p >>= 1; p; p >>= 1) t[p] = merge(t[2 * p], t[2 * p + 1]);
+        setLeaf(p, v), rebuild(p);
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return vals[i]; }
-
-    // O(N) -- the whole array (a copy)
-    vector<T> getAll() const { return vals; }
-
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, vals[i] + delta); }
-
     // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > vals[i]) pointAssign(i, v); }
+    void pointChmax(int i, T v) {
+        int p = i + n;
+        setLeaf(p, max(leaf(p), v)), rebuild(p);
+    }
 
     // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < vals[i]) pointAssign(i, v); }
+    void pointChmin(int i, T v) {
+        int p = i + n;
+        setLeaf(p, min(leaf(p), v)), rebuild(p);
+    }
+
+    // O(logN) -- a[i]
+    T pointGet(int i) {
+        int p = i + n;
+        return leaf(p);
+    }
+
+    // ---- internals ----
+
+    // A's part, then B's: the best alternating sums by (start sign, end sign) = (++, +-, -+, --)
+    static array<S, 4> altJoin(const array<S, 4>& A, const array<S, 4>& B) {
+        return {max({A[0], B[0], A[0] + B[2], A[1] + B[0]}), max({A[1], B[1], A[0] + B[3], A[1] + B[1]}),
+                max({A[2], B[2], A[2] + B[2], A[3] + B[0]}), max({A[3], B[3], A[2] + B[3], A[3] + B[1]})};
+    }
+
+    void setLeaf(int p, T v) {  // leaf p holds v alone
+        a00[p] = S(v), a01[p] = NEG, a10[p] = NEG, a11[p] = -S(v);
+    }
+
+    T leaf(int p) const { return T(a00[p]); }  // the value at leaf p
+
+    void pull(int x) {  // recompute node x from its children
+        int a = 2 * x, b = 2 * x + 1;
+        array<S, 4> c = altJoin({a00[a], a01[a], a10[a], a11[a]}, {a00[b], a01[b], a10[b], a11[b]});
+        a00[x] = c[0], a01[x] = c[1], a10[x] = c[2], a11[x] = c[3];
+    }
+
+    void rebuild(int p) {  // recompute every ancestor of leaf p
+        while (p > 1) p >>= 1, pull(p);
+    }
+
+    int cover(int l, int r, int* ns, int* ls) {  // the nodes covering a[l..r] left to right (ns) and their levels (ls)
+        int c = 0, rc = 0, rn[32], rl[32];
+        for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {
+            if (lo & 1) ns[c] = lo++, ls[c++] = s;
+            if (hi & 1) rn[rc] = --hi, rl[rc++] = s;
+        }
+        while (rc) rc--, ns[c] = rn[rc], ls[c++] = rl[rc];
+        return c;
+    }
 };

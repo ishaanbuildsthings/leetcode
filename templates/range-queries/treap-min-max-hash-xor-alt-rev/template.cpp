@@ -292,7 +292,7 @@ struct ImplicitTreap {
     // O(logN) expected -- remove a[0] and return it
     T popLeft() { return pop(0); }
 
-    // O(logN) expected -- hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal
+    // O(logN) expected -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     U64 rangeHash(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -336,7 +336,7 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     void rangeRotateLeft(int l, int r, long long k) {
         int a, b, c, len = r - l + 1;
         cut(l, r, a, b, c);

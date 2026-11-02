@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-pre-suf/template.py
 # @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum moveRange pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeRotateLeft rangeRotateRight rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
 # @data-structure-type: treap
+# @letters: same
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected
@@ -201,7 +202,7 @@ class ImplicitTreap:
     def popLeft(self):
         return self.pop(0)
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1

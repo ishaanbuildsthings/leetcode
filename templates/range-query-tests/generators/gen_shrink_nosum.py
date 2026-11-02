@@ -1,7 +1,7 @@
 """The shrink trees (range mod / floor div / floor sqrt, pruned by the max) without range sums, so a max / min-only
 user doesn't pay for the tot array:
 
-    python3 gen_shrink_nosum.py      (after any change to the two shrink templates)
+    (retired: gen_seg_algebra.py writes lighter shrink trees into these folders)
 
 Derived from ShrinkTree (no assign: mx, tot) and ShrinkSeg (assign: mx, mn, tot) by taking tot and rangeSum out;
 every rewrite must leave no `tot` behind.
@@ -12,8 +12,11 @@ import re
 from note_lang import strip_attribution, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
-SOURCES = ["pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMod-rangeSum",
-           "pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod-rangeSum"]
+SOURCES = ["leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorDiv-rangeFloorSqrt-"
+           "rangeMax-rangeMod-rangeSum-rightmostGtX-rightmostGteX",
+           "leftmostGtX-leftmostGteX-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-"
+           "rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod-rangeSum-rightmostGtX-rightmostGteX-"
+           "rightmostLtX-rightmostLteX"]
 
 
 def drop_blocks(text, pattern):
@@ -23,7 +26,7 @@ def drop_blocks(text, pattern):
 
 
 def header(text, cm):
-    text = text.replace(" rangeSum\n", "\n", 1)  # (the @operations line ends with rangeSum)
+    text = re.sub(rf"^({re.escape(cm)} @operations:.*) rangeSum\b", r"\1", text, count=1, flags=re.M)
     text = re.sub(rf"^{re.escape(cm)}   rangeSum: .*\n", "", text, flags=re.M)
     text = re.sub(r" tot\[4\*N\]", "", text)
     text = re.sub(rf"^{re.escape(cm)} O\(logN\):\s+rangeSum\(l, r\).*\n", "", text, flags=re.M)
@@ -53,7 +56,7 @@ def cpp(text):
 
 def main():
     for src in SOURCES:
-        dst = src[:-len("-rangeSum")]
+        dst = src.replace("-rangeSum", "")
         os.makedirs(os.path.join(DIR, dst), exist_ok=True)
         for ext, fn in (("py", py), ("cpp", cpp)):
             out = fn(strip_attribution(open(os.path.join(DIR, src, f"template.{ext}")).read()))
@@ -64,4 +67,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit("retired: gen_seg_algebra.py writes lighter (2N) shrink trees into those folders now")

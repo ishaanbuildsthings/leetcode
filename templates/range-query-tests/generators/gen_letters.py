@@ -16,6 +16,7 @@ import os
 import re
 import sys
 
+os.environ.setdefault("LETTER_BASE", "80")  # printable ASCII letters, so the C++ run with T = char prints them as is
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 import test_templates as T  # noqa: E402

@@ -206,7 +206,7 @@ class ImplicitTreap:
     def popLeft(self):
         return self.pop(0)
 
-    # O(logN) expected -- hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal
+    # O(logN) expected -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     def rangeHash(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.fh[b]
@@ -226,7 +226,7 @@ class ImplicitTreap:
         self._applyRev(b)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1

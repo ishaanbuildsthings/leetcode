@@ -15,14 +15,15 @@ two paths, then reads the covering nodes in order (left to right, so ordered agg
 Aggregates and updates: see gen_treap_algebra.py (the OK table there says which update families each aggregate can
 absorb; the same aggregate sets: sum / min / max / hash with up to two of the other families, and one cover per update
 set for three or more). A pending add folds into a pending assign (an assign with a shifted value), and so does a
-pending xor; a pending arithmetic add sits after a pending assign. Folders whose op set a hand-written template already
-has are skipped (the hand-written one stays).
+pending xor; a pending arithmetic add sits after a pending assign. An op set a hand-written template already has
+keeps it unless this tree is lighter (then only the dense files are replaced: the sparse version stays). Every other
+tree also gets a sparse version (seg_algebra_sparse.py).
 """
 import os
 import shutil
 
 from gen_treap import CPP_HASH_HELPERS, PY_HASH_CONST, wrap
-from gen_treap_algebra import OK, QDOC, QOPS, SEARCH, CMP, UDOC, UOP, Spec, allowed, mod_sets, rev_line
+from gen_treap_algebra import OK, QDOC, QOPS, SEARCH, SHRINK_COST, CMP, UDOC, UOP, Spec, allowed, mod_sets, rev_line
 from gen_treap_more import slots_line
 from note_lang import folder_name, write_template
 
@@ -64,10 +65,13 @@ class SegSpec(Spec):
     def name(self):
         mods = "-".join(self.mods) or "plain"
         ups = "-".join(sorted(self.ups))
-        return ("lazy-seg-" if self.lazy else "seg-") + mods + (f"-updates-{ups}" if ups else "")
+        return ("beats-" if self.shrink else "lazy-seg-tree-" if self.lazy else "seg-tree-") + mods + (f"-updates-{ups}" if ups else "")
 
     def cls(self):
-        return "LazySegTree" if self.lazy else "SegTree"
+        return "ShrinkSegTree" if self.shrink else "LazySegTree" if self.lazy else "SegTree"
+
+    def dtype(self):  # (a shrink tree walks down every node whose max still changes: the beats family)
+        return "beats" if self.shrink else "lazy-seg-tree" if self.lazy else "seg-tree"
 
 
 def variants():
@@ -89,6 +93,8 @@ def variants():
 
 def cost(s, op):
     g = s.has("gcd")
+    if op in SHRINK_COST:
+        return SHRINK_COST[op]
     if op == "getAll":
         return "N"
     if g and op == "rangeGcd":
@@ -100,7 +106,7 @@ def cost(s, op):
 
 def header(cm, s):
     fields, tags = s.fields(), s.tags()
-    lines = [f"@operations: {' '.join(s.ops)}", f"@data-structure-type: {'lazy-seg-tree' if s.lazy else 'seg-tree'}", "@complexities:"]
+    lines = [f"@operations: {' '.join(s.ops)}", f"@data-structure-type: {s.dtype()}", "@complexities:"]
     lines += [f"  {op}: {cost(s, op)}" for op in s.ops] + [f"  build: {'N*log(U) ?' if s.has('gcd') else 'N'}", "@memory:",
                                                           "  layout: 2n-iterative"]
     other = (["PW[1*log(N)]"] + (["GS[1*log(N)]"] if s.G else [])) if s.has("hash") else []
@@ -115,7 +121,9 @@ def describe(s):
     from gen_treap_algebra import DESC
     keeps = ", ".join(DESC[m] for m in s.mods)
     ups = ", ".join(UOP[u] for u in sorted(s.ups))
-    return ((f"Lazy segment tree {MARK}: range updates ({ups})" if s.lazy else f"Segment tree {MARK}: point updates") +
+    return ((f"Shrink segment tree {MARK}: range updates ({ups}; mod / floor div / floor sqrt walk down every node whose max "
+             "still changes, and each value can only shrink O(logU) times)" if s.shrink else
+             f"Lazy segment tree {MARK}: range updates ({ups})" if s.lazy else f"Segment tree {MARK}: point updates") +
             f" and range queries in O(logN); each node keeps {keeps} over its range. All indices 0-based, ranges inclusive "
             "[l, r]; searches return -1 when nothing qualifies. Leaves tree[n..2n); a node used by a query or update is a "
             "perfect subtree of 2^s leaves (s = its level)" +
@@ -157,7 +165,8 @@ def py(s):
     fl, tn = [f[0] for f in F], s.tn
     names = ["n", "h"] + fl + [t[0] for t in TG] + (["PW"] if s.has("hash") else []) + (["GS"] if s.G else [])
     out = [header("#", s), "\n", wrap(describe(s), "#")]
-    imports = (["import random"] if s.has("hash") else []) + (["from math import gcd"] if s.has("gcd") else [])
+    imports = (["import random"] if s.has("hash") else []) + (["from math import gcd"] if s.has("gcd") else []) + \
+        (["from math import isqrt"] if s.shrink else [])
     out.append("\n".join(imports) + ("\n\n\n" if imports else "\n"))
     if s.has("hash"):
         out.append(PY_HASH_CONST)
@@ -359,8 +368,8 @@ def py_public(s):
             c = _altJoin(c, (a00[t], a01[t], a10[t], a11[t]))
         return max(c[0], c[1])
 '''
-    psh = "                self._push(t, s)\n                s -= 1\n" if s.tags() and s.kPush else \
-        "                self._push(t)\n" if s.tags() else ""
+    psh = "                    self._push(t, s)\n                    s -= 1\n" if s.tags() and s.kPush else \
+        "                    self._push(t)\n" if s.tags() else ""
     for op, (side, cmp) in SEARCH.items():
         if op not in s.ops:
             continue
@@ -414,7 +423,17 @@ def py_public(s):
                  "and": ("v", ("_applyBits", bits_args(tn, "v", "0"))),
                  "or": ("v", ("_applyBits", bits_args(tn, "-1", "v"))),
                  "xor": ("v", ("_applyXor", "v"))}
+        shr = {"mod": ("x", "if x >= 1:\n            self._shrinkRange(l, r, x, lambda v: v % x)", "logN * logU"),
+               "div": ("x", "if x >= 2:\n            self._shrinkRange(l, r, 1, lambda v: v // x)", "logN * logU"),
+               "sqrt": ("", "self._shrinkRange(l, r, 2, isqrt)", "logN * loglogU")}
         for u in s.ups:
+            if u in shr:
+                args, call, c = shr[u]
+                pub[UOP[u]] = f'''    # amortized O({c}) -- {UDOC[u]}
+    def {UOP[u]}(self, l, r{", " + args if args else ""}):
+        {call}
+'''
+                continue
             args, (fn, a) = calls[u]
             ks = takes_s(s, fn)
             call = f"self.{fn}(@, s, {a})" if ks else f"self.{fn}(@, {a})"
@@ -525,8 +544,8 @@ def py_pull(s):
     if s.ends:
         L += ["        self.fv[x] = self.fv[a]", "        self.lv[x] = self.lv[b]"]
     if "a00" in fl:
-        L.append("        self.a00[x], self.a01[x], self.a10[x], self.a11[x] = _altJoin((self.a00[a], self.a01[a], self.a10[a], "
-                 "self.a11[a]),\n" + " " * 70 + "(self.a00[b], self.a01[b], self.a10[b], self.a11[b]))")
+        L += ["        A = (self.a00[a], self.a01[a], self.a10[a], self.a11[a])", "        B = (self.a00[b], self.a01[b], self.a10[b], self.a11[b])",
+              "        self.a00[x], self.a01[x], self.a10[x], self.a11[x] = _altJoin(A, B)"]
     tn = s.tn
     re_ = []  # redo x's own pending tags on top
     if s.asgTag:
@@ -547,6 +566,73 @@ def py_pull(s):
                 "            self._setBits(x, " + ", ".join(f"self.{p}[x]" for p in tp) + ")"]
     # (a pending xor changes nothing above the leaves: every internal node has an even length)
     return L + re_
+
+
+def py_shrink(s):
+    push = ("        self._push(x, s)\n" if s.kPush else "        self._push(x)\n") if s.tags() else ""
+    asg = (f'''        if self.mn[x] == self.mx[x]:  # all equal: one assign
+            self.{"_applyAssign(x, s, " if s.kAsg else "_applyAssign(x, "}f(self.mx[x]))
+            return
+''' if s.asgTag else "")
+    return f'''
+    def _shrinkRange(self, l, r, lim, f):  # every value v >= lim in a[l..r] becomes f(v)
+        n = self.n
+''' + ("        self._pushPath(l + n)\n        self._pushPath(r + n)\n" if s.tags() else "") + f'''        lo, hi, s = l + n, r + n + 1, 0
+        while lo < hi:
+            if lo & 1:
+                self._shrink(lo, s, lim, f)
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                self._shrink(hi, s, lim, f)
+            lo >>= 1
+            hi >>= 1
+            s += 1
+        self._rebuild(l + n)
+        self._rebuild(r + n)
+
+    def _shrink(self, x, s, lim, f):  # every value v >= lim under node x (level s) becomes f(v) (the rest are fixed)
+        if self.mx[x] < lim:
+            return
+        if x >= self.n:
+            self._setLeaf(x, f(self.mx[x]))
+            return
+{asg}{push}        self._shrink(2 * x, s - 1, lim, f)
+        self._shrink(2 * x + 1, s - 1, lim, f)
+        self.{"_pull(x, s)" if s.kPull else "_pull(x)"}
+'''
+
+
+def cpp_shrink(s):
+    push = ("        push(x, s);\n" if s.kPush else "        push(x);\n") if s.tags() else ""
+    asg = (f"        if (mn[x] == mx[x]) {{ {'applyAssign(x, s, ' if s.kAsg else 'applyAssign(x, '}f(mx[x])); return; }}  // all equal: one assign\n"
+           if s.asgTag else "")
+    return f'''
+    // floor(sqrt(v)) for v >= 0, exact for every 64-bit value
+    static T isqrtT(T v) {{
+        T r = (T)sqrtl((long double)v);
+        while (r > 0 && (__int128)r * r > v) r--;
+        while ((__int128)(r + 1) * (r + 1) <= v) r++;
+        return r;
+    }}
+
+    template <class F>
+    void shrinkRange(int l, int r, T lim, const F& f) {{  // every value v >= lim in a[l..r] becomes f(v)
+''' + ("        pushPath(l + n), pushPath(r + n);\n" if s.tags() else "") + f'''        for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {{
+            if (lo & 1) shrink(lo, s, lim, f), lo++;
+            if (hi & 1) hi--, shrink(hi, s, lim, f);
+        }}
+        rebuild(l + n), rebuild(r + n);
+    }}
+
+    template <class F>
+    void shrink(int x, int s, T lim, const F& f) {{  // every value v >= lim under node x (level s) becomes f(v)
+        if (mx[x] < lim) return;
+        if (x >= n) {{ setLeaf(x, f(mx[x])); return; }}
+{asg}{push}        shrink(2 * x, s - 1, lim, f), shrink(2 * x + 1, s - 1, lim, f);
+        {"pull(x, s)" if s.kPull else "pull(x)"};
+    }}
+'''
 
 
 def call_py(s, fn, args):
@@ -590,6 +676,8 @@ def py_internals(s):
             s += 1
         return left + right[::-1]
 ''')
+    if s.shrink:
+        out.append(py_shrink(s))
     if not s.tags():
         return "".join(out)
     push = []
@@ -769,7 +857,7 @@ def cpp(s):
                  "        }"]
     else:
         init.append("        for (int x = n - 1; x > 0; x--) pull(x);")
-    out.append("\n" if s.has("hash") else "")
+    out.append("" if s.has("hash") else "\n")
     out.append("\n".join(init) + "\n    }\n\n")
     pub = cpp_public(s)
     out.append("\n".join(pub[op] for op in s.ops if op in pub))
@@ -800,7 +888,7 @@ def cpp_public(s):
         return res;
     }}
 '''
-    cov = "        int ns[64], ls[64], c = cover(l, r, ns, ls);\n"
+    cov = "        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)\n"
     if "rangeGcd" in s.ops:
         if s.gdiff:
             pub["rangeGcd"] = f'''    // O(logN + logU) -- {QDOC["rangeGcd"]}
@@ -859,14 +947,16 @@ def cpp_public(s):
         pub["rangeHashReversed"] = f'''    // O(logN) -- {QDOC["rangeHashReversed"]}
     U64 rangeHashReversed(int l, int r) {{
 {cov}        U64 res = 0, p = 1;
-        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (each node in front)
+        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (in front)
         return res;
     }}
 '''
         pub["isPalindrome"] = f'''    // O(logN) -- {QDOC["isPalindrome"]}
     bool isPalindrome(int l, int r) {{
 {cov}        U64 f = 0, b = 0, p = 1;
-        for (int i = 0; i < c; i++) f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+        for (int i = 0; i < c; i++) {{
+            f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+        }}
         return f == b;
     }}
 '''
@@ -958,7 +1048,18 @@ def cpp_public(s):
                  "and": ("T v", ("applyBits", bits_args(tn, "v", "T(0)"))),
                  "or": ("T v", ("applyBits", bits_args(tn, "~T(0)", "v"))),
                  "xor": ("T v", ("applyXor", "v"))}
+        shr = {"mod": ("T x", "if (x >= 1) shrinkRange(l, r, x, [x](T v) { return T(v % x); });", "logN * logU"),
+               "div": ("T x", "if (x >= 2) shrinkRange(l, r, T(1), [x](T v) { return T(v / x); });", "logN * logU"),
+               "sqrt": ("", "shrinkRange(l, r, T(2), isqrtT);", "logN * loglogU")}
         for u in s.ups:
+            if u in shr:
+                params, call, c = shr[u]
+                pub[UOP[u]] = f'''    // amortized O({c}) -- {UDOC[u]}
+    void {UOP[u]}(int l, int r{", " + params if params else ""}) {{
+        {call}
+    }}
+'''
+                continue
             params, (fn, a) = calls[u]
             ks = takes_s(s, "_" + fn)
             cl = lambda X, inc: f"{fn}({X}, s, {a.replace('X', X)})" if ks else f"{fn}({X}, {a})"  # noqa: E731
@@ -1107,6 +1208,8 @@ def cpp_internals(s):
         return c;
     }
 ''')
+    if s.shrink:
+        out.append(cpp_shrink(s))
     if not s.tags():
         return "".join(out)
     push = []
@@ -1159,7 +1262,7 @@ def cpp_internals(s):
         out.append('''
     void setAP(int x, int s, T st, T d) {  // the k-th value under node x (k from 0) gains st + k * d
         S k = S(1) << s;
-        sm[x] += S(st) * k + S(d) * (k * (k - 1) / 2);
+        sm[x] += S(st) * k + S(d) * (s ? (k >> 1) * (k - 1) : S(0));  // (k (k - 1) / 2 without overflowing first)
     }
 
     void applyAP(int x, int s, T st, T d) {
@@ -1168,7 +1271,7 @@ def cpp_internals(s):
     }
 ''')
         push.append('''        if (as_[x] != T(0) || ad[x] != T(0)) {
-            applyAP(a, c, as_[x], ad[x]), applyAP(b, c, T(as_[x] + ad[x] * T(1 << c)), ad[x]);
+            applyAP(a, c, as_[x], ad[x]), applyAP(b, c, T(as_[x] + ad[x] * (T(1) << c)), ad[x]);
             as_[x] = ad[x] = T(0);
         }
 ''')
@@ -1234,32 +1337,67 @@ def cpp_internals(s):
 
 # ================================================================================================ main
 
-def generated(text):
-    return MARK in text
+def generated(text):  # (dense: MARK; sparse: "with composable aggregates (sparse)")
+    return "with composable aggregates (" in text
+
+
+def mem_total(text):
+    """the summed coefficients of a header's node / tags / other lines (log terms count as nothing)"""
+    import re
+    total = 0
+    for key in ("node", "tags", "other"):
+        line = re.search(rf"^(?:#|//)   {key}: (.*)$", text, re.M).group(1)
+        total += sum(int(c) for c in re.findall(r"\[(\d+)\*N\]", line))
+    return total
 
 
 def main(only=None):
+    """Writes every variant. A folder whose op set a hand-written template already has keeps it, unless this tree is
+    lighter: then its template.py / .cpp become this one and its sparse / letters files stay (sparse versions are
+    their own code). Folders this wrote last time are deleted first, but only their template files when they hold
+    a sparse version."""
+    orphans = {}  # base op name -> folder whose sparse files outlived its template files
     if only is None:
         for d in os.listdir(DIR):
             t = os.path.join(DIR, d, "template.py")
             if os.path.exists(t) and generated(open(t).read()):
-                shutil.rmtree(os.path.join(DIR, d))
-    taken = set(os.listdir(DIR))  # hand-written folders: their op set stays theirs
-    seen, skipped = {}, 0
+                sp = os.path.join(DIR, d, "sparse.py")
+                if os.path.exists(sp) and not generated(open(sp).read()):  # (a hand-written tree's sparse version)
+                    for x in ("py", "cpp"):
+                        os.remove(os.path.join(DIR, d, f"template.{x}"))
+                    orphans[d.split("__")[0]] = d
+                else:
+                    shutil.rmtree(os.path.join(DIR, d))
+    taken = {d.split("__")[0]: d for d in os.listdir(DIR) if os.path.exists(os.path.join(DIR, d, "template.py"))}
+    seen, skipped, replaced = {}, 0, 0
     for s in variants():
         if only is not None and not only(s):
             continue
         name = folder_name(s.ops)
-        if name in taken:
-            skipped += 1
-            continue
         folder = name if len(name) <= 180 else s.name()
+        py_text, cpp_text = py(s), cpp(s)
+        if name in orphans:
+            folder = orphans.pop(name)
+        elif name in taken:
+            old = open(os.path.join(DIR, taken[name], "template.py")).read()
+            if mem_total(header("#", s)) >= mem_total(old):
+                skipped += 1
+                continue
+            folder = taken[name]
+            replaced += 1
         assert folder not in seen, (folder, seen.get(folder))
         seen[folder] = s.name()
         os.makedirs(os.path.join(DIR, folder), exist_ok=True)
-        write_template(os.path.join(DIR, folder, "template.py"), py(s))
-        write_template(os.path.join(DIR, folder, "template.cpp"), cpp(s))
-    print("wrote", len(seen), "segment trees;", skipped, "op sets already had a hand-written template")
+        write_template(os.path.join(DIR, folder, "template.py"), py_text)
+        write_template(os.path.join(DIR, folder, "template.cpp"), cpp_text)
+        if not os.path.exists(os.path.join(DIR, folder, "sparse.py")):  # (else: a hand-written tree's, kept)
+            import seg_algebra_sparse as SP
+            desc = describe(s)
+            write_template(os.path.join(DIR, folder, "sparse.py"), SP.py(s, py_text, py_internals(s), desc))
+            write_template(os.path.join(DIR, folder, "sparse.cpp"), SP.cpp(s, cpp_text, cpp_internals(s), desc))
+    assert not orphans, orphans  # (a sparse version with no dense template left)
+    print("wrote", len(seen), f"segment trees ({replaced} replacing a heavier hand-written dense tree, its sparse version kept);",
+          skipped, "op sets already had a hand-written template at least as light")
 
 
 if __name__ == "__main__":

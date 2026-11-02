@@ -73,7 +73,6 @@ struct LazySegTree {
         return hadd(hraw(v), off);
     }
 
-
     // O(N) -- arr: the initial array (non-empty)
     explicit LazySegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         sm.assign(2 * n, 0);
@@ -108,9 +107,11 @@ struct LazySegTree {
 
     // O(logN) -- is a[l..r] a palindrome (its two hashes agree)
     bool isPalindrome(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 f = 0, b = 0, p = 1;
-        for (int i = 0; i < c; i++) f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+        for (int i = 0; i < c; i++) {
+            f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+        }
         return f == b;
     }
 
@@ -169,9 +170,9 @@ struct LazySegTree {
         rebuild(l + n), rebuild(r + n);
     }
 
-    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal
+    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     U64 rangeHash(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0;
         for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), fh[ns[i]]);
         return res;
@@ -179,9 +180,9 @@ struct LazySegTree {
 
     // O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
     U64 rangeHashReversed(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0, p = 1;
-        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (each node in front)
+        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (in front)
         return res;
     }
 

@@ -40,6 +40,8 @@ def dominates(y, x):
         return False
     if y.get("valuesOffline") and not x.get("valuesOffline"):  # needing every value up front is a real cost
         return False
+    if x.get("sparse") and not y.get("sparse"):  # x's sparse version is a frontier point of its own
+        return False
     mx, my = value(x["memory"]["total"]), value(y["memory"]["total"])
     bx, by = value(x["build"]), value(y["build"])
     if my > mx or by > bx:

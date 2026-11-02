@@ -29,6 +29,7 @@ struct SegTree {
     int n, h;
     vector<T> an;
     vector<T> orr;
+
     // O(N) -- arr: the initial array (non-empty)
     explicit SegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         an.assign(2 * n, ~T(0));

@@ -10,170 +10,157 @@
 #   pointAssign: log(N)
 #   pointChmax: log(N)
 #   pointChmin: log(N)
-#   pointGet: 1
+#   pointGet: log(N)
 #   rangeMin: log(N)
 #   rightmostLtX: log(N)
 #   rightmostLteX: log(N)
 #   build: N
 # @memory:
-#   layout: pow2-iterative
-#   node: tree[4*N]
+#   layout: 2n-iterative
+#   node: mn[2*N]
 #   tags: none
 #   other: none
-#   note: tree holds each node's min; tree is 2*size where size is the next power of two >= n, so between 2N and 4N slots; arr is a reference
-# @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/MinSeg.py
+#   note: leaves [n, 2n) hold each value's own aggregates
 
-# ⚠️ Not fully benchmarked but should be pretty fast, 2n iterative tree
-# Mirror of MaxSegTree with min operations
-class MinSegTree:
+# Segment tree with composable aggregates (2N iterative): point updates and range queries in O(logN); each node keeps
+# its min over its range. All indices 0-based, ranges inclusive [l, r]; searches return -1 when nothing qualifies.
+# Leaves tree[n..2n); a node used by a query or update is a perfect subtree of 2^s leaves (s = its level); an update
+# rewrites a leaf, then its ancestors.
+
+INF, NEG = float("inf"), float("-inf")
+
+
+class SegTree:
+    __slots__ = ('n', 'h', 'mn')
+
+
+    # O(N) -- arr: the initial array (non-empty)
     def __init__(self, arr):
-        self.arr = arr
-        self.n = len(arr)
+        n = self.n = len(arr)
+        self.h = n.bit_length()
+        self.mn = [0] * n + list(arr)
+        for x in range(n - 1, 0, -1):
+            self._pull(x)
 
-        size = 1
-        while size < self.n:
-            size <<= 1
-        self.size = size
+    # O(N) -- the whole array
+    def getAll(self):
+        return self.mn[self.n:]
 
-        tree = [float("inf")] * (2 * size)
-        base = size
-        for i, v in enumerate(arr):
-            tree[base + i] = v
-        for idx in range(size - 1, 0, -1):
-            left = tree[idx << 1]
-            right = tree[(idx << 1) | 1]
-            tree[idx] = left if left <= right else right
-        self.tree = tree
+    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    def leftmostLtX(self, l, r, x):
+        n, F = self.n, self.mn
+        for t, s in self._nodes(l, r):
+            if F[t] < x:  # the first covering node with a passing value: walk down it
+                while t < n:
+                    t = 2 * t if F[2 * t] < x else 2 * t + 1
+                return t - n
+        return -1
 
-    def _queryHalfOpen(self, l, r):
-        tree = self.tree
-        l += self.size
-        r += self.size
-        ans = float("inf")
-        while l < r:
-            if l & 1:
-                v = tree[l]
-                ans = v if v <= ans else ans
-                l += 1
-            if r & 1:
-                r -= 1
-                v = tree[r]
-                ans = v if v <= ans else ans
-            l >>= 1
-            r >>= 1
-        return ans
+    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    def leftmostLteX(self, l, r, x):
+        n, F = self.n, self.mn
+        for t, s in self._nodes(l, r):
+            if F[t] <= x:  # the first covering node with a passing value: walk down it
+                while t < n:
+                    t = 2 * t if F[2 * t] <= x else 2 * t + 1
+                return t - n
+        return -1
+
+    # O(logN) -- a[i] += v
+    def pointAdd(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, self._leaf(p) + v)
+        self._rebuild(p)
+
+    # O(logN) -- a[i] = v
+    def pointAssign(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, v)
+        self._rebuild(p)
+
+    # O(logN) -- a[i] = max(a[i], v)
+    def pointChmax(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, max(self._leaf(p), v))
+        self._rebuild(p)
+
+    # O(logN) -- a[i] = min(a[i], v)
+    def pointChmin(self, i, v):
+        p = i + self.n
+        self._setLeaf(p, min(self._leaf(p), v))
+        self._rebuild(p)
+
+    # O(logN) -- a[i]
+    def pointGet(self, i):
+        p = i + self.n
+        return self._leaf(p)
 
     # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r):
-        return self._queryHalfOpen(l, r + 1)
+        n, mn = self.n, self.mn
+        res, lo, hi = INF, l + n, r + n + 1
+        while lo < hi:
+            if lo & 1:
+                if mn[lo] < res:
+                    res = mn[lo]
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                if mn[hi] < res:
+                    res = mn[hi]
+            lo >>= 1
+            hi >>= 1
+        return res
 
-    # Point overwrite: a[index] = newVal. Only updates the tree; the array you passed in is untouched.
-    def pointAssign(self, index, newVal):
-        tree = self.tree
-        pos = self.size + index
-        tree[pos] = newVal
-        pos >>= 1
-        while pos:
-            left = tree[pos << 1]
-            right = tree[(pos << 1) | 1]
-            tree[pos] = left if left <= right else right
-            pos >>= 1
-
-    # Same as pointAssign, but also writes newVal into the array you passed in.
-    def pointAssignAndMutateArray(self, index, newVal):
-        self.arr[index] = newVal
-        self.pointAssign(index, newVal)
-
-    # O(logN) -- first i in [l, r] with a[i] <= x, or -1
-    def leftmostLteX(self, l, r, x):
-        t, size = self.tree, self.size
-        p = l + size
-        while True:
-            while not p & 1:  # climb while p is a left child: its parent starts at the same index
-                p >>= 1
-            if t[p] <= x:  # the answer is inside p: descend, preferring the left child
-                while p < size:
-                    p <<= 1
-                    if not t[p] <= x:
-                        p += 1
-                p -= size
-                return p if p <= r else -1
-            p += 1
-            if not p & (p - 1):  # walked off the right edge of the tree
-                return -1
-
-    # O(logN) -- first i in [l, r] with a[i] < x, or -1
-    def leftmostLtX(self, l, r, x):
-        t, size = self.tree, self.size
-        p = l + size
-        while True:
-            while not p & 1:  # climb while p is a left child: its parent starts at the same index
-                p >>= 1
-            if t[p] < x:  # the answer is inside p: descend, preferring the left child
-                while p < size:
-                    p <<= 1
-                    if not t[p] < x:
-                        p += 1
-                p -= size
-                return p if p <= r else -1
-            p += 1
-            if not p & (p - 1):  # walked off the right edge of the tree
-                return -1
-
-    # O(logN) -- last i in [l, r] with a[i] <= x, or -1
-    def rightmostLteX(self, l, r, x):
-        t, size = self.tree, self.size
-        p = r + size + 1
-        while True:
-            p -= 1
-            while p > 1 and p & 1:  # climb while p is a right child: its parent ends at the same index
-                p >>= 1
-            if t[p] <= x:  # the answer is inside p: descend, preferring the right child
-                while p < size:
-                    p = 2 * p + 1
-                    if not t[p] <= x:
-                        p -= 1
-                p -= size
-                return p if p >= l else -1
-            if not p & (p - 1):  # walked off the left edge of the tree
-                return -1
-
-    # O(logN) -- last i in [l, r] with a[i] < x, or -1
+    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
     def rightmostLtX(self, l, r, x):
-        t, size = self.tree, self.size
-        p = r + size + 1
-        while True:
-            p -= 1
-            while p > 1 and p & 1:  # climb while p is a right child: its parent ends at the same index
-                p >>= 1
-            if t[p] < x:  # the answer is inside p: descend, preferring the right child
-                while p < size:
-                    p = 2 * p + 1
-                    if not t[p] < x:
-                        p -= 1
-                p -= size
-                return p if p >= l else -1
-            if not p & (p - 1):  # walked off the left edge of the tree
-                return -1
+        n, F = self.n, self.mn
+        for t, s in reversed(self._nodes(l, r)):
+            if F[t] < x:  # the last covering node with a passing value: walk down it
+                while t < n:
+                    t = 2 * t + 1 if F[2 * t + 1] < x else 2 * t
+                return t - n
+        return -1
 
-    # O(1) -- a[i]
-    def pointGet(self, i):
-        return self.tree[self.size + i]
+    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    def rightmostLteX(self, l, r, x):
+        n, F = self.n, self.mn
+        for t, s in reversed(self._nodes(l, r)):
+            if F[t] <= x:  # the last covering node with a passing value: walk down it
+                while t < n:
+                    t = 2 * t + 1 if F[2 * t + 1] <= x else 2 * t
+                return t - n
+        return -1
 
-    # O(N) -- the whole array (a copy of the leaves)
-    def getAll(self):
-        return self.tree[self.size:self.size + self.n]
+    # ---- internals ----
 
-    # a[i] = max(a[i], val)
-    def pointChmax(self, i, val):
-        if val > self.tree[self.size + i]:
-            self.pointAssign(i, val)
+    def _setLeaf(self, p, v):  # leaf p holds v alone
+        self.mn[p] = v
 
-    # a[i] = min(a[i], val)
-    def pointChmin(self, i, val):
-        if val < self.tree[self.size + i]:
-            self.pointAssign(i, val)
+    def _leaf(self, p):  # the value at leaf p
+        return self.mn[p]
 
-    # a[i] += delta
-    def pointAdd(self, i, delta):
-        self.pointAssign(i, self.tree[self.size + i] + delta)
+    def _pull(self, x):  # recompute node x from its children
+        a, b = 2 * x, 2 * x + 1
+        u, w = self.mn[a], self.mn[b]
+        self.mn[x] = u if u < w else w
+
+    def _rebuild(self, p):  # recompute every ancestor of leaf p
+        while p > 1:
+            p >>= 1
+            self._pull(p)
+
+    def _nodes(self, l, r):  # the O(logN) nodes covering a[l..r], left to right, each with its level
+        n = self.n
+        lo, hi, s, left, right = l + n, r + n + 1, 0, [], []
+        while lo < hi:
+            if lo & 1:
+                left.append((lo, s))
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                right.append((hi, s))
+            lo >>= 1
+            hi >>= 1
+            s += 1
+        return left + right[::-1]

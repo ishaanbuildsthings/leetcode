@@ -38,6 +38,7 @@ struct SegTree {
     vector<S> sm;
     vector<T> mn;
     vector<S> suf;
+
     // O(N) -- arr: the initial array (non-empty)
     explicit SegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         sm.assign(2 * n, 0);
@@ -56,7 +57,7 @@ struct SegTree {
 
     // O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
     int leftmostLtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i];
             if (!(mn[t] < x)) continue;
@@ -68,7 +69,7 @@ struct SegTree {
 
     // O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
     int leftmostLteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i];
             if (!(mn[t] <= x)) continue;
@@ -80,7 +81,7 @@ struct SegTree {
 
     // O(logN) -- max of a[i] + ... + a[r] over i in [l, r]
     S maxSuffixSum(int l, int r) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S res = suf[ns[c - 1]], acc = sm[ns[c - 1]];
         for (int i = c - 2; i >= 0; i--) res = max(res, acc + suf[ns[i]]), acc += sm[ns[i]];
         return res;
@@ -138,7 +139,7 @@ struct SegTree {
 
     // O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
     int rightmostLtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
             if (!(mn[t] < x)) continue;
@@ -150,7 +151,7 @@ struct SegTree {
 
     // O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
     int rightmostLteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
             if (!(mn[t] <= x)) continue;
@@ -162,7 +163,7 @@ struct SegTree {
 
     // O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums)
     int rightmostSuffixSumGtX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
@@ -180,7 +181,7 @@ struct SegTree {
 
     // O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums)
     int rightmostSuffixSumGteX(int l, int r, T x) {
-        int ns[64], ls[64], c = cover(l, r, ns, ls);
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];

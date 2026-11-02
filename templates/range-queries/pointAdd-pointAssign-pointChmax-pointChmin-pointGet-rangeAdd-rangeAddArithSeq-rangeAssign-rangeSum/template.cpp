@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAddArithSeq-rangeAssign-rangeSum/template.cpp
 // @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAddArithSeq rangeAssign rangeSum
 // @data-structure-type: lazy-seg-tree
+// @letters: same
 // @complexities:
 //   getAll: N
 //   pointAdd: log(N)
@@ -37,6 +38,7 @@ struct LazySegTree {
     vector<char> hasAsg;
     vector<T> as_;
     vector<T> ad;
+
     // O(N) -- arr: the initial array (non-empty)
     explicit LazySegTree(const vector<T>& arr) : n((int)arr.size()), h(n ? 32 - __builtin_clz(n) : 0) {
         sm.assign(2 * n, 0);
@@ -182,7 +184,7 @@ struct LazySegTree {
 
     void setAP(int x, int s, T st, T d) {  // the k-th value under node x (k from 0) gains st + k * d
         S k = S(1) << s;
-        sm[x] += S(st) * k + S(d) * (k * (k - 1) / 2);
+        sm[x] += S(st) * k + S(d) * (s ? (k >> 1) * (k - 1) : S(0));  // (k (k - 1) / 2 without overflowing first)
     }
 
     void applyAP(int x, int s, T st, T d) {
@@ -194,7 +196,7 @@ struct LazySegTree {
         int a = 2 * x, b = 2 * x + 1, c = s - 1;  // (their level)
         if (hasAsg[x]) applyAssign(a, c, asg[x]), applyAssign(b, c, asg[x]), hasAsg[x] = 0;
         if (as_[x] != T(0) || ad[x] != T(0)) {
-            applyAP(a, c, as_[x], ad[x]), applyAP(b, c, T(as_[x] + ad[x] * T(1 << c)), ad[x]);
+            applyAP(a, c, as_[x], ad[x]), applyAP(b, c, T(as_[x] + ad[x] * (T(1) << c)), ad[x]);
             as_[x] = ad[x] = T(0);
         }
     }

@@ -116,7 +116,7 @@ class SegTree:
             hi >>= 1
         return res
 
-    # O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, base random per run): equal ranges hash equal
+    # O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     def rangeHash(self, l, r):
         fh, pw, P, res = self.fh, self.PW, _HP, 0
         for t, s in self._nodes(l, r):
