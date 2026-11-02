@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-max-gcd-alt-updates-assign/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -15,7 +15,6 @@
 //   leftmostLteX: log(N)*log(U) expected ?
 //   maxAltSubseqSum: log(N)*log(U) expected ?
 //   merge: log(N)*log(U) expected ?
-//   moveRange: log(N)*log(U) expected ?
 //   paste: log(N)*log(U) expected ?
 //   pointAdd: log(N)*log(U) expected ?
 //   pointAssign: log(N)*log(U) expected ?
@@ -92,7 +91,7 @@ struct ImplicitTreap {
     // O(logN * logU) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN * logU) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    // O(logN * logU) expected -- remove a[l..r] and return it as a treap of its own (indices from 0)
     ImplicitTreap cut(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -211,14 +210,6 @@ struct ImplicitTreap {
 
     // O(logN * logU) expected -- append all of other at the end; other is left empty
     void merge(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
-
-    // O(logN * logU) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
-    void moveRange(int l, int r, int i) {
-        int a, b, c, x, y;
-        cut(l, r, a, b, c);
-        split(merge(a, c), i, x, y);
-        root = merge(merge(x, b), y);
-    }
 
     // O(logN * logU) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i]
     // (0 <= i <= size()); other is left empty
@@ -524,3 +515,10 @@ struct ImplicitTreap {
         }
     }
 };
+
+// Example (pieces move between treaps; merge appends and leaves its argument empty):
+//     ImplicitTreap<int> t({1, 2, 3, 4, 5});
+//     auto [left, mid, right] = t.trisect(1, 3);  // left = [1], mid = [2, 3, 4], right = [5]; t is empty now
+//     t.merge(right);                             // t = [5]
+//     t.merge(mid);                               // t = [5, 2, 3, 4]
+//     t.merge(left);                              // t = [5, 2, 3, 4, 1]

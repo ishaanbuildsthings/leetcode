@@ -53,12 +53,12 @@ RANGE_UPDATES = {  # op -> number of args after (l, r)
 # sequence edits (implicit treap): op -> arg kind; they change the array's length
 SEQ_OPS = {"append": "v", "appendLeft": "v", "insertAt": "iv", "pop": "i", "popLeft": "none", "eraseRange": "lr", "rangeReverse": "lr", "rangeRotateLeft": "lrk", "rangeRotateRight": "lrk", "moveRange": "lri",
            "cut": "lr", "paste": "ib", "split": "k", "trisect": "lr", "merge": "b", "insertCopiesAt": "ivk",
-           "rangeTwinSpin": "lr", "rangeSortAsc": "lr", "rangeSortDesc": "lr", "copyRange": "lrc"}
+           "rangeTwinSpin": "lr", "rangeSortAsc": "lr", "rangeSortDesc": "lr", "copyRange": "lrc", "copy": "lr"}
 # cut(l, r) hands a[l..r] back as a new structure, which the test keeps on a stack; split(k) / trisect(l, r) hand back
 # every part (the structure itself is left empty): the test merges the first part back into it and stacks the rest.
 # paste(i, rv) and merge(rv) pop the newest piece, reverse it first when rv (so the piece is used as a structure of its
 # own), and put it back in at index i / at the end
-PIECE_OPS = ("cut", "paste", "split", "trisect", "merge")
+PIECE_OPS = ("cut", "paste", "split", "trisect", "merge", "copy")
 SEQ_OUT = {"pop", "popLeft"}  # sequence edits that also return something (the removed value)
 MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod", "rangeAssignMod", "rangeSumMod"}  # any: values live mod p
 
@@ -69,7 +69,7 @@ CHAR_SAFE = {
     "pointGet", "pointAssign", "pointChmax", "pointChmin", "rangeAssign", "rangeChmax", "rangeChmin", "rangeSortAsc",
     "rangeSortDesc", "getAll", "append", "appendLeft", "insertAt", "insertCopiesAt", "pop", "popLeft", "eraseRange",
     "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "merge",
-    "copyRange", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
+    "copyRange", "copy", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
     "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange", "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome", "rangeHash",
     "rangeHashReversed", "rangesEqual", "doAllElementsAppearEvenFrequency", "kthSmallest", "kthLargest", "medianLow",
     "medianHigh", "countLtX", "countLteX", "countGtX", "countGteX", "countInValRange", "smallestGtX", "smallestGteX",
@@ -320,6 +320,9 @@ def brute_update(a, op, args, ctx):
             ctx["pieces"].append(a[args[0]:args[1] + 1])
             del a[args[0]:args[1] + 1]
             return
+        if op == "copy":  # (a piece holding a[l..r]; a is unchanged)
+            ctx["pieces"].append(a[args[0]:args[1] + 1])
+            return
         if op == "paste":
             seg = ctx["pieces"].pop()
             a[args[0]:args[0]] = seg[::-1] if args[1] else seg
@@ -444,7 +447,7 @@ def domain(folder, ops):
         extra = []
         if "offline" in folder:
             extra = [list(range(lo, hi + 1))]
-        elif "pointAssign" in ops or "append" in ops:
+        elif ("pointAssign" in ops or "append" in ops) and "cut" not in ops:  # (a sequence that cuts keeps no value range)
             extra = [-10**9, 10**9]
         return (lambda r: r.randint(lo, hi)), small, extra, ctx
     if "isPalindrome" in ops:
@@ -497,7 +500,7 @@ def make_trials(folder, ops, trials, letters=False):
             else:
                 op = rng.choice(queries or updates)
             # every structure and piece keeps at least one value; at most 4 pieces at once
-            if (op in ("paste", "merge") and not pieces or op in ("cut", "split", "trisect") and len(pieces) >= 3
+            if (op in ("paste", "merge") and not pieces or op in ("cut", "split", "trisect", "copy") and len(pieces) >= 3 or op == "copy" and n >= 40
                     or op in ("cut", "split") and n < 2 or op == "trisect" and n < 3):
                 op = rng.choice([o for o in ("paste", "merge") if o in ops]) if pieces else "pointGet"
             if op == "cut":
@@ -505,6 +508,11 @@ def make_trials(folder, ops, trials, letters=False):
                 r = rng.randint(l, min(n - 1, l + n - 2))
                 pieces.append(r - l + 1)
                 n -= r - l + 1
+                seq.append((op, [l, r]))
+                continue
+            if op == "copy":
+                l, r = sorted((rng.randrange(n), rng.randrange(n)))
+                pieces.append(r - l + 1)
                 seq.append((op, [l, r]))
                 continue
             if op == "split":
@@ -1034,6 +1042,8 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
                 obj = objs[name]
                 if op == "cut":
                     pieces.append(obj.cut(*args))
+                elif op == "copy":
+                    pieces.append(obj.copy() if args == [0, obj.size() - 1] else obj.copy(*args))
                 elif op in ("split", "trisect"):
                     first, *rest = getattr(obj, op)(*args)
                     if obj.size():
@@ -1140,6 +1150,8 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
         s = f"s_{owners[op]}"
         if op == "cut":
             body = f"long long l, r; cin >> l >> r; pieces.push_back({s}.cut(l, r));"
+        elif op == "copy":
+            body = f"long long l, r; cin >> l >> r; pieces.push_back(l == 0 && r == {s}.size() - 1 ? {s}.copy() : {s}.copy(l, r));"
         elif op == "split":
             body = (f"long long k; cin >> k; auto [x, y] = {s}.split(k); if ({s}.size()) return 2; "
                     f"{s}.merge(x); pieces.push_back(std::move(y));")

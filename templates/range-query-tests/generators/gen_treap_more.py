@@ -26,7 +26,7 @@ from gen_treap import no_push, wrap
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
-SEQ = ["append", "appendLeft", "cut", "getAll", "insertAt", "insertCopiesAt", "merge", "moveRange", "paste",
+SEQ = ["append", "appendLeft", "cut", "getAll", "insertAt", "insertCopiesAt", "merge", "paste",
        "rangeRotateLeft", "rangeRotateRight", "split", "trisect"]
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 MAXSUB_Q = {"pre": ("maxPrefixSum", "max of a[l] + ... + a[i] over i in [l, r]"),
@@ -433,12 +433,6 @@ PY_SEQ = {
     # length (negative shifts left)
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
-''',
-    "moveRange": '''    # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
-    def moveRange(self, l, r, i):
-        a, b, c = self._cut(l, r)
-        x, y = self._split(self._merge(a, c), i)
-        self.root = self._merge(self._merge(x, b), y)
 ''',
     "getAll": '''    # O(N) -- the whole current array, every pending tag applied on the way
     def getAll(self):
@@ -913,14 +907,6 @@ def cpp_seq(nv):
         "rangeRotateRight": "    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the\n"
                         "    // length (negative shifts left)\n"
                             "    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }\n",
-        "moveRange": '''    // O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
-    void moveRange(int l, int r, int i) {
-        int a, b, c, x, y;
-        cut(l, r, a, b, c);
-        split(merge(a, c), i, x, y);
-        root = merge(merge(x, b), y);
-    }
-''',
         "getAll": '''    // O(N) -- the whole current array, every pending tag applied on the way
     vector<T> getAll() {
         vector<T> out;
@@ -1015,8 +1001,15 @@ def main():
         name = folder_name(ops)
         folder = os.path.join(DIR, name if len(name) <= 180 else name_of(kind, sp))
         os.makedirs(folder, exist_ok=True)
-        write_template(os.path.join(folder, "template.py"), python(kind, sp))
-        write_template(os.path.join(folder, "template.cpp"), cpp(kind, sp))
+        from gen_treap_algebra import piece_example  # (lazy: gen_treap_algebra imports this module)
+        if kind == "affine":
+            ex_py = piece_example("py", "ImplicitTreap([1, 2, 3, 4, 5], 10**9 + 7)", list("12345"))
+            ex_cpp = piece_example("cpp", "ImplicitTreap<long long> t({1, 2, 3, 4, 5}, 1000000007)", list("12345"))
+        else:
+            ex_py = piece_example("py", 'ImplicitTreap(list("(()()"))', [f'"{c}"' for c in "(()()"])
+            ex_cpp = piece_example("cpp", "ImplicitTreap<char> t(vector<char>{'(', '(', ')', '(', ')'})", [f"'{c}'" for c in "(()()"])
+        write_template(os.path.join(folder, "template.py"), python(kind, sp).rstrip("\n") + "\n" + ex_py)
+        write_template(os.path.join(folder, "template.cpp"), cpp(kind, sp) + ex_cpp)
     print("wrote", len(variants()), "more treaps")
 
 

@@ -518,7 +518,7 @@ def python(ops, aggs):
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 '''))
-    pub.append(('moveRange', '''    # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
+    pub.append(('moveRange', '''    # O(logN) expected -- take a[l..r] out and put it back so it starts at index i of the final array
     # (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)
     def moveRange(self, l, r, i):
         a, b, c = self._cut(l, r)
@@ -849,7 +849,7 @@ def cpp(ops, aggs):
     // negative shifts left
     void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
 '''))
-    pub.append(("moveRange", '''    // O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
+    pub.append(("moveRange", '''    // O(logN) expected -- take a[l..r] out and put it back so it starts at index i of the final array
     // (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)
     void moveRange(int l, int r, int i) {
         int a, b, c, x, y;
@@ -1239,7 +1239,7 @@ class ImplicitTreap:
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 '''))
-    pub.append(("moveRange", '''    # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
+    pub.append(("moveRange", '''    # O(logN) expected -- take a[l..r] out and put it back so it starts at index i of the final array
     # (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)
     def moveRange(self, l, r, i):
         a, b, c = self._cut(l, r)
@@ -1483,7 +1483,7 @@ def cpp_ptr(ops, aggs):
     // negative shifts left
     void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
 '''))
-    pub.append(("moveRange", '''    // O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
+    pub.append(("moveRange", '''    // O(logN) expected -- take a[l..r] out and put it back so it starts at index i of the final array
     // (0 <= i <= size() - (r - l + 1); i = 0 moves it to the front, the max moves it to the end)
     void moveRange(int l, int r, int i) {
         Node *a, *b, *c, *x, *y;

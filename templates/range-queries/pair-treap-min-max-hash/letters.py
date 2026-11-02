@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-max-hash/letters.py
-# @operations: append appendLeft cut getAll insertAt isPalindrome merge paste pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeMin rangeTwinSpin rangesEqual split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX merge paste pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeTwinSpin rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX split trisect
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N) expected
@@ -8,7 +8,12 @@
 #   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
+#   insertCopiesAt: log(N) expected
 #   isPalindrome: log(N) expected
+#   leftmostGtX: log(N) expected
+#   leftmostGteX: log(N) expected
+#   leftmostLtX: log(N) expected
+#   leftmostLteX: log(N) expected
 #   merge: log(N) expected
 #   paste: log(N) expected
 #   pointAssign: log(N) expected
@@ -19,8 +24,14 @@
 #   rangeHashReversed: log(N) expected
 #   rangeMax: log(N) expected
 #   rangeMin: log(N) expected
+#   rangeRotateLeft: log(N) expected
+#   rangeRotateRight: log(N) expected
 #   rangeTwinSpin: log(N) expected
 #   rangesEqual: log(N) expected
+#   rightmostGtX: log(N) expected
+#   rightmostGteX: log(N) expected
+#   rightmostLtX: log(N) expected
+#   rightmostLteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
 #   build: N
@@ -29,15 +40,16 @@
 #   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N] mn[1*N] mx[1*N] fh[1*N] bh[1*N] pw[1*N]
 #   tags: none
 #   other: none
-#   note: N = every value ever inserted (erased nodes are not reused); two treaps (even / odd positions) share one node pool; each lane hashes in base B^2, and a range's two lanes weave back into base B
+#   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused); two treaps per array (even / odd positions); every PairSwapTreap<T> shares one node pool; each lane hashes in base B^2 (pieces move between any of them; nothing to reset)
 
 # Letters version: the values are characters (Python: a list of characters, e.g. list(s); C++: T = char), and only the
 # operations that make sense on characters are listed.
-# Implicit treap pair: an array you can insert into / erase from anywhere, swap adjacent pairs in a range (a[l] <->
-# a[l + 1], a[l + 2] <-> a[l + 3], ...), each in O(logN) expected, plus point ops, rangeMin, rangeMax, range hashes /
-# isPalindrome / rangesEqual. The even positions a[0], a[2], ... are one treap (E) and the odd ones another (O), in
-# one node pool; a range [l, r] is a slice of each. All indices 0-based, ranges inclusive, always positions in the
-# CURRENT array.
+# Implicit treap pair: an array you can insert into anywhere, swap adjacent pairs in a range (rangeTwinSpin: a[l] <->
+# a[l + 1], a[l + 2] <-> a[l + 3], ...), rotate, cut pieces out of (that is how to erase) and paste them back in
+# O(logN) expected each. The values at even positions a[0], a[2], ... are one treap (lane E) and the odd ones another
+# (lane O), in one node pool; a range [l, r] is a slice of each, and each node keeps its min, its max, its forward /
+# backward hash (and B^size) over its subtree. All indices 0-based, ranges inclusive [l, r], an index always the
+# position in the CURRENT array; searches return -1 when nothing qualifies.
 import random
 
 
@@ -66,8 +78,8 @@ class PairSwapTreap:
     # O(N) -- arr: the initial array (a list; leave it out to start empty)
     def __init__(self, arr=()):
         arr = list(arr)
-        self.rE = self._build(arr[0::2])  # a[0], a[2], ...
-        self.rO = self._build(arr[1::2])  # a[1], a[3], ...
+        self.rE = self._build(arr[0::2])  # lane E: a[0], a[2], ...
+        self.rO = self._build(arr[1::2])  # lane O: a[1], a[3], ...
 
     def _empty(self):  # a new, empty PairSwapTreap (on the same pool, like every one)
         return PairSwapTreap()
@@ -78,22 +90,18 @@ class PairSwapTreap:
 
     # O(logN) expected -- append v to the end
     def append(self, v):
-        self.insertAt(self.size(), v)
+        self.rE, self.rO = self._pmerge(self.rE, self.rO, self._newNode(v), 0)
 
     # O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0; drop it to erase);
-    # the tail moves r - l + 1 places, so with an odd count the two tails trade places
+    # O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0)
     def cut(self, l, r):
-        a, b, c, d, e, f = self._parts(l, r)
-        if (r - l + 1) % 2 == 0:
-            self.rE, self.rO = self._merge(a, c), self._merge(d, f)
-        else:
-            self.rE, self.rO = self._merge(a, f), self._merge(d, c)
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        self.rE, self.rO = self._pmerge(ae, ao, ce, co)
         piece = self._empty()
-        piece.rE, piece.rO = (b, e) if l % 2 == 0 else (e, b)
+        piece.rE, piece.rO = be, bo
         return piece
 
     # O(N) -- the whole current array, every pending tag applied on the way
@@ -103,35 +111,71 @@ class PairSwapTreap:
         out[0::2], out[1::2] = ev, od
         return out
 
-    # O(logN) expected -- insert v so it becomes a[i] (i <= size()); the tail after it moves one place, so its parity
-    # flips: E's tail and O's tail trade places
+    # O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
     def insertAt(self, i, v):
-        a, _, c, d, _, f = self._parts(i, i - 1)
-        x, merge = self._newNode(v), self._merge
-        if i % 2 == 0:
-            self.rE, self.rO = merge(merge(a, x), f), merge(d, c)
-        else:
-            self.rE, self.rO = merge(a, f), merge(merge(d, x), c)
+        ae, ao, ce, co = self._psplit(self.rE, self.rO, i)
+        ae, ao = self._pmerge(ae, ao, self._newNode(v), 0)
+        self.rE, self.rO = self._pmerge(ae, ao, ce, co)
+
+    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    def insertCopiesAt(self, i, v, k):
+        if k > 0:
+            ae, ao, ce, co = self._psplit(self.rE, self.rO, i)
+            ae, ao = self._pmerge(ae, ao, self._build([v] * ((k + 1) // 2)), self._build([v] * (k // 2)))
+            self.rE, self.rO = self._pmerge(ae, ao, ce, co)
 
     # O(logN) expected -- is a[l..r] a palindrome (its two hashes agree)
     def isPalindrome(self, l, r):
         f, b = self._hashes(l, r)
         return f == b
 
-    # O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
+    # O(logN) expected -- the first i in [l, r] with a[i] > x, or -1 (each lane's walk pruned by the subtree max)
+    def leftmostGtX(self, l, r, x):
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        i, j = self._laneLeftmostGtX(be, x), self._laneLeftmostGtX(bo, x)
+        self._join(ae, ao, be, bo, ce, co)
+        i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
+        j = l + 1 + 2 * j if j >= 0 else -1
+        return i if j < 0 else j if i < 0 else min(i, j)
+
+    # O(logN) expected -- the first i in [l, r] with a[i] >= x, or -1 (each lane's walk pruned by the subtree max)
+    def leftmostGteX(self, l, r, x):
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        i, j = self._laneLeftmostGteX(be, x), self._laneLeftmostGteX(bo, x)
+        self._join(ae, ao, be, bo, ce, co)
+        i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
+        j = l + 1 + 2 * j if j >= 0 else -1
+        return i if j < 0 else j if i < 0 else min(i, j)
+
+    # O(logN) expected -- the first i in [l, r] with a[i] < x, or -1 (each lane's walk pruned by the subtree min)
+    def leftmostLtX(self, l, r, x):
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        i, j = self._laneLeftmostLtX(be, x), self._laneLeftmostLtX(bo, x)
+        self._join(ae, ao, be, bo, ce, co)
+        i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
+        j = l + 1 + 2 * j if j >= 0 else -1
+        return i if j < 0 else j if i < 0 else min(i, j)
+
+    # O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1 (each lane's walk pruned by the subtree min)
+    def leftmostLteX(self, l, r, x):
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        i, j = self._laneLeftmostLteX(be, x), self._laneLeftmostLteX(bo, x)
+        self._join(ae, ao, be, bo, ce, co)
+        i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
+        j = l + 1 + 2 * j if j >= 0 else -1
+        return i if j < 0 else j if i < 0 else min(i, j)
+
+    # O(logN) expected -- append all of other at the end; other is left empty
     def merge(self, other):
-        self.paste(self.size(), other)
+        self.rE, self.rO = self._pmerge(self.rE, self.rO, other.rE, other.rO)
+        other.rE = other.rO = 0
 
     # O(logN) expected -- insert all of other (any PairSwapTreap, e.g. a cut piece) so it starts at a[i]
-    # (0 <= i <= size()); other is left empty. other's a[0] lands at parity i % 2, and the tail after i moves other's
-    # length on: with an odd length the tails trade places
+    # (0 <= i <= size()); other is left empty
     def paste(self, i, other):
-        a, _, c, d, _, f = self._parts(i, i - 1)
-        x, y = (other.rE, other.rO) if i % 2 == 0 else (other.rO, other.rE)
-        if other.size() % 2:
-            c, f = f, c
-        merge = self._merge
-        self.rE, self.rO = merge(merge(a, x), c), merge(merge(d, y), f)
+        ae, ao, ce, co = self._psplit(self.rE, self.rO, i)
+        ae, ao = self._pmerge(ae, ao, other.rE, other.rO)
+        self.rE, self.rO = self._pmerge(ae, ao, ce, co)
         other.rE = other.rO = 0
 
     # O(logN) expected -- a[i] = v
@@ -172,95 +216,96 @@ class PairSwapTreap:
 
     # O(logN) expected -- max of a[l..r]
     def rangeMax(self, l, r):
-        a, b, c, d, e, f = self._parts(l, r)
-        res = self.mx[b] if not e else self.mx[e] if not b else max(self.mx[b], self.mx[e])
-        self._join(a, b, c, d, e, f)
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        res = self.mx[be] if not bo else max(self.mx[be], self.mx[bo])
+        self._join(ae, ao, be, bo, ce, co)
         return res
 
     # O(logN) expected -- min of a[l..r]
     def rangeMin(self, l, r):
-        a, b, c, d, e, f = self._parts(l, r)
-        res = self.mn[b] if not e else self.mn[e] if not b else min(self.mn[b], self.mn[e])
-        self._join(a, b, c, d, e, f)
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        res = self.mn[be] if not bo else min(self.mn[be], self.mn[bo])
+        self._join(ae, ao, be, bo, ce, co)
         return res
 
+    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
+    # it is taken mod the length (negative shifts right)
+    def rangeRotateLeft(self, l, r, k):
+        k %= r - l + 1
+        if k:
+            ae, ao, be, bo, ce, co = self._cut(l, r)
+            xe, xo, ye, yo = self._psplit(be, bo, k)
+            be, bo = self._pmerge(ye, yo, xe, xo)
+            self._join(ae, ao, be, bo, ce, co)
+
+    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
+    # length (negative shifts left)
+    def rangeRotateRight(self, l, r, k):
+        self.rangeRotateLeft(l, r, -k)
+
     # O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length: a[r] stays):
-    # the pairs' even and odd halves are two slices of equal length, which trade places
+    # the pairs' two lanes trade places
     def rangeTwinSpin(self, l, r):
         k = (r - l + 1) // 2
         if k:
-            a, b, c, d, e, f = self._parts(l, l + 2 * k - 1)
-            self._join(a, e, c, d, b, f)
+            ae, ao, be, bo, ce, co = self._cut(l, l + 2 * k - 1)
+            self._join(ae, ao, bo, be, ce, co)
 
     # O(logN) expected -- are a[l1..r1] and a[l2..r2] equal (same length and hash)
     def rangesEqual(self, l1, r1, l2, r2):
         return r1 - l1 == r2 - l2 and self._hashes(l1, r1)[0] == self._hashes(l2, r2)[0]
 
+    # O(logN) expected -- the last i in [l, r] with a[i] > x, or -1 (each lane's walk pruned by the subtree max)
+    def rightmostGtX(self, l, r, x):
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        i, j = self._laneRightmostGtX(be, x), self._laneRightmostGtX(bo, x)
+        self._join(ae, ao, be, bo, ce, co)
+        i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
+        j = l + 1 + 2 * j if j >= 0 else -1
+        return max(i, j)
+
+    # O(logN) expected -- the last i in [l, r] with a[i] >= x, or -1 (each lane's walk pruned by the subtree max)
+    def rightmostGteX(self, l, r, x):
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        i, j = self._laneRightmostGteX(be, x), self._laneRightmostGteX(bo, x)
+        self._join(ae, ao, be, bo, ce, co)
+        i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
+        j = l + 1 + 2 * j if j >= 0 else -1
+        return max(i, j)
+
+    # O(logN) expected -- the last i in [l, r] with a[i] < x, or -1 (each lane's walk pruned by the subtree min)
+    def rightmostLtX(self, l, r, x):
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        i, j = self._laneRightmostLtX(be, x), self._laneRightmostLtX(bo, x)
+        self._join(ae, ao, be, bo, ce, co)
+        i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
+        j = l + 1 + 2 * j if j >= 0 else -1
+        return max(i, j)
+
+    # O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1 (each lane's walk pruned by the subtree min)
+    def rightmostLteX(self, l, r, x):
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        i, j = self._laneRightmostLteX(be, x), self._laneRightmostLteX(bo, x)
+        self._join(ae, ao, be, bo, ce, co)
+        i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
+        j = l + 1 + 2 * j if j >= 0 else -1
+        return max(i, j)
+
     # O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
     def split(self, k):
-        left = self._empty()
-        left.rE, left.rO = self.rE, self.rO
+        left, right = self._empty(), self._empty()
+        left.rE, left.rO, right.rE, right.rO = self._psplit(self.rE, self.rO, k)
         self.rE = self.rO = 0
-        right = left.cut(k, left.size() - 1) if k < left.size() else self._empty()
         return left, right
 
     # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty
     def trisect(self, l, r):
-        left, right = self.split(r + 1)
-        left, mid = left.split(l)
+        left, mid, right = self._empty(), self._empty(), self._empty()
+        left.rE, left.rO, mid.rE, mid.rO, right.rE, right.rO = self._cut(l, r)
+        self.rE = self.rO = 0
         return left, mid, right
 
     # ---- internals ----
-
-    # counts of even / odd positions below x: (x + 1) // 2 and x // 2
-    def _parts(self, l, r):  # (E before, E in [l, r], E after, O before, O in [l, r], O after) as six trees
-        e1, e2, o1, o2 = (l + 1) // 2, (r + 2) // 2, l // 2, (r + 1) // 2
-        a, b = self._split(self.rE, e1)
-        b, c = self._split(b, e2 - e1)
-        d, e = self._split(self.rO, o1)
-        e, f = self._split(e, o2 - o1)
-        return a, b, c, d, e, f
-
-    def _join(self, a, b, c, d, e, f):
-        merge = self._merge
-        self.rE, self.rO = merge(merge(a, b), c), merge(merge(d, e), f)
-
-    # (forward, backward) hash of a[l..r]: x = the lane slice holding a[l], y = the other; in base B the array reads
-    # x0 y0 x1 y1 ..., so forward = H(x) + B H(y) (odd length) or B H(x) + H(y) (even), backward = Hrev(x) + B Hrev(y)
-    def _hashes(self, l, r):
-        a, b, c, d, e, f = self._parts(l, r)
-        x, y = (b, e) if l % 2 == 0 else (e, b)
-        P, B, fh, bh = _HP, _HB, self.fh, self.bh
-        fwd = (fh[x] + B * fh[y]) % P if (r - l) % 2 == 0 else (B * fh[x] + fh[y]) % P
-        bwd = (bh[x] + B * bh[y]) % P
-        self._join(a, b, c, d, e, f)
-        return fwd, bwd
-
-    # (node holding a[i], the nodes above it), every tag on the way pushed
-    def _find(self, i):
-        L, sz, t, path, k = self.L, self.sz, self.rO if i % 2 else self.rE, [], i // 2
-        while True:
-            ls = sz[L[t]]
-            if k == ls:
-                return t, path
-            path.append(t)
-            if k < ls:
-                t = L[t]
-            else:
-                k -= ls + 1
-                t = self.R[t]
-
-    def _inorder(self, t):
-        L, R, val = self.L, self.R, self.val
-        out, stack = [], []
-        while stack or t:
-            while t:
-                stack.append(t)
-                t = L[t]
-            t = stack.pop()
-            out.append(val[t])
-            t = R[t]
-        return out
 
     def _newNode(self, v):
         x = len(self.val)
@@ -301,26 +346,27 @@ class PairSwapTreap:
             self._pull(x)
         return root
 
-    def _pull(self, x):
+    def _pull(self, x):  # recompute x from its children
         l, r = self.L[x], self.R[x]
         self.sz[x] = self.sz[l] + self.sz[r] + 1
-        Q, P, pw, fh, bh = _HQ, _HP, self.pw, self.fh, self.bh
-        hv = (ord(self.val[x]) + _HO) % P
-        pw[x] = pw[l] * Q % P * pw[r] % P
-        fh[x] = ((fh[l] * Q + hv) * pw[r] + fh[r]) % P
-        bh[x] = ((bh[r] * Q + hv) * pw[l] + bh[l]) % P
-        m = self.val[x]
+        v = self.val[x]
+        m = v
         if l and self.mn[l] < m:
             m = self.mn[l]
         if r and self.mn[r] < m:
             m = self.mn[r]
         self.mn[x] = m
-        m = self.val[x]
+        m = v
         if l and self.mx[l] > m:
             m = self.mx[l]
         if r and self.mx[r] > m:
             m = self.mx[r]
         self.mx[x] = m
+        B, P, pw, fh, bh = _HQ, _HP, self.pw, self.fh, self.bh
+        hv = (ord(v) + _HO) % P
+        pw[x] = pw[l] * B % P * pw[r] % P
+        fh[x] = ((fh[l] * B + hv) * pw[r] + fh[r]) % P
+        bh[x] = ((bh[r] * B + hv) * pw[l] + bh[l]) % P
 
     def _split(self, t, k):  # (first k of t, the rest)
         if not t:
@@ -344,3 +390,180 @@ class PairSwapTreap:
         self.L[b] = self._merge(a, self.L[b])
         self._pull(b)
         return b
+
+    # an array is a pair of lanes (E, O): E holds its values at even positions, O the odd ones
+
+    def _psplit(self, e, o, k):  # lanes of (the first k values, the rest)
+        e1, e2 = self._split(e, (k + 1) // 2)
+        o1, o2 = self._split(o, k // 2)
+        return (e1, o1, o2, e2) if k % 2 else (e1, o1, e2, o2)  # (an odd k: the rest starts on an odd position)
+
+    def _pmerge(self, e1, o1, e2, o2):  # lanes of (the first array, then the second)
+        if (self.sz[e1] + self.sz[o1]) % 2:
+            e2, o2 = o2, e2  # (after an odd length the second's even positions are odd ones)
+        return self._merge(e1, e2), self._merge(o1, o2)
+
+    def _cut(self, l, r):  # lanes of a[..l-1], a[l..r], a[r+1..]
+        ae, ao, be, bo = self._psplit(self.rE, self.rO, l)
+        be, bo, ce, co = self._psplit(be, bo, r - l + 1)
+        return ae, ao, be, bo, ce, co
+
+    def _join(self, ae, ao, be, bo, ce, co):
+        self.rE, self.rO = self._pmerge(*self._pmerge(ae, ao, be, bo), ce, co)
+
+    def _find(self, i):  # (node holding a[i], the nodes above it), every tag on the way pushed
+        L, sz, path, k = self.L, self.sz, [], i // 2
+        t = self.rO if i % 2 else self.rE
+        while True:
+            ls = sz[L[t]]
+            if k == ls:
+                return t, path
+            path.append(t)
+            if k < ls:
+                t = L[t]
+            else:
+                k -= ls + 1
+                t = self.R[t]
+
+    def _inorder(self, t):  # the values under t in order, every tag on the way pushed
+        L, R, val = self.L, self.R, self.val
+        out, stack = [], []
+        while stack or t:
+            while t:
+                stack.append(t)
+                t = L[t]
+            t = stack.pop()
+            out.append(val[t])
+            t = R[t]
+        return out
+
+    # (forward, backward) hash of a[l..r]: lane E's slice x holds a[l], a[l + 2], ..., lane O's y the rest; in base B
+    # the range reads x0 y0 x1 y1 ..., so forward = H(x) + B H(y) (odd length) or B H(x) + H(y) (even), and backward
+    # = Hrev(x) + B Hrev(y)
+    def _hashes(self, l, r):
+        ae, ao, be, bo, ce, co = self._cut(l, r)
+        P, B, fh, bh = _HP, _HB, self.fh, self.bh
+        fwd = (fh[be] + B * fh[bo]) % P if (r - l) % 2 == 0 else (B * fh[be] + fh[bo]) % P
+        bwd = (bh[be] + B * bh[bo]) % P
+        self._join(ae, ao, be, bo, ce, co)
+        return fwd, bwd
+
+    def _laneLeftmostGtX(self, t, x):  # the first k with lane value k > x under t, or -1
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
+        if not t or not F[t] > x:
+            return -1
+        i = 0
+        while True:
+            if L[t] and F[L[t]] > x:
+                t = L[t]
+            elif val[t] > x:
+                return i + sz[L[t]]
+            else:
+                i += sz[L[t]] + 1
+                t = R[t]
+
+    def _laneLeftmostGteX(self, t, x):  # the first k with lane value k >= x under t, or -1
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
+        if not t or not F[t] >= x:
+            return -1
+        i = 0
+        while True:
+            if L[t] and F[L[t]] >= x:
+                t = L[t]
+            elif val[t] >= x:
+                return i + sz[L[t]]
+            else:
+                i += sz[L[t]] + 1
+                t = R[t]
+
+    def _laneLeftmostLtX(self, t, x):  # the first k with lane value k < x under t, or -1
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
+        if not t or not F[t] < x:
+            return -1
+        i = 0
+        while True:
+            if L[t] and F[L[t]] < x:
+                t = L[t]
+            elif val[t] < x:
+                return i + sz[L[t]]
+            else:
+                i += sz[L[t]] + 1
+                t = R[t]
+
+    def _laneLeftmostLteX(self, t, x):  # the first k with lane value k <= x under t, or -1
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
+        if not t or not F[t] <= x:
+            return -1
+        i = 0
+        while True:
+            if L[t] and F[L[t]] <= x:
+                t = L[t]
+            elif val[t] <= x:
+                return i + sz[L[t]]
+            else:
+                i += sz[L[t]] + 1
+                t = R[t]
+
+    def _laneRightmostGtX(self, t, x):  # the last k with lane value k > x under t, or -1
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
+        if not t or not F[t] > x:
+            return -1
+        i = 0
+        while True:
+            if R[t] and F[R[t]] > x:
+                i += sz[L[t]] + 1
+                t = R[t]
+            elif val[t] > x:
+                return i + sz[L[t]]
+            else:
+                t = L[t]
+
+    def _laneRightmostGteX(self, t, x):  # the last k with lane value k >= x under t, or -1
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
+        if not t or not F[t] >= x:
+            return -1
+        i = 0
+        while True:
+            if R[t] and F[R[t]] >= x:
+                i += sz[L[t]] + 1
+                t = R[t]
+            elif val[t] >= x:
+                return i + sz[L[t]]
+            else:
+                t = L[t]
+
+    def _laneRightmostLtX(self, t, x):  # the last k with lane value k < x under t, or -1
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
+        if not t or not F[t] < x:
+            return -1
+        i = 0
+        while True:
+            if R[t] and F[R[t]] < x:
+                i += sz[L[t]] + 1
+                t = R[t]
+            elif val[t] < x:
+                return i + sz[L[t]]
+            else:
+                t = L[t]
+
+    def _laneRightmostLteX(self, t, x):  # the last k with lane value k <= x under t, or -1
+        L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
+        if not t or not F[t] <= x:
+            return -1
+        i = 0
+        while True:
+            if R[t] and F[R[t]] <= x:
+                i += sz[L[t]] + 1
+                t = R[t]
+            elif val[t] <= x:
+                return i + sz[L[t]]
+            else:
+                t = L[t]
+
+
+# Example (pieces move between treaps; merge appends and leaves its argument empty):
+#     t = PairSwapTreap([1, 2, 3, 4, 5])
+#     left, mid, right = t.trisect(1, 3)  # left = [1], mid = [2, 3, 4], right = [5]; t is empty now
+#     t.merge(right)                      # t = [5]
+#     t.merge(mid)                        # t = [5, 2, 3, 4]
+#     t.merge(left)                       # t = [5, 2, 3, 4, 1]

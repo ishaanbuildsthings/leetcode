@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-or-and-hash-seq/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangesEqual split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangesEqual split trisect
 # @data-structure-type: sorted-runs
 # @complexities:
 #   append: log(N)+log(U) amortized
@@ -11,7 +11,6 @@
 #   insertCopiesAt: log(N)+log(U) amortized
 #   isPalindrome: log(N)+log(U) amortized
 #   merge: log(N)+log(U) amortized
-#   moveRange: log(N)+log(U) amortized
 #   paste: log(N)+log(U) amortized
 #   pointAdd: log(N)+log(U) amortized
 #   pointAssign: log(N)+log(U) amortized
@@ -186,7 +185,7 @@ class SortedRunsOrAndHashSeq:
     def appendLeft(self, v):
         self.insertCopiesAt(0, v, 1)
 
-    # O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0; drop it to erase)
+    # O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0)
     def cut(self, l, r):
         A, B, C = self._extract(l, r)
         self.top = self._tmerge(A, C)
@@ -237,13 +236,6 @@ class SortedRunsOrAndHashSeq:
     # the length (negative = left)
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
-
-    # O(log N + log U) amortized -- cut a[l..r] out and paste it so it starts at index i of what is left
-    # (0 <= i <= size() - (r - l + 1))
-    def moveRange(self, l, r, i):
-        A, B, C = self._extract(l, r)
-        X, Y = self._tsplit(self._tmerge(A, C), i)
-        self.top = self._tmerge(self._tmerge(X, B), Y)
 
     # O(log N + log U) amortized -- a[l] | ... | a[r]
     def rangeOrQuery(self, l, r):
@@ -559,3 +551,11 @@ class SortedRunsOrAndHashSeq:
             stack.append((self.Rc[t], mid + 1, nh))
             stack.append((self.Lc[t], nl, mid))
         return out[::-1] if desc else out
+
+
+# Example (pieces move between treaps; merge appends and leaves its argument empty):
+#     t = SortedRunsOrAndHashSeq([1, 2, 3, 4, 5], 1, 5)
+#     left, mid, right = t.trisect(1, 3)  # left = [1], mid = [2, 3, 4], right = [5]; t is empty now
+#     t.merge(right)                      # t = [5]
+#     t.merge(mid)                        # t = [5, 2, 3, 4]
+#     t.merge(left)                       # t = [5, 2, 3, 4, 1]

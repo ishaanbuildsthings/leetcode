@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-min-max-seq/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc split trisect
 // @data-structure-type: sorted-runs
 // @complexities:
 //   append: log(N)+log(U) amortized
@@ -10,7 +10,6 @@
 //   insertAt: log(N)+log(U) amortized
 //   insertCopiesAt: log(N)+log(U) amortized
 //   merge: log(N)+log(U) amortized
-//   moveRange: log(N)+log(U) amortized
 //   paste: log(N)+log(U) amortized
 //   pointAdd: log(N)+log(U) amortized
 //   pointAssign: log(N)+log(U) amortized
@@ -156,7 +155,7 @@ struct SortedRunsMinMaxSeq {
     // O(log N + log U) amortized -- insert v at the front (it becomes a[0])
     void appendLeft(T v) { insertCopiesAt(0, v, 1); }
 
-    // O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0; drop it to erase)
+    // O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0)
     SortedRunsMinMaxSeq cut(int l, int r) {
         auto [A, B, C] = extract(l, r);
         rt = tmerge(A, C), n -= r - l + 1;
@@ -206,14 +205,6 @@ struct SortedRunsMinMaxSeq {
     // O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod
     // the length (negative = left)
     void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
-
-    // O(log N + log U) amortized -- cut a[l..r] out and paste it so it starts at index i of what is left
-    // (0 <= i <= size() - (r - l + 1))
-    void moveRange(int l, int r, int i) {
-        auto [A, B, C] = extract(l, r);
-        auto [X, Y] = tsplit(tmerge(A, C), i);
-        rt = tmerge(tmerge(X, B), Y);
-    }
 
     // O(log N + log U) amortized -- min of a[l..r]
     T rangeMin(int l, int r) {
@@ -480,3 +471,10 @@ struct SortedRunsMinMaxSeq {
         if (d) reverse(out.begin() + from, out.end());
     }
 };
+
+// Example (pieces move between treaps; merge appends and leaves its argument empty):
+//     SortedRunsMinMaxSeq<int> t({1, 2, 3, 4, 5}, 1, 5);
+//     auto [left, mid, right] = t.trisect(1, 3);  // left = [1], mid = [2, 3, 4], right = [5]; t is empty now
+//     t.merge(right);                             // t = [5]
+//     t.merge(mid);                               // t = [5, 2, 3, 4]
+//     t.merge(left);                              // t = [5, 2, 3, 4, 1]

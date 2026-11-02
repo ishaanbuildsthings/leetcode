@@ -34,7 +34,7 @@ from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 MARK = "Implicit treap with composable aggregates"
-SEQ = ["append", "appendLeft", "getAll", "insertAt", "insertCopiesAt", "moveRange", "rangeRotateLeft",
+SEQ = ["append", "appendLeft", "getAll", "insertAt", "insertCopiesAt", "rangeRotateLeft",
        "rangeRotateRight"]
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 PIECES = ["cut", "merge", "paste", "split", "trisect"]
@@ -210,11 +210,17 @@ def variants():
                 if key not in have:
                     have.add(key)
                     out.append(Spec(mods, fam, ups, rev))
-    # find(x): a parent per node and a map value -> node. Only without range updates (each would rewrite the map entry
-    # of every value it changes), and with sum / min / max / hash only
-    for k in range(5):
-        for mods in itertools.combinations(("sum", "min", "max", "hash"), k):
-            for rev in (False, True):
+    # find(x): a parent per node and a map value -> node, on every aggregate set, but only without range updates (each
+    # would rewrite the map entry of every value it changes)
+    for mods, only in mod_sets():
+        if only and only != ("", ()):
+            continue
+        for rev in (False, True):
+            if rev and MAXSUB & set(mods) and not {"pre", "suf"} <= set(mods):
+                continue
+            key = (mods, (), rev, "find")
+            if key not in have:
+                have.add(key)
                 out.append(Spec(mods, "", (), rev, find=True))
     return out
 
@@ -286,6 +292,25 @@ def cpp_skeleton(F, TG, extra=(), cls="ImplicitTreap"):
 """)
 
 
+def piece_example(lang, make, items, cls="ImplicitTreap"):
+    """a worked example of the piece ops, for the bottom of a treap file: trisect, then merge the pieces back into the
+    (now empty) original in another order. make: the constructor call building t from items"""
+    a = items
+    lst = lambda xs: "[" + ", ".join(xs) + "]"  # noqa: E731
+    steps = [("right", [a[4]]), ("mid", [a[4], a[1], a[2], a[3]]), ("left", [a[4], a[1], a[2], a[3], a[0]])]
+    if lang == "py":
+        rows = [(f"left, mid, right = t.trisect(1, 3)", f"left = {lst(a[:1])}, mid = {lst(a[1:4])}, right = {lst(a[4:])}; t is empty now")]
+        rows += [(f"t.merge({p})", f"t = {lst(v)}") for p, v in steps]
+        w = max(len(c) for c, _ in rows)
+        return ("\n\n# Example (pieces move between treaps; merge appends and leaves its argument empty):\n" + f"#     t = {make}\n" +
+                "".join(f"#     {c.ljust(w)}  # {d}\n" for c, d in rows))
+    rows = [(f"auto [left, mid, right] = t.trisect(1, 3);", f"left = {lst(a[:1])}, mid = {lst(a[1:4])}, right = {lst(a[4:])}; t is empty now")]
+    rows += [(f"t.merge({p});", f"t = {lst(v)}") for p, v in steps]
+    w = max(len(c) for c, _ in rows)
+    return ("\n// Example (pieces move between treaps; merge appends and leaves its argument empty):\n" + f"//     {make};\n" +
+            "".join(f"//     {c.ljust(w)}  // {d}\n" for c, d in rows))
+
+
 SAFE_HASH = '''    struct SafeHash {  // splitmix64 with a seed random per run (the default hash of an integer is easy to attack)
         size_t operator()(const T& x) const {
             static const unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count();
@@ -323,7 +348,7 @@ def py(s):
     pub = py_public(s)
     out.append("\n".join(pub[op] for op in s.ops if op in pub))
     out.append(py_internals(s))
-    text = gcd_costs(s, "".join(out))
+    text = gcd_costs(s, "".join(out)).rstrip("\n") + "\n" + piece_example("py", "ImplicitTreap([1, 2, 3, 4, 5])", list("12345"))
     return text if TG else no_push(text, "py")
 
 
@@ -845,12 +870,6 @@ PY_SEQ = {
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 ''',
-    "moveRange": '''    # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
-    def moveRange(self, l, r, i):
-        a, b, c = self._cut(l, r)
-        x, y = self._split(self._merge(a, c), i)
-        self.root = self._merge(self._merge(x, b), y)
-''',
     "getAll": '''    # O(N) -- the whole current array, every pending tag applied on the way
     def getAll(self):
         L, R, val = self.L, self.R, self.val
@@ -868,7 +887,7 @@ PY_SEQ = {
 }
 
 PY_PIECES = {
-    "cut": '''    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    "cut": '''    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0)
     def cut(self, l, r):
         a, b, c = self._cut(l, r)
         self.root = self._merge(a, c)
@@ -991,7 +1010,7 @@ def cpp(s):
     pub = cpp_public(s)
     out.append("\n".join(pub[op] for op in s.ops if op in pub))
     out.append(cpp_internals(s))
-    text = gcd_costs(s, "".join(out))
+    text = gcd_costs(s, "".join(out)) + piece_example("cpp", "ImplicitTreap<int> t({1, 2, 3, 4, 5})", list("12345"))
     return text if TG else no_push(text, "cpp")
 
 
@@ -1459,14 +1478,6 @@ CPP_SEQ = {
     "rangeRotateRight": "    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the\n"
                         "    // length (negative shifts left)\n"
                         "    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }\n",
-    "moveRange": '''    // O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
-    void moveRange(int l, int r, int i) {
-        int a, b, c, x, y;
-        cut(l, r, a, b, c);
-        split(merge(a, c), i, x, y);
-        root = merge(merge(x, b), y);
-    }
-''',
     "getAll": '''    // O(N) -- the whole current array, every pending tag applied on the way
     vector<T> getAll() {
         vector<T> out;
@@ -1485,7 +1496,7 @@ CPP_SEQ = {
 }
 
 CPP_PIECES = {
-    "cut": '''    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    "cut": '''    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0)
     ImplicitTreap cut(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);

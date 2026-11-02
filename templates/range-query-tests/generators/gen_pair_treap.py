@@ -17,6 +17,7 @@ from gen_treap import AGG_FIELD, AGG_OPS, CPP_HASH_HELPERS, PY_HASH_CONST, wrap
 from gen_treap import no_push
 from gen_treap_algebra import POOL_NOTE
 from gen_treap_more import slots_line
+from gen_treap_algebra import piece_example  # noqa: E402
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -101,7 +102,7 @@ def python(ops, aggs):
     def appendLeft(self, v):
         self.insertAt(0, v)
 ''',
-        "cut": '''    # O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0; drop it to erase);
+        "cut": '''    # O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0);
     # the tail moves r - l + 1 places, so with an odd count the two tails trade places
     def cut(self, l, r):
         a, b, c, d, e, f = self._parts(l, r)
@@ -500,8 +501,8 @@ def cpp(ops, aggs):
         "appendLeft": '''    // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 ''',
-        "cut": '''    // O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0; drop it to
-    // erase); the tail moves r - l + 1 places, so with an odd count the two tails trade places
+        "cut": '''    // O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0);
+    // the tail moves r - l + 1 places, so with an odd count the two tails trade places
     PairSwapTreap cut(int l, int r) {
         int a, b, c, d, e, f;
         parts(l, r, a, b, c, d, e, f);
@@ -784,10 +785,12 @@ def main():
             folder = os.path.join(DIR, name if len(name) <= 180 else DTYPE + "".join("-" + a for a in aggs) + ("-hash" if H else "") +
                                   (f"-{upd}" if upd else "") + ("-rev" if rev else ""))
             os.makedirs(folder, exist_ok=True)
-            write_template(os.path.join(folder, "template.py"), python(ops, aggs))
-            write_template(os.path.join(folder, "template.cpp"), cpp(ops, aggs))
+            write_template(os.path.join(folder, "template.py"), python(ops, aggs).rstrip("\n") + "\n" +
+                           piece_example("py", "PairSwapTreap([1, 2, 3, 4, 5])", list("12345")))
+            write_template(os.path.join(folder, "template.cpp"), cpp(ops, aggs) +
+                           piece_example("cpp", "PairSwapTreap<int> t({1, 2, 3, 4, 5})", list("12345")))
     print("wrote", count, "pair treaps")
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit("retired: gen_pair_algebra.py writes every pair treap now (a superset of these); run that instead")

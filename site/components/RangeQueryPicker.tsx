@@ -158,7 +158,13 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   // in a sparse version, every query line says what the indices nobody wrote hold
   queryNote: (t) =>
     t.file !== "sparse" ? "" : isBuiltFromPoints(t.memory) ? "indices not given in values count as 0" : "never-updated indices count as 0",
-  pairResults: { rangeMode: ["value", "freq"] } satisfies Partial<Record<OpId, [string, string]>>,
+  pairResults: {
+    rangeMode: ["value", "freq"],
+    cut: ["piece"],
+    copy: ["piece"],
+    split: ["left", "right"],
+    trisect: ["left", "mid", "right"],
+  } satisfies Partial<Record<OpId, string[]>>,
   planned: [
     "mass change queries",
     "2D tree queries",
@@ -167,6 +173,8 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "persistent binary trie",
     "better treap queries",
     "treap rotate with very large k",
+    "best generic lazy seg tree and generic seg tree templates",
+    "tuple values with a custom comparator",
   ],
 };
 

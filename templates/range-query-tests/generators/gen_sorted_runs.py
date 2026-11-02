@@ -32,7 +32,7 @@ BASE = ["getAll", "pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointG
 AGG_OPS = {"sum": ["rangeSum"], "xor": ["rangeXorQuery"], "min": ["rangeMin"], "max": ["rangeMax"],
            "or": ["rangeOrQuery"], "and": ["rangeAndQuery"],
            "hash": ["isPalindrome", "rangeHash", "rangeHashReversed", "rangesEqual"]}
-SEQ = ["append", "appendLeft", "cut", "insertAt", "insertCopiesAt", "merge", "moveRange", "paste", "rangeReverse",
+SEQ = ["append", "appendLeft", "cut", "insertAt", "insertCopiesAt", "merge", "paste", "rangeReverse",
        "rangeRotateLeft", "rangeRotateRight", "split", "trisect"]
 VFIELDS = {"sum": ["sm"], "xor": ["xr"], "or": ["ov"], "and": ["av"], "hash": ["fh", "bh"]}  # per value-tree node
 WORD = {"sum": "sum", "xor": "xor", "min": "min", "max": "max", "or": "or", "and": "and", "hash": "hashes"}
@@ -721,7 +721,7 @@ def py_treap(aggs):
     def appendLeft(self, v):
         self.insertCopiesAt(0, v, 1)
 
-    # O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0; drop it to erase)
+    # O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0)
     def cut(self, l, r):
         A, B, C = self._extract(l, r)
         self.top = self._tmerge(A, C)
@@ -771,13 +771,6 @@ def py_treap(aggs):
     # the length (negative = left)
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
-
-    # O(log N + log U) amortized -- cut a[l..r] out and paste it so it starts at index i of what is left
-    # (0 <= i <= size() - (r - l + 1))
-    def moveRange(self, l, r, i):
-        A, B, C = self._extract(l, r)
-        X, Y = self._tsplit(self._tmerge(A, C), i)
-        self.top = self._tmerge(self._tmerge(X, B), Y)
 {queries}
     # O(N log U) -- the whole current array
     def getAll(self):
@@ -942,10 +935,13 @@ def main(langs=("py", "cpp")):
         folder = os.path.join(DIR, folder_for(aggs, seq))
         os.makedirs(folder, exist_ok=True)
         if "py" in langs:
-            write_template(os.path.join(folder, "template.py"), python(aggs, seq))
+            from gen_treap_algebra import piece_example  # noqa: E402
+            ex = (piece_example("py", f"{class_name(aggs, seq)}([1, 2, 3, 4, 5], 1, 5)", list("12345")) if seq else "")
+            write_template(os.path.join(folder, "template.py"), python(aggs, seq).rstrip("\n") + "\n" + ex if seq else python(aggs, seq))
         if "cpp" in langs:
             from gen_sorted_runs_cpp import cpp  # noqa: E402
-            write_template(os.path.join(folder, "template.cpp"), cpp(aggs, seq))
+            ex = (piece_example("cpp", f"{class_name(aggs, seq)}<int> t({{1, 2, 3, 4, 5}}, 1, 5)", list("12345")) if seq else "")
+            write_template(os.path.join(folder, "template.cpp"), cpp(aggs, seq) + ex)
         count += 1
     print("wrote", count, "sorted-runs templates")
 

@@ -128,7 +128,8 @@ export interface PickerCatalog<V extends PickerTemplate> {
   ctorNotes: Record<string, CtorNote> | ((t: V) => Record<string, CtorNote>);
   ctorComments?: (t: V, lang: TemplateLang) => string[];
   queryNote?: (t: V, op: string) => string;
-  pairResults?: Record<string, [string, string]>;
+  // ops whose result is shown with names in the usage lines, update ops included (cut -> piece; split -> left, right)
+  pairResults?: Record<string, string[]>;
 }
 
 const opCost = (t: PickerTemplate, op: string) => t.complexities[op] ?? "?";
@@ -620,11 +621,12 @@ function UsagePanel<V extends PickerTemplate>({
     const call = `${varOf(m.cls)}.${op}(${m.params.join(", ")})`;
     const pair = catalog.pairResults?.[op];
     let code: string;
-    if (catalog.updateOps.has(op)) code = cpp ? `${call};` : call;
+    if (pair?.length === 1) code = cpp ? `auto ${pair[0]} = ${call};` : `${pair[0]} = ${call}`;
     else if (pair)
       code = cpp
         ? `auto [${pair.join(", ")}] = ${call};`
         : `${pair.join(", ")} = ${call}`;
+    else if (catalog.updateOps.has(op)) code = cpp ? `${call};` : call;
     else
       code = cpp
         ? `${typeOf(m.returns) || "auto"} ${op} = ${call};`

@@ -180,11 +180,12 @@ function cppClasses(text: string): ParsedClass[] {
           cls.ctorDoc = firstSentenceIfLong(docAbove(lines, j, "//"));
         } else if (m) {
           if (m[2] === "resetPool") cls.pool = true;
-          cls.methods[m[2]] = {
-            params: cppParams(m[3]).map((p) => p.name),
-            returns: m[1].trim(),
-            doc: docAbove(lines, j, "//"),
-          };
+          const doc = docAbove(lines, j, "//");
+          // an overload keeps the public method (its comment starts with the cost) over an internal helper of the
+          // same name (e.g. cut(l, r) over the cut(l, r, a, b, c) that hands back raw roots)
+          const pub = (d: string) => /^(?:amortized\s+)?O\(/.test(d);
+          if (!cls.methods[m[2]] || (pub(doc) && !pub(cls.methods[m[2]].doc)))
+            cls.methods[m[2]] = { params: cppParams(m[3]).map((p) => p.name), returns: m[1].trim(), doc };
         }
       }
       depth +=

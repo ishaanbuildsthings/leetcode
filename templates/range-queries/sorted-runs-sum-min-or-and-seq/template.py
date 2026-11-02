@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-sum-min-or-and-seq/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum split trisect
 # @data-structure-type: sorted-runs
 # @complexities:
 #   append: log(N)+log(U) amortized
@@ -10,7 +10,6 @@
 #   insertAt: log(N)+log(U) amortized
 #   insertCopiesAt: log(N)+log(U) amortized
 #   merge: log(N)+log(U) amortized
-#   moveRange: log(N)+log(U) amortized
 #   paste: log(N)+log(U) amortized
 #   pointAdd: log(N)+log(U) amortized
 #   pointAssign: log(N)+log(U) amortized
@@ -177,7 +176,7 @@ class SortedRunsSumMinOrAndSeq:
     def appendLeft(self, v):
         self.insertCopiesAt(0, v, 1)
 
-    # O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0; drop it to erase)
+    # O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0)
     def cut(self, l, r):
         A, B, C = self._extract(l, r)
         self.top = self._tmerge(A, C)
@@ -227,13 +226,6 @@ class SortedRunsSumMinOrAndSeq:
     # the length (negative = left)
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
-
-    # O(log N + log U) amortized -- cut a[l..r] out and paste it so it starts at index i of what is left
-    # (0 <= i <= size() - (r - l + 1))
-    def moveRange(self, l, r, i):
-        A, B, C = self._extract(l, r)
-        X, Y = self._tsplit(self._tmerge(A, C), i)
-        self.top = self._tmerge(self._tmerge(X, B), Y)
 
     # O(log N + log U) amortized -- a[l] + ... + a[r]
     def rangeSum(self, l, r):
@@ -532,3 +524,11 @@ class SortedRunsSumMinOrAndSeq:
             stack.append((self.Rc[t], mid + 1, nh))
             stack.append((self.Lc[t], nl, mid))
         return out[::-1] if desc else out
+
+
+# Example (pieces move between treaps; merge appends and leaves its argument empty):
+#     t = SortedRunsSumMinOrAndSeq([1, 2, 3, 4, 5], 1, 5)
+#     left, mid, right = t.trisect(1, 3)  # left = [1], mid = [2, 3, 4], right = [5]; t is empty now
+#     t.merge(right)                      # t = [5]
+#     t.merge(mid)                        # t = [5, 2, 3, 4]
+#     t.merge(left)                       # t = [5, 2, 3, 4, 1]

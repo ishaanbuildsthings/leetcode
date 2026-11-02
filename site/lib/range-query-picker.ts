@@ -115,7 +115,6 @@ export type OpId =
   | "rangeReverse"
   | "rangeRotateLeft"
   | "rangeRotateRight"
-  | "moveRange"
   | "cut"
   | "find"
   | "paste"
@@ -131,7 +130,7 @@ export type OpId =
   | "rangeTwinSpin"
   | "rangeSortAsc"
   | "rangeSortDesc"
-  | "copyRange";
+  | "copy";
 
 export interface Op {
   id: OpId;
@@ -280,7 +279,7 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "insertCopiesAt", signature: "insertCopiesAt(i, v, k)", description: "Insert k copies of v so they become i..i+k−1" },
           { id: "rangeReverse", signature: "rangeReverse(l, r)", description: "Reverse l..r in place" },
           { id: "rangeTwinSpin", signature: "rangeTwinSpin(l, r)", description: "Swap a[l]↔a[l+1], a[l+2]↔a[l+3], … (an odd last one stays)" },
-          { id: "copyRange", signature: "copyRange(l, r, i)", description: "Insert a copy of l..r starting at index i" },
+          { id: "copy", signature: "copy(l, r)", description: "A copy of l..r as a separate treap (this one is unchanged)" },
         ],
       },
       {
@@ -288,8 +287,7 @@ export const OP_GROUPS: OpGroup[] = [
         ops: [
           { id: "rangeRotateLeft", signature: "rangeRotateLeft(l, r, k)", description: "Cyclic shift l..r left by k (a[l+k] moves to l)" },
           { id: "rangeRotateRight", signature: "rangeRotateRight(l, r, k)", description: "Cyclic shift l..r right by k (a[r−k+1…r] move to the front)" },
-          { id: "moveRange", signature: "moveRange(l, r, i)", description: "Cut l..r out and paste it back starting at index i" },
-          { id: "cut", signature: "cut(l, r)", description: "Remove l..r and get it back as a separate array of the same type (drop it to erase)" },
+          { id: "cut", signature: "cut(l, r)", description: "Remove l..r and get it back as a separate array of the same type" },
           { id: "find", signature: "find(x)", description: "Index of x right now, or −1 (the values must be distinct)" },
           { id: "paste", signature: "paste(i, other)", description: "Insert all of another array of the same type starting at index i (other ends up empty)" },
           { id: "split", signature: "split(k)", description: "Split into two arrays: 0..k−1 and a[k]… (the original is left empty)" },
@@ -666,8 +664,8 @@ export type TemplateView = RangeQueryTemplate & { file: "template" | "sparse" | 
 export const CHAR_SAFE_OPS: ReadonlySet<string> = new Set([
   "pointGet", "pointAssign", "pointChmax", "pointChmin", "rangeAssign", "rangeChmax", "rangeChmin", "rangeSortAsc",
   "rangeSortDesc", "getAll", "append", "appendLeft", "insertAt", "insertCopiesAt",
-  "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "merge",
-  "copyRange", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
+  "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "cut", "paste", "split", "trisect", "merge",
+  "copy", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
   "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange",
   "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome",
   "rangeHash", "rangeHashReversed", "rangesEqual", "doAllElementsAppearEvenFrequency", "kthSmallest",

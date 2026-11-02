@@ -568,7 +568,7 @@ struct {name} {{
     // O(log N + log U) amortized -- insert v at the front (it becomes a[0])
     void appendLeft(T v) {{ insertCopiesAt(0, v, 1); }}
 
-    // O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0; drop it to erase)
+    // O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0)
     {name} cut(int l, int r) {{
         auto [A, B, C] = extract(l, r);
         rt = tmerge(A, C), n -= r - l + 1;
@@ -618,14 +618,6 @@ struct {name} {{
     // O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod
     // the length (negative = left)
     void rangeRotateRight(int l, int r, long long k) {{ rangeRotateLeft(l, r, -k); }}
-
-    // O(log N + log U) amortized -- cut a[l..r] out and paste it so it starts at index i of what is left
-    // (0 <= i <= size() - (r - l + 1))
-    void moveRange(int l, int r, int i) {{
-        auto [A, B, C] = extract(l, r);
-        auto [X, Y] = tsplit(tmerge(A, C), i);
-        rt = tmerge(tmerge(X, B), Y);
-    }}
 {queries}
     // O(N log U) -- the whole current array
     vector<T> getAll() {{

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-max-gcd-alt-rev/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX rightmostLtX rightmostLteX split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX rightmostLtX rightmostLteX split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -15,7 +15,6 @@
 #   leftmostLteX: log(N)*log(U) expected ?
 #   maxAltSubseqSum: log(N)*log(U) expected ?
 #   merge: log(N)*log(U) expected ?
-#   moveRange: log(N)*log(U) expected ?
 #   paste: log(N)*log(U) expected ?
 #   pointAdd: log(N)*log(U) expected ?
 #   pointAssign: log(N)*log(U) expected ?
@@ -99,7 +98,7 @@ class ImplicitTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN * logU) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    # O(logN * logU) expected -- remove a[l..r] and return it as a treap of its own (indices from 0)
     def cut(self, l, r):
         a, b, c = self._cut(l, r)
         self.root = self._merge(a, c)
@@ -219,12 +218,6 @@ class ImplicitTreap:
     def merge(self, other):
         self.root = self._merge(self.root, other.root)
         other.root = 0
-
-    # O(logN * logU) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
-    def moveRange(self, l, r, i):
-        a, b, c = self._cut(l, r)
-        x, y = self._split(self._merge(a, c), i)
-        self.root = self._merge(self._merge(x, b), y)
 
     # O(logN * logU) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i]
     # (0 <= i <= size()); other is left empty
@@ -528,3 +521,11 @@ class ImplicitTreap:
             else:
                 i -= ls + 1
                 t = self.R[t]
+
+
+# Example (pieces move between treaps; merge appends and leaves its argument empty):
+#     t = ImplicitTreap([1, 2, 3, 4, 5])
+#     left, mid, right = t.trisect(1, 3)  # left = [1], mid = [2, 3, 4], right = [5]; t is empty now
+#     t.merge(right)                      # t = [5]
+#     t.merge(mid)                        # t = [5, 2, 3, 4]
+#     t.merge(left)                       # t = [5, 2, 3, 4, 1]

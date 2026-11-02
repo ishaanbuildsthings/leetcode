@@ -1,0 +1,499 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-seq-and/template.py
+# @operations: andGtX andGteX andInValRange andLtX andLteX append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeMax rangeMin rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange smallestGtX smallestGteX split trisect
+# @data-structure-type: sqrt
+# @complexities:
+#   andGtX: sqrt(N)*log(N)
+#   andGteX: sqrt(N)*log(N)
+#   andInValRange: sqrt(N)*log(N)
+#   andLtX: sqrt(N)*log(N)
+#   andLteX: sqrt(N)*log(N)
+#   append: sqrt(N)*log(N) amortized
+#   appendLeft: sqrt(N)*log(N) amortized
+#   countGtX: sqrt(N)*log(N)
+#   countGteX: sqrt(N)*log(N)
+#   countInValRange: sqrt(N)*log(N)
+#   countLtX: sqrt(N)*log(N)
+#   countLteX: sqrt(N)*log(N)
+#   countOccurrences: sqrt(N)*log(N)
+#   cut: sqrt(N)*log(N) amortized
+#   getAll: N
+#   insertAt: sqrt(N)*log(N) amortized
+#   insertCopiesAt: sqrt(N)*log(N) amortized
+#   kthGtX: sqrt(N)*log(N)
+#   kthGteX: sqrt(N)*log(N)
+#   kthLtX: sqrt(N)*log(N)
+#   kthLteX: sqrt(N)*log(N)
+#   kthSmallest: sqrt(N)*log(N)*log(U)
+#   largestLtX: sqrt(N)*log(N)
+#   largestLteX: sqrt(N)*log(N)
+#   leftmostIndexOf: sqrt(N)*log(N)
+#   leftmostIndexOfInRange: sqrt(N)*log(N)
+#   merge: sqrt(N)*log(N) amortized
+#   paste: sqrt(N)*log(N) amortized
+#   pointAdd: sqrt(N)*log(N)
+#   pointAssign: sqrt(N)*log(N)
+#   pointChmax: sqrt(N)*log(N)
+#   pointChmin: sqrt(N)*log(N)
+#   pointGet: sqrt(N)
+#   rangeAndQuery: sqrt(N)*log(N)
+#   rangeMax: sqrt(N)*log(N)
+#   rangeMin: sqrt(N)*log(N)
+#   rangeRotateLeft: sqrt(N)*log(N) amortized
+#   rangeRotateRight: sqrt(N)*log(N) amortized
+#   rightmostIndexOf: sqrt(N)*log(N)
+#   rightmostIndexOfInRange: sqrt(N)*log(N)
+#   smallestGtX: sqrt(N)*log(N)
+#   smallestGteX: sqrt(N)*log(N)
+#   split: sqrt(N)*log(N) amortized
+#   trisect: sqrt(N)*log(N) amortized
+#   build: N*log(N)
+# @memory:
+#   layout: none
+#   node: vals[1*N] srt[1*N] ta[2*N]
+#   tags: none
+#   other: none
+#   note: blocks of about sqrt(N log N) values, each kept in array order and sorted (N here is the current length)
+
+# List of sorted blocks: an array you can insert into anywhere, rotate, cut pieces out of (that is how to erase) and
+# paste them back, and ask value questions about any range a[l..r]: how many values are below x, the k-th smallest,
+# the nearest value above / below x, where x first / last appears, and the ANDs of the values in a value range. Each
+# op costs about sqrt(N log N): the array is a list of blocks, each kept both in array order and sorted. All indices
+# 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array.
+from bisect import bisect_left, bisect_right
+from math import isqrt
+
+
+class _Block:
+    # a run of the array: vals in array order and srt, the same values sorted, both raw (the tags apply on read)
+    __slots__ = ("vals", "srt", "ta")
+
+    def __init__(self, vals):
+        self.vals = vals
+        self.rebuild()
+
+    def rebuild(self):  # O(B log B) -- srt and what is kept over it, from vals (no tag pending)
+        srt = self.srt = sorted(self.vals)
+        m = len(srt)  # ta / to: AND / OR trees over srt (leaves at m..2m-1)
+        ta = self.ta = [-1] * m + srt
+        for i in range(m - 1, 0, -1):
+            ta[i] = ta[2 * i] & ta[2 * i + 1]
+
+    def get(self, k):  # the value at position k of this block
+        return self.vals[k]
+
+    def values(self, lo, hi):  # the values at positions lo..hi, in order
+        seg = self.vals[lo:hi + 1]
+        return seg
+
+    def below(self, x, strict):  # how many values are < x (strict) or <= x
+        return (bisect_left if strict else bisect_right)(self.srt, x)
+
+    def kth(self, k):  # the k-th smallest value, k from 0
+        return self.srt[k]
+
+    def andRange(self, i, j):  # the AND of the i-th..(j-1)-th smallest (-1, every bit, if none)
+        ta, m, res = self.ta, len(self.srt), -1
+        i += m
+        j += m
+        while i < j:
+            if i & 1:
+                res &= ta[i]
+                i += 1
+            if j & 1:
+                j -= 1
+                res &= ta[j]
+            i >>= 1
+            j >>= 1
+        return res
+
+
+class SqrtSequence:
+    # pieces (cut / split / trisect) are SqrtSequences of their own: paste / merge move their blocks over
+    __slots__ = ("blocks", "n", "B")
+
+    # O(N log N) -- arr: the initial array (a list; leave it out to start empty)
+    def __init__(self, arr=()):
+        self._fill(list(arr))
+
+    # O(1) -- the current length of the array
+    def size(self):
+        return self.n
+
+    # O(N) -- the whole current array
+    def getAll(self):
+        out = []
+        for b in self.blocks:
+            out += b.values(0, len(b.vals) - 1)
+        return out
+
+    # O(sqrt(N)) -- a[i]
+    def pointGet(self, i):
+        b, k = self._locate(i)
+        return b.get(k)
+
+    # O(sqrt(N) log N) -- a[i] = v
+    def pointAssign(self, i, v):
+        b, k = self._locate(i)
+        nv = v
+        b.vals[k] = nv
+        b.rebuild()
+
+    # O(sqrt(N) log N) -- a[i] += v
+    def pointAdd(self, i, v):
+        b, k = self._locate(i)
+        nv = b.get(k) + v
+        b.vals[k] = nv
+        b.rebuild()
+
+    # O(sqrt(N) log N) -- a[i] = max(a[i], v)
+    def pointChmax(self, i, v):
+        b, k = self._locate(i)
+        nv = max(b.get(k), v)
+        b.vals[k] = nv
+        b.rebuild()
+
+    # O(sqrt(N) log N) -- a[i] = min(a[i], v)
+    def pointChmin(self, i, v):
+        b, k = self._locate(i)
+        nv = min(b.get(k), v)
+        b.vals[k] = nv
+        b.rebuild()
+
+
+    # O(sqrt(N) log N) amortized -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    def insertAt(self, i, v):
+        j, k = self._at(i)
+        if j == len(self.blocks):  # (the end: onto the last block)
+            if not j or len(self.blocks[-1].vals) >= 2 * self.B:
+                self.blocks.append(_Block([v]))
+                self.n += 1
+                return
+            j, k = j - 1, len(self.blocks[-1].vals)
+        b = self.blocks[j]
+        b.vals.insert(k, v)
+        if len(b.vals) > 2 * self.B:  # (too long: two blocks)
+            h = len(b.vals) // 2
+            self.blocks[j:j + 1] = [_Block(b.vals[:h]), _Block(b.vals[h:])]
+        else:
+            b.rebuild()
+        self.n += 1
+        if self._idealB(self.n) > 2 * self.B:  # (grown a lot: bigger blocks)
+            self._fill(self.getAll())
+
+    # O(sqrt(N) log N) amortized -- append v to the end
+    def append(self, v):
+        self.insertAt(self.n, v)
+
+    # O(sqrt(N) log N) amortized -- insert v at the front (it becomes a[0]; everything else shifts right by one)
+    def appendLeft(self, v):
+        self.insertAt(0, v)
+
+    # O(k + sqrt(N) log N) amortized -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    def insertCopiesAt(self, i, v, k):
+        if k <= 0:
+            return
+        j = self._splitAt(i)
+        self.blocks[j:j] = [_Block([v] * min(self.B, k - s)) for s in range(0, k, self.B)]
+        self.n += k
+        self._tidy()
+
+    # O(sqrt(N) log N) amortized -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
+    # it is taken mod the length (negative shifts right)
+    def rangeRotateLeft(self, l, r, k):
+        k %= r - l + 1
+        if k:
+            j1 = self._splitAt(l)
+            j2 = self._splitAt(l + k)
+            j3 = self._splitAt(r + 1)
+            self.blocks[j1:j3] = self.blocks[j2:j3] + self.blocks[j1:j2]
+            self._tidy()
+
+    # O(sqrt(N) log N) amortized -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
+    # length (negative shifts left)
+    def rangeRotateRight(self, l, r, k):
+        self.rangeRotateLeft(l, r, -k)
+
+    # O(sqrt(N) log N) amortized -- remove a[l..r] and return it as a SqrtSequence of its own (indices from 0)
+    def cut(self, l, r):
+        j1 = self._splitAt(l)
+        j2 = self._splitAt(r + 1)
+        piece = SqrtSequence()
+        piece.blocks, piece.n, piece.B = self.blocks[j1:j2], r - l + 1, self.B
+        del self.blocks[j1:j2]
+        self.n -= r - l + 1
+        self._tidy()
+        piece._tidy()
+        return piece
+
+    # O(sqrt(N) log N) amortized -- insert all of other (any SqrtSequence, e.g. a cut piece) so it starts at a[i]
+    # (0 <= i <= size()); other is left empty
+    def paste(self, i, other):
+        j = self._splitAt(i)
+        self.blocks[j:j] = other.blocks
+        self.n += other.n
+        other.blocks, other.n = [], 0
+        self._tidy()
+
+    # O(sqrt(N) log N) amortized -- append all of other at the end; other is left empty
+    def merge(self, other):
+        self.paste(self.n, other)
+
+    # O(sqrt(N) log N) amortized -- (a[0..k-1], a[k..]) as two SqrtSequences of their own; this one is left empty
+    def split(self, k):
+        left = SqrtSequence()
+        left.blocks, left.n, left.B = self.blocks, self.n, self.B
+        self.blocks, self.n = [], 0
+        right = left.cut(k, left.n - 1) if k < left.n else SqrtSequence()
+        return left, right
+
+    # O(sqrt(N) log N) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three SqrtSequences of their own; this one is
+    # left empty
+    def trisect(self, l, r):
+        left, right = self.split(r + 1)
+        left, mid = left.split(l)
+        return left, mid, right
+
+    # O(sqrt(N) log N) -- # of values < x in a[l..r]
+    def countLtX(self, l, r, x):
+        return self._count(l, r, None, x, False, True)
+
+    # O(sqrt(N) log N) -- # of values <= x in a[l..r]
+    def countLteX(self, l, r, x):
+        return self._count(l, r, None, x, False, False)
+
+    # O(sqrt(N) log N) -- # of values > x in a[l..r]
+    def countGtX(self, l, r, x):
+        return self._count(l, r, x, None, True, False)
+
+    # O(sqrt(N) log N) -- # of values >= x in a[l..r]
+    def countGteX(self, l, r, x):
+        return self._count(l, r, x, None, False, False)
+
+    # O(sqrt(N) log N) -- # of i in [l, r] with lowVal <= a[i] <= highVal
+    def countInValRange(self, l, r, lowVal, highVal):
+        return self._count(l, r, lowVal, highVal, False, False) if lowVal <= highVal else 0
+
+    # O(sqrt(N) log N) -- # of i in [l, r] with a[i] == x
+    def countOccurrences(self, l, r, x):
+        return self._count(l, r, x, x, False, False)
+
+    # O(sqrt(N) log N log U) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else
+    # IndexError (a binary search over the values, each step a count)
+    def kthSmallest(self, l, r, k):
+        if not 1 <= k <= r - l + 1:
+            raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
+        whole, part = [], []  # (the values of the partial blocks, sorted once)
+        for b, a, c, full, _ in self._span(l, r):
+            if full:
+                whole.append(b)
+            else:
+                part += b.values(a, c)
+        part.sort()
+        lo = min([b.kth(0) for b in whole] + part[:1])
+        hi = max([b.kth(len(b.vals) - 1) for b in whole] + part[-1:])
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if bisect_right(part, mid) + sum(b.below(mid, False) for b in whole) >= k:
+                hi = mid
+            else:
+                lo = mid + 1
+        return lo
+
+    # O(sqrt(N) log N) -- min of a[l..r]
+    def rangeMin(self, l, r):
+        return min(b.kth(0) if full else min(b.values(lo, hi)) for b, lo, hi, full, _ in self._span(l, r))
+
+    # O(sqrt(N) log N) -- max of a[l..r]
+    def rangeMax(self, l, r):
+        return max(b.kth(hi) if full else max(b.values(lo, hi)) for b, lo, hi, full, _ in self._span(l, r))
+
+    # O(sqrt(N) log N) -- smallest value >= x in a[l..r], or None
+    def smallestGteX(self, l, r, x):
+        return self._nearest(l, r, x, True, False)
+
+    # O(sqrt(N) log N) -- smallest value > x in a[l..r], or None
+    def smallestGtX(self, l, r, x):
+        return self._nearest(l, r, x, True, True)
+
+    # O(sqrt(N) log N) -- largest value <= x in a[l..r], or None
+    def largestLteX(self, l, r, x):
+        return self._nearest(l, r, x, False, False)
+
+    # O(sqrt(N) log N) -- largest value < x in a[l..r], or None
+    def largestLtX(self, l, r, x):
+        return self._nearest(l, r, x, False, True)
+
+    # O(sqrt(N) log N) -- the first i with a[i] == x, or -1
+    def leftmostIndexOf(self, x):
+        return self.leftmostIndexOfInRange(0, self.n - 1, x) if self.n else -1
+
+    # O(sqrt(N) log N) -- the last i with a[i] == x, or -1
+    def rightmostIndexOf(self, x):
+        return self.rightmostIndexOfInRange(0, self.n - 1, x) if self.n else -1
+
+    # O(sqrt(N) log N) -- the first i in [l, r] with a[i] == x, or -1
+    def leftmostIndexOfInRange(self, l, r, x):
+        return self._kthWhere(l, r, 1, x, x, False, False)
+
+    # O(sqrt(N) log N) -- the last i in [l, r] with a[i] == x, or -1
+    def rightmostIndexOfInRange(self, l, r, x):
+        return self._kthWhere(l, r, -1, x, x, False, False)
+
+    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] < x, or -1
+    def kthLtX(self, l, r, k, x):
+        return self._kthWhere(l, r, k, None, x, False, True) if k >= 1 else -1
+
+    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] <= x, or -1
+    def kthLteX(self, l, r, k, x):
+        return self._kthWhere(l, r, k, None, x, False, False) if k >= 1 else -1
+
+    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] > x, or -1
+    def kthGtX(self, l, r, k, x):
+        return self._kthWhere(l, r, k, x, None, True, False) if k >= 1 else -1
+
+    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] >= x, or -1
+    def kthGteX(self, l, r, k, x):
+        return self._kthWhere(l, r, k, x, None, False, False) if k >= 1 else -1
+
+    # O(sqrt(N) log N) -- a[l] & ... & a[r]
+    def rangeAndQuery(self, l, r):
+        return self._and(l, r, None, None, False, False)
+
+    # O(sqrt(N) log N) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none
+    def andLtX(self, l, r, x):
+        return self._and(l, r, None, x, False, True)
+
+    # O(sqrt(N) log N) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none
+    def andLteX(self, l, r, x):
+        return self._and(l, r, None, x, False, False)
+
+    # O(sqrt(N) log N) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none
+    def andGtX(self, l, r, x):
+        return self._and(l, r, x, None, True, False)
+
+    # O(sqrt(N) log N) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none
+    def andGteX(self, l, r, x):
+        return self._and(l, r, x, None, False, False)
+
+    # O(sqrt(N) log N) -- AND of the a[i] in [l, r] with lowVal <= a[i] <= highVal; -1 (every bit) if there are none
+    def andInValRange(self, l, r, lowVal, highVal):
+        return self._and(l, r, lowVal, highVal, False, False) if lowVal <= highVal else -1
+
+    def _and(self, l, r, lo, hi, loStrict, hiStrict):
+        res = -1
+        for b, i, j in self._sel(l, r, lo, hi, loStrict, hiStrict):
+            if b:
+                res &= b.andRange(i, j)
+            else:
+                for v in i:
+                    res &= v
+        return res
+
+    # ---- internals ----
+
+    @staticmethod
+    def _idealB(n):  # sqrt(n log n): a query reads n / B blocks (a binary search each) and two partial ones
+        return max(16, isqrt(n * max(1, n.bit_length())))
+
+    def _fill(self, vals):  # blocks of about _idealB values holding vals
+        n = self.n = len(vals)
+        B = self.B = self._idealB(n)
+        self.blocks = [_Block(vals[s:s + B]) for s in range(0, n, B)]
+
+    # O(N / B + B log B) amortized -- merge each run of neighbours that fit in one block (each merge is paid for by
+    # the split that made it), so any two neighbours hold more than B values; when the array has grown so much that B
+    # is too small, rebuild into even blocks (O(N log N), after about N new values)
+    def _tidy(self):
+        if self._idealB(self.n) > 2 * self.B:
+            return self._fill(self.getAll())
+        out, B = [], self.B
+        for b in self.blocks:
+            if not b.vals:
+                continue
+            if out and len(out[-1].vals) + len(b.vals) <= B:
+                p = out.pop()
+                b = _Block(p.vals + b.vals)
+            out.append(b)
+        self.blocks = out
+
+    def _at(self, i):  # (block index, position in it) of a[i]; i == size() gives (number of blocks, 0)
+        for j, b in enumerate(self.blocks):
+            m = len(b.vals)
+            if i < m:
+                return j, i
+            i -= m
+        return len(self.blocks), 0
+
+    def _locate(self, i):  # (block, position in it) of a[i]
+        j, k = self._at(i)
+        return self.blocks[j], k
+
+    def _splitAt(self, i):  # make a block start at a[i] (0 <= i <= size()): that block's index
+        j, k = self._at(i)
+        if k:
+            b = self.blocks[j]
+            self.blocks[j:j + 1] = [_Block(b.vals[:k]), _Block(b.vals[k:])]
+            return j + 1
+        return j
+
+    def _span(self, l, r):  # (block, lo, hi, whole, start) for each block meeting a[l..r]: positions lo..hi of it,
+        i = 0  # whether that is all of it, and the index of its first value
+        for b in self.blocks:
+            m = len(b.vals)
+            if i + m > l:
+                lo, hi = max(l - i, 0), min(r - i, m - 1)
+                yield b, lo, hi, lo == 0 and hi == m - 1, i
+                if i + m > r:
+                    return
+            i += m
+
+    # the values v of a[l..r] with lo <(=) v <(=) hi (a None bound: none), as (block, i, j) for a whole block (its
+    # i-th..(j-1)-th smallest pass) and (None, values, 0) for a partial one
+    def _sel(self, l, r, lo, hi, loStrict, hiStrict):
+        for b, a, c, full, _ in self._span(l, r):
+            if full:
+                yield (b, 0 if lo is None else b.below(lo, not loStrict),
+                       len(b.vals) if hi is None else b.below(hi, hiStrict))
+            else:
+                yield None, [v for v in b.values(a, c) if (lo is None or (lo < v if loStrict else lo <= v)) and
+                             (hi is None or (v < hi if hiStrict else v <= hi))], 0
+
+    def _count(self, l, r, lo, hi, loStrict, hiStrict):
+        return sum(j - i if b else len(i) for b, i, j in self._sel(l, r, lo, hi, loStrict, hiStrict))
+
+    def _nearest(self, l, r, x, up, strict):  # the smallest value > (>=) x (up) or the largest < (<=) x, or None
+        best = None
+        for b, lo, hi, full, _ in self._span(l, r):
+            if full:
+                k = b.below(x, not strict) if up else b.below(x, strict) - 1
+                if 0 <= k < len(b.vals):
+                    v = b.kth(k)
+                    best = v if best is None or (v < best if up else v > best) else best
+            else:
+                for v in b.values(lo, hi):
+                    if (v > x if strict else v >= x) if up else (v < x if strict else v <= x):
+                        best = v if best is None or (v < best if up else v > best) else best
+        return best
+
+    # the index of the k-th i in [l, r] (k = -1: the last one) with lo <(=) a[i] <(=) hi, or -1: whole blocks are
+    # skipped by their counts, and only the block holding it is read
+    def _kthWhere(self, l, r, k, lo, hi, loStrict, hiStrict):
+        ok = lambda v: (lo is None or (lo < v if loStrict else lo <= v)) and (hi is None or (v < hi if hiStrict else v <= hi))  # noqa: E731
+        spans = list(self._span(l, r))
+        if k < 0:
+            spans.reverse()
+        for b, a, c, full, start in spans:
+            if full:
+                cnt = (len(b.vals) if hi is None else b.below(hi, hiStrict)) - (0 if lo is None else b.below(lo, not loStrict))
+                if max(k, 1) > cnt:
+                    k -= cnt
+                    continue
+            vals = b.values(a, c)
+            order = range(len(vals) - 1, -1, -1) if k < 0 else range(len(vals))
+            for p in order:
+                if ok(vals[p]):
+                    if k in (1, -1):
+                        return start + a + p
+                    k -= 1
+        return -1
