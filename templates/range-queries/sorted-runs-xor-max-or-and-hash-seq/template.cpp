@@ -1,16 +1,16 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-xor-max-or-and-hash-seq/template.cpp
-// @operations: append appendLeft concat cut getAll insertAt insertCopiesAt isPalindrome moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery rangesEqual split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery rangesEqual split trisect
 // @data-structure-type: sorted-runs
 // @complexities:
 //   append: log(N)+log(U) amortized
 //   appendLeft: log(N)+log(U) amortized
-//   concat: log(N)+log(U) amortized
 //   cut: log(N)+log(U) amortized
 //   getAll: N*log(U)
 //   insertAt: log(N)+log(U) amortized
 //   insertCopiesAt: log(N)+log(U) amortized
 //   isPalindrome: log(N)+log(U) amortized
+//   merge: log(N)+log(U) amortized
 //   moveRange: log(N)+log(U) amortized
 //   paste: log(N)+log(U) amortized
 //   pointAdd: log(N)+log(U) amortized
@@ -259,7 +259,7 @@ struct SortedRunsXorMaxOrAndHashSeq {
     }
 
     // O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
-    void concat(SortedRunsXorMaxOrAndHashSeq& other) { paste(n, other); }
+    void merge(SortedRunsXorMaxOrAndHashSeq& other) { paste(n, other); }
 
     // O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
     pair<SortedRunsXorMaxOrAndHashSeq, SortedRunsXorMaxOrAndHashSeq> split(int k) {

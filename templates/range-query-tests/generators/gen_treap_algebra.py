@@ -34,10 +34,10 @@ from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 MARK = "Implicit treap with composable aggregates"
-SEQ = ["append", "appendLeft", "getAll", "insertAt", "insertCopiesAt", "moveRange",
-       "rangeRotateLeft", "rangeRotateRight"]
+SEQ = ["append", "appendLeft", "getAll", "insertAt", "insertCopiesAt", "moveRange", "rangeRotateLeft",
+       "rangeRotateRight"]
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
-PIECES = ["concat", "cut", "paste", "split", "trisect"]
+PIECES = ["cut", "merge", "paste", "split", "trisect"]
 SEARCH = {f"{side}{cmp}X": (side, cmp) for side in ("leftmost", "rightmost") for cmp in ("Gt", "Gte", "Lt", "Lte")}
 CMP = {"Gt": ">", "Gte": ">=", "Lt": "<", "Lte": "<="}
 HASH_OPS = ["isPalindrome", "rangeHash", "rangeHashReversed", "rangesEqual"]
@@ -898,8 +898,8 @@ PY_PIECES = {
         self.root = self._merge(self._merge(a, other.root), c)
         other.root = 0
 ''',
-    "concat": '''    # O(logN) expected -- append all of other at the end; other is left empty
-    def concat(self, other):
+    "merge": '''    # O(logN) expected -- append all of other at the end; other is left empty
+    def merge(self, other):
         self.root = self._merge(self.root, other.root)
         other.root = 0
 ''',
@@ -1517,8 +1517,8 @@ CPP_PIECES = {
         other.root = 0;
     }
 ''',
-    "concat": '''    // O(logN) expected -- append all of other at the end; other is left empty
-    void concat(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
+    "merge": '''    // O(logN) expected -- append all of other at the end; other is left empty
+    void merge(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
 ''',
     "split": '''    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
     pair<ImplicitTreap, ImplicitTreap> split(int k) {

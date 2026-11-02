@@ -20,7 +20,7 @@ from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 DTYPE = "pair-treap"
-SEQ = ["append", "appendLeft", "concat", "cut", "getAll", "insertAt", "paste", "rangeTwinSpin", "split", "trisect"]
+SEQ = ["append", "appendLeft", "cut", "getAll", "insertAt", "merge", "paste", "rangeTwinSpin", "split", "trisect"]
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 HASH_OPS = ["isPalindrome", "rangeHash", "rangeHashReversed", "rangesEqual"]
 HASH_DOC = {"rangeHash": "hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal",
@@ -125,8 +125,8 @@ def python(ops, aggs):
         self.rE, self.rO = merge(merge(a, x), c), merge(merge(d, y), f)
         other.rE = other.rO = 0
 ''',
-        "concat": '''    # O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
-    def concat(self, other):
+        "merge": '''    # O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
+    def merge(self, other):
         self.paste(self.size(), other)
 ''',
         "split": '''    # O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
@@ -529,8 +529,8 @@ def cpp(ops, aggs):
         other.rE = other.rO = 0;
     }
 ''',
-        "concat": '''    // O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
-    void concat(PairSwapTreap& other) { paste(size(), other); }
+        "merge": '''    // O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
+    void merge(PairSwapTreap& other) { paste(size(), other); }
 ''',
         "split": '''    // O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
     pair<PairSwapTreap, PairSwapTreap> split(int k) {

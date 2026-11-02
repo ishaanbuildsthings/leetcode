@@ -597,7 +597,7 @@ struct {name} {{
     }}
 
     // O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
-    void concat({name}& other) {{ paste(n, other); }}
+    void merge({name}& other) {{ paste(n, other); }}
 
     // O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
     pair<{name}, {name}> split(int k) {{

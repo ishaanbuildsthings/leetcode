@@ -1,11 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-hash-and-updates-div-mod-sqrt/template.py
-# @operations: append appendLeft concat cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected
-#   concat: log(N) expected
 #   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
@@ -13,6 +12,7 @@
 #   isPalindrome: log(N) expected
 #   leftmostGtX: log(N) expected
 #   leftmostGteX: log(N) expected
+#   merge: log(N) expected
 #   moveRange: log(N) expected
 #   paste: log(N) expected
 #   pointAdd: log(N) expected
@@ -93,11 +93,6 @@ class ImplicitTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- append all of other at the end; other is left empty
-    def concat(self, other):
-        self.root = self._merge(self.root, other.root)
-        other.root = 0
-
     # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
     def cut(self, l, r):
         a, b, c = self._cut(l, r)
@@ -172,6 +167,11 @@ class ImplicitTreap:
                     t = R[t]
         self._join(a, b, c)
         return res
+
+    # O(logN) expected -- append all of other at the end; other is left empty
+    def merge(self, other):
+        self.root = self._merge(self.root, other.root)
+        other.root = 0
 
     # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     def moveRange(self, l, r, i):

@@ -26,8 +26,8 @@ from gen_treap import no_push, wrap
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
-SEQ = ["append", "appendLeft", "concat", "cut", "getAll", "insertAt", "insertCopiesAt", "moveRange", "paste", "split", "trisect",
-       "rangeRotateLeft", "rangeRotateRight"]
+SEQ = ["append", "appendLeft", "cut", "getAll", "insertAt", "insertCopiesAt", "merge", "moveRange", "paste",
+       "rangeRotateLeft", "rangeRotateRight", "split", "trisect"]
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 MAXSUB_Q = {"pre": ("maxPrefixSum", "max of a[l] + ... + a[i] over i in [l, r]"),
             "suf": ("maxSuffixSum", "max of a[i] + ... + a[r] over i in [l, r]"),

@@ -1,15 +1,15 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-sum-xor-max-seq/template.py
-# @operations: append appendLeft concat cut getAll insertAt insertCopiesAt moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum rangeXorQuery split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum rangeXorQuery split trisect
 # @data-structure-type: sorted-runs
 # @complexities:
 #   append: log(N)+log(U) amortized
 #   appendLeft: log(N)+log(U) amortized
-#   concat: log(N)+log(U) amortized
 #   cut: log(N)+log(U) amortized
 #   getAll: N*log(U)
 #   insertAt: log(N)+log(U) amortized
 #   insertCopiesAt: log(N)+log(U) amortized
+#   merge: log(N)+log(U) amortized
 #   moveRange: log(N)+log(U) amortized
 #   paste: log(N)+log(U) amortized
 #   pointAdd: log(N)+log(U) amortized
@@ -209,7 +209,7 @@ class SortedRunsSumXorMaxSeq:
         other.top, other.n = 0, 0
 
     # O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
-    def concat(self, other):
+    def merge(self, other):
         self.paste(self.n, other)
 
     # O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty

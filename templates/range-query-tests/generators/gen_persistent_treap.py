@@ -22,8 +22,8 @@ from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 DTYPE = "persistent-treap"
-BASE = ["append", "appendLeft", "concat", "copyRange", "cut", "getAll", "insertAt", "paste", "pointAssign", "pointGet", "split",
-        "trisect"]
+BASE = ["append", "appendLeft", "copyRange", "cut", "getAll", "insertAt", "merge", "paste", "pointAssign",
+        "pointGet", "split", "trisect"]
 
 
 def header(cm, ops, sums):
@@ -103,7 +103,7 @@ class PersistentTreap:
         other.root = 0
 
     # O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
-    def concat(self, other):
+    def merge(self, other):
         self.root = self._merge(self.root, other.root)
         other.root = 0
 
@@ -318,7 +318,7 @@ struct PersistentTreap {
     }
 
     // O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
-    void concat(PersistentTreap& other) { root = merge(root, other.root), other.root = 0; }
+    void merge(PersistentTreap& other) { root = merge(root, other.root), other.root = 0; }
 
     // O(logN) expected -- (a[0..k-1], a[k..]) as two PersistentTreaps of their own; this one is left empty
     pair<PersistentTreap, PersistentTreap> split(int k) {

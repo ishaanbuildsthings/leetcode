@@ -1,11 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-max-hash-suf-and-updates-assign-div-mod-sqrt/template.py
-# @operations: append appendLeft concat cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxSuffixSum moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxSuffixSum merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected
-#   concat: log(N) expected
 #   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
@@ -16,6 +15,7 @@
 #   leftmostLtX: log(N) expected
 #   leftmostLteX: log(N) expected
 #   maxSuffixSum: log(N) expected
+#   merge: log(N) expected
 #   moveRange: log(N) expected
 #   paste: log(N) expected
 #   pointAdd: log(N) expected
@@ -113,11 +113,6 @@ class ImplicitTreap:
     # O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     def appendLeft(self, v):
         self.insertAt(0, v)
-
-    # O(logN) expected -- append all of other at the end; other is left empty
-    def concat(self, other):
-        self.root = self._merge(self.root, other.root)
-        other.root = 0
 
     # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
     def cut(self, l, r):
@@ -241,6 +236,11 @@ class ImplicitTreap:
         res = self.suf[b]
         self._join(a, b, c)
         return res
+
+    # O(logN) expected -- append all of other at the end; other is left empty
+    def merge(self, other):
+        self.root = self._merge(self.root, other.root)
+        other.root = 0
 
     # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     def moveRange(self, l, r, i):

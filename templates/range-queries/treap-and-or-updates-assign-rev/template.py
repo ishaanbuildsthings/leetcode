@@ -1,15 +1,15 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-and-or-updates-assign-rev/template.py
-# @operations: append appendLeft concat cut getAll insertAt insertCopiesAt moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected
-#   concat: log(N) expected
 #   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
 #   insertCopiesAt: log(N) expected
+#   merge: log(N) expected
 #   moveRange: log(N) expected
 #   paste: log(N) expected
 #   pointAdd: log(N) expected
@@ -75,11 +75,6 @@ class ImplicitTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- append all of other at the end; other is left empty
-    def concat(self, other):
-        self.root = self._merge(self.root, other.root)
-        other.root = 0
-
     # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
     def cut(self, l, r):
         a, b, c = self._cut(l, r)
@@ -112,6 +107,11 @@ class ImplicitTreap:
         if k > 0:
             a, c = self._split(self.root, i)
             self.root = self._merge(self._merge(a, self._build([v] * k)), c)
+
+    # O(logN) expected -- append all of other at the end; other is left empty
+    def merge(self, other):
+        self.root = self._merge(self.root, other.root)
+        other.root = 0
 
     # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     def moveRange(self, l, r, i):

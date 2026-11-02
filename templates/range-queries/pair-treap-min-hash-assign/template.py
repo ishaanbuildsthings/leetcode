@@ -1,15 +1,15 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-hash-assign/template.py
-# @operations: append appendLeft concat cut getAll insertAt isPalindrome paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeTwinSpin rangesEqual split trisect
+# @operations: append appendLeft cut getAll insertAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeTwinSpin rangesEqual split trisect
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected
-#   concat: log(N) expected
 #   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
 #   isPalindrome: log(N) expected
+#   merge: log(N) expected
 #   paste: log(N) expected
 #   pointAdd: log(N) expected
 #   pointAssign: log(N) expected
@@ -87,10 +87,6 @@ class PairSwapTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
-    def concat(self, other):
-        self.paste(self.size(), other)
-
     # O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0; drop it to erase);
     # the tail moves r - l + 1 places, so with an odd count the two tails trade places
     def cut(self, l, r):
@@ -124,6 +120,10 @@ class PairSwapTreap:
     def isPalindrome(self, l, r):
         f, b = self._hashes(l, r)
         return f == b
+
+    # O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
+    def merge(self, other):
+        self.paste(self.size(), other)
 
     # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
     # treap's nodes (a piece cut from it, or built with like=). other's a[0] lands at parity i % 2, and the tail after i

@@ -52,13 +52,13 @@ RANGE_UPDATES = {  # op -> number of args after (l, r)
 }
 # sequence edits (implicit treap): op -> arg kind; they change the array's length
 SEQ_OPS = {"append": "v", "appendLeft": "v", "insertAt": "iv", "pop": "i", "popLeft": "none", "eraseRange": "lr", "rangeReverse": "lr", "rangeRotateLeft": "lrk", "rangeRotateRight": "lrk", "moveRange": "lri",
-           "cut": "lr", "paste": "ib", "split": "k", "trisect": "lr", "concat": "b", "insertCopiesAt": "ivk",
+           "cut": "lr", "paste": "ib", "split": "k", "trisect": "lr", "merge": "b", "insertCopiesAt": "ivk",
            "rangeTwinSpin": "lr", "rangeSortAsc": "lr", "rangeSortDesc": "lr", "copyRange": "lrc"}
 # cut(l, r) hands a[l..r] back as a new structure, which the test keeps on a stack; split(k) / trisect(l, r) hand back
-# every part (the structure itself is left empty): the test concats the first part back into it and stacks the rest.
-# paste(i, rv) and concat(rv) pop the newest piece, reverse it first when rv (so the piece is used as a structure of its
+# every part (the structure itself is left empty): the test merges the first part back into it and stacks the rest.
+# paste(i, rv) and merge(rv) pop the newest piece, reverse it first when rv (so the piece is used as a structure of its
 # own), and put it back in at index i / at the end
-PIECE_OPS = ("cut", "paste", "split", "trisect", "concat")
+PIECE_OPS = ("cut", "paste", "split", "trisect", "merge")
 SEQ_OUT = {"pop", "popLeft"}  # sequence edits that also return something (the removed value)
 MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod", "rangeAssignMod", "rangeSumMod"}  # any: values live mod p
 
@@ -68,7 +68,7 @@ MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod
 CHAR_SAFE = {
     "pointGet", "pointAssign", "pointChmax", "pointChmin", "rangeAssign", "rangeChmax", "rangeChmin", "rangeSortAsc",
     "rangeSortDesc", "getAll", "append", "appendLeft", "insertAt", "insertCopiesAt", "pop", "popLeft", "eraseRange",
-    "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "concat",
+    "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "merge",
     "copyRange", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
     "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange", "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome", "rangeHash",
     "rangeHashReversed", "rangesEqual", "doAllElementsAppearEvenFrequency", "kthSmallest", "kthLargest", "medianLow",
@@ -332,7 +332,7 @@ def brute_update(a, op, args, ctx):
             ctx["pieces"] += [a[args[0]:args[1] + 1], a[args[1] + 1:]]
             del a[args[0]:]
             return
-        if op == "concat":
+        if op == "merge":
             seg = ctx["pieces"].pop()
             a += seg[::-1] if args[0] else seg
             return
@@ -497,9 +497,9 @@ def make_trials(folder, ops, trials, letters=False):
             else:
                 op = rng.choice(queries or updates)
             # every structure and piece keeps at least one value; at most 4 pieces at once
-            if (op in ("paste", "concat") and not pieces or op in ("cut", "split", "trisect") and len(pieces) >= 3
+            if (op in ("paste", "merge") and not pieces or op in ("cut", "split", "trisect") and len(pieces) >= 3
                     or op in ("cut", "split") and n < 2 or op == "trisect" and n < 3):
-                op = rng.choice([o for o in ("paste", "concat") if o in ops]) if pieces else "pointGet"
+                op = rng.choice([o for o in ("paste", "merge") if o in ops]) if pieces else "pointGet"
             if op == "cut":
                 l = rng.randrange(n)
                 r = rng.randint(l, min(n - 1, l + n - 2))
@@ -520,7 +520,7 @@ def make_trials(folder, ops, trials, letters=False):
                 n = l
                 seq.append((op, [l, r]))
                 continue
-            if op in ("paste", "concat"):
+            if op in ("paste", "merge"):
                 rv = rng.randint(0, 1) if "rangeReverse" in ops else 0  # (a piece is reversed first only if it can be)
                 seq.append((op, [rng.randint(0, n), rv] if op == "paste" else [rv]))
                 n += pieces.pop()
@@ -1036,7 +1036,7 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
                     first, *rest = getattr(obj, op)(*args)
                     if obj.size():
                         raise RuntimeError(f"{op} left {obj.size()} values behind")
-                    obj.concat(first)
+                    obj.merge(first)
                     pieces += rest
                 else:
                     piece = pieces.pop()
@@ -1045,7 +1045,7 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
                     if op == "paste":
                         obj.paste(args[0], piece)
                     else:
-                        obj.concat(piece)
+                        obj.merge(piece)
                 continue
             if name not in objs:
                 objs[name] = classes[name](*a0, *ctor_extra) if stem == "sparse" else classes[name](list(a0), *ctor_extra)
@@ -1140,15 +1140,15 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
             body = f"long long l, r; cin >> l >> r; pieces.push_back({s}.cut(l, r));"
         elif op == "split":
             body = (f"long long k; cin >> k; auto [x, y] = {s}.split(k); if ({s}.size()) return 2; "
-                    f"{s}.concat(x); pieces.push_back(std::move(y));")
+                    f"{s}.merge(x); pieces.push_back(std::move(y));")
         elif op == "trisect":
             body = (f"long long l, r; cin >> l >> r; auto [x, y, z] = {s}.trisect(l, r); if ({s}.size()) return 2; "
-                    f"{s}.concat(x); pieces.push_back(std::move(y)), pieces.push_back(std::move(z));")
-        elif op in ("paste", "concat"):
+                    f"{s}.merge(x); pieces.push_back(std::move(y)), pieces.push_back(std::move(z));")
+        elif op in ("paste", "merge"):
             read = "long long i, rv; cin >> i >> rv;" if op == "paste" else "long long rv; cin >> rv;"
             body = (f"{read} auto p = std::move(pieces.back()); pieces.pop_back(); " +
                     (f"if (rv) p.rangeReverse(0, p.size() - 1); " if "rangeReverse" in ops else "(void)rv; ") +
-                    (f"{s}.paste(i, p);" if op == "paste" else f"{s}.concat(p);"))
+                    (f"{s}.paste(i, p);" if op == "paste" else f"{s}.merge(p);"))
         elif op in SEQ_OPS:
             names = {"v": ["v"], "iv": ["i", "v"], "i": ["i"], "lr": ["l", "r"], "lrk": ["l", "r", "k"], "lri": ["l", "r", "i"],
                      "ivk": ["i", "v", "k"], "lrc": ["l", "r", "i"], "none": []}[SEQ_OPS[op]]

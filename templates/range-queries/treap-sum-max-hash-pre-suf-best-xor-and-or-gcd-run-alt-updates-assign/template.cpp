@@ -1,11 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-hash-pre-suf-best-xor-and-or-gcd-run-alt-updates-assign/template.cpp
-// @operations: append appendLeft concat cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeHash rangeHashReversed rangeMax rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeHash rangeHashReversed rangeMax rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
 //   appendLeft: log(N)*log(U) expected ?
-//   concat: log(N)*log(U) expected ?
 //   cut: log(N)*log(U) expected ?
 //   getAll: N
 //   insertAt: log(N)*log(U) expected ?
@@ -20,6 +19,7 @@
 //   maxPrefixSum: log(N)*log(U) expected ?
 //   maxSubarraySum: log(N)*log(U) expected ?
 //   maxSuffixSum: log(N)*log(U) expected ?
+//   merge: log(N)*log(U) expected ?
 //   moveRange: log(N)*log(U) expected ?
 //   paste: log(N)*log(U) expected ?
 //   pointAdd: log(N)*log(U) expected ?
@@ -180,9 +180,6 @@ struct ImplicitTreap {
 
     // O(logN * logU) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
-
-    // O(logN * logU) expected -- append all of other at the end; other is left empty
-    void concat(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
 
     // O(logN * logU) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
     ImplicitTreap cut(int l, int r) {
@@ -351,6 +348,9 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
         return res;
     }
+
+    // O(logN * logU) expected -- append all of other at the end; other is left empty
+    void merge(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
 
     // O(logN * logU) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     void moveRange(int l, int r, int i) {

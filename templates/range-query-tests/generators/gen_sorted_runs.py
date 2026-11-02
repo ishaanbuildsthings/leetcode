@@ -32,8 +32,8 @@ BASE = ["getAll", "pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointG
 AGG_OPS = {"sum": ["rangeSum"], "xor": ["rangeXorQuery"], "min": ["rangeMin"], "max": ["rangeMax"],
            "or": ["rangeOrQuery"], "and": ["rangeAndQuery"],
            "hash": ["isPalindrome", "rangeHash", "rangeHashReversed", "rangesEqual"]}
-SEQ = ["append", "appendLeft", "concat", "cut", "insertAt", "insertCopiesAt", "moveRange", "paste", "rangeReverse", "rangeRotateLeft",
-       "rangeRotateRight", "split", "trisect"]
+SEQ = ["append", "appendLeft", "cut", "insertAt", "insertCopiesAt", "merge", "moveRange", "paste", "rangeReverse",
+       "rangeRotateLeft", "rangeRotateRight", "split", "trisect"]
 VFIELDS = {"sum": ["sm"], "xor": ["xr"], "or": ["ov"], "and": ["av"], "hash": ["fh", "bh"]}  # per value-tree node
 WORD = {"sum": "sum", "xor": "xor", "min": "min", "max": "max", "or": "or", "and": "and", "hash": "hashes"}
 
@@ -735,7 +735,7 @@ def py_treap(aggs):
         other.top, other.n = 0, 0
 
     # O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
-    def concat(self, other):
+    def merge(self, other):
         self.paste(self.n, other)
 
     # O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty

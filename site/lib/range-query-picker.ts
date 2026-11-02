@@ -121,7 +121,7 @@ export type OpId =
   | "paste"
   | "split"
   | "trisect"
-  | "concat"
+  | "merge"
   | "insertCopiesAt"
   | "getAll"
   | "rangeHash"
@@ -294,7 +294,7 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "paste", signature: "paste(i, other)", description: "Insert all of another array of the same type starting at index i (other ends up empty)" },
           { id: "split", signature: "split(k)", description: "Split into two arrays: 0..k−1 and a[k]… (the original is left empty)" },
           { id: "trisect", signature: "trisect(l, r)", description: "Split into three arrays: 0..l−1, l..r, a[r+1]… (the original is left empty)" },
-          { id: "concat", signature: "concat(other)", description: "Append all of another array of the same type (other ends up empty)" },
+          { id: "merge", signature: "merge(other)", description: "Append all of another array of the same type (other ends up empty)" },
         ],
       },
     ],
@@ -665,7 +665,7 @@ export type TemplateView = RangeQueryTemplate & { file: "template" | "sparse" | 
 export const CHAR_SAFE_OPS: ReadonlySet<string> = new Set([
   "pointGet", "pointAssign", "pointChmax", "pointChmin", "rangeAssign", "rangeChmax", "rangeChmin", "rangeSortAsc",
   "rangeSortDesc", "getAll", "append", "appendLeft", "insertAt", "insertCopiesAt",
-  "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "concat",
+  "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "merge",
   "copyRange", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
   "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange",
   "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome",

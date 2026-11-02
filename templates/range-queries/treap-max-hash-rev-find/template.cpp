@@ -1,11 +1,10 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-max-hash-rev-find/template.cpp
-// @operations: append appendLeft concat cut find getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangesEqual rightmostGtX rightmostGteX split trisect
+// @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangesEqual rightmostGtX rightmostGteX split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected
-//   concat: log(N) expected
 //   cut: log(N) expected
 //   find: log(N) expected
 //   getAll: N
@@ -14,6 +13,7 @@
 //   isPalindrome: log(N) expected
 //   leftmostGtX: log(N) expected
 //   leftmostGteX: log(N) expected
+//   merge: log(N) expected
 //   moveRange: log(N) expected
 //   paste: log(N) expected
 //   pointAdd: log(N) expected
@@ -137,9 +137,6 @@ struct ImplicitTreap {
     // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN) expected -- append all of other at the end; other is left empty
-    void concat(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
-
     // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
     ImplicitTreap cut(int l, int r) {
         int a, b, c;
@@ -241,6 +238,9 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
         return res;
     }
+
+    // O(logN) expected -- append all of other at the end; other is left empty
+    void merge(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
 
     // O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     void moveRange(int l, int r, int i) {
