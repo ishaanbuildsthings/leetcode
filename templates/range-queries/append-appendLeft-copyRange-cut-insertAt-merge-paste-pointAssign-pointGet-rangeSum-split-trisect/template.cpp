@@ -33,17 +33,12 @@
 template <typename T>
 struct PersistentTreap {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    struct Pool {  // the node arrays (node 0 = the empty tree), shared with every piece cut from this treap
-        vector<T> val{T(0)};
-        vector<int> sz{0}, L{0}, R{0};
-        vector<S> sm{S(0)};
-    };
-    shared_ptr<Pool> pool;  // (freed with the last treap using it)
-    vector<T>& val;
-    vector<int>& sz;
-    vector<int>& L;
-    vector<int>& R;
-    vector<S>& sm;
+    // one node pool shared by every PersistentTreap<T>: cut / paste move nodes between them, so a piece from one can
+    // go into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over
+    // the whole run), so there is nothing to reset between test cases
+    static inline vector<T> val{T(0)};
+    static inline vector<int> sz{0}, L{0}, R{0};
+    static inline vector<S> sm{S(0)};
     int root = 0;
 
     static unsigned long long rnd() {
@@ -51,20 +46,10 @@ struct PersistentTreap {
         return g();
     }
 
-    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
-    explicit PersistentTreap(const vector<T>& arr = {}) : PersistentTreap(make_shared<Pool>()) {
-        root = build(arr, 0, (int)arr.size());
-    }
+    // O(N) -- arr: the initial array (leave it out to start empty)
+    explicit PersistentTreap(const vector<T>& arr = {}) { root = build(arr, 0, (int)arr.size()); }
 
-    // O(N) -- a PersistentTreap over arr that shares other's nodes, so pieces can move between the two (pieces cut from
-    // it share them already)
-    PersistentTreap(const vector<T>& arr, const PersistentTreap& other) : PersistentTreap(other.pool) {
-        root = build(arr, 0, (int)arr.size());
-    }
-
-    // an empty PersistentTreap on pool p
-    explicit PersistentTreap(shared_ptr<Pool> p)
-        : pool(p), val(p->val), sz(p->sz), L(p->L), R(p->R), sm(p->sm) {}
+    PersistentTreap makeEmpty() const { return PersistentTreap(); }  // (a new, empty one: same pool, like every one)
 
     // O(1) -- the current length of the array
     int size() const { return sz[root]; }
@@ -96,13 +81,13 @@ struct PersistentTreap {
         int a, b, c;
         cut(root, l, r, a, b, c);
         root = merge(a, c);
-        PersistentTreap piece(pool);
+        PersistentTreap piece = makeEmpty();
         piece.root = b;
         return piece;
     }
 
-    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
-    // treap's nodes (a piece cut from it, or built with PersistentTreap(arr, this one))
+    // O(logN) expected -- insert all of other (any PersistentTreap, e.g. a cut piece) so it starts at a[i]
+    // (0 <= i <= size()); other is left empty
     void paste(int i, PersistentTreap& other) {
         int x, y;
         split(root, i, x, y);
@@ -114,7 +99,7 @@ struct PersistentTreap {
 
     // O(logN) expected -- (a[0..k-1], a[k..]) as two PersistentTreaps of their own; this one is left empty
     pair<PersistentTreap, PersistentTreap> split(int k) {
-        PersistentTreap left(pool), right(pool);
+        PersistentTreap left = makeEmpty(), right = makeEmpty();
         split(root, k, left.root, right.root);
         root = 0;
         return {left, right};
@@ -122,7 +107,7 @@ struct PersistentTreap {
 
     // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PersistentTreaps of their own; this one is left empty
     tuple<PersistentTreap, PersistentTreap, PersistentTreap> trisect(int l, int r) {
-        PersistentTreap left(pool), mid(pool), right(pool);
+        PersistentTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         cut(root, l, r, left.root, mid.root, right.root);
         root = 0;
         return {left, mid, right};

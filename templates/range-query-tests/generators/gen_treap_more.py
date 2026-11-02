@@ -282,15 +282,12 @@ def python(kind, sp):
     F, tags = fields_tags(kind, sp)
     RV = sp["rev"]
     BR, FL = kind == "brackets", kind == "brackets" and "flip" in sp["U"]
-    slots = ["root", "val", "pri", "L", "R", "sz"] + F + tags + (["mod"] if kind == "affine" else ["oc"] + (["cc"] if FL else []) if BR else [])
-    ctor = ("def __init__(self, arr=(), mod=None, like=None):" if kind == "affine" else
-            "def __init__(self, brackets=(), openChar=\"(\"" + (", closeChar=\")\"" if FL else "") + ", like=None):" if BR else
-            "def __init__(self, arr=(), like=None):")
-    share = ("        else:\n            self.val, self.pri, self.L, self.R, self.sz = like.val, like.pri, like.L, like.R, like.sz\n" +
-             "".join(f"            self.{n} = like.{n}\n" for n in slots[6:]))
+    own = ["mod"] if kind == "affine" else ["oc"] + (["cc"] if FL else []) if BR else []  # (per treap; the nodes are shared)
+    ctor = ("def __init__(self, arr, mod):" if kind == "affine" else
+            "def __init__(self, brackets, openChar=\"(\"" + (", closeChar=\")\"" if FL else "") + "):" if BR else
+            "def __init__(self, arr=()):")
     zero = ("        self.mod = mod\n" if kind == "affine" else "") + (
-        "        self.oc = openChar\n" + ("        self.cc = closeChar\n" if FL else "") if BR else "") + "".join(
-        f"        self.{f} = [{IDENT[f]}]\n" for f in F + tags)
+        "        self.oc = openChar\n" + ("        self.cc = closeChar\n" if FL else "") if BR else "")
     if BR:  # a lone character: its +-1 is its sum; every prefix / suffix min is min(0, it), every max max(0, it)
         new_extra = ("        w = 1 if v == self.oc else -1\n        self.sm.append(w)\n" +
                      "".join(f"        self.{f}.append(w if w < 0 else 0)\n" for f in F if f in ("mn", "mnS")) +
@@ -361,16 +358,17 @@ def python(kind, sp):
     from gen_treap_algebra import PY_PIECES  # (lazy: gen_treap_algebra imports this module)
     pub.update(PY_PIECES)
     vfix = "v % mod" if kind == "affine" else "v"
-    out = (header("#", ops, kind, sp) + "\n" + wrap(describe(kind, sp), "#") + "import random\n\n\nclass ImplicitTreap:\n" +
-           slots_line(slots) +
-           (f"    # O(N) -- brackets: the sequence, a list of characters like [\"(\", \")\", \"(\"] (a str like \"()(\" works too);\n"
-            f"    # openChar: the character that opens (\"(\" unless you pass e.g. \"[\")" + ("" if FL else "; ")
-            + ("\n    # closeChar: the character that closes (every character must be one of the two)" if FL else "every other character closes") + f"\n    {ctor}\n" if BR else
-            f"    # O(N) -- arr: the initial array (may be empty){'; mod: the modulus p' if kind == 'affine' else ''}\n    {ctor}\n") +
-           "    # (like: an ImplicitTreap whose nodes this one shares, so pieces can move between the two; no reset needed)\n" +
-           "        if like is None:\n            self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree\n" +
-           "".join("    " + ln + "\n" for ln in zero.rstrip("\n").split("\n")) + share +
-           (f"        self.root = self._build(list(brackets))\n" if BR else f"        self.root = self._build([{vfix} for v in arr])\n")
+    from gen_treap_algebra import py_skeleton
+    ctor_text = (slots_line(["root"] + own) +
+                 (f"    # O(N) -- brackets: the sequence, a list of characters like [\"(\", \")\", \"(\"] (a str like \"()(\" works too);\n"
+                  f"    # openChar: the character that opens (\"(\" unless you pass e.g. \"[\")" + ("" if FL else "; ")
+                  + ("\n    # closeChar: the character that closes (every character must be one of the two)" if FL else "every other character closes") + f"\n    {ctor}\n" if BR else
+                  f"    # O(N) -- arr: the initial array (a list{'' if kind == 'affine' else '; leave it out to start empty'}){'; mod: the modulus' if kind == 'affine' else ''}\n    {ctor}\n") +
+                 zero + (f"        self.root = self._build(list(brackets))\n" if BR else f"        self.root = self._build([{vfix} for v in arr])\n"))
+    empty_args = "[], self.mod" if kind == "affine" else "[], self.oc" + (", self.cc" if FL else "") if BR else ""
+    empty_text = f"\n    def _empty(self):  # a new, empty ImplicitTreap (on the same pool, like every one)\n        return ImplicitTreap({empty_args})\n"
+    out = (header("#", ops, kind, sp) + "\n" + wrap(describe(kind, sp), "#") + "import random\n\n\n" +
+           py_skeleton([(f, None, IDENT[f], None) for f in F], [(t, None, IDENT[t], None) for t in tags], ctor=ctor_text, empty=empty_text).rstrip("\n") + "\n"
            + f"\n    # O(1) -- the current length of the array\n    def size(self):\n"
            "        return self.sz[self.root]\n\n" + "\n".join(pub[op] for op in ops) + '''
     # ---- internals ----
@@ -421,7 +419,8 @@ PY_SEQ = {
         self._applyRev(b)
         self._join(a, b, c)
 ''',
-    "rangeRotateLeft": '''    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    "rangeRotateLeft": '''    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
+    # it is taken mod the length (negative shifts right)
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1
@@ -430,7 +429,8 @@ PY_SEQ = {
             b = self._merge(b2, b1)
         self._join(a, b, c)
 ''',
-    "rangeRotateRight": '''    # O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
+    "rangeRotateRight": '''    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
+    # length (negative shifts left)
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 ''',
@@ -646,6 +646,25 @@ def cpp_apply_push(kind, sp, F, tags):
 ''', f"        if ({cond}) {{\n            applyAff(L[x], {M}, {C}), applyAff(R[x], {M}, {C});\n            {reset};\n        }}\n")
 
 
+def staticify(text, kind, FL):
+    """every node array static (one pool shared by every ImplicitTreap<T>: pieces move between any of them); mod /
+    the bracket characters stay per treap, and makeEmpty() makes a new empty one with the same"""
+    from gen_treap_algebra import POOL_NOTE
+    a = text.index("    int root = 0;\n")
+    b = text.index("\n    static unsigned long long rnd()", a)
+    lines = []
+    for ln in text[a:b].split("\n")[1:]:
+        lines.append(("    static inline " + ln[4:]) if ln.startswith("    vector<") else ln)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    body = wrap(POOL_NOTE.format(cls="ImplicitTreap<T>"), "    //") + "\n".join(lines) + "\n    int root = 0;\n"
+    text = text[:a] + body + text[b:]
+    args = "vector<T>{}, mod" if kind == "affine" else "vector<T>{}, oc" + (", cc" if FL else "") if kind == "brackets" else ""
+    m = text.index("\n    // O(1) -- the current length of the array")
+    return (text[:m] + f"\n    ImplicitTreap makeEmpty() const {{ return ImplicitTreap({args}); }}  // (same " +
+            ("modulus" if kind == "affine" else "characters" if kind == "brackets" else "everything") + ")\n" + text[m:])
+
+
 def poolify(text, kind):
     """the members of a treap made here -> a node pool shared by the treap and the pieces cut from it (references to
     its arrays keep the code as it is), with the constructors on top of it"""
@@ -808,7 +827,7 @@ def cpp(kind, sp):
     ctor_doc = ("// O(N) -- brackets: the sequence, e.g. vector<char>(str.begin(), str.end()); openChar: the character that\n"
                 "    // opens ('(' unless you pass e.g. '[')" + ("; closeChar: the one that closes (every character must be one of\n    // the two)"
                                                                   if FL else "; every other character closes") if BR else
-                "// O(N) -- arr: the initial array (may be empty)" + ("; mod: the modulus p" if kind == "affine" else ""))
+                "// O(N) -- arr: the initial array" + ("; mod: the modulus" if kind == "affine" else " (leave it out to start empty)"))
     out = (header("//", ops, kind, sp) + "\n" + wrap(describe(kind, sp), "//") + tline +
            "\ntemplate <typename T>\nstruct ImplicitTreap {\n" + using +
            '''    int root = 0;
@@ -843,7 +862,7 @@ def cpp(kind, sp):
     void push(int x) {  // hand x's pending tags to its children
 ''' + push + '''    }
 ''' if push else "") + CPP_TAIL)
-    out = poolify(out, kind)
+    out = staticify(out, kind, FL)
     return out if push else no_push(out, "cpp")
 
 
@@ -877,7 +896,8 @@ def cpp_seq(nv):
         root = merge(merge(a, b), c);
     }
 ''',
-        "rangeRotateLeft": '''    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+        "rangeRotateLeft": '''    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
+    // it is taken mod the length (negative shifts right)
     void rangeRotateLeft(int l, int r, long long k) {
         int a, b, c, len = r - l + 1;
         cut(l, r, a, b, c);
@@ -890,7 +910,8 @@ def cpp_seq(nv):
         root = merge(merge(a, b), c);
     }
 ''',
-        "rangeRotateRight": "    // O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left\n"
+        "rangeRotateRight": "    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the\n"
+                        "    // length (negative shifts left)\n"
                             "    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }\n",
         "moveRange": '''    // O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     void moveRange(int l, int r, int i) {

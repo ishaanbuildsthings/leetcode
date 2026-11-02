@@ -14,8 +14,7 @@ import os
 
 import shutil
 
-from gen_pair_treap import pool_members
-import gen_pair_treap
+from gen_treap_algebra import POOL_NOTE
 from gen_treap import wrap
 from gen_treap_more import slots_line
 from note_lang import folder_name, write_template
@@ -53,15 +52,14 @@ def python(ops, sums):
 
 
 class PersistentTreap:
-''' + slots_line(slots) + '''
-    # O(N) -- arr: the initial array (may be empty); like: a PersistentTreap whose nodes this one shares, so pieces can
-    # move between the two (pieces cut from it share them already). No reset between test cases
-    def __init__(self, arr=(), like=None):
-        if like is None:
-            self.val, self.sz, self.L, self.R = [0], [0], [0], [0]  # node 0 = the empty tree
-''' + ("            self.rev = [0]\n" if RV else "") + ("            self.sm = [0]\n" if S else "") + '''        else:
-            self.val, self.sz, self.L, self.R = like.val, like.sz, like.L, like.R
-''' + ("            self.rev = like.rev\n" if RV else "") + ("            self.sm = like.sm\n" if S else "") + '''        self.root = self._build(list(arr), 0, len(arr))
+''' + wrap(POOL_NOTE.format(cls="PersistentTreap"), "    #") + "".join(f"    {n} = [0]\n" for n in slots[1:]) + '''    __slots__ = ("root",)
+
+    # O(N) -- arr: the initial array (a list; leave it out to start empty)
+    def __init__(self, arr=()):
+        self.root = self._build(list(arr), 0, len(arr))
+
+    def _empty(self):  # a new, empty PersistentTreap (on the same pool, like every one)
+        return PersistentTreap()
 
     # O(1) -- the current length of the array
     def size(self):
@@ -91,12 +89,12 @@ class PersistentTreap:
     def cut(self, l, r):
         a, b, c = self._cut(self.root, l, r)
         self.root = self._merge(a, c)
-        piece = PersistentTreap(like=self)
+        piece = self._empty()
         piece.root = b
         return piece
 
-    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
-    # treap's nodes (a piece cut from it, or built with like=)
+    # O(logN) expected -- insert all of other (any PersistentTreap, e.g. a cut piece) so it starts at a[i]
+    # (0 <= i <= size()); other is left empty
     def paste(self, i, other):
         x, y = self._split(self.root, i)
         self.root = self._merge(self._merge(x, other.root), y)
@@ -109,14 +107,14 @@ class PersistentTreap:
 
     # O(logN) expected -- (a[0..k-1], a[k..]) as two PersistentTreaps of their own; this one is left empty
     def split(self, k):
-        left, right = PersistentTreap(like=self), PersistentTreap(like=self)
+        left, right = self._empty(), self._empty()
         left.root, right.root = self._split(self.root, k)
         self.root = 0
         return left, right
 
     # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PersistentTreaps of their own; this one is left empty
     def trisect(self, l, r):
-        left, mid, right = PersistentTreap(like=self), PersistentTreap(like=self), PersistentTreap(like=self)
+        left, mid, right = self._empty(), self._empty(), self._empty()
         left.root, mid.root, right.root = self._cut(self.root, l, r)
         self.root = 0
         return left, mid, right
@@ -251,28 +249,18 @@ def cpp(ops, sums):
         "// T: int, long long, ...; sums are kept in S (long long for small T)." if S else "// T: int, long long, ...") + '''
 template <typename T>
 struct PersistentTreap {
-''' + ("    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n" if S else "") + '''''' + pool_members(["    vector<T> val{T(0)};", "    vector<int> sz{0}, L{0}, R{0};"] + (["    vector<char> rev{0};"] if RV else []) +
-                     (["    vector<S> sm{S(0)};"] if S else []), "PersistentTreap") + '''    int root = 0;
+''' + ("    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n" if S else "") + '''''' + (wrap(POOL_NOTE.format(cls="PersistentTreap<T>"), "    //") + "    static inline vector<T> val{T(0)};\n    static inline vector<int> sz{0}, L{0}, R{0};\n" +
+       ("    static inline vector<char> rev{0};\n" if RV else "") + ("    static inline vector<S> sm{S(0)};\n" if S else "")) + '''    int root = 0;
 
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
         return g();
     }
 
-    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
-    explicit PersistentTreap(const vector<T>& arr = {}) : PersistentTreap(make_shared<Pool>()) {
-        root = build(arr, 0, (int)arr.size());
-    }
+    // O(N) -- arr: the initial array (leave it out to start empty)
+    explicit PersistentTreap(const vector<T>& arr = {}) { root = build(arr, 0, (int)arr.size()); }
 
-    // O(N) -- a PersistentTreap over arr that shares other's nodes, so pieces can move between the two (pieces cut from
-    // it share them already)
-    PersistentTreap(const vector<T>& arr, const PersistentTreap& other) : PersistentTreap(other.pool) {
-        root = build(arr, 0, (int)arr.size());
-    }
-
-    // an empty PersistentTreap on pool p
-    explicit PersistentTreap(shared_ptr<Pool> p)
-        : ''' + gen_pair_treap.pool_init + ''' {}
+    PersistentTreap makeEmpty() const { return PersistentTreap(); }  // (a new, empty one: same pool, like every one)
 
     // O(1) -- the current length of the array
     int size() const { return sz[root]; }
@@ -304,13 +292,13 @@ struct PersistentTreap {
         int a, b, c;
         cut(root, l, r, a, b, c);
         root = merge(a, c);
-        PersistentTreap piece(pool);
+        PersistentTreap piece = makeEmpty();
         piece.root = b;
         return piece;
     }
 
-    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
-    // treap's nodes (a piece cut from it, or built with PersistentTreap(arr, this one))
+    // O(logN) expected -- insert all of other (any PersistentTreap, e.g. a cut piece) so it starts at a[i]
+    // (0 <= i <= size()); other is left empty
     void paste(int i, PersistentTreap& other) {
         int x, y;
         split(root, i, x, y);
@@ -322,7 +310,7 @@ struct PersistentTreap {
 
     // O(logN) expected -- (a[0..k-1], a[k..]) as two PersistentTreaps of their own; this one is left empty
     pair<PersistentTreap, PersistentTreap> split(int k) {
-        PersistentTreap left(pool), right(pool);
+        PersistentTreap left = makeEmpty(), right = makeEmpty();
         split(root, k, left.root, right.root);
         root = 0;
         return {left, right};
@@ -330,7 +318,7 @@ struct PersistentTreap {
 
     // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PersistentTreaps of their own; this one is left empty
     tuple<PersistentTreap, PersistentTreap, PersistentTreap> trisect(int l, int r) {
-        PersistentTreap left(pool), mid(pool), right(pool);
+        PersistentTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         cut(root, l, r, left.root, mid.root, right.root);
         root = 0;
         return {left, mid, right};

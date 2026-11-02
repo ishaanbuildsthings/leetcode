@@ -52,54 +52,34 @@ INF = float("inf")
 
 
 class SortedRunsSumMinAndSeq:
-    # O(N log U) -- arr: the initial array (may be empty); every value a[i] ever holds must lie in [valLo, valHi]
-    # (U = valHi - valLo + 1); like: one whose nodes this one shares (then valLo / valHi are its), so pieces can
-    # move between the two (pieces cut from it share them already). No reset between test cases
-    def __init__(self, arr=(), valLo=0, valHi=0, like=None):
+    # one node pool shared by every SortedRunsSumMinAndSeq: cut / paste move nodes between them, so a piece from one
+    # can go into any other (node 0 = the empty tree). Nodes freed by merges are reused, and there is nothing to reset
+    # between test cases
+    Lc, Rc, cnt = [0], [0], [0]  # value node 0 = the empty tree
+    sm = [0]
+    av = [-1]
+    free = []  # value nodes freed by merges, reused first
+    # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
+    # subtree length TS, pending reverse TF, subtree sum / min / and (O: the run's own min / max)
+    TL = [0]
+    TR = [0]
+    TP = [0]
+    TV = [0]
+    TN = [0]
+    TD = [False]
+    TS = [0]
+    TF = [False]
+    Ssm = [0]
+    Omn = [INF]
+    Smn = [INF]
+    Sav = [-1]
+    tfree = []
+
+    # O(N log U) -- arr: the initial array (a list); every value a[i] ever holds must lie in [valLo, valHi]
+    # (U = valHi - valLo + 1)
+    def __init__(self, arr, valLo, valHi):
+        self.vlo, self.vhi = valLo, valHi
         n = self.n = len(arr)
-        if like is None:
-            self.vlo, self.vhi = valLo, valHi
-            self.Lc, self.Rc, self.cnt = [0], [0], [0]  # value node 0 = the empty tree
-            self.sm = [0]
-            self.av = [-1]
-            self.free = []  # value nodes freed by merges, reused first
-            # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-            # subtree length TS, pending reverse TF, subtree sum / min / and (O: the run's own min / max)
-            self.TL = [0]
-            self.TR = [0]
-            self.TP = [0]
-            self.TV = [0]
-            self.TN = [0]
-            self.TD = [False]
-            self.TS = [0]
-            self.TF = [False]
-            self.Ssm = [0]
-            self.Omn = [INF]
-            self.Smn = [INF]
-            self.Sav = [-1]
-            self.tfree = []
-        else:
-            self.vlo = like.vlo
-            self.vhi = like.vhi
-            self.Lc = like.Lc
-            self.Rc = like.Rc
-            self.cnt = like.cnt
-            self.sm = like.sm
-            self.av = like.av
-            self.free = like.free
-            self.TL = like.TL
-            self.TR = like.TR
-            self.TP = like.TP
-            self.TV = like.TV
-            self.TN = like.TN
-            self.TD = like.TD
-            self.TS = like.TS
-            self.TF = like.TF
-            self.Ssm = like.Ssm
-            self.Omn = like.Omn
-            self.Smn = like.Smn
-            self.Sav = like.Sav
-            self.tfree = like.tfree
         stack = []  # O(N) build: the treap's right spine
         for v in arr:
             x, last = self._run(self._leaf(v), 1, False), 0
@@ -117,6 +97,9 @@ class SortedRunsSumMinAndSeq:
     # O(1) -- the current length
     def size(self):
         return self.n
+
+    def _empty(self):  # a new, empty one with the same value range (on the same pool, like every one)
+        return SortedRunsSumMinAndSeq([], self.vlo, self.vhi)
 
     # O(log N + log U) expected -- a[i]
     def pointGet(self, i):
@@ -196,12 +179,12 @@ class SortedRunsSumMinAndSeq:
         A, B, C = self._extract(l, r)
         self.top = self._tmerge(A, C)
         self.n -= r - l + 1
-        piece = SortedRunsSumMinAndSeq(like=self)
+        piece = self._empty()
         piece.top, piece.n = B, r - l + 1
         return piece
 
-    # O(log N + log U) amortized -- insert other at a[i] (0 <= i <= size()), leaving it empty; it must share
-    # this one's nodes (a piece cut from it, or built with like=)
+    # O(log N + log U) amortized -- insert all of other (one with the same valLo / valHi, e.g. a cut piece) so it
+    # starts at a[i] (0 <= i <= size()); other is left empty
     def paste(self, i, other):
         self.n += other.n
         A, C = self._tsplit(self.top, i)
@@ -214,7 +197,7 @@ class SortedRunsSumMinAndSeq:
 
     # O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
     def split(self, k):
-        left, right = [SortedRunsSumMinAndSeq(like=self) for _ in range(2)]
+        left, right = self._empty(), self._empty()
         left.top, right.top = self._tsplit(self.top, k)
         left.n, right.n = k, self.n - k
         self.top, self.n = 0, 0
@@ -222,13 +205,14 @@ class SortedRunsSumMinAndSeq:
 
     # O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
     def trisect(self, l, r):
-        left, mid, right = [SortedRunsSumMinAndSeq(like=self) for _ in range(3)]
+        left, mid, right = self._empty(), self._empty(), self._empty()
         left.top, mid.top, right.top = self._extract(l, r)
         left.n, mid.n, right.n = l, r - l + 1, self.n - r - 1
         self.top, self.n = 0, 0
         return left, mid, right
 
-    # O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first; any k, negative = right)
+    # O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first); k can be huge or
+    # negative: it is taken mod the length (negative = right)
     def rangeRotateLeft(self, l, r, k):
         k %= r - l + 1
         if k:
@@ -236,7 +220,8 @@ class SortedRunsSumMinAndSeq:
             X, Y = self._tsplit(B, k)
             self._join(A, self._tmerge(Y, X), C)
 
-    # O(log N + log U) amortized -- rotate a[l..r] right by k (any k, negative = left)
+    # O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod
+    # the length (negative = left)
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 

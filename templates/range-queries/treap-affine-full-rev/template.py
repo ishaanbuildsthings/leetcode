@@ -41,26 +41,27 @@ import random
 
 
 class ImplicitTreap:
-    __slots__ = ('root', 'val', 'pri', 'L', 'R', 'sz', 'sm', 'rev', 'tm', 'tc', 'mod')
+    # one node pool shared by every ImplicitTreap: cut / paste move nodes between them, so a piece from one can go
+    # into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
+    # whole run), so there is nothing to reset between test cases
+    val = [0]
+    pri = [0]
+    L = [0]
+    R = [0]
+    sz = [0]
+    sm = [0]
+    rev = [0]
+    tm = [1]
+    tc = [0]
+    __slots__ = ('root', 'mod')
 
-    # O(N) -- arr: the initial array (may be empty); mod: the modulus p
-    # (like: an ImplicitTreap whose nodes this one shares, so pieces can move between the two; no reset needed)
-    def __init__(self, arr=(), mod=None, like=None):
-        if like is None:
-            self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
-            self.mod = mod
-            self.sm = [0]
-            self.rev = [0]
-            self.tm = [1]
-            self.tc = [0]
-        else:
-            self.val, self.pri, self.L, self.R, self.sz = like.val, like.pri, like.L, like.R, like.sz
-            self.sm = like.sm
-            self.rev = like.rev
-            self.tm = like.tm
-            self.tc = like.tc
-            self.mod = like.mod
+    # O(N) -- arr: the initial array (a list); mod: the modulus
+    def __init__(self, arr, mod):
+        self.mod = mod
         self.root = self._build([v % mod for v in arr])
+
+    def _empty(self):  # a new, empty ImplicitTreap (on the same pool, like every one)
+        return ImplicitTreap([], self.mod)
 
     # O(1) -- the current length of the array
     def size(self):
@@ -78,7 +79,7 @@ class ImplicitTreap:
     def cut(self, l, r):
         a, b, c = self._cut(l, r)
         self.root = self._merge(a, c)
-        piece = ImplicitTreap(like=self)
+        piece = self._empty()
         piece.root = b
         return piece
 
@@ -118,8 +119,8 @@ class ImplicitTreap:
         x, y = self._split(self._merge(a, c), i)
         self.root = self._merge(self._merge(x, b), y)
 
-    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
-    # share this treap's nodes (a piece cut from it, or built with like=)
+    # O(logN) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i]
+    # (0 <= i <= size()); other is left empty
     def paste(self, i, other):
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, other.root), c)
@@ -175,7 +176,8 @@ class ImplicitTreap:
         self._applyRev(b)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any integer k, negative shifts right
+    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
+    # it is taken mod the length (negative shifts right)
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1
@@ -184,7 +186,8 @@ class ImplicitTreap:
             b = self._merge(b2, b1)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
+    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
+    # length (negative shifts left)
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 
@@ -197,14 +200,14 @@ class ImplicitTreap:
 
     # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
     def split(self, k):
-        left, right = ImplicitTreap(like=self), ImplicitTreap(like=self)
+        left, right = self._empty(), self._empty()
         left.root, right.root = self._split(self.root, k)
         self.root = 0
         return left, right
 
     # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
     def trisect(self, l, r):
-        left, mid, right = ImplicitTreap(like=self), ImplicitTreap(like=self), ImplicitTreap(like=self)
+        left, mid, right = self._empty(), self._empty(), self._empty()
         left.root, mid.root, right.root = self._cut(l, r)
         self.root = 0
         return left, mid, right

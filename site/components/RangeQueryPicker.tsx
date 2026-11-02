@@ -1,6 +1,6 @@
 "use client";
 
-import { TemplatePicker, type PickerCatalog } from "@/components/TemplatePicker";
+import { TemplatePicker, type CtorNote, type PickerCatalog } from "@/components/TemplatePicker";
 import {
   OP_GROUPS,
   DATA_STRUCTURE_TYPES,
@@ -47,8 +47,8 @@ const UPDATE_OPS = new Set<string>(
 );
 
 // What each constructor argument is, by its name in the source ("lo" / "hi" are covered by the sparse sentences).
-const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
-  arr: { py: "arr: the initial array (a list), 0-indexed", cpp: "arr: the initial array (vector<long long>), 0-indexed" },
+const CTOR_ARG_NOTES: Record<string, CtorNote> = {
+  arr: { py: "arr: the initial array (a list), 0-indexed", cpp: "arr: the initial array (vector<long long>), 0-indexed", inCall: true },
   a: { py: "a: the initial array (a list), 0-indexed", cpp: "a: the initial array (vector<long long>), 0-indexed" },
   values: {
     py: "values: the nonzero entries, as a list of (index, value) pairs (distinct indices in [lo, hi], any order)",
@@ -138,7 +138,7 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     t.chars
       ? {
           ...CTOR_ARG_NOTES,
-          arr: { py: 'arr: the initial array, a list of characters, e.g. list(s) for a string s, 0-indexed', cpp: "arr: the initial array as vector<char>, e.g. vector<char>(s.begin(), s.end()), 0-indexed" },
+          arr: { py: 'arr: the initial array, a list of characters, e.g. list(s) for a string s, 0-indexed', cpp: "arr: the initial array as vector<char>, e.g. vector<char>(s.begin(), s.end()), 0-indexed", inCall: true },
           a: { py: 'a: the initial array, a list of characters, e.g. list(s) for a string s, 0-indexed', cpp: "a: the initial array as vector<char>, e.g. vector<char>(s.begin(), s.end()), 0-indexed" },
         }
       : CTOR_ARG_NOTES,

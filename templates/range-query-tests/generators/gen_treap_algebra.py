@@ -230,7 +230,7 @@ def header(cm, s):
     lines += ["  node: " + " ".join(f"{f}[1*N]" for f in ["val", "sz", "L", "R", "pri"] + [f[0] for f in fields]),
               "  tags: " + (" ".join(f"{t[0]}[1*N]" for t in tags) or "none"), "  other: " + ("where[1*N]" if s.find else "none"),
               "  note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)" +
-              "; a treap and the pieces cut from it share their nodes (freed with the last of them: no reset needed)" +
+              "; every ImplicitTreap<T> shares one node pool (pieces move between any of them; nothing to reset)" +
               ("; find: a parent per node and a map value -> node" if s.find else "")]
     return "\n".join(f"{cm} {x}" for x in lines) + "\n"
 
@@ -248,23 +248,42 @@ def describe(s):
 
 
 
-def py_skeleton(F, TG, extra=()):
-    """the class line, __slots__ and __init__ of a treap that owns its node lists (pieces cut from it share them).
-    F / TG: (name, C++ type, Python node-0 value, C++ node-0 value) per node array; extra: (name, Python new value)
-    for other shared state (the find map)"""
-    names = ["val", "pri", "L", "R", "sz"] + [f[0] for f in F] + [t[0] for t in TG]
-    own = [f"            self.{n} = [{v}]" for n, v in [(f[0], f[2]) for f in F] + [(t[0], t[2]) for t in TG]]
-    own += [f"            self.{n} = {v}" for n, v in extra]
-    share = ["            self.val, self.pri, self.L, self.R, self.sz = like.val, like.pri, like.L, like.R, like.sz"]
-    share += [f"            self.{n} = like.{n}" for n in names[5:] + [e[0] for e in extra]]
-    return (f"class ImplicitTreap:\n" + slots_line(["root"] + names + [e[0] for e in extra]) +
-            """    # O(N) -- arr: the initial array (may be empty); like: an ImplicitTreap whose nodes this one shares, so pieces
-    # can move between the two (pieces cut from a treap share its nodes already). No reset between test cases
-    def __init__(self, arr=(), like=None):
-        if like is None:
-            self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
-""" + "".join(x + "\n" for x in own) + "        else:\n" + "".join(x + "\n" for x in share) +
-            "        self.root = self._build(list(arr))\n\n")
+POOL_NOTE = ("one node pool shared by every {cls}: cut / paste move nodes between them, so a piece from one can go "
+             "into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the "
+             "whole run), so there is nothing to reset between test cases")
+
+
+def py_skeleton(F, TG, extra=(), cls="ImplicitTreap", ctor=None, empty=None):
+    """the class line, the node lists (class-level: every instance shares them) and the constructor. extra: (name,
+    Python value) more class-level state (the find map); ctor / empty: the constructor and _empty text when they are not
+    the plain (arr) ones"""
+    names = [("val", "0"), ("pri", "0"), ("L", "0"), ("R", "0"), ("sz", "0")] + [(f[0], f[2]) for f in F] + [(t[0], t[2]) for t in TG]
+    return (f"class {cls}:\n" + wrap(POOL_NOTE.format(cls=cls), "    #") +
+            "".join(f"    {n} = [{v}]\n" for n, v in names) + "".join(f"    {n} = {v}\n" for n, v in extra) +
+            (ctor or f'''    __slots__ = ("root",)
+
+    # O(N) -- arr: the initial array (a list; leave it out to start empty)
+    def __init__(self, arr=()):
+        self.root = self._build(list(arr))
+''') + (empty or f'''
+    def _empty(self):  # a new, empty {cls} (on the same pool, like every one)
+        return {cls}()
+''') + "\n")
+
+
+def cpp_skeleton(F, TG, extra=(), cls="ImplicitTreap"):
+    """the node arrays (static: every instance shares them) and the plain constructor. extra: (C++ type, name) more
+    shared state"""
+    arrays = [("T", "val", "T(0)"), ("unsigned long long", "pri", "0"), ("int", "L", "0"), ("int", "R", "0"), ("int", "sz", "0")]
+    arrays += [(f[1], f[0], f[3]) for f in F] + [(t[1], t[0], t[3]) for t in TG]
+    return (wrap(POOL_NOTE.format(cls=cls + "<T>"), "    //") + "".join(f"    static inline vector<{t}> {n}{{{v}}};\n" for t, n, v in arrays) +
+            "".join(f"    static inline {t} {n};\n" for t, n in extra) + f"""    int root = 0;
+
+    // O(N) -- arr: the initial array (leave it out to start empty)
+    explicit {cls}(const vector<T>& arr = {{}}) {{ root = build(arr); }}
+
+    {cls} makeEmpty() const {{ return {cls}(); }}  // (a new, empty one)
+""")
 
 
 SAFE_HASH = '''    struct SafeHash {  // splitmix64 with a seed random per run (the default hash of an integer is easy to attack)
@@ -277,42 +296,6 @@ SAFE_HASH = '''    struct SafeHash {  // splitmix64 with a seed random per run (
         }
     };
 '''
-
-
-def cpp_skeleton(F, TG, extra=(), ctors=None):
-    """the node pool of a treap (shared with the pieces cut from it, freed with the last of them), references to its
-    arrays (so the code reads val[x], not pool->val[x]), and the constructors. extra: (C++ type, name) more shared
-    state; ctors: the public constructors' text when they are not the plain (arr) / (arr, other) ones"""
-    arrays = [("T", "val", "T(0)"), ("unsigned long long", "pri", "0"), ("int", "L", "0"), ("int", "R", "0"), ("int", "sz", "0")]
-    arrays += [(f[1], f[0], f[3]) for f in F] + [(t[1], t[0], t[3]) for t in TG]
-    names = [a[1] for a in arrays] + [e[1] for e in extra]
-    pool = "".join(f"        vector<{t}> {n}{{{v}}};\n" for t, n, v in arrays) + "".join(f"        {t} {n};\n" for t, n in extra)
-    refs = "".join(f"    vector<{t}>& {n};\n" for t, n, v in arrays) + "".join(f"    {t}& {n};\n" for t, n in extra)
-    parts, lines = ["pool(p)"] + [f"{n}(p->{n})" for n in names], [""]
-    for x in parts:  # (wrapped at 120 columns after the 10-column ": " indent)
-        if lines[-1] and len(lines[-1]) + len(x) + 2 > 104:
-            lines[-1] += ","
-            lines.append("")
-        lines[-1] += (", " if lines[-1] and not lines[-1].endswith(",") else "") + x
-    init = "\n          ".join(lines)
-    if ctors is None:
-        ctors = """    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
-    explicit ImplicitTreap(const vector<T>& arr = {}) : ImplicitTreap(make_shared<Pool>()) { root = build(arr); }
-
-    // O(N) -- a treap over arr that shares other's nodes, so pieces can move between the two (pieces cut from a treap
-    // share its nodes already)
-    ImplicitTreap(const vector<T>& arr, const ImplicitTreap& other) : ImplicitTreap(other.pool) { root = build(arr); }
-"""
-    return f"""    struct Pool {{  // the node arrays: node 0 = the empty tree
-{pool}    }};
-    shared_ptr<Pool> pool;  // (shared by this treap and every piece cut from it; freed with the last of them)
-{refs}    int root = 0;
-
-{ctors}
-    // an empty treap on pool p
-    explicit ImplicitTreap(shared_ptr<Pool> p)
-        : {init} {{}}
-"""
 
 
 # ================================================================================================ Python
@@ -492,7 +475,7 @@ def py_public(s):
     pub.update(PY_SEQ)
     pub.update(PY_PIECES)
     if s.find:
-        pub["find"] = '''    # O(logN) expected -- the index of x, or -1 if x isn't in this treap (the values must be distinct)
+        pub["find"] = '''    # O(logN) expected -- the index of x, or -1 if x isn't in this treap (values distinct across all treaps)
     def find(self, x):
         t = self.where.get(x, 0)
         if not t or self.val[t] != x:
@@ -847,7 +830,8 @@ PY_SEQ = {
         self._applyRev(b)
         self._join(a, b, c)
 ''',
-    "rangeRotateLeft": '''    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
+    "rangeRotateLeft": '''    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
+    # it is taken mod the length (negative shifts right)
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1
@@ -856,7 +840,8 @@ PY_SEQ = {
             b = self._merge(b2, b1)
         self._join(a, b, c)
 ''',
-    "rangeRotateRight": '''    # O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
+    "rangeRotateRight": '''    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
+    # length (negative shifts left)
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 ''',
@@ -887,12 +872,12 @@ PY_PIECES = {
     def cut(self, l, r):
         a, b, c = self._cut(l, r)
         self.root = self._merge(a, c)
-        piece = ImplicitTreap(like=self)
+        piece = self._empty()
         piece.root = b
         return piece
 ''',
-    "paste": '''    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
-    # share this treap's nodes (a piece cut from it, or built with like=)
+    "paste": '''    # O(logN) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i]
+    # (0 <= i <= size()); other is left empty
     def paste(self, i, other):
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, other.root), c)
@@ -905,14 +890,14 @@ PY_PIECES = {
 ''',
     "split": '''    # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
     def split(self, k):
-        left, right = ImplicitTreap(like=self), ImplicitTreap(like=self)
+        left, right = self._empty(), self._empty()
         left.root, right.root = self._split(self.root, k)
         self.root = 0
         return left, right
 ''',
     "trisect": '''    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
     def trisect(self, l, r):
-        left, mid, right = ImplicitTreap(like=self), ImplicitTreap(like=self), ImplicitTreap(like=self)
+        left, mid, right = self._empty(), self._empty(), self._empty()
         left.root, mid.root, right.root = self._cut(l, r)
         self.root = 0
         return left, mid, right
@@ -1139,7 +1124,7 @@ def cpp_public(s):
     pub.update(CPP_SEQ)
     pub.update(CPP_PIECES)
     if s.find:
-        pub["find"] = '''    // O(logN) expected -- the index of x, or -1 if x isn't in this treap (the values must be distinct)
+        pub["find"] = '''    // O(logN) expected -- the index of x, or -1 if x isn't in this treap (values distinct across all treaps)
     int find(T x) {
         auto it = where.find(x);
         if (it == where.end() || val[it->second] != x) return -1;
@@ -1457,7 +1442,8 @@ CPP_SEQ = {
         root = merge(merge(a, b), c);
     }
 ''',
-    "rangeRotateLeft": '''    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
+    "rangeRotateLeft": '''    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
+    // it is taken mod the length (negative shifts right)
     void rangeRotateLeft(int l, int r, long long k) {
         int a, b, c, len = r - l + 1;
         cut(l, r, a, b, c);
@@ -1470,7 +1456,8 @@ CPP_SEQ = {
         root = merge(merge(a, b), c);
     }
 ''',
-    "rangeRotateRight": "    // O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left\n"
+    "rangeRotateRight": "    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the\n"
+                        "    // length (negative shifts left)\n"
                         "    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }\n",
     "moveRange": '''    // O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     void moveRange(int l, int r, int i) {
@@ -1503,13 +1490,13 @@ CPP_PIECES = {
         int a, b, c;
         cut(l, r, a, b, c);
         root = merge(a, c);
-        ImplicitTreap piece(pool);
+        ImplicitTreap piece = makeEmpty();
         piece.root = b;
         return piece;
     }
 ''',
-    "paste": '''    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
-    // share this treap's nodes (a piece cut from it, or built with ImplicitTreap(arr, this one))
+    "paste": '''    // O(logN) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i]
+    // (0 <= i <= size()); other is left empty
     void paste(int i, ImplicitTreap& other) {
         int a, c;
         split(root, i, a, c);
@@ -1522,7 +1509,7 @@ CPP_PIECES = {
 ''',
     "split": '''    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
     pair<ImplicitTreap, ImplicitTreap> split(int k) {
-        ImplicitTreap left(pool), right(pool);
+        ImplicitTreap left = makeEmpty(), right = makeEmpty();
         split(root, k, left.root, right.root);
         root = 0;
         return {left, right};
@@ -1530,7 +1517,7 @@ CPP_PIECES = {
 ''',
     "trisect": '''    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
     tuple<ImplicitTreap, ImplicitTreap, ImplicitTreap> trisect(int l, int r) {
-        ImplicitTreap left(pool), mid(pool), right(pool);
+        ImplicitTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         cut(l, r, left.root, mid.root, right.root);
         root = 0;
         return {left, mid, right};

@@ -481,33 +481,22 @@ def cpp_treap(aggs):
 '''
     name = class_name(aggs, True)
     pushes = "".join(f", {a}.push_back({idn})" for a, _, idn in arrs)
-    from gen_pair_treap import pool_block
-    members = (["    long long vlo, vhi;", "    vector<int> Lc{0}, Rc{0}, freeList;  // value node 0 = the empty tree; nodes freed by merges are reused first",
+    from gen_treap_algebra import POOL_NOTE
+    from gen_treap import wrap
+    members = (["    vector<int> Lc{0}, Rc{0}, freeList;  // value node 0 = the empty tree; merges free nodes, reused first",
                 "    vector<long long> cnt{0};"] + [ln for ln in decls.split(chr(10)) if ln.strip()] + mem)
-    pool_text, pool_init = pool_block(members)
+    pool_text = wrap(POOL_NOTE.format(cls=name + "<T>").replace("Nodes are never freed (memory = every value ever inserted, over the whole run), so there is nothing to reset", "Nodes freed by merges are reused, and there is nothing to reset"), "    //") + "".join(
+        ("    static inline " + ln[4:] if ln.startswith("    vector<") else ln) + chr(10) for ln in members) + "    long long vlo, vhi;  // (each one's value range)\n"
     return f'''template <typename T>
 struct {name} {{
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
 {pool_text}    int n = 0, rt = 0;
 {CPP_HASH_HELPERS if H else ""}{RND}
-    // O(N log U) -- arr: the initial array (may be empty); every value a[i] ever holds must lie in [valLo, valHi]
-    // (U = valHi - valLo + 1). No reset between test cases: the nodes are freed with the last object using them
-    {name}(const vector<T>& arr, long long valLo, long long valHi)
-        : {name}(make_shared<Pool>()) {{
-        vlo = valLo, vhi = valHi;
-        buildFrom(arr);
-    }}
+    // O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi]
+    // (U = valHi - valLo + 1)
+    {name}(const vector<T>& arr, long long valLo, long long valHi) : vlo(valLo), vhi(valHi) {{ buildFrom(arr); }}
 
-    // O(N log U) -- an array over arr that shares other's nodes (and value range), so pieces can move between the two
-    // (pieces cut from it share them already)
-    {name}(const vector<T>& arr, const {name}& other)
-        : {name}(other.pool) {{
-        buildFrom(arr);
-    }}
-
-    // an empty one on pool p
-    explicit {name}(shared_ptr<Pool> p)
-        : {pool_init} {{}}
+    {name} makeEmpty() const {{ return {name}({{}}, vlo, vhi); }}  // (a new, empty one: same pool, same value range)
 
     void buildFrom(const vector<T>& arr) {{
         n = (int)arr.size();
@@ -583,13 +572,13 @@ struct {name} {{
     {name} cut(int l, int r) {{
         auto [A, B, C] = extract(l, r);
         rt = tmerge(A, C), n -= r - l + 1;
-        {name} piece(pool);
+        {name} piece = makeEmpty();
         piece.rt = B, piece.n = r - l + 1;
         return piece;
     }}
 
-    // O(log N + log U) amortized -- insert other at a[i] (0 <= i <= size()), leaving it empty; it must share
-    // this one's nodes (a piece cut from it, or built with {name}(arr, this one))
+    // O(log N + log U) amortized -- insert all of other (one with the same valLo / valHi, e.g. a cut piece) so it
+    // starts at a[i] (0 <= i <= size()); other is left empty
     void paste(int i, {name}& other) {{
         n += other.n;
 {"        grow(n);  // (before the merge reads the powers)" + chr(10) if H else ""}        auto [A, C] = tsplit(rt, i);
@@ -601,7 +590,7 @@ struct {name} {{
 
     // O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
     pair<{name}, {name}> split(int k) {{
-        {name} left(pool), right(pool);
+        {name} left = makeEmpty(), right = makeEmpty();
         tie(left.rt, right.rt) = tsplit(rt, k);
         left.n = k, right.n = n - k, rt = n = 0;
         return {{left, right}};
@@ -609,13 +598,14 @@ struct {name} {{
 
     // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
     tuple<{name}, {name}, {name}> trisect(int l, int r) {{
-        {name} left(pool), mid(pool), right(pool);
+        {name} left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         tie(left.rt, mid.rt, right.rt) = extract(l, r);
         left.n = l, mid.n = r - l + 1, right.n = n - r - 1, rt = n = 0;
         return {{left, mid, right}};
     }}
 
-    // O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first; any k, negative = right)
+    // O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first); k can be huge or
+    // negative: it is taken mod the length (negative = right)
     void rangeRotateLeft(int l, int r, long long k) {{
         long long m = r - l + 1;
         k = ((k % m) + m) % m;
@@ -625,7 +615,8 @@ struct {name} {{
         join(A, tmerge(Y, X), C);
     }}
 
-    // O(log N + log U) amortized -- rotate a[l..r] right by k (any k, negative = left)
+    // O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod
+    // the length (negative = left)
     void rangeRotateRight(int l, int r, long long k) {{ rangeRotateLeft(l, r, -k); }}
 
     // O(log N + log U) amortized -- cut a[l..r] out and paste it so it starts at index i of what is left

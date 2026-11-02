@@ -65,6 +65,8 @@ function PickerTabs({ children }: { children?: React.ReactNode }) {
 
 // Everything a picker page decides for itself; the rest (op grid, matching, ranking, cards, code drawer with usage
 // and memory) is shared.
+export type CtorNote = { py: string; cpp: string; inCall?: boolean };
+
 export interface PickerCatalog<V extends PickerTemplate> {
   title: string;
   opGroups: PickerOpGroup[];
@@ -122,7 +124,8 @@ export interface PickerCatalog<V extends PickerTemplate> {
   // appended to a query's comment, and ops that return a pair to unpack
   varName: string;
   // per constructor argument name; a function when they depend on the template (range queries: letters versions)
-  ctorNotes: Record<string, { py: string; cpp: string }> | ((t: V) => Record<string, { py: string; cpp: string }>);
+  // inCall: an optional argument shown in the example call anyway (e.g. the initial array), with "leave it out" in its note
+  ctorNotes: Record<string, CtorNote> | ((t: V) => Record<string, CtorNote>);
   ctorComments?: (t: V, lang: TemplateLang) => string[];
   queryNote?: (t: V, op: string) => string;
   pairResults?: Record<string, [string, string]>;
@@ -568,9 +571,10 @@ function UsagePanel<V extends PickerTemplate>({
   const blocks: { comments: string[]; code: string }[] = [];
   for (const k of neededClasses) {
     const cls = usage.classes[k];
-    const requiredParams = cls.ctor.filter((p) => p.default === undefined);
+    const shownOptional = (p: { name: string; default?: string }) => p.default !== undefined && !!notes[p.name]?.inCall;
+    const requiredParams = cls.ctor.filter((p) => p.default === undefined || shownOptional(p));
     const required = requiredParams.map((p) => p.name);
-    const optional = cls.ctor.filter((p) => p.default !== undefined);
+    const optional = cls.ctor.filter((p) => p.default !== undefined && !shownOptional(p));
     // C++17 deduces T from a vector argument (vector<T>, vector<pair<long long, T>>), unless a scalar T argument
     // (e.g. a literal 3, an int) could disagree with it; then, or when T appears in no argument, write it out.
     const deducible =
@@ -585,8 +589,10 @@ function UsagePanel<V extends PickerTemplate>({
       });
     const comments = [
       ...(catalog.ctorComments?.(template, lang) ?? []),
-      ...required.flatMap((n) =>
-        notes[n] && !["mod", "bits"].includes(n) ? [notes[n][lang]] : [],
+      ...requiredParams.flatMap((p) =>
+        notes[p.name] && !["mod", "bits"].includes(p.name)
+          ? [notes[p.name][lang] + (shownOptional(p) ? " (optional: leave it out to start empty)" : "")]
+          : [],
       ),
       ...optional.map(
         (p) =>

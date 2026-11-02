@@ -33,19 +33,22 @@ import random
 
 
 class PersistentTreap:
-    __slots__ = ('root', 'val', 'sz', 'L', 'R', 'rev')
+    # one node pool shared by every PersistentTreap: cut / paste move nodes between them, so a piece from one can go
+    # into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
+    # whole run), so there is nothing to reset between test cases
+    val = [0]
+    sz = [0]
+    L = [0]
+    R = [0]
+    rev = [0]
+    __slots__ = ("root",)
 
-
-    # O(N) -- arr: the initial array (may be empty); like: a PersistentTreap whose nodes this one shares, so pieces can
-    # move between the two (pieces cut from it share them already). No reset between test cases
-    def __init__(self, arr=(), like=None):
-        if like is None:
-            self.val, self.sz, self.L, self.R = [0], [0], [0], [0]  # node 0 = the empty tree
-            self.rev = [0]
-        else:
-            self.val, self.sz, self.L, self.R = like.val, like.sz, like.L, like.R
-            self.rev = like.rev
+    # O(N) -- arr: the initial array (a list; leave it out to start empty)
+    def __init__(self, arr=()):
         self.root = self._build(list(arr), 0, len(arr))
+
+    def _empty(self):  # a new, empty PersistentTreap (on the same pool, like every one)
+        return PersistentTreap()
 
     # O(1) -- the current length of the array
     def size(self):
@@ -75,12 +78,12 @@ class PersistentTreap:
     def cut(self, l, r):
         a, b, c = self._cut(self.root, l, r)
         self.root = self._merge(a, c)
-        piece = PersistentTreap(like=self)
+        piece = self._empty()
         piece.root = b
         return piece
 
-    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
-    # treap's nodes (a piece cut from it, or built with like=)
+    # O(logN) expected -- insert all of other (any PersistentTreap, e.g. a cut piece) so it starts at a[i]
+    # (0 <= i <= size()); other is left empty
     def paste(self, i, other):
         x, y = self._split(self.root, i)
         self.root = self._merge(self._merge(x, other.root), y)
@@ -93,14 +96,14 @@ class PersistentTreap:
 
     # O(logN) expected -- (a[0..k-1], a[k..]) as two PersistentTreaps of their own; this one is left empty
     def split(self, k):
-        left, right = PersistentTreap(like=self), PersistentTreap(like=self)
+        left, right = self._empty(), self._empty()
         left.root, right.root = self._split(self.root, k)
         self.root = 0
         return left, right
 
     # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PersistentTreaps of their own; this one is left empty
     def trisect(self, l, r):
-        left, mid, right = PersistentTreap(like=self), PersistentTreap(like=self), PersistentTreap(like=self)
+        left, mid, right = self._empty(), self._empty(), self._empty()
         left.root, mid.root, right.root = self._cut(self.root, l, r)
         self.root = 0
         return left, mid, right

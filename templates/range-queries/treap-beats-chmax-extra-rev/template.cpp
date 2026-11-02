@@ -56,44 +56,26 @@ template <typename T>
 struct ImplicitTreap {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr T INF = numeric_limits<T>::max(), NEG = numeric_limits<T>::lowest();  // (no second max / min)
-    struct Pool {  // the node arrays: node 0 = the empty tree
-        vector<T> val{T(0)};
-        vector<unsigned long long> pri{0};
-        vector<int> L{0};
-        vector<int> R{0};
-        vector<int> sz{0};
-        vector<S> sm{0};
-        vector<T> mx{T(0)};
-        vector<T> mn{T(0)};
-        vector<T> mn2{INF};
-        vector<int> cmn{0};
-        vector<char> rev{0};
-    };
-    shared_ptr<Pool> pool;  // (shared by this treap and every piece cut from it; freed with the last of them)
-    vector<T>& val;
-    vector<unsigned long long>& pri;
-    vector<int>& L;
-    vector<int>& R;
-    vector<int>& sz;
-    vector<S>& sm;
-    vector<T>& mx;
-    vector<T>& mn;
-    vector<T>& mn2;
-    vector<int>& cmn;
-    vector<char>& rev;
+    // one node pool shared by every ImplicitTreap<T>: cut / paste move nodes between them, so a piece from one can go
+    // into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
+    // whole run), so there is nothing to reset between test cases
+    static inline vector<T> val{T(0)};
+    static inline vector<unsigned long long> pri{0};
+    static inline vector<int> L{0};
+    static inline vector<int> R{0};
+    static inline vector<int> sz{0};
+    static inline vector<S> sm{0};
+    static inline vector<T> mx{T(0)};
+    static inline vector<T> mn{T(0)};
+    static inline vector<T> mn2{INF};
+    static inline vector<int> cmn{0};
+    static inline vector<char> rev{0};
     int root = 0;
 
-    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
-    explicit ImplicitTreap(const vector<T>& arr = {}) : ImplicitTreap(make_shared<Pool>()) { root = build(arr); }
+    // O(N) -- arr: the initial array (leave it out to start empty)
+    explicit ImplicitTreap(const vector<T>& arr = {}) { root = build(arr); }
 
-    // O(N) -- a treap over arr that shares other's nodes, so pieces can move between the two (pieces cut from a treap
-    // share its nodes already)
-    ImplicitTreap(const vector<T>& arr, const ImplicitTreap& other) : ImplicitTreap(other.pool) { root = build(arr); }
-
-    // an empty treap on pool p
-    explicit ImplicitTreap(shared_ptr<Pool> p)
-        : pool(p), val(p->val), pri(p->pri), L(p->L), R(p->R), sz(p->sz), sm(p->sm), mx(p->mx), mn(p->mn),
-          mn2(p->mn2), cmn(p->cmn), rev(p->rev) {}
+    ImplicitTreap makeEmpty() const { return ImplicitTreap(); }  // (a new, empty one)
 
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
@@ -114,7 +96,7 @@ struct ImplicitTreap {
         int a, b, c;
         cut(l, r, a, b, c);
         root = merge(a, c);
-        ImplicitTreap piece(pool);
+        ImplicitTreap piece = makeEmpty();
         piece.root = b;
         return piece;
     }
@@ -228,8 +210,8 @@ struct ImplicitTreap {
         root = merge(merge(x, b), y);
     }
 
-    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
-    // share this treap's nodes (a piece cut from it, or built with ImplicitTreap(arr, this one))
+    // O(logN) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i]
+    // (0 <= i <= size()); other is left empty
     void paste(int i, ImplicitTreap& other) {
         int a, c;
         split(root, i, a, c);
@@ -318,7 +300,8 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
+    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
+    // it is taken mod the length (negative shifts right)
     void rangeRotateLeft(int l, int r, long long k) {
         int a, b, c, len = r - l + 1;
         cut(l, r, a, b, c);
@@ -331,7 +314,8 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
+    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
+    // length (negative shifts left)
     void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
 
     // O(logN) expected -- a[l] + ... + a[r]
@@ -413,7 +397,7 @@ struct ImplicitTreap {
 
     // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
     pair<ImplicitTreap, ImplicitTreap> split(int k) {
-        ImplicitTreap left(pool), right(pool);
+        ImplicitTreap left = makeEmpty(), right = makeEmpty();
         split(root, k, left.root, right.root);
         root = 0;
         return {left, right};
@@ -421,7 +405,7 @@ struct ImplicitTreap {
 
     // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
     tuple<ImplicitTreap, ImplicitTreap, ImplicitTreap> trisect(int l, int r) {
-        ImplicitTreap left(pool), mid(pool), right(pool);
+        ImplicitTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         cut(l, r, left.root, mid.root, right.root);
         root = 0;
         return {left, mid, right};

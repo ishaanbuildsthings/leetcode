@@ -15,6 +15,7 @@ import shutil
 
 from gen_treap import AGG_FIELD, AGG_OPS, CPP_HASH_HELPERS, PY_HASH_CONST, wrap
 from gen_treap import no_push
+from gen_treap_algebra import POOL_NOTE
 from gen_treap_more import slots_line
 from note_lang import folder_name, write_template
 
@@ -66,17 +67,16 @@ def python(ops, aggs):
         ["asg", "hasAsg"] if AS else []) + (["fh", "bh", "pw"] + (["gs"] if G else []) if H else [])
     p = [header("#", ops, aggs), "\n", wrap(describe(aggs, ops), "#"), "import random\n\n\n" + (PY_HASH_CONST.rstrip("\n") +
          "\n_HQ = _HB * _HB % _HP  # each lane hashes in base B^2 (its neighbours in the array are 2 apart)\n\n\n" if H else "") +
-         "class PairSwapTreap:\n",
-         slots_line(slots) + "\n"]
-    own = (["self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree"] + (["self.rev = [0]"] if RV else []) +
-           [f"self.{f} = [0]" for f in F] + (["self.add = [0]"] if AD else []) + (["self.asg, self.hasAsg = [0], [0]"] if AS else []) +
-           (["self.fh, self.bh, self.pw = [0], [0], [1]"] + (["self.gs = [0]"] if G else []) if H else []))
-    p.append('''    # O(N) -- arr: the initial array (may be empty); like: a PairSwapTreap whose nodes this one shares, so pieces can
-    # move between the two (pieces cut from it share them already). No reset between test cases
-    def __init__(self, arr=(), like=None):
-        if like is None:
-''' + "".join(f"            {x}\n" for x in own) + "        else:\n" + "".join(f"            self.{n} = like.{n}\n" for n in slots[2:]) + '''        self.rE = self._build(arr[0::2])  # a[0], a[2], ...
+         "class PairSwapTreap:\n" + wrap(POOL_NOTE.format(cls="PairSwapTreap"), "    #") +
+         "".join(f"    {n} = [{1 if n == 'pw' else 0}]\n" for n in slots[2:]) + '    __slots__ = ("rE", "rO")\n\n']
+    p.append('''    # O(N) -- arr: the initial array (a list; leave it out to start empty)
+    def __init__(self, arr=()):
+        arr = list(arr)
+        self.rE = self._build(arr[0::2])  # a[0], a[2], ...
         self.rO = self._build(arr[1::2])  # a[1], a[3], ...
+
+    def _empty(self):  # a new, empty PairSwapTreap (on the same pool, like every one)
+        return PairSwapTreap()
 
     # O(1) -- the current length of the array
     def size(self):
@@ -109,13 +109,13 @@ def python(ops, aggs):
             self.rE, self.rO = self._merge(a, c), self._merge(d, f)
         else:
             self.rE, self.rO = self._merge(a, f), self._merge(d, c)
-        piece = PairSwapTreap(like=self)
+        piece = self._empty()
         piece.rE, piece.rO = (b, e) if l % 2 == 0 else (e, b)
         return piece
 ''',
-        "paste": '''    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
-    # treap's nodes (a piece cut from it, or built with like=). other's a[0] lands at parity i % 2, and the tail after i
-    # moves other's length on: with an odd length the tails trade places
+        "paste": '''    # O(logN) expected -- insert all of other (any PairSwapTreap, e.g. a cut piece) so it starts at a[i]
+    # (0 <= i <= size()); other is left empty. other's a[0] lands at parity i % 2, and the tail after i moves other's
+    # length on: with an odd length the tails trade places
     def paste(self, i, other):
         a, _, c, d, _, f = self._parts(i, i - 1)
         x, y = (other.rE, other.rO) if i % 2 == 0 else (other.rO, other.rE)
@@ -131,10 +131,10 @@ def python(ops, aggs):
 ''',
         "split": '''    # O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
     def split(self, k):
-        left = PairSwapTreap(like=self)
+        left = self._empty()
         left.rE, left.rO = self.rE, self.rO
         self.rE = self.rO = 0
-        right = left.cut(k, left.size() - 1) if k < left.size() else PairSwapTreap(like=self)
+        right = left.cut(k, left.size() - 1) if k < left.size() else self._empty()
         return left, right
 ''',
         "trisect": '''    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty
@@ -464,7 +464,8 @@ def cpp(ops, aggs):
     if H:
         c.append("    using U64 = unsigned long long;\n")
         fields += ["    vector<U64> fh{0}, bh{0}, pw{1}" + (", gs{0}" if G else "") + ";  // each lane hashes in base Q = B^2"]
-    c.append(pool_members(fields, "PairSwapTreap") + "    int rE = 0, rO = 0;  // the even positions a[0], a[2], ... and the odd ones\n" + '''
+    c.append(wrap(POOL_NOTE.format(cls="PairSwapTreap<T>"), "    //") + "".join("    static inline " + f[4:] + "\n" for f in fields) +
+             "    int rE = 0, rO = 0;  // the even positions a[0], a[2], ... and the odd ones\n" + '''
 
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
@@ -475,16 +476,10 @@ def cpp(ops, aggs):
         "    static unsigned long long hadd(unsigned long long a, unsigned long long b) {\n        return a + b >= HP ? a + b - HP : a + b;\n    }") +
         "    static U64 HQ() {  // a lane's base: B^2 (its neighbours in the array are 2 apart)\n"
         "        static U64 q = hmul(HB(), HB());\n        return q;\n    }\n" if H else "") + '''
-    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
-    explicit PairSwapTreap(const vector<T>& arr = {}) : PairSwapTreap(make_shared<Pool>()) { buildLanes(arr); }
+    // O(N) -- arr: the initial array (leave it out to start empty)
+    explicit PairSwapTreap(const vector<T>& arr = {}) { buildLanes(arr); }
 
-    // O(N) -- a PairSwapTreap over arr that shares other's nodes, so pieces can move between the two (pieces cut from
-    // it share them already)
-    PairSwapTreap(const vector<T>& arr, const PairSwapTreap& other) : PairSwapTreap(other.pool) { buildLanes(arr); }
-
-    // an empty PairSwapTreap on pool p
-    explicit PairSwapTreap(shared_ptr<Pool> p)
-        : ''' + pool_init + ''' {}
+    PairSwapTreap makeEmpty() const { return PairSwapTreap(); }  // (a new, empty one: same pool, like every one)
 
     // O(1) -- the current length of the array
     int size() const { return sz[rE] + sz[rO]; }
@@ -512,14 +507,14 @@ def cpp(ops, aggs):
         parts(l, r, a, b, c, d, e, f);
         if ((r - l + 1) % 2 == 0) rE = merge(a, c), rO = merge(d, f);
         else rE = merge(a, f), rO = merge(d, c);
-        PairSwapTreap piece(pool);
+        PairSwapTreap piece = makeEmpty();
         piece.rE = l % 2 == 0 ? b : e, piece.rO = l % 2 == 0 ? e : b;
         return piece;
     }
 ''',
-        "paste": '''    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
-    // treap's nodes (a piece cut from it, or built with PairSwapTreap(arr, this one)). other's a[0] lands at parity
-    // i % 2, and the tail after i moves other's length on: with an odd length the tails trade places
+        "paste": '''    // O(logN) expected -- insert all of other (any PairSwapTreap, e.g. a cut piece) so it starts at a[i]
+    // (0 <= i <= size()); other is left empty. other's a[0] lands at parity i % 2, and the tail after i moves other's
+    // length on: with an odd length the tails trade places
     void paste(int i, PairSwapTreap& other) {
         int a, b, c, d, e, f;
         parts(i, i - 1, a, b, c, d, e, f);
@@ -534,9 +529,9 @@ def cpp(ops, aggs):
 ''',
         "split": '''    // O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
     pair<PairSwapTreap, PairSwapTreap> split(int k) {
-        PairSwapTreap left(pool);
+        PairSwapTreap left = makeEmpty();
         left.rE = rE, left.rO = rO, rE = rO = 0;
-        PairSwapTreap right = k < left.size() ? left.cut(k, left.size() - 1) : PairSwapTreap(pool);
+        PairSwapTreap right = k < left.size() ? left.cut(k, left.size() - 1) : makeEmpty();
         return {left, right};
     }
 ''',

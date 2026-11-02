@@ -36,26 +36,26 @@ import random
 
 
 class PairSwapTreap:
-    __slots__ = ('rE', 'rO', 'val', 'pri', 'L', 'R', 'sz', 'mn', 'add')
+    # one node pool shared by every PairSwapTreap: cut / paste move nodes between them, so a piece from one can go
+    # into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
+    # whole run), so there is nothing to reset between test cases
+    val = [0]
+    pri = [0]
+    L = [0]
+    R = [0]
+    sz = [0]
+    mn = [0]
+    add = [0]
+    __slots__ = ("rE", "rO")
 
-
-    # O(N) -- arr: the initial array (may be empty); like: a PairSwapTreap whose nodes this one shares, so pieces can
-    # move between the two (pieces cut from it share them already). No reset between test cases
-    def __init__(self, arr=(), like=None):
-        if like is None:
-            self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
-            self.mn = [0]
-            self.add = [0]
-        else:
-            self.val = like.val
-            self.pri = like.pri
-            self.L = like.L
-            self.R = like.R
-            self.sz = like.sz
-            self.mn = like.mn
-            self.add = like.add
+    # O(N) -- arr: the initial array (a list; leave it out to start empty)
+    def __init__(self, arr=()):
+        arr = list(arr)
         self.rE = self._build(arr[0::2])  # a[0], a[2], ...
         self.rO = self._build(arr[1::2])  # a[1], a[3], ...
+
+    def _empty(self):  # a new, empty PairSwapTreap (on the same pool, like every one)
+        return PairSwapTreap()
 
     # O(1) -- the current length of the array
     def size(self):
@@ -77,7 +77,7 @@ class PairSwapTreap:
             self.rE, self.rO = self._merge(a, c), self._merge(d, f)
         else:
             self.rE, self.rO = self._merge(a, f), self._merge(d, c)
-        piece = PairSwapTreap(like=self)
+        piece = self._empty()
         piece.rE, piece.rO = (b, e) if l % 2 == 0 else (e, b)
         return piece
 
@@ -102,9 +102,9 @@ class PairSwapTreap:
     def merge(self, other):
         self.paste(self.size(), other)
 
-    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
-    # treap's nodes (a piece cut from it, or built with like=). other's a[0] lands at parity i % 2, and the tail after i
-    # moves other's length on: with an odd length the tails trade places
+    # O(logN) expected -- insert all of other (any PairSwapTreap, e.g. a cut piece) so it starts at a[i]
+    # (0 <= i <= size()); other is left empty. other's a[0] lands at parity i % 2, and the tail after i moves other's
+    # length on: with an odd length the tails trade places
     def paste(self, i, other):
         a, _, c, d, _, f = self._parts(i, i - 1)
         x, y = (other.rE, other.rO) if i % 2 == 0 else (other.rO, other.rE)
@@ -174,10 +174,10 @@ class PairSwapTreap:
 
     # O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
     def split(self, k):
-        left = PairSwapTreap(like=self)
+        left = self._empty()
         left.rE, left.rO = self.rE, self.rO
         self.rE = self.rO = 0
-        right = left.cut(k, left.size() - 1) if k < left.size() else PairSwapTreap(like=self)
+        right = left.cut(k, left.size() - 1) if k < left.size() else self._empty()
         return left, right
 
     # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty

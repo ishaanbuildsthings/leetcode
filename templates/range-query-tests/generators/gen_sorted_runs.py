@@ -628,19 +628,20 @@ def py_treap(aggs):
         self._join(A, B, C)
         return res
 '''
-    vinit = [ln for ln in py_value_init(aggs).split(chr(10)) if "_grow" not in ln]
-    shared = [m.group(1) for ln in vinit + init for m in re.finditer(r"self\.(\w+)", ln.split("=")[0])]
+    vinit = [ln for ln in py_value_init(aggs).split(chr(10)) if "_grow" not in ln and "self.vlo" not in ln]
     name = class_name(aggs, True)
+    from gen_treap_algebra import POOL_NOTE  # (the value / run nodes are shared by every object; the value range is each one's)
+    from gen_treap import wrap
+    shared = "".join(re.sub(r"self\.", "", ln[4:]) + chr(10) for ln in vinit + init)
     return f'''
-    # O(N log U) -- arr: the initial array (may be empty); every value a[i] ever holds must lie in [valLo, valHi]
-    # (U = valHi - valLo + 1); like: one whose nodes this one shares (then valLo / valHi are its), so pieces can
-    # move between the two (pieces cut from it share them already). No reset between test cases
-    def __init__(self, arr=(), valLo=0, valHi=0, like=None):
+{wrap(POOL_NOTE.format(cls=name).replace("Nodes are never freed (memory = every value ever inserted, over the whole run), so there is nothing to reset", "Nodes freed by merges are reused, and there is nothing to reset"), "    #").rstrip()}
+{shared}
+    # O(N log U) -- arr: the initial array (a list); every value a[i] ever holds must lie in [valLo, valHi]
+    # (U = valHi - valLo + 1)
+    def __init__(self, arr, valLo, valHi):
+        self.vlo, self.vhi = valLo, valHi
         n = self.n = len(arr)
-        if like is None:
-{chr(10).join("    " + ln for ln in vinit + init)}
-        else:
-{"".join(f"            self.{a} = like.{a}{chr(10)}" for a in shared)}{"        self._grow(n)" + chr(10) if H else ""}        stack = []  # O(N) build: the treap's right spine
+{"        self._grow(n)" + chr(10) if H else ""}        stack = []  # O(N) build: the treap's right spine
         for v in arr:
             x, last = self._run(self._leaf(v), 1, False), 0
             while stack and self.TP[stack[-1]] < self.TP[x]:
@@ -657,6 +658,9 @@ def py_treap(aggs):
     # O(1) -- the current length
     def size(self):
         return self.n
+
+    def _empty(self):  # a new, empty one with the same value range (on the same pool, like every one)
+        return {name}([], self.vlo, self.vhi)
 
     # O(log N + log U) expected -- a[i]
     def pointGet(self, i):
@@ -722,12 +726,12 @@ def py_treap(aggs):
         A, B, C = self._extract(l, r)
         self.top = self._tmerge(A, C)
         self.n -= r - l + 1
-        piece = {name}(like=self)
+        piece = self._empty()
         piece.top, piece.n = B, r - l + 1
         return piece
 
-    # O(log N + log U) amortized -- insert other at a[i] (0 <= i <= size()), leaving it empty; it must share
-    # this one's nodes (a piece cut from it, or built with like=)
+    # O(log N + log U) amortized -- insert all of other (one with the same valLo / valHi, e.g. a cut piece) so it
+    # starts at a[i] (0 <= i <= size()); other is left empty
     def paste(self, i, other):
         self.n += other.n
 {"        self._grow(self.n)  # (before the merge reads the powers)" + chr(10) if H else ""}        A, C = self._tsplit(self.top, i)
@@ -740,7 +744,7 @@ def py_treap(aggs):
 
     # O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
     def split(self, k):
-        left, right = [{name}(like=self) for _ in range(2)]
+        left, right = self._empty(), self._empty()
         left.top, right.top = self._tsplit(self.top, k)
         left.n, right.n = k, self.n - k
         self.top, self.n = 0, 0
@@ -748,13 +752,14 @@ def py_treap(aggs):
 
     # O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
     def trisect(self, l, r):
-        left, mid, right = [{name}(like=self) for _ in range(3)]
+        left, mid, right = self._empty(), self._empty(), self._empty()
         left.top, mid.top, right.top = self._extract(l, r)
         left.n, mid.n, right.n = l, r - l + 1, self.n - r - 1
         self.top, self.n = 0, 0
         return left, mid, right
 
-    # O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first; any k, negative = right)
+    # O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first); k can be huge or
+    # negative: it is taken mod the length (negative = right)
     def rangeRotateLeft(self, l, r, k):
         k %= r - l + 1
         if k:
@@ -762,7 +767,8 @@ def py_treap(aggs):
             X, Y = self._tsplit(B, k)
             self._join(A, self._tmerge(Y, X), C)
 
-    # O(log N + log U) amortized -- rotate a[l..r] right by k (any k, negative = left)
+    # O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod
+    # the length (negative = left)
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 
