@@ -1,20 +1,20 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-affine-full-rev/template.cpp
-// @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt moveRange pointAdd pointAssign pointGet pop popLeft rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeReverse rangeRotateLeft rangeRotateRight rangeSumMod
+// @operations: append appendLeft concat cut getAll insertAt insertCopiesAt moveRange paste pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeReverse rangeRotateLeft rangeRotateRight rangeSumMod split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected
-//   eraseRange: log(N) expected
+//   concat: log(N) expected
+//   cut: log(N) expected
 //   getAll: N
 //   insertAt: log(N) expected
 //   insertCopiesAt: log(N) expected
 //   moveRange: log(N) expected
+//   paste: log(N) expected
 //   pointAdd: log(N) expected
 //   pointAssign: log(N) expected
 //   pointGet: log(N) expected
-//   pop: log(N) expected
-//   popLeft: log(N) expected
 //   rangeAddMod: log(N) expected
 //   rangeAffineMod: log(N) expected
 //   rangeAssignMod: log(N) expected
@@ -23,6 +23,8 @@
 //   rangeRotateLeft: log(N) expected
 //   rangeRotateRight: log(N) expected
 //   rangeSumMod: log(N) expected
+//   split: log(N) expected
+//   trisect: log(N) expected
 //   build: N
 // @memory:
 //   layout: none
@@ -32,20 +34,33 @@
 //   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
 
 // Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate and move ranges, each in
-// O(logN) expected; values live mod p; each node keeps its subtree's sum, and every update is x -> x * m + c (mod p).
+// O(logN) expected; values live % MOD; each node keeps its subtree's sum, and every update is x -> x * m + c (% MOD).
 // All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array. Lazy tags mean
 // "already applied to this node, not yet to its children".
 // T: int, long long, ...
 template <typename T>
 struct ImplicitTreap {
+    struct Pool {  // the node arrays: node 0 = the empty tree
+        vector<T> val{T(0)};  // node 0 is the empty tree
+        vector<unsigned long long> pri{0};
+        vector<int> L{0}, R{0}, sz{0};
+        vector<char> rev{0};
+        long long mod;
+        vector<long long> sm{0};
+        vector<long long> tm{1}, tc{0};  // the pending x -> x * tm + tc (% MOD)
+    };
+    shared_ptr<Pool> pool;  // (shared by this treap and every piece cut from it; freed with the last of them)
+    vector<T>& val;
+    vector<unsigned long long>& pri;
+    vector<int>& L;
+    vector<int>& R;
+    vector<int>& sz;
+    vector<char>& rev;
+    long long& mod;
+    vector<long long>& sm;
+    vector<long long>& tm;
+    vector<long long>& tc;
     int root = 0;
-    vector<T> val{T(0)};  // node 0 is the empty tree
-    vector<unsigned long long> pri{0};
-    vector<int> L{0}, R{0}, sz{0};
-    vector<char> rev{0};
-    long long mod;
-    vector<long long> sm{0};
-    vector<long long> tm{1}, tc{0};  // the pending x -> x * tm + tc (mod p)
 
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
@@ -53,11 +68,25 @@ struct ImplicitTreap {
     }
 
     // O(N) -- arr: the initial array (may be empty); mod: the modulus p
-    ImplicitTreap(const vector<T>& arr, long long mod) : mod(mod) {
+    ImplicitTreap(const vector<T>& arr, long long mod) : ImplicitTreap(make_shared<Pool>()) {
+        this->mod = mod;
         vector<T> v(arr);
         for (T& x : v) x = T(norm((long long)x));
         root = build(v);
     }
+
+    // O(N) -- a treap over arr that shares other's nodes, so pieces can move between the two (pieces cut from a
+    // treap share its nodes already); no reset between test cases: a treap's nodes are freed with it
+    ImplicitTreap(const vector<T>& arr, const ImplicitTreap& other) : ImplicitTreap(other.pool) {
+        vector<T> v(arr);
+        for (T& x : v) x = T(norm((long long)x));
+        root = build(v);
+    }
+
+    // an empty treap on pool p
+    explicit ImplicitTreap(shared_ptr<Pool> p)
+        : pool(p), val(p->val), pri(p->pri), L(p->L), R(p->R), sz(p->sz), rev(p->rev), mod(p->mod), sm(p->sm),
+          tm(p->tm), tc(p->tc) {}
 
     // O(1) -- the current length of the array
     int size() const { return sz[root]; }
@@ -68,11 +97,17 @@ struct ImplicitTreap {
     // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN) expected -- remove a[l..r]
-    void eraseRange(int l, int r) {
+    // O(logN) expected -- append all of other at the end; other is left empty
+    void concat(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
+
+    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    ImplicitTreap cut(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
         root = merge(a, c);
+        ImplicitTreap piece(pool);
+        piece.root = b;
+        return piece;
     }
 
     // O(N) -- the whole current array, every pending tag applied on the way
@@ -112,6 +147,15 @@ struct ImplicitTreap {
         root = merge(merge(x, b), y);
     }
 
+    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
+    // share this treap's nodes (a piece cut from it, or built with ImplicitTreap(arr, this one))
+    void paste(int i, ImplicitTreap& other) {
+        int a, c;
+        split(root, i, a, c);
+        root = merge(merge(a, other.root), c);
+        other.root = 0;
+    }
+
     // O(logN) expected -- a[i] += v
     void pointAdd(int i, T v) {
         vector<int> path;
@@ -133,17 +177,7 @@ struct ImplicitTreap {
     // O(logN) expected -- a[i]
     T pointGet(int i) { return val[find(i)]; }
 
-    // O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    T pop(int i) {
-        T v = pointGet(i);
-        eraseRange(i, i);
-        return v;
-    }
-
-    // O(logN) expected -- remove a[0] and return it
-    T popLeft() { return pop(0); }
-
-    // O(logN) expected -- a[i] = (a[i] + v) mod p for i in [l, r]
+    // O(logN) expected -- a[i] = (a[i] + v) % MOD for i in [l, r]
     void rangeAddMod(int l, int r, T v) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -151,7 +185,7 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- a[i] = (a[i] * mult + add) mod p for i in [l, r]
+    // O(logN) expected -- a[i] = (a[i] * mult + add) % MOD for i in [l, r]
     void rangeAffineMod(int l, int r, T mult, T add) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -159,7 +193,7 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- a[i] = v mod p for i in [l, r]
+    // O(logN) expected -- a[i] = v % MOD for i in [l, r]
     void rangeAssignMod(int l, int r, T v) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -167,7 +201,7 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- a[i] = a[i] * v mod p for i in [l, r]
+    // O(logN) expected -- a[i] = a[i] * v % MOD for i in [l, r]
     void rangeMultMod(int l, int r, T v) {
         int a, b, c;
         cut(l, r, a, b, c);
@@ -199,13 +233,29 @@ struct ImplicitTreap {
     // O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
     void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
 
-    // O(logN) expected -- (a[l] + ... + a[r]) mod p
+    // O(logN) expected -- (a[l] + ... + a[r]) % MOD
     long long rangeSumMod(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
         long long res = sm[b];
         root = merge(merge(a, b), c);
         return res;
+    }
+
+    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    pair<ImplicitTreap, ImplicitTreap> split(int k) {
+        ImplicitTreap left(pool), right(pool);
+        split(root, k, left.root, right.root);
+        root = 0;
+        return {left, right};
+    }
+
+    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    tuple<ImplicitTreap, ImplicitTreap, ImplicitTreap> trisect(int l, int r) {
+        ImplicitTreap left(pool), mid(pool), right(pool);
+        cut(l, r, left.root, mid.root, right.root);
+        root = 0;
+        return {left, mid, right};
     }
 
     // ---- internals ----
@@ -249,7 +299,7 @@ struct ImplicitTreap {
     }
 
     long long mul(long long a, long long b) const { return (long long)((__int128)a * b % mod); }
-    void applyAff(int x, long long m, long long c) {  // every value v of x's subtree becomes v * m + c (mod p)
+    void applyAff(int x, long long m, long long c) {  // every value v of x's subtree becomes v * m + c (% MOD)
         if (!x) return;
         val[x] = T((mul((long long)val[x], m) + c) % mod);
         sm[x] = (mul(sm[x], m) + mul(c, sz[x])) % mod;

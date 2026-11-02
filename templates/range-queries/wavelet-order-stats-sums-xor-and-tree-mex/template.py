@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/wavelet-order-stats-sums-xor-and-tree-mex/template.py
-# @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet rangeMax rangeMex rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK xorGtX xorGteX xorInValRange xorLtX xorLteX
+# @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMex rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK xorGtX xorGteX xorInValRange xorLtX xorLteX
 # @data-structure-type: wavelet
 # @complexities:
 #   andGtX: log^2(N)
@@ -14,12 +14,9 @@
 #   countLtX: log(N)
 #   countLteX: log(N)
 #   countOccurrences: log(N)
-#   kthLargest: log(N)
 #   kthSmallest: log(N)
 #   largestLtX: log(N)
 #   largestLteX: log(N)
-#   medianHigh: log(N)
-#   medianLow: log(N)
 #   pointGet: 1
 #   rangeMax: log(N)
 #   rangeMex: log(N)
@@ -27,7 +24,6 @@
 #   rangeSum: log(N)
 #   smallestGtX: log(N)
 #   smallestGteX: log(N)
-#   sumAbsDiffToMedian: log(N)
 #   sumAbsDiffToX: log(N)
 #   sumGtX: log(N)
 #   sumGteX: log(N)
@@ -126,20 +122,6 @@ class WaveletMatrix:
             raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._kth(l, r, k)
 
-    # O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError
-    def kthLargest(self, l, r, k):
-        if not 1 <= k <= r - l + 1:
-            raise IndexError(f"kthLargest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
-        return self._kth(l, r, r - l + 2 - k)
-
-    # O(logN) -- lower median of a[l..r]: its ceil(len / 2)-th smallest
-    def medianLow(self, l, r):
-        return self._kth(l, r, (r - l + 2) // 2)
-
-    # O(logN) -- upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest
-    def medianHigh(self, l, r):
-        return self._kth(l, r, (r - l + 1) // 2 + 1)
-
     # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r):
         return self._kth(l, r, 1)
@@ -227,10 +209,6 @@ class WaveletMatrix:
         rk = bisect_left(self.srt, x)
         c, s = self._countBelow(l, r, rk), self._sumBelow(l, r, rk)
         return x * c - s + (self._sumFirst(l, r, r - l + 1) - s) - x * (r - l + 1 - c)
-
-    # O(logN) -- sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal
-    def sumAbsDiffToMedian(self, l, r):
-        return self.sumAbsDiffToX(l, r, self._kth(l, r, (r - l + 2) // 2))
 
     # O(logN) -- smallest integer >= 0 that is not in a[l..r]
     def rangeMex(self, l, r):

@@ -16,7 +16,7 @@
 #   other: children[4*log(U)]
 #   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A Fenwick tree in a dict (no child pointers)
 
-# Range add of an arithmetic sequence (and plain range add), point get, all mod p. Adding start + (i - l) * step on
+# Range add of an arithmetic sequence (and plain range add), point get, all % MOD. Adding start + (i - l) * step on
 # [l, r] is adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of
 # two difference arrays.
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a Fenwick tree in a
@@ -62,7 +62,7 @@ class SparseArithSeqBITMod:
         mod = self.mod
         return s0 % mod, s1 % mod
 
-    # O(logU) -- a[l + j] += start + j * step (mod p) for j in [0, r - l]
+    # O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
     def rangeAddArithSeqMod(self, l, r, start, step):
         if l > r:
             return
@@ -73,7 +73,7 @@ class SparseArithSeqBITMod:
         if r + 1 < self.n:
             self._add(r + 1, -c0, -step)
 
-    # O(logU) -- a[i] += v (mod p) for i in [l, r]
+    # O(logU) -- a[i] += v (% MOD) for i in [l, r]
     def rangeAddMod(self, l, r, v):
         self.rangeAddArithSeqMod(l, r, v, 0)
 

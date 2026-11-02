@@ -19,6 +19,7 @@ Queries cut the runs at l and r + 1 too, then read whole runs, so every op is O(
 """
 import itertools
 import os
+import re
 import shutil
 
 from note_lang import folder_name, write_template
@@ -31,8 +32,8 @@ BASE = ["getAll", "pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointG
 AGG_OPS = {"sum": ["rangeSum"], "xor": ["rangeXorQuery"], "min": ["rangeMin"], "max": ["rangeMax"],
            "or": ["rangeOrQuery"], "and": ["rangeAndQuery"],
            "hash": ["isPalindrome", "rangeHash", "rangeHashReversed", "rangesEqual"]}
-SEQ = ["append", "appendLeft", "eraseRange", "insertAt", "insertCopiesAt", "moveRange", "pop", "popLeft", "rangeReverse", "rangeRotateLeft",
-       "rangeRotateRight"]
+SEQ = ["append", "appendLeft", "concat", "cut", "insertAt", "insertCopiesAt", "moveRange", "paste", "rangeReverse", "rangeRotateLeft",
+       "rangeRotateRight", "split", "trisect"]
 VFIELDS = {"sum": ["sm"], "xor": ["xr"], "or": ["ov"], "and": ["av"], "hash": ["fh", "bh"]}  # per value-tree node
 WORD = {"sum": "sum", "xor": "xor", "min": "min", "max": "max", "or": "or", "and": "and", "hash": "hashes"}
 
@@ -627,14 +628,19 @@ def py_treap(aggs):
         self._join(A, B, C)
         return res
 '''
+    vinit = [ln for ln in py_value_init(aggs).split(chr(10)) if "_grow" not in ln]
+    shared = [m.group(1) for ln in vinit + init for m in re.finditer(r"self\.(\w+)", ln.split("=")[0])]
+    name = class_name(aggs, True)
     return f'''
     # O(N log U) -- arr: the initial array (may be empty); every value a[i] ever holds must lie in [valLo, valHi]
-    # (U = valHi - valLo + 1)
-    def __init__(self, arr, valLo, valHi):
+    # (U = valHi - valLo + 1); like: one whose nodes this one shares (then valLo / valHi are its), so pieces can
+    # move between the two (pieces cut from it share them already). No reset between test cases
+    def __init__(self, arr=(), valLo=0, valHi=0, like=None):
         n = self.n = len(arr)
-{py_value_init(aggs)}
-{chr(10).join(init)}
-        stack = []  # O(N) build: the treap's right spine
+        if like is None:
+{chr(10).join("    " + ln for ln in vinit + init)}
+        else:
+{"".join(f"            self.{a} = like.{a}{chr(10)}" for a in shared)}{"        self._grow(n)" + chr(10) if H else ""}        stack = []  # O(N) build: the treap's right spine
         for v in arr:
             x, last = self._run(self._leaf(v), 1, False), 0
             while stack and self.TP[stack[-1]] < self.TP[x]:
@@ -711,22 +717,42 @@ def py_treap(aggs):
     def appendLeft(self, v):
         self.insertCopiesAt(0, v, 1)
 
-    # O(log N + log U) amortized -- remove a[i] and return it
-    def pop(self, i):
-        v = self.pointGet(i)
-        self.eraseRange(i, i)
-        return v
-
-    # O(log N + log U) amortized -- remove a[0] and return it
-    def popLeft(self):
-        return self.pop(0)
-
-    # O(log N + log U) amortized -- remove a[l..r]
-    def eraseRange(self, l, r):
+    # O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0; drop it to erase)
+    def cut(self, l, r):
         A, B, C = self._extract(l, r)
-        self._drop(B)
-        self.n -= r - l + 1
         self.top = self._tmerge(A, C)
+        self.n -= r - l + 1
+        piece = {name}(like=self)
+        piece.top, piece.n = B, r - l + 1
+        return piece
+
+    # O(log N + log U) amortized -- insert other at a[i] (0 <= i <= size()), leaving it empty; it must share
+    # this one's nodes (a piece cut from it, or built with like=)
+    def paste(self, i, other):
+        self.n += other.n
+{"        self._grow(self.n)  # (before the merge reads the powers)" + chr(10) if H else ""}        A, C = self._tsplit(self.top, i)
+        self.top = self._tmerge(self._tmerge(A, other.top), C)
+        other.top, other.n = 0, 0
+
+    # O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
+    def concat(self, other):
+        self.paste(self.n, other)
+
+    # O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
+    def split(self, k):
+        left, right = [{name}(like=self) for _ in range(2)]
+        left.top, right.top = self._tsplit(self.top, k)
+        left.n, right.n = k, self.n - k
+        self.top, self.n = 0, 0
+        return left, right
+
+    # O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
+    def trisect(self, l, r):
+        left, mid, right = [{name}(like=self) for _ in range(3)]
+        left.top, mid.top, right.top = self._extract(l, r)
+        left.n, mid.n, right.n = l, r - l + 1, self.n - r - 1
+        self.top, self.n = 0, 0
+        return left, mid, right
 
     # O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first; any k, negative = right)
     def rangeRotateLeft(self, l, r, k):

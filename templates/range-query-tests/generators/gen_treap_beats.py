@@ -18,8 +18,8 @@ import os
 import shutil
 
 from gen_treap import no_push, wrap
-from gen_treap_algebra import (CPP_BUILD, CPP_PIECES, CPP_SEQ, CPP_TAIL, PY_PIECES, PY_SEQ, PY_TAIL, Spec, cpp_public, py_public,
-                               rev_line)
+from gen_treap_algebra import (CPP_BUILD, CPP_PIECES, CPP_SEQ, CPP_TAIL, PY_PIECES, PY_SEQ, PY_TAIL, Spec, cpp_public, cpp_skeleton,
+                               py_public, py_skeleton, rev_line)
 from gen_treap_more import slots_line
 from note_lang import folder_name, write_template
 
@@ -29,13 +29,13 @@ _ = (CPP_PIECES, CPP_SEQ, PY_PIECES, PY_SEQ)  # (pulled in through py_public / c
 
 
 class B:
-    def __init__(self, side, add, extra, rev, ptr):
-        self.side, self.add, self.extra, self.rev, self.ptr = side, add, extra, rev, ptr
+    def __init__(self, side, add, extra, rev):
+        self.side, self.add, self.extra, self.rev = side, add, extra, rev
         self.CN, self.CX = side in ("chmin", "both"), side in ("chmax", "both")
         self.MX = self.CN or (extra and side == "chmax")  # mx kept (with mx2 / cmx only on the chmin side)
         self.MN = self.CX or (extra and side == "chmin")
         mods = ("sum",) + (("min",) if self.MN else ()) + (("max",) if self.MX else ())
-        self.base = Spec(mods, "", (), rev, ptr)  # (the treap ops, queries and searches come from it)
+        self.base = Spec(mods, "", (), rev)  # (the treap ops, queries and searches come from it)
         self.ops = sorted(set(self.base.ops) | {"rangeAssign"} | ({"rangeChmin"} if self.CN else set()) |
                           ({"rangeChmax"} if self.CX else set()) | ({"rangeAdd"} if add else set()))
 
@@ -56,7 +56,7 @@ class B:
 
     def name(self):
         return ("treap-beats-" + self.side + ("-add" if self.add else "") + ("-extra" if self.extra else "") +
-                ("-rev" if self.rev else "") + ("-pointers" if self.ptr else ""))
+                ("-rev" if self.rev else ""))
 
     def uniform(self, py):  # "every value in the subtree is the same"
         if self.CN and self.CX:
@@ -75,11 +75,11 @@ class BB:
     that differ inside it are an ^ orr. An op x -> (x & A) | O is applied at a node in O(1) when it leaves every
     differing bit alone (each value moves by the same amount: sums, mins and maxes shift) or forces every one of them
     (the subtree becomes one value); else it walks down, and a differing bit it touches stops differing there."""
-    def __init__(self, aggs, rev, ptr):
-        self.aggs, self.rev, self.ptr = aggs, rev, ptr
+    def __init__(self, aggs, rev):
+        self.aggs, self.rev = aggs, rev
         self.MX, self.MN, self.SM = "max" in aggs, "min" in aggs, "sum" in aggs
         mods = (("sum",) if self.SM else ()) + (("min",) if self.MN else ()) + (("max",) if self.MX else ()) + ("and", "or")
-        self.base = Spec(mods, "", (), rev, ptr)
+        self.base = Spec(mods, "", (), rev)
         self.ops = sorted(set(self.base.ops) | {"rangeAndApply", "rangeOrApply", "rangeAssign"})
 
     def fields(self):
@@ -90,7 +90,7 @@ class BB:
         return ([("rev", "char", "0", "0")] if self.rev else []) + [("tA", "T", "-1", "~T(0)"), ("tO", "T", "0", "T(0)")]
 
     def name(self):
-        return "treap-bitbeats-" + "-".join(self.aggs) + ("-rev" if self.rev else "") + ("-pointers" if self.ptr else "")
+        return "treap-bitbeats-" + "-".join(self.aggs) + ("-rev" if self.rev else "")
 
 
 def variants():
@@ -98,14 +98,12 @@ def variants():
     for k in (1, 2, 3):  # (none of them: gen_treap_algebra's and / or treaps, with plain tags)
         for aggs in itertools.combinations(("sum", "min", "max"), k):
             for rev in (False, True):
-                for ptr in (False, True):
-                    out.append(BB(aggs, rev, ptr))
+                out.append(BB(aggs, rev))
     for side in ("chmin", "chmax", "both"):
         for add in (False, True):
             for extra in ((False, True) if side != "both" else (False,)):
                 for rev in (False, True):
-                    for ptr in (False, True):
-                        out.append(B(side, add, extra, rev, ptr))
+                    out.append(B(side, add, extra, rev))
     return out
 
 
@@ -127,8 +125,7 @@ def header(cm, b):
                if isinstance(b, BB) else
                "  note: N = every value ever inserted; no chmin / chmax / assign tags: a node's own max / min are its pending "
                "clamp, and a node whose values are all equal pushes that value as an assign") +
-              ("; every ImplicitTreap<T> shares one node pool (cut / paste move nodes between them): resetPool() between "
-               "test cases" if b.ptr else "")]
+              "; a treap and the pieces cut from it share their nodes (freed with the last of them: no reset needed)"]
     return "\n".join(f"{cm} {x}" for x in lines) + "\n"
 
 
@@ -137,8 +134,8 @@ def describe(b):
         keeps = ", ".join(x for x, ok in (("its sum", b.SM), ("its min", b.MN), ("its max", b.MX)) if ok)
         return (f"Implicit treap with bit beats: range AND / OR apply (a[i] &= v, a[i] |= v) and range assign with range AND / OR"
                 " queries" + ", range sums" * b.SM + ", the range min" * b.MN + ", the range max" * b.MX + ", on an array you "
-                "can insert into / erase from anywhere, " + ("reverse, " if b.rev else "") + "rotate, move" +
-                (" and cut / paste between treaps" if b.ptr else "") + f". Each node keeps {keeps}, the AND and the OR of its "
+                "can insert into anywhere, " + ("reverse, " if b.rev else "") + "rotate, move, cut pieces out of (that is how to "
+                "erase) and paste them back" + f". Each node keeps {keeps}, the AND and the OR of its "
                 "subtree (its own value included), so the bits that differ inside it are AND ^ OR. An op x -> (x & A) | O "
                 "is applied at a node in O(1) when it leaves every differing bit alone (every value moves by the same "
                 "amount) or forces every one of them (the subtree becomes one value); otherwise it walks down, and each "
@@ -150,8 +147,8 @@ def describe(b):
     keeps = {"chmin": "its max, strict second max and copies of the max", "chmax": "its min, strict second min and copies of the min",
              "both": "its max / min, strict second max / min and their copies"}[b.side]
     return (f"{MARK}: {sides}" + (", range add" if b.add else "") + " and range assign with range sums" +
-            (", the range max" if b.MX else "") + (", the range min" if b.MN else "") + ", on an array you can insert into / "
-            "erase from anywhere, " + ("reverse, " if b.rev else "") + "rotate, move" + (" and cut / paste between treaps" if b.ptr else "") +
+            (", the range max" if b.MX else "") + (", the range min" if b.MN else "") + ", on an array you can insert into "
+            "anywhere, " + ("reverse, " if b.rev else "") + "rotate, move, cut pieces out of (that is how to erase) and paste them back" +
             f". Each node keeps {keeps} over its subtree (its own value included), plus the sum. A chmin x stops at a node with "
             "second max < x: only the copies of the max move (the sum drops by (max - x) * copies). A node's own max / min "
             "double as its pending clamp: push clamps each child to them, so there are no chmin / chmax tags; and when all of "
@@ -164,28 +161,8 @@ def describe(b):
 
 def py(b):
     F, TG = b.fields(), b.tags()
-    names = ["val", "pri", "L", "R", "sz"] + [f[0] for f in F] + [t[0] for t in TG]
     out = [header("#", b), "\n", wrap(describe(b), "#"), "import random\n\n\n", 'INF, NEG = float("inf"), float("-inf")\n\n\n',
-           "class ImplicitTreap:\n"]
-    if b.ptr:
-        out.append("    # one node pool shared by every ImplicitTreap: cut / paste move nodes between them (node 0 = the empty tree)\n")
-        out.append("".join(f"    {n} = [{ident}]\n" for n, ident in
-                           [("val", "0"), ("pri", "0"), ("L", "0"), ("R", "0"), ("sz", "0")] + [(f[0], f[2]) for f in F] + [(t[0], t[2]) for t in TG]))
-        out.append('    __slots__ = ("root",)\n\n')
-        out.append('''    # O(N) -- arr: the initial array (may be empty)
-    def __init__(self, arr=()):
-        self.root = self._build(list(arr))
-
-    # O(1) -- forget every node of every ImplicitTreap (call between test cases, then build new ones)
-    @classmethod
-    def resetPool(cls):
-''' + "".join(f"        del cls.{n}[1:]\n" for n in names) + "\n")
-    else:
-        out.append(slots_line(["root"] + names))
-        out.append("    # O(N) -- arr: the initial array (may be empty)\n    def __init__(self, arr):\n" +
-                   "        self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree\n" +
-                   "".join(f"        self.{f[0]} = [{f[2]}]\n" for f in F) + "".join(f"        self.{t[0]} = [{t[2]}]\n" for t in TG) +
-                   "        self.root = self._build(list(arr))\n\n")
+           py_skeleton(F, TG)]
     out.append("    # O(1) -- the current length of the array\n    def size(self):\n        return self.sz[self.root]\n\n")
     pub = py_public(b.base)
     pub.update(py_updates(b))
@@ -371,7 +348,7 @@ def py_internals(b):
             self.rev[x] ^= 1
 ''')
     push = ['''
-    def _push(self, t):  # hand t's pending changes to its children: all one value (an assign), else the add, then its clamp
+    def _push(self, t):  # hand t's pending changes to its children: one value (an assign), else the add, then the clamp
         l, r = self.L[t], self.R[t]
 ''']
     if b.rev:
@@ -393,27 +370,16 @@ def py_internals(b):
 def cpp(b):
     F, TG = b.fields(), b.tags()
     fl, tn = [f[0] for f in F], [t[0] for t in TG]
-    st = "static inline " if b.ptr else ""
     out = [header("//", b), "\n", wrap(describe(b), "//"), "// T: int, long long, ...; sums are kept in S (long long for small T).",
            "\ntemplate <typename T>\nstruct ImplicitTreap {\n", "    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n",
            "    static constexpr T INF = numeric_limits<T>::max(), NEG = numeric_limits<T>::lowest();  // (no second max / min)\n",
-           "    int root = 0;\n"]
-    if b.ptr:
-        out.append("    // one node pool shared by every ImplicitTreap<T>: cut / paste move nodes between them (node 0 = the empty tree)\n")
-    out.append(f"    {st}vector<T> val{{T(0)}};\n    {st}vector<unsigned long long> pri{{0}};\n    {st}vector<int> L{{0}}, R{{0}}, sz{{0}};\n")
-    out += [f"    {st}vector<{f[1]}> {f[0]}{{{f[3]}}};\n" for f in F] + [f"    {st}vector<{t[1]}> {t[0]}{{{t[3]}}};\n" for t in TG]
+           cpp_skeleton(F, TG)]
     out.append('''
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
         return g();
     }
 
-    // O(N) -- arr: the initial array (may be empty)
-    explicit ImplicitTreap(const vector<T>& arr = {}) { root = build(arr); }
-''' + ('''
-    // O(1) -- forget every node of every ImplicitTreap<T> (call between test cases, then build new ones)
-    static void resetPool() {
-''' + "".join(f"        {n}.resize(1);\n" for n in ["val", "pri", "L", "R", "sz"] + fl + tn) + "    }\n" if b.ptr else "") + '''
     // O(1) -- the current length of the array
     int size() const { return sz[root]; }
 
@@ -554,7 +520,7 @@ def cpp_internals(b):
         if (x) swap(L[x], R[x]), rev[x] ^= 1;
     }
 ''')
-    push = ["\n    void push(int t) {  // hand t's pending changes to its children: all one value (an assign), else the add, then its clamp\n",
+    push = ["\n    void push(int t) {  // hand t's pending changes to its children: one value (an assign), else the add, then the clamp\n",
             "        int l = L[t], r = R[t];\n"]
     if b.rev:
         push.append("        if (rev[t]) applyRev(l), applyRev(r), rev[t] = 0;\n")

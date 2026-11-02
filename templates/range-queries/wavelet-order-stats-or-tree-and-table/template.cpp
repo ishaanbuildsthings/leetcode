@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/wavelet-order-stats-or-tree-and-table/template.cpp
-// @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow orGtX orGteX orInValRange orLtX orLteX pointGet rangeMax rangeMin smallestGtX smallestGteX
+// @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX orGtX orGteX orInValRange orLtX orLteX pointGet rangeMax rangeMin smallestGtX smallestGteX
 // @data-structure-type: wavelet
 // @complexities:
 //   andGtX: log(N)
@@ -14,12 +14,9 @@
 //   countLtX: log(N)
 //   countLteX: log(N)
 //   countOccurrences: log(N)
-//   kthLargest: log(N)
 //   kthSmallest: log(N)
 //   largestLtX: log(N)
 //   largestLteX: log(N)
-//   medianHigh: log(N)
-//   medianLow: log(N)
 //   orGtX: log^2(N)
 //   orGteX: log^2(N)
 //   orInValRange: log^2(N)
@@ -112,18 +109,6 @@ struct WaveletMatrix {
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
         return kth(l, r, k);
     }
-
-    // O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range
-    T kthLargest(int l, int r, int k) const {
-        if (k < 1 || k > r - l + 1) throw out_of_range("kthLargest: needs 1 <= k <= r - l + 1");
-        return kth(l, r, r - l + 2 - k);
-    }
-
-    // O(logN) -- lower median of a[l..r]: its ceil(len / 2)-th smallest
-    T medianLow(int l, int r) const { return kth(l, r, (r - l + 2) / 2); }
-
-    // O(logN) -- upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest
-    T medianHigh(int l, int r) const { return kth(l, r, (r - l + 1) / 2 + 1); }
 
     // O(logN) -- min of a[l..r]
     T rangeMin(int l, int r) const { return kth(l, r, 1); }

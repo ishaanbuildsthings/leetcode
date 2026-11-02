@@ -16,14 +16,14 @@
 #   node: bA[1*N] bB[1*N] bC[1*N]
 #   tags: none
 #   other: none
-#   note: prefix sums are kept as A(x) + B(x) * x + C(x) * x(x+1)/2 mod p with A, B, C three Fenwick trees
+#   note: prefix sums are kept as A(x) + B(x) * x + C(x) * x(x+1)/2 % MOD with A, B, C three Fenwick trees
 
-# Range add of an arithmetic sequence (and plain range add) + range sum, all mod p, with three Fenwick trees.
+# Range add of an arithmetic sequence (and plain range add) + range sum, all % MOD, with three Fenwick trees.
 # All indices 0-based, ranges inclusive [l, r]. Values are residues in [0, mod); start / step may be negative.
 # Adding c0 + c1 * i to every i in [l, r] changes the prefix sum P(x) = a[0] + ... + a[x] by
 #   x in [l, r]:  c0 * (x - l + 1) + c1 * (T(x) - T(l - 1))        T(k) = k * (k + 1) / 2
 #   x > r:        the whole added total
-# so keep P(x) = A(x) + B(x) * x + C(x) * T(x). T(x) is an integer before reducing mod p, so no division (or
+# so keep P(x) = A(x) + B(x) * x + C(x) * T(x). T(x) is an integer before reducing % MOD, so no division (or
 # modular inverse of 2) is ever needed and any modulus works.
 
 
@@ -58,7 +58,7 @@ class ArithSeqSumBITMod:
             bC[i] = (bC[i] + c) % mod
             i += i & -i
 
-    # O(logN) -- (a[0] + ... + a[x]) mod p (0 for x = -1)
+    # O(logN) -- (a[0] + ... + a[x]) % MOD (0 for x = -1)
     def _prefix(self, x):
         bA, bB, bC, mod = self.bA, self.bB, self.bC, self.mod
         sa = sb = sc = 0
@@ -70,7 +70,7 @@ class ArithSeqSumBITMod:
             i &= i - 1
         return (sa + sb % mod * x + sc % mod * (_tri(x) % mod)) % mod
 
-    # O(logN) -- a[l + j] += start + j * step (mod p) for j in [0, r - l]
+    # O(logN) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
     def rangeAddArithSeqMod(self, l, r, start, step):
         if l > r:
             return
@@ -81,11 +81,11 @@ class ArithSeqSumBITMod:
             total = c0 * (r - l + 1) + c1 * (_tri(r) - _tri(l - 1))
             self._point(r + 1, total - a, -c0, -c1)
 
-    # O(logN) -- a[i] += v (mod p) for i in [l, r]
+    # O(logN) -- a[i] += v (% MOD) for i in [l, r]
     def rangeAddMod(self, l, r, v):
         self.rangeAddArithSeqMod(l, r, v, 0)
 
-    # O(logN) -- (a[l] + ... + a[r]) mod p
+    # O(logN) -- (a[l] + ... + a[r]) % MOD
     def rangeSumMod(self, l, r):
         return (self._prefix(r) - self._prefix(l - 1)) % self.mod if l <= r else 0
 
@@ -115,10 +115,10 @@ class ArithSeqSumBITMod:
             prev = p
         return out
 
-    # O(logN) -- a[i] += delta (mod p)
+    # O(logN) -- a[i] += delta (% MOD)
     def pointAdd(self, i, delta):
         self.rangeAddMod(i, i, delta)
 
-    # O(logN) -- a[i] = val (mod p)
+    # O(logN) -- a[i] = val (% MOD)
     def pointAssign(self, i, val):
         self.rangeAddMod(i, i, val - self.pointGet(i))

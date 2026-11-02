@@ -18,9 +18,9 @@
 //   node: tot[2*N]
 //   tags: mul[1*N] add[1*N]
 //   other: none
-//   note: tags live on the N internal nodes only; each is one affine map x -> x*mul + add (mod p)
+//   note: tags live on the N internal nodes only; each is one affine map x -> x*mul + add (% MOD)
 
-// Range affine (a[i] = a[i] * mult + add), add, mult, assign, and range sum, all mod p, plus point ops.
+// Range affine (a[i] = a[i] * mult + add), add, mult, assign, and range sum, all % MOD, plus point ops.
 // All indices 0-based, ranges inclusive [l, r]. Every update is one affine tag (mult, add):
 //   add x -> (1, x)   mult m -> (m, 0)   assign x -> (0, x)
 // Composing f = (m1, a1) then g = (m2, a2) gives (m1 * m2, a1 * m2 + a2): the OLD add is scaled by the NEW mult.
@@ -78,7 +78,7 @@ struct AffineSumTree {
         rebuild(l0), rebuild(r0);
     }
 
-    // O(logN) -- (a[l] + ... + a[r]) mod p
+    // O(logN) -- (a[l] + ... + a[r]) % MOD
     T rangeSumMod(int l, int r) {
         if (l > r) return 0;
         l += n, r += n;
@@ -108,21 +108,21 @@ struct AffineSumTree {
         return vector<T>(tot.begin() + n, tot.end());
     }
 
-    // O(logN) -- a[i] = a[i] * mult + add (mod p) for i in [l, r]; every other update is this one
+    // O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]; every other update is this one
     void rangeAffineMod(int l, int r, T mult, T add) { update(l, r, norm(mult), norm(add)); }
 
-    // O(logN) -- a[i] += v (mod p) for i in [l, r]
+    // O(logN) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(int l, int r, T v) { update(l, r, 1, norm(v)); }
 
-    // O(logN) -- a[i] *= m (mod p) for i in [l, r]
+    // O(logN) -- a[i] *= m (% MOD) for i in [l, r]
     void rangeMultMod(int l, int r, T m) { update(l, r, norm(m), 0); }
 
     // O(logN) -- a[i] = v for i in [l, r]: multiply by 0, then add v
     void rangeAssignMod(int l, int r, T v) { update(l, r, 0, norm(v)); }
 
-    // O(logN) -- a[i] = v (mod p)
+    // O(logN) -- a[i] = v (% MOD)
     void pointAssign(int i, T v) { update(i, i, 0, norm(v)); }
 
-    // O(logN) -- a[i] += delta (mod p)
+    // O(logN) -- a[i] += delta (% MOD)
     void pointAdd(int i, T delta) { update(i, i, 1, norm(delta)); }
 };

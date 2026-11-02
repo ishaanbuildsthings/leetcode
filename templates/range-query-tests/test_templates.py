@@ -22,6 +22,7 @@ import bisect
 import importlib.util
 import inspect
 import hashlib
+import itertools
 import math
 import os
 import random
@@ -270,6 +271,7 @@ BRUTE_QUERIES = {
     "maxSuffixSum": ("lr", lambda a, l, r, c: max(sum(a[i:r + 1]) for i in range(l, r + 1))),
     "countOccurrences": ("lrx", lambda a, l, r, x, c: a[l:r + 1].count(x)),
     "leftmostIndexOf": ("x", lambda a, x, c: _first(a, range(len(a)), lambda v: v == x)),
+    "find": ("xv", lambda a, x, c: a.index(x) if x in a else -1),  # (values are kept distinct for it: see domain)
     "rightmostIndexOf": ("x", lambda a, x, c: _first(a, range(len(a) - 1, -1, -1), lambda v: v == x)),
     "leftmostIndexOfInRange": ("lrx", lambda a, l, r, x, c: _first(a, range(l, r + 1), lambda v: v == x)),
     "rightmostIndexOfInRange": ("lrx", lambda a, l, r, x, c: _first(a, range(r, l - 1, -1), lambda v: v == x)),
@@ -410,6 +412,9 @@ def domain(folder, ops):
     ctx = {"mod": None, "full": None}
     small = lambda r: r.randint(-10, 10)  # noqa: E731
     nonneg_small = lambda r: r.randint(0, 10)  # noqa: E731
+    if "find" in ops:  # find needs distinct values: each new one 1000 above the last (point adds move them by at most 3)
+        fresh = itertools.count()
+        return (lambda r: 1000 * next(fresh) + r.randint(0, 9)), (lambda r: r.randint(-3, 3)), [], ctx
     if "isRBS" in ops:  # brackets: "(" and ")" as character codes, with "(" passed as the opening character (and ")" as the
         return (lambda r: r.choice((40, 41))), small, rbs_extra(folder), ctx  # closing one, to the templates that take it)
     if "rangeSortAsc" in ops:  # range sort: a value range for its value trees, values with many repeats
@@ -484,6 +489,7 @@ def make_trials(folder, ops, trials, letters=False):
         rng = random.Random(t)
         n = rng.randint(1, 8 if "isRBS" in ops and t % 2 else 30)  # (short bracket runs are often balanced: hard cases)
         a = [gen(rng) for _ in range(n)]
+        seen = list(a)  # (find asks mostly for values that were in the array at some point)
         seq, pieces = [], []  # (lengths of the pieces cut and not yet pasted)
         for _ in range(OPS_PER_TRIAL):
             if updates and rng.random() < 0.5:
@@ -528,8 +534,8 @@ def make_trials(folder, ops, trials, letters=False):
                     args = [gen(rng)]
                 elif kind == "none":
                     args = []
-                elif kind == "ivk":
-                    args = [rng.randint(0, n), gen(rng), rng.randint(-1, 3)]
+                elif kind == "ivk":  # (one copy at most when find needs distinct values)
+                    args = [rng.randint(0, n), gen(rng), rng.randint(-1, 1 if "find" in ops else 3)]
                 elif kind == "iv":
                     args = [rng.randint(0, n), gen(rng)]
                 elif kind == "i":
@@ -557,6 +563,8 @@ def make_trials(folder, ops, trials, letters=False):
                     args = []
                 elif kind == "x":  # a value only (the whole array)
                     args = [gen(rng)]
+                elif kind == "xv":  # mostly a value that has been in the array
+                    args = [rng.choice(seen) if rng.random() < 0.85 else gen(rng)]
                 elif kind == "lr2":  # a second range, mostly of the same length
                     m = r - l + 1
                     l2 = rng.randint(0, n - m) if rng.random() < 0.8 else rng.randrange(n)
@@ -581,6 +589,8 @@ def make_trials(folder, ops, trials, letters=False):
                 else:
                     args = [l, r]
             seq.append((op, args))
+            if SEQ_OPS.get(op) in ("v", "iv", "ivk") or op in ("pointAssign", "pointChmax", "pointChmin"):
+                seen.append(args[0] if SEQ_OPS.get(op) == "v" else args[1])  # (a value that may now be in the array)
         out.append((a, seq))
     return out, ctx
 
@@ -1159,7 +1169,7 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
             kind = BRUTE_QUERIES[op][0]
             if kind == "all":
                 body = f"out({s}.{op}());"
-            elif kind == "x":
+            elif kind in ("x", "xv"):
                 body = f"long long x; cin >> x; out({s}.{op}(x));"
             elif op in ("rangeHash", "rangeHashReversed"):
                 body = f"long long l, r, l2, r2; cin >> l >> r >> l2 >> r2; out({s}.{op}(l, r) == {s}.rangeHash(l2, r2));"

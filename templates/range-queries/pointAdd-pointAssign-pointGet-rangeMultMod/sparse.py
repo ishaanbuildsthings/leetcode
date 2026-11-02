@@ -42,7 +42,7 @@ class SparseRangeMultModTree:
             a = t.get(x, 1)
             t[x] = a * v % self.mod
 
-    # O(logU) -- a[i] = a[i] * v (mod p) for i in [l, r]
+    # O(logU) -- a[i] = a[i] * v (% MOD) for i in [l, r]
     def rangeMultMod(self, l, r, v):
         v %= self.mod
         l += self.size - self.lo

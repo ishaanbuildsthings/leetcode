@@ -17,10 +17,10 @@
 #   node: val[1*N]
 #   tags: M[1*N] K[1*N]
 #   other: none
-#   note: each internal node holds one pending affine map x -> x * M + K (mod p); val holds the leaf values
+#   note: each internal node holds one pending affine map x -> x * M + K (% MOD); val holds the leaf values
 
-# Range add / assign / multiply / affine mod p + point ops, no range aggregates. All indices 0-based, ranges
-# inclusive. Every update is an affine map (m, k): x -> m * x + k (mod p):
+# Range add / assign / multiply / affine % MOD + point ops, no range aggregates. All indices 0-based, ranges
+# inclusive. Every update is an affine map (m, k): x -> m * x + k (% MOD):
 #   add v -> (1, v)    mult m -> (m, 0)    assign v -> (0, v)    affine (m, b) -> (m, b)
 # Affine maps compose but not commutatively, so the paths to l and r are pushed before tagging.
 # Values are kept in [0, mod);
@@ -78,19 +78,19 @@ class AffineTree:
             l >>= 1
             r >>= 1
 
-    # O(logN) -- a[i] = a[i] * mult + add (mod p) for i in [l, r]
+    # O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]
     def rangeAffineMod(self, l, r, mult, add):
         self._update(l, r, mult % self.mod, add % self.mod)
 
-    # O(logN) -- a[i] = a[i] * m (mod p) for i in [l, r]
+    # O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]
     def rangeMultMod(self, l, r, m):
         self._update(l, r, m % self.mod, 0)
 
-    # O(logN) -- a[i] += v (mod p) for i in [l, r]
+    # O(logN) -- a[i] += v (% MOD) for i in [l, r]
     def rangeAddMod(self, l, r, v):
         self._update(l, r, 1, v % self.mod)
 
-    # O(logN) -- a[i] = v (mod p) for i in [l, r]
+    # O(logN) -- a[i] = v (% MOD) for i in [l, r]
     def rangeAssignMod(self, l, r, v):
         self._update(l, r, 0, v % self.mod)
 
@@ -118,12 +118,12 @@ class AffineTree:
                 K[x] = 0
         return list(self.val)
 
-    # O(logN) -- a[i] = v (mod p)
+    # O(logN) -- a[i] = v (% MOD)
     def pointAssign(self, i, v):
         self._push(i + self.n)
         self.val[i] = v % self.mod
 
-    # O(logN) -- a[i] += delta (mod p)
+    # O(logN) -- a[i] += delta (% MOD)
     def pointAdd(self, i, delta):
         self._push(i + self.n)
         self.val[i] = (self.val[i] + delta) % self.mod

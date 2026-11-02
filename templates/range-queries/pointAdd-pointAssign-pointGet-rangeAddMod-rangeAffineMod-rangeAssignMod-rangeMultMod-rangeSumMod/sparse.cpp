@@ -19,7 +19,7 @@
 //   other: children[8*log(U)]
 //   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)
 
-// Range affine maps mod p (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v) with range sum mod p,
+// Range affine maps % MOD (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v) with range sum % MOD,
 // plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into the same
 // form, and a node's sum of k slots becomes mul * sum + add * k. Over any index range [lo, hi] (huge or negative is
 // fine); every position starts at 0. Updates push a node's tag into its children (creating them) before recursing past
@@ -113,27 +113,27 @@ struct SparseAffineSumTree {
         return merge(query(pool[x].l, a, m, l, r, down), query(pool[x].r, m + 1, b, l, r, down));
     }
 
-    // O(logU) -- a[i] = a[i] + v (mod p) for i in [l, r]
+    // O(logU) -- a[i] = a[i] + v (% MOD) for i in [l, r]
     void rangeAddMod(long long l, long long r, T v) {
         if (l <= r) update(root, lo, hi, l, r, Tag{1, norm(v)});
     }
 
-    // O(logU) -- a[i] = a[i] * m (mod p) for i in [l, r]
+    // O(logU) -- a[i] = a[i] * m (% MOD) for i in [l, r]
     void rangeMultMod(long long l, long long r, T m) {
         if (l <= r) update(root, lo, hi, l, r, Tag{norm(m), 0});
     }
 
-    // O(logU) -- a[i] = v (mod p) for i in [l, r]
+    // O(logU) -- a[i] = v (% MOD) for i in [l, r]
     void rangeAssignMod(long long l, long long r, T v) {
         if (l <= r) update(root, lo, hi, l, r, Tag{0, norm(v)});
     }
 
-    // O(logU) -- a[i] = a[i] * mult + add (mod p) for i in [l, r]
+    // O(logU) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]
     void rangeAffineMod(long long l, long long r, T mult, T add) {
         if (l <= r) update(root, lo, hi, l, r, Tag{norm(mult), norm(add)});
     }
 
-    // O(logU) -- (a[l] + ... + a[r]) mod p
+    // O(logU) -- (a[l] + ... + a[r]) % MOD
     T rangeSumMod(long long l, long long r) const {
         Agg res = query(root, lo, hi, l, r, ID);
         return res.sm;
@@ -145,7 +145,7 @@ struct SparseAffineSumTree {
         return res.sm;
     }
 
-    // O(logU) -- a[i] = v (mod p)
+    // O(logU) -- a[i] = v (% MOD)
     void pointAssign(long long i, T v) {
         int path[130], d = 0, y = root;
         long long a = lo, b = hi;
@@ -160,6 +160,6 @@ struct SparseAffineSumTree {
         while (d--) pull(path[d]);
     }
 
-    // O(logU) -- a[i] += delta (mod p)
+    // O(logU) -- a[i] += delta (% MOD)
     void pointAdd(long long i, T delta) { pointAssign(i, norm(W(pointGet(i)) + delta)); }
 };

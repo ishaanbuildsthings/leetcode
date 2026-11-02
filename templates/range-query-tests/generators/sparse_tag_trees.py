@@ -331,7 +331,7 @@ def _sqrts(x, k):  # x after k floor-sqrts
          note="a pending tag counts floor-sqrts (at most 6 isqrts per point op); ")
 tag_tree(MOD_POINT + ["rangeMultMod"], "SparseRangeMultModTree", "rangeMultMod + point ops (values in [0, mod))", "1",
          "T(1)", "a * v % self.mod", "a * v % self.mod", "T(W(a) * v % mod)", "T(W(a) * v % mod)", "rangeMultMod",
-         "a[i] = a[i] * v (mod p)", mod=True,
+         "a[i] = a[i] * v (% MOD)", mod=True,
          guard_py="\n        v %= self.mod", guard_cpp="\n        v = norm(v);",
          cpp_helpers='''
     using W = conditional_t<sizeof(T) <= 4, long long, __int128>;

@@ -14,16 +14,16 @@
 //   node: tree[1*N]
 //   tags: none
 //   other: none
-//   note: one Fenwick tree over the differences d[i] = a[i] - a[i - 1], mod p
+//   note: one Fenwick tree over the differences d[i] = a[i] - a[i - 1], % MOD
 
-// Range add (mod p), point get. All indices 0-based, ranges inclusive [l, r]; values are kept in [0, mod).
+// Range add (% MOD), point get. All indices 0-based, ranges inclusive [l, r]; values are kept in [0, mod).
 // T: int, long long, ...
 template <typename T>
 struct RangeAddBITMod {
     using W = conditional_t<sizeof(T) <= 4, long long, __int128>;  // wide enough for a sum of two residues
     int n;
     T mod;
-    vector<T> tree;  // 1-indexed, over d[i] = a[i] - a[i - 1] (mod p)
+    vector<T> tree;  // 1-indexed, over d[i] = a[i] - a[i - 1] (% MOD)
 
     T norm(W x) const { x %= mod; return T(x < 0 ? x + mod : x); }
 
@@ -43,7 +43,7 @@ struct RangeAddBITMod {
         for (i++; i <= n; i += i & -i) tree[i] = norm(W(tree[i]) + v);
     }
 
-    // O(logN) -- a[i] += v (mod p) for i in [l, r]
+    // O(logN) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(int l, int r, T v) {
         v = norm(v);
         add(l, v);
@@ -70,9 +70,9 @@ struct RangeAddBITMod {
         return out;
     }
 
-    // O(logN) -- a[i] += delta (mod p)
+    // O(logN) -- a[i] += delta (% MOD)
     void pointAdd(int i, T delta) { rangeAddMod(i, i, delta); }
 
-    // O(logN) -- a[i] = v (mod p)
+    // O(logN) -- a[i] = v (% MOD)
     void pointAssign(int i, T v) { rangeAddMod(i, i, norm(W(v) - pointGet(i))); }
 };

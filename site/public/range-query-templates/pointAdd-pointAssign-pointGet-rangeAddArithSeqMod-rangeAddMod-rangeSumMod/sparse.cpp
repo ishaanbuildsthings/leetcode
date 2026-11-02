@@ -17,7 +17,7 @@
 //   other: children[4*log(U)]
 //   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of A, B and C. A dynamic prefix-sum tree in a node pool the tree owns
 
-// Range add of an arithmetic sequence (and plain range add) + range sum, all mod p. Adding c0 + c1 * x (x = i - lo) on
+// Range add of an arithmetic sequence (and plain range add) + range sum, all % MOD. Adding c0 + c1 * x (x = i - lo) on
 // [l, r] changes the prefix sum P(x) = a[lo] + ... + a[lo + x] by c0 * (x - l + 1) + c1 * (tri(x) - tri(l - 1)) for x
 // in [l, r] (tri(k) = k(k+1)/2), and by the whole added total past r. So P(x) = A(x) + B(x) * x + C(x) * tri(x) with A,
 // B, C prefix sums of point changes; tri keeps every coefficient an integer. Over any index range [lo, hi] (huge or
@@ -92,7 +92,7 @@ struct SparseArithSeqSumBITMod {
     T norm(W x) const { return T((x % mod + mod) % mod); }
     T tri(long long k) const { return norm(W((__int128)k * (k + 1) / 2 % mod)); }
 
-    // O(logU) -- a[l + j] += start + j * step (mod p) for j in [0, r - l]
+    // O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
     void rangeAddArithSeqMod(long long l, long long r, T start, T step) {
         if (l > r) return;
         l -= lo, r -= lo;
@@ -105,16 +105,16 @@ struct SparseArithSeqSumBITMod {
         }
     }
 
-    // O(logU) -- a[i] += v (mod p) for i in [l, r]
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(long long l, long long r, T v) { rangeAddArithSeqMod(l, r, v, 0); }
 
-    // O(logU) -- (a[lo] + ... + a[lo + x]) mod p (0 for x = -1)
+    // O(logU) -- (a[lo] + ... + a[lo + x]) % MOD (0 for x = -1)
     T sum(long long x) const {
         F s = prefix(x);
         return norm(s[0] + W(s[1]) * norm(x) % mod + W(s[2]) * tri(x) % mod);
     }
 
-    // O(logU) -- (a[l] + ... + a[r]) mod p
+    // O(logU) -- (a[l] + ... + a[r]) % MOD
     T rangeSumMod(long long l, long long r) const { return l <= r ? norm(W(sum(r - lo)) - sum(l - 1 - lo)) : T(0); }
 
     // O(logU) -- a[i], in [0, mod)

@@ -12,12 +12,18 @@ reverse flag and the walks need no flip bookkeeping).
 """
 import os
 
+import shutil
+
+from gen_pair_treap import pool_members
+import gen_pair_treap
 from gen_treap import wrap
+from gen_treap_more import slots_line
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 DTYPE = "persistent-treap"
-BASE = ["append", "appendLeft", "copyRange", "eraseRange", "getAll", "insertAt", "pointAssign", "pointGet", "pop", "popLeft"]
+BASE = ["append", "appendLeft", "concat", "copyRange", "cut", "getAll", "insertAt", "paste", "pointAssign", "pointGet", "split",
+        "trisect"]
 
 
 def header(cm, ops, sums):
@@ -31,7 +37,8 @@ def header(cm, ops, sums):
 
 
 def desc(rv):
-    return ("Persistent implicit treap: an array you can insert into / erase from anywhere" + (", reverse," if rv else "") +
+    return ("Persistent implicit treap: an array you can insert into anywhere, cut pieces out of (that is how to erase) and "
+            "paste them back" + (", reverse," if rv else "") +
             " and copy ranges inside (copyRange: a copy of a[l..r] inserted at index i, O(logN) however long, since the copy "
             "shares the same nodes), each in O(logN) expected. No node changes after it is made: updates copy the nodes on "
             "their paths. Merge picks its root at random weighted by size, so shared nodes need no priorities. All indices "
@@ -46,12 +53,15 @@ def python(ops, sums):
 
 
 class PersistentTreap:
-    __slots__ = ({", ".join(repr(x) for x in slots)})
-
-    # O(N) -- arr: the initial array (may be empty)
-    def __init__(self, arr):
-        self.val, self.sz, self.L, self.R = [0], [0], [0], [0]  # node 0 = the empty tree
-''' + ("        self.rev = [0]\n" if RV else "") + ("        self.sm = [0]\n" if S else "") + '''        self.root = self._build(arr, 0, len(arr))
+''' + slots_line(slots) + '''
+    # O(N) -- arr: the initial array (may be empty); like: a PersistentTreap whose nodes this one shares, so pieces can
+    # move between the two (pieces cut from it share them already). No reset between test cases
+    def __init__(self, arr=(), like=None):
+        if like is None:
+            self.val, self.sz, self.L, self.R = [0], [0], [0], [0]  # node 0 = the empty tree
+''' + ("            self.rev = [0]\n" if RV else "") + ("            self.sm = [0]\n" if S else "") + '''        else:
+            self.val, self.sz, self.L, self.R = like.val, like.sz, like.L, like.R
+''' + ("            self.rev = like.rev\n" if RV else "") + ("            self.sm = like.sm\n" if S else "") + '''        self.root = self._build(list(arr), 0, len(arr))
 
     # O(1) -- the current length of the array
     def size(self):
@@ -77,20 +87,39 @@ class PersistentTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    def pop(self, i):
-        v = self.pointGet(i)
-        self.eraseRange(i, i)
-        return v
-
-    # O(logN) expected -- remove a[0] and return it
-    def popLeft(self):
-        return self.pop(0)
-
-    # O(logN) expected -- remove a[l..r]
-    def eraseRange(self, l, r):
-        a, _, c = self._cut(self.root, l, r)
+    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    def cut(self, l, r):
+        a, b, c = self._cut(self.root, l, r)
         self.root = self._merge(a, c)
+        piece = PersistentTreap(like=self)
+        piece.root = b
+        return piece
+
+    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
+    # treap's nodes (a piece cut from it, or built with like=)
+    def paste(self, i, other):
+        x, y = self._split(self.root, i)
+        self.root = self._merge(self._merge(x, other.root), y)
+        other.root = 0
+
+    # O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
+    def concat(self, other):
+        self.root = self._merge(self.root, other.root)
+        other.root = 0
+
+    # O(logN) expected -- (a[0..k-1], a[k..]) as two PersistentTreaps of their own; this one is left empty
+    def split(self, k):
+        left, right = PersistentTreap(like=self), PersistentTreap(like=self)
+        left.root, right.root = self._split(self.root, k)
+        self.root = 0
+        return left, right
+
+    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PersistentTreaps of their own; this one is left empty
+    def trisect(self, l, r):
+        left, mid, right = PersistentTreap(like=self), PersistentTreap(like=self), PersistentTreap(like=self)
+        left.root, mid.root, right.root = self._cut(self.root, l, r)
+        self.root = 0
+        return left, mid, right
 ''' + ('''
     # O(logN) expected -- reverse a[l..r] in place
     def rangeReverse(self, l, r):
@@ -222,17 +251,28 @@ def cpp(ops, sums):
         "// T: int, long long, ...; sums are kept in S (long long for small T)." if S else "// T: int, long long, ...") + '''
 template <typename T>
 struct PersistentTreap {
-''' + ("    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n" if S else "") + '''    int root = 0;
-    vector<T> val{T(0)};  // node 0 is the empty tree
-    vector<int> sz{0}, L{0}, R{0};
-''' + ("    vector<char> rev{0};\n" if RV else "") + ("    vector<S> sm{S(0)};\n" if S else "") + '''
+''' + ("    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n" if S else "") + '''''' + pool_members(["    vector<T> val{T(0)};", "    vector<int> sz{0}, L{0}, R{0};"] + (["    vector<char> rev{0};"] if RV else []) +
+                     (["    vector<S> sm{S(0)};"] if S else []), "PersistentTreap") + '''    int root = 0;
+
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
         return g();
     }
 
-    // O(N) -- arr: the initial array (may be empty)
-    explicit PersistentTreap(const vector<T>& arr) { root = build(arr, 0, (int)arr.size()); }
+    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
+    explicit PersistentTreap(const vector<T>& arr = {}) : PersistentTreap(make_shared<Pool>()) {
+        root = build(arr, 0, (int)arr.size());
+    }
+
+    // O(N) -- a PersistentTreap over arr that shares other's nodes, so pieces can move between the two (pieces cut from
+    // it share them already)
+    PersistentTreap(const vector<T>& arr, const PersistentTreap& other) : PersistentTreap(other.pool) {
+        root = build(arr, 0, (int)arr.size());
+    }
+
+    // an empty PersistentTreap on pool p
+    explicit PersistentTreap(shared_ptr<Pool> p)
+        : ''' + gen_pair_treap.pool_init + ''' {}
 
     // O(1) -- the current length of the array
     int size() const { return sz[root]; }
@@ -259,21 +299,41 @@ struct PersistentTreap {
     // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    T pop(int i) {
-        T v = pointGet(i);
-        eraseRange(i, i);
-        return v;
-    }
-
-    // O(logN) expected -- remove a[0] and return it
-    T popLeft() { return pop(0); }
-
-    // O(logN) expected -- remove a[l..r]
-    void eraseRange(int l, int r) {
+    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    PersistentTreap cut(int l, int r) {
         int a, b, c;
         cut(root, l, r, a, b, c);
         root = merge(a, c);
+        PersistentTreap piece(pool);
+        piece.root = b;
+        return piece;
+    }
+
+    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
+    // treap's nodes (a piece cut from it, or built with PersistentTreap(arr, this one))
+    void paste(int i, PersistentTreap& other) {
+        int x, y;
+        split(root, i, x, y);
+        root = merge(merge(x, other.root), y), other.root = 0;
+    }
+
+    // O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
+    void concat(PersistentTreap& other) { root = merge(root, other.root), other.root = 0; }
+
+    // O(logN) expected -- (a[0..k-1], a[k..]) as two PersistentTreaps of their own; this one is left empty
+    pair<PersistentTreap, PersistentTreap> split(int k) {
+        PersistentTreap left(pool), right(pool);
+        split(root, k, left.root, right.root);
+        root = 0;
+        return {left, right};
+    }
+
+    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PersistentTreaps of their own; this one is left empty
+    tuple<PersistentTreap, PersistentTreap, PersistentTreap> trisect(int l, int r) {
+        PersistentTreap left(pool), mid(pool), right(pool);
+        cut(root, l, r, left.root, mid.root, right.root);
+        root = 0;
+        return {left, mid, right};
     }
 ''' + ('''
     // O(logN) expected -- reverse a[l..r] in place
@@ -418,6 +478,10 @@ struct PersistentTreap {
 
 
 def main():
+    for d in os.listdir(DIR):  # (folder names follow the op lists)
+        t = os.path.join(DIR, d, "template.py")
+        if os.path.exists(t) and f"@data-structure-type: {DTYPE}" in open(t).read():
+            shutil.rmtree(os.path.join(DIR, d))
     for sums in (False, True):
         for rev in (False, True):
             ops = sorted(BASE + (["rangeSum"] if sums else []) + (["rangeReverse"] if rev else []))

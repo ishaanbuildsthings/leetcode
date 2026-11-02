@@ -15,9 +15,9 @@
 #   node: b1[1*N] b2[1*N]
 #   tags: none
 #   other: none
-#   note: two Fenwick trees over the difference array d (d[i] = a[i] - a[i-1]): b1 over d[i], b2 over d[i] * i, all mod p
+#   note: two Fenwick trees over the difference array d (d[i] = a[i] - a[i-1]): b1 over d[i], b2 over d[i] * i, all % MOD
 
-# Range add + range sum, everything mod p, with two Fenwick trees and no lazy tags. All indices 0-based, ranges
+# Range add + range sum, everything % MOD, with two Fenwick trees and no lazy tags. All indices 0-based, ranges
 # inclusive [l, r]. a[0] + ... + a[x] = (x + 1) * sum(d[0..x]) - sum(d[i] * i for i in 0..x), d the difference array.
 # Values are residues in [0, mod).
 
@@ -54,7 +54,7 @@ class RangeAddSumBITMod:
             b2[i] = (b2[i] + di) % mod
             i += i & -i
 
-    # O(logN) -- (a[0] + ... + a[x]) mod p (0 for x = -1)
+    # O(logN) -- (a[0] + ... + a[x]) % MOD (0 for x = -1)
     def _prefix(self, x):
         b1, b2 = self.b1, self.b2
         s1 = s2 = 0
@@ -65,7 +65,7 @@ class RangeAddSumBITMod:
             i &= i - 1
         return (s1 % self.mod * (x + 1) - s2) % self.mod
 
-    # O(logN) -- a[i] += v (mod p) for i in [l, r]
+    # O(logN) -- a[i] += v (% MOD) for i in [l, r]
     def rangeAddMod(self, l, r, v):
         if l > r:
             return
@@ -73,7 +73,7 @@ class RangeAddSumBITMod:
         if r + 1 < self.n:
             self._addDiff(r + 1, -v)
 
-    # O(logN) -- (a[l] + ... + a[r]) mod p
+    # O(logN) -- (a[l] + ... + a[r]) % MOD
     def rangeSumMod(self, l, r):
         return (self._prefix(r) - self._prefix(l - 1)) % self.mod if l <= r else 0
 
@@ -101,10 +101,10 @@ class RangeAddSumBITMod:
             prev = p
         return out
 
-    # O(logN) -- a[i] += delta (mod p)
+    # O(logN) -- a[i] += delta (% MOD)
     def pointAdd(self, i, delta):
         self.rangeAddMod(i, i, delta)
 
-    # O(logN) -- a[i] = val (mod p)
+    # O(logN) -- a[i] = val (% MOD)
     def pointAssign(self, i, val):
         self.rangeAddMod(i, i, val - self.pointGet(i))

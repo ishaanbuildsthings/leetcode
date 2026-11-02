@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/bit-of-trees-order-stats-xor/sparse.cpp
-// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
+// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
 // @data-structure-type: bit-of-trees
 // @complexities:
 //   countGtX: log(U)*log(U)
@@ -9,12 +9,9 @@
 //   countLtX: log(U)*log(U)
 //   countLteX: log(U)*log(U)
 //   countOccurrences: log(U)*log(U)
-//   kthLargest: log(U)*log(U)
 //   kthSmallest: log(U)*log(U)
 //   largestLtX: log(U)*log(U)
 //   largestLteX: log(U)*log(U)
-//   medianHigh: log(U)*log(U)
-//   medianLow: log(U)*log(U)
 //   pointAdd: log(U)*log(U)
 //   pointAssign: log(U)*log(U)
 //   pointChmax: log(U)*log(U)
@@ -113,18 +110,6 @@ struct SparseDynamicOrderStats {
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
         return kth(l, r, k);
     }
-
-    // O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range
-    T kthLargest(long long l, long long r, long long k) const {
-        if (k < 1 || k > r - l + 1) throw out_of_range("kthLargest: needs 1 <= k <= r - l + 1");
-        return kth(l, r, r - l + 2 - k);
-    }
-
-    // O(logN) -- lower median of a[l..r]: its ceil(len / 2)-th smallest
-    T medianLow(long long l, long long r) const { return kth(l, r, (r - l + 2) / 2); }
-
-    // O(logN) -- upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest
-    T medianHigh(long long l, long long r) const { return kth(l, r, (r - l + 1) / 2 + 1); }
 
     // O(logN) -- min of a[l..r]
     T rangeMin(long long l, long long r) const { return kth(l, r, 1); }

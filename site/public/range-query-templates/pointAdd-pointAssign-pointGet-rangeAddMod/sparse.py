@@ -15,7 +15,7 @@
 #   other: children[4*log(U)]
 #   note: per update, the O(logU) entries above each changed position; a range add changes two differences. A Fenwick tree in a dict (no child pointers)
 
-# Range add, point get, all mod p: prefix sums of the difference array d[i] = a[i] - a[i - 1].
+# Range add, point get, all % MOD: prefix sums of the difference array d[i] = a[i] - a[i - 1].
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a Fenwick tree in a
 # dict keyed by offset x = i - lo, so only the O(logU) entries above changed positions exist.
 
@@ -48,7 +48,7 @@ class SparseRangeAddBITMod:
             x &= x - 1
         return s % self.mod
 
-    # O(logU) -- a[i] += v (mod p) for i in [l, r]
+    # O(logU) -- a[i] += v (% MOD) for i in [l, r]
     def rangeAddMod(self, l, r, v):
         if l > r:
             return

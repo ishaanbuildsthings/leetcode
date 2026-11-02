@@ -14,9 +14,9 @@
 #   node: tree[1*N]
 #   tags: none
 #   other: none
-#   note: one Fenwick tree over the differences d[i] = a[i] - a[i - 1], mod p
+#   note: one Fenwick tree over the differences d[i] = a[i] - a[i - 1], % MOD
 
-# Range add (mod p), point get. All indices 0-based, ranges inclusive [l, r]; values are kept in [0, mod).
+# Range add (% MOD), point get. All indices 0-based, ranges inclusive [l, r]; values are kept in [0, mod).
 class RangeAddBITMod:
     __slots__ = ("n", "tree", "mod")
 
@@ -41,7 +41,7 @@ class RangeAddBITMod:
             tree[i] = (tree[i] + v) % mod
             i += i & -i
 
-    # O(logN) -- a[i] += v (mod p) for i in [l, r]
+    # O(logN) -- a[i] += v (% MOD) for i in [l, r]
     def rangeAddMod(self, l, r, v):
         v %= self.mod
         self._add(l, v)
@@ -73,10 +73,10 @@ class RangeAddBITMod:
             out.append(s % mod)
         return out
 
-    # O(logN) -- a[i] += delta (mod p)
+    # O(logN) -- a[i] += delta (% MOD)
     def pointAdd(self, i, delta):
         self.rangeAddMod(i, i, delta)
 
-    # O(logN) -- a[i] = val (mod p)
+    # O(logN) -- a[i] = val (% MOD)
     def pointAssign(self, i, val):
         self.rangeAddMod(i, i, val - self.pointGet(i))

@@ -64,7 +64,7 @@ def cpp(s):
 '''
     else:
         points = '''
-    // O(logU) -- a[i] += delta (mod p)
+    // O(logU) -- a[i] += delta (% MOD)
     void pointAdd(long long i, T delta) { pointAssign(i, norm(W(pointGet(i)) + delta)); }
 '''
     del ms
@@ -214,7 +214,7 @@ def py(s):
 '''
     else:
         points = '''
-    # O(logU) -- a[i] += delta (mod p)
+    # O(logU) -- a[i] += delta (% MOD)
     def pointAdd(self, i, delta):
         self.pointAssign(i, self.pointGet(i) + delta)
 '''
@@ -563,24 +563,24 @@ write({
 
 # (max subarray + assign: gen_seg_algebra.py's tree, with its own sparse version, replaced this one)
 
-# ------------------------------------------------------------------------------------------------ mod p: affine maps, mult
+# ------------------------------------------------------------------------------------------------ % MOD: affine maps, mult
 
 MOD_TYPES = "    using W = conditional_t<sizeof(T) <= 4, long long, __int128>;\n"
 MOD_HELP = "\n    T norm(W x) const { return T((x % mod + mod) % mod); }\n"
-AFFINE_CPP_UPD = [("rangeAddMod", "T v", "a[i] = a[i] + v (mod p)", "Tag{1, norm(v)}"),
-                  ("rangeMultMod", "T m", "a[i] = a[i] * m (mod p)", "Tag{norm(m), 0}"),
-                  ("rangeAssignMod", "T v", "a[i] = v (mod p)", "Tag{0, norm(v)}"),
-                  ("rangeAffineMod", "T mult, T add", "a[i] = a[i] * mult + add (mod p)", "Tag{norm(mult), norm(add)}")]
-AFFINE_PY_UPD = [("rangeAddMod", "v", "a[i] = a[i] + v (mod p)", "(1, v % self.mod)"),
-                 ("rangeMultMod", "m", "a[i] = a[i] * m (mod p)", "(m % self.mod, 0)"),
-                 ("rangeAssignMod", "v", "a[i] = v (mod p)", "(0, v % self.mod)"),
-                 ("rangeAffineMod", "mult, add", "a[i] = a[i] * mult + add (mod p)", "(mult % self.mod, add % self.mod)")]
+AFFINE_CPP_UPD = [("rangeAddMod", "T v", "a[i] = a[i] + v (% MOD)", "Tag{1, norm(v)}"),
+                  ("rangeMultMod", "T m", "a[i] = a[i] * m (% MOD)", "Tag{norm(m), 0}"),
+                  ("rangeAssignMod", "T v", "a[i] = v (% MOD)", "Tag{0, norm(v)}"),
+                  ("rangeAffineMod", "T mult, T add", "a[i] = a[i] * mult + add (% MOD)", "Tag{norm(mult), norm(add)}")]
+AFFINE_PY_UPD = [("rangeAddMod", "v", "a[i] = a[i] + v (% MOD)", "(1, v % self.mod)"),
+                 ("rangeMultMod", "m", "a[i] = a[i] * m (% MOD)", "(m % self.mod, 0)"),
+                 ("rangeAssignMod", "v", "a[i] = v (% MOD)", "(0, v % self.mod)"),
+                 ("rangeAffineMod", "mult, add", "a[i] = a[i] * mult + add (% MOD)", "(mult % self.mod, add % self.mod)")]
 for with_sum in (True, False):
     write({
         "name": "SparseAffineSumTree" if with_sum else "SparseAffineTree", "mod": True, "point": "mod",
         "ops": MOD_POINT + ["rangeAddMod", "rangeAffineMod", "rangeAssignMod", "rangeMultMod"] + (["rangeSumMod"] if with_sum else []),
-        "desc": ["Range affine maps mod p (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v)"
-                 + (" with range sum mod p," if with_sum else ","),
+        "desc": ["Range affine maps % MOD (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v)"
+                 + (" with range sum % MOD," if with_sum else ","),
                  "plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into",
                  "the same form" + (", and a node's sum of k slots becomes mul * sum + add * k." if with_sum
                                     else ". Only leaves' values matter, so nothing is pulled.")],
@@ -593,24 +593,24 @@ for with_sum in (True, False):
             "apply": "        v.sm = T((W(t.mul) * v.sm + W(t.add) * (k % mod)) % mod);" if with_sum
                      else "        (void)k;\n        v.sm = T((W(t.mul) * v.sm + t.add) % mod);",
             "merge": "return Agg{T((W(a.sm) + b.sm) % mod)};" if with_sum else None,
-            "leaf": "Agg{norm(v)}", "get": "res.sm", "get_note": ", in [0, mod)", "assign_note": " (mod p)",
+            "leaf": "Agg{norm(v)}", "get": "res.sm", "get_note": ", in [0, mod)", "assign_note": " (% MOD)",
             "updates": AFFINE_CPP_UPD,
-            "queries": [("rangeSumMod", "T", "(a[l] + ... + a[r]) mod p", "res.sm")] if with_sum else [],
+            "queries": [("rangeSumMod", "T", "(a[l] + ... + a[r]) % MOD", "res.sm")] if with_sum else [],
         },
         "py": {
             "zero": "0", "apply": "        return (t[0] * v + t[1] * k) % self.mod" if with_sum else "        return (t[0] * v + t[1]) % self.mod",
             "compose": "        return t[0] * o[0] % self.mod, (t[0] * o[1] + t[1]) % self.mod",
             "merge": "        return (a + b) % self.mod" if with_sum else None,
-            "leaf": "val % self.mod", "get": "res", "get_note": ", in [0, mod)", "assign_note": " (mod p)",
+            "leaf": "val % self.mod", "get": "res", "get_note": ", in [0, mod)", "assign_note": " (% MOD)",
             "updates": AFFINE_PY_UPD,
-            "queries": [("rangeSumMod", "(a[l] + ... + a[r]) mod p", "res")] if with_sum else [],
+            "queries": [("rangeSumMod", "(a[l] + ... + a[r]) % MOD", "res")] if with_sum else [],
         },
     })
 
 write({
     "name": "SparseMultSumTree", "mod": True, "point": "mod",
     "ops": MOD_POINT + ["rangeMultMod", "rangeSumMod"],
-    "desc": ["Range mult with range sum, all mod p, plus point ops. Values are residues in [0, mod). A tag is a pending",
+    "desc": ["Range mult with range sum, all % MOD, plus point ops. Values are residues in [0, mod). A tag is a pending",
              "multiplier; a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a",
              "modular inverse at point writes, and a multiplier can be 0.)"],
     "mem": ("sm[4*log(U)]", "mul[4*log(U)]", "children[8*log(U)]"),
@@ -620,15 +620,15 @@ write({
         "compose": "return Tag{T(W(t.mul) * o.mul % mod)};",
         "apply": "        (void)k;\n        v.sm = T(W(t.mul) * v.sm % mod);",
         "merge": "return Agg{T((W(a.sm) + b.sm) % mod)};",
-        "leaf": "Agg{norm(v)}", "get": "res.sm", "get_note": ", in [0, mod)", "assign_note": " (mod p)",
-        "updates": [("rangeMultMod", "T m", "a[i] = a[i] * m (mod p)", "Tag{norm(m)}")],
-        "queries": [("rangeSumMod", "T", "(a[l] + ... + a[r]) mod p", "res.sm")],
+        "leaf": "Agg{norm(v)}", "get": "res.sm", "get_note": ", in [0, mod)", "assign_note": " (% MOD)",
+        "updates": [("rangeMultMod", "T m", "a[i] = a[i] * m (% MOD)", "Tag{norm(m)}")],
+        "queries": [("rangeSumMod", "T", "(a[l] + ... + a[r]) % MOD", "res.sm")],
     },
     "py": {
         "zero": "0", "apply": "        return t * v % self.mod", "compose": "        return t * o % self.mod",
         "merge": "        return (a + b) % self.mod", "leaf": "val % self.mod", "get": "res",
-        "get_note": ", in [0, mod)", "assign_note": " (mod p)",
-        "updates": [("rangeMultMod", "m", "a[i] = a[i] * m (mod p)", "m % self.mod")],
-        "queries": [("rangeSumMod", "(a[l] + ... + a[r]) mod p", "res")],
+        "get_note": ", in [0, mod)", "assign_note": " (% MOD)",
+        "updates": [("rangeMultMod", "m", "a[i] = a[i] * m (% MOD)", "m % self.mod")],
+        "queries": [("rangeSumMod", "(a[l] + ... + a[r]) % MOD", "res")],
     },
 })

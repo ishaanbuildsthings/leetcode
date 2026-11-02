@@ -7,7 +7,7 @@ only what its ops need (so nothing pays for an op it doesn't have):
     bitwise  any of rangeAndQuery / rangeOrQuery, and any of rangeAndApply / rangeOrApply / rangeAssign: every update is
              x -> (x & A) | O and those compose; and= keeps only the A tag, or= only the O tag, assign needs both.
     affine   rangeSumMod with rangeAddMod (tag c only), rangeMultMod (tag m only), or all of add / mult / affine / assign
-             (x -> x * m + c mod p, tags m and c).
+             (x -> x * m + c % MOD, tags m and c).
     brackets isRBS on a sequence of characters (open = +1, anything else = -1): each node keeps its +-1 sum and min
              prefix sum, with or without rangeAssign (assign tag) and rangeFlip (open <-> close, flip tag; a flip negates,
              so it needs the max prefix too); a reverse needs the min suffix (and with flips the max suffix).
@@ -19,13 +19,14 @@ one of them can't reverse).
 """
 import itertools
 import os
+import re
 import shutil
 
 from gen_treap import no_push, wrap
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
-SEQ = ["append", "appendLeft", "eraseRange", "getAll", "insertAt", "insertCopiesAt", "moveRange", "pop", "popLeft",
+SEQ = ["append", "appendLeft", "concat", "cut", "getAll", "insertAt", "insertCopiesAt", "moveRange", "paste", "split", "trisect",
        "rangeRotateLeft", "rangeRotateRight"]
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 MAXSUB_Q = {"pre": ("maxPrefixSum", "max of a[l] + ... + a[i] over i in [l, r]"),
@@ -35,8 +36,8 @@ BIT_Q = {"an": ("rangeAndQuery", "a[l] & ... & a[r]"), "orr": ("rangeOrQuery", "
 BIT_U = {"and": ("rangeAndApply", "a[i] &= v for i in [l, r]"), "or": ("rangeOrApply", "a[i] |= v for i in [l, r]"),
          "assign": ("rangeAssign", "a[i] = v for i in [l, r]")}
 AFF_U = {"add": ["rangeAddMod"], "mult": ["rangeMultMod"], "full": ["rangeAddMod", "rangeAffineMod", "rangeAssignMod", "rangeMultMod"]}
-UDOC = {"rangeFlip": "every open in a[l..r] becomes closeChar and every other character openChar","rangeAddMod": "a[i] = (a[i] + v) mod p for i in [l, r]", "rangeMultMod": "a[i] = a[i] * v mod p for i in [l, r]",
-        "rangeAffineMod": "a[i] = (a[i] * mult + add) mod p for i in [l, r]", "rangeAssignMod": "a[i] = v mod p for i in [l, r]",
+UDOC = {"rangeFlip": "every open in a[l..r] becomes closeChar and every other character openChar","rangeAddMod": "a[i] = (a[i] + v) % MOD for i in [l, r]", "rangeMultMod": "a[i] = a[i] * v % MOD for i in [l, r]",
+        "rangeAffineMod": "a[i] = (a[i] * mult + add) % MOD for i in [l, r]", "rangeAssignMod": "a[i] = v % MOD for i in [l, r]",
         "rangeAssign": BIT_U["assign"][1], "rangeAndApply": BIT_U["and"][1], "rangeOrApply": BIT_U["or"][1]}
 IDENT = {"mn": "0", "mx": "0", "mnS": "0", "mxS": "0", "flp": "0", "sm": "0", "pre": "0", "suf": "0", "best": "0", "an": "-1", "orr": "0", "rev": "0", "asg": "0", "hasAsg": "0",
          "tA": "-1", "tO": "0", "tm": "1", "tc": "0"}
@@ -91,7 +92,7 @@ def queries(kind, sp):
         return [(BIT_Q[q][0], BIT_Q[q][1], q) for q in sp["Q"]]
     if kind == "brackets":
         return []  # (isRBS reads two arrays)
-    return [("rangeSumMod", "(a[l] + ... + a[r]) mod p", "sm")]
+    return [("rangeSumMod", "(a[l] + ... + a[r]) % MOD", "sm")]
 
 
 def header(cm, ops, kind, sp):
@@ -113,7 +114,7 @@ def describe(kind, sp):
         what = ("each node keeps its subtree's " + " and ".join({"an": "AND", "orr": "OR"}[q] for q in sp["Q"]) +
                 ("; every update is x -> (x & A) | O, and those compose" if sp["U"] else ""))
     elif kind == "affine":
-        what = "values live mod p; each node keeps its subtree's sum, and every update is x -> x * m + c (mod p)"
+        what = "values live % MOD; each node keeps its subtree's sum, and every update is x -> x * m + c (% MOD)"
     else:
         FL = "flip" in sp["U"]
         what = ("the values are characters, openChar = +1 and " + ("closeChar" if FL else "any other character") + " = -1, and "
@@ -221,7 +222,7 @@ def py_apply_push(kind, sp, F, tags):
     M, C = ("self.tm[x]" if TM else "1"), ("self.tc[x]" if TC else "0")
     reset = ", ".join(f"self.{t}[x]" for t in ("tm", "tc") if t in tags) + " = " + ", ".join(IDENT[t] for t in ("tm", "tc") if t in tags)
     return (f'''
-    def _applyAff(self, x, m, c):  # every value v of x's subtree becomes v * m + c (mod p)
+    def _applyAff(self, x, m, c):  # every value v of x's subtree becomes v * m + c (% MOD)
         if x:
             p = self.mod
             self.val[x] = (self.val[x] * m + c) % p
@@ -282,8 +283,11 @@ def python(kind, sp):
     RV = sp["rev"]
     BR, FL = kind == "brackets", kind == "brackets" and "flip" in sp["U"]
     slots = ["root", "val", "pri", "L", "R", "sz"] + F + tags + (["mod"] if kind == "affine" else ["oc"] + (["cc"] if FL else []) if BR else [])
-    ctor = ("def __init__(self, arr, mod):" if kind == "affine" else
-            "def __init__(self, brackets, openChar=\"(\"" + (", closeChar=\")\"" if FL else "") + "):" if BR else "def __init__(self, arr):")
+    ctor = ("def __init__(self, arr=(), mod=None, like=None):" if kind == "affine" else
+            "def __init__(self, brackets=(), openChar=\"(\"" + (", closeChar=\")\"" if FL else "") + ", like=None):" if BR else
+            "def __init__(self, arr=(), like=None):")
+    share = ("        else:\n            self.val, self.pri, self.L, self.R, self.sz = like.val, like.pri, like.L, like.R, like.sz\n" +
+             "".join(f"            self.{n} = like.{n}\n" for n in slots[6:]))
     zero = ("        self.mod = mod\n" if kind == "affine" else "") + (
         "        self.oc = openChar\n" + ("        self.cc = closeChar\n" if FL else "") if BR else "") + "".join(
         f"        self.{f} = [{IDENT[f]}]\n" for f in F + tags)
@@ -354,14 +358,18 @@ def python(kind, sp):
             self._pull(x)
 '''
     pub.update(PY_SEQ)
+    from gen_treap_algebra import PY_PIECES  # (lazy: gen_treap_algebra imports this module)
+    pub.update(PY_PIECES)
     vfix = "v % mod" if kind == "affine" else "v"
     out = (header("#", ops, kind, sp) + "\n" + wrap(describe(kind, sp), "#") + "import random\n\n\nclass ImplicitTreap:\n" +
            slots_line(slots) +
            (f"    # O(N) -- brackets: the sequence, a list of characters like [\"(\", \")\", \"(\"] (a str like \"()(\" works too);\n"
             f"    # openChar: the character that opens (\"(\" unless you pass e.g. \"[\")" + ("" if FL else "; ")
             + ("\n    # closeChar: the character that closes (every character must be one of the two)" if FL else "every other character closes") + f"\n    {ctor}\n" if BR else
-            f"    # O(N) -- arr: the initial array (may be empty){'; p: the modulus' if kind == 'affine' else ''}\n    {ctor}\n") +
-           "        self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree\n" + zero +
+            f"    # O(N) -- arr: the initial array (may be empty){'; mod: the modulus p' if kind == 'affine' else ''}\n    {ctor}\n") +
+           "    # (like: an ImplicitTreap whose nodes this one shares, so pieces can move between the two; no reset needed)\n" +
+           "        if like is None:\n            self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree\n" +
+           "".join("    " + ln + "\n" for ln in zero.rstrip("\n").split("\n")) + share +
            (f"        self.root = self._build(list(brackets))\n" if BR else f"        self.root = self._build([{vfix} for v in arr])\n")
            + f"\n    # O(1) -- the current length of the array\n    def size(self):\n"
            "        return self.sz[self.root]\n\n" + "\n".join(pub[op] for op in ops) + '''
@@ -379,6 +387,7 @@ def python(kind, sp):
 ''' + py_pull(kind, sp, F) + rev_def + apply + ('''
     def _push(self, x):  # hand x's pending tags to its children
 ''' + push if push else "") + PY_TAIL)
+    out = re.sub(r"(    def __init__\(.*\n)(    # \(like: .*\n)", r"\2\1", out)  # (the like note above the def)
     return out if push else no_push(out, "py")
 
 
@@ -405,21 +414,6 @@ PY_SEQ = {
     "appendLeft": '''    # O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     def appendLeft(self, v):
         self.insertAt(0, v)
-''',
-    "pop": '''    # O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    def pop(self, i):
-        v = self.pointGet(i)
-        self.eraseRange(i, i)
-        return v
-''',
-    "popLeft": '''    # O(logN) expected -- remove a[0] and return it
-    def popLeft(self):
-        return self.pop(0)
-''',
-    "eraseRange": '''    # O(logN) expected -- remove a[l..r]
-    def eraseRange(self, l, r):
-        a, _, c = self._cut(l, r)
-        self.root = self._merge(a, c)
 ''',
     "rangeReverse": '''    # O(logN) expected -- reverse a[l..r] in place
     def rangeReverse(self, l, r):
@@ -642,7 +636,7 @@ def cpp_apply_push(kind, sp, F, tags):
     reset = ", ".join((["tm[x] = 1"] if TM else []) + (["tc[x] = 0"] if TC else []))
     return (f'''
     long long mul(long long a, long long b) const {{ return (long long)((__int128)a * b % mod); }}
-    void applyAff(int x, long long m, long long c) {{  // every value v of x's subtree becomes v * m + c (mod p)
+    void applyAff(int x, long long m, long long c) {{  // every value v of x's subtree becomes v * m + c (% MOD)
         if (!x) return;
         val[x] = T((mul((long long)val[x], m) + c) % mod);
         sm[x] = (mul(sm[x], m) + mul(c, sz[x])) % mod;
@@ -650,6 +644,55 @@ def cpp_apply_push(kind, sp, F, tags):
     }}
     long long norm(long long v) const {{ return ((v % mod) + mod) % mod; }}
 ''', f"        if ({cond}) {{\n            applyAff(L[x], {M}, {C}), applyAff(R[x], {M}, {C});\n            {reset};\n        }}\n")
+
+
+def poolify(text, kind):
+    """the members of a treap made here -> a node pool shared by the treap and the pieces cut from it (references to
+    its arrays keep the code as it is), with the constructors on top of it"""
+    a = text.index("    int root = 0;\n")
+    b = text.index("\n    static unsigned long long rnd()", a)
+    pool, refs, names = [], [], []
+    for ln in text[a:b].split("\n")[1:]:
+        m = re.match(r"    vector<(.+?)> (.*?);(\s*//.*)?$", ln)
+        if m:
+            items = re.findall(r"(\w+)\{([^}]*)\}", m.group(2))
+            pool.append(f"        vector<{m.group(1)}> {m.group(2)};{m.group(3) or ''}")
+            refs += [f"    vector<{m.group(1)}>& {n};" for n, _ in items]
+            names += [n for n, _ in items]
+            continue
+        m = re.match(r"    (long long|T) ([\w, ]+);(\s*//.*)?$", ln)
+        if m:
+            pool.append(f"        {m.group(1)} {m.group(2)};{m.group(3) or ''}")
+            refs += [f"    {m.group(1)}& {n.strip()};" for n in m.group(2).split(",")]
+            names += [n.strip() for n in m.group(2).split(",")]
+        elif ln.strip():
+            pool.append("    " + ln)
+    parts, lines = ["pool(p)"] + [f"{n}(p->{n})" for n in names], [""]
+    for x in parts:
+        if lines[-1] and len(lines[-1]) + len(x) + 2 > 104:
+            lines[-1] += ","
+            lines.append("")
+        lines[-1] += (", " if lines[-1] and not lines[-1].endswith(",") else "") + x
+    head = ("    struct Pool {  // the node arrays: node 0 = the empty tree\n" + "\n".join(pool) + "\n    };\n"
+            "    shared_ptr<Pool> pool;  // (shared by this treap and every piece cut from it; freed with the last of them)\n" +
+            "\n".join(refs) + "\n    int root = 0;\n")
+    text = text[:a] + head + text[b:]
+    build = ("vector<T> v(arr);\n        for (T& x : v) x = T(norm((long long)x));\n        root = build(v);" if kind == "affine" else
+             "root = build(brackets);" if kind == "brackets" else "root = build(arr);")
+    arg = "brackets" if kind == "brackets" else "arr"
+    if kind == "affine":
+        text = text.replace("    ImplicitTreap(const vector<T>& arr, long long mod) : mod(mod) {\n",
+                            "    ImplicitTreap(const vector<T>& arr, long long mod) : ImplicitTreap(make_shared<Pool>()) {\n        this->mod = mod;\n", 1)
+    elif kind == "brackets":
+        text = re.sub(r"\)\n        : oc\(openChar\)(, cc\(closeChar\))? \{\n",
+                      lambda m: ")\n        : ImplicitTreap(make_shared<Pool>()) {\n        oc = openChar" + (", cc = closeChar" if m.group(1) else "") + ";\n",
+                      text, count=1)
+    m = re.search(r"\n    \}\n\n    // O\(1\) -- the current length of the array", text)
+    extra = (f"\n    }}\n\n    // O(N) -- a treap over {arg} that shares other's nodes, so pieces can move between the two (pieces cut from a\n"
+             f"    // treap share its nodes already); no reset between test cases: a treap's nodes are freed with it\n"
+             f"    ImplicitTreap(const vector<T>& {arg}, const ImplicitTreap& other) : ImplicitTreap(other.pool) {{\n        {build}\n    }}\n\n"
+             f"    // an empty treap on pool p\n    explicit ImplicitTreap(shared_ptr<Pool> p)\n        : " + "\n          ".join(lines) + " {}\n")
+    return text[:m.start()] + extra + text[m.start() + len("\n    }\n"):]
 
 
 def cpp(kind, sp):
@@ -687,7 +730,7 @@ def cpp(kind, sp):
         TM, TC = "tm" in tags, "tc" in tags
         tg = (["tm{1}"] if TM else []) + (["tc{0}"] if TC else [])
         fields = (f"    long long mod;\n    vector<long long> sm{{0}};\n    vector<long long> {', '.join(tg)};  // the pending x -> x * "
-                  f"{'tm' if TM else '1'} + {'tc' if TC else '0'} (mod p)\n")
+                  f"{'tm' if TM else '1'} + {'tc' if TC else '0'} (% MOD)\n")
         new_extra = ", ".join(["sm.push_back((long long)v)"] + (["tm.push_back(1)"] if TM else []) + (["tc.push_back(0)"] if TC else []))
     apply, push = cpp_apply_push(kind, sp, F, tags)
     rev_def = ""
@@ -751,6 +794,8 @@ def cpp(kind, sp):
     }}
 '''
     pub.update(cpp_seq(nv))
+    from gen_treap_algebra import CPP_PIECES
+    pub.update(CPP_PIECES)
     BR, FL = kind == "brackets", kind == "brackets" and "flip" in sp["U"]
     ctor_sig = ("ImplicitTreap(const vector<T>& arr, long long mod) : mod(mod)" if kind == "affine" else
                 "explicit ImplicitTreap(const vector<T>& brackets, T openChar = T('(')" + (", T closeChar = T(')')" if FL else "") +
@@ -798,6 +843,7 @@ def cpp(kind, sp):
     void push(int x) {  // hand x's pending tags to its children
 ''' + push + '''    }
 ''' if push else "") + CPP_TAIL)
+    out = poolify(out, kind)
     return out if push else no_push(out, "cpp")
 
 
@@ -822,21 +868,6 @@ def cpp_seq(nv):
         "append": f"    // O(logN) expected -- append v to the end\n    void append(T v) {{ root = merge(root, newNode({nv})); }}\n",
         "appendLeft": '''    // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
-''',
-        "pop": '''    // O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    T pop(int i) {
-        T v = pointGet(i);
-        eraseRange(i, i);
-        return v;
-    }
-''',
-        "popLeft": "    // O(logN) expected -- remove a[0] and return it\n    T popLeft() { return pop(0); }\n",
-        "eraseRange": '''    // O(logN) expected -- remove a[l..r]
-    void eraseRange(int l, int r) {
-        int a, b, c;
-        cut(l, r, a, b, c);
-        root = merge(a, c);
-    }
 ''',
         "rangeReverse": '''    // O(logN) expected -- reverse a[l..r] in place
     void rangeReverse(int l, int r) {

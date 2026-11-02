@@ -18,7 +18,7 @@
 
 # Range add + range sum: adding v on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[x] by
 #   v * (x - l + 1) for x in [l, r], and the whole v * (r - l + 1) past r,
-# so P(x) = A(x) + B(x) * x with A, B prefix sums of two arrays of point changes. All mod p.
+# so P(x) = A(x) + B(x) * x with A, B prefix sums of two arrays of point changes. All % MOD.
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a Fenwick tree in a
 # dict keyed by offset x = i - lo, so only the O(logU) entries above changed positions exist.
 
@@ -62,7 +62,7 @@ class SparseRangeAddSumBITMod:
         mod = self.mod
         return s0 % mod, s1 % mod
 
-    # O(logU) -- a[i] += v (mod p) for i in [l, r]
+    # O(logU) -- a[i] += v (% MOD) for i in [l, r]
     def rangeAddMod(self, l, r, v):
         if l > r:
             return
@@ -73,12 +73,12 @@ class SparseRangeAddSumBITMod:
         if r + 1 < self.n:
             self._add(r + 1, v * (r - l + 1) - a, -v)
 
-    # O(logU) -- a[lo] + ... + a[lo + x] mod p (0 for x = -1)
+    # O(logU) -- a[lo] + ... + a[lo + x] % MOD (0 for x = -1)
     def _sum(self, x):
         sa, sb = self._prefix(x)
         return (sa + sb * x) % self.mod
 
-    # O(logU) -- a[l] + ... + a[r] mod p
+    # O(logU) -- a[l] + ... + a[r] % MOD
     def rangeSumMod(self, l, r):
         if l > r:
             return 0

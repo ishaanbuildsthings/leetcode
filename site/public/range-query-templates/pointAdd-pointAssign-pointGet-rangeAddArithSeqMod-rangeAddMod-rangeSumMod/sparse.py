@@ -21,7 +21,7 @@
 def _tri(k):
     return k * (k + 1) // 2
 
-# Range add of an arithmetic sequence (and plain range add) + range sum, all mod p. Adding c0 + c1 * x (x = i - lo)
+# Range add of an arithmetic sequence (and plain range add) + range sum, all % MOD. Adding c0 + c1 * x (x = i - lo)
 # on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[lo + x] by c0 * (x - l + 1) + c1 * (tri(x) - tri(l - 1))
 # for x in [l, r] (tri(k) = k(k+1)/2), and by the whole added total past r. So P(x) = A(x) + B(x) * x +
 # C(x) * tri(x) with A, B, C prefix sums of point changes; tri keeps every coefficient an integer.
@@ -71,7 +71,7 @@ class SparseArithSeqSumBITMod:
         mod = self.mod
         return s0 % mod, s1 % mod, s2 % mod
 
-    # O(logU) -- a[l + j] += start + j * step (mod p) for j in [0, r - l]
+    # O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
     def rangeAddArithSeqMod(self, l, r, start, step):
         if l > r:
             return
@@ -84,16 +84,16 @@ class SparseArithSeqSumBITMod:
             total = c0 * (r - l + 1) + c1 * (_tri(r) - _tri(l - 1))
             self._add(r + 1, total - a, -c0, -c1)
 
-    # O(logU) -- a[i] += v (mod p) for i in [l, r]
+    # O(logU) -- a[i] += v (% MOD) for i in [l, r]
     def rangeAddMod(self, l, r, v):
         self.rangeAddArithSeqMod(l, r, v, 0)
 
-    # O(logU) -- a[lo] + ... + a[lo + x] mod p (0 for x = -1)
+    # O(logU) -- a[lo] + ... + a[lo + x] % MOD (0 for x = -1)
     def _sum(self, x):
         sa, sb, sc = self._prefix(x)
         return (sa + sb * x + sc * _tri(x)) % self.mod
 
-    # O(logU) -- a[l] + ... + a[r] mod p
+    # O(logU) -- a[l] + ... + a[r] % MOD
     def rangeSumMod(self, l, r):
         if l > r:
             return 0

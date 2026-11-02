@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/wavelet-order-stats-sums-xor-and-table/sparse.cpp
-// @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK xorGtX xorGteX xorInValRange xorLtX xorLteX
+// @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK xorGtX xorGteX xorInValRange xorLtX xorLteX
 // @data-structure-type: wavelet
 // @complexities:
 //   andGtX: log(N)
@@ -14,19 +14,15 @@
 //   countLtX: log(N)
 //   countLteX: log(N)
 //   countOccurrences: log(N)
-//   kthLargest: log(N)
 //   kthSmallest: log(N)
 //   largestLtX: log(N)
 //   largestLteX: log(N)
-//   medianHigh: log(N)
-//   medianLow: log(N)
 //   pointGet: log(N)
 //   rangeMax: log(N)
 //   rangeMin: log(N)
 //   rangeSum: log(N)
 //   smallestGtX: log(N)
 //   smallestGteX: log(N)
-//   sumAbsDiffToMedian: log(N)
 //   sumAbsDiffToX: log(N)
 //   sumGtX: log(N)
 //   sumGteX: log(N)
@@ -131,18 +127,6 @@ struct WaveletMatrix {
         return kth(l, r, k);
     }
 
-    // O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range
-    T kthLargest(int l, int r, int k) const {
-        if (k < 1 || k > r - l + 1) throw out_of_range("kthLargest: needs 1 <= k <= r - l + 1");
-        return kth(l, r, r - l + 2 - k);
-    }
-
-    // O(logN) -- lower median of a[l..r]: its ceil(len / 2)-th smallest
-    T medianLow(int l, int r) const { return kth(l, r, (r - l + 2) / 2); }
-
-    // O(logN) -- upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest
-    T medianHigh(int l, int r) const { return kth(l, r, (r - l + 1) / 2 + 1); }
-
     // O(logN) -- min of a[l..r]
     T rangeMin(int l, int r) const { return kth(l, r, 1); }
 
@@ -232,9 +216,6 @@ struct WaveletMatrix {
         S s = sumBelow(l, r, rk);
         return S(x) * c - s + (sumFirst(l, r, r - l + 1) - s) - S(x) * (r - l + 1 - c);
     }
-
-    // O(logN) -- sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal
-    S sumAbsDiffToMedian(int l, int r) const { return sumAbsDiffToX(l, r, kth(l, r, (r - l + 2) / 2)); }
 
     // O(logN) -- xor of the values < x in a[l..r] (copies count); 0 if there are none
     T xorLtX(int l, int r, T x) const {
@@ -498,18 +479,6 @@ struct SparseWaveletMatrix {
         return kth(l, r, k);
     }
 
-    // O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range
-    T kthLargest(long long l, long long r, long long k) const {
-        if (k < 1 || k > r - l + 1) throw out_of_range("kthLargest: needs 1 <= k <= r - l + 1");
-        return kth(l, r, r - l + 2 - k);
-    }
-
-    // O(logN) -- lower median of a[l..r]: its ceil(len / 2)-th smallest
-    T medianLow(long long l, long long r) const { return kth(l, r, (r - l + 2) / 2); }
-
-    // O(logN) -- upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest
-    T medianHigh(long long l, long long r) const { return kth(l, r, (r - l + 1) / 2 + 1); }
-
     // O(logN) -- min of a[l..r]
     T rangeMin(long long l, long long r) const { return kth(l, r, 1); }
 
@@ -617,9 +586,6 @@ struct SparseWaveletMatrix {
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? S(inner.sumAbsDiffToX(i0, i1, x)) : S(0)) + S(zeros) * S(x < T(0) ? -x : x);
     }
-
-    // O(logN) -- sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal
-    S sumAbsDiffToMedian(long long l, long long r) const { return sumAbsDiffToX(l, r, kth(l, r, (r - l + 2) / 2)); }
 
     // O(logN) -- xor of the values < x in a[l..r] (copies count); 0 if there are none (the zeros add nothing)
     T xorLtX(long long l, long long r, T x) const {

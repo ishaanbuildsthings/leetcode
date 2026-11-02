@@ -1,11 +1,12 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-hash-or-alt-rev/template.py
-# @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX maxAltSubseqSum moveRange pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeHash rangeHashReversed rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangesEqual rightmostLtX rightmostLteX
+# @operations: append appendLeft concat cut getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX maxAltSubseqSum moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangesEqual rightmostLtX rightmostLteX split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected
-#   eraseRange: log(N) expected
+#   concat: log(N) expected
+#   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
 #   insertCopiesAt: log(N) expected
@@ -14,13 +15,12 @@
 #   leftmostLteX: log(N) expected
 #   maxAltSubseqSum: log(N) expected
 #   moveRange: log(N) expected
+#   paste: log(N) expected
 #   pointAdd: log(N) expected
 #   pointAssign: log(N) expected
 #   pointChmax: log(N) expected
 #   pointChmin: log(N) expected
 #   pointGet: log(N) expected
-#   pop: log(N) expected
-#   popLeft: log(N) expected
 #   rangeHash: log(N) expected
 #   rangeHashReversed: log(N) expected
 #   rangeMin: log(N) expected
@@ -31,19 +31,21 @@
 #   rangesEqual: log(N) expected
 #   rightmostLtX: log(N) expected
 #   rightmostLteX: log(N) expected
+#   split: log(N) expected
+#   trisect: log(N) expected
 #   build: N
 # @memory:
 #   layout: none
 #   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N] mn[1*N] fh[1*N] bh[1*N] pw[1*N] orr[1*N] a00[1*N] a01[1*N] a10[1*N] a11[1*N]
 #   tags: rev[1*N]
 #   other: none
-#   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
+#   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused); a treap and the pieces cut from it share their nodes (freed with the last of them: no reset needed)
 
-# Implicit treap with composable aggregates: an array you can insert into / erase from anywhere, reverse, rotate, move
-# in O(logN) expected each; each node keeps its min, its forward / backward hash (and B^size), its OR, its best
-# alternating (+ - + ...) subsequence sum for each start / end sign over its subtree. All indices 0-based, ranges
-# inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies. Lazy
-# tags mean "already applied to this node, not yet to its children".
+# Implicit treap with composable aggregates: an array you can insert into anywhere, reverse, rotate, move, cut pieces
+# out of (that is how to erase) and paste them back in O(logN) expected each; each node keeps its min, its forward /
+# backward hash (and B^size), its OR, its best alternating (+ - + ...) subsequence sum for each start / end sign over
+# its subtree. All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array;
+# searches return -1 when nothing qualifies. Lazy tags mean "already applied to this node, not yet to its children".
 import random
 
 
@@ -65,19 +67,33 @@ def _altJoin(A, B):  # A's part, then B's: (++, +-, -+, --) = best by (start sig
 class ImplicitTreap:
     __slots__ = ('root', 'val', 'pri', 'L', 'R', 'sz', 'mn', 'fh', 'bh', 'pw', 'orr', 'a00', 'a01', 'a10', 'a11', 'rev')
 
-    # O(N) -- arr: the initial array (may be empty)
-    def __init__(self, arr):
-        self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
-        self.mn = [0]
-        self.fh = [0]
-        self.bh = [0]
-        self.pw = [1]
-        self.orr = [0]
-        self.a00 = [0]
-        self.a01 = [0]
-        self.a10 = [0]
-        self.a11 = [0]
-        self.rev = [0]
+    # O(N) -- arr: the initial array (may be empty); like: an ImplicitTreap whose nodes this one shares, so pieces
+    # can move between the two (pieces cut from a treap share its nodes already). No reset between test cases
+    def __init__(self, arr=(), like=None):
+        if like is None:
+            self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
+            self.mn = [0]
+            self.fh = [0]
+            self.bh = [0]
+            self.pw = [1]
+            self.orr = [0]
+            self.a00 = [0]
+            self.a01 = [0]
+            self.a10 = [0]
+            self.a11 = [0]
+            self.rev = [0]
+        else:
+            self.val, self.pri, self.L, self.R, self.sz = like.val, like.pri, like.L, like.R, like.sz
+            self.mn = like.mn
+            self.fh = like.fh
+            self.bh = like.bh
+            self.pw = like.pw
+            self.orr = like.orr
+            self.a00 = like.a00
+            self.a01 = like.a01
+            self.a10 = like.a10
+            self.a11 = like.a11
+            self.rev = like.rev
         self.root = self._build(list(arr))
 
     # O(1) -- the current length of the array
@@ -92,10 +108,18 @@ class ImplicitTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- remove a[l..r]
-    def eraseRange(self, l, r):
-        a, _, c = self._cut(l, r)
+    # O(logN) expected -- append all of other at the end; other is left empty
+    def concat(self, other):
+        self.root = self._merge(self.root, other.root)
+        other.root = 0
+
+    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    def cut(self, l, r):
+        a, b, c = self._cut(l, r)
         self.root = self._merge(a, c)
+        piece = ImplicitTreap(like=self)
+        piece.root = b
+        return piece
 
     # O(N) -- the whole current array, every pending tag applied on the way
     def getAll(self):
@@ -180,6 +204,13 @@ class ImplicitTreap:
         x, y = self._split(self._merge(a, c), i)
         self.root = self._merge(self._merge(x, b), y)
 
+    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
+    # share this treap's nodes (a piece cut from it, or built with like=)
+    def paste(self, i, other):
+        a, c = self._split(self.root, i)
+        self.root = self._merge(self._merge(a, other.root), c)
+        other.root = 0
+
     # O(logN) expected -- a[i] += v
     def pointAdd(self, i, v):
         t, path = self._find(i)
@@ -215,16 +246,6 @@ class ImplicitTreap:
     # O(logN) expected -- a[i]
     def pointGet(self, i):
         return self.val[self._find(i)[0]]
-
-    # O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    def pop(self, i):
-        v = self.pointGet(i)
-        self.eraseRange(i, i)
-        return v
-
-    # O(logN) expected -- remove a[0] and return it
-    def popLeft(self):
-        return self.pop(0)
 
     # O(logN) expected -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     def rangeHash(self, l, r):
@@ -314,6 +335,20 @@ class ImplicitTreap:
                     t = L[t]
         self._join(a, b, c)
         return res
+
+    # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    def split(self, k):
+        left, right = ImplicitTreap(like=self), ImplicitTreap(like=self)
+        left.root, right.root = self._split(self.root, k)
+        self.root = 0
+        return left, right
+
+    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    def trisect(self, l, r):
+        left, mid, right = ImplicitTreap(like=self), ImplicitTreap(like=self), ImplicitTreap(like=self)
+        left.root, mid.root, right.root = self._cut(l, r)
+        self.root = 0
+        return left, mid, right
 
     # ---- internals ----
 

@@ -481,18 +481,36 @@ def cpp_treap(aggs):
 '''
     name = class_name(aggs, True)
     pushes = "".join(f", {a}.push_back({idn})" for a, _, idn in arrs)
+    from gen_pair_treap import pool_block
+    members = (["    long long vlo, vhi;", "    vector<int> Lc{0}, Rc{0}, freeList;  // value node 0 = the empty tree; nodes freed by merges are reused first",
+                "    vector<long long> cnt{0};"] + [ln for ln in decls.split(chr(10)) if ln.strip()] + mem)
+    pool_text, pool_init = pool_block(members)
     return f'''template <typename T>
 struct {name} {{
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    int n, rt = 0;
-    long long vlo, vhi;
-    vector<int> Lc{{0}}, Rc{{0}}, freeList;  // value node 0 = the empty tree; nodes freed by merges are reused first
-    vector<long long> cnt{{0}};
-{decls}{chr(10).join(mem)}
+{pool_text}    int n = 0, rt = 0;
 {CPP_HASH_HELPERS if H else ""}{RND}
     // O(N log U) -- arr: the initial array (may be empty); every value a[i] ever holds must lie in [valLo, valHi]
-    // (U = valHi - valLo + 1)
-    {name}(const vector<T>& arr, long long valLo, long long valHi) : n((int)arr.size()), vlo(valLo), vhi(valHi) {{
+    // (U = valHi - valLo + 1). No reset between test cases: the nodes are freed with the last object using them
+    {name}(const vector<T>& arr, long long valLo, long long valHi)
+        : {name}(make_shared<Pool>()) {{
+        vlo = valLo, vhi = valHi;
+        buildFrom(arr);
+    }}
+
+    // O(N log U) -- an array over arr that shares other's nodes (and value range), so pieces can move between the two
+    // (pieces cut from it share them already)
+    {name}(const vector<T>& arr, const {name}& other)
+        : {name}(other.pool) {{
+        buildFrom(arr);
+    }}
+
+    // an empty one on pool p
+    explicit {name}(shared_ptr<Pool> p)
+        : {pool_init} {{}}
+
+    void buildFrom(const vector<T>& arr) {{
+        n = (int)arr.size();
 {"        grow(n);" + chr(10) if H else ""}        vector<int> st;  // O(N) build: the treap's right spine
         for (const T& v : arr) {{
             int x = run(leaf(v), 1, false), last = 0;
@@ -561,22 +579,40 @@ struct {name} {{
     // O(log N + log U) amortized -- insert v at the front (it becomes a[0])
     void appendLeft(T v) {{ insertCopiesAt(0, v, 1); }}
 
-    // O(log N + log U) amortized -- remove a[i] and return it
-    T pop(int i) {{
-        T v = pointGet(i);
-        eraseRange(i, i);
-        return v;
+    // O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0; drop it to erase)
+    {name} cut(int l, int r) {{
+        auto [A, B, C] = extract(l, r);
+        rt = tmerge(A, C), n -= r - l + 1;
+        {name} piece(pool);
+        piece.rt = B, piece.n = r - l + 1;
+        return piece;
     }}
 
-    // O(log N + log U) amortized -- remove a[0] and return it
-    T popLeft() {{ return pop(0); }}
+    // O(log N + log U) amortized -- insert other at a[i] (0 <= i <= size()), leaving it empty; it must share
+    // this one's nodes (a piece cut from it, or built with {name}(arr, this one))
+    void paste(int i, {name}& other) {{
+        n += other.n;
+{"        grow(n);  // (before the merge reads the powers)" + chr(10) if H else ""}        auto [A, C] = tsplit(rt, i);
+        rt = tmerge(tmerge(A, other.rt), C), other.rt = other.n = 0;
+    }}
 
-    // O(log N + log U) amortized -- remove a[l..r]
-    void eraseRange(int l, int r) {{
-        auto [A, B, C] = extract(l, r);
-        drop(B);
-        n -= r - l + 1;
-        rt = tmerge(A, C);
+    // O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
+    void concat({name}& other) {{ paste(n, other); }}
+
+    // O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
+    pair<{name}, {name}> split(int k) {{
+        {name} left(pool), right(pool);
+        tie(left.rt, right.rt) = tsplit(rt, k);
+        left.n = k, right.n = n - k, rt = n = 0;
+        return {{left, right}};
+    }}
+
+    // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
+    tuple<{name}, {name}, {name}> trisect(int l, int r) {{
+        {name} left(pool), mid(pool), right(pool);
+        tie(left.rt, mid.rt, right.rt) = extract(l, r);
+        left.n = l, mid.n = r - l + 1, right.n = n - r - 1, rt = n = 0;
+        return {{left, mid, right}};
     }}
 
     // O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first; any k, negative = right)

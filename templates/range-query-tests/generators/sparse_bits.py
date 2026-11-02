@@ -49,9 +49,9 @@ write(PLAIN + ["rangeAdd"], ("d[2*log(U)]", "children[4*log(U)]"), "a range add 
 
 pp, cp = point_ops("rangeAddMod", chm=False)
 write(MOD_POINT + ["rangeAddMod"], ("d[2*log(U)]", "children[4*log(U)]"), "a range add changes two differences",
-      py_class("SparseRangeAddBITMod", "Range add, point get, all mod p: prefix sums of the difference array d[i] = a[i] - a[i - 1].",
+      py_class("SparseRangeAddBITMod", "Range add, point get, all % MOD: prefix sums of the difference array d[i] = a[i] - a[i - 1].",
                ["d"], "mod", '''
-    # O(logU) -- a[i] += v (mod p) for i in [l, r]
+    # O(logU) -- a[i] += v (% MOD) for i in [l, r]
     def rangeAddMod(self, l, r, v):
         if l > r:
             return
@@ -63,11 +63,11 @@ write(MOD_POINT + ["rangeAddMod"], ("d[2*log(U)]", "children[4*log(U)]"), "a ran
     def pointGet(self, i):
         return self._prefix(i - self.lo) % self.mod
 ''' + pp),
-      cpp_struct("SparseRangeAddBITMod", "Range add, point get, all mod p: prefix sums of the difference array d[i] = a[i] - a[i - 1].",
+      cpp_struct("SparseRangeAddBITMod", "Range add, point get, all % MOD: prefix sums of the difference array d[i] = a[i] - a[i - 1].",
                  1, "mod", '''
     T norm(W x) const { return T((x % mod + mod) % mod); }
 
-    // O(logU) -- a[i] += v (mod p) for i in [l, r]
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(long long l, long long r, T v) {
         if (l > r) return;
         T x = norm(v);
@@ -157,7 +157,7 @@ for mod in (False, True):
     ops = (MOD_POINT + ["rangeAddMod", "rangeSumMod"]) if mod else (PLAIN + ["rangeAdd", "rangeSum"])
     pp, cp = point_ops(f"rangeAdd{sfx}", chm=not mod)
     py_body = f'''
-    # O(logU) -- a[i] += v{" (mod p)" if mod else ""} for i in [l, r]
+    # O(logU) -- a[i] += v{" (% MOD)" if mod else ""} for i in [l, r]
     def rangeAdd{sfx}(self, l, r, v):
         if l > r:
             return
@@ -168,12 +168,12 @@ for mod in (False, True):
         if r + 1 < self.n:
             self._add(r + 1, v * (r - l + 1) - a, -v)
 
-    # O(logU) -- a[lo] + ... + a[lo + x]{" mod p" if mod else ""} (0 for x = -1)
+    # O(logU) -- a[lo] + ... + a[lo + x]{" % MOD" if mod else ""} (0 for x = -1)
     def _sum(self, x):
         sa, sb = self._prefix(x)
         return {"(sa + sb * x) % self.mod" if mod else "sa + sb * x"}
 
-    # O(logU) -- a[l] + ... + a[r]{" mod p" if mod else ""}
+    # O(logU) -- a[l] + ... + a[r]{" % MOD" if mod else ""}
     def rangeSum{sfx}(self, l, r):
         if l > r:
             return 0
@@ -187,7 +187,7 @@ for mod in (False, True):
         cpp_body = '''
     T norm(W x) const { return T((x % mod + mod) % mod); }
 
-    // O(logU) -- a[i] += v (mod p) for i in [l, r]
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(long long l, long long r, T v) {
         if (l > r) return;
         l -= lo, r -= lo;
@@ -196,13 +196,13 @@ for mod in (False, True):
         if (r + 1 < n) add(r + 1, F{norm(W(c) * norm(r - l + 1) - a), norm(-W(c))});
     }
 
-    // O(logU) -- (a[lo] + ... + a[lo + x]) mod p (0 for x = -1)
+    // O(logU) -- (a[lo] + ... + a[lo + x]) % MOD (0 for x = -1)
     T sum(long long x) const {
         F s = prefix(x);
         return norm(s[0] + W(s[1]) * norm(x));
     }
 
-    // O(logU) -- (a[l] + ... + a[r]) mod p
+    // O(logU) -- (a[l] + ... + a[r]) % MOD
     T rangeSumMod(long long l, long long r) const { return l <= r ? norm(W(sum(r - lo)) - sum(l - 1 - lo)) : T(0); }
 
     // O(logU) -- a[i], in [0, mod)
@@ -232,9 +232,9 @@ for mod in (False, True):
     T pointGet(long long i) const { return T(rangeSum(i, i)); }
 ''' + cp
     write(ops, ("A[2*log(U)] B[2*log(U)]", "children[4*log(U)]"), "a range add changes two points of A and B",
-          py_class(name, ADDSUM_DESC.format(c="#") + (" All mod p." if mod else ""), ["A", "B"], "mod" if mod else "add",
+          py_class(name, ADDSUM_DESC.format(c="#") + (" All % MOD." if mod else ""), ["A", "B"], "mod" if mod else "add",
                    py_body),
-          cpp_struct(name, ADDSUM_DESC.format(c="//") + (" All mod p." if mod else ""), 2, "mod" if mod else "add",
+          cpp_struct(name, ADDSUM_DESC.format(c="//") + (" All % MOD." if mod else ""), 2, "mod" if mod else "add",
                      cpp_body))
 
 # ---------------------------------------------------------------- arithmetic-sequence add, point get: a[x] = C(x) + x * S(x)
@@ -248,7 +248,7 @@ for mod in (False, True):
     ops = (MOD_POINT + ["rangeAddArithSeqMod", "rangeAddMod"]) if mod else (PLAIN + ["rangeAdd", "rangeAddArithSeq"])
     pp, cp = point_ops(f"rangeAdd{sfx}", chm=not mod)
     py_body = f'''
-    # O(logU) -- a[l + j] += start + j * step{" (mod p)" if mod else ""} for j in [0, r - l]
+    # O(logU) -- a[l + j] += start + j * step{" (% MOD)" if mod else ""} for j in [0, r - l]
     def rangeAddArithSeq{sfx}(self, l, r, start, step):
         if l > r:
             return
@@ -259,7 +259,7 @@ for mod in (False, True):
         if r + 1 < self.n:
             self._add(r + 1, -c0, -step)
 
-    # O(logU) -- a[i] += v{" (mod p)" if mod else ""} for i in [l, r]
+    # O(logU) -- a[i] += v{" (% MOD)" if mod else ""} for i in [l, r]
     def rangeAdd{sfx}(self, l, r, v):
         self.rangeAddArithSeq{sfx}(l, r, v, 0)
 
@@ -273,7 +273,7 @@ for mod in (False, True):
         cpp_body = '''
     T norm(W x) const { return T((x % mod + mod) % mod); }
 
-    // O(logU) -- a[l + j] += start + j * step (mod p) for j in [0, r - l]
+    // O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
     void rangeAddArithSeqMod(long long l, long long r, T start, T step) {
         if (l > r) return;
         l -= lo, r -= lo;
@@ -282,7 +282,7 @@ for mod in (False, True):
         if (r + 1 < n) add(r + 1, F{norm(-W(c0)), norm(-W(c1))});
     }
 
-    // O(logU) -- a[i] += v (mod p) for i in [l, r]
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(long long l, long long r, T v) { rangeAddArithSeqMod(l, r, v, 0); }
 
     // O(logU) -- a[i], in [0, mod)
@@ -312,8 +312,8 @@ for mod in (False, True):
     }
 ''' + cp
     write(ops, ("c[2*log(U)] s[2*log(U)]", "children[4*log(U)]"), "an arithmetic-sequence add changes two points of c and s",
-          py_class(name, AP_DESC.format(c="#", m=", all mod p" if mod else ""), ["c", "s"], "mod" if mod else "add", py_body),
-          cpp_struct(name, AP_DESC.format(c="//", m=", all mod p" if mod else ""), 2, "mod" if mod else "add", cpp_body))
+          py_class(name, AP_DESC.format(c="#", m=", all % MOD" if mod else ""), ["c", "s"], "mod" if mod else "add", py_body),
+          cpp_struct(name, AP_DESC.format(c="//", m=", all % MOD" if mod else ""), 2, "mod" if mod else "add", cpp_body))
 
 # ---------------------------------------------------------------- arithmetic-sequence add + range sum: P(x) = A + B x + C tri(x)
 
@@ -328,7 +328,7 @@ for mod in (False, True):
         PLAIN + ["rangeAdd", "rangeAddArithSeq", "rangeSum"])
     pp, cp = point_ops(f"rangeAdd{sfx}", chm=not mod)
     py_body = f'''
-    # O(logU) -- a[l + j] += start + j * step{" (mod p)" if mod else ""} for j in [0, r - l]
+    # O(logU) -- a[l + j] += start + j * step{" (% MOD)" if mod else ""} for j in [0, r - l]
     def rangeAddArithSeq{sfx}(self, l, r, start, step):
         if l > r:
             return
@@ -341,16 +341,16 @@ for mod in (False, True):
             total = c0 * (r - l + 1) + c1 * (_tri(r) - _tri(l - 1))
             self._add(r + 1, total - a, -c0, -c1)
 
-    # O(logU) -- a[i] += v{" (mod p)" if mod else ""} for i in [l, r]
+    # O(logU) -- a[i] += v{" (% MOD)" if mod else ""} for i in [l, r]
     def rangeAdd{sfx}(self, l, r, v):
         self.rangeAddArithSeq{sfx}(l, r, v, 0)
 
-    # O(logU) -- a[lo] + ... + a[lo + x]{" mod p" if mod else ""} (0 for x = -1)
+    # O(logU) -- a[lo] + ... + a[lo + x]{" % MOD" if mod else ""} (0 for x = -1)
     def _sum(self, x):
         sa, sb, sc = self._prefix(x)
         return {"(sa + sb * x + sc * _tri(x)) % self.mod" if mod else "sa + sb * x + sc * _tri(x)"}
 
-    # O(logU) -- a[l] + ... + a[r]{" mod p" if mod else ""}
+    # O(logU) -- a[l] + ... + a[r]{" % MOD" if mod else ""}
     def rangeSum{sfx}(self, l, r):
         if l > r:
             return 0
@@ -365,7 +365,7 @@ for mod in (False, True):
     T norm(W x) const { return T((x % mod + mod) % mod); }
     T tri(long long k) const { return norm(W((__int128)k * (k + 1) / 2 % mod)); }
 
-    // O(logU) -- a[l + j] += start + j * step (mod p) for j in [0, r - l]
+    // O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
     void rangeAddArithSeqMod(long long l, long long r, T start, T step) {
         if (l > r) return;
         l -= lo, r -= lo;
@@ -378,16 +378,16 @@ for mod in (False, True):
         }
     }
 
-    // O(logU) -- a[i] += v (mod p) for i in [l, r]
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(long long l, long long r, T v) { rangeAddArithSeqMod(l, r, v, 0); }
 
-    // O(logU) -- (a[lo] + ... + a[lo + x]) mod p (0 for x = -1)
+    // O(logU) -- (a[lo] + ... + a[lo + x]) % MOD (0 for x = -1)
     T sum(long long x) const {
         F s = prefix(x);
         return norm(s[0] + W(s[1]) * norm(x) % mod + W(s[2]) * tri(x) % mod);
     }
 
-    // O(logU) -- (a[l] + ... + a[r]) mod p
+    // O(logU) -- (a[l] + ... + a[r]) % MOD
     T rangeSumMod(long long l, long long r) const { return l <= r ? norm(W(sum(r - lo)) - sum(l - 1 - lo)) : T(0); }
 
     // O(logU) -- a[i], in [0, mod)
@@ -432,9 +432,9 @@ for mod in (False, True):
     write(ops, ("A[2*log(U)] B[2*log(U)] C[2*log(U)]", "children[4*log(U)]"),
           "an arithmetic-sequence add changes two points of A, B and C",
           "\n\ndef _tri(k):\n    return k * (k + 1) // 2\n" +
-          py_class(name, APSUM_DESC.format(c="#", m=", all mod p" if mod else ""), ["A", "B", "C"], "mod" if mod else "add",
+          py_class(name, APSUM_DESC.format(c="#", m=", all % MOD" if mod else ""), ["A", "B", "C"], "mod" if mod else "add",
                    py_body),
-          cpp_struct(name, APSUM_DESC.format(c="//", m=", all mod p" if mod else ""), 3, "mod" if mod else "add", cpp_body))
+          cpp_struct(name, APSUM_DESC.format(c="//", m=", all % MOD" if mod else ""), 3, "mod" if mod else "add", cpp_body))
 
 # ---------------------------------------------------------------- point add + range sum + prefix-sum searches
 

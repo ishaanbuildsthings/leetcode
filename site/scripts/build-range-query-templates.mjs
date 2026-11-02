@@ -44,7 +44,6 @@ const OPTIONAL_TAGS = ["original-file-url", "fractional-cascading", "values", "l
 
 const errors = [];
 const entries = [];
-const LONG_FOLDER = 180;
 
 // Parses and validates one language file's header: the shared checks, plus the range-query tags.
 function readTemplateFile(where, filePath) {
@@ -69,8 +68,8 @@ function readTemplateFile(where, filePath) {
 }
 
 // Each template is a folder holding template.py and/or template.cpp. The folder is named by its operations
-// (alphabetical, "-" joined, leaving out getAll: nearly every structure with updates has it), with a __<data-structure-type> suffix when two templates share operations; an op list
-// longer than LONG_FOLDER characters may instead be named "<data-structure-type>-<anything>".
+// (alphabetical, "-" joined, leaving out getAll: nearly every structure with updates has it), with a __<data-structure-type> suffix when two templates share operations; any folder
+// may instead be named "<data-structure-type>-<anything>" (long op lists, or variants of one structure sharing an op list).
 // Both language files carry the same header; they may differ only in the original-file-url and the @memory note
 // (each language's note describes its own implementation).
 for (const folder of fs.readdirSync(srcDir).sort()) {
@@ -118,10 +117,11 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
   }
   const base = data.operations.filter((op) => op !== "getAll").join("-");
   const allowed = [base, `${base}__${data.dataStructureType}`];
-  // an op list too long for a folder name (filenames stop at 255 bytes) may name the structure instead: "<type>-..."
-  const named = base.length > LONG_FOLDER && folder.startsWith(`${data.dataStructureType}-`);
+  // a folder may name the structure instead of the op list: "<type>-..." (needed when the list is too long for a
+  // filename, or when two variants of one structure share an op list, like the online / offline persistent trees)
+  const named = folder.startsWith(`${data.dataStructureType}-`);
   if (!allowed.includes(folder) && !named)
-    errors.push(`${folder}: folder should be ${allowed[0]} (or ${allowed[1]} if it collides${base.length > LONG_FOLDER ? `, or ${data.dataStructureType}-<name> since the op list is long` : ""})`);
+    errors.push(`${folder}: folder should be ${allowed[0]} (or ${allowed[1]} if it collides, or ${data.dataStructureType}-<name>)`);
   if (data.memory.layout === "sparse") errors.push(`${folder}: template files can't use the sparse layout; put it in sparse.py / sparse.cpp`);
   const entry = { folder, langs, ...data };
   if (sparse.data) {

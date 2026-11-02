@@ -29,7 +29,7 @@ class RangeMultModTree:
         n = self.n = len(arr)
         self.tree = [1] * n + [v % mod for v in arr]
 
-    # O(logN) -- a[i] = a[i] * m (mod p) for i in [l, r]
+    # O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]
     def rangeMultMod(self, l, r, m):
         tree, mod = self.tree, self.mod
         m %= mod

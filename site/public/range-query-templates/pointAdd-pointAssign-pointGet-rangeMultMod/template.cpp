@@ -32,7 +32,7 @@ struct RangeMultModTree {
         for (int i = 0; i < n; i++) tree[n + i] = T((a[i] % mod + mod) % mod);
     }
 
-    // O(logN) -- a[i] = a[i] * m (mod p) for i in [l, r]
+    // O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]
     void rangeMultMod(int l, int r, T m) {
         m = T((m % mod + mod) % mod);
         for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {

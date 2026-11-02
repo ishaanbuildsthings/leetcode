@@ -17,10 +17,10 @@
 //   node: val[1*N]
 //   tags: M[1*N] K[1*N]
 //   other: none
-//   note: each internal node holds one pending affine map x -> x * M + K (mod p); val holds the leaf values
+//   note: each internal node holds one pending affine map x -> x * M + K (% MOD); val holds the leaf values
 
-// Range add / assign / multiply / affine mod p + point ops, no range aggregates. All indices 0-based, ranges
-// inclusive. Every update is an affine map (m, k): x -> m * x + k (mod p):
+// Range add / assign / multiply / affine % MOD + point ops, no range aggregates. All indices 0-based, ranges
+// inclusive. Every update is an affine map (m, k): x -> m * x + k (% MOD):
 //   add v -> (1, v)    mult m -> (m, 0)    assign v -> (0, v)    affine (m, b) -> (m, b)
 // Affine maps compose but not commutatively, so the paths to l and r are pushed before tagging.
 // Values are kept in [0, mod); T: int, long long, ...
@@ -29,7 +29,7 @@ struct AffineTree {
     using W = conditional_t<sizeof(T) <= 4, long long, __int128>;  // wide enough for a product of two residues
     int n;
     T mod;
-    vector<T> M, K;  // internal nodes 1 .. n-1: pending map x -> x * M + K (mod p)
+    vector<T> M, K;  // internal nodes 1 .. n-1: pending map x -> x * M + K (% MOD)
     vector<T> val;   // leaf values, in [0, mod)
 
     T norm(W x) const { x %= mod; return T(x < 0 ? x + mod : x); }
@@ -70,16 +70,16 @@ struct AffineTree {
         }
     }
 
-    // O(logN) -- a[i] = a[i] * mult + add (mod p) for i in [l, r]
+    // O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]
     void rangeAffineMod(int l, int r, T mult, T add) { update(l, r, norm(mult), norm(add)); }
 
-    // O(logN) -- a[i] = a[i] * m (mod p) for i in [l, r]
+    // O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]
     void rangeMultMod(int l, int r, T m) { update(l, r, norm(m), 0); }
 
-    // O(logN) -- a[i] += v (mod p) for i in [l, r]
+    // O(logN) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(int l, int r, T v) { update(l, r, 1, norm(v)); }
 
-    // O(logN) -- a[i] = v (mod p) for i in [l, r]
+    // O(logN) -- a[i] = v (% MOD) for i in [l, r]
     void rangeAssignMod(int l, int r, T v) { update(l, r, 0, norm(v)); }
 
     // O(logN) -- a[i], in [0, mod): apply ancestors' maps bottom-up (deeper tags are older)

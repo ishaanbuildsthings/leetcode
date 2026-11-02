@@ -34,7 +34,7 @@ from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 MARK = "Implicit treap with composable aggregates"
-SEQ = ["append", "appendLeft", "eraseRange", "getAll", "insertAt", "insertCopiesAt", "moveRange", "pop", "popLeft",
+SEQ = ["append", "appendLeft", "getAll", "insertAt", "insertCopiesAt", "moveRange",
        "rangeRotateLeft", "rangeRotateRight"]
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
 PIECES = ["concat", "cut", "paste", "split", "trisect"]
@@ -78,8 +78,9 @@ DESC = {"sum": "its sum", "min": "its min", "max": "its max", "hash": "its forwa
 
 
 class Spec:
-    def __init__(self, mods, fam, ups, rev, ptr):
-        self.mods, self.fam, self.ups, self.rev, self.ptr = mods, fam, set(ups), rev, ptr
+    def __init__(self, mods, fam, ups, rev, find=False):
+        self.mods, self.fam, self.ups, self.rev, self.find = mods, fam, set(ups), rev, find
+        self.ptr = True  # (every treap cuts / pastes: pieces share their source's node pool)
         m, u = set(mods), self.ups
         self.ms = MAXSUB & m
         self.clamp, self.bits, self.xorf, self.shrink = fam == "clamp", fam == "bits", fam == "xor", fam == "shrink"
@@ -89,7 +90,7 @@ class Spec:
         self.gdiff = "gcd" in m and "add" in u
         self.ends = "run" in m or self.gdiff
         self.G = "hash" in m and ("add" in u or "assign" in u)
-        self.ops = sorted(set(SEQ + POINT + [UOP[x] for x in u] + (["rangeReverse"] if rev else []) + (PIECES if ptr else []) +
+        self.ops = sorted(set(SEQ + POINT + [UOP[x] for x in u] + (["rangeReverse"] if rev else []) + PIECES + (["find"] if find else []) +
                               [q for mod in mods for q in QOPS[mod]] +
                               [op for op, (_, c) in SEARCH.items() if ("max" if c.startswith("G") else "min") in m]))
 
@@ -124,6 +125,8 @@ class Spec:
             f += [("pr", "int", "0", "0"), ("sr", "int", "0", "0"), ("br", "int", "0", "0")]
         if self.has("alt"):
             f += [(a, "S", "0", "0") for a in ("a00", "a01", "a10", "a11")]
+        if self.find:
+            f.append(("par", "int", "0", "0"))
         return f
 
     def tags(self):
@@ -154,7 +157,7 @@ class Spec:
     def name(self):
         mods = "-".join(self.mods) or "plain"
         ups = "-".join(sorted(self.ups))
-        return "treap-" + mods + (f"-updates-{ups}" if ups else "") + ("-rev" if self.rev else "") + ("-pointers" if self.ptr else "")
+        return "treap-" + mods + (f"-updates-{ups}" if ups else "") + ("-rev" if self.rev else "") + ("-find" if self.find else "")
 
 
 def allowed(mods):
@@ -203,11 +206,16 @@ def variants():
             for rev in (False, True):
                 if rev and MAXSUB & set(mods) and not {"pre", "suf"} <= set(mods):
                     continue  # a reverse swaps prefix and suffix: it needs both
-                for ptr in (False, True):
-                    key = (mods, tuple(sorted(ups)), rev, ptr)
-                    if key not in have:
-                        have.add(key)
-                        out.append(Spec(mods, fam, ups, rev, ptr))
+                key = (mods, tuple(sorted(ups)), rev)
+                if key not in have:
+                    have.add(key)
+                    out.append(Spec(mods, fam, ups, rev))
+    # find(x): a parent per node and a map value -> node. Only without range updates (each would rewrite the map entry
+    # of every value it changes), and with sum / min / max / hash only
+    for k in range(5):
+        for mods in itertools.combinations(("sum", "min", "max", "hash"), k):
+            for rev in (False, True):
+                out.append(Spec(mods, "", (), rev, find=True))
     return out
 
 
@@ -220,23 +228,91 @@ def header(cm, s):
     lines += [f"  {op}: {SHRINK_COST[op] if op in SHRINK_COST else 'N' if op == 'getAll' else 'log(N)*log(U) expected ?' if g and op != 'pointGet' else 'log(N) expected'}"
               for op in s.ops] + [f"  build: {'N*log(U) ?' if g else 'N'}", "@memory:", "  layout: none"]
     lines += ["  node: " + " ".join(f"{f}[1*N]" for f in ["val", "sz", "L", "R", "pri"] + [f[0] for f in fields]),
-              "  tags: " + (" ".join(f"{t[0]}[1*N]" for t in tags) or "none"), "  other: none",
+              "  tags: " + (" ".join(f"{t[0]}[1*N]" for t in tags) or "none"), "  other: " + ("where[1*N]" if s.find else "none"),
               "  note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)" +
-              ("; every ImplicitTreap<T> shares one node pool (cut / paste move nodes between them): resetPool() between "
-               "test cases" if s.ptr else "")]
+              "; a treap and the pieces cut from it share their nodes (freed with the last of them: no reset needed)" +
+              ("; find: a parent per node and a map value -> node" if s.find else "")]
     return "\n".join(f"{cm} {x}" for x in lines) + "\n"
 
 
 def describe(s):
     keeps = ", ".join(DESC[m] for m in s.mods)
     ups = ", ".join(UOP[u] for u in sorted(s.ups))
-    return (f"{MARK}: an array you can insert into / erase from anywhere, " + ("reverse, " if s.rev else "") + "rotate, move" +
-            (" and cut / paste between treaps" if s.ptr else "") + " in O(logN) expected each" +
+    return (f"{MARK}: an array you can insert into anywhere, " + ("reverse, " if s.rev else "") + "rotate, move" +
+            ", cut pieces out of (that is how to erase) and paste them back in O(logN) expected each" + (", and find any value's index (values distinct)" if s.find else "") +
             (f", with {ups}" if ups else "") + (f"; each node keeps {keeps} over its subtree" if keeps else "") + ". All indices "
             "0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when "
             "nothing qualifies." + (" Lazy tags mean \"already applied to this node, not yet to its children\"" +
                                     ("; a pending assign comes before a pending add." if s.asgTag and (s.addTag or s.ap or s.xorf) else ".")
                                     if s.tags() else ""))
+
+
+
+def py_skeleton(F, TG, extra=()):
+    """the class line, __slots__ and __init__ of a treap that owns its node lists (pieces cut from it share them).
+    F / TG: (name, C++ type, Python node-0 value, C++ node-0 value) per node array; extra: (name, Python new value)
+    for other shared state (the find map)"""
+    names = ["val", "pri", "L", "R", "sz"] + [f[0] for f in F] + [t[0] for t in TG]
+    own = [f"            self.{n} = [{v}]" for n, v in [(f[0], f[2]) for f in F] + [(t[0], t[2]) for t in TG]]
+    own += [f"            self.{n} = {v}" for n, v in extra]
+    share = ["            self.val, self.pri, self.L, self.R, self.sz = like.val, like.pri, like.L, like.R, like.sz"]
+    share += [f"            self.{n} = like.{n}" for n in names[5:] + [e[0] for e in extra]]
+    return (f"class ImplicitTreap:\n" + slots_line(["root"] + names + [e[0] for e in extra]) +
+            """    # O(N) -- arr: the initial array (may be empty); like: an ImplicitTreap whose nodes this one shares, so pieces
+    # can move between the two (pieces cut from a treap share its nodes already). No reset between test cases
+    def __init__(self, arr=(), like=None):
+        if like is None:
+            self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
+""" + "".join(x + "\n" for x in own) + "        else:\n" + "".join(x + "\n" for x in share) +
+            "        self.root = self._build(list(arr))\n\n")
+
+
+SAFE_HASH = '''    struct SafeHash {  // splitmix64 with a seed random per run (the default hash of an integer is easy to attack)
+        size_t operator()(const T& x) const {
+            static const unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count();
+            unsigned long long z = (unsigned long long)x + seed + 0x9e3779b97f4a7c15ULL;
+            z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+            z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+            return z ^ (z >> 31);
+        }
+    };
+'''
+
+
+def cpp_skeleton(F, TG, extra=(), ctors=None):
+    """the node pool of a treap (shared with the pieces cut from it, freed with the last of them), references to its
+    arrays (so the code reads val[x], not pool->val[x]), and the constructors. extra: (C++ type, name) more shared
+    state; ctors: the public constructors' text when they are not the plain (arr) / (arr, other) ones"""
+    arrays = [("T", "val", "T(0)"), ("unsigned long long", "pri", "0"), ("int", "L", "0"), ("int", "R", "0"), ("int", "sz", "0")]
+    arrays += [(f[1], f[0], f[3]) for f in F] + [(t[1], t[0], t[3]) for t in TG]
+    names = [a[1] for a in arrays] + [e[1] for e in extra]
+    pool = "".join(f"        vector<{t}> {n}{{{v}}};\n" for t, n, v in arrays) + "".join(f"        {t} {n};\n" for t, n in extra)
+    refs = "".join(f"    vector<{t}>& {n};\n" for t, n, v in arrays) + "".join(f"    {t}& {n};\n" for t, n in extra)
+    parts, lines = ["pool(p)"] + [f"{n}(p->{n})" for n in names], [""]
+    for x in parts:  # (wrapped at 120 columns after the 10-column ": " indent)
+        if lines[-1] and len(lines[-1]) + len(x) + 2 > 104:
+            lines[-1] += ","
+            lines.append("")
+        lines[-1] += (", " if lines[-1] and not lines[-1].endswith(",") else "") + x
+    init = "\n          ".join(lines)
+    if ctors is None:
+        ctors = """    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
+    explicit ImplicitTreap(const vector<T>& arr = {}) : ImplicitTreap(make_shared<Pool>()) { root = build(arr); }
+
+    // O(N) -- a treap over arr that shares other's nodes, so pieces can move between the two (pieces cut from a treap
+    // share its nodes already)
+    ImplicitTreap(const vector<T>& arr, const ImplicitTreap& other) : ImplicitTreap(other.pool) { root = build(arr); }
+"""
+    return f"""    struct Pool {{  // the node arrays: node 0 = the empty tree
+{pool}    }};
+    shared_ptr<Pool> pool;  // (shared by this treap and every piece cut from it; freed with the last of them)
+{refs}    int root = 0;
+
+{ctors}
+    // an empty treap on pool p
+    explicit ImplicitTreap(shared_ptr<Pool> p)
+        : {init} {{}}
+"""
 
 
 # ================================================================================================ Python
@@ -259,26 +335,7 @@ def py(s):
 
 
 ''')
-    out.append("class ImplicitTreap:\n")
-    if s.ptr:
-        out.append("    # one node pool shared by every ImplicitTreap: cut / paste move nodes between them (node 0 = the empty tree)\n")
-        out.append("".join(f"    {n} = [{ident}]\n" for n, ident in
-                           [("val", "0"), ("pri", "0"), ("L", "0"), ("R", "0"), ("sz", "0")] + [(f[0], f[2]) for f in F] + [(t[0], t[2]) for t in TG]))
-        out.append('    __slots__ = ("root",)\n\n')
-        out.append('''    # O(N) -- arr: the initial array (may be empty)
-    def __init__(self, arr=()):
-        self.root = self._build(list(arr))
-
-    # O(1) -- forget every node of every ImplicitTreap (call between test cases, then build new ones)
-    @classmethod
-    def resetPool(cls):
-''' + "".join(f"        del cls.{n}[1:]\n" for n in names) + "\n")
-    else:
-        out.append(slots_line(["root"] + names))
-        out.append("    # O(N) -- arr: the initial array (may be empty)\n    def __init__(self, arr):\n" +
-                   "        self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree\n" +
-                   "".join(f"        self.{f[0]} = [{f[2]}]\n" for f in F) + "".join(f"        self.{t[0]} = [{t[2]}]\n" for t in TG) +
-                   "        self.root = self._build(list(arr))\n\n")
+    out.append(py_skeleton(F, TG, [("where", "{}")] if s.find else []))
     out.append("    # O(1) -- the current length of the array\n    def size(self):\n        return self.sz[self.root]\n\n")
     pub = py_public(s)
     out.append("\n".join(pub[op] for op in s.ops if op in pub))
@@ -430,11 +487,33 @@ def py_public(s):
         pub[op] = f'''    # O(logN) expected -- {doc}
     def {op}(self, i, v):
         t, path = self._find(i)
-        self.val[t] = {expr}
-''' + ("        self._pull(t)\n        for x in reversed(path):\n            self._pull(x)\n" if s.mods else "")
+''' + ("        old = self.val[t]\n" if s.find else "") + f"        self.val[t] = {expr}\n" + ("        self._rekey(t, old)\n" if s.find else "") + (
+        "        self._pull(t)\n        for x in reversed(path):\n            self._pull(x)\n" if s.mods else "")
     pub.update(PY_SEQ)
-    if s.ptr:
-        pub.update(PY_PIECES)
+    pub.update(PY_PIECES)
+    if s.find:
+        pub["find"] = '''    # O(logN) expected -- the index of x, or -1 if x isn't in this treap (the values must be distinct)
+    def find(self, x):
+        t = self.where.get(x, 0)
+        if not t or self.val[t] != x:
+            return -1
+        L, R, par, sz, path = self.L, self.R, self.par, self.sz, [t]
+        while True:  # up to the root (a parent counts only while it still has the node as a child)
+            c = path[-1]
+            p = par[c]
+            if not p or L[p] != c and R[p] != c:
+                break
+            path.append(p)
+        if path[-1] != self.root:
+            return -1  # (erased, or in another treap)
+''' + ('''        for y in reversed(path):  # (pending reverses above it, applied top-down so the path reads left to right)
+            self._push(y)
+''' if s.tags() else "") + '''        i = sz[L[t]]
+        for k in range(1, len(path)):
+            if R[path[k]] == path[k - 1]:
+                i += sz[L[path[k]]] + 1
+        return i
+'''
     return pub
 
 
@@ -470,6 +549,8 @@ UDOC = {"assign": "a[i] = v for i in [l, r]", "add": "a[i] += v for i in [l, r]"
 
 def py_pull(s):
     L = ["        l, r = self.L[x], self.R[x]", "        self.sz[x] = self.sz[l] + self.sz[r] + 1"]
+    if s.find:  # (a child's parent is only trusted while the parent still has it as a child: splits leave stale ones)
+        L += ["        self.par[l] = self.par[r] = x"]
     if not s.mods:
         return L
     L.append("        v = self.val[x]")
@@ -547,6 +628,8 @@ def py_new(s):
     if s.has("alt"):
         L += ["        self.a00.append(v)", "        self.a01.append(NEG)", "        self.a10.append(NEG)", "        self.a11.append(-v)"]
     L += [f"        self.{t[0]}.append({t[2]})" for t in s.tags()]
+    if s.find:
+        L += ["        self.par.append(0)", "        self.where[v] = x"]
     return L
 
 
@@ -723,6 +806,13 @@ def py_internals(s):
         self._shrink(self.R[t], lim, f)
         self._pull(t)
 ''')
+    if s.find:
+        out.append('''
+    def _rekey(self, t, old):  # t's value changed from old: the map follows (find needs distinct values)
+        if self.where.get(old) == t:
+            del self.where[old]
+        self.where[self.val[t]] = t
+''')
     out.append(PY_TAIL)
     return "".join(out)
 
@@ -750,21 +840,6 @@ PY_SEQ = {
     "appendLeft": '''    # O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     def appendLeft(self, v):
         self.insertAt(0, v)
-''',
-    "pop": '''    # O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    def pop(self, i):
-        v = self.pointGet(i)
-        self.eraseRange(i, i)
-        return v
-''',
-    "popLeft": '''    # O(logN) expected -- remove a[0] and return it
-    def popLeft(self):
-        return self.pop(0)
-''',
-    "eraseRange": '''    # O(logN) expected -- remove a[l..r]
-    def eraseRange(self, l, r):
-        a, _, c = self._cut(l, r)
-        self.root = self._merge(a, c)
 ''',
     "rangeReverse": '''    # O(logN) expected -- reverse a[l..r] in place
     def rangeReverse(self, l, r):
@@ -808,15 +883,16 @@ PY_SEQ = {
 }
 
 PY_PIECES = {
-    "cut": '''    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0 again)
+    "cut": '''    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
     def cut(self, l, r):
         a, b, c = self._cut(l, r)
         self.root = self._merge(a, c)
-        piece = ImplicitTreap()
+        piece = ImplicitTreap(like=self)
         piece.root = b
         return piece
 ''',
-    "paste": '''    # O(logN) expected -- insert all of other so it starts at a[i] (0 <= i <= size()); other is left empty
+    "paste": '''    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
+    # share this treap's nodes (a piece cut from it, or built with like=)
     def paste(self, i, other):
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, other.root), c)
@@ -829,14 +905,14 @@ PY_PIECES = {
 ''',
     "split": '''    # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
     def split(self, k):
-        left, right = ImplicitTreap(), ImplicitTreap()
+        left, right = ImplicitTreap(like=self), ImplicitTreap(like=self)
         left.root, right.root = self._split(self.root, k)
         self.root = 0
         return left, right
 ''',
     "trisect": '''    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
     def trisect(self, l, r):
-        left, mid, right = ImplicitTreap(), ImplicitTreap(), ImplicitTreap()
+        left, mid, right = ImplicitTreap(like=self), ImplicitTreap(like=self), ImplicitTreap(like=self)
         left.root, mid.root, right.root = self._cut(l, r)
         self.root = 0
         return left, mid, right
@@ -900,7 +976,6 @@ def cpp(s):
     F, TG = s.fields(), s.tags()
     fl = [f[0] for f in F]
     tn = [t[0] for t in TG]
-    st = "static inline " if s.ptr else ""
     S_ = s.has("sum") or bool(s.ms) or s.has("alt")
     out = [header("//", s), "\n", wrap(describe(s), "//"),
            "// T: int, long long, ..." + ("; sums are kept in S (long long for small T)." if S_ else ""), "\ntemplate <typename T>\nstruct ImplicitTreap {\n"]
@@ -912,14 +987,9 @@ def cpp(s):
         out.append("    static constexpr T INF = numeric_limits<T>::max(), NEG = numeric_limits<T>::lowest();\n")
     if s.has("alt"):
         out.append("    static constexpr S NEG = numeric_limits<S>::lowest() / 4;  // (no alternating subsequence of that shape)\n")
-    out.append("    int root = 0;\n")
-    if s.ptr:
-        out.append("    // one node pool shared by every ImplicitTreap<T>: cut / paste move nodes between them (node 0 = the empty tree)\n")
-    out.append(f"    {st}vector<T> val{{T(0)}};\n    {st}vector<unsigned long long> pri{{0}};\n    {st}vector<int> L{{0}}, R{{0}}, sz{{0}};\n")
-    for f in F:
-        out.append(f"    {st}vector<{f[1]}> {f[0]}{{{f[3]}}};\n")
-    for t in TG:
-        out.append(f"    {st}vector<{t[1]}> {t[0]}{{{t[3]}}};\n")
+    if s.find:
+        out.append(SAFE_HASH)
+    out.append(cpp_skeleton(F, TG, [("unordered_map<T, int, SafeHash>", "where")] if s.find else []))
     out.append('''
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
@@ -929,12 +999,6 @@ def cpp(s):
         "    static unsigned long long hadd(unsigned long long a, unsigned long long b) { return a + b >= HP ? a + b - HP : a + b; }",
         "    static unsigned long long hadd(unsigned long long a, unsigned long long b) {\n        return a + b >= HP ? a + b - HP : a + b;\n    }")
         if s.has("hash") else "") + '''
-    // O(N) -- arr: the initial array (may be empty)
-    explicit ImplicitTreap(const vector<T>& arr = {}) { root = build(arr); }
-''' + ('''
-    // O(1) -- forget every node of every ImplicitTreap<T> (call between test cases, then build new ones)
-    static void resetPool() {
-''' + "".join(f"        {n}.resize(1);\n" for n in ["val", "pri", "L", "R", "sz"] + fl + tn) + "    }\n" if s.ptr else "") + '''
     // O(1) -- the current length of the array
     int size() const { return sz[root]; }
 
@@ -1069,18 +1133,39 @@ def cpp_public(s):
         pub[op] = f'''    // O(logN) expected -- {doc}
     void {op}(int i, T v) {{
         vector<int> path;
-        int t = find(i, &path);
-        val[t] = {expr};
-''' + ("        pull(t);\n        for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);\n" if s.mods else "") + "    }\n"
+        int t = locate(i, &path);
+''' + ("        T old = val[t];\n" if s.find else "") + f"        val[t] = {expr};\n" + ("        rekey(t, old);\n" if s.find else "") + (
+        "        pull(t);\n        for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);\n" if s.mods else "") + "    }\n"
     pub.update(CPP_SEQ)
-    if s.ptr:
-        pub.update(CPP_PIECES)
+    pub.update(CPP_PIECES)
+    if s.find:
+        pub["find"] = '''    // O(logN) expected -- the index of x, or -1 if x isn't in this treap (the values must be distinct)
+    int find(T x) {
+        auto it = where.find(x);
+        if (it == where.end() || val[it->second] != x) return -1;
+        int t = it->second;
+        vector<int> path{t};
+        while (true) {  // up to the root (a parent counts only while it still has the node as a child)
+            int c = path.back(), p = par[c];
+            if (!p || (L[p] != c && R[p] != c)) break;
+            path.push_back(p);
+        }
+        if (path.back() != root) return -1;  // (erased, or in another treap)
+''' + ('''        for (int k = (int)path.size() - 1; k >= 0; k--) push(path[k]);  // (pending reverses above it, top-down)
+''' if s.tags() else "") + '''        int i = sz[L[t]];
+        for (size_t k = 1; k < path.size(); k++)
+            if (R[path[k]] == path[k - 1]) i += sz[L[path[k]]] + 1;
+        return i;
+    }
+'''
     return pub
 
 
 def cpp_pull(s):
     fl = [f[0] for f in s.fields()]
     L = ["        int l = L[x], r = R[x];", "        sz[x] = sz[l] + sz[r] + 1;"]
+    if s.find:  # (a child's parent is only trusted while the parent still has it as a child: splits leave stale ones)
+        L += ["        par[l] = par[r] = x;"]
     if not s.mods:
         return L
     L.append("        T v = val[x];")
@@ -1157,7 +1242,7 @@ def cpp_new(s):
         parts += ["pr.push_back(1)", "sr.push_back(1)", "br.push_back(1)"]
     if "a00" in fl:
         parts += ["a00.push_back(S(v))", "a01.push_back(NEG)", "a10.push_back(NEG)", "a11.push_back(-S(v))"]
-    parts += [f"{t[0]}.push_back({t[3]})" for t in s.tags()]
+    parts += [f"{t[0]}.push_back({t[3]})" for t in s.tags()] + (["par.push_back(0)", "where[v] = (int)val.size() - 1"] if s.find else [])
     lines, cur = [], "       "
     for p in parts:
         if len(cur) + len(p) + 2 > 118:
@@ -1333,12 +1418,20 @@ def cpp_internals(s):
         pull(t);
     }
 ''')
+    if s.find:
+        out.append('''
+    void rekey(int t, T old) {  // t's value changed from old: the map follows (find needs distinct values)
+        auto it = where.find(old);
+        if (it != where.end() && it->second == t) where.erase(it);
+        where[val[t]] = t;
+    }
+''')
     out.append(CPP_TAIL)
     return "".join(out)
 
 
 CPP_SEQ = {
-    "pointGet": "    // O(logN) expected -- a[i]\n    T pointGet(int i) { return val[find(i)]; }\n",
+    "pointGet": "    // O(logN) expected -- a[i]\n    T pointGet(int i) { return val[locate(i)]; }\n",
     "insertAt": '''    // O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
     void insertAt(int i, T v) {
         int a, c;
@@ -1356,21 +1449,6 @@ CPP_SEQ = {
 ''',
     "append": "    // O(logN) expected -- append v to the end\n    void append(T v) { root = merge(root, newNode(v)); }\n",
     "appendLeft": "    // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)\n    void appendLeft(T v) { insertAt(0, v); }\n",
-    "pop": '''    // O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    T pop(int i) {
-        T v = pointGet(i);
-        eraseRange(i, i);
-        return v;
-    }
-''',
-    "popLeft": "    // O(logN) expected -- remove a[0] and return it\n    T popLeft() { return pop(0); }\n",
-    "eraseRange": '''    // O(logN) expected -- remove a[l..r]
-    void eraseRange(int l, int r) {
-        int a, b, c;
-        cut(l, r, a, b, c);
-        root = merge(a, c);
-    }
-''',
     "rangeReverse": '''    // O(logN) expected -- reverse a[l..r] in place
     void rangeReverse(int l, int r) {
         int a, b, c;
@@ -1420,17 +1498,18 @@ CPP_SEQ = {
 }
 
 CPP_PIECES = {
-    "cut": '''    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0 again)
+    "cut": '''    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
     ImplicitTreap cut(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
         root = merge(a, c);
-        ImplicitTreap piece;
+        ImplicitTreap piece(pool);
         piece.root = b;
         return piece;
     }
 ''',
-    "paste": '''    // O(logN) expected -- insert all of other so it starts at a[i] (0 <= i <= size()); other is left empty
+    "paste": '''    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
+    // share this treap's nodes (a piece cut from it, or built with ImplicitTreap(arr, this one))
     void paste(int i, ImplicitTreap& other) {
         int a, c;
         split(root, i, a, c);
@@ -1443,7 +1522,7 @@ CPP_PIECES = {
 ''',
     "split": '''    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
     pair<ImplicitTreap, ImplicitTreap> split(int k) {
-        ImplicitTreap left, right;
+        ImplicitTreap left(pool), right(pool);
         split(root, k, left.root, right.root);
         root = 0;
         return {left, right};
@@ -1451,7 +1530,7 @@ CPP_PIECES = {
 ''',
     "trisect": '''    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
     tuple<ImplicitTreap, ImplicitTreap, ImplicitTreap> trisect(int l, int r) {
-        ImplicitTreap left, mid, right;
+        ImplicitTreap left(pool), mid(pool), right(pool);
         cut(l, r, left.root, mid.root, right.root);
         root = 0;
         return {left, mid, right};
@@ -1511,7 +1590,7 @@ CPP_TAIL = '''
         split(b, r - l + 1, b, c);
     }
 
-    int find(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
+    int locate(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
         int t = root;
         while (true) {
             push(t);

@@ -15,9 +15,9 @@
 #   node: c[1*N] s[1*N]
 #   tags: none
 #   other: none
-#   note: two Fenwick trees over differences, everything mod p; a[i] = prefix(c, i) + i * prefix(s, i)
+#   note: two Fenwick trees over differences, everything % MOD; a[i] = prefix(c, i) + i * prefix(s, i)
 
-# Range add of an arithmetic sequence mod p, point get. All indices 0-based, ranges inclusive [l, r].
+# Range add of an arithmetic sequence % MOD, point get. All indices 0-based, ranges inclusive [l, r].
 # Values are kept in [0, mod).
 class ArithSeqBITMod:
     __slots__ = ("n", "c", "s", "mod")
@@ -45,7 +45,7 @@ class ArithSeqBITMod:
             s[i] = (s[i] + step) % mod
             i += i & -i
 
-    # O(logN) -- a[l + j] += start + j * step (mod p) for j in [0, r - l]
+    # O(logN) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
     def rangeAddArithSeqMod(self, l, r, start, step):
         mod = self.mod
         k = (start - l * step) % mod
@@ -53,7 +53,7 @@ class ArithSeqBITMod:
         if r + 1 < self.n:
             self._add(r + 1, -k, -step)
 
-    # O(logN) -- a[i] for i in [l, r] += v (mod p)
+    # O(logN) -- a[i] for i in [l, r] += v (% MOD)
     def rangeAddMod(self, l, r, v):
         c, n, mod = self.c, self.n, self.mod
         v %= mod
@@ -95,10 +95,10 @@ class ArithSeqBITMod:
             out.append((k + i * coef) % mod)
         return out
 
-    # O(logN) -- a[i] += delta (mod p)
+    # O(logN) -- a[i] += delta (% MOD)
     def pointAdd(self, i, delta):
         self.rangeAddMod(i, i, delta)
 
-    # O(logN) -- a[i] = val (mod p)
+    # O(logN) -- a[i] = val (% MOD)
     def pointAssign(self, i, val):
         self.rangeAddMod(i, i, val - self.pointGet(i))

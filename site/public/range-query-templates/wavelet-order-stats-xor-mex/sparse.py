@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/wavelet-order-stats-xor-mex/sparse.py
-# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet rangeMax rangeMex rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
+# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMex rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
 # @data-structure-type: wavelet
 # @complexities:
 #   countGtX: log(N)
@@ -9,12 +9,9 @@
 #   countLtX: log(N)
 #   countLteX: log(N)
 #   countOccurrences: log(N)
-#   kthLargest: log(N)
 #   kthSmallest: log(N)
 #   largestLtX: log(N)
 #   largestLteX: log(N)
-#   medianHigh: log(N)
-#   medianLow: log(N)
 #   pointGet: log(N)
 #   rangeMax: log(N)
 #   rangeMex: log(N)
@@ -102,20 +99,6 @@ class WaveletMatrix:
         if not 1 <= k <= r - l + 1:
             raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._kth(l, r, k)
-
-    # O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError
-    def kthLargest(self, l, r, k):
-        if not 1 <= k <= r - l + 1:
-            raise IndexError(f"kthLargest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
-        return self._kth(l, r, r - l + 2 - k)
-
-    # O(logN) -- lower median of a[l..r]: its ceil(len / 2)-th smallest
-    def medianLow(self, l, r):
-        return self._kth(l, r, (r - l + 2) // 2)
-
-    # O(logN) -- upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest
-    def medianHigh(self, l, r):
-        return self._kth(l, r, (r - l + 1) // 2 + 1)
 
     # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r):
@@ -346,20 +329,6 @@ class SparseWaveletMatrix:
         if not 1 <= k <= r - l + 1:
             raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._kth(l, r, k)
-
-    # O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError
-    def kthLargest(self, l, r, k):
-        if not 1 <= k <= r - l + 1:
-            raise IndexError(f"kthLargest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
-        return self._kth(l, r, r - l + 2 - k)
-
-    # O(logN) -- lower median of a[l..r]: its ceil(len / 2)-th smallest
-    def medianLow(self, l, r):
-        return self._kth(l, r, (r - l + 2) // 2)
-
-    # O(logN) -- upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest
-    def medianHigh(self, l, r):
-        return self._kth(l, r, (r - l + 1) // 2 + 1)
 
     # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r):

@@ -47,9 +47,6 @@ export type OpId =
   | "countInValRange"
   | "sumInValRange"
   | "kthSmallest"
-  | "kthLargest"
-  | "medianLow"
-  | "medianHigh"
   | "countLtX"
   | "countLteX"
   | "countGtX"
@@ -67,7 +64,6 @@ export type OpId =
   | "sumKthSmallestRange"
   | "sumKthLargestRange"
   | "sumAbsDiffToX"
-  | "sumAbsDiffToMedian"
   | "xorLtX"
   | "xorLteX"
   | "xorGtX"
@@ -116,14 +112,12 @@ export type OpId =
   | "append"
   | "appendLeft"
   | "insertAt"
-  | "pop"
-  | "popLeft"
-  | "eraseRange"
   | "rangeReverse"
   | "rangeRotateLeft"
   | "rangeRotateRight"
   | "moveRange"
   | "cut"
+  | "find"
   | "paste"
   | "split"
   | "trisect"
@@ -198,11 +192,11 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "rangeMod", signature: "rangeMod(l, r, mod)", description: "a[i] %= mod" },
           { id: "rangeFloorDiv", signature: "rangeFloorDiv(l, r, divisor)", description: "a[i] = ⌊a[i] / divisor⌋" },
           { id: "rangeFloorSqrt", signature: "rangeFloorSqrt(l, r)", description: "a[i] = ⌊√a[i]⌋" },
-          { id: "rangeAddMod", signature: "rangeAddMod(l, r, v)", description: "a[i] += v  (mod p)" },
-          { id: "rangeAssignMod", signature: "rangeAssignMod(l, r, v)", description: "a[i] = v  (mod p)" },
-          { id: "rangeMultMod", signature: "rangeMultMod(l, r, m)", description: "a[i] = a[i] · m  (mod p)" },
+          { id: "rangeAddMod", signature: "rangeAddMod(l, r, v)", description: "a[i] = (a[i] + v) % MOD" },
+          { id: "rangeAssignMod", signature: "rangeAssignMod(l, r, v)", description: "a[i] = v % MOD" },
+          { id: "rangeMultMod", signature: "rangeMultMod(l, r, m)", description: "a[i] = (a[i] · m) % MOD" },
           { id: "rangeAffineMod", signature: "rangeAffineMod(l, r, mult, add)", description: "a[i] = ((a[i] · mult) + add) % MOD" },
-          { id: "rangeAddArithSeqMod", signature: "rangeAddArithSeqMod(l, r, start, step)", description: "a[l] += start, a[l+1] += start+step, …  (mod p)" },
+          { id: "rangeAddArithSeqMod", signature: "rangeAddArithSeqMod(l, r, start, step)", description: "a[l] += start, a[l+1] += start+step, …  (% MOD)" },
         ],
       },
     ],
@@ -250,8 +244,8 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "rangeMin", signature: "rangeMin(l, r)", description: "min of l..r" },
           { id: "rangeMax", signature: "rangeMax(l, r)", description: "max of l..r" },
           { id: "rangeGcd", signature: "rangeGcd(l, r)", description: "gcd of l..r" },
-          { id: "maxSubarraySum", signature: "maxSubarraySum(l, r)", description: "Max sum of a non-empty contiguous subarray within l..r" },
-          { id: "getAll", signature: "getAll()", description: "The whole current array (e.g. to print the final state)" },
+          { id: "maxSubarraySum", signature: "maxSubarraySum(l, r)", description: "Max sum of non-empty subarray within l..r" },
+          { id: "getAll", signature: "getAll()", description: "Get the whole array (for final answer)" },
         ],
       },
       {
@@ -261,14 +255,14 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "countDistinct", signature: "countDistinct(l, r)", description: "# of distinct values in l..r" },
           { id: "allDistinct", signature: "allDistinct(l, r)", description: "Are all values in l..r distinct?" },
           { id: "rangeMode", signature: "rangeMode(l, r)", description: "(mode, frequency) of l..r" },
-          { id: "costMonoIncreasing", signature: "costMonoIncreasing(l, r)", description: "Min +1 increments to make l..r non-decreasing" },
-          { id: "costMonoDecreasing", signature: "costMonoDecreasing(l, r)", description: "Min +1 increments to make l..r non-increasing" },
-          { id: "costStrictIncreasing", signature: "costStrictIncreasing(l, r)", description: "Min +1 increments to make l..r strictly increasing" },
-          { id: "costStrictDecreasing", signature: "costStrictDecreasing(l, r)", description: "Min +1 increments to make l..r strictly decreasing" },
+          { id: "costMonoIncreasing", signature: "costMonoIncreasing(l, r)", description: "Min +1 ops to make l..r non-decreasing" },
+          { id: "costMonoDecreasing", signature: "costMonoDecreasing(l, r)", description: "Min +1 ops to make l..r non-increasing" },
+          { id: "costStrictIncreasing", signature: "costStrictIncreasing(l, r)", description: "Min +1 ops to make l..r strictly increasing" },
+          { id: "costStrictDecreasing", signature: "costStrictDecreasing(l, r)", description: "Min +1 ops to make l..r strictly decreasing" },
           { id: "maxAltSubseqSum", signature: "maxAltSubseqSum(l, r)", description: "Max alt subsequence sum  +a − b + c …  in l..r" },
           { id: "longestEqualRun", signature: "longestEqualRun(l, r)", description: "Longest run of equal adjacent values in l..r" },
           { id: "doAllElementsAppearEvenFrequency", signature: "doAllElementsAppearEvenFrequency(l, r)", description: "All vals in l..r even frq?" },
-          { id: "rangeSumMod", signature: "rangeSumMod(l, r)", description: "(a[l] + … + a[r])  mod p" },
+          { id: "rangeSumMod", signature: "rangeSumMod(l, r)", description: "(a[l] + … + a[r]) % MOD" },
         ],
       },
     ],
@@ -283,8 +277,6 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "append", signature: "append(v)", description: "Add v at the end" },
           { id: "appendLeft", signature: "appendLeft(v)", description: "Add v at the front (every index shifts up by 1)" },
           { id: "insertAt", signature: "insertAt(i, v)", description: "Insert v so it becomes a[i] (i = n appends)" },
-          { id: "pop", signature: "pop(i)", description: "Remove a[i] and return it" },
-          { id: "popLeft", signature: "popLeft()", description: "Remove a[0] and return it" },
           { id: "insertCopiesAt", signature: "insertCopiesAt(i, v, k)", description: "Insert k copies of v so they become i..i+k−1" },
           { id: "rangeReverse", signature: "rangeReverse(l, r)", description: "Reverse l..r in place" },
           { id: "rangeTwinSpin", signature: "rangeTwinSpin(l, r)", description: "Swap a[l]↔a[l+1], a[l+2]↔a[l+3], … (an odd last one stays)" },
@@ -294,11 +286,11 @@ export const OP_GROUPS: OpGroup[] = [
       {
         kind: "uncommon",
         ops: [
-          { id: "eraseRange", signature: "eraseRange(l, r)", description: "Remove l..r" },
           { id: "rangeRotateLeft", signature: "rangeRotateLeft(l, r, k)", description: "Cyclic shift l..r left by k (a[l+k] moves to l)" },
           { id: "rangeRotateRight", signature: "rangeRotateRight(l, r, k)", description: "Cyclic shift l..r right by k (a[r−k+1…r] move to the front)" },
           { id: "moveRange", signature: "moveRange(l, r, i)", description: "Cut l..r out and paste it back starting at index i" },
-          { id: "cut", signature: "cut(l, r)", description: "Remove l..r and get it back as a separate array of the same type" },
+          { id: "cut", signature: "cut(l, r)", description: "Remove l..r and get it back as a separate array of the same type (drop it to erase)" },
+          { id: "find", signature: "find(x)", description: "Index of x right now, or −1 (the values must be distinct)" },
           { id: "paste", signature: "paste(i, other)", description: "Insert all of another array of the same type starting at index i (other ends up empty)" },
           { id: "split", signature: "split(k)", description: "Split into two arrays: 0..k−1 and a[k]… (the original is left empty)" },
           { id: "trisect", signature: "trisect(l, r)", description: "Split into three arrays: 0..l−1, l..r, a[r+1]… (the original is left empty)" },
@@ -316,9 +308,6 @@ export const OP_GROUPS: OpGroup[] = [
         label: "Rank",
         ops: [
           { id: "kthSmallest", signature: "kthSmallest(l, r, k)", description: "k-th smallest of l..r (k = 1 is the min)" },
-          { id: "kthLargest", signature: "kthLargest(l, r, k)", description: "k-th largest of l..r (k = 1 is the max)" },
-          { id: "medianLow", signature: "medianLow(l, r)", description: "Lower median: the ⌈len/2⌉-th smallest" },
-          { id: "medianHigh", signature: "medianHigh(l, r)", description: "Upper median: the (⌊len/2⌋+1)-th smallest" },
         ],
       },
       {
@@ -367,7 +356,6 @@ export const OP_GROUPS: OpGroup[] = [
         kind: "topic",
         label: "Distance",
         ops: [
-          { id: "sumAbsDiffToMedian", signature: "sumAbsDiffToMedian(l, r)", description: "Min total ±1 moves to make l..r all equal (Σ |a[i] − median|)" },
           { id: "sumAbsDiffToX", signature: "sumAbsDiffToX(l, r, x)", description: "Σ |a[i] − x| over l..r" },
         ],
       },
@@ -676,13 +664,13 @@ export type TemplateView = RangeQueryTemplate & { file: "template" | "sparse" | 
 // every other op does arithmetic and needs numbers.
 export const CHAR_SAFE_OPS: ReadonlySet<string> = new Set([
   "pointGet", "pointAssign", "pointChmax", "pointChmin", "rangeAssign", "rangeChmax", "rangeChmin", "rangeSortAsc",
-  "rangeSortDesc", "getAll", "append", "appendLeft", "insertAt", "insertCopiesAt", "pop", "popLeft", "eraseRange",
+  "rangeSortDesc", "getAll", "append", "appendLeft", "insertAt", "insertCopiesAt",
   "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "concat",
   "copyRange", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
   "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange",
   "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome",
-  "rangeHash", "rangeHashReversed", "rangesEqual", "doAllElementsAppearEvenFrequency", "kthSmallest", "kthLargest", "medianLow",
-  "medianHigh", "countLtX", "countLteX", "countGtX", "countGteX", "countInValRange", "smallestGtX", "smallestGteX",
+  "rangeHash", "rangeHashReversed", "rangesEqual", "doAllElementsAppearEvenFrequency", "kthSmallest",
+  "countLtX", "countLteX", "countGtX", "countGteX", "countInValRange", "smallestGtX", "smallestGteX",
   "largestLtX", "largestLteX", "kthLtX", "kthLteX", "kthGtX", "kthGteX",
   ...["leftmost", "rightmost"].flatMap((side) => ["Gt", "Gte", "Lt", "Lte"].map((c) => `${side}${c}X`)),
 ]);

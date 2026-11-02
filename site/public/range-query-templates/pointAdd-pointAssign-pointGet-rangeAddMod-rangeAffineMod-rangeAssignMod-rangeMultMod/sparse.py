@@ -18,7 +18,7 @@
 #   other: children[8*log(U)]
 #   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. a leaf's value is sm (internal nodes keep no aggregate). Lists of nodes
 
-# Range affine maps mod p (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v),
+# Range affine maps % MOD (add, mult and assign are special cases: x -> 1x + v, mx + 0, 0x + v),
 # plus point ops. Values are residues in [0, mod). A tag is the map x -> mul * x + add; maps compose into
 # the same form. Only leaves' values matter, so nothing is pulled.
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag
@@ -99,22 +99,22 @@ class SparseAffineTree:
             return self._query(self.L[x], a, m, l, r, d)
         return self._query(self.R[x], m + 1, b, l, r, d)
 
-    # O(logU) -- a[i] = a[i] + v (mod p) for i in [l, r]
+    # O(logU) -- a[i] = a[i] + v (% MOD) for i in [l, r]
     def rangeAddMod(self, l, r, v):
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (1, v % self.mod))
 
-    # O(logU) -- a[i] = a[i] * m (mod p) for i in [l, r]
+    # O(logU) -- a[i] = a[i] * m (% MOD) for i in [l, r]
     def rangeMultMod(self, l, r, m):
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (m % self.mod, 0))
 
-    # O(logU) -- a[i] = v (mod p) for i in [l, r]
+    # O(logU) -- a[i] = v (% MOD) for i in [l, r]
     def rangeAssignMod(self, l, r, v):
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (0, v % self.mod))
 
-    # O(logU) -- a[i] = a[i] * mult + add (mod p) for i in [l, r]
+    # O(logU) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]
     def rangeAffineMod(self, l, r, mult, add):
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (mult % self.mod, add % self.mod))
@@ -124,7 +124,7 @@ class SparseAffineTree:
         res = self._query(1, self.lo, self.hi, i, i, None)
         return res
 
-    # O(logU) -- a[i] = val (mod p)
+    # O(logU) -- a[i] = val (% MOD)
     def pointAssign(self, i, val):
         path = []
         x, a, b = 1, self.lo, self.hi
@@ -138,6 +138,6 @@ class SparseAffineTree:
                 x, a = self._kid(x, 1), m + 1
         self.v[x] = val % self.mod
 
-    # O(logU) -- a[i] += delta (mod p)
+    # O(logU) -- a[i] += delta (% MOD)
     def pointAdd(self, i, delta):
         self.pointAssign(i, self.pointGet(i) + delta)

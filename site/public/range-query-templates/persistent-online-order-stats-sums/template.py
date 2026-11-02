@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-online-order-stats-sums/template.py
-# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 # @data-structure-type: persistent
 # @complexities:
 #   append: log(U)
@@ -11,19 +11,15 @@
 #   countLteX: log(U)
 #   countOccurrences: log(U)
 #   getAll: N
-#   kthLargest: log(U)
 #   kthSmallest: log(U)
 #   largestLtX: log(U)
 #   largestLteX: log(U)
-#   medianHigh: log(U)
-#   medianLow: log(U)
 #   pointGet: 1
 #   rangeMax: log(U)
 #   rangeMin: log(U)
 #   rangeSum: log(U)
 #   smallestGtX: log(U)
 #   smallestGteX: log(U)
-#   sumAbsDiffToMedian: log(U)
 #   sumAbsDiffToX: log(U)
 #   sumGtX: log(U)
 #   sumGteX: log(U)
@@ -107,20 +103,6 @@ class PersistentOnlineOrderStats:
         if not 1 <= k <= r - l + 1:
             raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._kth(l, r, k)
-
-    # O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else IndexError
-    def kthLargest(self, l, r, k):
-        if not 1 <= k <= r - l + 1:
-            raise IndexError(f"kthLargest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
-        return self._kth(l, r, r - l + 2 - k)
-
-    # O(logN) -- lower median of a[l..r]: its ceil(len / 2)-th smallest
-    def medianLow(self, l, r):
-        return self._kth(l, r, (r - l + 2) // 2)
-
-    # O(logN) -- upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest
-    def medianHigh(self, l, r):
-        return self._kth(l, r, (r - l + 1) // 2 + 1)
 
     # O(logN) -- min of a[l..r]
     def rangeMin(self, l, r):
@@ -209,10 +191,6 @@ class PersistentOnlineOrderStats:
         rk = x
         c, s = self._countBelow(l, r, rk), self._sumBelow(l, r, rk)
         return x * c - s + (self._sumFirst(l, r, r - l + 1) - s) - x * (r - l + 1 - c)
-
-    # O(logN) -- sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal
-    def sumAbsDiffToMedian(self, l, r):
-        return self.sumAbsDiffToX(l, r, self._kth(l, r, (r - l + 2) // 2))
 
     # ---- internals ----
 

@@ -16,7 +16,7 @@
 //   other: children[4*log(U)]
 //   note: per update, the O(logU) entries above each changed position; an arithmetic-sequence add changes two points of c and s. A dynamic prefix-sum tree in a node pool the tree owns
 
-// Range add of an arithmetic sequence (and plain range add), point get, all mod p. Adding start + (i - l) * step on [l,
+// Range add of an arithmetic sequence (and plain range add), point get, all % MOD. Adding start + (i - l) * step on [l,
 // r] is adding the line c0 + c1 * x (x = i - lo), so a[x] = C(x) + x * S(x) with C, S prefix sums of two difference
 // arrays. Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic
 // prefix-sum tree over offsets x = i - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int,
@@ -89,7 +89,7 @@ struct SparseArithSeqBITMod {
 
     T norm(W x) const { return T((x % mod + mod) % mod); }
 
-    // O(logU) -- a[l + j] += start + j * step (mod p) for j in [0, r - l]
+    // O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
     void rangeAddArithSeqMod(long long l, long long r, T start, T step) {
         if (l > r) return;
         l -= lo, r -= lo;
@@ -98,7 +98,7 @@ struct SparseArithSeqBITMod {
         if (r + 1 < n) add(r + 1, F{norm(-W(c0)), norm(-W(c1))});
     }
 
-    // O(logU) -- a[i] += v (mod p) for i in [l, r]
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(long long l, long long r, T v) { rangeAddArithSeqMod(l, r, v, 0); }
 
     // O(logU) -- a[i], in [0, mod)

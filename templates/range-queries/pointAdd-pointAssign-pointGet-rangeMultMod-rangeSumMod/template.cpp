@@ -15,9 +15,9 @@
 //   node: tot[2*N]
 //   tags: mul[1*N]
 //   other: none
-//   note: tags live on the N internal nodes only; each is a pending multiplier (mod p)
+//   note: tags live on the N internal nodes only; each is a pending multiplier (% MOD)
 
-// Range multiply + range sum, all mod p, plus point ops. All indices 0-based, ranges inclusive [l, r].
+// Range multiply + range sum, all % MOD, plus point ops. All indices 0-based, ranges inclusive [l, r].
 // One tag per internal node: a pending multiplier ("applied here, not yet pushed"). Multipliers compose by
 // multiplying, and v -> v * m turns a node's sum into sum * m. Leaner than the affine tree: one tag instead of two.
 // Values are residues in [0, mod). T: int, long long, ...
@@ -72,7 +72,7 @@ struct MultSumTree {
         rebuild(l0), rebuild(r0);
     }
 
-    // O(logN) -- (a[l] + ... + a[r]) mod p
+    // O(logN) -- (a[l] + ... + a[r]) % MOD
     T rangeSumMod(int l, int r) {
         if (l > r) return 0;
         l += n, r += n;
@@ -102,10 +102,10 @@ struct MultSumTree {
         return vector<T>(tot.begin() + n, tot.end());
     }
 
-    // O(logN) -- a[i] *= m (mod p) for i in [l, r]
+    // O(logN) -- a[i] *= m (% MOD) for i in [l, r]
     void rangeMultMod(int l, int r, T m) { update(l, r, norm(m)); }
 
-    // O(logN) -- a[i] = v (mod p)
+    // O(logN) -- a[i] = v (% MOD)
     void pointAssign(int i, T v) {
         int p = i + n;
         push(p);
@@ -113,6 +113,6 @@ struct MultSumTree {
         rebuild(p);
     }
 
-    // O(logN) -- a[i] += delta (mod p)
+    // O(logN) -- a[i] += delta (% MOD)
     void pointAdd(int i, T delta) { pointAssign(i, norm(W(pointGet(i)) + delta)); }
 };

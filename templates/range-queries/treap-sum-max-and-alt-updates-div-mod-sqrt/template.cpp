@@ -1,11 +1,12 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-and-alt-updates-div-mod-sqrt/template.cpp
-// @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAltSubseqSum moveRange pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX
+// @operations: append appendLeft concat cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAltSubseqSum moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected
-//   eraseRange: log(N) expected
+//   concat: log(N) expected
+//   cut: log(N) expected
 //   getAll: N
 //   insertAt: log(N) expected
 //   insertCopiesAt: log(N) expected
@@ -13,13 +14,12 @@
 //   leftmostGteX: log(N) expected
 //   maxAltSubseqSum: log(N) expected
 //   moveRange: log(N) expected
+//   paste: log(N) expected
 //   pointAdd: log(N) expected
 //   pointAssign: log(N) expected
 //   pointChmax: log(N) expected
 //   pointChmin: log(N) expected
 //   pointGet: log(N) expected
-//   pop: log(N) expected
-//   popLeft: log(N) expected
 //   rangeAndQuery: log(N) expected
 //   rangeFloorDiv: log(N)*log(U) amortized
 //   rangeFloorSqrt: log(N)*log(log(U)) amortized
@@ -30,43 +30,71 @@
 //   rangeSum: log(N) expected
 //   rightmostGtX: log(N) expected
 //   rightmostGteX: log(N) expected
+//   split: log(N) expected
+//   trisect: log(N) expected
 //   build: N
 // @memory:
 //   layout: none
 //   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N] sm[1*N] mx[1*N] an[1*N] a00[1*N] a01[1*N] a10[1*N] a11[1*N]
 //   tags: none
 //   other: none
-//   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
+//   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused); a treap and the pieces cut from it share their nodes (freed with the last of them: no reset needed)
 
-// Implicit treap with composable aggregates: an array you can insert into / erase from anywhere, rotate, move in
-// O(logN) expected each, with rangeFloorDiv, rangeMod, rangeFloorSqrt; each node keeps its sum, its max, its AND, its
-// best alternating (+ - + ...) subsequence sum for each start / end sign over its subtree. All indices 0-based,
-// ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
-// qualifies.
+// Implicit treap with composable aggregates: an array you can insert into anywhere, rotate, move, cut pieces out of
+// (that is how to erase) and paste them back in O(logN) expected each, with rangeFloorDiv, rangeMod, rangeFloorSqrt;
+// each node keeps its sum, its max, its AND, its best alternating (+ - + ...) subsequence sum for each start / end
+// sign over its subtree. All indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT
+// array; searches return -1 when nothing qualifies.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct ImplicitTreap {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr S NEG = numeric_limits<S>::lowest() / 4;  // (no alternating subsequence of that shape)
+    struct Pool {  // the node arrays: node 0 = the empty tree
+        vector<T> val{T(0)};
+        vector<unsigned long long> pri{0};
+        vector<int> L{0};
+        vector<int> R{0};
+        vector<int> sz{0};
+        vector<S> sm{0};
+        vector<T> mx{T(0)};
+        vector<T> an{~T(0)};
+        vector<S> a00{0};
+        vector<S> a01{0};
+        vector<S> a10{0};
+        vector<S> a11{0};
+    };
+    shared_ptr<Pool> pool;  // (shared by this treap and every piece cut from it; freed with the last of them)
+    vector<T>& val;
+    vector<unsigned long long>& pri;
+    vector<int>& L;
+    vector<int>& R;
+    vector<int>& sz;
+    vector<S>& sm;
+    vector<T>& mx;
+    vector<T>& an;
+    vector<S>& a00;
+    vector<S>& a01;
+    vector<S>& a10;
+    vector<S>& a11;
     int root = 0;
-    vector<T> val{T(0)};
-    vector<unsigned long long> pri{0};
-    vector<int> L{0}, R{0}, sz{0};
-    vector<S> sm{0};
-    vector<T> mx{T(0)};
-    vector<T> an{~T(0)};
-    vector<S> a00{0};
-    vector<S> a01{0};
-    vector<S> a10{0};
-    vector<S> a11{0};
+
+    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
+    explicit ImplicitTreap(const vector<T>& arr = {}) : ImplicitTreap(make_shared<Pool>()) { root = build(arr); }
+
+    // O(N) -- a treap over arr that shares other's nodes, so pieces can move between the two (pieces cut from a treap
+    // share its nodes already)
+    ImplicitTreap(const vector<T>& arr, const ImplicitTreap& other) : ImplicitTreap(other.pool) { root = build(arr); }
+
+    // an empty treap on pool p
+    explicit ImplicitTreap(shared_ptr<Pool> p)
+        : pool(p), val(p->val), pri(p->pri), L(p->L), R(p->R), sz(p->sz), sm(p->sm), mx(p->mx), an(p->an),
+          a00(p->a00), a01(p->a01), a10(p->a10), a11(p->a11) {}
 
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
         return g();
     }
-
-    // O(N) -- arr: the initial array (may be empty)
-    explicit ImplicitTreap(const vector<T>& arr = {}) { root = build(arr); }
 
     // O(1) -- the current length of the array
     int size() const { return sz[root]; }
@@ -77,11 +105,17 @@ struct ImplicitTreap {
     // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN) expected -- remove a[l..r]
-    void eraseRange(int l, int r) {
+    // O(logN) expected -- append all of other at the end; other is left empty
+    void concat(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
+
+    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    ImplicitTreap cut(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
         root = merge(a, c);
+        ImplicitTreap piece(pool);
+        piece.root = b;
+        return piece;
     }
 
     // O(N) -- the whole current array, every pending tag applied on the way
@@ -163,10 +197,19 @@ struct ImplicitTreap {
         root = merge(merge(x, b), y);
     }
 
+    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
+    // share this treap's nodes (a piece cut from it, or built with ImplicitTreap(arr, this one))
+    void paste(int i, ImplicitTreap& other) {
+        int a, c;
+        split(root, i, a, c);
+        root = merge(merge(a, other.root), c);
+        other.root = 0;
+    }
+
     // O(logN) expected -- a[i] += v
     void pointAdd(int i, T v) {
         vector<int> path;
-        int t = find(i, &path);
+        int t = locate(i, &path);
         val[t] = val[t] + v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
@@ -175,7 +218,7 @@ struct ImplicitTreap {
     // O(logN) expected -- a[i] = v
     void pointAssign(int i, T v) {
         vector<int> path;
-        int t = find(i, &path);
+        int t = locate(i, &path);
         val[t] = v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
@@ -184,7 +227,7 @@ struct ImplicitTreap {
     // O(logN) expected -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) {
         vector<int> path;
-        int t = find(i, &path);
+        int t = locate(i, &path);
         val[t] = max(val[t], v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
@@ -193,24 +236,14 @@ struct ImplicitTreap {
     // O(logN) expected -- a[i] = min(a[i], v)
     void pointChmin(int i, T v) {
         vector<int> path;
-        int t = find(i, &path);
+        int t = locate(i, &path);
         val[t] = min(val[t], v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
     // O(logN) expected -- a[i]
-    T pointGet(int i) { return val[find(i)]; }
-
-    // O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    T pop(int i) {
-        T v = pointGet(i);
-        eraseRange(i, i);
-        return v;
-    }
-
-    // O(logN) expected -- remove a[0] and return it
-    T popLeft() { return pop(0); }
+    T pointGet(int i) { return val[locate(i)]; }
 
     // O(logN) expected -- a[l] & ... & a[r]
     T rangeAndQuery(int l, int r) {
@@ -311,6 +344,22 @@ struct ImplicitTreap {
         return res;
     }
 
+    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    pair<ImplicitTreap, ImplicitTreap> split(int k) {
+        ImplicitTreap left(pool), right(pool);
+        split(root, k, left.root, right.root);
+        root = 0;
+        return {left, right};
+    }
+
+    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    tuple<ImplicitTreap, ImplicitTreap, ImplicitTreap> trisect(int l, int r) {
+        ImplicitTreap left(pool), mid(pool), right(pool);
+        cut(l, r, left.root, mid.root, right.root);
+        root = 0;
+        return {left, mid, right};
+    }
+
     // ---- internals ----
 
     int newNode(T v) {
@@ -403,7 +452,7 @@ struct ImplicitTreap {
         split(b, r - l + 1, b, c);
     }
 
-    int find(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
+    int locate(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
         int t = root;
         while (true) {
             int ls = sz[L[t]];

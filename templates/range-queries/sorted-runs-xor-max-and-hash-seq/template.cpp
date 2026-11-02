@@ -1,23 +1,23 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-xor-max-and-hash-seq/template.cpp
-// @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt isPalindrome moveRange pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery rangesEqual
+// @operations: append appendLeft concat cut getAll insertAt insertCopiesAt isPalindrome moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery rangesEqual split trisect
 // @data-structure-type: sorted-runs
 // @complexities:
 //   append: log(N)+log(U) amortized
 //   appendLeft: log(N)+log(U) amortized
-//   eraseRange: log(N)+log(U) amortized
+//   concat: log(N)+log(U) amortized
+//   cut: log(N)+log(U) amortized
 //   getAll: N*log(U)
 //   insertAt: log(N)+log(U) amortized
 //   insertCopiesAt: log(N)+log(U) amortized
 //   isPalindrome: log(N)+log(U) amortized
 //   moveRange: log(N)+log(U) amortized
+//   paste: log(N)+log(U) amortized
 //   pointAdd: log(N)+log(U) amortized
 //   pointAssign: log(N)+log(U) amortized
 //   pointChmax: log(N)+log(U) amortized
 //   pointChmin: log(N)+log(U) amortized
 //   pointGet: log(N)+log(U) expected
-//   pop: log(N)+log(U) amortized
-//   popLeft: log(N)+log(U) amortized
 //   rangeAndQuery: log(N)+log(U) amortized
 //   rangeAssign: log(N)+log(U) amortized
 //   rangeHash: log(N)+log(U) amortized
@@ -30,6 +30,8 @@
 //   rangeSortDesc: log(N)+log(U) amortized
 //   rangeXorQuery: log(N)+log(U) amortized
 //   rangesEqual: log(N)+log(U) amortized
+//   split: log(N)+log(U) amortized
+//   trisect: log(N)+log(U) amortized
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -54,24 +56,54 @@
 template <typename T>
 struct SortedRunsXorMaxAndHashSeq {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    int n, rt = 0;
-    long long vlo, vhi;
-    vector<int> Lc{0}, Rc{0}, freeList;  // value node 0 = the empty tree; nodes freed by merges are reused first
-    vector<long long> cnt{0};
-    vector<T> xr{T(0)};
-    vector<T> av{T(~T(0))};  // node 0 holds every bit (AND's identity)
-    vector<unsigned long long> fh{0}, bh{0}, pw{1}, gs{0};  // hashes both ways; B^k; 1 + B + ... + B^(k-1)
-    // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-    // subtree length TS, pending reverse TF, subtree xor / max / and / hashes (O: the run's own min / max)
-    vector<int> TL{0}, TR{0}, TV{0}, TN{0}, TS{0}, tfree;
-    vector<unsigned long long> TP{0};
-    vector<char> TD{0}, TF{0};
-    vector<T> Sxr{T(0)};
-    vector<T> Omx{numeric_limits<T>::lowest()};
-    vector<T> Smx{numeric_limits<T>::lowest()};
-    vector<T> Sav{T(~T(0))};
-    vector<unsigned long long> Sfh{0};
-    vector<unsigned long long> Sbh{0};
+    struct Pool {  // the node arrays (node 0 = the empty tree), shared with every piece cut from this one
+        long long vlo, vhi;
+        vector<int> Lc{0}, Rc{0}, freeList;  // value node 0 = the empty tree; nodes freed by merges are reused first
+        vector<long long> cnt{0};
+        vector<T> xr{T(0)};
+        vector<T> av{T(~T(0))};  // node 0 holds every bit (AND's identity)
+        vector<unsigned long long> fh{0}, bh{0}, pw{1}, gs{0};  // hashes both ways; B^k; 1 + B + ... + B^(k-1)
+        // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
+        // subtree length TS, pending reverse TF, subtree xor / max / and / hashes (O: the run's own min / max)
+        vector<int> TL{0}, TR{0}, TV{0}, TN{0}, TS{0}, tfree;
+        vector<unsigned long long> TP{0};
+        vector<char> TD{0}, TF{0};
+        vector<T> Sxr{T(0)};
+        vector<T> Omx{numeric_limits<T>::lowest()};
+        vector<T> Smx{numeric_limits<T>::lowest()};
+        vector<T> Sav{T(~T(0))};
+        vector<unsigned long long> Sfh{0};
+        vector<unsigned long long> Sbh{0};
+    };
+    shared_ptr<Pool> pool;  // (freed with the last object using it)
+    long long& vlo;
+    long long& vhi;
+    vector<int>& Lc;
+    vector<int>& Rc;
+    vector<int>& freeList;
+    vector<long long>& cnt;
+    vector<T>& xr;
+    vector<T>& av;
+    vector<unsigned long long>& fh;
+    vector<unsigned long long>& bh;
+    vector<unsigned long long>& pw;
+    vector<unsigned long long>& gs;
+    vector<int>& TL;
+    vector<int>& TR;
+    vector<int>& TV;
+    vector<int>& TN;
+    vector<int>& TS;
+    vector<int>& tfree;
+    vector<unsigned long long>& TP;
+    vector<char>& TD;
+    vector<char>& TF;
+    vector<T>& Sxr;
+    vector<T>& Omx;
+    vector<T>& Smx;
+    vector<T>& Sav;
+    vector<unsigned long long>& Sfh;
+    vector<unsigned long long>& Sbh;
+    int n = 0, rt = 0;
     // range hashes: mod the prime 2^61 - 1, with a base picked at random each run (so no test can be built against it)
     static constexpr unsigned long long HP = (1ULL << 61) - 1;
     static unsigned long long HB() {
@@ -101,8 +133,29 @@ struct SortedRunsXorMaxAndHashSeq {
     }
 
     // O(N log U) -- arr: the initial array (may be empty); every value a[i] ever holds must lie in [valLo, valHi]
-    // (U = valHi - valLo + 1)
-    SortedRunsXorMaxAndHashSeq(const vector<T>& arr, long long valLo, long long valHi) : n((int)arr.size()), vlo(valLo), vhi(valHi) {
+    // (U = valHi - valLo + 1). No reset between test cases: the nodes are freed with the last object using them
+    SortedRunsXorMaxAndHashSeq(const vector<T>& arr, long long valLo, long long valHi)
+        : SortedRunsXorMaxAndHashSeq(make_shared<Pool>()) {
+        vlo = valLo, vhi = valHi;
+        buildFrom(arr);
+    }
+
+    // O(N log U) -- an array over arr that shares other's nodes (and value range), so pieces can move between the two
+    // (pieces cut from it share them already)
+    SortedRunsXorMaxAndHashSeq(const vector<T>& arr, const SortedRunsXorMaxAndHashSeq& other)
+        : SortedRunsXorMaxAndHashSeq(other.pool) {
+        buildFrom(arr);
+    }
+
+    // an empty one on pool p
+    explicit SortedRunsXorMaxAndHashSeq(shared_ptr<Pool> p)
+        : pool(p), vlo(p->vlo), vhi(p->vhi), Lc(p->Lc), Rc(p->Rc), freeList(p->freeList), cnt(p->cnt), xr(p->xr),
+          av(p->av), fh(p->fh), bh(p->bh), pw(p->pw), gs(p->gs), TL(p->TL), TR(p->TR), TV(p->TV), TN(p->TN),
+          TS(p->TS), tfree(p->tfree), TP(p->TP), TD(p->TD), TF(p->TF), Sxr(p->Sxr), Omx(p->Omx), Smx(p->Smx),
+          Sav(p->Sav), Sfh(p->Sfh), Sbh(p->Sbh) {}
+
+    void buildFrom(const vector<T>& arr) {
+        n = (int)arr.size();
         grow(n);
         vector<int> st;  // O(N) build: the treap's right spine
         for (const T& v : arr) {
@@ -182,22 +235,41 @@ struct SortedRunsXorMaxAndHashSeq {
     // O(log N + log U) amortized -- insert v at the front (it becomes a[0])
     void appendLeft(T v) { insertCopiesAt(0, v, 1); }
 
-    // O(log N + log U) amortized -- remove a[i] and return it
-    T pop(int i) {
-        T v = pointGet(i);
-        eraseRange(i, i);
-        return v;
+    // O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0; drop it to erase)
+    SortedRunsXorMaxAndHashSeq cut(int l, int r) {
+        auto [A, B, C] = extract(l, r);
+        rt = tmerge(A, C), n -= r - l + 1;
+        SortedRunsXorMaxAndHashSeq piece(pool);
+        piece.rt = B, piece.n = r - l + 1;
+        return piece;
     }
 
-    // O(log N + log U) amortized -- remove a[0] and return it
-    T popLeft() { return pop(0); }
+    // O(log N + log U) amortized -- insert other at a[i] (0 <= i <= size()), leaving it empty; it must share
+    // this one's nodes (a piece cut from it, or built with SortedRunsXorMaxAndHashSeq(arr, this one))
+    void paste(int i, SortedRunsXorMaxAndHashSeq& other) {
+        n += other.n;
+        grow(n);  // (before the merge reads the powers)
+        auto [A, C] = tsplit(rt, i);
+        rt = tmerge(tmerge(A, other.rt), C), other.rt = other.n = 0;
+    }
 
-    // O(log N + log U) amortized -- remove a[l..r]
-    void eraseRange(int l, int r) {
-        auto [A, B, C] = extract(l, r);
-        drop(B);
-        n -= r - l + 1;
-        rt = tmerge(A, C);
+    // O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
+    void concat(SortedRunsXorMaxAndHashSeq& other) { paste(n, other); }
+
+    // O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
+    pair<SortedRunsXorMaxAndHashSeq, SortedRunsXorMaxAndHashSeq> split(int k) {
+        SortedRunsXorMaxAndHashSeq left(pool), right(pool);
+        tie(left.rt, right.rt) = tsplit(rt, k);
+        left.n = k, right.n = n - k, rt = n = 0;
+        return {left, right};
+    }
+
+    // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
+    tuple<SortedRunsXorMaxAndHashSeq, SortedRunsXorMaxAndHashSeq, SortedRunsXorMaxAndHashSeq> trisect(int l, int r) {
+        SortedRunsXorMaxAndHashSeq left(pool), mid(pool), right(pool);
+        tie(left.rt, mid.rt, right.rt) = extract(l, r);
+        left.n = l, mid.n = r - l + 1, right.n = n - r - 1, rt = n = 0;
+        return {left, mid, right};
     }
 
     // O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first; any k, negative = right)

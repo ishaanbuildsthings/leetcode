@@ -16,7 +16,7 @@
 #   other: children[8*log(U)]
 #   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. Lists of nodes
 
-# Range mult with range sum, all mod p, plus point ops. Values are residues in [0, mod). A tag is a pending
+# Range mult with range sum, all % MOD, plus point ops. Values are residues in [0, mod). A tag is a pending
 # multiplier; a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a
 # modular inverse at point writes, and a multiplier can be 0.)
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Updates push a node's tag
@@ -107,12 +107,12 @@ class SparseMultSumTree:
             return self._query(self.R[x], m + 1, b, l, r, d)
         return self._merge(self._query(self.L[x], a, m, l, r, d), self._query(self.R[x], m + 1, b, l, r, d))
 
-    # O(logU) -- a[i] = a[i] * m (mod p) for i in [l, r]
+    # O(logU) -- a[i] = a[i] * m (% MOD) for i in [l, r]
     def rangeMultMod(self, l, r, m):
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, m % self.mod)
 
-    # O(logU) -- (a[l] + ... + a[r]) mod p
+    # O(logU) -- (a[l] + ... + a[r]) % MOD
     def rangeSumMod(self, l, r):
         res = self._query(1, self.lo, self.hi, l, r, None)
         return res
@@ -122,7 +122,7 @@ class SparseMultSumTree:
         res = self._query(1, self.lo, self.hi, i, i, None)
         return res
 
-    # O(logU) -- a[i] = val (mod p)
+    # O(logU) -- a[i] = val (% MOD)
     def pointAssign(self, i, val):
         path = []
         x, a, b = 1, self.lo, self.hi
@@ -138,6 +138,6 @@ class SparseMultSumTree:
         for y in reversed(path):
             self._pull(y)
 
-    # O(logU) -- a[i] += delta (mod p)
+    # O(logU) -- a[i] += delta (% MOD)
     def pointAdd(self, i, delta):
         self.pointAssign(i, self.pointGet(i) + delta)

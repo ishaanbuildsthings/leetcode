@@ -21,9 +21,11 @@ from note_lang import write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 
-BASE = ["countGtX", "countGteX", "countInValRange", "countLtX", "countLteX", "countOccurrences", "kthLargest", "kthSmallest",
-        "largestLtX", "largestLteX", "medianHigh", "medianLow", "pointGet", "rangeMax", "rangeMin", "smallestGtX", "smallestGteX"]
-SUMS = ["rangeSum", "sumAbsDiffToMedian", "sumAbsDiffToX", "sumGtX", "sumGteX", "sumInValRange", "sumKthLargestRange",
+# (no kthLargest / medianLow / medianHigh / sumAbsDiffToMedian: kthSmallest with len - k + 1, ceil(len / 2), floor(len / 2) + 1,
+# then sumAbsDiffToX at the median, cost the same)
+BASE = ["countGtX", "countGteX", "countInValRange", "countLtX", "countLteX", "countOccurrences", "kthSmallest",
+        "largestLtX", "largestLteX", "pointGet", "rangeMax", "rangeMin", "smallestGtX", "smallestGteX"]
+SUMS = ["rangeSum", "sumAbsDiffToX", "sumGtX", "sumGteX", "sumInValRange", "sumKthLargestRange",
         "sumKthSmallestRange", "sumLargestK", "sumLtX", "sumLteX", "sumSmallestK"]
 MEX = ["rangeMex"]
 LOGN = "1*N*log(N)"

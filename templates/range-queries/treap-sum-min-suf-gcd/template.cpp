@@ -1,11 +1,12 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-suf-gcd/template.cpp
-// @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt leftmostLtX leftmostLteX maxSuffixSum moveRange pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: append appendLeft concat cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX maxSuffixSum moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
 //   appendLeft: log(N)*log(U) expected ?
-//   eraseRange: log(N)*log(U) expected ?
+//   concat: log(N)*log(U) expected ?
+//   cut: log(N)*log(U) expected ?
 //   getAll: N
 //   insertAt: log(N)*log(U) expected ?
 //   insertCopiesAt: log(N)*log(U) expected ?
@@ -13,13 +14,12 @@
 //   leftmostLteX: log(N)*log(U) expected ?
 //   maxSuffixSum: log(N)*log(U) expected ?
 //   moveRange: log(N)*log(U) expected ?
+//   paste: log(N)*log(U) expected ?
 //   pointAdd: log(N)*log(U) expected ?
 //   pointAssign: log(N)*log(U) expected ?
 //   pointChmax: log(N)*log(U) expected ?
 //   pointChmin: log(N)*log(U) expected ?
 //   pointGet: log(N) expected
-//   pop: log(N)*log(U) expected ?
-//   popLeft: log(N)*log(U) expected ?
 //   rangeGcd: log(N)*log(U) expected ?
 //   rangeMin: log(N)*log(U) expected ?
 //   rangeRotateLeft: log(N)*log(U) expected ?
@@ -29,38 +29,63 @@
 //   rightmostLteX: log(N)*log(U) expected ?
 //   rightmostSuffixSumGtX: log(N)*log(U) expected ?
 //   rightmostSuffixSumGteX: log(N)*log(U) expected ?
+//   split: log(N)*log(U) expected ?
+//   trisect: log(N)*log(U) expected ?
 //   build: N*log(U) ?
 // @memory:
 //   layout: none
 //   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N] sm[1*N] mn[1*N] suf[1*N] g[1*N]
 //   tags: none
 //   other: none
-//   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
+//   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused); a treap and the pieces cut from it share their nodes (freed with the last of them: no reset needed)
 
-// Implicit treap with composable aggregates: an array you can insert into / erase from anywhere, rotate, move in
-// O(logN) expected each; each node keeps its sum, its min, its best suffix sum, its gcd over its subtree. All indices
-// 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when
-// nothing qualifies.
+// Implicit treap with composable aggregates: an array you can insert into anywhere, rotate, move, cut pieces out of
+// (that is how to erase) and paste them back in O(logN) expected each; each node keeps its sum, its min, its best
+// suffix sum, its gcd over its subtree. All indices 0-based, ranges inclusive [l, r], an index always the position in
+// the CURRENT array; searches return -1 when nothing qualifies.
 // T: int, long long, ...; sums are kept in S (long long for small T).
 template <typename T>
 struct ImplicitTreap {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
+    struct Pool {  // the node arrays: node 0 = the empty tree
+        vector<T> val{T(0)};
+        vector<unsigned long long> pri{0};
+        vector<int> L{0};
+        vector<int> R{0};
+        vector<int> sz{0};
+        vector<S> sm{0};
+        vector<T> mn{T(0)};
+        vector<S> suf{0};
+        vector<T> g{T(0)};
+    };
+    shared_ptr<Pool> pool;  // (shared by this treap and every piece cut from it; freed with the last of them)
+    vector<T>& val;
+    vector<unsigned long long>& pri;
+    vector<int>& L;
+    vector<int>& R;
+    vector<int>& sz;
+    vector<S>& sm;
+    vector<T>& mn;
+    vector<S>& suf;
+    vector<T>& g;
     int root = 0;
-    vector<T> val{T(0)};
-    vector<unsigned long long> pri{0};
-    vector<int> L{0}, R{0}, sz{0};
-    vector<S> sm{0};
-    vector<T> mn{T(0)};
-    vector<S> suf{0};
-    vector<T> g{T(0)};
+
+    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
+    explicit ImplicitTreap(const vector<T>& arr = {}) : ImplicitTreap(make_shared<Pool>()) { root = build(arr); }
+
+    // O(N) -- a treap over arr that shares other's nodes, so pieces can move between the two (pieces cut from a treap
+    // share its nodes already)
+    ImplicitTreap(const vector<T>& arr, const ImplicitTreap& other) : ImplicitTreap(other.pool) { root = build(arr); }
+
+    // an empty treap on pool p
+    explicit ImplicitTreap(shared_ptr<Pool> p)
+        : pool(p), val(p->val), pri(p->pri), L(p->L), R(p->R), sz(p->sz), sm(p->sm), mn(p->mn), suf(p->suf),
+          g(p->g) {}
 
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
         return g();
     }
-
-    // O(N) -- arr: the initial array (may be empty)
-    explicit ImplicitTreap(const vector<T>& arr = {}) { root = build(arr); }
 
     // O(1) -- the current length of the array
     int size() const { return sz[root]; }
@@ -71,11 +96,17 @@ struct ImplicitTreap {
     // O(logN * logU) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN * logU) expected -- remove a[l..r]
-    void eraseRange(int l, int r) {
+    // O(logN * logU) expected -- append all of other at the end; other is left empty
+    void concat(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
+
+    // O(logN * logU) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    ImplicitTreap cut(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
         root = merge(a, c);
+        ImplicitTreap piece(pool);
+        piece.root = b;
+        return piece;
     }
 
     // O(N) -- the whole current array, every pending tag applied on the way
@@ -157,10 +188,19 @@ struct ImplicitTreap {
         root = merge(merge(x, b), y);
     }
 
+    // O(logN * logU) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
+    // share this treap's nodes (a piece cut from it, or built with ImplicitTreap(arr, this one))
+    void paste(int i, ImplicitTreap& other) {
+        int a, c;
+        split(root, i, a, c);
+        root = merge(merge(a, other.root), c);
+        other.root = 0;
+    }
+
     // O(logN * logU) expected -- a[i] += v
     void pointAdd(int i, T v) {
         vector<int> path;
-        int t = find(i, &path);
+        int t = locate(i, &path);
         val[t] = val[t] + v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
@@ -169,7 +209,7 @@ struct ImplicitTreap {
     // O(logN * logU) expected -- a[i] = v
     void pointAssign(int i, T v) {
         vector<int> path;
-        int t = find(i, &path);
+        int t = locate(i, &path);
         val[t] = v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
@@ -178,7 +218,7 @@ struct ImplicitTreap {
     // O(logN * logU) expected -- a[i] = max(a[i], v)
     void pointChmax(int i, T v) {
         vector<int> path;
-        int t = find(i, &path);
+        int t = locate(i, &path);
         val[t] = max(val[t], v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
@@ -187,24 +227,14 @@ struct ImplicitTreap {
     // O(logN * logU) expected -- a[i] = min(a[i], v)
     void pointChmin(int i, T v) {
         vector<int> path;
-        int t = find(i, &path);
+        int t = locate(i, &path);
         val[t] = min(val[t], v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
     // O(logN) expected -- a[i]
-    T pointGet(int i) { return val[find(i)]; }
-
-    // O(logN * logU) expected -- remove a[i] and return it; everything after it shifts left by one
-    T pop(int i) {
-        T v = pointGet(i);
-        eraseRange(i, i);
-        return v;
-    }
-
-    // O(logN * logU) expected -- remove a[0] and return it
-    T popLeft() { return pop(0); }
+    T pointGet(int i) { return val[locate(i)]; }
 
     // O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|
     T rangeGcd(int l, int r) {
@@ -319,6 +349,22 @@ struct ImplicitTreap {
         return res;
     }
 
+    // O(logN * logU) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    pair<ImplicitTreap, ImplicitTreap> split(int k) {
+        ImplicitTreap left(pool), right(pool);
+        split(root, k, left.root, right.root);
+        root = 0;
+        return {left, right};
+    }
+
+    // O(logN * logU) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    tuple<ImplicitTreap, ImplicitTreap, ImplicitTreap> trisect(int l, int r) {
+        ImplicitTreap left(pool), mid(pool), right(pool);
+        cut(l, r, left.root, mid.root, right.root);
+        root = 0;
+        return {left, mid, right};
+    }
+
     // ---- internals ----
 
     int newNode(T v) {
@@ -395,7 +441,7 @@ struct ImplicitTreap {
         split(b, r - l + 1, b, c);
     }
 
-    int find(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
+    int locate(int i, vector<int>* path = nullptr) {  // the node holding a[i], every tag on the way pushed
         int t = root;
         while (true) {
             int ls = sz[L[t]];

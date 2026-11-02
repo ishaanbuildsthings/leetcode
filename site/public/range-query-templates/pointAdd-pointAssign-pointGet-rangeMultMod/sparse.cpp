@@ -65,7 +65,7 @@ struct SparseRangeMultModTree {
         if (r > m) update(kid(x, true, m + 1 == b), m + 1, b, l, r, v);
     }
 
-    // O(logU) -- a[i] = a[i] * v (mod p) for i in [l, r]
+    // O(logU) -- a[i] = a[i] * v (% MOD) for i in [l, r]
     void rangeMultMod(long long l, long long r, T v) {
         v = norm(v);
         if (l <= r) update(root, lo, hi, l, r, v);

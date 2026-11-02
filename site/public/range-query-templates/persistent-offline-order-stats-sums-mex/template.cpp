@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-offline-order-stats-sums-mex/template.cpp
-// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthLargest kthSmallest largestLtX largestLteX medianHigh medianLow pointGet rangeMax rangeMex rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToMedian sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointGet rangeMax rangeMex rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 // @data-structure-type: persistent
 // @values: offline
 // @complexities:
@@ -12,12 +12,9 @@
 //   countLteX: log(N)
 //   countOccurrences: log(N)
 //   getAll: N
-//   kthLargest: log(N)
 //   kthSmallest: log(N)
 //   largestLtX: log(N)
 //   largestLteX: log(N)
-//   medianHigh: log(N)
-//   medianLow: log(N)
 //   pointGet: 1
 //   rangeMax: log(N)
 //   rangeMex: log(N)
@@ -25,7 +22,6 @@
 //   rangeSum: log(N)
 //   smallestGtX: log(N)
 //   smallestGteX: log(N)
-//   sumAbsDiffToMedian: log(N)
 //   sumAbsDiffToX: log(N)
 //   sumGtX: log(N)
 //   sumGteX: log(N)
@@ -119,18 +115,6 @@ struct PersistentOfflineOrderStats {
         return kth(l, r, k);
     }
 
-    // O(logN) -- the k-th largest of a[l..r] (k = 1 is the max); needs 1 <= k <= r - l + 1, else throws out_of_range
-    T kthLargest(int l, int r, int k) const {
-        if (k < 1 || k > r - l + 1) throw out_of_range("kthLargest: needs 1 <= k <= r - l + 1");
-        return kth(l, r, r - l + 2 - k);
-    }
-
-    // O(logN) -- lower median of a[l..r]: its ceil(len / 2)-th smallest
-    T medianLow(int l, int r) const { return kth(l, r, (r - l + 2) / 2); }
-
-    // O(logN) -- upper median of a[l..r]: its (floor(len / 2) + 1)-th smallest
-    T medianHigh(int l, int r) const { return kth(l, r, (r - l + 1) / 2 + 1); }
-
     // O(logN) -- min of a[l..r]
     T rangeMin(int l, int r) const { return kth(l, r, 1); }
 
@@ -220,9 +204,6 @@ struct PersistentOfflineOrderStats {
         S s = sumBelow(l, r, rk);
         return S(x) * c - s + (sumFirst(l, r, r - l + 1) - s) - S(x) * (r - l + 1 - c);
     }
-
-    // O(logN) -- sum of |a[i] - medianLow(l, r)| over i in [l, r]: the min total +-1 moves to make a[l..r] all equal
-    S sumAbsDiffToMedian(int l, int r) const { return sumAbsDiffToX(l, r, kth(l, r, (r - l + 2) / 2)); }
 
     // O(logN) -- smallest integer >= 0 that is not in a[l..r]
     int rangeMex(int l, int r) const { return mexFrom(l, r, 0); }

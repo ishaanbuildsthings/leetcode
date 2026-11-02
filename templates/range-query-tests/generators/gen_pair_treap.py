@@ -10,32 +10,42 @@ which flips the parity of that tail when the shift is odd, so the two tails trad
 """
 import itertools
 import os
+import re
 import shutil
 
-from gen_treap import AGG_FIELD, AGG_OPS, wrap
+from gen_treap import AGG_FIELD, AGG_OPS, CPP_HASH_HELPERS, PY_HASH_CONST, wrap
 from gen_treap import no_push
+from gen_treap_more import slots_line
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 DTYPE = "pair-treap"
-SEQ = ["append", "appendLeft", "eraseRange", "getAll", "insertAt", "pop", "popLeft", "rangeTwinSpin"]
+SEQ = ["append", "appendLeft", "concat", "cut", "getAll", "insertAt", "paste", "rangeTwinSpin", "split", "trisect"]
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
+HASH_OPS = ["isPalindrome", "rangeHash", "rangeHashReversed", "rangesEqual"]
+HASH_DOC = {"rangeHash": "hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal",
+            "rangeHashReversed": "hash of a[l..r] read right to left (= rangeHash of the reversed range)",
+            "isPalindrome": "is a[l..r] a palindrome (its two hashes agree)",
+            "rangesEqual": "are a[l1..r1] and a[l2..r2] equal (same length and hash)"}
 
 
 def header(cm, ops, aggs):
     lines = [f"@operations: {' '.join(ops)}", f"@data-structure-type: {DTYPE}", "@complexities:"]
     lines += [f"  {op}: {'N' if op == 'getAll' else 'log(N) expected'}" for op in ops] + ["  build: N", "@memory:", "  layout: none"]
-    node = ["val", "sz", "L", "R", "pri"] + [AGG_FIELD[a] for a in aggs]
+    H = "rangeHash" in ops
+    node = ["val", "sz", "L", "R", "pri"] + [AGG_FIELD[a] for a in aggs] + (["fh", "bh", "pw"] + (["gs"] if "rangeAdd" in ops or
+                                                                                                "rangeAssign" in ops else []) if H else [])
     tags = (["rev"] if "rangeReverse" in ops else []) + (["add"] if "rangeAdd" in ops else []) + (
         ["asg", "hasAsg"] if "rangeAssign" in ops else [])
     lines += [f"  node: {' '.join(f'{f}[1*N]' for f in node)}", f"  tags: {' '.join(f'{f}[1*N]' for f in tags) or 'none'}", "  other: none",
               "  note: N = every value ever inserted (erased nodes are not reused); two treaps (even / odd positions) share "
-              "one node pool"]
+              "one node pool" + ("; each lane hashes in base B^2, and a range's two lanes weave back into base B" if H else "")]
     return "\n".join(f"{cm} {x}" for x in lines) + "\n"
 
 
 def describe(aggs, ops=()):
-    what = ", ".join([o for o in ("rangeAdd", "rangeAssign") if o in ops] + [AGG_OPS[a] for a in aggs])
+    what = ", ".join([o for o in ("rangeAdd", "rangeAssign") if o in ops] + [AGG_OPS[a] for a in aggs] +
+                     (["range hashes / isPalindrome / rangesEqual"] if "rangeHash" in ops else []))
     return ("Implicit treap pair: an array you can insert into / erase from anywhere, " + ("reverse ranges and " if "rangeReverse" in ops else "") +
             "swap adjacent pairs in a range (a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ...), each in O(logN) expected, plus point ops" +
             (f", {what}" if what else "") + ". The even positions a[0], a[2], ... are one treap "
@@ -48,16 +58,24 @@ def describe(aggs, ops=()):
 def python(ops, aggs):
     A = bool(aggs)
     RV, AD, AS = "rangeReverse" in ops, "rangeAdd" in ops, "rangeAssign" in ops  # each tag only with its ops
+    H = "rangeHash" in ops
+    G = H and (AD or AS)  # (an add / assign needs 1 + Q + ... + Q^(size - 1) per node)
+    A = A or H
     F = [AGG_FIELD[a] for a in aggs]
     slots = ["rE", "rO", "val", "pri", "L", "R", "sz"] + (["rev"] if RV else []) + F + (["add"] if AD else []) + (
-        ["asg", "hasAsg"] if AS else [])
-    p = [header("#", ops, aggs), "\n", wrap(describe(aggs, ops), "#"), "import random\n\n\nclass PairSwapTreap:\n",
-         f"    __slots__ = ({', '.join(repr(s) for s in slots)})\n\n"]
-    p.append('''    # O(N) -- arr: the initial array (may be empty)
-    def __init__(self, arr):
-        self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
-''' + ("        self.rev = [0]\n" if RV else "") + "".join(f"        self.{f} = [0]\n" for f in F) + ("        self.add = [0]\n" if AD else "") + (
-        "        self.asg, self.hasAsg = [0], [0]\n" if AS else "") + '''        self.rE = self._build(arr[0::2])  # a[0], a[2], ...
+        ["asg", "hasAsg"] if AS else []) + (["fh", "bh", "pw"] + (["gs"] if G else []) if H else [])
+    p = [header("#", ops, aggs), "\n", wrap(describe(aggs, ops), "#"), "import random\n\n\n" + (PY_HASH_CONST.rstrip("\n") +
+         "\n_HQ = _HB * _HB % _HP  # each lane hashes in base B^2 (its neighbours in the array are 2 apart)\n\n\n" if H else "") +
+         "class PairSwapTreap:\n",
+         slots_line(slots) + "\n"]
+    own = (["self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree"] + (["self.rev = [0]"] if RV else []) +
+           [f"self.{f} = [0]" for f in F] + (["self.add = [0]"] if AD else []) + (["self.asg, self.hasAsg = [0], [0]"] if AS else []) +
+           (["self.fh, self.bh, self.pw = [0], [0], [1]"] + (["self.gs = [0]"] if G else []) if H else []))
+    p.append('''    # O(N) -- arr: the initial array (may be empty); like: a PairSwapTreap whose nodes this one shares, so pieces can
+    # move between the two (pieces cut from it share them already). No reset between test cases
+    def __init__(self, arr=(), like=None):
+        if like is None:
+''' + "".join(f"            {x}\n" for x in own) + "        else:\n" + "".join(f"            self.{n} = like.{n}\n" for n in slots[2:]) + '''        self.rE = self._build(arr[0::2])  # a[0], a[2], ...
         self.rO = self._build(arr[1::2])  # a[1], a[3], ...
 
     # O(1) -- the current length of the array
@@ -69,7 +87,7 @@ def python(ops, aggs):
     def append(self, v):
         self.insertAt(self.size(), v)
 ''',
-        "insertAt": '''    # O(logN) expected -- insert v so it becomes a[i] (0 <= i <= size()); the tail after it moves one place, so its parity
+        "insertAt": '''    # O(logN) expected -- insert v so it becomes a[i] (i <= size()); the tail after it moves one place, so its parity
     # flips: E's tail and O's tail trade places
     def insertAt(self, i, v):
         a, _, c, d, _, f = self._parts(i, i - 1)
@@ -83,23 +101,47 @@ def python(ops, aggs):
     def appendLeft(self, v):
         self.insertAt(0, v)
 ''',
-        "pop": '''    # O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    def pop(self, i):
-        v = self.pointGet(i)
-        self.eraseRange(i, i)
-        return v
-''',
-        "popLeft": '''    # O(logN) expected -- remove a[0] and return it
-    def popLeft(self):
-        return self.pop(0)
-''',
-        "eraseRange": '''    # O(logN) expected -- remove a[l..r]; the tail moves r - l + 1 places, so with an odd count the tails trade places
-    def eraseRange(self, l, r):
-        a, _, c, d, _, f = self._parts(l, r)
+        "cut": '''    # O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0; drop it to erase);
+    # the tail moves r - l + 1 places, so with an odd count the two tails trade places
+    def cut(self, l, r):
+        a, b, c, d, e, f = self._parts(l, r)
         if (r - l + 1) % 2 == 0:
             self.rE, self.rO = self._merge(a, c), self._merge(d, f)
         else:
             self.rE, self.rO = self._merge(a, f), self._merge(d, c)
+        piece = PairSwapTreap(like=self)
+        piece.rE, piece.rO = (b, e) if l % 2 == 0 else (e, b)
+        return piece
+''',
+        "paste": '''    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
+    # treap's nodes (a piece cut from it, or built with like=). other's a[0] lands at parity i % 2, and the tail after i
+    # moves other's length on: with an odd length the tails trade places
+    def paste(self, i, other):
+        a, _, c, d, _, f = self._parts(i, i - 1)
+        x, y = (other.rE, other.rO) if i % 2 == 0 else (other.rO, other.rE)
+        if other.size() % 2:
+            c, f = f, c
+        merge = self._merge
+        self.rE, self.rO = merge(merge(a, x), c), merge(merge(d, y), f)
+        other.rE = other.rO = 0
+''',
+        "concat": '''    # O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
+    def concat(self, other):
+        self.paste(self.size(), other)
+''',
+        "split": '''    # O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
+    def split(self, k):
+        left = PairSwapTreap(like=self)
+        left.rE, left.rO = self.rE, self.rO
+        self.rE = self.rO = 0
+        right = left.cut(k, left.size() - 1) if k < left.size() else PairSwapTreap(like=self)
+        return left, right
+''',
+        "trisect": '''    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty
+    def trisect(self, l, r):
+        left, right = self.split(r + 1)
+        left, mid = left.split(l)
+        return left, mid, right
 ''',
         "rangeReverse": '''    # O(logN) expected -- reverse a[l..r] in place: a[p] goes to l + r - p, the same parity when l + r is even (each
     # slice reverses in place) and the other parity when it is odd (the slices, then equally long, cross over reversed)
@@ -111,7 +153,7 @@ def python(ops, aggs):
             b, e = e, b
         self._join(a, b, c, d, e, f)
 ''',
-        "rangeTwinSpin": '''    # O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (with an odd length a[r] stays):
+        "rangeTwinSpin": '''    # O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length: a[r] stays):
     # the pairs' even and odd halves are two slices of equal length, which trade places
     def rangeTwinSpin(self, l, r):
         k = (r - l + 1) // 2
@@ -166,8 +208,30 @@ def python(ops, aggs):
         self._join(a, b, c, d, e, f)
         return res
 '''
+    if H:
+        pub["rangeHash"] = f'''    # O(logN) expected -- {HASH_DOC["rangeHash"]}
+    def rangeHash(self, l, r):
+        return self._hashes(l, r)[0]
+'''
+        pub["rangeHashReversed"] = f'''    # O(logN) expected -- {HASH_DOC["rangeHashReversed"]}
+    def rangeHashReversed(self, l, r):
+        return self._hashes(l, r)[1]
+'''
+        pub["isPalindrome"] = f'''    # O(logN) expected -- {HASH_DOC["isPalindrome"]}
+    def isPalindrome(self, l, r):
+        f, b = self._hashes(l, r)
+        return f == b
+'''
+        pub["rangesEqual"] = f'''    # O(logN) expected -- {HASH_DOC["rangesEqual"]}
+    def rangesEqual(self, l1, r1, l2, r2):
+        return r1 - l1 == r2 - l2 and self._hashes(l1, r1)[0] == self._hashes(l2, r2)[0]
+'''
     p.append("\n" + "\n".join(pub[op] for op in ops if op in pub))
     pull = ["        l, r = self.L[x], self.R[x]", "        self.sz[x] = self.sz[l] + self.sz[r] + 1"]
+    if H:  # concatenation in base Q: H(X + Y) = H(X) * Q^|Y| + H(Y); the backward hash reads right to left
+        pull += ["        Q, P, pw, fh, bh = _HQ, _HP, self.pw, self.fh, self.bh", "        hv = (self.val[x] + _HO) % P",
+                 "        pw[x] = pw[l] * Q % P * pw[r] % P"] + (["        gs = self.gs", "        gs[x] = ((gs[l] * Q + 1) * pw[r] + gs[r]) % P"] if G else []) + [
+                 "        fh[x] = ((fh[l] * Q + hv) * pw[r] + fh[r]) % P", "        bh[x] = ((bh[r] * Q + hv) * pw[l] + bh[l]) % P"]
     if "sum" in aggs:
         pull.append("        self.sm[x] = self.sm[l] + self.val[x] + self.sm[r]")
     for agg, cmp in (("min", "<"), ("max", ">")):
@@ -179,6 +243,8 @@ def python(ops, aggs):
            "        self.L.append(0)", "        self.R.append(0)", "        self.sz.append(1)"] + (["        self.rev.append(0)"] if RV else [])
     new += [f"        self.{f}.append(v)" for f in F] + (["        self.add.append(0)"] if AD else []) + (
         ["        self.asg.append(0)", "        self.hasAsg.append(0)"] if AS else [])
+    new += (["        self.fh.append((v + _HO) % _HP)", "        self.bh.append((v + _HO) % _HP)", "        self.pw.append(_HQ)"] + (
+        ["        self.gs.append(1)"] if G else [])) if H else []
     p.append('''
     # ---- internals ----
 
@@ -194,7 +260,18 @@ def python(ops, aggs):
     def _join(self, a, b, c, d, e, f):
         merge = self._merge
         self.rE, self.rO = merge(merge(a, b), c), merge(merge(d, e), f)
-
+''' + ('''
+    # (forward, backward) hash of a[l..r]: x = the lane slice holding a[l], y = the other; in base B the array reads
+    # x0 y0 x1 y1 ..., so forward = H(x) + B H(y) (odd length) or B H(x) + H(y) (even), backward = Hrev(x) + B Hrev(y)
+    def _hashes(self, l, r):
+        a, b, c, d, e, f = self._parts(l, r)
+        x, y = (b, e) if l % 2 == 0 else (e, b)
+        P, B, fh, bh = _HP, _HB, self.fh, self.bh
+        fwd = (fh[x] + B * fh[y]) % P if (r - l) % 2 == 0 else (B * fh[x] + fh[y]) % P
+        bwd = (bh[x] + B * bh[y]) % P
+        self._join(a, b, c, d, e, f)
+        return fwd, bwd
+''' if H else "") + '''
     # (node holding a[i], the nodes above it), every tag on the way pushed
     def _find(self, i):
         L, sz, t, path, k = self.L, self.sz, self.rO if i % 2 else self.rE, [], i // 2
@@ -258,14 +335,17 @@ def python(ops, aggs):
         if x:
             self.L[x], self.R[x] = self.R[x], self.L[x]
             self.rev[x] ^= 1
-''' if RV else ""))
+''' + ("            self.fh[x], self.bh[x] = self.bh[x], self.fh[x]\n" if H else "") if RV else ""))
     if AD or AS:
         add = ["        if not x:", "            return", "        self.val[x] += v"] + (["        self.sm[x] += v * self.sz[x]"] if "sum" in aggs else []) + [
             f"        self.{AGG_FIELD[a]}[x] += v" for a in aggs if a != "sum"] + (
+            ["        h = v % _HP * self.gs[x] % _HP", "        self.fh[x] = (self.fh[x] + h) % _HP", "        self.bh[x] = (self.bh[x] + h) % _HP"] if H else []) + (
             ["        if self.hasAsg[x]:", "            self.asg[x] += v", "        else:", "            self.add[x] += v"] if AS else
             ["        self.add[x] += v"])
         asg = ["        if not x:", "            return", "        self.val[x] = v"] + (["        self.sm[x] = v * self.sz[x]"] if "sum" in aggs else []) + [
-            f"        self.{AGG_FIELD[a]}[x] = v" for a in aggs if a != "sum"] + ["        self.hasAsg[x] = 1", "        self.asg[x] = v"] + (["        self.add[x] = 0"] if AD else [])
+            f"        self.{AGG_FIELD[a]}[x] = v" for a in aggs if a != "sum"] + (
+            ["        self.fh[x] = self.bh[x] = (v + _HO) % _HP * self.gs[x] % _HP"] if H else []) + [
+            "        self.hasAsg[x] = 1", "        self.asg[x] = v"] + (["        self.add[x] = 0"] if AD else [])
         p.append(("\n    def _applyAdd(self, x, v):\n" + "\n".join(add) + "\n" if AD else "") +
                  ("\n    def _applyAssign(self, x, v):\n" + "\n".join(asg) + "\n" if AS else ""))
     push = ["        if self.rev[x]:", "            self._applyRev(self.L[x])", "            self._applyRev(self.R[x])", "            self.rev[x] = 0"] if RV else []
@@ -310,15 +390,68 @@ def python(ops, aggs):
 
 # ------------------------------------------------------------------------------------------------ C++
 
+def pool_members(fields, cls):
+    """member array declarations -> a node pool shared by a treap and the pieces cut from it (freed with the last of
+    them), and references to its arrays, so the code reads val[x]; sets pool_init (the base constructor's list)"""
+    import re
+    global pool_init
+    pool, refs, names = [], [], []
+    for ln in fields:
+        m = re.match(r"    vector<(.+?)> (.*?);(\s*//.*)?$", ln)
+        items = re.findall(r"(\w+)\{[^}]*\}", m.group(2))
+        pool.append(f"        vector<{m.group(1)}> {m.group(2)};{m.group(3) or ''}")
+        refs += [f"    vector<{m.group(1)}>& {n};" for n in items]
+        names += items
+    parts, lines = ["pool(p)"] + [f"{n}(p->{n})" for n in names], [""]
+    for x in parts:  # (wrapped at 120 columns)
+        if lines[-1] and len(lines[-1]) + len(x) + 2 > 104:
+            lines[-1] += ","
+            lines.append("")
+        lines[-1] += (", " if lines[-1] and not lines[-1].endswith(",") else "") + x
+    pool_init = "\n          ".join(lines)
+    return ("    struct Pool {  // the node arrays (node 0 = the empty tree), shared with every piece cut from this treap\n" +
+            "\n".join(pool) + "\n    };\n    shared_ptr<Pool> pool;  // (freed with the last treap using it)\n" + "\n".join(refs) + "\n")
+
+
+pool_init = ""
+
+
+def pool_block(lines):
+    """member declaration lines (vectors with or without an initial value, scalars, comments) -> (the Pool struct and
+    the reference members, the base constructor's init list)"""
+    pool, refs, names = [], [], []
+    for ln in lines:
+        m = re.match(r"    ((?:vector<.+?>)|long long|int|T) (.+?);(\s*//.*)?$", ln)
+        if not m:
+            pool.append("    " + ln)
+            continue
+        pool.append(f"        {m.group(1)} {m.group(2)};{m.group(3) or ''}")
+        items = [x.strip().split("{")[0] for x in m.group(2).split(",")]
+        refs += [f"    {m.group(1)}& {n};" for n in items]
+        names += items
+    parts, out = ["pool(p)"] + [f"{n}(p->{n})" for n in names], [""]
+    for x in parts:  # (wrapped at 120 columns)
+        if out[-1] and len(out[-1]) + len(x) + 2 > 104:
+            out[-1] += ","
+            out.append("")
+        out[-1] += (", " if out[-1] and not out[-1].endswith(",") else "") + x
+    return ("    struct Pool {  // the node arrays (node 0 = the empty tree), shared with every piece cut from this one\n" +
+            "\n".join(pool) + "\n    };\n    shared_ptr<Pool> pool;  // (freed with the last object using it)\n" + "\n".join(refs) + "\n",
+            "\n          ".join(out))
+
+
 def cpp(ops, aggs):
     A = bool(aggs)
     RV, AD, AS = "rangeReverse" in ops, "rangeAdd" in ops, "rangeAssign" in ops  # each tag only with its ops
+    H = "rangeHash" in ops
+    G = H and (AD or AS)
+    A = A or H
     mm = [AGG_FIELD[a] for a in aggs if a != "sum"]
     c = [header("//", ops, aggs), "\n", wrap(describe(aggs, ops), "//"), "// T: int, long long, ..." +
          ("; sums are kept in S (long long for small T)" if "sum" in aggs else "") + ".\ntemplate <typename T>\nstruct PairSwapTreap {\n"]
     if "sum" in aggs:
         c.append("    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;\n")
-    fields = ["    int rE = 0, rO = 0;  // the even positions a[0], a[2], ... and the odd ones", "    vector<T> val{T(0)};  // node 0 is the empty tree",
+    fields = ["    vector<T> val{T(0)};  // node 0 is the empty tree",
               "    vector<unsigned long long> pri{0};", "    vector<int> L{0}, R{0}, sz{0};"] + (["    vector<char> rev{0};"] if RV else [])
     if "sum" in aggs:
         fields.append("    vector<S> sm{S(0)};")
@@ -328,19 +461,30 @@ def cpp(ops, aggs):
         fields.append("    vector<T> add{T(0)};")
     if AS:
         fields += ["    vector<T> asg{T(0)};", "    vector<char> hasAsg{0};"]
-    c.append("\n".join(fields) + '''
+    if H:
+        c.append("    using U64 = unsigned long long;\n")
+        fields += ["    vector<U64> fh{0}, bh{0}, pw{1}" + (", gs{0}" if G else "") + ";  // each lane hashes in base Q = B^2"]
+    c.append(pool_members(fields, "PairSwapTreap") + "    int rE = 0, rO = 0;  // the even positions a[0], a[2], ... and the odd ones\n" + '''
 
     static unsigned long long rnd() {
         static mt19937_64 g(chrono::steady_clock::now().time_since_epoch().count());
         return g();
     }
+''' + (CPP_HASH_HELPERS.replace(
+        "    static unsigned long long hadd(unsigned long long a, unsigned long long b) { return a + b >= HP ? a + b - HP : a + b; }",
+        "    static unsigned long long hadd(unsigned long long a, unsigned long long b) {\n        return a + b >= HP ? a + b - HP : a + b;\n    }") +
+        "    static U64 HQ() {  // a lane's base: B^2 (its neighbours in the array are 2 apart)\n"
+        "        static U64 q = hmul(HB(), HB());\n        return q;\n    }\n" if H else "") + '''
+    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
+    explicit PairSwapTreap(const vector<T>& arr = {}) : PairSwapTreap(make_shared<Pool>()) { buildLanes(arr); }
 
-    // O(N) -- arr: the initial array (may be empty)
-    explicit PairSwapTreap(const vector<T>& arr) {
-        vector<T> ev, od;
-        for (size_t i = 0; i < arr.size(); i++) (i % 2 ? od : ev).push_back(arr[i]);
-        rE = build(ev), rO = build(od);
-    }
+    // O(N) -- a PairSwapTreap over arr that shares other's nodes, so pieces can move between the two (pieces cut from
+    // it share them already)
+    PairSwapTreap(const vector<T>& arr, const PairSwapTreap& other) : PairSwapTreap(other.pool) { buildLanes(arr); }
+
+    // an empty PairSwapTreap on pool p
+    explicit PairSwapTreap(shared_ptr<Pool> p)
+        : ''' + pool_init + ''' {}
 
     // O(1) -- the current length of the array
     int size() const { return sz[rE] + sz[rO]; }
@@ -349,7 +493,7 @@ def cpp(ops, aggs):
         "append": '''    // O(logN) expected -- append v to the end
     void append(T v) { insertAt(size(), v); }
 ''',
-        "insertAt": '''    // O(logN) expected -- insert v so it becomes a[i] (0 <= i <= size()); the tail after it moves one place, so its parity
+        "insertAt": '''    // O(logN) expected -- insert v so it becomes a[i] (i <= size()); the tail after it moves one place, so its parity
     // flips: E's tail and O's tail trade places
     void insertAt(int i, T v) {
         int a, b, c, d, e, f, x = newNode(v);
@@ -361,22 +505,46 @@ def cpp(ops, aggs):
         "appendLeft": '''    // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 ''',
-        "pop": '''    // O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    T pop(int i) {
-        T v = pointGet(i);
-        eraseRange(i, i);
-        return v;
-    }
-''',
-        "popLeft": '''    // O(logN) expected -- remove a[0] and return it
-    T popLeft() { return pop(0); }
-''',
-        "eraseRange": '''    // O(logN) expected -- remove a[l..r]; the tail moves r - l + 1 places, so with an odd count the tails trade places
-    void eraseRange(int l, int r) {
+        "cut": '''    // O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0; drop it to
+    // erase); the tail moves r - l + 1 places, so with an odd count the two tails trade places
+    PairSwapTreap cut(int l, int r) {
         int a, b, c, d, e, f;
         parts(l, r, a, b, c, d, e, f);
         if ((r - l + 1) % 2 == 0) rE = merge(a, c), rO = merge(d, f);
         else rE = merge(a, f), rO = merge(d, c);
+        PairSwapTreap piece(pool);
+        piece.rE = l % 2 == 0 ? b : e, piece.rO = l % 2 == 0 ? e : b;
+        return piece;
+    }
+''',
+        "paste": '''    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
+    // treap's nodes (a piece cut from it, or built with PairSwapTreap(arr, this one)). other's a[0] lands at parity
+    // i % 2, and the tail after i moves other's length on: with an odd length the tails trade places
+    void paste(int i, PairSwapTreap& other) {
+        int a, b, c, d, e, f;
+        parts(i, i - 1, a, b, c, d, e, f);
+        int x = i % 2 == 0 ? other.rE : other.rO, y = i % 2 == 0 ? other.rO : other.rE;
+        if (other.size() % 2) swap(c, f);
+        rE = merge(merge(a, x), c), rO = merge(merge(d, y), f);
+        other.rE = other.rO = 0;
+    }
+''',
+        "concat": '''    // O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
+    void concat(PairSwapTreap& other) { paste(size(), other); }
+''',
+        "split": '''    // O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
+    pair<PairSwapTreap, PairSwapTreap> split(int k) {
+        PairSwapTreap left(pool);
+        left.rE = rE, left.rO = rO, rE = rO = 0;
+        PairSwapTreap right = k < left.size() ? left.cut(k, left.size() - 1) : PairSwapTreap(pool);
+        return {left, right};
+    }
+''',
+        "trisect": '''    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty
+    tuple<PairSwapTreap, PairSwapTreap, PairSwapTreap> trisect(int l, int r) {
+        auto [left, right] = split(r + 1);
+        auto [first, mid] = left.split(l);
+        return {first, mid, right};
     }
 ''',
         "rangeReverse": '''    // O(logN) expected -- reverse a[l..r] in place: a[p] goes to l + r - p, the same parity when l + r is even (each
@@ -389,7 +557,7 @@ def cpp(ops, aggs):
         join(a, b, c, d, e, f);
     }
 ''',
-        "rangeTwinSpin": '''    // O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (with an odd length a[r] stays):
+        "rangeTwinSpin": '''    // O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length: a[r] stays):
     // the pairs' even and odd halves are two slices of equal length, which trade places
     void rangeTwinSpin(int l, int r) {
         int k = (r - l + 1) / 2, a, b, c, d, e, f;
@@ -447,19 +615,32 @@ def cpp(ops, aggs):
         return res;
     }}
 '''
+    if H:
+        pub["rangeHash"] = f"    // O(logN) expected -- {HASH_DOC['rangeHash']}\n    U64 rangeHash(int l, int r) {{ return hashes(l, r).first; }}\n"
+        pub["rangeHashReversed"] = (f"    // O(logN) expected -- {HASH_DOC['rangeHashReversed']}\n"
+                                    "    U64 rangeHashReversed(int l, int r) { return hashes(l, r).second; }\n")
+        pub["isPalindrome"] = (f"    // O(logN) expected -- {HASH_DOC['isPalindrome']}\n"
+                               "    bool isPalindrome(int l, int r) {\n        auto [f, b] = hashes(l, r);\n        return f == b;\n    }\n")
+        pub["rangesEqual"] = (f"    // O(logN) expected -- {HASH_DOC['rangesEqual']}\n    bool rangesEqual(int l1, int r1, int l2, int r2) {{\n"
+                              "        return r1 - l1 == r2 - l2 && hashes(l1, r1).first == hashes(l2, r2).first;\n    }\n")
     c.append("\n" + "\n".join(pub[op] for op in ops if op in pub))
     pull = ["        int l = L[x], r = R[x];", "        sz[x] = sz[l] + sz[r] + 1;"] + (["        sm[x] = sm[l] + S(val[x]) + sm[r];"] if "sum" in aggs else [])
+    if H:  # concatenation in base Q: H(X + Y) = H(X) * Q^|Y| + H(Y); the backward hash reads right to left
+        pull += ["        U64 Q = HQ(), hv = hval(val[x]);", "        pw[x] = hmul(hmul(pw[l], Q), pw[r]);"] + (
+            ["        gs[x] = hadd(hmul(hadd(hmul(gs[l], Q), 1), pw[r]), gs[r]);"] if G else []) + [
+            "        fh[x] = hadd(hmul(hadd(hmul(fh[l], Q), hv), pw[r]), fh[r]);", "        bh[x] = hadd(hmul(hadd(hmul(bh[r], Q), hv), pw[l]), bh[l]);"]
     for agg, fn in (("min", "min"), ("max", "max")):
         if agg in aggs:
             f = AGG_FIELD[agg]
             pull += [f"        {f}[x] = val[x];", f"        if (l) {f}[x] = {fn}({f}[x], {f}[l]);", f"        if (r) {f}[x] = {fn}({f}[x], {f}[r]);"]
     new = ["        val.push_back(v), pri.push_back(rnd()), L.push_back(0), R.push_back(0), sz.push_back(1)" + (", rev.push_back(0);" if RV else ";")] + (
         ["        sm.push_back(S(v));"] if "sum" in aggs else []) + [f"        {f}.push_back(v);" for f in mm] + (
-        ["        add.push_back(T(0));"] if AD else []) + (["        asg.push_back(T(0)), hasAsg.push_back(0);"] if AS else [])
+        ["        add.push_back(T(0));"] if AD else []) + (["        asg.push_back(T(0)), hasAsg.push_back(0);"] if AS else []) + (
+        ["        fh.push_back(hval(v)), bh.push_back(hval(v)), pw.push_back(HQ())" + (", gs.push_back(1);" if G else ";")] if H else [])
     c.append('''
     // ---- internals ----
 
-    // E before, E in [l, r], E after, O before, O in [l, r], O after; even / odd positions below x: (x + 1) / 2 and x / 2
+    // E before, E in [l, r], E after, O before, O in [l, r], O after; evens / odds below x: (x + 1) / 2, x / 2
     void parts(int l, int r, int& a, int& b, int& c, int& d, int& e, int& f) {
         int e1 = (l + 1) / 2, e2 = (r + 2) / 2, o1 = l / 2, o2 = (r + 1) / 2;
         split(rE, e1, a, b), split(b, e2 - e1, b, c);
@@ -468,6 +649,24 @@ def cpp(ops, aggs):
 
     void join(int a, int b, int c, int d, int e, int f) { rE = merge(merge(a, b), c), rO = merge(merge(d, e), f); }
 
+    void buildLanes(const vector<T>& arr) {  // a[0], a[2], ... into E and a[1], a[3], ... into O
+        vector<T> ev, od;
+        for (size_t i = 0; i < arr.size(); i++) (i % 2 ? od : ev).push_back(arr[i]);
+        rE = build(ev), rO = build(od);
+    }
+''' + ('''
+    // (forward, backward) hash of a[l..r]: x = the lane slice holding a[l], y = the other; in base B the array reads
+    // x0 y0 x1 y1 ..., so forward = H(x) + B H(y) (odd length) or B H(x) + H(y) (even), backward = Hrev(x) + B Hrev(y)
+    pair<U64, U64> hashes(int l, int r) {
+        int a, b, c, d, e, f;
+        parts(l, r, a, b, c, d, e, f);
+        int x = l % 2 == 0 ? b : e, y = l % 2 == 0 ? e : b;
+        U64 fwd = (r - l) % 2 == 0 ? hadd(fh[x], hmul(HB(), fh[y])) : hadd(hmul(HB(), fh[x]), fh[y]);
+        U64 bwd = hadd(bh[x], hmul(HB(), bh[y]));
+        join(a, b, c, d, e, f);
+        return {fwd, bwd};
+    }
+''' if H else "") + '''
     // the node holding a[i], every tag on the way pushed; path (if given) gets the nodes above it
     int find(int i, vector<int>* path = nullptr) {
         int t = i % 2 ? rO : rE, k = i / 2;
@@ -525,14 +724,16 @@ def cpp(ops, aggs):
     }
 ''' + ('''
     void applyRev(int x) {
-        if (x) swap(L[x], R[x]), rev[x] ^= 1;
+        if (x) swap(L[x], R[x]), rev[x] ^= 1''' + (", swap(fh[x], bh[x])" if H else "") + ''';
     }
 ''' if RV else ""))
     if AD or AS:
         add = ["        if (!x) return;", "        val[x] += v;"] + (["        sm[x] += S(v) * sz[x];"] if "sum" in aggs else []) + [
-            f"        {f}[x] += v;" for f in mm] + ["        (hasAsg[x] ? asg[x] : add[x]) += v;" if AS else "        add[x] += v;"]
+            f"        {f}[x] += v;" for f in mm] + (["        U64 h = hmul(hraw(v), gs[x]);", "        fh[x] = hadd(fh[x], h), bh[x] = hadd(bh[x], h);"] if H else []) + [
+            "        (hasAsg[x] ? asg[x] : add[x]) += v;" if AS else "        add[x] += v;"]
         asg = ["        if (!x) return;", "        val[x] = v;"] + (["        sm[x] = S(v) * sz[x];"] if "sum" in aggs else []) + [
-            f"        {f}[x] = v;" for f in mm] + ["        hasAsg[x] = 1, asg[x] = v" + (", add[x] = 0;" if AD else ";")]
+            f"        {f}[x] = v;" for f in mm] + (["        fh[x] = bh[x] = hmul(hval(v), gs[x]);"] if H else []) + [
+            "        hasAsg[x] = 1, asg[x] = v" + (", add[x] = 0;" if AD else ";")]
         c.append(("\n    void applyAdd(int x, T v) {\n" + "\n".join(add) + "\n    }\n" if AD else "") +
                  ("\n    void applyAssign(int x, T v) {\n" + "\n".join(asg) + "\n    }\n" if AS else ""))
     push = ["        if (rev[x]) applyRev(L[x]), applyRev(R[x]), rev[x] = 0;"] if RV else []
@@ -581,12 +782,12 @@ def main():
     count = 0
     for k in range(4):
         # aggregates, range add / assign (their tags) and reverse (its tag) each only in the variants that ask for them
-        for aggs, upd, rev in itertools.product(itertools.combinations(("sum", "min", "max"), k), UPDATES, (False, True)):
+        for aggs, upd, rev, H in itertools.product(itertools.combinations(("sum", "min", "max"), k), UPDATES, (False, True), (False, True)):
             count += 1
-            ops = sorted(SEQ + POINT + [AGG_OPS[a] for a in aggs] + UPDATES[upd] + (["rangeReverse"] if rev else []))
+            ops = sorted(SEQ + POINT + [AGG_OPS[a] for a in aggs] + UPDATES[upd] + (["rangeReverse"] if rev else []) + (HASH_OPS if H else []))
             name = folder_name(ops)
-            folder = os.path.join(DIR, name if len(name) <= 180 else DTYPE + "".join("-" + a for a in aggs) + (f"-{upd}" if upd else "") +
-                                  ("-rev" if rev else ""))
+            folder = os.path.join(DIR, name if len(name) <= 180 else DTYPE + "".join("-" + a for a in aggs) + ("-hash" if H else "") +
+                                  (f"-{upd}" if upd else "") + ("-rev" if rev else ""))
             os.makedirs(folder, exist_ok=True)
             write_template(os.path.join(folder, "template.py"), python(ops, aggs))
             write_template(os.path.join(folder, "template.cpp"), cpp(ops, aggs))

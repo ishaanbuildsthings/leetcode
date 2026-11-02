@@ -1,20 +1,20 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-affine-full-rev/template.py
-# @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt moveRange pointAdd pointAssign pointGet pop popLeft rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeReverse rangeRotateLeft rangeRotateRight rangeSumMod
+# @operations: append appendLeft concat cut getAll insertAt insertCopiesAt moveRange paste pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeReverse rangeRotateLeft rangeRotateRight rangeSumMod split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected
-#   eraseRange: log(N) expected
+#   concat: log(N) expected
+#   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
 #   insertCopiesAt: log(N) expected
 #   moveRange: log(N) expected
+#   paste: log(N) expected
 #   pointAdd: log(N) expected
 #   pointAssign: log(N) expected
 #   pointGet: log(N) expected
-#   pop: log(N) expected
-#   popLeft: log(N) expected
 #   rangeAddMod: log(N) expected
 #   rangeAffineMod: log(N) expected
 #   rangeAssignMod: log(N) expected
@@ -23,6 +23,8 @@
 #   rangeRotateLeft: log(N) expected
 #   rangeRotateRight: log(N) expected
 #   rangeSumMod: log(N) expected
+#   split: log(N) expected
+#   trisect: log(N) expected
 #   build: N
 # @memory:
 #   layout: none
@@ -32,7 +34,7 @@
 #   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused)
 
 # Implicit treap: an array you can insert into / erase from anywhere, reverse, rotate and move ranges, each in O(logN)
-# expected; values live mod p; each node keeps its subtree's sum, and every update is x -> x * m + c (mod p). All
+# expected; values live % MOD; each node keeps its subtree's sum, and every update is x -> x * m + c (% MOD). All
 # indices 0-based, ranges inclusive [l, r], an index always the position in the CURRENT array. Lazy tags mean "already
 # applied to this node, not yet to its children".
 import random
@@ -41,14 +43,23 @@ import random
 class ImplicitTreap:
     __slots__ = ('root', 'val', 'pri', 'L', 'R', 'sz', 'sm', 'rev', 'tm', 'tc', 'mod')
 
-    # O(N) -- arr: the initial array (may be empty); p: the modulus
-    def __init__(self, arr, mod):
-        self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
-        self.mod = mod
-        self.sm = [0]
-        self.rev = [0]
-        self.tm = [1]
-        self.tc = [0]
+    # O(N) -- arr: the initial array (may be empty); mod: the modulus p
+    # (like: an ImplicitTreap whose nodes this one shares, so pieces can move between the two; no reset needed)
+    def __init__(self, arr=(), mod=None, like=None):
+        if like is None:
+            self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
+            self.mod = mod
+            self.sm = [0]
+            self.rev = [0]
+            self.tm = [1]
+            self.tc = [0]
+        else:
+            self.val, self.pri, self.L, self.R, self.sz = like.val, like.pri, like.L, like.R, like.sz
+            self.sm = like.sm
+            self.rev = like.rev
+            self.tm = like.tm
+            self.tc = like.tc
+            self.mod = like.mod
         self.root = self._build([v % mod for v in arr])
 
     # O(1) -- the current length of the array
@@ -63,10 +74,18 @@ class ImplicitTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- remove a[l..r]
-    def eraseRange(self, l, r):
-        a, _, c = self._cut(l, r)
+    # O(logN) expected -- append all of other at the end; other is left empty
+    def concat(self, other):
+        self.root = self._merge(self.root, other.root)
+        other.root = 0
+
+    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
+    def cut(self, l, r):
+        a, b, c = self._cut(l, r)
         self.root = self._merge(a, c)
+        piece = ImplicitTreap(like=self)
+        piece.root = b
+        return piece
 
     # O(N) -- the whole current array, every pending tag applied on the way
     def getAll(self):
@@ -99,6 +118,13 @@ class ImplicitTreap:
         x, y = self._split(self._merge(a, c), i)
         self.root = self._merge(self._merge(x, b), y)
 
+    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
+    # share this treap's nodes (a piece cut from it, or built with like=)
+    def paste(self, i, other):
+        a, c = self._split(self.root, i)
+        self.root = self._merge(self._merge(a, other.root), c)
+        other.root = 0
+
     # O(logN) expected -- a[i] += v
     def pointAdd(self, i, v):
         t, path = self._find(i)
@@ -119,35 +145,25 @@ class ImplicitTreap:
     def pointGet(self, i):
         return self.val[self._find(i)[0]]
 
-    # O(logN) expected -- remove a[i] and return it; everything after it shifts left by one
-    def pop(self, i):
-        v = self.pointGet(i)
-        self.eraseRange(i, i)
-        return v
-
-    # O(logN) expected -- remove a[0] and return it
-    def popLeft(self):
-        return self.pop(0)
-
-    # O(logN) expected -- a[i] = (a[i] + v) mod p for i in [l, r]
+    # O(logN) expected -- a[i] = (a[i] + v) % MOD for i in [l, r]
     def rangeAddMod(self, l, r, v):
         a, b, c = self._cut(l, r)
         self._applyAff(b, 1, v % self.mod)
         self._join(a, b, c)
 
-    # O(logN) expected -- a[i] = (a[i] * mult + add) mod p for i in [l, r]
+    # O(logN) expected -- a[i] = (a[i] * mult + add) % MOD for i in [l, r]
     def rangeAffineMod(self, l, r, mult, add):
         a, b, c = self._cut(l, r)
         self._applyAff(b, mult % self.mod, add % self.mod)
         self._join(a, b, c)
 
-    # O(logN) expected -- a[i] = v mod p for i in [l, r]
+    # O(logN) expected -- a[i] = v % MOD for i in [l, r]
     def rangeAssignMod(self, l, r, v):
         a, b, c = self._cut(l, r)
         self._applyAff(b, 0, v % self.mod)
         self._join(a, b, c)
 
-    # O(logN) expected -- a[i] = a[i] * v mod p for i in [l, r]
+    # O(logN) expected -- a[i] = a[i] * v % MOD for i in [l, r]
     def rangeMultMod(self, l, r, v):
         a, b, c = self._cut(l, r)
         self._applyAff(b, v % self.mod, 0)
@@ -172,12 +188,26 @@ class ImplicitTreap:
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 
-    # O(logN) expected -- (a[l] + ... + a[r]) mod p
+    # O(logN) expected -- (a[l] + ... + a[r]) % MOD
     def rangeSumMod(self, l, r):
         a, b, c = self._cut(l, r)
         res = self.sm[b]
         self._join(a, b, c)
         return res
+
+    # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    def split(self, k):
+        left, right = ImplicitTreap(like=self), ImplicitTreap(like=self)
+        left.root, right.root = self._split(self.root, k)
+        self.root = 0
+        return left, right
+
+    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    def trisect(self, l, r):
+        left, mid, right = ImplicitTreap(like=self), ImplicitTreap(like=self), ImplicitTreap(like=self)
+        left.root, mid.root, right.root = self._cut(l, r)
+        self.root = 0
+        return left, mid, right
 
     # ---- internals ----
 
@@ -229,7 +259,7 @@ class ImplicitTreap:
             self.L[x], self.R[x] = self.R[x], self.L[x]
             self.rev[x] ^= 1
 
-    def _applyAff(self, x, m, c):  # every value v of x's subtree becomes v * m + c (mod p)
+    def _applyAff(self, x, m, c):  # every value v of x's subtree becomes v * m + c (% MOD)
         if x:
             p = self.mod
             self.val[x] = (self.val[x] * m + c) % p

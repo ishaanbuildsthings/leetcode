@@ -18,7 +18,7 @@
 
 // Range add + range sum: adding v on [l, r] changes the prefix sum P(x) = a[lo] + ... + a[x] by
 //   v * (x - l + 1) for x in [l, r], and the whole v * (r - l + 1) past r,
-// so P(x) = A(x) + B(x) * x with A, B prefix sums of two arrays of point changes. All mod p. Over any index range [lo,
+// so P(x) = A(x) + B(x) * x with A, B prefix sums of two arrays of point changes. All % MOD. Over any index range [lo,
 // hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i - lo
 // in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...
 template <typename T>
@@ -89,7 +89,7 @@ struct SparseRangeAddSumBITMod {
 
     T norm(W x) const { return T((x % mod + mod) % mod); }
 
-    // O(logU) -- a[i] += v (mod p) for i in [l, r]
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(long long l, long long r, T v) {
         if (l > r) return;
         l -= lo, r -= lo;
@@ -98,13 +98,13 @@ struct SparseRangeAddSumBITMod {
         if (r + 1 < n) add(r + 1, F{norm(W(c) * norm(r - l + 1) - a), norm(-W(c))});
     }
 
-    // O(logU) -- (a[lo] + ... + a[lo + x]) mod p (0 for x = -1)
+    // O(logU) -- (a[lo] + ... + a[lo + x]) % MOD (0 for x = -1)
     T sum(long long x) const {
         F s = prefix(x);
         return norm(s[0] + W(s[1]) * norm(x));
     }
 
-    // O(logU) -- (a[l] + ... + a[r]) mod p
+    // O(logU) -- (a[l] + ... + a[r]) % MOD
     T rangeSumMod(long long l, long long r) const { return l <= r ? norm(W(sum(r - lo)) - sum(l - 1 - lo)) : T(0); }
 
     // O(logU) -- a[i], in [0, mod)

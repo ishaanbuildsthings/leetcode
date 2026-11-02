@@ -1,22 +1,22 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-xor-and-seq/template.py
-# @operations: append appendLeft eraseRange getAll insertAt insertCopiesAt moveRange pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery
+# @operations: append appendLeft concat cut getAll insertAt insertCopiesAt moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery split trisect
 # @data-structure-type: sorted-runs
 # @complexities:
 #   append: log(N)+log(U) amortized
 #   appendLeft: log(N)+log(U) amortized
-#   eraseRange: log(N)+log(U) amortized
+#   concat: log(N)+log(U) amortized
+#   cut: log(N)+log(U) amortized
 #   getAll: N*log(U)
 #   insertAt: log(N)+log(U) amortized
 #   insertCopiesAt: log(N)+log(U) amortized
 #   moveRange: log(N)+log(U) amortized
+#   paste: log(N)+log(U) amortized
 #   pointAdd: log(N)+log(U) amortized
 #   pointAssign: log(N)+log(U) amortized
 #   pointChmax: log(N)+log(U) amortized
 #   pointChmin: log(N)+log(U) amortized
 #   pointGet: log(N)+log(U) expected
-#   pop: log(N)+log(U) amortized
-#   popLeft: log(N)+log(U) amortized
 #   rangeAndQuery: log(N)+log(U) amortized
 #   rangeAssign: log(N)+log(U) amortized
 #   rangeReverse: log(N)+log(U) amortized
@@ -25,6 +25,8 @@
 #   rangeSortAsc: log(N)+log(U) amortized
 #   rangeSortDesc: log(N)+log(U) amortized
 #   rangeXorQuery: log(N)+log(U) amortized
+#   split: log(N)+log(U) amortized
+#   trisect: log(N)+log(U) amortized
 #   build: N*log(U)
 # @memory:
 #   layout: none
@@ -48,27 +50,49 @@ import random
 
 class SortedRunsXorAndSeq:
     # O(N log U) -- arr: the initial array (may be empty); every value a[i] ever holds must lie in [valLo, valHi]
-    # (U = valHi - valLo + 1)
-    def __init__(self, arr, valLo, valHi):
+    # (U = valHi - valLo + 1); like: one whose nodes this one shares (then valLo / valHi are its), so pieces can
+    # move between the two (pieces cut from it share them already). No reset between test cases
+    def __init__(self, arr=(), valLo=0, valHi=0, like=None):
         n = self.n = len(arr)
-        self.vlo, self.vhi = valLo, valHi
-        self.Lc, self.Rc, self.cnt = [0], [0], [0]  # value node 0 = the empty tree
-        self.xr = [0]
-        self.av = [-1]
-        self.free = []  # value nodes freed by merges, reused first
-        # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-        # subtree length TS, pending reverse TF, subtree xor / and
-        self.TL = [0]
-        self.TR = [0]
-        self.TP = [0]
-        self.TV = [0]
-        self.TN = [0]
-        self.TD = [False]
-        self.TS = [0]
-        self.TF = [False]
-        self.Sxr = [0]
-        self.Sav = [-1]
-        self.tfree = []
+        if like is None:
+            self.vlo, self.vhi = valLo, valHi
+            self.Lc, self.Rc, self.cnt = [0], [0], [0]  # value node 0 = the empty tree
+            self.xr = [0]
+            self.av = [-1]
+            self.free = []  # value nodes freed by merges, reused first
+            # treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
+            # subtree length TS, pending reverse TF, subtree xor / and
+            self.TL = [0]
+            self.TR = [0]
+            self.TP = [0]
+            self.TV = [0]
+            self.TN = [0]
+            self.TD = [False]
+            self.TS = [0]
+            self.TF = [False]
+            self.Sxr = [0]
+            self.Sav = [-1]
+            self.tfree = []
+        else:
+            self.vlo = like.vlo
+            self.vhi = like.vhi
+            self.Lc = like.Lc
+            self.Rc = like.Rc
+            self.cnt = like.cnt
+            self.xr = like.xr
+            self.av = like.av
+            self.free = like.free
+            self.TL = like.TL
+            self.TR = like.TR
+            self.TP = like.TP
+            self.TV = like.TV
+            self.TN = like.TN
+            self.TD = like.TD
+            self.TS = like.TS
+            self.TF = like.TF
+            self.Sxr = like.Sxr
+            self.Sav = like.Sav
+            self.tfree = like.tfree
         stack = []  # O(N) build: the treap's right spine
         for v in arr:
             x, last = self._run(self._leaf(v), 1, False), 0
@@ -160,22 +184,42 @@ class SortedRunsXorAndSeq:
     def appendLeft(self, v):
         self.insertCopiesAt(0, v, 1)
 
-    # O(log N + log U) amortized -- remove a[i] and return it
-    def pop(self, i):
-        v = self.pointGet(i)
-        self.eraseRange(i, i)
-        return v
-
-    # O(log N + log U) amortized -- remove a[0] and return it
-    def popLeft(self):
-        return self.pop(0)
-
-    # O(log N + log U) amortized -- remove a[l..r]
-    def eraseRange(self, l, r):
+    # O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0; drop it to erase)
+    def cut(self, l, r):
         A, B, C = self._extract(l, r)
-        self._drop(B)
-        self.n -= r - l + 1
         self.top = self._tmerge(A, C)
+        self.n -= r - l + 1
+        piece = SortedRunsXorAndSeq(like=self)
+        piece.top, piece.n = B, r - l + 1
+        return piece
+
+    # O(log N + log U) amortized -- insert other at a[i] (0 <= i <= size()), leaving it empty; it must share
+    # this one's nodes (a piece cut from it, or built with like=)
+    def paste(self, i, other):
+        self.n += other.n
+        A, C = self._tsplit(self.top, i)
+        self.top = self._tmerge(self._tmerge(A, other.top), C)
+        other.top, other.n = 0, 0
+
+    # O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
+    def concat(self, other):
+        self.paste(self.n, other)
+
+    # O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
+    def split(self, k):
+        left, right = [SortedRunsXorAndSeq(like=self) for _ in range(2)]
+        left.top, right.top = self._tsplit(self.top, k)
+        left.n, right.n = k, self.n - k
+        self.top, self.n = 0, 0
+        return left, right
+
+    # O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
+    def trisect(self, l, r):
+        left, mid, right = [SortedRunsXorAndSeq(like=self) for _ in range(3)]
+        left.top, mid.top, right.top = self._extract(l, r)
+        left.n, mid.n, right.n = l, r - l + 1, self.n - r - 1
+        self.top, self.n = 0, 0
+        return left, mid, right
 
     # O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first; any k, negative = right)
     def rangeRotateLeft(self, l, r, k):

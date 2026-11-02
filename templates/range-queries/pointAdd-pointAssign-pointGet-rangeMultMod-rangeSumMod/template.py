@@ -15,9 +15,9 @@
 #   node: tot[2*N]
 #   tags: mul[1*N]
 #   other: none
-#   note: tags live on the N internal nodes only; each is a pending multiplier (mod p)
+#   note: tags live on the N internal nodes only; each is a pending multiplier (% MOD)
 
-# Range multiply + range sum, all mod p, plus point ops. All indices 0-based, ranges inclusive [l, r].
+# Range multiply + range sum, all % MOD, plus point ops. All indices 0-based, ranges inclusive [l, r].
 # One tag per internal node: a pending multiplier ("applied here, not yet pushed"). Multipliers compose by
 # multiplying, and v -> v * m turns a node's sum into sum * m. Leaner than the affine tree: one tag instead of two.
 
@@ -80,7 +80,7 @@ class MultSumTree:
         self._rebuild(l0)
         self._rebuild(r0)
 
-    # O(logN) -- (a[l] + ... + a[r]) mod p
+    # O(logN) -- (a[l] + ... + a[r]) % MOD
     def rangeSumMod(self, l, r):
         if l > r:
             return 0
@@ -120,17 +120,17 @@ class MultSumTree:
                     self.mul[x] = 1
         return self.tot[n:]
 
-    # O(logN) -- a[i] *= m (mod p) for i in [l, r]
+    # O(logN) -- a[i] *= m (% MOD) for i in [l, r]
     def rangeMultMod(self, l, r, m):
         self._update(l, r, m % self.mod)
 
-    # O(logN) -- a[i] = val (mod p)
+    # O(logN) -- a[i] = val (% MOD)
     def pointAssign(self, i, val):
         p = i + self.n
         self._push(p)
         self.tot[p] = val % self.mod
         self._rebuild(p)
 
-    # O(logN) -- a[i] += delta (mod p)
+    # O(logN) -- a[i] += delta (% MOD)
     def pointAdd(self, i, delta):
         self.pointAssign(i, self.pointGet(i) + delta)

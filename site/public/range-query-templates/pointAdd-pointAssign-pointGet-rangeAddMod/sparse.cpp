@@ -15,7 +15,7 @@
 //   other: children[4*log(U)]
 //   note: per update, the O(logU) entries above each changed position; a range add changes two differences. A dynamic prefix-sum tree in a node pool the tree owns
 
-// Range add, point get, all mod p: prefix sums of the difference array d[i] = a[i] - a[i - 1]. Over any index range
+// Range add, point get, all % MOD: prefix sums of the difference array d[i] = a[i] - a[i - 1]. Over any index range
 // [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a dynamic prefix-sum tree over offsets x = i
 // - lo in [0, n), in a pool the tree owns; node 0 is the all-zeros block. T: int, long long, ...
 template <typename T>
@@ -86,7 +86,7 @@ struct SparseRangeAddBITMod {
 
     T norm(W x) const { return T((x % mod + mod) % mod); }
 
-    // O(logU) -- a[i] += v (mod p) for i in [l, r]
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
     void rangeAddMod(long long l, long long r, T v) {
         if (l > r) return;
         T x = norm(v);

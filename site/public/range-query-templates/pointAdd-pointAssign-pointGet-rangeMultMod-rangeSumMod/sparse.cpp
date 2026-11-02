@@ -16,7 +16,7 @@
 //   other: children[8*log(U)]
 //   note: per update, the nodes it visits (at most 4 per level, counting the children a push creates); queries create nothing. A node pool per tree (node 0 = all zeros)
 
-// Range mult with range sum, all mod p, plus point ops. Values are residues in [0, mod). A tag is a pending multiplier;
+// Range mult with range sum, all % MOD, plus point ops. Values are residues in [0, mod). A tag is a pending multiplier;
 // a node's sum becomes mul * sum. (Pushed in updates like any tag: never pushing would need a modular inverse at point
 // writes, and a multiplier can be 0.) Over any index range [lo, hi] (huge or negative is fine); every position starts
 // at 0. Updates push a node's tag into its children (creating them) before recursing past it; queries never push: they
@@ -110,12 +110,12 @@ struct SparseMultSumTree {
         return merge(query(pool[x].l, a, m, l, r, down), query(pool[x].r, m + 1, b, l, r, down));
     }
 
-    // O(logU) -- a[i] = a[i] * m (mod p) for i in [l, r]
+    // O(logU) -- a[i] = a[i] * m (% MOD) for i in [l, r]
     void rangeMultMod(long long l, long long r, T m) {
         if (l <= r) update(root, lo, hi, l, r, Tag{norm(m)});
     }
 
-    // O(logU) -- (a[l] + ... + a[r]) mod p
+    // O(logU) -- (a[l] + ... + a[r]) % MOD
     T rangeSumMod(long long l, long long r) const {
         Agg res = query(root, lo, hi, l, r, ID);
         return res.sm;
@@ -127,7 +127,7 @@ struct SparseMultSumTree {
         return res.sm;
     }
 
-    // O(logU) -- a[i] = v (mod p)
+    // O(logU) -- a[i] = v (% MOD)
     void pointAssign(long long i, T v) {
         int path[130], d = 0, y = root;
         long long a = lo, b = hi;
@@ -142,6 +142,6 @@ struct SparseMultSumTree {
         while (d--) pull(path[d]);
     }
 
-    // O(logU) -- a[i] += delta (mod p)
+    // O(logU) -- a[i] += delta (% MOD)
     void pointAdd(long long i, T delta) { pointAssign(i, norm(W(pointGet(i)) + delta)); }
 };
