@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-run-updates-add/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt longestEqualRun merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeRotateLeft rangeRotateRight split trisect
 # @data-structure-type: treap
+# @letters: same
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected

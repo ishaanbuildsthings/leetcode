@@ -1029,7 +1029,9 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
         for op, args in seq:
             name = owner(op, table)
             if op in PIECE_OPS:
-                obj = objs.setdefault(name, classes[name](list(a0), *ctor_extra))
+                if name not in objs:  # (built once: a throwaway build would still share the class's node pool)
+                    objs[name] = classes[name](list(a0), *ctor_extra)
+                obj = objs[name]
                 if op == "cut":
                     pieces.append(obj.cut(*args))
                 elif op in ("split", "trisect"):

@@ -1,15 +1,15 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-sum-min-max-seq/template.cpp
-// @operations: append appendLeft concat cut getAll insertAt insertCopiesAt moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum split trisect
 // @data-structure-type: sorted-runs
 // @complexities:
 //   append: log(N)+log(U) amortized
 //   appendLeft: log(N)+log(U) amortized
-//   concat: log(N)+log(U) amortized
 //   cut: log(N)+log(U) amortized
 //   getAll: N*log(U)
 //   insertAt: log(N)+log(U) amortized
 //   insertCopiesAt: log(N)+log(U) amortized
+//   merge: log(N)+log(U) amortized
 //   moveRange: log(N)+log(U) amortized
 //   paste: log(N)+log(U) amortized
 //   pointAdd: log(N)+log(U) amortized
@@ -50,44 +50,23 @@
 template <typename T>
 struct SortedRunsSumMinMaxSeq {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    struct Pool {  // the node arrays (node 0 = the empty tree), shared with every piece cut from this one
-        long long vlo, vhi;
-        vector<int> Lc{0}, Rc{0}, freeList;  // value node 0 = the empty tree; nodes freed by merges are reused first
-        vector<long long> cnt{0};
-        vector<S> sm{S(0)};
-        // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
-        // subtree length TS, pending reverse TF, subtree sum / min / max (O: the run's own min / max)
-        vector<int> TL{0}, TR{0}, TV{0}, TN{0}, TS{0}, tfree;
-        vector<unsigned long long> TP{0};
-        vector<char> TD{0}, TF{0};
-        vector<S> Ssm{S(0)};
-        vector<T> Omn{numeric_limits<T>::max()};
-        vector<T> Smn{numeric_limits<T>::max()};
-        vector<T> Omx{numeric_limits<T>::lowest()};
-        vector<T> Smx{numeric_limits<T>::lowest()};
-    };
-    shared_ptr<Pool> pool;  // (freed with the last object using it)
-    long long& vlo;
-    long long& vhi;
-    vector<int>& Lc;
-    vector<int>& Rc;
-    vector<int>& freeList;
-    vector<long long>& cnt;
-    vector<S>& sm;
-    vector<int>& TL;
-    vector<int>& TR;
-    vector<int>& TV;
-    vector<int>& TN;
-    vector<int>& TS;
-    vector<int>& tfree;
-    vector<unsigned long long>& TP;
-    vector<char>& TD;
-    vector<char>& TF;
-    vector<S>& Ssm;
-    vector<T>& Omn;
-    vector<T>& Smn;
-    vector<T>& Omx;
-    vector<T>& Smx;
+    // one node pool shared by every SortedRunsSumMinMaxSeq<T>: cut / paste move nodes between them, so a piece from
+    // one can go into any other (node 0 = the empty tree). Nodes freed by merges are reused, and there is nothing to
+    // reset between test cases
+    static inline vector<int> Lc{0}, Rc{0}, freeList;  // value node 0 = the empty tree; merges free nodes, reused first
+    static inline vector<long long> cnt{0};
+    static inline vector<S> sm{S(0)};
+    // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
+    // subtree length TS, pending reverse TF, subtree sum / min / max (O: the run's own min / max)
+    static inline vector<int> TL{0}, TR{0}, TV{0}, TN{0}, TS{0}, tfree;
+    static inline vector<unsigned long long> TP{0};
+    static inline vector<char> TD{0}, TF{0};
+    static inline vector<S> Ssm{S(0)};
+    static inline vector<T> Omn{numeric_limits<T>::max()};
+    static inline vector<T> Smn{numeric_limits<T>::max()};
+    static inline vector<T> Omx{numeric_limits<T>::lowest()};
+    static inline vector<T> Smx{numeric_limits<T>::lowest()};
+    long long vlo, vhi;  // (each one's value range)
     int n = 0, rt = 0;
 
     static unsigned long long rnd() {
@@ -95,26 +74,11 @@ struct SortedRunsSumMinMaxSeq {
         return g();
     }
 
-    // O(N log U) -- arr: the initial array (may be empty); every value a[i] ever holds must lie in [valLo, valHi]
-    // (U = valHi - valLo + 1). No reset between test cases: the nodes are freed with the last object using them
-    SortedRunsSumMinMaxSeq(const vector<T>& arr, long long valLo, long long valHi)
-        : SortedRunsSumMinMaxSeq(make_shared<Pool>()) {
-        vlo = valLo, vhi = valHi;
-        buildFrom(arr);
-    }
+    // O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi]
+    // (U = valHi - valLo + 1)
+    SortedRunsSumMinMaxSeq(const vector<T>& arr, long long valLo, long long valHi) : vlo(valLo), vhi(valHi) { buildFrom(arr); }
 
-    // O(N log U) -- an array over arr that shares other's nodes (and value range), so pieces can move between the two
-    // (pieces cut from it share them already)
-    SortedRunsSumMinMaxSeq(const vector<T>& arr, const SortedRunsSumMinMaxSeq& other)
-        : SortedRunsSumMinMaxSeq(other.pool) {
-        buildFrom(arr);
-    }
-
-    // an empty one on pool p
-    explicit SortedRunsSumMinMaxSeq(shared_ptr<Pool> p)
-        : pool(p), vlo(p->vlo), vhi(p->vhi), Lc(p->Lc), Rc(p->Rc), freeList(p->freeList), cnt(p->cnt), sm(p->sm),
-          TL(p->TL), TR(p->TR), TV(p->TV), TN(p->TN), TS(p->TS), tfree(p->tfree), TP(p->TP), TD(p->TD), TF(p->TF),
-          Ssm(p->Ssm), Omn(p->Omn), Smn(p->Smn), Omx(p->Omx), Smx(p->Smx) {}
+    SortedRunsSumMinMaxSeq makeEmpty() const { return SortedRunsSumMinMaxSeq({}, vlo, vhi); }  // (a new, empty one: same pool, same value range)
 
     void buildFrom(const vector<T>& arr) {
         n = (int)arr.size();
@@ -199,13 +163,13 @@ struct SortedRunsSumMinMaxSeq {
     SortedRunsSumMinMaxSeq cut(int l, int r) {
         auto [A, B, C] = extract(l, r);
         rt = tmerge(A, C), n -= r - l + 1;
-        SortedRunsSumMinMaxSeq piece(pool);
+        SortedRunsSumMinMaxSeq piece = makeEmpty();
         piece.rt = B, piece.n = r - l + 1;
         return piece;
     }
 
-    // O(log N + log U) amortized -- insert other at a[i] (0 <= i <= size()), leaving it empty; it must share
-    // this one's nodes (a piece cut from it, or built with SortedRunsSumMinMaxSeq(arr, this one))
+    // O(log N + log U) amortized -- insert all of other (one with the same valLo / valHi, e.g. a cut piece) so it
+    // starts at a[i] (0 <= i <= size()); other is left empty
     void paste(int i, SortedRunsSumMinMaxSeq& other) {
         n += other.n;
         auto [A, C] = tsplit(rt, i);
@@ -213,11 +177,11 @@ struct SortedRunsSumMinMaxSeq {
     }
 
     // O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
-    void concat(SortedRunsSumMinMaxSeq& other) { paste(n, other); }
+    void merge(SortedRunsSumMinMaxSeq& other) { paste(n, other); }
 
     // O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
     pair<SortedRunsSumMinMaxSeq, SortedRunsSumMinMaxSeq> split(int k) {
-        SortedRunsSumMinMaxSeq left(pool), right(pool);
+        SortedRunsSumMinMaxSeq left = makeEmpty(), right = makeEmpty();
         tie(left.rt, right.rt) = tsplit(rt, k);
         left.n = k, right.n = n - k, rt = n = 0;
         return {left, right};
@@ -225,13 +189,14 @@ struct SortedRunsSumMinMaxSeq {
 
     // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
     tuple<SortedRunsSumMinMaxSeq, SortedRunsSumMinMaxSeq, SortedRunsSumMinMaxSeq> trisect(int l, int r) {
-        SortedRunsSumMinMaxSeq left(pool), mid(pool), right(pool);
+        SortedRunsSumMinMaxSeq left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         tie(left.rt, mid.rt, right.rt) = extract(l, r);
         left.n = l, mid.n = r - l + 1, right.n = n - r - 1, rt = n = 0;
         return {left, mid, right};
     }
 
-    // O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first; any k, negative = right)
+    // O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first); k can be huge or
+    // negative: it is taken mod the length (negative = right)
     void rangeRotateLeft(int l, int r, long long k) {
         long long m = r - l + 1;
         k = ((k % m) + m) % m;
@@ -241,7 +206,8 @@ struct SortedRunsSumMinMaxSeq {
         join(A, tmerge(Y, X), C);
     }
 
-    // O(log N + log U) amortized -- rotate a[l..r] right by k (any k, negative = left)
+    // O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod
+    // the length (negative = left)
     void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
 
     // O(log N + log U) amortized -- cut a[l..r] out and paste it so it starts at index i of what is left

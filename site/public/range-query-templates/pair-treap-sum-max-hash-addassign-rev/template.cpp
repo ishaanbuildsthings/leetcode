@@ -1,15 +1,15 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-max-hash-addassign-rev/template.cpp
-// @operations: append appendLeft concat cut getAll insertAt isPalindrome paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeHash rangeHashReversed rangeMax rangeReverse rangeSum rangeTwinSpin rangesEqual split trisect
+// @operations: append appendLeft cut getAll insertAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeHash rangeHashReversed rangeMax rangeReverse rangeSum rangeTwinSpin rangesEqual split trisect
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected
-//   concat: log(N) expected
 //   cut: log(N) expected
 //   getAll: N
 //   insertAt: log(N) expected
 //   isPalindrome: log(N) expected
+//   merge: log(N) expected
 //   paste: log(N) expected
 //   pointAdd: log(N) expected
 //   pointAssign: log(N) expected
@@ -45,34 +45,19 @@ template <typename T>
 struct PairSwapTreap {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     using U64 = unsigned long long;
-    struct Pool {  // the node arrays (node 0 = the empty tree), shared with every piece cut from this treap
-        vector<T> val{T(0)};  // node 0 is the empty tree
-        vector<unsigned long long> pri{0};
-        vector<int> L{0}, R{0}, sz{0};
-        vector<char> rev{0};
-        vector<S> sm{S(0)};
-        vector<T> mx{T(0)};
-        vector<T> add{T(0)};
-        vector<T> asg{T(0)};
-        vector<char> hasAsg{0};
-        vector<U64> fh{0}, bh{0}, pw{1}, gs{0};  // each lane hashes in base Q = B^2
-    };
-    shared_ptr<Pool> pool;  // (freed with the last treap using it)
-    vector<T>& val;
-    vector<unsigned long long>& pri;
-    vector<int>& L;
-    vector<int>& R;
-    vector<int>& sz;
-    vector<char>& rev;
-    vector<S>& sm;
-    vector<T>& mx;
-    vector<T>& add;
-    vector<T>& asg;
-    vector<char>& hasAsg;
-    vector<U64>& fh;
-    vector<U64>& bh;
-    vector<U64>& pw;
-    vector<U64>& gs;
+    // one node pool shared by every PairSwapTreap<T>: cut / paste move nodes between them, so a piece from one can go
+    // into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
+    // whole run), so there is nothing to reset between test cases
+    static inline vector<T> val{T(0)};  // node 0 is the empty tree
+    static inline vector<unsigned long long> pri{0};
+    static inline vector<int> L{0}, R{0}, sz{0};
+    static inline vector<char> rev{0};
+    static inline vector<S> sm{S(0)};
+    static inline vector<T> mx{T(0)};
+    static inline vector<T> add{T(0)};
+    static inline vector<T> asg{T(0)};
+    static inline vector<char> hasAsg{0};
+    static inline vector<U64> fh{0}, bh{0}, pw{1}, gs{0};  // each lane hashes in base Q = B^2
     int rE = 0, rO = 0;  // the even positions a[0], a[2], ... and the odd ones
 
 
@@ -109,17 +94,10 @@ struct PairSwapTreap {
         return q;
     }
 
-    // O(N) -- arr: the initial array (may be empty). No reset between test cases: a treap's nodes are freed with it
-    explicit PairSwapTreap(const vector<T>& arr = {}) : PairSwapTreap(make_shared<Pool>()) { buildLanes(arr); }
+    // O(N) -- arr: the initial array (leave it out to start empty)
+    explicit PairSwapTreap(const vector<T>& arr = {}) { buildLanes(arr); }
 
-    // O(N) -- a PairSwapTreap over arr that shares other's nodes, so pieces can move between the two (pieces cut from
-    // it share them already)
-    PairSwapTreap(const vector<T>& arr, const PairSwapTreap& other) : PairSwapTreap(other.pool) { buildLanes(arr); }
-
-    // an empty PairSwapTreap on pool p
-    explicit PairSwapTreap(shared_ptr<Pool> p)
-        : pool(p), val(p->val), pri(p->pri), L(p->L), R(p->R), sz(p->sz), rev(p->rev), sm(p->sm), mx(p->mx),
-          add(p->add), asg(p->asg), hasAsg(p->hasAsg), fh(p->fh), bh(p->bh), pw(p->pw), gs(p->gs) {}
+    PairSwapTreap makeEmpty() const { return PairSwapTreap(); }  // (a new, empty one: same pool, like every one)
 
     // O(1) -- the current length of the array
     int size() const { return sz[rE] + sz[rO]; }
@@ -130,9 +108,6 @@ struct PairSwapTreap {
     // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
-    void concat(PairSwapTreap& other) { paste(size(), other); }
-
     // O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0; drop it to
     // erase); the tail moves r - l + 1 places, so with an odd count the two tails trade places
     PairSwapTreap cut(int l, int r) {
@@ -140,7 +115,7 @@ struct PairSwapTreap {
         parts(l, r, a, b, c, d, e, f);
         if ((r - l + 1) % 2 == 0) rE = merge(a, c), rO = merge(d, f);
         else rE = merge(a, f), rO = merge(d, c);
-        PairSwapTreap piece(pool);
+        PairSwapTreap piece = makeEmpty();
         piece.rE = l % 2 == 0 ? b : e, piece.rO = l % 2 == 0 ? e : b;
         return piece;
     }
@@ -168,9 +143,12 @@ struct PairSwapTreap {
         return f == b;
     }
 
-    // O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
-    // treap's nodes (a piece cut from it, or built with PairSwapTreap(arr, this one)). other's a[0] lands at parity
-    // i % 2, and the tail after i moves other's length on: with an odd length the tails trade places
+    // O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
+    void merge(PairSwapTreap& other) { paste(size(), other); }
+
+    // O(logN) expected -- insert all of other (any PairSwapTreap, e.g. a cut piece) so it starts at a[i]
+    // (0 <= i <= size()); other is left empty. other's a[0] lands at parity i % 2, and the tail after i moves other's
+    // length on: with an odd length the tails trade places
     void paste(int i, PairSwapTreap& other) {
         int a, b, c, d, e, f;
         parts(i, i - 1, a, b, c, d, e, f);
@@ -285,9 +263,9 @@ struct PairSwapTreap {
 
     // O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
     pair<PairSwapTreap, PairSwapTreap> split(int k) {
-        PairSwapTreap left(pool);
+        PairSwapTreap left = makeEmpty();
         left.rE = rE, left.rO = rO, rE = rO = 0;
-        PairSwapTreap right = k < left.size() ? left.cut(k, left.size() - 1) : PairSwapTreap(pool);
+        PairSwapTreap right = k < left.size() ? left.cut(k, left.size() - 1) : makeEmpty();
         return {left, right};
     }
 

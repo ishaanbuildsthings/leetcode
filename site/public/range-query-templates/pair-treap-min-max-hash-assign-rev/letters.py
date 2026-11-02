@@ -1,15 +1,15 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-max-hash-assign-rev/letters.py
-# @operations: append appendLeft concat cut getAll insertAt isPalindrome paste pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMax rangeMin rangeReverse rangeTwinSpin rangesEqual split trisect
+# @operations: append appendLeft cut getAll insertAt isPalindrome merge paste pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMax rangeMin rangeReverse rangeTwinSpin rangesEqual split trisect
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected
-#   concat: log(N) expected
 #   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
 #   isPalindrome: log(N) expected
+#   merge: log(N) expected
 #   paste: log(N) expected
 #   pointAssign: log(N) expected
 #   pointChmax: log(N) expected
@@ -50,37 +50,33 @@ _HQ = _HB * _HB % _HP  # each lane hashes in base B^2 (its neighbours in the arr
 
 
 class PairSwapTreap:
-    __slots__ = ('rE', 'rO', 'val', 'pri', 'L', 'R', 'sz', 'rev', 'mn', 'mx', 'asg', 'hasAsg', 'fh', 'bh', 'pw', 'gs')
+    # one node pool shared by every PairSwapTreap: cut / paste move nodes between them, so a piece from one can go
+    # into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
+    # whole run), so there is nothing to reset between test cases
+    val = [0]
+    pri = [0]
+    L = [0]
+    R = [0]
+    sz = [0]
+    rev = [0]
+    mn = [0]
+    mx = [0]
+    asg = [0]
+    hasAsg = [0]
+    fh = [0]
+    bh = [0]
+    pw = [1]
+    gs = [0]
+    __slots__ = ("rE", "rO")
 
-
-    # O(N) -- arr: the initial array (may be empty); like: a PairSwapTreap whose nodes this one shares, so pieces can
-    # move between the two (pieces cut from it share them already). No reset between test cases
-    def __init__(self, arr=(), like=None):
-        if like is None:
-            self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
-            self.rev = [0]
-            self.mn = [0]
-            self.mx = [0]
-            self.asg, self.hasAsg = [0], [0]
-            self.fh, self.bh, self.pw = [0], [0], [1]
-            self.gs = [0]
-        else:
-            self.val = like.val
-            self.pri = like.pri
-            self.L = like.L
-            self.R = like.R
-            self.sz = like.sz
-            self.rev = like.rev
-            self.mn = like.mn
-            self.mx = like.mx
-            self.asg = like.asg
-            self.hasAsg = like.hasAsg
-            self.fh = like.fh
-            self.bh = like.bh
-            self.pw = like.pw
-            self.gs = like.gs
+    # O(N) -- arr: the initial array (a list; leave it out to start empty)
+    def __init__(self, arr=()):
+        arr = list(arr)
         self.rE = self._build(arr[0::2])  # a[0], a[2], ...
         self.rO = self._build(arr[1::2])  # a[1], a[3], ...
+
+    def _empty(self):  # a new, empty PairSwapTreap (on the same pool, like every one)
+        return PairSwapTreap()
 
     # O(1) -- the current length of the array
     def size(self):
@@ -94,10 +90,6 @@ class PairSwapTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
-    def concat(self, other):
-        self.paste(self.size(), other)
-
     # O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0; drop it to erase);
     # the tail moves r - l + 1 places, so with an odd count the two tails trade places
     def cut(self, l, r):
@@ -106,7 +98,7 @@ class PairSwapTreap:
             self.rE, self.rO = self._merge(a, c), self._merge(d, f)
         else:
             self.rE, self.rO = self._merge(a, f), self._merge(d, c)
-        piece = PairSwapTreap(like=self)
+        piece = self._empty()
         piece.rE, piece.rO = (b, e) if l % 2 == 0 else (e, b)
         return piece
 
@@ -132,9 +124,13 @@ class PairSwapTreap:
         f, b = self._hashes(l, r)
         return f == b
 
-    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must share this
-    # treap's nodes (a piece cut from it, or built with like=). other's a[0] lands at parity i % 2, and the tail after i
-    # moves other's length on: with an odd length the tails trade places
+    # O(logN) expected -- append all of other at the end, leaving it empty (it must share this treap's nodes)
+    def merge(self, other):
+        self.paste(self.size(), other)
+
+    # O(logN) expected -- insert all of other (any PairSwapTreap, e.g. a cut piece) so it starts at a[i]
+    # (0 <= i <= size()); other is left empty. other's a[0] lands at parity i % 2, and the tail after i moves other's
+    # length on: with an odd length the tails trade places
     def paste(self, i, other):
         a, _, c, d, _, f = self._parts(i, i - 1)
         x, y = (other.rE, other.rO) if i % 2 == 0 else (other.rO, other.rE)
@@ -225,10 +221,10 @@ class PairSwapTreap:
 
     # O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
     def split(self, k):
-        left = PairSwapTreap(like=self)
+        left = self._empty()
         left.rE, left.rO = self.rE, self.rO
         self.rE = self.rO = 0
-        right = left.cut(k, left.size() - 1) if k < left.size() else PairSwapTreap(like=self)
+        right = left.cut(k, left.size() - 1) if k < left.size() else self._empty()
         return left, right
 
     # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty

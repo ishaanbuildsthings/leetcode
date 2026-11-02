@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/append-appendLeft-cut-insertAt-merge-paste-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeMin-rangeTwinSpin-split-trisect/template.py
 # @operations: append appendLeft cut getAll insertAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeMin rangeTwinSpin split trisect
 # @data-structure-type: pair-treap
+# @letters: same
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected

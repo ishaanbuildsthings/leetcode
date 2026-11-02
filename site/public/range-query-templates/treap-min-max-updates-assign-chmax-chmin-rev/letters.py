@@ -1,11 +1,10 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-max-updates-assign-chmax-chmin-rev/letters.py
-# @operations: append appendLeft concat cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX moveRange paste pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmax rangeChmin rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX rightmostLtX rightmostLteX split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX merge moveRange paste pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmax rangeChmin rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX rightmostLtX rightmostLteX split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected
-#   concat: log(N) expected
 #   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
@@ -14,6 +13,7 @@
 #   leftmostGteX: log(N) expected
 #   leftmostLtX: log(N) expected
 #   leftmostLteX: log(N) expected
+#   merge: log(N) expected
 #   moveRange: log(N) expected
 #   paste: log(N) expected
 #   pointAssign: log(N) expected
@@ -40,7 +40,7 @@
 #   node: val[1*N] sz[1*N] L[1*N] R[1*N] pri[1*N] mn[1*N] mx[1*N]
 #   tags: rev[1*N] hi[1*N] lo[1*N]
 #   other: none
-#   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused); a treap and the pieces cut from it share their nodes (freed with the last of them: no reset needed)
+#   note: N = every value ever inserted (the initial array plus each insert; erased nodes are not reused); every ImplicitTreap<T> shares one node pool (pieces move between any of them; nothing to reset)
 
 # Letters version: the values are characters (Python: a list of characters, e.g. list(s); C++: T = char), and only the
 # operations that make sense on characters are listed.
@@ -56,26 +56,27 @@ INF, NEG = chr(0x10FFFF), ""
 
 
 class ImplicitTreap:
-    __slots__ = ('root', 'val', 'pri', 'L', 'R', 'sz', 'mn', 'mx', 'rev', 'hi', 'lo')
+    # one node pool shared by every ImplicitTreap: cut / paste move nodes between them, so a piece from one can go
+    # into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
+    # whole run), so there is nothing to reset between test cases
+    val = [0]
+    pri = [0]
+    L = [0]
+    R = [0]
+    sz = [0]
+    mn = [0]
+    mx = [0]
+    rev = [0]
+    hi = [INF]
+    lo = [NEG]
+    __slots__ = ("root",)
 
-    # O(N) -- arr: the initial array (may be empty); like: an ImplicitTreap whose nodes this one shares, so pieces
-    # can move between the two (pieces cut from a treap share its nodes already). No reset between test cases
-    def __init__(self, arr=(), like=None):
-        if like is None:
-            self.val, self.pri, self.L, self.R, self.sz = [0], [0], [0], [0], [0]  # node 0 = the empty tree
-            self.mn = [0]
-            self.mx = [0]
-            self.rev = [0]
-            self.hi = [INF]
-            self.lo = [NEG]
-        else:
-            self.val, self.pri, self.L, self.R, self.sz = like.val, like.pri, like.L, like.R, like.sz
-            self.mn = like.mn
-            self.mx = like.mx
-            self.rev = like.rev
-            self.hi = like.hi
-            self.lo = like.lo
+    # O(N) -- arr: the initial array (a list; leave it out to start empty)
+    def __init__(self, arr=()):
         self.root = self._build(list(arr))
+
+    def _empty(self):  # a new, empty ImplicitTreap (on the same pool, like every one)
+        return ImplicitTreap()
 
     # O(1) -- the current length of the array
     def size(self):
@@ -89,16 +90,11 @@ class ImplicitTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- append all of other at the end; other is left empty
-    def concat(self, other):
-        self.root = self._merge(self.root, other.root)
-        other.root = 0
-
     # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0; drop it to erase)
     def cut(self, l, r):
         a, b, c = self._cut(l, r)
         self.root = self._merge(a, c)
-        piece = ImplicitTreap(like=self)
+        piece = self._empty()
         piece.root = b
         return piece
 
@@ -203,14 +199,19 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
+    # O(logN) expected -- append all of other at the end; other is left empty
+    def merge(self, other):
+        self.root = self._merge(self.root, other.root)
+        other.root = 0
+
     # O(logN) expected -- cut a[l..r] out, then paste it back so it starts at index i of the array without it
     def moveRange(self, l, r, i):
         a, b, c = self._cut(l, r)
         x, y = self._split(self._merge(a, c), i)
         self.root = self._merge(self._merge(x, b), y)
 
-    # O(logN) expected -- insert other so it starts at a[i] (0 <= i <= size()), leaving it empty; it must
-    # share this treap's nodes (a piece cut from it, or built with like=)
+    # O(logN) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i]
+    # (0 <= i <= size()); other is left empty
     def paste(self, i, other):
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, other.root), c)
@@ -282,7 +283,8 @@ class ImplicitTreap:
         self._applyRev(b)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); any k, negative shifts right
+    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
+    # it is taken mod the length (negative shifts right)
     def rangeRotateLeft(self, l, r, k):
         a, b, c = self._cut(l, r)
         k %= r - l + 1
@@ -291,7 +293,8 @@ class ImplicitTreap:
             b = self._merge(b2, b1)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] right by k; any integer k, negative shifts left
+    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
+    # length (negative shifts left)
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 
@@ -373,14 +376,14 @@ class ImplicitTreap:
 
     # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
     def split(self, k):
-        left, right = ImplicitTreap(like=self), ImplicitTreap(like=self)
+        left, right = self._empty(), self._empty()
         left.root, right.root = self._split(self.root, k)
         self.root = 0
         return left, right
 
     # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
     def trisect(self, l, r):
-        left, mid, right = ImplicitTreap(like=self), ImplicitTreap(like=self), ImplicitTreap(like=self)
+        left, mid, right = self._empty(), self._empty(), self._empty()
         left.root, mid.root, right.root = self._cut(l, r)
         self.root = 0
         return left, mid, right

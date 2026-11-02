@@ -543,10 +543,11 @@ export const DATA_STRUCTURE_TYPES = [
   "persistent",
   "bit-of-trees",
   "seg-of-trees",
-  "pair-treap",
-  "sorted-runs",
-  "persistent-treap",
+  // treap-likes, lightest first (on a cost tie): one treap; two (even / odd lanes); copies on every update; value trees
   "treap",
+  "pair-treap",
+  "persistent-treap",
+  "sorted-runs",
   "beats",
   "sqrt",
 ] as const;

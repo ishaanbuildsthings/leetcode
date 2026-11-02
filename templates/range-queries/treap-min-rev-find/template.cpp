@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-rev-find/template.cpp
 // @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge moveRange paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostLtX rightmostLteX split trisect
 // @data-structure-type: treap
+// @letters: same
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected
