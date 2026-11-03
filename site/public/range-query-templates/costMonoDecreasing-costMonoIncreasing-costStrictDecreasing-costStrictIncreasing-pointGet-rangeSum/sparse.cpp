@@ -146,27 +146,43 @@ struct SparseMonoCosts {
         return *v;
     }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logN) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
     long long rangeSum(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         if (l > r) return 0;
         size_t a = lower_bound(idx.begin(), idx.end(), l) - idx.begin(), b = upper_bound(idx.begin(), idx.end(), r) - idx.begin();
         return (long long)(pf[b] - pf[a]);
     }
 
-    // O(logN) -- min +1 increments to make a[l..r] non-decreasing
-    long long costMonoIncreasing(long long l, long long r) const { return view(false, false).cost(l, r); }
+    // O(logN) -- min +1 increments to make a[l..r] non-decreasing; needs lo <= l <= r <= hi, else throws out_of_range
+    long long costMonoIncreasing(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("costMonoIncreasing: needs lo <= l <= r <= hi");
+        return view(false, false).cost(l, r);
+    }
 
-    // O(logN) -- min +1 increments to make a[l..r] non-increasing
-    long long costMonoDecreasing(long long l, long long r) const { return view(true, false).cost(lo + hi - r, lo + hi - l); }
+    // O(logN) -- min +1 increments to make a[l..r] non-increasing; needs lo <= l <= r <= hi, else throws out_of_range
+    long long costMonoDecreasing(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("costMonoDecreasing: needs lo <= l <= r <= hi");
+        return view(true, false).cost(lo + hi - r, lo + hi - l);
+    }
 
-    // O(logN) -- min +1 increments to make a[l..r] strictly increasing
-    long long costStrictIncreasing(long long l, long long r) const { return view(false, true).cost(l, r); }
+    // O(logN) -- min +1 increments to make a[l..r] strictly increasing; needs lo <= l <= r <= hi, else throws
+    // out_of_range
+    long long costStrictIncreasing(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("costStrictIncreasing: needs lo <= l <= r <= hi");
+        return view(false, true).cost(l, r);
+    }
 
-    // O(logN) -- min +1 increments to make a[l..r] strictly decreasing
-    long long costStrictDecreasing(long long l, long long r) const { return view(true, true).cost(lo + hi - r, lo + hi - l); }
+    // O(logN) -- min +1 increments to make a[l..r] strictly decreasing; needs lo <= l <= r <= hi, else throws
+    // out_of_range
+    long long costStrictDecreasing(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("costStrictDecreasing: needs lo <= l <= r <= hi");
+        return view(true, true).cost(lo + hi - r, lo + hi - l);
+    }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }

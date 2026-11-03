@@ -95,18 +95,21 @@ struct SqrtOccurrences {
         }
     }
 
-    // O(sqrt N) -- a[i] += x for i in [l, r]
+    // O(sqrt N) -- a[i] += x for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAdd(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAdd: needs 0 <= l <= r < n");
         if (l <= r) apply(l, r, [&](int b) { add[b] += x; }, [&](T v) { return v + x; });
     }
 
-    // O(sqrt N) -- a[i] = x for i in [l, r]
+    // O(sqrt N) -- a[i] = x for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAssign(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
         if (l <= r) apply(l, r, [&](int b) { asg[b] = x, hasAsg[b] = 1, add[b] = 0; }, [&](T) { return x; });
     }
 
-    // O(sqrt N) -- # of i in [l, r] with a[i] == x
+    // O(sqrt N) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < n, else throws out_of_range
     int countOccurrences(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countOccurrences: needs 0 <= l <= r < n");
         int res = 0;
         for (int b = l / B; l <= r && b <= r / B; b++) {
             if (l <= lo(b) && hi(b) <= r) {
@@ -128,11 +131,19 @@ struct SqrtOccurrences {
     // O(sqrt N) -- the largest i with a[i] == x, or -1 if x isn't in the array
     int rightmostIndexOf(T x) const { return search(0, n - 1, x, true); }
 
-    // O(sqrt N) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
-    int leftmostIndexOfInRange(int l, int r, T x) const { return search(l, r, x, false); }
+    // O(sqrt N) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < n, else
+    // throws out_of_range
+    int leftmostIndexOfInRange(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostIndexOfInRange: needs 0 <= l <= r < n");
+        return search(l, r, x, false);
+    }
 
-    // O(sqrt N) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
-    int rightmostIndexOfInRange(int l, int r, T x) const { return search(l, r, x, true); }
+    // O(sqrt N) -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
+    int rightmostIndexOfInRange(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostIndexOfInRange: needs 0 <= l <= r < n");
+        return search(l, r, x, true);
+    }
 
     // the first (rev: last) i in [l, r] with a[i] == x, or -1
     int search(int l, int r, T x, bool rev) const {
@@ -154,8 +165,9 @@ struct SqrtOccurrences {
         return -1;
     }
 
-    // O(1) -- a[i]
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int b = i / B;
         return (hasAsg[b] ? asg[b] : vals[i]) + add[b];
     }
@@ -167,19 +179,29 @@ struct SqrtOccurrences {
         return out;
     }
 
-    // O(sqrt N) -- a[i] = v
+    // O(sqrt N) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int b = i / B;
         push(b);
         set(b, i, v);
     }
 
-    // O(sqrt N) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(sqrt N) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(sqrt N) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(sqrt N) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(sqrt N) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(sqrt N) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

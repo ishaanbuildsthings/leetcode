@@ -50,18 +50,24 @@ struct LazyBracketTree {
         return out;
     }
 
-    // O(logN) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?
+    // O(logN) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?; needs
+    // 0 <= l <= r < n, else throws out_of_range
     bool isRBS(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("isRBS: needs 0 <= l <= r < n");
         int s = 0, m = 0;
         fold(1, 0, n - 1, l, r, s, m);
         return s == 0 && m >= 0;
     }
 
-    // O(logN) -- brackets[i] = ch
-    void pointAssign(int i, T ch) { set(1, 0, n - 1, i, ch == oc ? 1 : -1); }
+    // O(logN) -- brackets[i] = ch; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T ch) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        set(1, 0, n - 1, i, ch == oc ? 1 : -1);
+    }
 
-    // O(logN) -- brackets[i]
+    // O(logN) -- brackets[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int x = 1, lo = 0, hi = n - 1;
         while (lo < hi) {
             int mid = (lo + hi) / 2;
@@ -72,8 +78,11 @@ struct LazyBracketTree {
         return sm[x] > 0 ? oc : cc;
     }
 
-    // O(logN) -- brackets[i] = ch for i in [l, r]
-    void rangeAssign(int l, int r, T ch) { update(1, 0, n - 1, l, r, ch == oc ? 1 : -1); }
+    // O(logN) -- brackets[i] = ch for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAssign(int l, int r, T ch) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
+        update(1, 0, n - 1, l, r, ch == oc ? 1 : -1);
+    }
 
     // ---- internals ----
 

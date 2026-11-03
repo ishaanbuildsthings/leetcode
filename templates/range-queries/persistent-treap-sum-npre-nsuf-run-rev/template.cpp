@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-npre-nsuf-run-rev/template.cpp
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt longestEqualRun merge minPrefixSum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeReverse rangeRotateLeft rangeRotateRight rangeSum split trisect
 // @data-structure-type: persistent-treap
+// @letters: same
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected

@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeSum/template.cpp
 // @operations: getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeSum
 // @data-structure-type: lazy-seg-tree
+// @letters: same
 // @complexities:
 //   getAll: N
 //   longestEqualRun: log(N)

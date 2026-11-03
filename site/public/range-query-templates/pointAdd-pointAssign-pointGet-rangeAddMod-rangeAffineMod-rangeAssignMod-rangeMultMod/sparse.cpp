@@ -106,34 +106,40 @@ struct SparseAffineTree {
         return query(pool[x].r, m + 1, b, l, r, down);
     }
 
-    // O(logU) -- a[i] = a[i] + v (% MOD) for i in [l, r]
+    // O(logU) -- a[i] = a[i] + v (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAddMod(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAddMod: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, Tag{1, norm(v)});
     }
 
-    // O(logU) -- a[i] = a[i] * m (% MOD) for i in [l, r]
+    // O(logU) -- a[i] = a[i] * m (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeMultMod(long long l, long long r, T m) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMultMod: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, Tag{norm(m), 0});
     }
 
-    // O(logU) -- a[i] = v (% MOD) for i in [l, r]
+    // O(logU) -- a[i] = v (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAssignMod(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAssignMod: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, Tag{0, norm(v)});
     }
 
-    // O(logU) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]
+    // O(logU) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAffineMod(long long l, long long r, T mult, T add) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAffineMod: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, Tag{norm(mult), norm(add)});
     }
 
-    // O(logU) -- a[i], in [0, mod)
+    // O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         Agg res = query(root, lo, hi, i, i, ID);
         return res.sm;
     }
 
-    // O(logU) -- a[i] = v (% MOD)
+    // O(logU) -- a[i] = v (% MOD); needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int path[130], d = 0, y = root;
         long long a = lo, b = hi;
         while (a < b) {
@@ -147,6 +153,9 @@ struct SparseAffineTree {
         (void)path;
     }
 
-    // O(logU) -- a[i] += delta (% MOD)
-    void pointAdd(long long i, T delta) { pointAssign(i, norm(W(pointGet(i)) + delta)); }
+    // O(logU) -- a[i] += delta (% MOD); needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, norm(W(pointGet(i)) + delta));
+    }
 };

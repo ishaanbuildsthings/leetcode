@@ -93,20 +93,33 @@ struct ClampMinTree {
         rebuild(l0), rebuild(r0);
     }
 
-    // O(logN) -- a[i] += v for i in [l, r]
-    void rangeAdd(int l, int r, T v) { update(l, r, INF, NEG, v); }
+    // O(logN) -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAdd(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAdd: needs 0 <= l <= r < n");
+        update(l, r, INF, NEG, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v) for i in [l, r]
-    void rangeChmin(int l, int r, T v) { update(l, r, v, NEG, 0); }
+    // O(logN) -- a[i] = min(a[i], v) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeChmin(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeChmin: needs 0 <= l <= r < n");
+        update(l, r, v, NEG, 0);
+    }
 
-    // O(logN) -- a[i] = max(a[i], v) for i in [l, r]
-    void rangeChmax(int l, int r, T v) { update(l, r, INF, v, 0); }
+    // O(logN) -- a[i] = max(a[i], v) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeChmax(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeChmax: needs 0 <= l <= r < n");
+        update(l, r, INF, v, 0);
+    }
 
-    // O(logN) -- a[i] = v for i in [l, r]
-    void rangeAssign(int l, int r, T v) { update(l, r, v, v, 0); }
+    // O(logN) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
+        update(l, r, v, v, 0);
+    }
 
-    // O(logN) -- min of a[l..r]
+    // O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMin(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMin: needs 0 <= l <= r < n");
         l += n, r += n;
         push(l), push(r);
         T res = INF;
@@ -128,26 +141,37 @@ struct ClampMinTree {
         return vector<T>(mn.begin() + n, mn.end());
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         push(i + n);
         return mn[i + n];
     }
 
-    // O(logN) -- a[i] = v
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = i + n;
         push(p);
         mn[p] = v;
         rebuild(p);
     }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

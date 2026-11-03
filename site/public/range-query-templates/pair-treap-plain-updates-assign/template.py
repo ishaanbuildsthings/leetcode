@@ -74,8 +74,11 @@ class PairSwapTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0)
+    # O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0); needs
+    # 0 <= l <= r < size(), else IndexError
     def cut(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"cut: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         ae, ao, be, bo, ce, co = self._cut(l, r)
         self.rE, self.rO = self._pmerge(ae, ao, ce, co)
         piece = self._empty()
@@ -89,14 +92,19 @@ class PairSwapTreap:
         out[0::2], out[1::2] = ev, od
         return out
 
-    # O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    # O(logN) expected -- insert v so it becomes a[i]; needs 0 <= i <= size(), else IndexError (i = size() appends)
     def insertAt(self, i, v):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"insertAt: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         ae, ao, ce, co = self._psplit(self.rE, self.rO, i)
         ae, ao = self._pmerge(ae, ao, self._newNode(v), 0)
         self.rE, self.rO = self._pmerge(ae, ao, ce, co)
 
-    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0); needs
+    # 0 <= i <= size(), else IndexError
     def insertCopiesAt(self, i, v, k):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"insertCopiesAt: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         if k > 0:
             ae, ao, ce, co = self._psplit(self.rE, self.rO, i)
             ae, ao = self._pmerge(ae, ao, self._build([v] * ((k + 1) // 2)), self._build([v] * (k // 2)))
@@ -107,48 +115,64 @@ class PairSwapTreap:
         self.rE, self.rO = self._pmerge(self.rE, self.rO, other.rE, other.rO)
         other.rE = other.rO = 0
 
-    # O(logN) expected -- insert all of other (any PairSwapTreap, e.g. a cut piece) so it starts at a[i]
-    # (0 <= i <= size()); other is left empty
+    # O(logN) expected -- insert all of other (any PairSwapTreap, e.g. a cut piece) so it starts at a[i] (needs
+    # 0 <= i <= size(), else IndexError); other is left empty
     def paste(self, i, other):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"paste: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         ae, ao, ce, co = self._psplit(self.rE, self.rO, i)
         ae, ao = self._pmerge(ae, ao, other.rE, other.rO)
         self.rE, self.rO = self._pmerge(ae, ao, ce, co)
         other.rE = other.rO = 0
 
-    # O(logN) expected -- a[i] += v
+    # O(logN) expected -- a[i] += v; needs 0 <= i < size(), else IndexError
     def pointAdd(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointAdd: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         t, path = self._find(i)
         self.val[t] = self.val[t] + v
 
-    # O(logN) expected -- a[i] = v
+    # O(logN) expected -- a[i] = v; needs 0 <= i < size(), else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointAssign: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         t, path = self._find(i)
         self.val[t] = v
 
-    # O(logN) expected -- a[i] = max(a[i], v)
+    # O(logN) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointChmax: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         t, path = self._find(i)
         self.val[t] = max(self.val[t], v)
 
-    # O(logN) expected -- a[i] = min(a[i], v)
+    # O(logN) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointChmin: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         t, path = self._find(i)
         self.val[t] = min(self.val[t], v)
 
-    # O(logN) expected -- a[i]
+    # O(logN) expected -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointGet: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         return self.val[self._find(i)[0]]
 
-    # O(logN) expected -- a[i] = v for i in [l, r]
+    # O(logN) expected -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else IndexError
     def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         ae, ao, be, bo, ce, co = self._cut(l, r)
         self._applyAssign(be, v)
         self._applyAssign(bo, v)
         self._join(ae, ao, be, bo, ce, co)
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
-    # it is taken mod the length (negative shifts right)
+    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is taken
+    # mod the length (negative shifts right); needs 0 <= l <= r < size(), else IndexError
     def rangeRotateLeft(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeRotateLeft: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         k %= r - l + 1
         if k:
             ae, ao, be, bo, ce, co = self._cut(l, r)
@@ -156,28 +180,38 @@ class PairSwapTreap:
             be, bo = self._pmerge(ye, yo, xe, xo)
             self._join(ae, ao, be, bo, ce, co)
 
-    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
-    # length (negative shifts left)
+    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the length
+    # (negative shifts left); needs 0 <= l <= r < size(), else IndexError
     def rangeRotateRight(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeRotateRight: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         self.rangeRotateLeft(l, r, -k)
 
-    # O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length:
-    # a[r] stays): the pairs' two lanes trade places
+    # O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length: a[r] stays): the
+    # pairs' two lanes trade places; needs 0 <= l <= r < size(), else IndexError
     def rangeTwinSpin(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeTwinSpin: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         k = (r - l + 1) // 2
         if k:
             ae, ao, be, bo, ce, co = self._cut(l, l + 2 * k - 1)
             self._join(ae, ao, bo, be, ce, co)
 
-    # O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
+    # O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty; needs
+    # 0 <= k <= size(), else IndexError
     def split(self, k):
+        if not 0 <= k <= self.size():
+            raise IndexError(f"split: needs 0 <= k <= size(), got k = {k}, n = {self.size()}")
         left, right = self._empty(), self._empty()
         left.rE, left.rO, right.rE, right.rO = self._psplit(self.rE, self.rO, k)
         self.rE = self.rO = 0
         return left, right
 
-    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty
+    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty;
+    # needs 0 <= l <= r < size(), else IndexError
     def trisect(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"trisect: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         left, mid, right = self._empty(), self._empty(), self._empty()
         left.rE, left.rO, mid.rE, mid.rO, right.rE, right.rO = self._cut(l, r)
         self.rE = self.rO = 0

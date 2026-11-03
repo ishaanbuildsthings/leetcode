@@ -71,8 +71,11 @@ class ShrinkSegTree:
     def getAll(self):
         return self.sm[self.n:]
 
-    # O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mx
         for t, s in self._nodes(l, r):
             if F[t] > x:  # the first covering node with a passing value: walk down it
@@ -81,8 +84,11 @@ class ShrinkSegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mx
         for t, s in self._nodes(l, r):
             if F[t] >= x:  # the first covering node with a passing value: walk down it
@@ -91,8 +97,11 @@ class ShrinkSegTree:
                 return t - n
         return -1
 
-    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
+    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs 0 <= l <= r < n, else
+    # IndexError
     def maxAltSubseqSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"maxAltSubseqSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         a00, a01, a10, a11 = self.a00, self.a01, self.a10, self.a11
         ns = self._nodes(l, r)
         t = ns[0][0]
@@ -101,8 +110,10 @@ class ShrinkSegTree:
             c = _altJoin(c, (a00[t], a01[t], a10[t], a11[t]))
         return max(c[0], c[1])
 
-    # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]
+    # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def maxSuffixSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"maxSuffixSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         sm, suf = self.sm, self.suf
         ns = self._nodes(l, r)
         t = ns[-1][0]
@@ -113,46 +124,64 @@ class ShrinkSegTree:
             acc += sm[t]
         return res
 
-    # O(logN) -- a[i] += v
+    # O(logN) -- a[i] += v; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._setLeaf(p, self._leaf(p) + v)
         self._rebuild(p)
 
-    # O(logN) -- a[i] = v
+    # O(logN) -- a[i] = v; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._setLeaf(p, v)
         self._rebuild(p)
 
-    # O(logN) -- a[i] = max(a[i], v)
+    # O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._setLeaf(p, max(self._leaf(p), v))
         self._rebuild(p)
 
-    # O(logN) -- a[i] = min(a[i], v)
+    # O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._setLeaf(p, min(self._leaf(p), v))
         self._rebuild(p)
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         return self._leaf(p)
 
-    # amortized O(logN * logU) -- a[i] //= x for i in [l, r] (values >= 0; x >= 2, x = 1 does nothing)
+    # amortized O(logN * logU) -- a[i] //= x for i in [l, r] (values >= 0; x >= 2, x = 1 does nothing); needs
+    # 0 <= l <= r < n, else IndexError
     def rangeFloorDiv(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeFloorDiv: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if x >= 2:
             self._shrinkRange(l, r, 1, lambda v: v // x)
 
-    # amortized O(logN * loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0)
+    # amortized O(logN * loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0); needs 0 <= l <= r < n,
+    # else IndexError
     def rangeFloorSqrt(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeFloorSqrt: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._shrinkRange(l, r, 2, isqrt)
 
-    # O(logN) -- max of a[l..r]
+    # O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMax(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, mx = self.n, self.mx
         res, lo, hi = NEG, l + n, r + n + 1
         while lo < hi:
@@ -168,13 +197,18 @@ class ShrinkSegTree:
             hi >>= 1
         return res
 
-    # amortized O(logN * logU) -- a[i] %= x for i in [l, r] (values >= 0, x >= 1)
+    # amortized O(logN * logU) -- a[i] %= x for i in [l, r] (values >= 0, x >= 1); needs 0 <= l <= r < n, else
+    # IndexError
     def rangeMod(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if x >= 1:
             self._shrinkRange(l, r, x, lambda v: v % x)
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, sm = self.n, self.sm
         res, lo, hi = 0, l + n, r + n + 1
         while lo < hi:
@@ -188,8 +222,11 @@ class ShrinkSegTree:
             hi >>= 1
         return res
 
-    # O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mx
         for t, s in reversed(self._nodes(l, r)):
             if F[t] > x:  # the last covering node with a passing value: walk down it
@@ -198,8 +235,11 @@ class ShrinkSegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mx
         for t, s in reversed(self._nodes(l, r)):
             if F[t] >= x:  # the last covering node with a passing value: walk down it
@@ -208,8 +248,11 @@ class ShrinkSegTree:
                 return t - n
         return -1
 
-    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums)
+    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums); needs
+    # 0 <= l <= r < n, else IndexError
     def rightmostSuffixSumGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostSuffixSumGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, sm, P = self.n, self.sm, self.suf
         acc = 0
         for t, s in reversed(self._nodes(l, r)):
@@ -224,8 +267,11 @@ class ShrinkSegTree:
             acc += sm[t]
         return -1
 
-    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums)
+    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums); needs
+    # 0 <= l <= r < n, else IndexError
     def rightmostSuffixSumGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostSuffixSumGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, sm, P = self.n, self.sm, self.suf
         acc = 0
         for t, s in reversed(self._nodes(l, r)):

@@ -160,27 +160,48 @@ struct MergeSortTree {
         return ql > qr ? 0 : countPrefix(ql, qr, atMost(x));
     }
 
-    // O(logN) -- how many i in [ql, qr] have valLow <= a[i] <= valHigh
+    // O(logN) -- how many i in [ql, qr] have valLow <= a[i] <= valHigh; needs 0 <= ql <= qr < n, else throws
+    // out_of_range
     int countInValRange(int ql, int qr, const T& valLow, const T& valHigh) const {
+        if (ql < 0 || ql > qr || qr >= n) throw out_of_range("countInValRange: needs 0 <= ql <= qr < n");
         ql = max(ql, 0), qr = min(qr, n - 1);
         if (ql > qr || valHigh < valLow) return 0;
         return countPrefix(ql, qr, atMost(valHigh)) - countPrefix(ql, qr, lessThan(valLow));
     }
 
-    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] >= x, or -1
-    int kthGteX(int ql, int qr, int k, const T& x) const { return kth(ql, qr, k, lessThan(x), true); }
+    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] >= x, or -1; needs
+    // 0 <= ql <= qr < n, else throws out_of_range
+    int kthGteX(int ql, int qr, int k, const T& x) const {
+        if (ql < 0 || ql > qr || qr >= n) throw out_of_range("kthGteX: needs 0 <= ql <= qr < n");
+        return kth(ql, qr, k, lessThan(x), true);
+    }
 
-    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] <= x, or -1
-    int kthLteX(int ql, int qr, int k, const T& x) const { return kth(ql, qr, k, atMost(x), false); }
+    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] <= x, or -1; needs
+    // 0 <= ql <= qr < n, else throws out_of_range
+    int kthLteX(int ql, int qr, int k, const T& x) const {
+        if (ql < 0 || ql > qr || qr >= n) throw out_of_range("kthLteX: needs 0 <= ql <= qr < n");
+        return kth(ql, qr, k, atMost(x), false);
+    }
 
-    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] > x, or -1
-    int kthGtX(int ql, int qr, int k, const T& x) const { return kth(ql, qr, k, atMost(x), true); }
+    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] > x, or -1; needs
+    // 0 <= ql <= qr < n, else throws out_of_range
+    int kthGtX(int ql, int qr, int k, const T& x) const {
+        if (ql < 0 || ql > qr || qr >= n) throw out_of_range("kthGtX: needs 0 <= ql <= qr < n");
+        return kth(ql, qr, k, atMost(x), true);
+    }
 
-    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] < x, or -1
-    int kthLtX(int ql, int qr, int k, const T& x) const { return kth(ql, qr, k, lessThan(x), false); }
+    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] < x, or -1; needs
+    // 0 <= ql <= qr < n, else throws out_of_range
+    int kthLtX(int ql, int qr, int k, const T& x) const {
+        if (ql < 0 || ql > qr || qr >= n) throw out_of_range("kthLtX: needs 0 <= ql <= qr < n");
+        return kth(ql, qr, k, lessThan(x), false);
+    }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 };
 
 // Static range count distinct: countDistinct(l, r) = # of i in [l, r] whose next occurrence nxt[i] > r,
@@ -188,6 +209,7 @@ struct MergeSortTree {
 template <typename T>
 struct StaticDistinct {
     vector<T> arr;
+    int n = 0;  // the length
     MergeSortTree<int> mst;  // over nxt[i] = next index holding the same value, or n
 
     // O(N log N) -- sort (value, index) pairs once: equal values end up adjacent, in index order
@@ -203,13 +225,19 @@ struct StaticDistinct {
     }
 
     // O(N log N)
-    explicit StaticDistinct(const vector<T>& a) : arr(a), mst(nextOccurrence(a)) {}
+    explicit StaticDistinct(const vector<T>& a) : arr(a), n((int)a.size()), mst(nextOccurrence(a)) {}
 
-    // O(logN) -- # of distinct values in a[l..r]
-    int countDistinct(int l, int r) const { return mst.countGteX(l, r, r + 1); }
+    // O(logN) -- # of distinct values in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    int countDistinct(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countDistinct: needs 0 <= l <= r < n");
+        return mst.countGteX(l, r, r + 1);
+    }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 };
 
 // ======================================================================================== sparse wrapper
@@ -245,8 +273,9 @@ struct SparseStaticMergeSortTree {
         zeros = (r - l + 1) - (i1 - i0 + 1);
     }
 
-    // O(logN) -- # of i in [l, r] with valLow <= a[i] <= valHigh
+    // O(logN) -- # of i in [l, r] with valLow <= a[i] <= valHigh; needs lo <= l <= r <= hi, else throws out_of_range
     long long countInValRange(long long l, long long r, T valLow, T valHigh) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countInValRange: needs lo <= l <= r <= hi");
         int i0, i1;
         long long zeros;
         span(l, r, i0, i1, zeros);
@@ -254,8 +283,9 @@ struct SparseStaticMergeSortTree {
         return inside + (valLow <= T(0) && T(0) <= valHigh ? zeros : 0);
     }
 
-    // O(logN) -- # of distinct values in a[l..r]
+    // O(logN) -- # of distinct values in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     long long countDistinct(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countDistinct: needs lo <= l <= r <= hi");
         int i0, i1;
         long long zeros;
         span(l, r, i0, i1, zeros);
@@ -292,32 +322,41 @@ struct SparseStaticMergeSortTree {
         return c >= k ? idx[t - 1] : idx[t - 1] + (k - c);
     }
 
-    // O(log^2 N) -- index of the k-th (1-indexed) i in [l, r] with a[i] >= x, or lo - 1
+    // O(log^2 N) -- index of the k-th (1-indexed) i in [l, r] with a[i] >= x, or lo - 1; needs lo <= l <= r <= hi,
+    // else throws out_of_range
     long long kthGteX(long long l, long long r, long long k, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("kthGteX: needs lo <= l <= r <= hi");
         return kthWithZeros(l, r, k, T(0) >= x, [&](int i0, int t) -> long long { return t > i0 ? inner.countGteX(i0, t - 1, x) : 0; },
                             [&](int a, int b, int kk) { return inner.kthGteX(a, b, kk, x); });
     }
 
-    // O(log^2 N) -- index of the k-th (1-indexed) i in [l, r] with a[i] > x, or lo - 1
+    // O(log^2 N) -- index of the k-th (1-indexed) i in [l, r] with a[i] > x, or lo - 1; needs lo <= l <= r <= hi,
+    // else throws out_of_range
     long long kthGtX(long long l, long long r, long long k, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("kthGtX: needs lo <= l <= r <= hi");
         return kthWithZeros(l, r, k, T(0) > x, [&](int i0, int t) -> long long { return t > i0 ? inner.countGteX(i0, t - 1, x + 1) : 0; },
                             [&](int a, int b, int kk) { return inner.kthGtX(a, b, kk, x); });
     }
 
-    // O(log^2 N) -- index of the k-th (1-indexed) i in [l, r] with a[i] <= x, or lo - 1
+    // O(log^2 N) -- index of the k-th (1-indexed) i in [l, r] with a[i] <= x, or lo - 1; needs lo <= l <= r <= hi,
+    // else throws out_of_range
     long long kthLteX(long long l, long long r, long long k, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("kthLteX: needs lo <= l <= r <= hi");
         return kthWithZeros(l, r, k, T(0) <= x, [&](int i0, int t) -> long long { return t > i0 ? inner.countLteX(i0, t - 1, x) : 0; },
                             [&](int a, int b, int kk) { return inner.kthLteX(a, b, kk, x); });
     }
 
-    // O(log^2 N) -- index of the k-th (1-indexed) i in [l, r] with a[i] < x, or lo - 1
+    // O(log^2 N) -- index of the k-th (1-indexed) i in [l, r] with a[i] < x, or lo - 1; needs lo <= l <= r <= hi,
+    // else throws out_of_range
     long long kthLtX(long long l, long long r, long long k, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("kthLtX: needs lo <= l <= r <= hi");
         return kthWithZeros(l, r, k, T(0) < x, [&](int i0, int t) -> long long { return t > i0 ? inner.countLteX(i0, t - 1, x - 1) : 0; },
                             [&](int a, int b, int kk) { return inner.kthLtX(a, b, kk, x); });
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }

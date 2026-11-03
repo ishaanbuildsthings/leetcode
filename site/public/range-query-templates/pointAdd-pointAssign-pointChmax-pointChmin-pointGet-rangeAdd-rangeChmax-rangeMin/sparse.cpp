@@ -117,24 +117,33 @@ struct SparseAddChmaxMinTree {
         return merge(query(pool[x].l, a, m, l, r, down), query(pool[x].r, m + 1, b, l, r, down));
     }
 
-    // O(logU) -- a[i] += v for i in [l, r]
+    // O(logU) -- a[i] += v for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAdd(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAdd: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, Tag{NEG, v});
     }
 
-    // O(logU) -- a[i] = max(a[i], v) for i in [l, r]
+    // O(logU) -- a[i] = max(a[i], v) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeChmax(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeChmax: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, Tag{v, 0});
     }
 
-    // O(logU) -- min of a[l..r]
-    T rangeMin(long long l, long long r) const { return query(root, lo, hi, l, r, ID).mn; }
+    // O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeMin(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
+        return query(root, lo, hi, l, r, ID).mn;
+    }
 
-    // O(logU) -- a[i]
-    T pointGet(long long i) const { return T(query(root, lo, hi, i, i, ID).mn); }
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return T(query(root, lo, hi, i, i, ID).mn);
+    }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int path[130], d = 0, y = root;
         long long len[130], a = lo, b = hi;
         while (a < b) {
@@ -148,12 +157,21 @@ struct SparseAddChmaxMinTree {
         while (d--) pull(path[d], len[d]);
     }
 
-    // O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logU) -- a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logU) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

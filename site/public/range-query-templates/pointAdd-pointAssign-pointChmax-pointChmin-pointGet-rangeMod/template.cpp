@@ -57,8 +57,9 @@ struct RangeModTree {
         }
     }
 
-    // amortized O(logN logU) -- a[i] %= mod for i in [l, r]
+    // amortized O(logN logU) -- a[i] %= mod for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeMod(int l, int r, T mod) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMod: needs 0 <= l <= r < n");
         for (int lo = l + n, hi = r + n + 1; lo < hi; lo >>= 1, hi >>= 1) {
             if (lo & 1) descend(lo++, mod);
             if (hi & 1) descend(--hi, mod);
@@ -66,21 +67,36 @@ struct RangeModTree {
         pull(l + n), pull(r + n);
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return mx[i + n]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return mx[i + n];
+    }
 
     // O(N) -- the whole array (a copy of the leaves)
     vector<T> getAll() const { return vector<T>(mx.begin() + n, mx.end()); }
 
-    // O(logN) -- a[i] = v
-    void pointAssign(int i, T v) { mx[i + n] = v; pull(i + n); }
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        mx[i + n] = v; pull(i + n);
+    }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { mx[i + n] += delta; pull(i + n); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        mx[i + n] += delta; pull(i + n);
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > mx[i + n]) mx[i + n] = v, pull(i + n); }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > mx[i + n]) mx[i + n] = v, pull(i + n);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < mx[i + n]) mx[i + n] = v, pull(i + n); }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < mx[i + n]) mx[i + n] = v, pull(i + n);
+    }
 };

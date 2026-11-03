@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod/sparse.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod-rightmostGtX-rightmostGteX-rightmostLtX-rightmostLteX/sparse.py
 # @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod
 # @data-structure-type: beats
 # @letters: same
@@ -218,58 +218,80 @@ class SparseShrinkSeg:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # amortized -- a[i] %= x for every i in l...r
-    # prune at mx < x: everything there is already below x, so a % x == a
+    # amortized -- a[i] %= x for every i in l...r prune at mx < x: everything there is already below x, so a % x == a;
+    # needs lo <= l <= r <= hi, else IndexError
     def rangeMod(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMod: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r or x < 1:
             return
         self._rangeShrink(1, self.lo, self.hi, l, r, x, lambda v: v % x)
 
-    # amortized -- a[i] //= x for every i in l...r. requires x >= 2
-    # prune at mx < 1: only zeros left, and 0 // x == 0
+    # amortized -- a[i] //= x for every i in l...r. requires x >= 2 prune at mx < 1: only zeros left, and 0 // x == 0;
+    # needs lo <= l <= r <= hi, else IndexError
     def rangeFloorDiv(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeFloorDiv: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r or x < 2:
             return
         self._rangeShrink(1, self.lo, self.hi, l, r, 1, lambda v: v // x)
 
-    # amortized -- a[i] = floor(sqrt(a[i])) for every i in l...r
-    # prune at mx < 2: 0 and 1 are fixed points
+    # amortized -- a[i] = floor(sqrt(a[i])) for every i in l...r prune at mx < 2: 0 and 1 are fixed points; needs
+    # lo <= l <= r <= hi, else IndexError
     def rangeFloorSqrt(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeFloorSqrt: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return
         self._rangeShrink(1, self.lo, self.hi, l, r, 2, isqrt)
 
-    # amortized O(logU) -- a[i] = v for every i in l...r
+    # amortized O(logU) -- a[i] = v for every i in l...r; needs lo <= l <= r <= hi, else IndexError
     def rangeAssign(self, l, r, v):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r:
             self._assign(1, self.lo, self.hi, l, r, v)
 
-    # amortized O(logU) -- a[pos] = v. an OVERWRITE, it may RAISE the value
+    # amortized O(logU) -- a[pos] = v. an OVERWRITE, it may RAISE the value; needs lo <= pos <= hi, else IndexError
     def pointAssign(self, pos, v):
+        if not self.lo <= pos <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= pos <= hi, got pos = {pos}")
         self.rangeAssign(pos, pos, v)
 
-    # O(logU) -- max of a[l..r]
+    # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return None if (l > r) else self._qmax(1, self.lo, self.hi, l, r)
 
-    # O(logU) -- min of a[l..r]
+    # O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return None if (l > r) else self._qmin(1, self.lo, self.hi, l, r)
 
-    # O(logU) -- a[pos]
+    # O(logU) -- a[pos]; needs lo <= pos <= hi, else IndexError
     def pointGet(self, pos):
+        if not self.lo <= pos <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= pos <= hi, got pos = {pos}")
         return self.rangeMax(pos, pos)
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] += delta
+    # a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)

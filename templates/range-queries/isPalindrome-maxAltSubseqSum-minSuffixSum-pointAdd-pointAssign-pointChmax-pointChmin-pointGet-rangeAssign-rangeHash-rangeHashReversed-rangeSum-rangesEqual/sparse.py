@@ -100,6 +100,20 @@ class SparseLazySegTree:
             c = _altJoin(c, (a00[t], a01[t], a10[t], a11[t]))
         return max(c[0], c[1])
 
+    # O(logN) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    def minSuffixSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"minSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        sm, nsuf = self.sm, self.nsuf
+        ns = self._nodes(l, r)
+        t = ns[-1][0]
+        res, acc = nsuf[t], sm[t]
+        for t, _ in reversed(ns[:-1]):
+            if acc + nsuf[t] < res:
+                res = acc + nsuf[t]
+            acc += sm[t]
+        return res
+
     # O(logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
         if not self.first <= i <= self.last:

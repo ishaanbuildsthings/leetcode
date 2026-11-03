@@ -157,33 +157,63 @@ struct SparseBitBeats {
         }
     }
 
-    // amortized O(logU logU) -- a[i] &= X for i in [l, r]
-    void rangeAndApply(long long l, long long r, T X) { if (l <= r) upd(root, lo, hi, l, r, X & FULL, 0); }
+    // amortized O(logU logU) -- a[i] &= X for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    void rangeAndApply(long long l, long long r, T X) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAndApply: needs lo <= l <= r <= hi");
+        if (l <= r) upd(root, lo, hi, l, r, X & FULL, 0);
+    }
 
-    // amortized O(logU logU) -- a[i] |= X for i in [l, r]
-    void rangeOrApply(long long l, long long r, T X) { if (l <= r) upd(root, lo, hi, l, r, ~X & FULL, X & FULL); }
+    // amortized O(logU logU) -- a[i] |= X for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    void rangeOrApply(long long l, long long r, T X) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeOrApply: needs lo <= l <= r <= hi");
+        if (l <= r) upd(root, lo, hi, l, r, ~X & FULL, X & FULL);
+    }
 
-    // O(logU) -- a[l] + ... + a[r]
-    S rangeSum(long long l, long long r) { return l > r ? S(0) : query(root, lo, hi, l, r, 0); }
+    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    S rangeSum(long long l, long long r) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
+        return l > r ? S(0) : query(root, lo, hi, l, r, 0);
+    }
 
-    // O(logU) -- a[l] & ... & a[r]
-    T rangeAndQuery(long long l, long long r) { return l > r ? FULL : T(query(root, lo, hi, l, r, 1)); }
+    // O(logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeAndQuery(long long l, long long r) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAndQuery: needs lo <= l <= r <= hi");
+        return l > r ? FULL : T(query(root, lo, hi, l, r, 1));
+    }
 
-    // O(logU) -- a[l] | ... | a[r]
-    T rangeOrQuery(long long l, long long r) { return l > r ? T(0) : T(query(root, lo, hi, l, r, 2)); }
+    // O(logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeOrQuery(long long l, long long r) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeOrQuery: needs lo <= l <= r <= hi");
+        return l > r ? T(0) : T(query(root, lo, hi, l, r, 2));
+    }
 
-    // O(logU) -- a[i] = v & FULL
-    void pointAssign(long long i, T v) { set(root, lo, hi, i, v & FULL); }
+    // O(logU) -- a[i] = v & FULL; needs lo <= i <= hi, else throws out_of_range
+    void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
+        set(root, lo, hi, i, v & FULL);
+    }
 
-    // O(logU) -- a[i]
-    T pointGet(long long i) { return rangeAndQuery(i, i); }
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return rangeAndQuery(i, i);
+    }
 
-    // O(logU) -- a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logU) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logU) -- a[i] = (a[i] + delta) & FULL
-    void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logU) -- a[i] = (a[i] + delta) & FULL; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, pointGet(i) + delta);
+    }
 };

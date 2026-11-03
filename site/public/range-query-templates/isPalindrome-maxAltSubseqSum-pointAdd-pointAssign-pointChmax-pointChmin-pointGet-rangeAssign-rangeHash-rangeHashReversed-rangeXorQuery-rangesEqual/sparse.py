@@ -74,8 +74,10 @@ class SparseLazySegTree:
             pw.append(pw[k] * pw[k] % _HP)
         self._newZero(self.D)
 
-    # O(logN) -- is a[l..r] a palindrome (its two hashes agree)
+    # O(logN) -- is a[l..r] a palindrome (its two hashes agree); needs lo <= l <= r <= hi, else IndexError
     def isPalindrome(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"isPalindrome: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         fh, bh, pw, P, f, b, p = self.fh, self.bh, self.PW, _HP, 0, 0, 1
         for t, s in self._nodes(l, r):
             f = (f * pw[s] + fh[t]) % P
@@ -83,8 +85,11 @@ class SparseLazySegTree:
             p = p * pw[s] % P
         return f == b
 
-    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
+    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
+    # IndexError
     def maxAltSubseqSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"maxAltSubseqSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         a00, a01, a10, a11 = self.a00, self.a01, self.a10, self.a11
         ns = self._nodes(l, r)
         t = ns[0][0]
@@ -93,62 +98,86 @@ class SparseLazySegTree:
             c = _altJoin(c, (a00[t], a01[t], a10[t], a11[t]))
         return max(c[0], c[1])
 
-    # O(logU) -- a[i] += v
+    # O(logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, self._leaf(x) + v)
         self._up(path)
 
-    # O(logU) -- a[i] = v
+    # O(logU) -- a[i] = v; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, v)
         self._up(path)
 
-    # O(logU) -- a[i] = max(a[i], v)
+    # O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, max(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i] = min(a[i], v)
+    # O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU) -- a[i] = v for i in [l, r]
+    # O(logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAssign(self, l, r, v):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._applyAssign(t, s, v))
 
-    # O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
+    # O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
+    # lo <= l <= r <= hi, else IndexError
     def rangeHash(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeHash: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         fh, pw, P, res = self.fh, self.PW, _HP, 0
         for t, s in self._nodes(l, r):
             res = (res * pw[s] + fh[t]) % P
         return res
 
-    # O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
+    # O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs lo <= l <= r <= hi,
+    # else IndexError
     def rangeHashReversed(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeHashReversed: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         bh, pw, P, res, p = self.bh, self.PW, _HP, 0, 1
         for t, s in self._nodes(l, r):  # (each node read backwards goes in front of what came before it)
             res = (bh[t] * p + res) % P
             p = p * pw[s] % P
         return res
 
-    # O(logU) -- a[l] ^ ... ^ a[r]
+    # O(logU) -- a[l] ^ ... ^ a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeXorQuery(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeXorQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         xr, res = self.xr, 0
         for t, _ in self._nodes(l, r):
             res ^= xr[t]
         return res
 
-    # O(logN) -- are a[l1..r1] and a[l2..r2] equal (same length and hash)
+    # O(logN) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
+    # lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi, else IndexError
     def rangesEqual(self, l1, r1, l2, r2):
+        if not (self.first <= l1 <= r1 <= self.last and self.first <= l2 <= r2 <= self.last):
+            raise IndexError(f"rangesEqual: needs lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi, got "
+                             f"l1 = {l1}, r1 = {r1}, l2 = {l2}, r2 = {r2}")
         return r1 - l1 == r2 - l2 and self.rangeHash(l1, r1) == self.rangeHash(l2, r2)
 
     # ---- internals ----

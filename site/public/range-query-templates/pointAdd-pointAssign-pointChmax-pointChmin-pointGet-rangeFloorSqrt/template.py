@@ -34,8 +34,10 @@ class RangeFloorSqrtTree:
         n = self.n = len(arr)
         self.tree = [0] * n + list(arr)
 
-    # O(logN) -- a[i] = floor(sqrt(a[i])) for i in [l, r]
+    # O(logN) -- a[i] = floor(sqrt(a[i])) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeFloorSqrt(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeFloorSqrt: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         tree, n = self.tree, self.n
         l += n
         r += n + 1
@@ -76,8 +78,10 @@ class RangeFloorSqrtTree:
                         tree[c] = u if u < MAX_SQRTS else MAX_SQRTS
                 tree[x] = 0
 
-    # O(logN + loglogU) -- a[i]
+    # O(logN + loglogU) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         tree = self.tree
         p = i + self.n
         v = tree[p]
@@ -114,27 +118,35 @@ class RangeFloorSqrtTree:
                 tree[x] = 0
         return self.tree[self.n:]
 
-    # O(logN + loglogU) -- a[i] = val
+    # O(logN + loglogU) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         self.tree[p] = val
 
-    # O(logN + loglogU) -- a[i] += delta
+    # O(logN + loglogU) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         self.tree[p] += delta
 
-    # O(logN + loglogU) -- a[i] = max(a[i], val)
+    # O(logN + loglogU) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         if val > self.tree[p]:
             self.tree[p] = val
 
-    # O(logN + loglogU) -- a[i] = min(a[i], val)
+    # O(logN + loglogU) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         if val < self.tree[p]:

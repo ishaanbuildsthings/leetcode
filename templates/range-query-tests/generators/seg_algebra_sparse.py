@@ -21,8 +21,8 @@ PY_TAKE = ["_setLeaf", "_leaf", "_pull", "_setAssign", "_applyAssign", "_setAdd"
            "_applyClamp", "_setBits", "_applyBits", "_setXor", "_applyXor", "_push"]
 CPP_TAKE = ["setLeaf", "leaf", "pull", "setAssign", "applyAssign", "setAdd", "applyAdd", "setAP", "applyAP", "setClamp",
             "applyClamp", "setBits", "applyBits", "setXor", "applyXor", "push"]
-FOLD_OPS = ["rangeGcd", "maxPrefixSum", "maxSuffixSum", "maxSubarraySum", "rangeHash", "rangeHashReversed", "isPalindrome",
-            "rangesEqual", "longestEqualRun", "maxAltSubseqSum"]
+FOLD_OPS = ["rangeGcd", "maxPrefixSum", "maxSuffixSum", "minPrefixSum", "minSuffixSum", "maxSubarraySum", "rangeHash",
+            "rangeHashReversed", "isPalindrome", "rangesEqual", "longestEqualRun", "maxAltSubseqSum"]
 
 
 def sparse_cost(dense_cost):

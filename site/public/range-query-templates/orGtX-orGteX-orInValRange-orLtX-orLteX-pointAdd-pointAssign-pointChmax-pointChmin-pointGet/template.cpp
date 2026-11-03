@@ -42,41 +42,74 @@ struct SegOfValueTrees {
         for (int i = 0; i < n; i++) add(i, a[i], 1);
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 
     // O(N) -- the whole array (a copy)
     vector<T> getAll() const { return arr; }
 
-    // O(logN logU) -- a[i] = v
+    // O(logN logU) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         if (v == arr[i]) return;
         add(i, arr[i], -1), add(i, v, 1), arr[i] = v;
     }
 
-    // O(logN logU) -- a[i] += v
-    void pointAdd(int i, T v) { pointAssign(i, arr[i] + v); }
+    // O(logN logU) -- a[i] += v; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, arr[i] + v);
+    }
 
-    // O(logN logU) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { pointAssign(i, max(arr[i], v)); }
+    // O(logN logU) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        pointAssign(i, max(arr[i], v));
+    }
 
-    // O(logN logU) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { pointAssign(i, min(arr[i], v)); }
+    // O(logN logU) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        pointAssign(i, min(arr[i], v));
+    }
 
-    // O(logN logU) -- OR of the values < x in a[l..r]; 0 if there are none
-    T orLtX(int l, int r, T x) const { return orRange(l, r, vlo, (long long)x - 1); }
+    // O(logN logU) -- OR of the values < x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else throws
+    // out_of_range
+    T orLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("orLtX: needs 0 <= l <= r < n");
+        return orRange(l, r, vlo, (long long)x - 1);
+    }
 
-    // O(logN logU) -- OR of the values <= x in a[l..r]; 0 if there are none
-    T orLteX(int l, int r, T x) const { return orRange(l, r, vlo, (long long)x); }
+    // O(logN logU) -- OR of the values <= x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else throws
+    // out_of_range
+    T orLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("orLteX: needs 0 <= l <= r < n");
+        return orRange(l, r, vlo, (long long)x);
+    }
 
-    // O(logN logU) -- OR of the values > x in a[l..r]; 0 if there are none
-    T orGtX(int l, int r, T x) const { return orRange(l, r, (long long)x + 1, vhi); }
+    // O(logN logU) -- OR of the values > x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else throws
+    // out_of_range
+    T orGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("orGtX: needs 0 <= l <= r < n");
+        return orRange(l, r, (long long)x + 1, vhi);
+    }
 
-    // O(logN logU) -- OR of the values >= x in a[l..r]; 0 if there are none
-    T orGteX(int l, int r, T x) const { return orRange(l, r, (long long)x, vhi); }
+    // O(logN logU) -- OR of the values >= x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else throws
+    // out_of_range
+    T orGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("orGteX: needs 0 <= l <= r < n");
+        return orRange(l, r, (long long)x, vhi);
+    }
 
-    // O(logN logU) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none
-    T orInValRange(int l, int r, T lowVal, T highVal) const { return orRange(l, r, (long long)lowVal, (long long)highVal); }
+    // O(logN logU) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none; needs
+    // 0 <= l <= r < n, else throws out_of_range
+    T orInValRange(int l, int r, T lowVal, T highVal) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("orInValRange: needs 0 <= l <= r < n");
+        return orRange(l, r, (long long)lowVal, (long long)highVal);
+    }
 
     // ---- internals ----
 

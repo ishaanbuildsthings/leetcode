@@ -76,8 +76,10 @@ struct LazySegTree {
         return out;
     }
 
-    // O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int leftmostGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostGtX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
@@ -88,8 +90,10 @@ struct LazySegTree {
         return -1;
     }
 
-    // O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int leftmostGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostGteX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
@@ -100,43 +104,49 @@ struct LazySegTree {
         return -1;
     }
 
-    // O(logN * logU) -- a[i] += v
+    // O(logN * logU) -- a[i] += v; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         int p = i + n;
         pushPath(p);
         setLeaf(p, T(leaf(p) + v)), rebuild(p);
     }
 
-    // O(logN * logU) -- a[i] = v
+    // O(logN * logU) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = i + n;
         pushPath(p);
         setLeaf(p, v), rebuild(p);
     }
 
-    // O(logN * logU) -- a[i] = max(a[i], v)
+    // O(logN * logU) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         int p = i + n;
         pushPath(p);
         setLeaf(p, max(leaf(p), v)), rebuild(p);
     }
 
-    // O(logN * logU) -- a[i] = min(a[i], v)
+    // O(logN * logU) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         int p = i + n;
         pushPath(p);
         setLeaf(p, min(leaf(p), v)), rebuild(p);
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int p = i + n;
         pushPath(p);
         return leaf(p);
     }
 
-    // O(logN * logU) -- a[i] += v for i in [l, r]
+    // O(logN * logU) -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAdd(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAdd: needs 0 <= l <= r < n");
         pushPath(l + n), pushPath(r + n);
         for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {
             if (lo & 1) applyAdd(lo, s, v), lo++;
@@ -145,8 +155,9 @@ struct LazySegTree {
         rebuild(l + n), rebuild(r + n);
     }
 
-    // O(logN * logU) -- a[i] = v for i in [l, r]
+    // O(logN * logU) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
         pushPath(l + n), pushPath(r + n);
         for (int lo = l + n, hi = r + n + 1, s = 0; lo < hi; lo >>= 1, hi >>= 1, s++) {
             if (lo & 1) applyAssign(lo, s, v), lo++;
@@ -155,16 +166,18 @@ struct LazySegTree {
         rebuild(l + n), rebuild(r + n);
     }
 
-    // O(logN + logU) -- gcd of |a[l]|, ..., |a[r]|
+    // O(logN + logU) -- gcd of |a[l]|, ..., |a[r]|; needs 0 <= l <= r < n, else throws out_of_range
     T rangeGcd(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeGcd: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         T res = gcd(fv[ns[0]], g[ns[0]]), last = lv[ns[0]];  // the first value, then every adjacent difference
         for (int i = 1; i < c; i++) res = gcd(gcd(res, T(fv[ns[i]] - last)), g[ns[i]]), last = lv[ns[i]];
         return res;
     }
 
-    // O(logN) -- max of a[l..r]
+    // O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMax(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
         pushPath(l + n), pushPath(r + n);
         T res = numeric_limits<T>::lowest();
         for (int lo = l + n, hi = r + n + 1; lo < hi; lo >>= 1, hi >>= 1) {
@@ -174,8 +187,9 @@ struct LazySegTree {
         return res;
     }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
     S rangeSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
         pushPath(l + n), pushPath(r + n);
         S res = S(0);
         for (int lo = l + n, hi = r + n + 1; lo < hi; lo >>= 1, hi >>= 1) {
@@ -185,8 +199,10 @@ struct LazySegTree {
         return res;
     }
 
-    // O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int rightmostGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostGtX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
@@ -197,8 +213,10 @@ struct LazySegTree {
         return -1;
     }
 
-    // O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int rightmostGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostGteX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];

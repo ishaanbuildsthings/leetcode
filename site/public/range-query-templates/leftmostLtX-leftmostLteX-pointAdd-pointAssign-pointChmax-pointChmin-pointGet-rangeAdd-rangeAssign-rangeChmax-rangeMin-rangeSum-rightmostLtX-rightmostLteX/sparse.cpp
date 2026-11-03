@@ -163,56 +163,94 @@ struct SparseChminChmaxBeats {
         return min(qmin(Lc[i], tl, tm, ql, qr), qmin(Rc[i], tm + 1, tr, ql, qr));
     }
 
-    // amortized O(log^2 U) -- a[i] = max(a[i], x) for i in [l, r]
-    void rangeChmax(long long l, long long r, T x) { if (l <= r) chmax(root, lo, hi, l, r, x); }
+    // amortized O(log^2 U) -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    void rangeChmax(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeChmax: needs lo <= l <= r <= hi");
+        if (l <= r) chmax(root, lo, hi, l, r, x);
+    }
 
-    // amortized O(log^2 U) -- a[i] += x for i in [l, r]
-    void rangeAdd(long long l, long long r, T x) { if (l <= r) add(root, lo, hi, l, r, x); }
+    // amortized O(log^2 U) -- a[i] += x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    void rangeAdd(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAdd: needs lo <= l <= r <= hi");
+        if (l <= r) add(root, lo, hi, l, r, x);
+    }
 
-    // amortized O(log^2 U) -- a[i] = x for i in [l, r]
-    void rangeAssign(long long l, long long r, T x) { if (l <= r) assign(root, lo, hi, l, r, x); }
+    // amortized O(log^2 U) -- a[i] = x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    void rangeAssign(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAssign: needs lo <= l <= r <= hi");
+        if (l <= r) assign(root, lo, hi, l, r, x);
+    }
 
-    // O(logU) -- a[l] + ... + a[r]
-    S rangeSum(long long l, long long r) { return l > r ? S(0) : qsum(root, lo, hi, l, r); }
+    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    S rangeSum(long long l, long long r) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
+        return l > r ? S(0) : qsum(root, lo, hi, l, r);
+    }
 
-    // O(logU) -- min of a[l..r]
-    T rangeMin(long long l, long long r) { return l > r ? POS_INF : qmin(root, lo, hi, l, r); }
+    // O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeMin(long long l, long long r) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
+        return l > r ? POS_INF : qmin(root, lo, hi, l, r);
+    }
 
-    // O(logU) -- a[i]
-    T pointGet(long long i) { return rangeMin(i, i); }
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return rangeMin(i, i);
+    }
 
-    // amortized O(log^2 U) -- a[i] = v
-    void pointAssign(long long i, T v) { rangeAssign(i, i, v); }
+    // amortized O(log^2 U) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
+        rangeAssign(i, i, v);
+    }
 
-    // amortized O(log^2 U) -- a[i] += v
-    void pointAdd(long long i, T v) { rangeAdd(i, i, v); }
+    // amortized O(log^2 U) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        rangeAdd(i, i, v);
+    }
 
-    // amortized O(log^2 U) -- a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { rangeChmax(i, i, v); }
+    // amortized O(log^2 U) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        rangeChmax(i, i, v);
+    }
 
-    // amortized O(log^2 U) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { if (v < pointGet(i)) rangeAssign(i, i, v); }
+    // amortized O(log^2 U) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        if (v < pointGet(i)) rangeAssign(i, i, v);
+    }
 
-    // O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min)
+    // O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostLtX(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("leftmostLtX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return mn[i] < x; });
         return res == NONE ? lo - 1 : res;
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min)
+    // O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostLteX(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("leftmostLteX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return mn[i] <= x; });
         return res == NONE ? lo - 1 : res;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min)
+    // O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostLtX(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rightmostLtX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return mn[i] < x; });
         return res == NONE ? lo - 1 : res;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min)
+    // O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostLteX(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rightmostLteX: needs lo <= l <= r <= hi");
         long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return mn[i] <= x; });
         return res == NONE ? lo - 1 : res;
     }

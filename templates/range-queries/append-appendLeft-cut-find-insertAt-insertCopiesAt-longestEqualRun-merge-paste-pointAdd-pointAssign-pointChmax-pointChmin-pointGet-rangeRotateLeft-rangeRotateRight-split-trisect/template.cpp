@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/append-appendLeft-cut-find-insertAt-insertCopiesAt-longestEqualRun-merge-paste-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeRotateLeft-rangeRotateRight-split-trisect/template.cpp
 // @operations: append appendLeft cut find getAll insertAt insertCopiesAt longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeRotateLeft rangeRotateRight split trisect
 // @data-structure-type: treap
+// @letters: same
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected

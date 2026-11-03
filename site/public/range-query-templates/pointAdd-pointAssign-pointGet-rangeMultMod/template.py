@@ -29,8 +29,10 @@ class RangeMultModTree:
         n = self.n = len(arr)
         self.tree = [1] * n + [v % mod for v in arr]
 
-    # O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]
+    # O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeMultMod(self, l, r, m):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMultMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         tree, mod = self.tree, self.mod
         m %= mod
         l += self.n
@@ -57,8 +59,10 @@ class RangeMultModTree:
                 tree[y | 1] = tree[y | 1] * t % mod
                 tree[x] = 1
 
-    # O(logN) -- a[i], in [0, mod)
+    # O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         tree, mod = self.tree, self.mod
         p = i + self.n
         a = tree[p]
@@ -82,14 +86,18 @@ class RangeMultModTree:
                 tree[x] = 1
         return self.tree[self.n:]
 
-    # O(logN) -- a[i] = val
+    # O(logN) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         self.tree[p] = val % self.mod
 
-    # O(logN) -- a[i] += delta
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         self.tree[p] = (self.tree[p] + delta) % self.mod

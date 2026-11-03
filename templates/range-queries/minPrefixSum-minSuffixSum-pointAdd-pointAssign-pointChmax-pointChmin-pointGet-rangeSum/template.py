@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/minPrefixSum-minSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum/template.py
 # @operations: getAll minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
 # @data-structure-type: seg-tree
+# @letters: same
 # @complexities:
 #   getAll: N
 #   minPrefixSum: log(N)

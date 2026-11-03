@@ -60,27 +60,43 @@ struct MaxSubarrayTree {
         return merge(left, right);
     }
 
-    // O(logN) -- max over l <= i <= j <= r of a[i] + ... + a[j]
-    S maxSubarraySum(int l, int r) const { return query(l, r).best; }
+    // O(logN) -- max over l <= i <= j <= r of a[i] + ... + a[j]; needs 0 <= l <= r < n, else throws out_of_range
+    S maxSubarraySum(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("maxSubarraySum: needs 0 <= l <= r < n");
+        return query(l, r).best;
+    }
 
-    // O(logN) -- max over l <= i <= r of a[l] + ... + a[i]
-    S maxPrefixSum(int l, int r) const { return query(l, r).pre; }
+    // O(logN) -- max over l <= i <= r of a[l] + ... + a[i]; needs 0 <= l <= r < n, else throws out_of_range
+    S maxPrefixSum(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("maxPrefixSum: needs 0 <= l <= r < n");
+        return query(l, r).pre;
+    }
 
-    // O(logN) -- max over l <= i <= r of a[i] + ... + a[r]
-    S maxSuffixSum(int l, int r) const { return query(l, r).suf; }
+    // O(logN) -- max over l <= i <= r of a[i] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
+    S maxSuffixSum(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("maxSuffixSum: needs 0 <= l <= r < n");
+        return query(l, r).suf;
+    }
 
-    // O(logN) -- a[l] + ... + a[r]
-    S rangeSum(int l, int r) const { return l <= r ? query(l, r).sm : S(0); }
+    // O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
+    S rangeSum(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
+        return l <= r ? query(l, r).sm : S(0);
+    }
 
-    // O(logN) -- a[i] = v
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = i + n;
         t[p] = leaf(v);
         for (p >>= 1; p; p >>= 1) t[p] = merge(t[2 * p], t[2 * p + 1]);
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return T(t[i + n].sm); }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return T(t[i + n].sm);
+    }
 
     // O(N) -- the whole array (a copy of the leaves)
     vector<T> getAll() const {
@@ -89,12 +105,21 @@ struct MaxSubarrayTree {
         return out;
     }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

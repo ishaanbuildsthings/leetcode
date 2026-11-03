@@ -67,14 +67,19 @@ struct XorEven {
     // O(logN) -- xor of tags over a[l..r]
     unsigned long long rangeXor(int l, int r) const { return prefix(r) ^ (l ? prefix(l - 1) : 0ULL); }
 
-    // O(logN) -- true iff every value in a[l..r] appears an even number of times
-    bool doAllElementsAppearEvenFrequency(int l, int r) const { return rangeXor(l, r) == 0; }
+    // O(logN) -- true iff every value in a[l..r] appears an even number of times; needs 0 <= l <= r < n, else throws
+    // out_of_range
+    bool doAllElementsAppearEvenFrequency(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("doAllElementsAppearEvenFrequency: needs 0 <= l <= r < n");
+        return rangeXor(l, r) == 0;
+    }
 
     // O(logN) -- true iff exactly one value appears an odd number of times in a[l..r], and it is v
     bool oneOdd(int l, int r, const T& v) const { return rangeXor(l, r) == tagOf(v); }
 
-    // O(logN) -- a[i] = v
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         vals[i] = v;
         unsigned long long t = tagOf(v), d = a[i] ^ t;
         if (!d) return;
@@ -82,18 +87,30 @@ struct XorEven {
         for (int p = i + 1; p <= n; p += p & -p) bit[p] ^= d;
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return vals[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return vals[i];
+    }
 
     // O(N) -- the whole array (a copy)
     vector<T> getAll() const { return vals; }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, const T& v) { if (v > vals[i]) pointAssign(i, v); }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > vals[i]) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, const T& v) { if (v < vals[i]) pointAssign(i, v); }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < vals[i]) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, const T& delta) { pointAssign(i, vals[i] + delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, const T& delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, vals[i] + delta);
+    }
 };

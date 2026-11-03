@@ -73,20 +73,28 @@ class MaxPrefixSuffixSumTree:
             return right
         return self._merge(left, right)
 
-    # O(logN) -- max over l <= i <= r of a[l] + ... + a[i]
+    # O(logN) -- max over l <= i <= r of a[l] + ... + a[i]; needs 0 <= l <= r < n, else IndexError
     def maxPrefixSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"maxPrefixSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._query(l, r)[1]
 
-    # O(logN) -- max over l <= i <= r of a[i] + ... + a[r]
+    # O(logN) -- max over l <= i <= r of a[i] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def maxSuffixSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"maxSuffixSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._query(l, r)[2]
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._query(l, r)[0] if l <= r else 0
 
-    # O(logN) -- a[i] = val
+    # O(logN) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self.sm[p] = self.pre[p] = self.suf[p] = val
         p >>= 1
@@ -94,24 +102,32 @@ class MaxPrefixSuffixSumTree:
             self._pull(p)
             p >>= 1
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.sm[i + self.n]
 
     # O(N) -- the whole array (a copy of the leaves)
     def getAll(self):
         return self.sm[self.n:]
 
-    # O(logN) -- a[i] += delta
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.sm[i + self.n] + delta)
 
-    # O(logN) -- a[i] = max(a[i], val)
+    # O(logN) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.sm[i + self.n]:
             self.pointAssign(i, val)
 
-    # O(logN) -- a[i] = min(a[i], val)
+    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.sm[i + self.n]:
             self.pointAssign(i, val)

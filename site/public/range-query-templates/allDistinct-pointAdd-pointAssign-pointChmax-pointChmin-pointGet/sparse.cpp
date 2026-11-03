@@ -98,14 +98,16 @@ struct SparseDistinctTree {
         return res;
     }
 
-    // O(logU) -- true iff no value repeats inside a[l..r]
+    // O(logU) -- true iff no value repeats inside a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     bool allDistinct(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("allDistinct: needs lo <= l <= r <= hi");
         auto [mn, c] = query(root, lo, hi, l, r);
         return (r - l + 1) - c < 2 && mn > r;
     }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         T old = pointGet(i);
         if (old == v) return;
         if (old != T(0)) {
@@ -132,15 +134,27 @@ struct SparseDistinctTree {
         }
     }
 
-    // a[i]
-    T pointGet(long long i) const { return valueAt(i); }
+    // a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return valueAt(i);
+    }
 
-    // a[i] += delta
-    void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

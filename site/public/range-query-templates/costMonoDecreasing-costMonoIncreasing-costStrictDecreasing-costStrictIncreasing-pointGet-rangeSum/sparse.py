@@ -136,27 +136,39 @@ class SparseMonoCosts:
             self.views[key] = _PieceCost(*_pieces(lo, hi, pts, c))
         return self.views[key]
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logN) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self.pf[bisect_right(self.idx, r)] - self.pf[bisect_left(self.idx, l)] if l <= r else 0
 
-    # O(logN) -- min +1 increments to make a[l..r] non-decreasing
+    # O(logN) -- min +1 increments to make a[l..r] non-decreasing; needs lo <= l <= r <= hi, else IndexError
     def costMonoIncreasing(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"costMonoIncreasing: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._view(False, 0).cost(l, r)
 
-    # O(logN) -- min +1 increments to make a[l..r] non-increasing
+    # O(logN) -- min +1 increments to make a[l..r] non-increasing; needs lo <= l <= r <= hi, else IndexError
     def costMonoDecreasing(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"costMonoDecreasing: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._view(True, 0).cost(self.lo + self.hi - r, self.lo + self.hi - l)
 
-    # O(logN) -- min +1 increments to make a[l..r] strictly increasing
+    # O(logN) -- min +1 increments to make a[l..r] strictly increasing; needs lo <= l <= r <= hi, else IndexError
     def costStrictIncreasing(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"costStrictIncreasing: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._view(False, -1).cost(l, r)
 
-    # O(logN) -- min +1 increments to make a[l..r] strictly decreasing
+    # O(logN) -- min +1 increments to make a[l..r] strictly decreasing; needs lo <= l <= r <= hi, else IndexError
     def costStrictDecreasing(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"costStrictDecreasing: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._view(True, -1).cost(self.lo + self.hi - r, self.lo + self.hi - l)
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         k = bisect_left(self.idx, i)
         return self.vals[k] if k < len(self.idx) and self.idx[k] == i else 0

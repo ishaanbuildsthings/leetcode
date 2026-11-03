@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-pre-suf-best-nsuf/template.cpp
 // @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSubarraySum maxSuffixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
 // @data-structure-type: seg-tree
+// @letters: same
 // @complexities:
 //   getAll: N
 //   leftmostPrefixSumGtX: log(N)

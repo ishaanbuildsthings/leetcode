@@ -49,12 +49,16 @@ class SparseDynamicOrderStats:
         self.root = {}  # BIT node -> its value tree (missing: empty)
         self.L, self.R, self.C = [0], [0], [0]  # node 0 = the empty tree
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self.vals.get(i, 0)
 
-    # O(logN logU) -- a[i] = v
+    # O(logN logU) -- a[i] = v; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, v):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         old = self.vals.get(i, 0)
         if v != old:
             if old:
@@ -65,75 +69,108 @@ class SparseDynamicOrderStats:
             else:
                 self.vals.pop(i, None)
 
-    # O(logN logU) -- a[i] += v
+    # O(logN logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + v)
 
-    # O(logN logU) -- a[i] = max(a[i], v)
+    # O(logN logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, v):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, max(self.pointGet(i), v))
 
-    # O(logN logU) -- a[i] = min(a[i], v)
+    # O(logN logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, v):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, min(self.pointGet(i), v))
 
-    # O(logN) -- # of i in [l, r] with a[i] == x
+    # O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else IndexError
     def countOccurrences(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"countOccurrences: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self.countInValRange(l, r, x, x)
 
-    # O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal
+    # O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else IndexError
     def countInValRange(self, l, r, lowVal, highVal):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"countInValRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if lowVal > highVal:
             return 0
         return self._countBelow(l, r, highVal + 1) - self._countBelow(l, r, lowVal)
 
-    # O(logN) -- # of values < x in a[l..r]
+    # O(logN) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def countLtX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"countLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._countBelow(l, r, x)
 
-    # O(logN) -- # of values <= x in a[l..r]
+    # O(logN) -- # of values <= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def countLteX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"countLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._countBelow(l, r, x + 1)
 
-    # O(logN) -- # of values > x in a[l..r]
+    # O(logN) -- # of values > x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def countGtX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"countGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return r - l + 1 - self._countBelow(l, r, x + 1)
 
-    # O(logN) -- # of values >= x in a[l..r]
+    # O(logN) -- # of values >= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def countGteX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"countGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return r - l + 1 - self._countBelow(l, r, x)
 
-    # O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError
+    # O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
+    # else IndexError
     def kthSmallest(self, l, r, k):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"kthSmallest: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if not 1 <= k <= r - l + 1:
             raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._kth(l, r, k)
 
-    # O(logN) -- min of a[l..r]
+    # O(logN) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._kth(l, r, 1)
 
-    # O(logN) -- max of a[l..r]
+    # O(logN) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._kth(l, r, r - l + 1)
 
-    # O(logN) -- smallest value >= x in a[l..r], or None
+    # O(logN) -- smallest value >= x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
     def smallestGteX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"smallestGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         c = self._countBelow(l, r, x)
         return None if c == r - l + 1 else self._kth(l, r, c + 1)
 
-    # O(logN) -- smallest value > x in a[l..r], or None
+    # O(logN) -- smallest value > x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
     def smallestGtX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"smallestGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         c = self._countBelow(l, r, x + 1)
         return None if c == r - l + 1 else self._kth(l, r, c + 1)
 
-    # O(logN) -- largest value <= x in a[l..r], or None
+    # O(logN) -- largest value <= x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
     def largestLteX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"largestLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         c = self._countBelow(l, r, x + 1)
         return None if c == 0 else self._kth(l, r, c)
 
-    # O(logN) -- largest value < x in a[l..r], or None
+    # O(logN) -- largest value < x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
     def largestLtX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"largestLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         c = self._countBelow(l, r, x)
         return None if c == 0 else self._kth(l, r, c)
 

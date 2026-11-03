@@ -32,8 +32,10 @@ class SparseGcd:
                 if rightEdge < self.n:
                     val = gcd(val, self.sparse[power - 1][rightEdge])
                 self.sparse[power][left] = val
-    # O(logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)
+    # O(logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0); needs 0 <= l <= r < n, else IndexError
     def rangeGcd(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         width = r - l + 1
         maxPow = width.bit_length() - 1
         powWidth = 1 << maxPow
@@ -42,6 +44,8 @@ class SparseGcd:
             self.sparse[maxPow][l + width - powWidth]
         )
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.sparse[0][i]

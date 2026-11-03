@@ -76,8 +76,9 @@ struct ShrinkSegTree {
         return -1;
     }
 
-    // O(logN) -- a[i] += v
+    // O(logN) -- a[i] += v; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         int p = i + n;
         setLeaf(p, T(leaf(p) + v)), rebuild(p);
     }
@@ -110,13 +111,17 @@ struct ShrinkSegTree {
         return leaf(p);
     }
 
-    // amortized O(logN * logU) -- a[i] //= x for i in [l, r] (values >= 0; x >= 2, x = 1 does nothing)
+    // amortized O(logN * logU) -- a[i] //= x for i in [l, r] (values >= 0; x >= 2, x = 1 does nothing); needs
+    // 0 <= l <= r < n, else throws out_of_range
     void rangeFloorDiv(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeFloorDiv: needs 0 <= l <= r < n");
         if (x >= 2) shrinkRange(l, r, T(1), [x](T v) { return T(v / x); });
     }
 
-    // amortized O(logN * loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0)
+    // amortized O(logN * loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0); needs 0 <= l <= r < n,
+    // else throws out_of_range
     void rangeFloorSqrt(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeFloorSqrt: needs 0 <= l <= r < n");
         shrinkRange(l, r, T(2), isqrtT);
     }
 
@@ -131,8 +136,10 @@ struct ShrinkSegTree {
         return res;
     }
 
-    // amortized O(logN * logU) -- a[i] %= x for i in [l, r] (values >= 0, x >= 1)
+    // amortized O(logN * logU) -- a[i] %= x for i in [l, r] (values >= 0, x >= 1); needs 0 <= l <= r < n, else throws
+    // out_of_range
     void rangeMod(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMod: needs 0 <= l <= r < n");
         if (x >= 1) shrinkRange(l, r, x, [x](T v) { return T(v % x); });
     }
 

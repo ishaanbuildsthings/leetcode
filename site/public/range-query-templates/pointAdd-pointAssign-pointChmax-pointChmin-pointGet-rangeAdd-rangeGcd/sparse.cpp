@@ -95,32 +95,50 @@ struct SparseRangeAddRangeGcd {
         return res;
     }
 
-    // O(logU logV) -- adds x to every a[l..r], x may be negative
+    // O(logU logV) -- adds x to every a[l..r], x may be negative; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAdd(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAdd: needs lo <= l <= r <= hi");
         if (l > r) return;
         shiftDiff(l, x);
         if (r < hi) shiftDiff(r + 1, -x);
     }
 
-    // O(logU) -- a[i]
-    T pointGet(long long i) const { return prefix(i); }
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return prefix(i);
+    }
 
-    // O(logU + logV) -- gcd of a[l..r], always >= 0 (0 only if every value in the range is 0)
+    // O(logU + logV) -- gcd of a[l..r], always >= 0 (0 only if every value in the range is 0); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     T rangeGcd(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         T res = absT(prefix(l));
         if (l < r) res = std::gcd(res, gcdOf(root, lo, hi, l + 1, r));
         return res;
     }
 
-    // O(logU logV) -- a[i] += delta
-    void pointAdd(long long i, T delta) { rangeAdd(i, i, delta); }
+    // O(logU logV) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        rangeAdd(i, i, delta);
+    }
 
-    // O(logU logV) -- a[i] = v
-    void pointAssign(long long i, T v) { rangeAdd(i, i, v - prefix(i)); }
+    // O(logU logV) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
+        rangeAdd(i, i, v - prefix(i));
+    }
 
-    // O(logU logV) -- a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { T cur = prefix(i); if (v > cur) rangeAdd(i, i, v - cur); }
+    // O(logU logV) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        T cur = prefix(i); if (v > cur) rangeAdd(i, i, v - cur);
+    }
 
-    // O(logU logV) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { T cur = prefix(i); if (v < cur) rangeAdd(i, i, v - cur); }
+    // O(logU logV) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        T cur = prefix(i); if (v < cur) rangeAdd(i, i, v - cur);
+    }
 };

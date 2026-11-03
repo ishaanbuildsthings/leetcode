@@ -65,20 +65,26 @@ class RangeAddSumBITMod:
             i &= i - 1
         return (s1 % self.mod * (x + 1) - s2) % self.mod
 
-    # O(logN) -- a[i] += v (% MOD) for i in [l, r]
+    # O(logN) -- a[i] += v (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAddMod(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAddMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return
         self._addDiff(l, v)
         if r + 1 < self.n:
             self._addDiff(r + 1, -v)
 
-    # O(logN) -- (a[l] + ... + a[r]) % MOD
+    # O(logN) -- (a[l] + ... + a[r]) % MOD; needs 0 <= l <= r < n, else IndexError
     def rangeSumMod(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSumMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return (self._prefix(r) - self._prefix(l - 1)) % self.mod if l <= r else 0
 
-    # O(logN) -- a[i], in [0, mod)
+    # O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.rangeSumMod(i, i)
 
     # O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
@@ -101,10 +107,14 @@ class RangeAddSumBITMod:
             prev = p
         return out
 
-    # O(logN) -- a[i] += delta (% MOD)
+    # O(logN) -- a[i] += delta (% MOD); needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAddMod(i, i, delta)
 
-    # O(logN) -- a[i] = val (% MOD)
+    # O(logN) -- a[i] = val (% MOD); needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAddMod(i, i, val - self.pointGet(i))

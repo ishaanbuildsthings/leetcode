@@ -107,23 +107,31 @@ class SparseMultSumTree:
             return self._query(self.R[x], m + 1, b, l, r, d)
         return self._merge(self._query(self.L[x], a, m, l, r, d), self._query(self.R[x], m + 1, b, l, r, d))
 
-    # O(logU) -- a[i] = a[i] * m (% MOD) for i in [l, r]
+    # O(logU) -- a[i] = a[i] * m (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMultMod(self, l, r, m):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMultMod: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, m % self.mod)
 
-    # O(logU) -- (a[l] + ... + a[r]) % MOD
+    # O(logU) -- (a[l] + ... + a[r]) % MOD; needs lo <= l <= r <= hi, else IndexError
     def rangeSumMod(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeSumMod: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(1, self.lo, self.hi, l, r, None)
         return res
 
-    # O(logU) -- a[i], in [0, mod)
+    # O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         res = self._query(1, self.lo, self.hi, i, i, None)
         return res
 
-    # O(logU) -- a[i] = val (% MOD)
+    # O(logU) -- a[i] = val (% MOD); needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         path = []
         x, a, b = 1, self.lo, self.hi
         while a < b:
@@ -138,6 +146,8 @@ class SparseMultSumTree:
         for y in reversed(path):
             self._pull(y)
 
-    # O(logU) -- a[i] += delta (% MOD)
+    # O(logU) -- a[i] += delta (% MOD); needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)

@@ -49,8 +49,9 @@ struct RangeFloorSqrtTree {
         else tree[x] = min(tree[x] + k, MAX_SQRTS);
     }
 
-    // O(logN) -- a[i] = floor(sqrt(a[i])) for i in [l, r]
+    // O(logN) -- a[i] = floor(sqrt(a[i])) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeFloorSqrt(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeFloorSqrt: needs 0 <= l <= r < n");
         for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
             if (l & 1) apply(l++, 1);
             if (r & 1) apply(--r, 1);
@@ -65,8 +66,9 @@ struct RangeFloorSqrtTree {
         }
     }
 
-    // O(logN + loglogU) -- a[i]
+    // O(logN + loglogU) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int p = i + n;
         T k = 0;
         for (int x = p >> 1; x; x >>= 1) k += tree[x];
@@ -82,15 +84,27 @@ struct RangeFloorSqrtTree {
         return vector<T>(tree.begin() + n, tree.end());
     }
 
-    // O(logN + loglogU) -- a[i] = v
-    void pointAssign(int i, T v) { push(i + n); tree[i + n] = v; }
+    // O(logN + loglogU) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        push(i + n); tree[i + n] = v;
+    }
 
-    // O(logN + loglogU) -- a[i] += delta
-    void pointAdd(int i, T delta) { push(i + n); tree[i + n] += delta; }
+    // O(logN + loglogU) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        push(i + n); tree[i + n] += delta;
+    }
 
-    // O(logN + loglogU) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { push(i + n); if (v > tree[i + n]) tree[i + n] = v; }
+    // O(logN + loglogU) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        push(i + n); if (v > tree[i + n]) tree[i + n] = v;
+    }
 
-    // O(logN + loglogU) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { push(i + n); if (v < tree[i + n]) tree[i + n] = v; }
+    // O(logN + loglogU) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        push(i + n); if (v < tree[i + n]) tree[i + n] = v;
+    }
 };

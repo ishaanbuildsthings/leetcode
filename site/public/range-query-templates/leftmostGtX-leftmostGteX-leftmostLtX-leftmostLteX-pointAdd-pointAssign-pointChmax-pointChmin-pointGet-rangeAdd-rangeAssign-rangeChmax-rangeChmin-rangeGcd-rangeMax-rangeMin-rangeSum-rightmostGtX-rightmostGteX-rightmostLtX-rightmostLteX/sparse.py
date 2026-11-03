@@ -260,8 +260,10 @@ class SparseBeatsGcd:
         self._chmin(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(log^2 U logU) -- a[i] = min(a[i], x) for i in [l, r]
+    # O(log^2 U logU) -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeChmin(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeChmin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r: self._chmin(1, self.lo, self.hi, l, r, x)
 
     def _chmax(self, i, tl, tr, ql, qr, x):
@@ -275,8 +277,10 @@ class SparseBeatsGcd:
         self._chmax(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(log^2 U logU) -- a[i] = max(a[i], x) for i in [l, r]
+    # O(log^2 U logU) -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeChmax(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeChmax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r: self._chmax(1, self.lo, self.hi, l, r, x)
 
     def _add(self, i, tl, tr, ql, qr, v):
@@ -290,8 +294,10 @@ class SparseBeatsGcd:
         self._add(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(log^2 U logU) -- a[i] += v for i in [l, r]
+    # O(log^2 U logU) -- a[i] += v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAdd(self, l, r, v):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAdd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r: self._add(1, self.lo, self.hi, l, r, v)
 
     def _assign(self, i, tl, tr, ql, qr, v):
@@ -305,12 +311,16 @@ class SparseBeatsGcd:
         self._assign(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(log^2 U logU) -- a[i] = v for i in [l, r]
+    # O(log^2 U logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAssign(self, l, r, v):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r: self._assign(1, self.lo, self.hi, l, r, v)
 
-    # O(log^2 U logU) -- a[p] = v
+    # O(log^2 U logU) -- a[p] = v; needs lo <= p <= hi, else IndexError
     def pointAssign(self, p, v):
+        if not self.lo <= p <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= p <= hi, got p = {p}")
         self.rangeAssign(p, p, v)
 
     def _sum(self, i, tl, tr, ql, qr):
@@ -321,8 +331,10 @@ class SparseBeatsGcd:
         tm = (tl + tr) // 2
         return self._sum(self.L[i], tl, tm, ql, qr) + self._sum(self.R[i], tm + 1, tr, ql, qr)
 
-    # O(logU) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return 0 if (l > r) else self._sum(1, self.lo, self.hi, l, r)
 
     def _qmax(self, i, tl, tr, ql, qr):
@@ -335,8 +347,10 @@ class SparseBeatsGcd:
         b = self._qmax(self.R[i], tm + 1, tr, ql, qr)
         return a if a > b else b
 
-    # O(logU) -- max of a[l..r]
+    # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return NEG_INF if (l > r) else self._qmax(1, self.lo, self.hi, l, r)
 
     def _qmin(self, i, tl, tr, ql, qr):
@@ -349,12 +363,16 @@ class SparseBeatsGcd:
         b = self._qmin(self.R[i], tm + 1, tr, ql, qr)
         return a if a < b else b
 
-    # O(logU) -- min of a[l..r]
+    # O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return POS_INF if (l > r) else self._qmin(1, self.lo, self.hi, l, r)
 
-    # O(logU) -- a[p]
+    # O(logU) -- a[p]; needs lo <= p <= hi, else IndexError
     def pointGet(self, p):
+        if not self.lo <= p <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= p <= hi, got p = {p}")
         return self.rangeMax(p, p)
 
     def _nodeGcd(self, i):
@@ -371,66 +389,98 @@ class SparseBeatsGcd:
         tm = (tl + tr) // 2
         return gcd(self._qgcd(self.L[i], tl, tm, ql, qr), self._qgcd(self.R[i], tm + 1, tr, ql, qr))
 
-    # O(logU logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)
+    # O(logU logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0); needs lo <= l <= r <= hi, else IndexError
     def rangeGcd(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeGcd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return 0 if (l > r) else self._qgcd(1, self.lo, self.hi, l, r)
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         self.rangeChmax(i, i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         self.rangeChmin(i, i, val)
 
-    # a[i] += delta
+    # a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.rangeAdd(i, i, delta)
 
-    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostGtX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"leftmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F = self.mx
         res = self._firstPass(1, self.lo, self.hi, l, r, lambda i: F[i] > x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostGteX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"leftmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F = self.mx
         res = self._firstPass(1, self.lo, self.hi, l, r, lambda i: F[i] >= x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostLtX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"leftmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F = self.mn
         res = self._firstPass(1, self.lo, self.hi, l, r, lambda i: F[i] < x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostLteX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"leftmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F = self.mn
         res = self._firstPass(1, self.lo, self.hi, l, r, lambda i: F[i] <= x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostGtX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rightmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F = self.mx
         res = self._lastPass(1, self.lo, self.hi, l, r, lambda i: F[i] > x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostGteX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rightmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F = self.mx
         res = self._lastPass(1, self.lo, self.hi, l, r, lambda i: F[i] >= x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostLtX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rightmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F = self.mn
         res = self._lastPass(1, self.lo, self.hi, l, r, lambda i: F[i] < x) if l <= r else None
         return self.lo - 1 if res is None else res
 
-    # O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostLteX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rightmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F = self.mn
         res = self._lastPass(1, self.lo, self.hi, l, r, lambda i: F[i] <= x) if l <= r else None
         return self.lo - 1 if res is None else res

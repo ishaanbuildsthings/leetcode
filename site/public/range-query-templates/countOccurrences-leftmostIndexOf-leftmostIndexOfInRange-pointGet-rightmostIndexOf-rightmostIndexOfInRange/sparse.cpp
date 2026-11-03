@@ -39,8 +39,9 @@ struct SparseStaticOccurrences {
         return (long long)(upper_bound(p.begin(), p.end(), r) - lower_bound(p.begin(), p.end(), l));
     }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x
+    // O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else throws out_of_range
     long long countOccurrences(long long l, long long r, const T& x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countOccurrences: needs lo <= l <= r <= hi");
         if (l > r) return 0;
         auto it = pos.find(x);
         long long res = it == pos.end() ? 0 : countIn(it->second, l, r);
@@ -54,8 +55,10 @@ struct SparseStaticOccurrences {
     // O(logN) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
     long long rightmostIndexOf(const T& x) const { return rightmostIndexOfInRange(lo, hi, x); }
 
-    // O(logN) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    // O(logN) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     long long leftmostIndexOfInRange(long long l, long long r, const T& x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("leftmostIndexOfInRange: needs lo <= l <= r <= hi");
         long long best = r + 1;
         auto it = pos.find(x);
         if (it != pos.end()) {
@@ -66,8 +69,10 @@ struct SparseStaticOccurrences {
         return best <= r ? best : lo - 1;
     }
 
-    // O(logN) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    // O(logN) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     long long rightmostIndexOfInRange(long long l, long long r, const T& x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rightmostIndexOfInRange: needs lo <= l <= r <= hi");
         long long best = l - 1;
         auto it = pos.find(x);
         if (it != pos.end()) {
@@ -102,8 +107,9 @@ struct SparseStaticOccurrences {
         return i - (k - a) - 1;
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }

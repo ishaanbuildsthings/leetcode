@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAddArithSeq-rangeAssign-rangeSum/template.cpp
 // @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAddArithSeq rangeAssign rangeSum
 // @data-structure-type: lazy-seg-tree
+// @letters: same
 // @complexities:
 //   getAll: N
 //   pointAdd: log(N)

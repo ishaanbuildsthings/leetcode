@@ -32,8 +32,9 @@ struct RangeMultModTree {
         for (int i = 0; i < n; i++) tree[n + i] = T((a[i] % mod + mod) % mod);
     }
 
-    // O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]
+    // O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeMultMod(int l, int r, T m) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMultMod: needs 0 <= l <= r < n");
         m = T((m % mod + mod) % mod);
         for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
             if (l & 1) { tree[l] = T(W(tree[l]) * m % mod); l++; }
@@ -54,8 +55,9 @@ struct RangeMultModTree {
         }
     }
 
-    // O(logN) -- a[i], in [0, mod)
+    // O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int p = i + n;
         T a = tree[p];
         for (p >>= 1; p; p >>= 1) a = T(W(a) * tree[p] % mod);
@@ -76,16 +78,18 @@ struct RangeMultModTree {
         return vector<T>(tree.begin() + n, tree.end());
     }
 
-    // O(logN) -- a[i] = val
+    // O(logN) -- a[i] = val; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T val) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         val = T((val % mod + mod) % mod);
         int p = i + n;
         push(p);
         tree[p] = val;
     }
 
-    // O(logN) -- a[i] += delta
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         int p = i + n;
         push(p);
         tree[p] = T(((W(tree[p]) + delta) % mod + mod) % mod);

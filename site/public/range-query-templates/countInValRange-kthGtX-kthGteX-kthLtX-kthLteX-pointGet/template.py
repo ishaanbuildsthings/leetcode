@@ -226,8 +226,11 @@ class MergeSortTree:
             da += 1
         return res + pa
 
-    # O(log n) — count elements in value range [valLow, valHigh] (inclusive) in index range [ql, qr]
+    # O(log n) — count elements in value range [valLow, valHigh] (inclusive) in index range [ql, qr]; needs
+    # 0 <= ql <= qr < n, else IndexError
     def countInValRange(self, ql, qr, valLow, valHigh):
+        if not 0 <= ql <= qr < self.n:
+            raise IndexError(f"countInValRange: needs 0 <= ql <= qr < n, got ql = {ql}, qr = {qr}, n = {self.n}")
         ql, qr = max(ql, 0), min(qr, self.n - 1)
         if ql > qr or valHigh < valLow:
             return 0
@@ -356,22 +359,36 @@ class MergeSortTree:
             return tl
         return -1
 
-    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] >= x, or -1
+    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] >= x, or -1; needs
+    # 0 <= ql <= qr < n, else IndexError
     def kthGteX(self, ql, qr, k, x):
+        if not 0 <= ql <= qr < self.n:
+            raise IndexError(f"kthGteX: needs 0 <= ql <= qr < n, got ql = {ql}, qr = {qr}, n = {self.n}")
         return self._kthAbove(ql, qr, k, bisect_left(self.sortedVals, x))
 
-    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] > x, or -1
+    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] > x, or -1; needs
+    # 0 <= ql <= qr < n, else IndexError
     def kthGtX(self, ql, qr, k, x):
+        if not 0 <= ql <= qr < self.n:
+            raise IndexError(f"kthGtX: needs 0 <= ql <= qr < n, got ql = {ql}, qr = {qr}, n = {self.n}")
         return self._kthAbove(ql, qr, k, bisect_right(self.sortedVals, x))
 
-    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] <= x, or -1
+    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] <= x, or -1; needs
+    # 0 <= ql <= qr < n, else IndexError
     def kthLteX(self, ql, qr, k, x):
+        if not 0 <= ql <= qr < self.n:
+            raise IndexError(f"kthLteX: needs 0 <= ql <= qr < n, got ql = {ql}, qr = {qr}, n = {self.n}")
         return self._kthBelow(ql, qr, k, bisect_right(self.sortedVals, x))
 
-    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] < x, or -1
+    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] < x, or -1; needs
+    # 0 <= ql <= qr < n, else IndexError
     def kthLtX(self, ql, qr, k, x):
+        if not 0 <= ql <= qr < self.n:
+            raise IndexError(f"kthLtX: needs 0 <= ql <= qr < n, got ql = {ql}, qr = {qr}, n = {self.n}")
         return self._kthBelow(ql, qr, k, bisect_left(self.sortedVals, x))
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]

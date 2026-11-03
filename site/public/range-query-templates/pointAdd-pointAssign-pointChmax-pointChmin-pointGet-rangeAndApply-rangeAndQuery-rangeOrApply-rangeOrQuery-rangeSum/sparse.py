@@ -214,12 +214,16 @@ class SparseBitBeats:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # O(logU logU) -- a[i] &= X for i in [l, r]
+    # O(logU logU) -- a[i] &= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAndApply(self, l, r, X):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAndApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r: self._upd(1, self.lo, self.hi, l, r, X & self.FULL, 0)
 
-    # O(logU logU) -- a[i] |= X for i in [l, r]
+    # O(logU logU) -- a[i] |= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeOrApply(self, l, r, X):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeOrApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r: self._upd(1, self.lo, self.hi, l, r, ~X & self.FULL, X & self.FULL)
 
     def _set(self, i, tl, tr, p, v):
@@ -234,8 +238,10 @@ class SparseBitBeats:
         else: self._set(self.R[i], tm + 1, tr, p, v)
         self._pull(i)
 
-    # O(logU) -- a[p] = v
+    # O(logU) -- a[p] = v; needs lo <= p <= hi, else IndexError
     def pointAssign(self, p, v):
+        if not self.lo <= p <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= p <= hi, got p = {p}")
         self._set(1, self.lo, self.hi, p, v & self.FULL)
 
     def _q(self, i, tl, tr, ql, qr, kind):
@@ -254,25 +260,43 @@ class SparseBitBeats:
         if kind == 1: return a & b
         return a | b
 
-    # O(logU) -- a[l] + ... + a[r]
-    def rangeSum(self, l, r): return 0 if (l > r) else self._q(1, self.lo, self.hi, l, r, 0)
-    # O(logU) -- a[l] & ... & a[r]
-    def rangeAndQuery(self, l, r): return self.FULL if (l > r) else self._q(1, self.lo, self.hi, l, r, 1)
-    # O(logU) -- a[l] | ... | a[r]
-    def rangeOrQuery(self, l, r): return 0 if (l > r) else self._q(1, self.lo, self.hi, l, r, 2)
-    # O(logU) -- a[p]
-    def pointGet(self, p): return self.rangeAndQuery(p, p)
+    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    def rangeSum(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        return 0 if (l > r) else self._q(1, self.lo, self.hi, l, r, 0)
+    # O(logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else IndexError
+    def rangeAndQuery(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAndQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        return self.FULL if (l > r) else self._q(1, self.lo, self.hi, l, r, 1)
+    # O(logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else IndexError
+    def rangeOrQuery(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeOrQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        return 0 if (l > r) else self._q(1, self.lo, self.hi, l, r, 2)
+    # O(logU) -- a[p]; needs lo <= p <= hi, else IndexError
+    def pointGet(self, p):
+        if not self.lo <= p <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= p <= hi, got p = {p}")
+        return self.rangeAndQuery(p, p)
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] += delta
+    # a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)

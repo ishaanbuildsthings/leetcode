@@ -36,11 +36,11 @@ def _sqrts(x, k):  # x after k floor-sqrts
 
 
 class SparseRangeFloorSqrtTree:
-    __slots__ = ("lo", "size", "t")
+    __slots__ = ("lo", "hi", "size", "t")
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of i is size + (i - lo)
         self.t = {}
 
@@ -54,8 +54,10 @@ class SparseRangeFloorSqrtTree:
             a = t.get(x, 0)
             t[x] = a + v if a + v < MAX_SQRTS else MAX_SQRTS
 
-    # O(logU) -- a[i] = floor(sqrt(a[i])) for i in [l, r]
+    # O(logU) -- a[i] = floor(sqrt(a[i])) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeFloorSqrt(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeFloorSqrt: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         l += self.size - self.lo
         r += self.size - self.lo + 1
         while l < r:
@@ -78,8 +80,10 @@ class SparseRangeFloorSqrtTree:
                 self._apply(2 * x, v)
                 self._apply(2 * x + 1, v)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         t = self.t
         p = self.size + i - self.lo
         x = t.get(p, 0)
@@ -93,29 +97,37 @@ class SparseRangeFloorSqrtTree:
         a, v = x, a
         return _sqrts(a, v)
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
         self.t[p] = val
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
         t = self.t
         t[p] = (t.get(p, 0) + delta)
 
-    # O(logU) -- a[i] = max(a[i], val)
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
         t = self.t
         if val > t.get(p, 0):
             t[p] = val
 
-    # O(logU) -- a[i] = min(a[i], val)
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
         t = self.t

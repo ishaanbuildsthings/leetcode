@@ -96,8 +96,9 @@ struct AddAssignSumMinMaxTree {
         }
     }
 
-    // O(logN) -- a[i] += v for i in [l, r]
+    // O(logN) -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAdd(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAdd: needs 0 <= l <= r < n");
         if (l > r) return;
         int l0 = l + n, r0 = r + n;
         push(l0), push(r0);
@@ -108,8 +109,9 @@ struct AddAssignSumMinMaxTree {
         rebuild(l0), rebuild(r0);
     }
 
-    // O(logN) -- a[i] = v for i in [l, r]
+    // O(logN) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
         if (l > r) return;
         int l0 = l + n, r0 = r + n;
         push(l0), push(r0);
@@ -120,8 +122,9 @@ struct AddAssignSumMinMaxTree {
         rebuild(l0), rebuild(r0);
     }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
     S rangeSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
         if (l > r) return 0;
         l += n, r += n;
         push(l), push(r);
@@ -133,8 +136,9 @@ struct AddAssignSumMinMaxTree {
         return res;
     }
 
-    // O(logN) -- min of a[l..r]
+    // O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMin(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMin: needs 0 <= l <= r < n");
         l += n, r += n;
         push(l), push(r);
         T res = INF;
@@ -145,8 +149,9 @@ struct AddAssignSumMinMaxTree {
         return res;
     }
 
-    // O(logN) -- max of a[l..r]
+    // O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMax(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
         l += n, r += n;
         push(l), push(r);
         T res = NEG;
@@ -170,14 +175,16 @@ struct AddAssignSumMinMaxTree {
         return vector<T>(sm.begin() + n, sm.end());
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         push(i + n);
         return T(sm[i + n]);
     }
 
-    // O(logN) -- a[i] = v
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = i + n;
         push(p);
         sm[p] = v;
@@ -186,12 +193,21 @@ struct AddAssignSumMinMaxTree {
         rebuild(p);
     }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

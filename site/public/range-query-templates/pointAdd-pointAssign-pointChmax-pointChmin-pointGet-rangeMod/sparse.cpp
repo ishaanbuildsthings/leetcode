@@ -52,13 +52,15 @@ struct SparseRangeModTree {
         pull(x);
     }
 
-    // amortized O(logU logV) -- a[i] %= mod for i in [l, r]
+    // amortized O(logU logV) -- a[i] %= mod for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeMod(long long l, long long r, T mod) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMod: needs lo <= l <= r <= hi");
         if (l <= r) modRec(root, lo, hi, l, r, mod);
     }
 
-    // O(logU) -- a[i]
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         int y = root;
         long long a = lo, b = hi;
         while (y && a < b) {
@@ -90,19 +92,29 @@ struct SparseRangeModTree {
         return d;
     }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int d = descend(i);
         pool[path[d]].mx = v;
         while (d--) pull(path[d]);
     }
 
-    // O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logU) -- a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logU) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

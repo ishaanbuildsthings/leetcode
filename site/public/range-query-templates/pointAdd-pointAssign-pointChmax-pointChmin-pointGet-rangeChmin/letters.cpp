@@ -33,8 +33,9 @@ struct RangeChminTree {
         for (int i = 0; i < n; i++) tree[n + i] = a[i];
     }
 
-    // O(logN) -- a[i] = min(a[i], v) for i in [l, r]
+    // O(logN) -- a[i] = min(a[i], v) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeChmin(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeChmin: needs 0 <= l <= r < n");
         for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
             if (l & 1) { tree[l] = (tree[l] < v ? tree[l] : v); l++; }
             if (r & 1) { --r; tree[r] = (tree[r] < v ? tree[r] : v); }
@@ -54,8 +55,9 @@ struct RangeChminTree {
         }
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int p = i + n;
         T a = tree[p];
         for (p >>= 1; p; p >>= 1) a = (a < tree[p] ? a : tree[p]);
@@ -76,8 +78,9 @@ struct RangeChminTree {
         return vector<T>(tree.begin() + n, tree.end());
     }
 
-    // O(logN) -- a[i] = val
+    // O(logN) -- a[i] = val; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T val) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = i + n;
         push(p);
         tree[p] = val;
@@ -90,15 +93,18 @@ struct RangeChminTree {
         tree[p] = tree[p] + delta;
     }
 
-    // O(logN) -- a[i] = max(a[i], v)
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         int p = i + n;
         push(p);
         if (v > tree[p]) tree[p] = v;
     }
 
-    // O(1) -- a[i] = min(a[i], v); a leaf-level chmin tag commutes with the pending ones above it
+    // O(1) -- a[i] = min(a[i], v); a leaf-level chmin tag commutes with the pending ones above it; needs 0 <= i < n,
+    // else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         int p = i + n;
         if (v < tree[p]) tree[p] = v;
     }

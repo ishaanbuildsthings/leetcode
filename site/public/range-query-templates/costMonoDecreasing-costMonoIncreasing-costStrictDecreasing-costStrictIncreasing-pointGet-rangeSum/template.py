@@ -61,8 +61,10 @@ class MonoIncreaseCost:
             self.sp.append(cur)
             j += 1
 
-    # O(1) -- a[l] + ... + a[r]
+    # O(1) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self.pf[r + 1] - self.pf[l] if r >= l else 0
 
     def argMax(self, l, r):
@@ -71,15 +73,19 @@ class MonoIncreaseCost:
         b = self.sp[j][r - (1 << j) + 1]
         return a if self.arr[a] >= self.arr[b] else b
 
-    # O(1) -- min +1 increments to make a[l..r] non-decreasing
+    # O(1) -- min +1 increments to make a[l..r] non-decreasing; needs 0 <= l <= r < n, else IndexError
     def costMonoIncreasing(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"costMonoIncreasing: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         """Min increments to make arr[l..r] non-decreasing. O(1)."""
         m = self.argMax(l, r)
         endsAt = (self.suff[l] - self.suff[m]) + self.arr[m] * (r - m + 1)
         return endsAt - self.rangeSum(l, r)
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]
 
 
@@ -93,37 +99,49 @@ class MonoCosts:
         self.pf = list(accumulate(self.arr, initial=0))
         self._inc = self._dec = self._sinc = self._sdec = None
 
-    # O(1) -- min +1 increments to make a[l..r] non-decreasing
+    # O(1) -- min +1 increments to make a[l..r] non-decreasing; needs 0 <= l <= r < n, else IndexError
     def costMonoIncreasing(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"costMonoIncreasing: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if self._inc is None:
             self._inc = MonoIncreaseCost(self.arr)
         return self._inc.costMonoIncreasing(l, r)
 
-    # O(1) -- min +1 increments to make a[l..r] non-increasing
+    # O(1) -- min +1 increments to make a[l..r] non-increasing; needs 0 <= l <= r < n, else IndexError
     def costMonoDecreasing(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"costMonoDecreasing: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if self._dec is None:
             self._dec = MonoIncreaseCost(self.arr[::-1])
         n = self.n
         return self._dec.costMonoIncreasing(n - 1 - r, n - 1 - l)
 
-    # O(1) -- min +1 increments to make a[l..r] strictly increasing
+    # O(1) -- min +1 increments to make a[l..r] strictly increasing; needs 0 <= l <= r < n, else IndexError
     def costStrictIncreasing(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"costStrictIncreasing: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if self._sinc is None:
             self._sinc = MonoIncreaseCost([v - i for i, v in enumerate(self.arr)])
         return self._sinc.costMonoIncreasing(l, r)
 
-    # O(1) -- min +1 increments to make a[l..r] strictly decreasing
+    # O(1) -- min +1 increments to make a[l..r] strictly decreasing; needs 0 <= l <= r < n, else IndexError
     def costStrictDecreasing(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"costStrictDecreasing: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if self._sdec is None:
             n = self.n
             self._sdec = MonoIncreaseCost([self.arr[i] + i for i in range(n - 1, -1, -1)])
         n = self.n
         return self._sdec.costMonoIncreasing(n - 1 - r, n - 1 - l)
 
-    # O(1) -- a[l] + ... + a[r]
+    # O(1) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self.pf[r + 1] - self.pf[l] if r >= l else 0
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]

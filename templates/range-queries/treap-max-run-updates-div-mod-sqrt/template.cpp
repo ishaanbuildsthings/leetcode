@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-max-run-updates-div-mod-sqrt/template.cpp
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX split trisect
 // @data-structure-type: treap
+// @letters: same
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected

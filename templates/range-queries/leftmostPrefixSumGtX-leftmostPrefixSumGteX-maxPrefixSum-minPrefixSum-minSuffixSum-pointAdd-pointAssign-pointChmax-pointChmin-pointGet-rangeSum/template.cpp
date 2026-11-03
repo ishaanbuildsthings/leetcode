@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-maxPrefixSum-minPrefixSum-minSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum/template.cpp
 // @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
 // @data-structure-type: seg-tree
+// @letters: same
 // @complexities:
 //   getAll: N
 //   leftmostPrefixSumGtX: log(N)

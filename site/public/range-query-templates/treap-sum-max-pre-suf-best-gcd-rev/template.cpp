@@ -91,8 +91,10 @@ struct ImplicitTreap {
     // O(logN * logU) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN * logU) expected -- remove a[l..r] and return it as a treap of its own (indices from 0)
+    // O(logN * logU) expected -- remove a[l..r] and return it as a treap of its own (indices from 0); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     ImplicitTreap cut(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("cut: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         root = merge(a, c);
@@ -116,23 +118,29 @@ struct ImplicitTreap {
         return out;
     }
 
-    // O(logN * logU) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    // O(logN * logU) expected -- insert v so it becomes a[i]; needs 0 <= i <= size(), else throws out_of_range (i =
+    // size() appends)
     void insertAt(int i, T v) {
+        if (i < 0 || i > size()) throw out_of_range("insertAt: needs 0 <= i <= size()");
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, newNode(v)), c);
     }
 
-    // O(k + logN * logU) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    // O(k + logN * logU) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0); needs
+    // 0 <= i <= size(), else throws out_of_range
     void insertCopiesAt(int i, T v, long long k) {
+        if (i < 0 || i > size()) throw out_of_range("insertCopiesAt: needs 0 <= i <= size()");
         if (k <= 0) return;
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, build(vector<T>(k, v))), c);
     }
 
-    // O(logN * logU) expected -- the first i in [l, r] with a[i] > x, or -1 (pruned by the subtree max)
+    // O(logN * logU) expected -- the first i in [l, r] with a[i] > x, or -1 (pruned by the subtree max); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int leftmostGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostGtX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
@@ -148,8 +156,10 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- the first i in [l, r] with a[i] >= x, or -1 (pruned by the subtree max)
+    // O(logN * logU) expected -- the first i in [l, r] with a[i] >= x, or -1 (pruned by the subtree max); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int leftmostGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostGteX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
@@ -165,8 +175,10 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- first i in [l, r] with a[l] + ... + a[i] > x, or -1 (pruned by best prefix sums)
+    // O(logN * logU) expected -- first i in [l, r] with a[l] + ... + a[i] > x, or -1 (pruned by best prefix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
     int leftmostPrefixSumGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostPrefixSumGtX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
@@ -185,8 +197,10 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- first i in [l, r] with a[l] + ... + a[i] >= x, or -1 (pruned by best prefix sums)
+    // O(logN * logU) expected -- first i in [l, r] with a[l] + ... + a[i] >= x, or -1 (pruned by best prefix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
     int leftmostPrefixSumGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostPrefixSumGteX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
@@ -205,8 +219,10 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- max of a[l] + ... + a[i] over i in [l, r]
+    // O(logN * logU) expected -- max of a[l] + ... + a[i] over i in [l, r]; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     S maxPrefixSum(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("maxPrefixSum: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         S res = nd[b].pre;
@@ -214,8 +230,10 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- max sum of a non-empty contiguous subarray of a[l..r]
+    // O(logN * logU) expected -- max sum of a non-empty contiguous subarray of a[l..r]; needs 0 <= l <= r < size(),
+    // else throws out_of_range
     S maxSubarraySum(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("maxSubarraySum: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         S res = nd[b].best;
@@ -223,8 +241,10 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- max of a[i] + ... + a[r] over i in [l, r]
+    // O(logN * logU) expected -- max of a[i] + ... + a[r] over i in [l, r]; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     S maxSuffixSum(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("maxSuffixSum: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         S res = nd[b].suf;
@@ -236,16 +256,18 @@ struct ImplicitTreap {
     void merge(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
 
     // O(logN * logU) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i]
-    // (0 <= i <= size()); other is left empty
+    // (needs 0 <= i <= size(), else throws out_of_range); other is left empty
     void paste(int i, ImplicitTreap& other) {
+        if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, other.root), c);
         other.root = 0;
     }
 
-    // O(logN * logU) expected -- a[i] += v
+    // O(logN * logU) expected -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
     void pointAdd(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
         nd[t].val = nd[t].val + v;
@@ -253,8 +275,9 @@ struct ImplicitTreap {
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN * logU) expected -- a[i] = v
+    // O(logN * logU) expected -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
         nd[t].val = v;
@@ -262,8 +285,9 @@ struct ImplicitTreap {
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN * logU) expected -- a[i] = max(a[i], v)
+    // O(logN * logU) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
         nd[t].val = max(nd[t].val, v);
@@ -271,8 +295,9 @@ struct ImplicitTreap {
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN * logU) expected -- a[i] = min(a[i], v)
+    // O(logN * logU) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
         nd[t].val = min(nd[t].val, v);
@@ -280,11 +305,15 @@ struct ImplicitTreap {
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i]
-    T pointGet(int i) { return nd[locate(i)].val; }
+    // O(logN) expected -- a[i]; needs 0 <= i < size(), else throws out_of_range
+    T pointGet(int i) {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
+        return nd[locate(i)].val;
+    }
 
-    // O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|
+    // O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeGcd(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeGcd: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         T res = nd[b].g;
@@ -292,8 +321,9 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- max of a[l..r]
+    // O(logN * logU) expected -- max of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMax(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMax: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         T res = nd[b].mx;
@@ -301,17 +331,19 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- reverse a[l..r] in place
+    // O(logN * logU) expected -- reverse a[l..r] in place; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeReverse(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeReverse: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         applyRev(b);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN * logU) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
-    // it is taken mod the length (negative shifts right)
+    // O(logN * logU) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it
+    // is taken mod the length (negative shifts right); needs 0 <= l <= r < size(), else throws out_of_range
     void rangeRotateLeft(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateLeft: needs 0 <= l <= r < size()");
         int a, b, c, len = r - l + 1;
         cut(l, r, a, b, c);
         k = ((k % len) + len) % len;
@@ -324,11 +356,15 @@ struct ImplicitTreap {
     }
 
     // O(logN * logU) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
-    // length (negative shifts left)
-    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
+    // length (negative shifts left); needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeRotateRight(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateRight: needs 0 <= l <= r < size()");
+        rangeRotateLeft(l, r, -k);
+    }
 
-    // O(logN * logU) expected -- a[l] + ... + a[r]
+    // O(logN * logU) expected -- a[l] + ... + a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     S rangeSum(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSum: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         S res = nd[b].sm;
@@ -336,8 +372,10 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- the last i in [l, r] with a[i] > x, or -1 (pruned by the subtree max)
+    // O(logN * logU) expected -- the last i in [l, r] with a[i] > x, or -1 (pruned by the subtree max); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int rightmostGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostGtX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
@@ -353,8 +391,10 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- the last i in [l, r] with a[i] >= x, or -1 (pruned by the subtree max)
+    // O(logN * logU) expected -- the last i in [l, r] with a[i] >= x, or -1 (pruned by the subtree max); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int rightmostGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostGteX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
@@ -370,8 +410,10 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (pruned by best suffix sums)
+    // O(logN * logU) expected -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (pruned by best suffix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
     int rightmostSuffixSumGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostSuffixSumGtX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
@@ -390,8 +432,10 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (pruned by best suffix sums)
+    // O(logN * logU) expected -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (pruned by best suffix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
     int rightmostSuffixSumGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostSuffixSumGteX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
@@ -410,16 +454,20 @@ struct ImplicitTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    // O(logN * logU) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
+    // 0 <= k <= size(), else throws out_of_range
     pair<ImplicitTreap, ImplicitTreap> split(int k) {
+        if (k < 0 || k > size()) throw out_of_range("split: needs 0 <= k <= size()");
         ImplicitTreap left = makeEmpty(), right = makeEmpty();
         split(root, k, left.root, right.root);
         root = 0;
         return {left, right};
     }
 
-    // O(logN * logU) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    // O(logN * logU) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty;
+    // needs 0 <= l <= r < size(), else throws out_of_range
     tuple<ImplicitTreap, ImplicitTreap, ImplicitTreap> trisect(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         ImplicitTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         cut(l, r, left.root, mid.root, right.root);
         root = 0;

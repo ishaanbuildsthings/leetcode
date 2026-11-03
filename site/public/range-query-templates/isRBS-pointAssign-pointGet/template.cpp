@@ -43,18 +43,24 @@ struct BracketTree {
     // O(N) -- the whole sequence
     vector<T> getAll() const { return s; }
 
-    // O(1) -- brackets[i]
-    T pointGet(int i) const { return s[i]; }
+    // O(1) -- brackets[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return s[i];
+    }
 
-    // O(logN) -- brackets[i] = ch
+    // O(logN) -- brackets[i] = ch; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T ch) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         s[i] = ch;
         setLeaf(i);
         for (int x = (i + size) >> 1; x; x >>= 1) pull(x);
     }
 
-    // O(logN) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?
+    // O(logN) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?; needs
+    // 0 <= l <= r < n, else throws out_of_range
     bool isRBS(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("isRBS: needs 0 <= l <= r < n");
         int ls = 0, lm = 0;  // (sum, min prefix) of the left part folded so far
         int rights[64], k = 0;  // the right side's nodes, folded in afterwards right to left
         for (l += size, r += size + 1; l < r; l >>= 1, r >>= 1) {

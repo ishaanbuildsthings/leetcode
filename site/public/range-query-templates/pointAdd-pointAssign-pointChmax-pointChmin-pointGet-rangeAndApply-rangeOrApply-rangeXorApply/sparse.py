@@ -101,28 +101,38 @@ class SparseBitOpTree:
             return self._query(self.L[x], a, m, l, r, d)
         return self._query(self.R[x], m + 1, b, l, r, d)
 
-    # O(logU) -- a[i] &= X for i in [l, r]
+    # O(logU) -- a[i] &= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAndApply(self, l, r, X):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAndApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (X, 0))
 
-    # O(logU) -- a[i] |= X for i in [l, r]
+    # O(logU) -- a[i] |= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeOrApply(self, l, r, X):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeOrApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (~X, X))
 
-    # O(logU) -- a[i] ^= X for i in [l, r]
+    # O(logU) -- a[i] ^= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeXorApply(self, l, r, X):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeXorApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (-1, X))
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         res = self._query(1, self.lo, self.hi, i, i, None)
         return res
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         path = []
         x, a, b = 1, self.lo, self.hi
         while a < b:
@@ -135,16 +145,22 @@ class SparseBitOpTree:
                 x, a = self._kid(x, 1), m + 1
         self.v[x] = val
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logU) -- a[i] = max(a[i], val)
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logU) -- a[i] = min(a[i], val)
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

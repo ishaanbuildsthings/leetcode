@@ -54,17 +54,24 @@ class LazyBracketTree:
             self._collect(1, 0, self.n - 1, out)
         return out
 
-    # O(logN) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?
+    # O(logN) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?; needs
+    # 0 <= l <= r < n, else IndexError
     def isRBS(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"isRBS: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         s, m = self._fold(1, 0, self.n - 1, l, r, 0, 0)
         return s == 0 and m >= 0
 
-    # O(logN) -- brackets[i] = ch
+    # O(logN) -- brackets[i] = ch; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, ch):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._set(1, 0, self.n - 1, i, 1 if ch == self.oc else -1)
 
-    # O(logN) -- brackets[i]
+    # O(logN) -- brackets[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         x, lo, hi = 1, 0, self.n - 1
         while lo < hi:
             mid = (lo + hi) // 2
@@ -75,12 +82,16 @@ class LazyBracketTree:
                 x, lo = 2 * x + 1, mid + 1
         return self.oc if self.sm[x] > 0 else self.cc
 
-    # O(logN) -- brackets[i] = ch for i in [l, r]
+    # O(logN) -- brackets[i] = ch for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, ch):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(1, 0, self.n - 1, l, r, 1 if ch == self.oc else -1)
 
-    # O(logN) -- every open in brackets[l..r] becomes a close and vice versa
+    # O(logN) -- every open in brackets[l..r] becomes a close and vice versa; needs 0 <= l <= r < n, else IndexError
     def rangeFlip(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeFlip: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(1, 0, self.n - 1, l, r, 0)
 
     # ---- internals ----

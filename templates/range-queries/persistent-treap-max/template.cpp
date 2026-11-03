@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-max/template.cpp
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX split trisect
 // @data-structure-type: persistent-treap
+// @letters: same
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected

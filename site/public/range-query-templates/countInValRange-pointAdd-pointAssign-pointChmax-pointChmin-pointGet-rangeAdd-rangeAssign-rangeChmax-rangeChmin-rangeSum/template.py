@@ -140,8 +140,10 @@ class SqrtBlocks_PERFORMANT:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         b = i // self.blockSize
         v = self.valsBeforeTags[i] + self.lazyAdd[b]
         cx = self.lazyChmax[b]
@@ -154,8 +156,11 @@ class SqrtBlocks_PERFORMANT:
     def getAll(self):
         return [self.pointGet(i) for i in range(self.n)]
 
-    # O(root N) -- one element moves in the sorted copy, so pop + insort, no re-sort
+    # O(root N) -- one element moves in the sorted copy, so pop + insort, no re-sort; needs 0 <= i < n, else
+    # IndexError
     def pointAssign(self, i, newVal):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         b = i // self.blockSize
         self._push(b)
         vals = self.valsBeforeTags
@@ -169,10 +174,12 @@ class SqrtBlocks_PERFORMANT:
         if self.sumReady:
             self._buildPf(b)
 
-    # O(root N log N) -- every slot in l...r becomes min(value, x)
-    # A block fully covered by the range takes the O(1) tag path even when it is the
-    # first or last block -- ranges anchored at 0 or n-1 are common.
+    # O(root N log N) -- every slot in l...r becomes min(value, x) A block fully covered by the range takes the O(1)
+    # tag path even when it is the first or last block -- ranges anchored at 0 or n-1 are common.; needs
+    # 0 <= l <= r < n, else IndexError
     def rangeChmin(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeChmin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r: return
         B = self.blockSize
         vals = self.valsBeforeTags
@@ -200,8 +207,10 @@ class SqrtBlocks_PERFORMANT:
             if lazyChmin[b] > x: lazyChmin[b] = x # drop the ceiling
             if lazyChmax[b] > x: lazyChmax[b] = x # and the floor, if the ceiling went below it
 
-    # O(root N log N) -- every slot in l...r becomes max(value, x)
+    # O(root N log N) -- every slot in l...r becomes max(value, x); needs 0 <= l <= r < n, else IndexError
     def rangeChmax(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeChmax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r: return
         B = self.blockSize
         vals = self.valsBeforeTags
@@ -229,8 +238,10 @@ class SqrtBlocks_PERFORMANT:
             if lazyChmax[b] < x: lazyChmax[b] = x # raise the floor
             if lazyChmin[b] < x: lazyChmin[b] = x # and the ceiling, if the floor went above it
 
-    # O(root N log N) -- every slot in l...r becomes x
+    # O(root N log N) -- every slot in l...r becomes x; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r: return
         B = self.blockSize
         vals = self.valsBeforeTags
@@ -257,8 +268,10 @@ class SqrtBlocks_PERFORMANT:
             self.lazyChmin[b] = x
             self.lazyChmax[b] = x
 
-    # O(root N log N) -- every slot in l...r becomes value + diff
+    # O(root N log N) -- every slot in l...r becomes value + diff; needs 0 <= l <= r < n, else IndexError
     def rangeAdd(self, l, r, diff):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r: return
         B = self.blockSize
         vals = self.valsBeforeTags
@@ -288,8 +301,10 @@ class SqrtBlocks_PERFORMANT:
             if lazyChmin[b] != INF: lazyChmin[b] += diff
             if lazyChmax[b] != -INF: lazyChmax[b] += diff
 
-    # O(root N log N) -- count of slots in l...r whose value is in low...high
+    # O(root N log N) -- count of slots in l...r whose value is in low...high; needs 0 <= l <= r < n, else IndexError
     def countInValRange(self, l, r, low, high):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r: return 0
         B = self.blockSize
         vals = self.valsBeforeTags
@@ -387,8 +402,10 @@ class SqrtBlocks_PERFORMANT:
                 res += bisect_right(srt, high - add, L, R) - bisect_left(srt, low - add, L, R)
         return res
 
-    # O(root N log N) -- sum of l...r. assumes finite values
+    # O(root N log N) -- sum of l...r. assumes finite values; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r: return 0
         if not self.sumReady: # first call: build every block's prefix sums
             self.sumReady = True
@@ -462,18 +479,24 @@ class SqrtBlocks_PERFORMANT:
                 res += pf[R] - (pf[L - 1] if L else 0) + add * mid
         return res
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] += delta
+    # a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
 
@@ -563,8 +586,10 @@ class SqrtBlocks_CLEAN_CODE:
             return chmin
         return val
     
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         b = i // self.blockSize
         add, chmin, chmax = self.lazyAdd[b], self.lazyChmin[b], self.lazyChmax[b]
         valBeforeTag = self.valsBeforeTags[i]
@@ -576,8 +601,10 @@ class SqrtBlocks_CLEAN_CODE:
         return [self.pointGet(i) for i in range(self.n)]
 
 
-    # O(sqrtN) -- a[i] = newVal
+    # O(sqrtN) -- a[i] = newVal; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, newVal):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         b = i // self.blockSize
         self._pushLaziesAndClearLazies(b)
         oldVal = self.valsBeforeTags[i]
@@ -628,9 +655,10 @@ class SqrtBlocks_CLEAN_CODE:
         self._refreshSortedBlockAndPfSum(br) # rootN * logN
 
 
-    # O(Root(N) * logN)
-    # apply chmin to l...r
+    # O(Root(N) * logN) apply chmin to l...r; needs 0 <= l <= r < n, else IndexError
     def rangeChmin(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeChmin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         def indexOp(val):
             return min(val, x)
         def tagOp(b):
@@ -639,9 +667,10 @@ class SqrtBlocks_CLEAN_CODE:
                 self.lazyChmax[b] = x
         self._rangeApply(l, r, tagOp, indexOp)
 
-    # O(Root(N) * logN)
-    # apply chmax to l...r
+    # O(Root(N) * logN) apply chmax to l...r; needs 0 <= l <= r < n, else IndexError
     def rangeChmax(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeChmax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         def indexOp(val):
             return max(val, x)
         def tagOp(b):
@@ -650,8 +679,10 @@ class SqrtBlocks_CLEAN_CODE:
                 self.lazyChmin[b] = x
         self._rangeApply(l, r, tagOp, indexOp)
     
-    # O(sqrtN logN) -- a[i] = x for i in [l, r]
+    # O(sqrtN logN) -- a[i] = x for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         def indexOp(val):
             return x
         def tagOp(b):
@@ -660,8 +691,10 @@ class SqrtBlocks_CLEAN_CODE:
             self.lazyChmin[b] = x
         self._rangeApply(l, r, tagOp, indexOp)
     
-    # O(sqrtN logN) -- a[i] += diff for i in [l, r]
+    # O(sqrtN logN) -- a[i] += diff for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAdd(self, l, r, diff):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         def indexOp(val):
             return val + diff
         # we had a pending add before and then a chmin/chmax, to add a new add after we can do this
@@ -672,9 +705,11 @@ class SqrtBlocks_CLEAN_CODE:
             self.lazyChmin[b] += diff
         self._rangeApply(l, r, tagOp, indexOp)
     
-    # O(Root(N) * logN)
-    # count of values in range l...r and value range low...high
+    # O(Root(N) * logN) count of values in range l...r and value range low...high; needs 0 <= l <= r < n, else
+    # IndexError
     def countInValRange(self, l, r, low, high):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         B = self.blockSize
@@ -719,9 +754,10 @@ class SqrtBlocks_CLEAN_CODE:
 
         return res
     
-    # O(Root(N) * logN)
-    # gets sum of l...r
+    # O(Root(N) * logN) gets sum of l...r; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         B = self.blockSize
@@ -764,17 +800,23 @@ class SqrtBlocks_CLEAN_CODE:
         
         return res
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] += delta
+    # a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.pointGet(i) + delta)
         

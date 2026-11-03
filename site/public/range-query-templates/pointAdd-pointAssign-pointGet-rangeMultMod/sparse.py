@@ -23,11 +23,11 @@
 
 
 class SparseRangeMultModTree:
-    __slots__ = ("lo", "size", "t", "mod")
+    __slots__ = ("lo", "hi", "size", "t", "mod")
 
     # O(1)
     def __init__(self, lo, hi, mod=1000000007):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of i is size + (i - lo)
         self.t = {}
         self.mod = mod
@@ -42,8 +42,10 @@ class SparseRangeMultModTree:
             a = t.get(x, 1)
             t[x] = a * v % self.mod
 
-    # O(logU) -- a[i] = a[i] * v (% MOD) for i in [l, r]
+    # O(logU) -- a[i] = a[i] * v (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMultMod(self, l, r, v):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMultMod: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         v %= self.mod
         l += self.size - self.lo
         r += self.size - self.lo + 1
@@ -67,8 +69,10 @@ class SparseRangeMultModTree:
                 self._apply(2 * x, v)
                 self._apply(2 * x + 1, v)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         t = self.t
         p = self.size + i - self.lo
         x = t.get(p, 0)
@@ -82,14 +86,18 @@ class SparseRangeMultModTree:
         a, v = x, a
         return a * v % self.mod
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
         self.t[p] = val % self.mod
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
         t = self.t

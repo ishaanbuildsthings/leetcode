@@ -39,14 +39,16 @@ struct RangeXorBIT {
         for (i++; i <= n; i += i & -i) tree[i] ^= x;
     }
 
-    // O(logN) -- a[i] ^= x for i in [l, r]
+    // O(logN) -- a[i] ^= x for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeXorApply(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeXorApply: needs 0 <= l <= r < n");
         apply(l, x);
         if (r + 1 < n) apply(r + 1, x);
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         T s = 0;
         for (i++; i > 0; i &= i - 1) s ^= tree[i];
         return s;
@@ -65,23 +67,29 @@ struct RangeXorBIT {
         return out;
     }
 
-    // O(logN) -- a[i] = v
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         T d = pointGet(i) ^ v;
         if (d) rangeXorApply(i, i, d);
     }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         T cur = pointGet(i);
         if (v > cur) rangeXorApply(i, i, cur ^ v);
     }
 
-    // O(logN) -- a[i] = min(a[i], v)
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         T cur = pointGet(i);
         if (v < cur) rangeXorApply(i, i, cur ^ v);
     }

@@ -55,8 +55,9 @@ struct RangeMode {
         }
     }
 
-    // O(sqrt N) -- (mode of a[l..r], its frequency); requires 0 <= l <= r < n
+    // O(sqrt N) -- (mode of a[l..r], its frequency); requires needs 0 <= l <= r < n, else throws out_of_range
     pair<T, int> rangeMode(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMode: needs 0 <= l <= r < n");
         int lb = l / B, rb = r / B, best, bestVal, leftEdgeEnd, rightEdgeStart;
         if (rb - lb <= 1) {
             best = 0, bestVal = comp[l], leftEdgeEnd = r, rightEdgeStart = r + 1;  // no whole middle block
@@ -78,6 +79,9 @@ struct RangeMode {
         return {vals[bestVal], best};
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 };

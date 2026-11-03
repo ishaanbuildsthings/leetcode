@@ -256,14 +256,19 @@ class RangeLDS:
             da += 1
         return res + pa
 
-    # O(logN) -- length of the longest strictly decreasing subsequence of a[l..r]
+    # O(logN) -- length of the longest strictly decreasing subsequence of a[l..r]; needs 0 <= l <= r < n, else
+    # IndexError
     def rangeLDS(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeLDS: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         return (r - l + 1) - self._countPrefix(l, self.n - 1, bisect_right(self.sortedVals, r))
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]
 
 # ======================================================================================== sparse wrapper
@@ -300,11 +305,15 @@ class SparseStaticLDS:
         self.starts = starts
         self.inner = RangeLDS(arr)
 
-    # O(logN) -- range lds of a[l..r]
+    # O(logN) -- range lds of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeLDS(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeLDS: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self.inner.rangeLDS(bisect_right(self.starts, l) - 1, bisect_right(self.starts, r) - 1)
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         k = bisect_left(self.idx, i)
         return self.vals[k] if k < len(self.idx) and self.idx[k] == i else 0

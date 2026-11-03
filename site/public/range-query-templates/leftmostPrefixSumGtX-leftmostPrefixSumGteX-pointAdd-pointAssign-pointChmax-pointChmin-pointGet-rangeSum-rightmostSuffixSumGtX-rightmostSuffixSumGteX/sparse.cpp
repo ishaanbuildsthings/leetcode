@@ -89,23 +89,41 @@ struct SparseBIT {
         return s;
     }
 
-    // O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { add(i - lo, F{S(delta)}); }
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        add(i - lo, F{S(delta)});
+    }
 
-    // O(logU) -- a[l] + ... + a[r]
-    S rangeSum(long long l, long long r) const { return l <= r ? prefix(r - lo)[0] - prefix(l - 1 - lo)[0] : S(0); }
+    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    S rangeSum(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
+        return l <= r ? prefix(r - lo)[0] - prefix(l - 1 - lo)[0] : S(0);
+    }
 
-    // O(logU) -- a[i]
-    T pointGet(long long i) const { return T(rangeSum(i, i)); }
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return T(rangeSum(i, i));
+    }
 
-    // O(logU) -- a[i] = v
-    void pointAssign(long long i, T v) { pointAdd(i, v - pointGet(i)); }
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
+        pointAdd(i, v - pointGet(i));
+    }
 
-    // O(logU) -- a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { T cur = pointGet(i); if (v > cur) pointAdd(i, v - cur); }
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        T cur = pointGet(i); if (v > cur) pointAdd(i, v - cur);
+    }
 
-    // O(logU) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { T cur = pointGet(i); if (v < cur) pointAdd(i, v - cur); }
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        T cur = pointGet(i); if (v < cur) pointAdd(i, v - cur);
+    }
 
     // O(logU) -- smallest offset x with prefix(x) >= target (> target if strict), or n. Needs every a[i] >= 0.
     long long lowerBound(S target, bool strict) const {
@@ -123,29 +141,37 @@ struct SparseBIT {
         return a;
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1. Needs every a[i] >= 0.
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1. Needs every a[i] >= 0.; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostPrefixSumGteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("leftmostPrefixSumGteX: needs lo <= l <= r <= hi");
         long long i = max(l, lo + lowerBound(prefix(l - 1 - lo)[0] + x, false));
         return i <= r ? i : lo - 1;
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1. Needs every a[i] >= 0.
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1. Needs every a[i] >= 0.; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostPrefixSumGtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("leftmostPrefixSumGtX: needs lo <= l <= r <= hi");
         long long i = max(l, lo + lowerBound(prefix(l - 1 - lo)[0] + x, true));
         return i <= r ? i : lo - 1;
     }
 
-    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1. Needs every a[i] >= 0.
-    // That is the last i with a[lo] + ... + a[i - 1] <= prefix(r) - x: one binary lift.
+    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1. Needs every a[i] >= 0. That is the last i
+    // with a[lo] + ... + a[i - 1] <= prefix(r) - x: one binary lift.; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     long long rightmostSuffixSumGteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rightmostSuffixSumGteX: needs lo <= l <= r <= hi");
         S t = prefix(r - lo)[0] - S(x);
         if (t < 0) return lo - 1;
         long long i = min(r, lo + lowerBound(t, true));
         return i >= l ? i : lo - 1;
     }
 
-    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1. Needs every a[i] >= 0.
+    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1. Needs every a[i] >= 0.; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostSuffixSumGtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rightmostSuffixSumGtX: needs lo <= l <= r <= hi");
         S t = prefix(r - lo)[0] - S(x);
         if (t <= 0) return lo - 1;
         long long i = min(r, lo + lowerBound(t, false));

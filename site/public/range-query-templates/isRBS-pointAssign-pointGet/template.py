@@ -50,12 +50,16 @@ class BracketTree:
     def getAll(self):
         return self.s[:]
 
-    # O(1) -- brackets[i]
+    # O(1) -- brackets[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.s[i]
 
-    # O(logN) -- brackets[i] = ch
+    # O(logN) -- brackets[i] = ch; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, ch):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.s[i] = ch
         sm, mp = self.sm, self.mp
         x = i + self.size
@@ -70,8 +74,11 @@ class BracketTree:
             mp[x] = mp[l] if mp[l] < m else m
             x >>= 1
 
-    # O(logN) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?
+    # O(logN) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?; needs
+    # 0 <= l <= r < n, else IndexError
     def isRBS(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"isRBS: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         sm, mp = self.sm, self.mp
         ls = lm = 0  # (sum, min prefix) of the left part folded so far
         rights = []  # the right side's nodes, folded in afterwards right to left

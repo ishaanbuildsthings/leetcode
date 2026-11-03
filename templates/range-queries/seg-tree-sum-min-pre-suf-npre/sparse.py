@@ -161,6 +161,20 @@ class SparseSegTree:
             acc += sm[t]
         return res
 
+    # O(logN) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    def minPrefixSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"minPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        sm, npre = self.sm, self.npre
+        ns = self._nodes(l, r)
+        t = ns[0][0]
+        res, acc = npre[t], sm[t]
+        for t, _ in ns[1:]:
+            if acc + npre[t] < res:
+                res = acc + npre[t]
+            acc += sm[t]
+        return res
+
     # O(logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
         if not self.first <= i <= self.last:

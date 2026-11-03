@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-min-run-rev/template.cpp
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostLtX rightmostLteX split trisect
 // @data-structure-type: persistent-treap
+// @letters: same
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected

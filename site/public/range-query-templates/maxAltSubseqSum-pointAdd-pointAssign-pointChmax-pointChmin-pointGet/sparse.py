@@ -26,11 +26,11 @@ NEG = float("-inf")
 
 
 class SparseAltSumTree:
-    __slots__ = ("lo", "size", "t")
+    __slots__ = ("lo", "hi", "size", "t")
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; leaf of i is size + (i - lo)
         self.t = {}
 
@@ -46,8 +46,10 @@ class SparseAltSumTree:
     def _zero(k):  # a block of k zeros
         return (0, 0 if k > 1 else NEG, 0 if k > 1 else NEG, 0)
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         t = self.t
         p = self.size + i - self.lo
         t[p] = (val, NEG, NEG, -val)
@@ -86,25 +88,36 @@ class SparseAltSumTree:
             return left
         return self._merge(left, right)
 
-    # O(logU) -- best alternating sum +x - y + z ... over the non-empty subsequences of a[l..r]
+    # O(logU) -- best alternating sum +x - y + z ... over the non-empty subsequences of a[l..r]; needs
+    # lo <= l <= r <= hi, else IndexError
     def maxAltSubseqSum(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"maxAltSubseqSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(l, r)
         return max(res[0], res[1])
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return (lambda v: 0 if v is None else v[0])(self.t.get(self.size + i - self.lo))
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logU) -- a[i] = max(a[i], val)
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logU) -- a[i] = min(a[i], val)
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

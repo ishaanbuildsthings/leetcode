@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-max-run-updates-assign/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX split trisect
 # @data-structure-type: treap
+# @letters: same
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected

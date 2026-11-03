@@ -59,8 +59,11 @@ class SparseLazySegTree:
         self.hasAsg = [0]
         self._newZero(self.D)
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums)
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, P, L, R = self.sm, self.pre, self.L, self.R
         acc = 0
         for t, s, tl in self._cover(l, r):
@@ -78,8 +81,11 @@ class SparseLazySegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums)
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, P, L, R = self.sm, self.pre, self.L, self.R
         acc = 0
         for t, s, tl in self._cover(l, r):
@@ -97,8 +103,11 @@ class SparseLazySegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
+    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
+    # IndexError
     def maxAltSubseqSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"maxAltSubseqSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         a00, a01, a10, a11 = self.a00, self.a01, self.a10, self.a11
         ns = self._nodes(l, r)
         t = ns[0][0]
@@ -107,8 +116,10 @@ class SparseLazySegTree:
             c = _altJoin(c, (a00[t], a01[t], a10[t], a11[t]))
         return max(c[0], c[1])
 
-    # O(logN) -- max of a[l] + ... + a[i] over i in [l, r]
+    # O(logN) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def maxPrefixSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"maxPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, pre = self.sm, self.pre
         ns = self._nodes(l, r)
         t = ns[0][0]
@@ -119,40 +130,54 @@ class SparseLazySegTree:
             acc += sm[t]
         return res
 
-    # O(logU) -- a[i] += v
+    # O(logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, self._leaf(x) + v)
         self._up(path)
 
-    # O(logU) -- a[i] = v
+    # O(logU) -- a[i] = v; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, v)
         self._up(path)
 
-    # O(logU) -- a[i] = max(a[i], v)
+    # O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, max(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i] = min(a[i], v)
+    # O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU) -- a[i] = v for i in [l, r]
+    # O(logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAssign(self, l, r, v):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._applyAssign(t, s, v))
 
-    # O(logU) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, res = self.sm, 0
         for t, _ in self._nodes(l, r):
             res += sm[t]

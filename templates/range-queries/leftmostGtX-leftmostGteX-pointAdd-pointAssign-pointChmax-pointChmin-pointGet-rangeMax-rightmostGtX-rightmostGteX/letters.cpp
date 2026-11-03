@@ -75,8 +75,9 @@ struct SegTree {
         return -1;
     }
 
-    // O(logN) -- a[i] += v
+    // O(logN) -- a[i] += v; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         int p = i + n;
         setLeaf(p, T(leaf(p) + v)), rebuild(p);
     }

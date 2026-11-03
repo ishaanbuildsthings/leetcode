@@ -108,8 +108,10 @@ class ChminChmaxBeats:
         self._chmax(2 * i + 1, tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # amortized O(logN) -- a[i] = max(a[i], x) for i in [l, r]
+    # amortized O(logN) -- a[i] = max(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeChmax(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeChmax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l <= r and self.n: self._chmax(1, 0, self.n - 1, l, r, x)
 
     def _assign(self, i, tl, tr, ql, qr, v):
@@ -122,8 +124,10 @@ class ChminChmaxBeats:
         self._assign(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # amortized O(logN) -- a[i] = v for i in [l, r]
+    # amortized O(logN) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l <= r and self.n: self._assign(1, 0, self.n - 1, l, r, v)
 
     def _sum(self, i, tl, tr, ql, qr):
@@ -133,8 +137,10 @@ class ChminChmaxBeats:
         tm = (tl + tr) // 2
         return self._sum(2 * i, tl, tm, ql, qr) + self._sum(2 * i + 1, tm + 1, tr, ql, qr)
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return 0 if (l > r or not self.n) else self._sum(1, 0, self.n - 1, l, r)
 
     def _qmin(self, i, tl, tr, ql, qr):
@@ -146,12 +152,16 @@ class ChminChmaxBeats:
         b = self._qmin(2 * i + 1, tm + 1, tr, ql, qr)
         return a if a < b else b
 
-    # O(logN) -- min of a[l..r]
+    # O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return POS_INF if (l > r or not self.n) else self._qmin(1, 0, self.n - 1, l, r)
 
-    # O(logN) -- a[p]
+    # O(logN) -- a[p]; needs 0 <= p < n, else IndexError
     def pointGet(self, p):
+        if not 0 <= p < self.n:
+            raise IndexError(f"pointGet: needs 0 <= p < n, got p = {p}, n = {self.n}")
         return self.rangeMin(p, p)
 
     def _getAllRec(self, i, tl, tr, out):
@@ -170,39 +180,59 @@ class ChminChmaxBeats:
             self._getAllRec(1, 0, self.n - 1, out)
         return out
 
-    # amortized O(logN) -- a[p] = v
+    # amortized O(logN) -- a[p] = v; needs 0 <= p < n, else IndexError
     def pointAssign(self, p, v):
+        if not 0 <= p < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= p < n, got p = {p}, n = {self.n}")
         self.rangeAssign(p, p, v)
 
-    # amortized O(logN) -- a[i] += v
+    # amortized O(logN) -- a[i] += v; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAssign(i, i, self.pointGet(i) + v)
 
-    # amortized O(logN) -- a[i] = max(a[i], v)
+    # amortized O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeChmax(i, i, v)
 
-    # amortized O(logN) -- a[i] = min(a[i], v)
+    # amortized O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if v < self.pointGet(i): self.rangeAssign(i, i, v)
 
-    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._firstPass(1, 0, self.n - 1, l, r, lambda i: F[i] < x) if l <= r and self.n else -1
 
-    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._firstPass(1, 0, self.n - 1, l, r, lambda i: F[i] <= x) if l <= r and self.n else -1
 
-    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._lastPass(1, 0, self.n - 1, l, r, lambda i: F[i] < x) if l <= r and self.n else -1
 
-    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._lastPass(1, 0, self.n - 1, l, r, lambda i: F[i] <= x) if l <= r and self.n else -1
 

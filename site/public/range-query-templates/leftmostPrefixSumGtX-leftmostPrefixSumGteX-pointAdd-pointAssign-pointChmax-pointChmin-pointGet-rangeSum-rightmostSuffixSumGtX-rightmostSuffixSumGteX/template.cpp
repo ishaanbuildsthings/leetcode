@@ -37,8 +37,9 @@ struct BIT {
         }
     }
 
-    // O(logN) -- a[i] += delta
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         for (i++; i <= n; i += i & -i) tree[i] += delta;
     }
 
@@ -49,11 +50,15 @@ struct BIT {
         return s;
     }
 
-    // O(logN) -- a[l] + ... + a[r]
-    T rangeSum(int l, int r) const { return l > r ? T(0) : prefixSum(r) - (l ? prefixSum(l - 1) : T(0)); }
+    // O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
+    T rangeSum(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
+        return l > r ? T(0) : prefixSum(r) - (l ? prefixSum(l - 1) : T(0));
+    }
 
-    // O(logN) -- a[i] in one walk instead of two prefix sums
+    // O(logN) -- a[i] in one walk instead of two prefix sums; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         i++;
         T v = tree[i];
         int stop = i - (i & -i);
@@ -72,17 +77,22 @@ struct BIT {
         return vector<T>(t.begin() + 1, t.end());
     }
 
-    // O(logN) -- a[i] = v
-    void pointAssign(int i, T v) { pointAdd(i, v - pointGet(i)); }
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        pointAdd(i, v - pointGet(i));
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         T cur = pointGet(i);
         if (v > cur) pointAdd(i, v - cur);
     }
 
-    // O(logN) -- a[i] = min(a[i], v)
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         T cur = pointGet(i);
         if (v < cur) pointAdd(i, v - cur);
     }
@@ -102,30 +112,37 @@ struct BIT {
         return pos;
     }
 
-    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] >= x, or -1. Needs every a[i] >= 0.
-    // e.g. on a 0/1 array, leftmostPrefixSumGteX(0, n - 1, k) is the index of the k-th one.
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] >= x, or -1. Needs every a[i] >= 0. e.g. on a 0/1 array,
+    // leftmostPrefixSumGteX(0, n - 1, k) is the index of the k-th one.; needs 0 <= l <= r < n, else throws
+    // out_of_range
     int leftmostPrefixSumGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumGteX: needs 0 <= l <= r < n");
         int i = max(l, prefixLowerBound((l ? prefixSum(l - 1) : T(0)) + x, false));
         return i <= r ? i : -1;
     }
 
-    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] > x, or -1. Needs every a[i] >= 0.
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] > x, or -1. Needs every a[i] >= 0.; needs 0 <= l <= r < n,
+    // else throws out_of_range
     int leftmostPrefixSumGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumGtX: needs 0 <= l <= r < n");
         int i = max(l, prefixLowerBound((l ? prefixSum(l - 1) : T(0)) + x, true));
         return i <= r ? i : -1;
     }
 
-    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1. Needs every a[i] >= 0.
-    // That is the last i with a[0] + ... + a[i - 1] <= prefixSum(r) - x: one binary lift.
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1. Needs every a[i] >= 0. That is the last i with
+    // a[0] + ... + a[i - 1] <= prefixSum(r) - x: one binary lift.; needs 0 <= l <= r < n, else throws out_of_range
     int rightmostSuffixSumGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumGteX: needs 0 <= l <= r < n");
         T t = prefixSum(r) - x;
         if (t < 0) return -1;
         int i = min(r, prefixLowerBound(t, true));
         return i >= l ? i : -1;
     }
 
-    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1. Needs every a[i] >= 0.
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1. Needs every a[i] >= 0.; needs 0 <= l <= r < n,
+    // else throws out_of_range
     int rightmostSuffixSumGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumGtX: needs 0 <= l <= r < n");
         T t = prefixSum(r) - x;
         if (t <= 0) return -1;
         int i = min(r, prefixLowerBound(t, false));

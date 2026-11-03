@@ -89,8 +89,10 @@ class AffineSumTree:
         self._rebuild(l0)
         self._rebuild(r0)
 
-    # O(logN) -- (a[l] + ... + a[r]) % MOD
+    # O(logN) -- (a[l] + ... + a[r]) % MOD; needs 0 <= l <= r < n, else IndexError
     def rangeSumMod(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSumMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         l += self.n
@@ -110,8 +112,10 @@ class AffineSumTree:
             r >>= 1
         return res % self.mod
 
-    # O(logN) -- a[i], in [0, mod)
+    # O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         return self.tot[p]
@@ -130,26 +134,39 @@ class AffineSumTree:
                     self.add[x] = 0
         return self.tot[n:]
 
-    # O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]; every other update is this one
+    # O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]; every other update is this one; needs
+    # 0 <= l <= r < n, else IndexError
     def rangeAffineMod(self, l, r, mult, add):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAffineMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, mult % self.mod, add % self.mod)
 
-    # O(logN) -- a[i] += v (% MOD) for i in [l, r]
+    # O(logN) -- a[i] += v (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAddMod(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAddMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, 1, v % self.mod)
 
-    # O(logN) -- a[i] *= m (% MOD) for i in [l, r]
+    # O(logN) -- a[i] *= m (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeMultMod(self, l, r, m):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMultMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, m % self.mod, 0)
 
-    # O(logN) -- a[i] = v for i in [l, r]: multiply by 0, then add v
+    # O(logN) -- a[i] = v for i in [l, r]: multiply by 0, then add v; needs 0 <= l <= r < n, else IndexError
     def rangeAssignMod(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssignMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, 0, v % self.mod)
 
-    # O(logN) -- a[i] = val (% MOD)
+    # O(logN) -- a[i] = val (% MOD); needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._update(i, i, 0, val % self.mod)
 
-    # O(logN) -- a[i] += delta (% MOD)
+    # O(logN) -- a[i] += delta (% MOD); needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._update(i, i, 1, delta % self.mod)

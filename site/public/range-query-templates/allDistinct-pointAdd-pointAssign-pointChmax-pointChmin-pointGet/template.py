@@ -161,8 +161,10 @@ class DistinctTree:
             tree[p] = a if a < b else b
             p >>= 1
 
-    # O(logN) -- true iff no value repeats inside a[l..r]
+    # O(logN) -- true iff no value repeats inside a[l..r]; needs 0 <= l <= r < n, else IndexError
     def allDistinct(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"allDistinct: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         tree = self.tree
         lo, hi = l + self.n, r + self.n + 1
         while lo < hi:
@@ -178,8 +180,10 @@ class DistinctTree:
             hi >>= 1
         return True
 
-    # O(logN) -- a[i] = val
+    # O(logN) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         old = self.a[i]
         if old == val:
             return
@@ -201,24 +205,32 @@ class DistinctTree:
             self._setNxt(p, i)
         self.a[i] = val
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.a[i]
 
     # O(N) -- the whole array (a copy)
     def getAll(self):
         return list(self.a)
 
-    # O(logN) -- a[i] += delta
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.a[i] + delta)
 
-    # O(logN) -- a[i] = max(a[i], val)
+    # O(logN) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.a[i]:
             self.pointAssign(i, val)
 
-    # O(logN) -- a[i] = min(a[i], val)
+    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.a[i]:
             self.pointAssign(i, val)

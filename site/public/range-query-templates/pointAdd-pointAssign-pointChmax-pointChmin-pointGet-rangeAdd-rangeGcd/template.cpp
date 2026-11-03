@@ -68,14 +68,18 @@ struct RangeAddRangeGcd {
         }
     }
 
-    // O(logN logU) -- a[i] += x for i in [l, r]
+    // O(logN logU) -- a[i] += x for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAdd(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAdd: needs 0 <= l <= r < n");
         shiftDiff(l, x);
         if (r + 1 < n) shiftDiff(r + 1, -x);
     }
 
-    // O(logN) -- a[i]
-    T pointGet(int i) const { return prefix(i); }
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return prefix(i);
+    }
 
     // O(N) -- the whole array: prefix sums of the differences
     vector<T> getAll() const {
@@ -85,27 +89,36 @@ struct RangeAddRangeGcd {
         return out;
     }
 
-    // O(logN + logU) -- gcd of a[l..r]
+    // O(logN + logU) -- gcd of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeGcd(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeGcd: needs 0 <= l <= r < n");
         T res = absT(prefix(l));
         if (l < r) res = std::gcd(res, segQuery(l + 1, r));
         return res;
     }
 
-    // O(logN logU) -- a[i] += delta
-    void pointAdd(int i, T delta) { rangeAdd(i, i, delta); }
+    // O(logN logU) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        rangeAdd(i, i, delta);
+    }
 
-    // O(logN logU) -- a[i] = v
-    void pointAssign(int i, T v) { rangeAdd(i, i, v - pointGet(i)); }
+    // O(logN logU) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        rangeAdd(i, i, v - pointGet(i));
+    }
 
-    // O(logN logU) -- a[i] = max(a[i], v)
+    // O(logN logU) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         T cur = pointGet(i);
         if (v > cur) rangeAdd(i, i, v - cur);
     }
 
-    // O(logN logU) -- a[i] = min(a[i], v)
+    // O(logN logU) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         T cur = pointGet(i);
         if (v < cur) rangeAdd(i, i, v - cur);
     }

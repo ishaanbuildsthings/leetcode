@@ -115,14 +115,16 @@ struct SortedRunsSumXorMaxAndHash {
         for (int p = size - 1; p > 0; p--) up(p);
     }
 
-    // O(log N + log U) -- a[i]
+    // O(log N + log U) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int s = startOf(i), k = i - s;
         return kth(root[s], desc[s] ? len[s] - k : k + 1);
     }
 
-    // O(log N + log U) amortized -- a[i] = v
+    // O(log N + log U) amortized -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         cutAt(i), cutAt(i + 1);
         io(i, -1);
         freeTree(root[i]);
@@ -131,70 +133,99 @@ struct SortedRunsSumXorMaxAndHash {
         io(i, 1);
     }
 
-    // O(log N + log U) amortized -- a[i] += v
-    void pointAdd(int i, T v) { pointAssign(i, pointGet(i) + v); }
+    // O(log N + log U) amortized -- a[i] += v; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + v);
+    }
 
-    // O(log N + log U) amortized -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(log N + log U) amortized -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(log N + log U) amortized -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(log N + log U) amortized -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(log N + log U) amortized -- sort a[l..r] ascending
-    void rangeSortAsc(int l, int r) { sortRange(l, r, false, false, T(0)); }
+    // O(log N + log U) amortized -- sort a[l..r] ascending; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeSortAsc(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSortAsc: needs 0 <= l <= r < n");
+        sortRange(l, r, false, false, T(0));
+    }
 
-    // O(log N + log U) amortized -- sort a[l..r] descending
-    void rangeSortDesc(int l, int r) { sortRange(l, r, true, false, T(0)); }
+    // O(log N + log U) amortized -- sort a[l..r] descending; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeSortDesc(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSortDesc: needs 0 <= l <= r < n");
+        sortRange(l, r, true, false, T(0));
+    }
 
-    // O(log N + log U) amortized -- a[i] = v for i in [l, r]
-    void rangeAssign(int l, int r, T v) { sortRange(l, r, false, true, v); }
+    // O(log N + log U) amortized -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
+        sortRange(l, r, false, true, v);
+    }
 
-    // O(log N + log U) amortized -- a[l] + ... + a[r]
+    // O(log N + log U) amortized -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
     S rangeSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         return ask_qs(l, r);
     }
 
-    // O(log N + log U) amortized -- a[l] ^ ... ^ a[r]
+    // O(log N + log U) amortized -- a[l] ^ ... ^ a[r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeXorQuery(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeXorQuery: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         return ask_qx(l, r);
     }
 
-    // O(log N + log U) amortized -- max of a[l..r]
+    // O(log N + log U) amortized -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMax(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         return ask_qm(l, r);
     }
 
-    // O(log N + log U) amortized -- a[l] & ... & a[r]
+    // O(log N + log U) amortized -- a[l] & ... & a[r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeAndQuery(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAndQuery: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         return ask_qa(l, r);
     }
 
-    // O(log N + log U) amortized -- is a[l..r] a palindrome?
+    // O(log N + log U) amortized -- is a[l..r] a palindrome?; needs 0 <= l <= r < n, else throws out_of_range
     bool isPalindrome(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("isPalindrome: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         auto [f, b] = askHash(l, r);
         return f == b;
     }
 
     // O(log N + log U) amortized -- hash of a[l..r] read left to right (a[l] B^(len-1) + ... + a[r], mod 2^61 - 1; B
-    // random per run): equal ranges hash equal
+    // random per run): equal ranges hash equal; needs 0 <= l <= r < n, else throws out_of_range
     unsigned long long rangeHash(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeHash: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         return askHash(l, r).first;
     }
 
-    // O(log N + log U) amortized -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
+    // O(log N + log U) amortized -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs
+    // 0 <= l <= r < n, else throws out_of_range
     unsigned long long rangeHashReversed(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeHashReversed: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         return askHash(l, r).second;
     }
 
-    // O(log N + log U) amortized -- a[l1..r1] == a[l2..r2]? (equal lengths and equal hashes)
+    // O(log N + log U) amortized -- a[l1..r1] == a[l2..r2]? (equal lengths and equal hashes); needs
+    // 0 <= l1 <= r1 < n and 0 <= l2 <= r2 < n, else throws out_of_range
     bool rangesEqual(int l1, int r1, int l2, int r2) {
+        if (l1 < 0 || l1 > r1 || r1 >= n || l2 < 0 || l2 > r2 || r2 >= n)
+            throw out_of_range("rangesEqual: needs 0 <= l1 <= r1 < n and 0 <= l2 <= r2 < n");
         return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
     }
 

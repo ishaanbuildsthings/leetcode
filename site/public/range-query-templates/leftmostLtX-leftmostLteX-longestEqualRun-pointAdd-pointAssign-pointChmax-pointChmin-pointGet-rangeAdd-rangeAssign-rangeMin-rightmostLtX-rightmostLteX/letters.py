@@ -71,8 +71,11 @@ class LazySegTree:
             self._push(x, s)
         return [self._leaf(p) for p in range(n, 2 * n)]
 
-    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mn
         for t, s in self._nodes(l, r):
             if F[t] < x:  # the first covering node with a passing value: walk down it
@@ -83,8 +86,11 @@ class LazySegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mn
         for t, s in self._nodes(l, r):
             if F[t] <= x:  # the first covering node with a passing value: walk down it
@@ -95,8 +101,10 @@ class LazySegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the longest run of equal adjacent values in a[l..r]
+    # O(logN) -- the longest run of equal adjacent values in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def longestEqualRun(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"longestEqualRun: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         pr, sr, br, fv, lv = self.pr, self.sr, self.br, self.fv, self.lv
         ns = self._nodes(l, r)
         t, s = ns[0]
@@ -114,35 +122,45 @@ class LazySegTree:
             last = lv[t]
         return res
 
-    # O(logN) -- a[i] = v
+    # O(logN) -- a[i] = v; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._pushPath(p)
         self._setLeaf(p, v)
         self._rebuild(p)
 
-    # O(logN) -- a[i] = max(a[i], v)
+    # O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._pushPath(p)
         self._setLeaf(p, max(self._leaf(p), v))
         self._rebuild(p)
 
-    # O(logN) -- a[i] = min(a[i], v)
+    # O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._pushPath(p)
         self._setLeaf(p, min(self._leaf(p), v))
         self._rebuild(p)
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._pushPath(p)
         return self._leaf(p)
 
-    # O(logN) -- a[i] = v for i in [l, r]
+    # O(logN) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n = self.n
         self._pushPath(l + n)
         self._pushPath(r + n)
@@ -160,8 +178,10 @@ class LazySegTree:
         self._rebuild(l + n)
         self._rebuild(r + n)
 
-    # O(logN) -- min of a[l..r]
+    # O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, mn = self.n, self.mn
         self._pushPath(l + n)
         self._pushPath(r + n)
@@ -179,8 +199,11 @@ class LazySegTree:
             hi >>= 1
         return res
 
-    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mn
         for t, s in reversed(self._nodes(l, r)):
             if F[t] < x:  # the last covering node with a passing value: walk down it
@@ -191,8 +214,11 @@ class LazySegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mn
         for t, s in reversed(self._nodes(l, r)):
             if F[t] <= x:  # the last covering node with a passing value: walk down it

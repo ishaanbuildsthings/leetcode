@@ -31,8 +31,10 @@ class RangeChmaxTree:
         n = self.n = len(arr)
         self.tree = [""] * n + list(arr)
 
-    # O(logN) -- a[i] = max(a[i], v) for i in [l, r]
+    # O(logN) -- a[i] = max(a[i], v) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeChmax(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeChmax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         tree = self.tree
         l += self.n
         r += self.n + 1
@@ -58,8 +60,10 @@ class RangeChmaxTree:
                 tree[y | 1] = tree[y | 1] if tree[y | 1] > t else t
                 tree[x] = ""
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         tree = self.tree
         p = i + self.n
         a = tree[p]
@@ -83,20 +87,27 @@ class RangeChmaxTree:
                 tree[x] = ""
         return self.tree[self.n:]
 
-    # O(logN) -- a[i] = val
+    # O(logN) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         self.tree[p] = val
 
-    # O(1) -- a[i] = max(a[i], val); a leaf-level chmax tag commutes with the pending ones above it
+    # O(1) -- a[i] = max(a[i], val); a leaf-level chmax tag commutes with the pending ones above it; needs 0 <= i < n,
+    # else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         if val > self.tree[p]:
             self.tree[p] = val
 
-    # O(logN) -- a[i] = min(a[i], val)
+    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         if val < self.tree[p]:

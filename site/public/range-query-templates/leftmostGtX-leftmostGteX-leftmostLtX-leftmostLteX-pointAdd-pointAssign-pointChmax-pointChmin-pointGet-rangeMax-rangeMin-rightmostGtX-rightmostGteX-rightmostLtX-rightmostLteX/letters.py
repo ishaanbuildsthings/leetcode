@@ -53,8 +53,11 @@ class SegTree:
     def getAll(self):
         return self.mn[self.n:]
 
-    # O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mx
         for t, s in self._nodes(l, r):
             if F[t] > x:  # the first covering node with a passing value: walk down it
@@ -63,8 +66,11 @@ class SegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mx
         for t, s in self._nodes(l, r):
             if F[t] >= x:  # the first covering node with a passing value: walk down it
@@ -73,8 +79,11 @@ class SegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mn
         for t, s in self._nodes(l, r):
             if F[t] < x:  # the first covering node with a passing value: walk down it
@@ -83,8 +92,11 @@ class SegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mn
         for t, s in self._nodes(l, r):
             if F[t] <= x:  # the first covering node with a passing value: walk down it
@@ -93,31 +105,41 @@ class SegTree:
                 return t - n
         return -1
 
-    # O(logN) -- a[i] = v
+    # O(logN) -- a[i] = v; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._setLeaf(p, v)
         self._rebuild(p)
 
-    # O(logN) -- a[i] = max(a[i], v)
+    # O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._setLeaf(p, max(self._leaf(p), v))
         self._rebuild(p)
 
-    # O(logN) -- a[i] = min(a[i], v)
+    # O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._setLeaf(p, min(self._leaf(p), v))
         self._rebuild(p)
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         return self._leaf(p)
 
-    # O(logN) -- max of a[l..r]
+    # O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMax(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, mx = self.n, self.mx
         res, lo, hi = NEG, l + n, r + n + 1
         while lo < hi:
@@ -133,8 +155,10 @@ class SegTree:
             hi >>= 1
         return res
 
-    # O(logN) -- min of a[l..r]
+    # O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, mn = self.n, self.mn
         res, lo, hi = INF, l + n, r + n + 1
         while lo < hi:
@@ -150,8 +174,11 @@ class SegTree:
             hi >>= 1
         return res
 
-    # O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mx
         for t, s in reversed(self._nodes(l, r)):
             if F[t] > x:  # the last covering node with a passing value: walk down it
@@ -160,8 +187,11 @@ class SegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mx
         for t, s in reversed(self._nodes(l, r)):
             if F[t] >= x:  # the last covering node with a passing value: walk down it
@@ -170,8 +200,11 @@ class SegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mn
         for t, s in reversed(self._nodes(l, r)):
             if F[t] < x:  # the last covering node with a passing value: walk down it
@@ -180,8 +213,11 @@ class SegTree:
                 return t - n
         return -1
 
-    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, F = self.n, self.mn
         for t, s in reversed(self._nodes(l, r)):
             if F[t] <= x:  # the last covering node with a passing value: walk down it

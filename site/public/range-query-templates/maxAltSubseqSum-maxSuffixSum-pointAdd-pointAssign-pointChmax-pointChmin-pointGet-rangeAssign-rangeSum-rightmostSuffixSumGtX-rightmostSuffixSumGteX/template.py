@@ -75,8 +75,11 @@ class LazySegTree:
             self._push(x, s)
         return [self._leaf(p) for p in range(n, 2 * n)]
 
-    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
+    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs 0 <= l <= r < n, else
+    # IndexError
     def maxAltSubseqSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"maxAltSubseqSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         a00, a01, a10, a11 = self.a00, self.a01, self.a10, self.a11
         ns = self._nodes(l, r)
         t = ns[0][0]
@@ -85,8 +88,10 @@ class LazySegTree:
             c = _altJoin(c, (a00[t], a01[t], a10[t], a11[t]))
         return max(c[0], c[1])
 
-    # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]
+    # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def maxSuffixSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"maxSuffixSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         sm, suf = self.sm, self.suf
         ns = self._nodes(l, r)
         t = ns[-1][0]
@@ -97,42 +102,54 @@ class LazySegTree:
             acc += sm[t]
         return res
 
-    # O(logN) -- a[i] += v
+    # O(logN) -- a[i] += v; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._pushPath(p)
         self._setLeaf(p, self._leaf(p) + v)
         self._rebuild(p)
 
-    # O(logN) -- a[i] = v
+    # O(logN) -- a[i] = v; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._pushPath(p)
         self._setLeaf(p, v)
         self._rebuild(p)
 
-    # O(logN) -- a[i] = max(a[i], v)
+    # O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._pushPath(p)
         self._setLeaf(p, max(self._leaf(p), v))
         self._rebuild(p)
 
-    # O(logN) -- a[i] = min(a[i], v)
+    # O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._pushPath(p)
         self._setLeaf(p, min(self._leaf(p), v))
         self._rebuild(p)
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._pushPath(p)
         return self._leaf(p)
 
-    # O(logN) -- a[i] = v for i in [l, r]
+    # O(logN) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n = self.n
         self._pushPath(l + n)
         self._pushPath(r + n)
@@ -150,8 +167,10 @@ class LazySegTree:
         self._rebuild(l + n)
         self._rebuild(r + n)
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, sm = self.n, self.sm
         self._pushPath(l + n)
         self._pushPath(r + n)
@@ -167,8 +186,11 @@ class LazySegTree:
             hi >>= 1
         return res
 
-    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums)
+    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums); needs
+    # 0 <= l <= r < n, else IndexError
     def rightmostSuffixSumGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostSuffixSumGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, sm, P = self.n, self.sm, self.suf
         acc = 0
         for t, s in reversed(self._nodes(l, r)):
@@ -185,8 +207,11 @@ class LazySegTree:
             acc += sm[t]
         return -1
 
-    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums)
+    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums); needs
+    # 0 <= l <= r < n, else IndexError
     def rightmostSuffixSumGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostSuffixSumGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n, sm, P = self.n, self.sm, self.suf
         acc = 0
         for t, s in reversed(self._nodes(l, r)):

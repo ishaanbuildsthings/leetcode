@@ -141,8 +141,10 @@ class SparseOccurrenceLists:
         self.pos = {}  # value -> SortedList of its indices (nonzero values only)
         self.nz = SortedList()  # indices holding a nonzero value
 
-    # O(logU) -- # of i in [l, r] with a[i] == x
+    # O(logU) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else IndexError
     def countOccurrences(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"countOccurrences: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return 0
         if x == 0:
@@ -159,8 +161,11 @@ class SparseOccurrenceLists:
     def rightmostIndexOf(self, x):
         return self.rightmostIndexOfInRange(self.lo, self.hi, x)
 
-    # O(logU) (x == 0: O(log^2 U)) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    # O(logU) (x == 0: O(log^2 U)) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostIndexOfInRange(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"leftmostIndexOfInRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return self.lo - 1
         if x == 0:
@@ -180,8 +185,11 @@ class SparseOccurrenceLists:
         i = s.succ(l - 1) if s is not None else None
         return i if i is not None and i <= r else self.lo - 1
 
-    # O(logU) (x == 0: O(log^2 U)) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    # O(logU) (x == 0: O(log^2 U)) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostIndexOfInRange(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rightmostIndexOfInRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return self.lo - 1
         if x == 0:
@@ -201,8 +209,10 @@ class SparseOccurrenceLists:
         i = s.pred(r + 1) if s is not None else None
         return i if i is not None and i >= l else self.lo - 1
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         old = self.vals.get(i, 0)
         if old == val:
             return
@@ -223,20 +233,28 @@ class SparseOccurrenceLists:
             self.nz.remove(i)
             del self.vals[i]
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self.vals.get(i, 0)
 
-    # a[i] += delta
+    # a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

@@ -145,8 +145,9 @@ struct SortedRunsMaxAndHashSeq {
     // O(1) -- the current length
     int size() const { return n; }
 
-    // O(log N + log U) expected -- a[i]
+    // O(log N + log U) expected -- a[i]; needs 0 <= i < size(), else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
         for (int x = rt;;) {
             push(x);
             int ls = rn[rn[x].TL].TS;
@@ -158,43 +159,69 @@ struct SortedRunsMaxAndHashSeq {
         }
     }
 
-    // O(log N + log U) amortized -- a[i] = v
-    void pointAssign(int i, T v) { rangeAssign(i, i, v); }
+    // O(log N + log U) amortized -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
+        rangeAssign(i, i, v);
+    }
 
-    // O(log N + log U) amortized -- a[i] += v
-    void pointAdd(int i, T v) { pointAssign(i, pointGet(i) + v); }
+    // O(log N + log U) amortized -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
+    void pointAdd(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
+        pointAssign(i, pointGet(i) + v);
+    }
 
-    // O(log N + log U) amortized -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(log N + log U) amortized -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(log N + log U) amortized -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(log N + log U) amortized -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(log N + log U) amortized -- sort a[l..r] ascending
-    void rangeSortAsc(int l, int r) { sortRange(l, r, false); }
+    // O(log N + log U) amortized -- sort a[l..r] ascending; needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeSortAsc(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSortAsc: needs 0 <= l <= r < size()");
+        sortRange(l, r, false);
+    }
 
-    // O(log N + log U) amortized -- sort a[l..r] descending
-    void rangeSortDesc(int l, int r) { sortRange(l, r, true); }
+    // O(log N + log U) amortized -- sort a[l..r] descending; needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeSortDesc(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSortDesc: needs 0 <= l <= r < size()");
+        sortRange(l, r, true);
+    }
 
-    // O(log N + log U) amortized -- a[i] = v for i in [l, r]
+    // O(log N + log U) amortized -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAssign: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         drop(B);
         join(A, run(leaf(v, r - l + 1), r - l + 1, false), C);
     }
 
-    // O(log N + log U) amortized -- reverse a[l..r]
+    // O(log N + log U) amortized -- reverse a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeReverse(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeReverse: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         rev(B);
         join(A, B, C);
     }
 
-    // O(log N + log U) amortized -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
-    void insertAt(int i, T v) { insertCopiesAt(i, v, 1); }
+    // O(log N + log U) amortized -- insert v so it becomes a[i]; needs 0 <= i <= size(), else throws out_of_range (i
+    // = size() appends)
+    void insertAt(int i, T v) {
+        if (i < 0 || i > size()) throw out_of_range("insertAt: needs 0 <= i <= size()");
+        insertCopiesAt(i, v, 1);
+    }
 
-    // O(log N + log U) amortized -- insert k copies of v starting at index i (0 <= i <= size(); k <= 0 does nothing)
+    // O(log N + log U) amortized -- insert k copies of v starting at index i (needs 0 <= i <= size(), else throws
+    // out_of_range; k <= 0 does nothing)
     void insertCopiesAt(int i, T v, long long k) {
+        if (i < 0 || i > size()) throw out_of_range("insertCopiesAt: needs 0 <= i <= size()");
         if (k <= 0) return;
         n += (int)k;
         grow(n);
@@ -208,8 +235,10 @@ struct SortedRunsMaxAndHashSeq {
     // O(log N + log U) amortized -- insert v at the front (it becomes a[0])
     void appendLeft(T v) { insertCopiesAt(0, v, 1); }
 
-    // O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0)
+    // O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     SortedRunsMaxAndHashSeq cut(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("cut: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         rt = tmerge(A, C), n -= r - l + 1;
         SortedRunsMaxAndHashSeq piece = makeEmpty();
@@ -218,8 +247,9 @@ struct SortedRunsMaxAndHashSeq {
     }
 
     // O(log N + log U) amortized -- insert all of other (one with the same valLo / valHi, e.g. a cut piece) so it
-    // starts at a[i] (0 <= i <= size()); other is left empty
+    // starts at a[i] (needs 0 <= i <= size(), else throws out_of_range); other is left empty
     void paste(int i, SortedRunsMaxAndHashSeq& other) {
+        if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         n += other.n;
         grow(n);  // (before the merge reads the powers)
         auto [A, C] = tsplit(rt, i);
@@ -229,25 +259,30 @@ struct SortedRunsMaxAndHashSeq {
     // O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
     void merge(SortedRunsMaxAndHashSeq& other) { paste(n, other); }
 
-    // O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
+    // O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty; needs
+    // 0 <= k <= size(), else throws out_of_range
     pair<SortedRunsMaxAndHashSeq, SortedRunsMaxAndHashSeq> split(int k) {
+        if (k < 0 || k > size()) throw out_of_range("split: needs 0 <= k <= size()");
         SortedRunsMaxAndHashSeq left = makeEmpty(), right = makeEmpty();
         tie(left.rt, right.rt) = tsplit(rt, k);
         left.n = k, right.n = n - k, rt = n = 0;
         return {left, right};
     }
 
-    // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
+    // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty;
+    // needs 0 <= l <= r < size(), else throws out_of_range
     tuple<SortedRunsMaxAndHashSeq, SortedRunsMaxAndHashSeq, SortedRunsMaxAndHashSeq> trisect(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         SortedRunsMaxAndHashSeq left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         tie(left.rt, mid.rt, right.rt) = extract(l, r);
         left.n = l, mid.n = r - l + 1, right.n = n - r - 1, rt = n = 0;
         return {left, mid, right};
     }
 
-    // O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first); k can be huge or
-    // negative: it is taken mod the length (negative = right)
+    // O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first); k can be huge or negative: it is
+    // taken mod the length (negative = right); needs 0 <= l <= r < size(), else throws out_of_range
     void rangeRotateLeft(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateLeft: needs 0 <= l <= r < size()");
         long long m = r - l + 1;
         k = ((k % m) + m) % m;
         if (!k) return;
@@ -256,28 +291,34 @@ struct SortedRunsMaxAndHashSeq {
         join(A, tmerge(Y, X), C);
     }
 
-    // O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod
-    // the length (negative = left)
-    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
+    // O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod the length
+    // (negative = left); needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeRotateRight(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateRight: needs 0 <= l <= r < size()");
+        rangeRotateLeft(l, r, -k);
+    }
 
-    // O(log N + log U) amortized -- max of a[l..r]
+    // O(log N + log U) amortized -- max of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMax(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMax: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         T res = rn[B].Smx;
         join(A, B, C);
         return res;
     }
 
-    // O(log N + log U) amortized -- a[l] & ... & a[r]
+    // O(log N + log U) amortized -- a[l] & ... & a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeAndQuery(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAndQuery: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         T res = rn[B].Sav;
         join(A, B, C);
         return res;
     }
 
-    // O(log N + log U) amortized -- is a[l..r] a palindrome?
+    // O(log N + log U) amortized -- is a[l..r] a palindrome?; needs 0 <= l <= r < size(), else throws out_of_range
     bool isPalindrome(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("isPalindrome: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         bool res = rn[B].Sfh == rn[B].Sbh;
         join(A, B, C);
@@ -285,24 +326,30 @@ struct SortedRunsMaxAndHashSeq {
     }
 
     // O(log N + log U) amortized -- hash of a[l..r] read left to right (a[l] B^(len-1) + ... + a[r], mod 2^61 - 1; B
-    // random per run): equal ranges hash equal
+    // random per run): equal ranges hash equal; needs 0 <= l <= r < size(), else throws out_of_range
     unsigned long long rangeHash(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeHash: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         unsigned long long res = rn[B].Sfh;
         join(A, B, C);
         return res;
     }
 
-    // O(log N + log U) amortized -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
+    // O(log N + log U) amortized -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     unsigned long long rangeHashReversed(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeHashReversed: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         unsigned long long res = rn[B].Sbh;
         join(A, B, C);
         return res;
     }
 
-    // O(log N + log U) amortized -- a[l1..r1] == a[l2..r2]? (equal lengths and equal hashes)
+    // O(log N + log U) amortized -- a[l1..r1] == a[l2..r2]? (equal lengths and equal hashes); needs
+    // 0 <= l1 <= r1 < size() and 0 <= l2 <= r2 < size(), else throws out_of_range
     bool rangesEqual(int l1, int r1, int l2, int r2) {
+        if (l1 < 0 || l1 > r1 || r1 >= size() || l2 < 0 || l2 > r2 || r2 >= size())
+            throw out_of_range("rangesEqual: needs 0 <= l1 <= r1 < size() and 0 <= l2 <= r2 < size()");
         return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
     }
 

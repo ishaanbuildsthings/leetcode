@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-run-updates-assign/template.cpp
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeRotateLeft rangeRotateRight rightmostLtX rightmostLteX split trisect
 // @data-structure-type: treap
+// @letters: same
 // @complexities:
 //   append: log(N) expected
 //   appendLeft: log(N) expected

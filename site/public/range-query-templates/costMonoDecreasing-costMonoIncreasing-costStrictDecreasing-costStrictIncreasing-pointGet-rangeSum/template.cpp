@@ -52,8 +52,11 @@ struct MonoIncreaseCost {
         }
     }
 
-    // O(1) -- a[l] + ... + a[r] (0 if l > r)
-    S rangeSum(int l, int r) const { return r >= l ? pf[r + 1] - pf[l] : S(0); }
+    // O(1) -- a[l] + ... + a[r] (0 if l > r); needs 0 <= l <= r < n, else throws out_of_range
+    S rangeSum(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
+        return r >= l ? pf[r + 1] - pf[l] : S(0);
+    }
 
     // O(1) -- index of the max of a[l..r], leftmost on ties
     int argMax(int l, int r) const {
@@ -62,15 +65,19 @@ struct MonoIncreaseCost {
         return arr[x] >= arr[y] ? x : y;
     }
 
-    // O(1) -- min total +1 increments to make a[l..r] non-decreasing
+    // O(1) -- min total +1 increments to make a[l..r] non-decreasing; needs 0 <= l <= r < n, else throws out_of_range
     S costMonoIncreasing(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("costMonoIncreasing: needs 0 <= l <= r < n");
         int m = argMax(l, r);
         S endsAt = (suff[l] - suff[m]) + S(arr[m]) * (r - m + 1);
         return endsAt - rangeSum(l, r);
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 };
 
 // Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing.
@@ -94,20 +101,23 @@ struct MonoCosts {
         for (int i = 0; i < n; i++) pf[i + 1] = pf[i] + S(arr[i]);
     }
 
-    // O(1) -- min +1 increments to make a[l..r] non-decreasing
+    // O(1) -- min +1 increments to make a[l..r] non-decreasing; needs 0 <= l <= r < n, else throws out_of_range
     S costMonoIncreasing(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("costMonoIncreasing: needs 0 <= l <= r < n");
         if (!inc) inc = make_unique<Cost>(arr);
         return inc->costMonoIncreasing(l, r);
     }
 
-    // O(1) -- min +1 increments to make a[l..r] non-increasing
+    // O(1) -- min +1 increments to make a[l..r] non-increasing; needs 0 <= l <= r < n, else throws out_of_range
     S costMonoDecreasing(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("costMonoDecreasing: needs 0 <= l <= r < n");
         if (!dec) dec = make_unique<Cost>(vector<T>(arr.rbegin(), arr.rend()));
         return dec->costMonoIncreasing(n - 1 - r, n - 1 - l);
     }
 
-    // O(1) -- min +1 increments to make a[l..r] strictly increasing
+    // O(1) -- min +1 increments to make a[l..r] strictly increasing; needs 0 <= l <= r < n, else throws out_of_range
     S costStrictIncreasing(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("costStrictIncreasing: needs 0 <= l <= r < n");
         if (!sinc) {
             vector<T> b(n);
             for (int i = 0; i < n; i++) b[i] = arr[i] - T(i);
@@ -116,8 +126,9 @@ struct MonoCosts {
         return sinc->costMonoIncreasing(l, r);
     }
 
-    // O(1) -- min +1 increments to make a[l..r] strictly decreasing
+    // O(1) -- min +1 increments to make a[l..r] strictly decreasing; needs 0 <= l <= r < n, else throws out_of_range
     S costStrictDecreasing(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("costStrictDecreasing: needs 0 <= l <= r < n");
         if (!sdec) {
             vector<T> c(n);
             for (int i = 0; i < n; i++) c[n - 1 - i] = arr[i] + T(i);
@@ -126,9 +137,15 @@ struct MonoCosts {
         return sdec->costMonoIncreasing(n - 1 - r, n - 1 - l);
     }
 
-    // O(1) -- a[l] + ... + a[r]
-    S rangeSum(int l, int r) const { return r >= l ? pf[r + 1] - pf[l] : S(0); }
+    // O(1) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
+    S rangeSum(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
+        return r >= l ? pf[r + 1] - pf[l] : S(0);
+    }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 };

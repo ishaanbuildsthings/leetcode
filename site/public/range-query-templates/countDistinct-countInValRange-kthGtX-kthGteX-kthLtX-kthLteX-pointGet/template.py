@@ -227,8 +227,11 @@ class MergeSortTree:
             da += 1
         return res + pa
 
-    # O(log n) — count elements in value range [valLow, valHigh] (inclusive) in index range [ql, qr]
+    # O(log n) — count elements in value range [valLow, valHigh] (inclusive) in index range [ql, qr]; needs
+    # 0 <= ql <= qr < n, else IndexError
     def countInValRange(self, ql, qr, valLow, valHigh):
+        if not 0 <= ql <= qr < self.n:
+            raise IndexError(f"countInValRange: needs 0 <= ql <= qr < n, got ql = {ql}, qr = {qr}, n = {self.n}")
         ql, qr = max(ql, 0), min(qr, self.n - 1)
         if ql > qr or valHigh < valLow:
             return 0
@@ -357,24 +360,38 @@ class MergeSortTree:
             return tl
         return -1
 
-    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] >= x, or -1
+    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] >= x, or -1; needs
+    # 0 <= ql <= qr < n, else IndexError
     def kthGteX(self, ql, qr, k, x):
+        if not 0 <= ql <= qr < self.n:
+            raise IndexError(f"kthGteX: needs 0 <= ql <= qr < n, got ql = {ql}, qr = {qr}, n = {self.n}")
         return self._kthAbove(ql, qr, k, bisect_left(self.sortedVals, x))
 
-    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] > x, or -1
+    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] > x, or -1; needs
+    # 0 <= ql <= qr < n, else IndexError
     def kthGtX(self, ql, qr, k, x):
+        if not 0 <= ql <= qr < self.n:
+            raise IndexError(f"kthGtX: needs 0 <= ql <= qr < n, got ql = {ql}, qr = {qr}, n = {self.n}")
         return self._kthAbove(ql, qr, k, bisect_right(self.sortedVals, x))
 
-    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] <= x, or -1
+    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] <= x, or -1; needs
+    # 0 <= ql <= qr < n, else IndexError
     def kthLteX(self, ql, qr, k, x):
+        if not 0 <= ql <= qr < self.n:
+            raise IndexError(f"kthLteX: needs 0 <= ql <= qr < n, got ql = {ql}, qr = {qr}, n = {self.n}")
         return self._kthBelow(ql, qr, k, bisect_right(self.sortedVals, x))
 
-    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] < x, or -1
+    # O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] < x, or -1; needs
+    # 0 <= ql <= qr < n, else IndexError
     def kthLtX(self, ql, qr, k, x):
+        if not 0 <= ql <= qr < self.n:
+            raise IndexError(f"kthLtX: needs 0 <= ql <= qr < n, got ql = {ql}, qr = {qr}, n = {self.n}")
         return self._kthBelow(ql, qr, k, bisect_left(self.sortedVals, x))
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]
 
 
@@ -386,7 +403,7 @@ class StaticDistinct:
     # Values may be any hashable type — nxt holds indices, so no compression.
     def __init__(self, arr):
         self.arr = arr
-        n = len(arr)
+        self.n = n = len(arr)
         nxt = [n] * n
         last = {}
         for i in range(n - 1, -1, -1):
@@ -394,10 +411,14 @@ class StaticDistinct:
             last[arr[i]] = i
         self.mst = MergeSortTree(nxt)
 
-    # O(log n) — # of distinct values in a[l..r], inclusive, 0-indexed
+    # O(log n) — # of distinct values in a[l..r], inclusive, 0-indexed; needs 0 <= l <= r < n, else IndexError
     def countDistinct(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countDistinct: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self.mst.countGteX(l, r, r + 1)
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]

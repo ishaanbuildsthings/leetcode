@@ -80,14 +80,18 @@ class SortedRunsXorMinOrHash:
         for p in range(size - 1, 0, -1):
             self._up(p)
 
-    # O(log N + log U) -- a[i]
+    # O(log N + log U) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         s = self._startOf(i)
         k = i - s
         return self._kth(self.root[s], self.len[s] - k if self.desc[s] else k + 1)
 
-    # O(log N + log U) amortized -- a[i] = v
+    # O(log N + log U) amortized -- a[i] = v; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._cutAt(i)
         self._cutAt(i + 1)
         self._io(i, -1)
@@ -95,72 +99,101 @@ class SortedRunsXorMinOrHash:
         self.root[i] = self._leaf(v)
         self._io(i, 1)
 
-    # O(log N + log U) amortized -- a[i] += v
+    # O(log N + log U) amortized -- a[i] += v; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.pointGet(i) + v)
 
-    # O(log N + log U) amortized -- a[i] = max(a[i], v)
+    # O(log N + log U) amortized -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if v > self.pointGet(i):
             self.pointAssign(i, v)
 
-    # O(log N + log U) amortized -- a[i] = min(a[i], v)
+    # O(log N + log U) amortized -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if v < self.pointGet(i):
             self.pointAssign(i, v)
 
-    # O(log N + log U) amortized -- sort a[l..r] ascending
+    # O(log N + log U) amortized -- sort a[l..r] ascending; needs 0 <= l <= r < n, else IndexError
     def rangeSortAsc(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSortAsc: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._sort(l, r, False, None)
 
-    # O(log N + log U) amortized -- sort a[l..r] descending
+    # O(log N + log U) amortized -- sort a[l..r] descending; needs 0 <= l <= r < n, else IndexError
     def rangeSortDesc(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSortDesc: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._sort(l, r, True, None)
 
-    # O(log N + log U) amortized -- a[i] = v for i in [l, r]
+    # O(log N + log U) amortized -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._sort(l, r, False, v)
 
-    # O(log N + log U) amortized -- a[l] ^ ... ^ a[r]
+    # O(log N + log U) amortized -- a[l] ^ ... ^ a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeXorQuery(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeXorQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._cutAt(l)
         self._cutAt(r + 1)
         return self._ask(l, r)[0]
 
-    # O(log N + log U) amortized -- min of a[l..r]
+    # O(log N + log U) amortized -- min of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._cutAt(l)
         self._cutAt(r + 1)
         return self._ask(l, r)[1]
 
-    # O(log N + log U) amortized -- a[l] | ... | a[r]
+    # O(log N + log U) amortized -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeOrQuery(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeOrQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._cutAt(l)
         self._cutAt(r + 1)
         return self._ask(l, r)[2]
 
-    # O(log N + log U) amortized -- is a[l..r] a palindrome?
+    # O(log N + log U) amortized -- is a[l..r] a palindrome?; needs 0 <= l <= r < n, else IndexError
     def isPalindrome(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"isPalindrome: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._cutAt(l)
         self._cutAt(r + 1)
         res = self._ask(l, r)
         return res[3] == res[4]
 
     # O(log N + log U) amortized -- hash of a[l..r] read left to right (a[l] B^(len-1) + ... + a[r], mod 2^61 - 1; B
-    # random per run): equal ranges hash equal
+    # random per run): equal ranges hash equal; needs 0 <= l <= r < n, else IndexError
     def rangeHash(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeHash: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._cutAt(l)
         self._cutAt(r + 1)
         return self._ask(l, r)[3]
 
-    # O(log N + log U) amortized -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
+    # O(log N + log U) amortized -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs
+    # 0 <= l <= r < n, else IndexError
     def rangeHashReversed(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeHashReversed: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._cutAt(l)
         self._cutAt(r + 1)
         return self._ask(l, r)[4]
 
-    # O(log N + log U) amortized -- a[l1..r1] == a[l2..r2]? (equal lengths and equal hashes)
+    # O(log N + log U) amortized -- a[l1..r1] == a[l2..r2]? (equal lengths and equal hashes); needs
+    # 0 <= l1 <= r1 < n and 0 <= l2 <= r2 < n, else IndexError
     def rangesEqual(self, l1, r1, l2, r2):
+        if not (0 <= l1 <= r1 < self.n and 0 <= l2 <= r2 < self.n):
+            raise IndexError(f"rangesEqual: needs 0 <= l1 <= r1 < n and 0 <= l2 <= r2 < n, got "
+                             f"l1 = {l1}, r1 = {r1}, l2 = {l2}, r2 = {r2}, n = {self.n}")
         return r1 - l1 == r2 - l2 and self.rangeHash(l1, r1) == self.rangeHash(l2, r2)
 
     # O(N log U) -- the whole current array

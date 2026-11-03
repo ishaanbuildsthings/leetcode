@@ -98,29 +98,33 @@ struct SqrtBlocks {
         }
     }
 
-    // O(sqrt N log N) -- a[i] = min(a[i], x) for i in [l, r]
+    // O(sqrt N log N) -- a[i] = min(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeChmin(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeChmin: needs 0 <= l <= r < n");
         rangeApply(l, r, [&](int b) {
             lazyChmin[b] = min(lazyChmin[b], x);  // drop the ceiling
             lazyChmax[b] = min(lazyChmax[b], x);  // and the floor, if the ceiling went below it
         }, [&](T v) { return min(v, x); });
     }
 
-    // O(sqrt N log N) -- a[i] = max(a[i], x) for i in [l, r]
+    // O(sqrt N log N) -- a[i] = max(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeChmax(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeChmax: needs 0 <= l <= r < n");
         rangeApply(l, r, [&](int b) {
             lazyChmax[b] = max(lazyChmax[b], x);  // raise the floor
             lazyChmin[b] = max(lazyChmin[b], x);  // and the ceiling, if the floor went above it
         }, [&](T v) { return max(v, x); });
     }
 
-    // O(sqrt N log N) -- a[i] = x for i in [l, r]
+    // O(sqrt N log N) -- a[i] = x for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAssign(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
         rangeApply(l, r, [&](int b) { lazyAdd[b] = 0, lazyChmin[b] = lazyChmax[b] = x; }, [&](T) { return x; });
     }
 
-    // O(sqrt N log N) -- a[i] += x for i in [l, r]
+    // O(sqrt N log N) -- a[i] += x for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAdd(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAdd: needs 0 <= l <= r < n");
         rangeApply(l, r, [&](int b) {
             lazyAdd[b] += x;
             if (lazyChmin[b] != INF) lazyChmin[b] += x;
@@ -136,8 +140,10 @@ struct SqrtBlocks {
         return {lt, gt};
     }
 
-    // O(sqrt N log N) -- how many i in [l, r] have low <= a[i] <= high
+    // O(sqrt N log N) -- how many i in [l, r] have low <= a[i] <= high; needs 0 <= l <= r < n, else throws
+    // out_of_range
     int countInValRange(int l, int r, T low, T high) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countInValRange: needs 0 <= l <= r < n");
         if (l > r || high < low) return 0;
         int res = 0;
         for (int b = l / B, br = r / B; b <= br; b++) {
@@ -167,8 +173,9 @@ struct SqrtBlocks {
         return res;
     }
 
-    // O(sqrt N log N) -- a[l] + ... + a[r]
+    // O(sqrt N log N) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
     S rangeSum(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
         if (l > r) return 0;
         if (!sumReady) {  // the first rangeSum builds every block's prefix sums; until then nobody pays for them
             sumReady = true;
@@ -191,8 +198,11 @@ struct SqrtBlocks {
         return res;
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return applyTag(i / B, vals[i]); }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return applyTag(i / B, vals[i]);
+    }
 
     // O(N) -- the whole array (each a[i] is O(1))
     vector<T> getAll() const {
@@ -201,8 +211,10 @@ struct SqrtBlocks {
         return out;
     }
 
-    // O(sqrt N) -- a[i] = v; one value moves inside the sorted copy, so no re-sort
+    // O(sqrt N) -- a[i] = v; one value moves inside the sorted copy, so no re-sort; needs 0 <= i < n, else throws
+    // out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int b = i / B;
         push(b);
         T old = vals[i];
@@ -214,12 +226,21 @@ struct SqrtBlocks {
         if (sumReady) buildPf(b);
     }
 
-    // a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 
-    // a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + delta);
+    }
 };

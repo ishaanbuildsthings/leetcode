@@ -234,8 +234,10 @@ class BeatsGcd_PERFORMANT:
         self._chmin(2 * i + 1, tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(log^2 N logU) -- a[i] = min(a[i], x) for i in [l, r]
+    # O(log^2 N logU) -- a[i] = min(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeChmin(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeChmin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l <= r and self.n: self._chmin(1, 0, self.n - 1, l, r, x)
 
     def _chmax(self, i, tl, tr, ql, qr, x):
@@ -248,8 +250,10 @@ class BeatsGcd_PERFORMANT:
         self._chmax(2 * i + 1, tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(log^2 N logU) -- a[i] = max(a[i], x) for i in [l, r]
+    # O(log^2 N logU) -- a[i] = max(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeChmax(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeChmax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l <= r and self.n: self._chmax(1, 0, self.n - 1, l, r, x)
 
     def _add(self, i, tl, tr, ql, qr, v):
@@ -262,8 +266,10 @@ class BeatsGcd_PERFORMANT:
         self._add(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(log^2 N logU) -- a[i] += v for i in [l, r]
+    # O(log^2 N logU) -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAdd(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l <= r and self.n: self._add(1, 0, self.n - 1, l, r, v)
 
     def _assign(self, i, tl, tr, ql, qr, v):
@@ -276,12 +282,16 @@ class BeatsGcd_PERFORMANT:
         self._assign(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(log^2 N logU) -- a[i] = v for i in [l, r]
+    # O(log^2 N logU) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l <= r and self.n: self._assign(1, 0, self.n - 1, l, r, v)
 
-    # O(log^2 N logU) -- a[p] = v
+    # O(log^2 N logU) -- a[p] = v; needs 0 <= p < n, else IndexError
     def pointAssign(self, p, v):
+        if not 0 <= p < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= p < n, got p = {p}, n = {self.n}")
         self.rangeAssign(p, p, v)
 
     def _sum(self, i, tl, tr, ql, qr):
@@ -291,8 +301,10 @@ class BeatsGcd_PERFORMANT:
         tm = (tl + tr) // 2
         return self._sum(2 * i, tl, tm, ql, qr) + self._sum(2 * i + 1, tm + 1, tr, ql, qr)
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return 0 if (l > r or not self.n) else self._sum(1, 0, self.n - 1, l, r)
 
     def _qmax(self, i, tl, tr, ql, qr):
@@ -304,8 +316,10 @@ class BeatsGcd_PERFORMANT:
         b = self._qmax(2 * i + 1, tm + 1, tr, ql, qr)
         return a if a > b else b
 
-    # O(logN) -- max of a[l..r]
+    # O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMax(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return NEG_INF if (l > r or not self.n) else self._qmax(1, 0, self.n - 1, l, r)
 
     def _qmin(self, i, tl, tr, ql, qr):
@@ -317,12 +331,16 @@ class BeatsGcd_PERFORMANT:
         b = self._qmin(2 * i + 1, tm + 1, tr, ql, qr)
         return a if a < b else b
 
-    # O(logN) -- min of a[l..r]
+    # O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return POS_INF if (l > r or not self.n) else self._qmin(1, 0, self.n - 1, l, r)
 
-    # O(logN) -- a[p]
+    # O(logN) -- a[p]; needs 0 <= p < n, else IndexError
     def pointGet(self, p):
+        if not 0 <= p < self.n:
+            raise IndexError(f"pointGet: needs 0 <= p < n, got p = {p}, n = {self.n}")
         return self.rangeMax(p, p)
 
     def _getAllRec(self, i, tl, tr, out):
@@ -354,59 +372,91 @@ class BeatsGcd_PERFORMANT:
         tm = (tl + tr) // 2
         return gcd(self._qgcd(2 * i, tl, tm, ql, qr), self._qgcd(2 * i + 1, tm + 1, tr, ql, qr))
 
-    # O(logN logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0)
+    # O(logN logU) -- gcd of |a[l]|, ..., |a[r]| (0 only if all are 0); needs 0 <= l <= r < n, else IndexError
     def rangeGcd(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return 0 if (l > r or not self.n) else self._qgcd(1, 0, self.n - 1, l, r)
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeChmax(i, i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeChmin(i, i, val)
 
-    # a[i] += delta
+    # a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAdd(i, i, delta)
 
-    # O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mx
         return self._firstPass(1, 0, self.n - 1, l, r, lambda i: F[i] > x) if l <= r and self.n else -1
 
-    # O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mx
         return self._firstPass(1, 0, self.n - 1, l, r, lambda i: F[i] >= x) if l <= r and self.n else -1
 
-    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._firstPass(1, 0, self.n - 1, l, r, lambda i: F[i] < x) if l <= r and self.n else -1
 
-    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._firstPass(1, 0, self.n - 1, l, r, lambda i: F[i] <= x) if l <= r and self.n else -1
 
-    # O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mx
         return self._lastPass(1, 0, self.n - 1, l, r, lambda i: F[i] > x) if l <= r and self.n else -1
 
-    # O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    # O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mx
         return self._lastPass(1, 0, self.n - 1, l, r, lambda i: F[i] >= x) if l <= r and self.n else -1
 
-    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._lastPass(1, 0, self.n - 1, l, r, lambda i: F[i] < x) if l <= r and self.n else -1
 
-    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._lastPass(1, 0, self.n - 1, l, r, lambda i: F[i] <= x) if l <= r and self.n else -1
 

@@ -34,8 +34,9 @@ struct RangeAssignTree {
         for (int i = 0; i < n; i++) stamp[n + i] = 0, val[n + i] = a[i];
     }
 
-    // O(logN) -- a[i] = v for i in [l, r]
+    // O(logN) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
         int c = ++clock;
         for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
             if (l & 1) stamp[l] = c, val[l] = v, l++;
@@ -43,8 +44,9 @@ struct RangeAssignTree {
         }
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int p = i + n, best = stamp[p];
         T res = val[p];
         for (p >>= 1; p; p >>= 1)
@@ -60,15 +62,27 @@ struct RangeAssignTree {
         return vector<T>(val.begin() + n, val.end());
     }
 
-    // O(1) -- a[i] = v
-    void pointAssign(int i, T v) { stamp[i + n] = ++clock, val[i + n] = v; }
+    // O(1) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        stamp[i + n] = ++clock, val[i + n] = v;
+    }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

@@ -171,6 +171,24 @@ struct SparseShrinkSegTree {
         return res;
     }
 
+    // O(logN) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    S minPrefixSum(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("minPrefixSum: needs lo <= l <= r <= hi");
+        int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S res = npre[ns[0]], acc = sm[ns[0]];
+        for (int i = 1; i < c; i++) res = min(res, acc + npre[ns[i]]), acc += sm[ns[i]];
+        return res;
+    }
+
+    // O(logN) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    S minSuffixSum(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("minSuffixSum: needs lo <= l <= r <= hi");
+        int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S res = nsuf[ns[c - 1]], acc = sm[ns[c - 1]];
+        for (int i = c - 2; i >= 0; i--) res = min(res, acc + nsuf[ns[i]]), acc += sm[ns[i]];
+        return res;
+    }
+
     // O(logU) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
     void pointAdd(long long i, T v) {
         if (i < first || i > last) throw out_of_range("pointAdd: needs lo <= i <= hi");

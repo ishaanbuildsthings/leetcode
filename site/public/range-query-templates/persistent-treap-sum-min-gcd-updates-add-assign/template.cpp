@@ -92,9 +92,10 @@ struct PersistentTreap {
     // O(1) -- the whole array as a PersistentTreap of its own; this one is unchanged (they share nodes)
     PersistentTreap copy() const { return *this; }
 
-    // O(logN * logU) expected -- a[l..r] as a PersistentTreap of its own; this one is unchanged. The copy
-    // shares this one's nodes, so it costs O(logN) however long it is
+    // O(logN * logU) expected -- a[l..r] as a PersistentTreap of its own; this one is unchanged. The copy shares this
+    // one's nodes, so it costs O(logN) however long it is; needs 0 <= l <= r < size(), else throws out_of_range
     PersistentTreap copy(long long l, long long r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("copy: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         PersistentTreap piece = makeEmpty();
@@ -102,8 +103,10 @@ struct PersistentTreap {
         return piece;
     }
 
-    // O(logN * logU) expected -- remove a[l..r] and return it as a treap of its own (indices from 0)
+    // O(logN * logU) expected -- remove a[l..r] and return it as a treap of its own (indices from 0); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     PersistentTreap cut(long long l, long long r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("cut: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         root = merge(a, c);
@@ -127,23 +130,29 @@ struct PersistentTreap {
         return out;
     }
 
-    // O(logN * logU) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    // O(logN * logU) expected -- insert v so it becomes a[i]; needs 0 <= i <= size(), else throws out_of_range (i =
+    // size() appends)
     void insertAt(long long i, T v) {
+        if (i < 0 || i > size()) throw out_of_range("insertAt: needs 0 <= i <= size()");
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, newNode(v)), c);
     }
 
-    // O(k + logN * logU) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    // O(k + logN * logU) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0); needs
+    // 0 <= i <= size(), else throws out_of_range
     void insertCopiesAt(long long i, T v, long long k) {
+        if (i < 0 || i > size()) throw out_of_range("insertCopiesAt: needs 0 <= i <= size()");
         if (k <= 0) return;
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, build(vector<T>(k, v))), c);
     }
 
-    // O(logN * logU) expected -- the first i in [l, r] with a[i] < x, or -1 (pruned by the subtree min)
+    // O(logN * logU) expected -- the first i in [l, r] with a[i] < x, or -1 (pruned by the subtree min); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     long long leftmostLtX(long long l, long long r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostLtX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b;
@@ -159,8 +168,10 @@ struct PersistentTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- the first i in [l, r] with a[i] <= x, or -1 (pruned by the subtree min)
+    // O(logN * logU) expected -- the first i in [l, r] with a[i] <= x, or -1 (pruned by the subtree min); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     long long leftmostLteX(long long l, long long r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostLteX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b;
@@ -181,8 +192,9 @@ struct PersistentTreap {
     void merge(PersistentTreap&& other) { merge(other); }  // (a temporary: merge(t.copy()))
 
     // O(logN * logU) expected -- insert all of other (any PersistentTreap, e.g. a cut piece) so it starts at a[i]
-    // (0 <= i <= size()); other is left empty
+    // (needs 0 <= i <= size(), else throws out_of_range); other is left empty
     void paste(long long i, PersistentTreap& other) {
+        if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, other.root), c);
@@ -190,8 +202,9 @@ struct PersistentTreap {
     }
     void paste(long long i, PersistentTreap&& other) { paste(i, other); }  // (a temporary: paste(i, t.copy(l, r)))
 
-    // O(logN * logU) expected -- a[i] += v
+    // O(logN * logU) expected -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
     void pointAdd(long long i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
         int a, b, c;
         cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
         nd[b].val = T(nd[b].val + v);
@@ -199,8 +212,9 @@ struct PersistentTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN * logU) expected -- a[i] = v
+    // O(logN * logU) expected -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
         int a, b, c;
         cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
         nd[b].val = v;
@@ -208,8 +222,9 @@ struct PersistentTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN * logU) expected -- a[i] = max(a[i], v)
+    // O(logN * logU) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmax(long long i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
         int a, b, c;
         cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
         nd[b].val = max(nd[b].val, v);
@@ -217,8 +232,9 @@ struct PersistentTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN * logU) expected -- a[i] = min(a[i], v)
+    // O(logN * logU) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmin(long long i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
         int a, b, c;
         cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
         nd[b].val = min(nd[b].val, v);
@@ -226,44 +242,52 @@ struct PersistentTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- a[i]
-    T pointGet(long long i) { return nd[locate(i)].val; }
+    // O(logN) expected -- a[i]; needs 0 <= i < size(), else throws out_of_range
+    T pointGet(long long i) {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
+        return nd[locate(i)].val;
+    }
 
-    // O(logN * logU) expected -- a[i] += v for i in [l, r]
+    // O(logN * logU) expected -- a[i] += v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAdd(long long l, long long r, T v) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAdd: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         applyAdd(b, v);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN * logU) expected -- a[i] = v for i in [l, r]
+    // O(logN * logU) expected -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAssign(long long l, long long r, T v) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAssign: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         applyAssign(b, v);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|
+    // O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeGcd(long long l, long long r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeGcd: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         T res = gcd(nd[b].fv, nd[b].g);
         return res;
     }
 
-    // O(logN * logU) expected -- min of a[l..r]
+    // O(logN * logU) expected -- min of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMin(long long l, long long r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMin: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         T res = nd[b].mn;
         return res;
     }
 
-    // O(logN * logU) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
-    // it is taken mod the length (negative shifts right)
+    // O(logN * logU) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it
+    // is taken mod the length (negative shifts right); needs 0 <= l <= r < size(), else throws out_of_range
     void rangeRotateLeft(long long l, long long r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateLeft: needs 0 <= l <= r < size()");
         int a, b, c;
         long long len = r - l + 1;
         cut(l, r, a, b, c);
@@ -277,19 +301,25 @@ struct PersistentTreap {
     }
 
     // O(logN * logU) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
-    // length (negative shifts left)
-    void rangeRotateRight(long long l, long long r, long long k) { rangeRotateLeft(l, r, -k); }
+    // length (negative shifts left); needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeRotateRight(long long l, long long r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateRight: needs 0 <= l <= r < size()");
+        rangeRotateLeft(l, r, -k);
+    }
 
-    // O(logN * logU) expected -- a[l] + ... + a[r]
+    // O(logN * logU) expected -- a[l] + ... + a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     S rangeSum(long long l, long long r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSum: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         S res = nd[b].sm;
         return res;
     }
 
-    // O(logN * logU) expected -- the last i in [l, r] with a[i] < x, or -1 (pruned by the subtree min)
+    // O(logN * logU) expected -- the last i in [l, r] with a[i] < x, or -1 (pruned by the subtree min); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     long long rightmostLtX(long long l, long long r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostLtX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b;
@@ -305,8 +335,10 @@ struct PersistentTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- the last i in [l, r] with a[i] <= x, or -1 (pruned by the subtree min)
+    // O(logN * logU) expected -- the last i in [l, r] with a[i] <= x, or -1 (pruned by the subtree min); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     long long rightmostLteX(long long l, long long r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostLteX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b;
@@ -322,16 +354,20 @@ struct PersistentTreap {
         return res;
     }
 
-    // O(logN * logU) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    // O(logN * logU) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
+    // 0 <= k <= size(), else throws out_of_range
     pair<PersistentTreap, PersistentTreap> split(long long k) {
+        if (k < 0 || k > size()) throw out_of_range("split: needs 0 <= k <= size()");
         PersistentTreap left = makeEmpty(), right = makeEmpty();
         split(root, k, left.root, right.root);
         root = 0;
         return {left, right};
     }
 
-    // O(logN * logU) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    // O(logN * logU) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty;
+    // needs 0 <= l <= r < size(), else throws out_of_range
     tuple<PersistentTreap, PersistentTreap, PersistentTreap> trisect(long long l, long long r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         PersistentTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         cut(l, r, left.root, mid.root, right.root);
         root = 0;

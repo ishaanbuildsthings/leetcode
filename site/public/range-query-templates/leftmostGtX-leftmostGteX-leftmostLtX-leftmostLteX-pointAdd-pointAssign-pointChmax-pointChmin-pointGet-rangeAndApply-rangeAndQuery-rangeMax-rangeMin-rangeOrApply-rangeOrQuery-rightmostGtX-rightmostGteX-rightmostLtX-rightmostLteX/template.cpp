@@ -146,29 +146,53 @@ struct BitBeats {
         }
     }
 
-    // amortized O(logN logU) -- a[i] &= X for i in [l, r]
-    void rangeAndApply(int l, int r, T X) { if (l <= r && n) upd(1, 0, n - 1, l, r, X & FULL, 0); }
+    // amortized O(logN logU) -- a[i] &= X for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAndApply(int l, int r, T X) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAndApply: needs 0 <= l <= r < n");
+        if (l <= r && n) upd(1, 0, n - 1, l, r, X & FULL, 0);
+    }
 
-    // amortized O(logN logU) -- a[i] |= X for i in [l, r]
-    void rangeOrApply(int l, int r, T X) { if (l <= r && n) upd(1, 0, n - 1, l, r, ~X & FULL, X & FULL); }
+    // amortized O(logN logU) -- a[i] |= X for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeOrApply(int l, int r, T X) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeOrApply: needs 0 <= l <= r < n");
+        if (l <= r && n) upd(1, 0, n - 1, l, r, ~X & FULL, X & FULL);
+    }
 
-    // O(logN) -- max of a[l..r]
-    T rangeMax(int l, int r) { return T(query(1, 0, n - 1, l, r, 0)); }
+    // O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    T rangeMax(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
+        return T(query(1, 0, n - 1, l, r, 0));
+    }
 
-    // O(logN) -- min of a[l..r]
-    T rangeMin(int l, int r) { return T(query(1, 0, n - 1, l, r, 1)); }
+    // O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    T rangeMin(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMin: needs 0 <= l <= r < n");
+        return T(query(1, 0, n - 1, l, r, 1));
+    }
 
-    // O(logN) -- a[l] & ... & a[r]
-    T rangeAndQuery(int l, int r) { return l > r || !n ? FULL : T(query(1, 0, n - 1, l, r, 2)); }
+    // O(logN) -- a[l] & ... & a[r]; needs 0 <= l <= r < n, else throws out_of_range
+    T rangeAndQuery(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAndQuery: needs 0 <= l <= r < n");
+        return l > r || !n ? FULL : T(query(1, 0, n - 1, l, r, 2));
+    }
 
-    // O(logN) -- a[l] | ... | a[r]
-    T rangeOrQuery(int l, int r) { return l > r || !n ? T(0) : T(query(1, 0, n - 1, l, r, 3)); }
+    // O(logN) -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else throws out_of_range
+    T rangeOrQuery(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeOrQuery: needs 0 <= l <= r < n");
+        return l > r || !n ? T(0) : T(query(1, 0, n - 1, l, r, 3));
+    }
 
-    // O(logN) -- a[i] = v & FULL
-    void pointAssign(int i, T v) { if (n) set(1, 0, n - 1, i, v & FULL); }
+    // O(logN) -- a[i] = v & FULL; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        if (n) set(1, 0, n - 1, i, v & FULL);
+    }
 
-    // O(logN) -- a[i]
-    T pointGet(int i) { return rangeAndQuery(i, i); }
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return rangeAndQuery(i, i);
+    }
 
     void getAllRec(int i, int tl, int tr, vector<T>& out) {
         if (tl == tr) { out.push_back(andAll[i]); return; }
@@ -185,52 +209,77 @@ struct BitBeats {
         return out;
     }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] = (a[i] + delta) & FULL
-    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logN) -- a[i] = (a[i] + delta) & FULL; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int leftmostGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostGtX: needs 0 <= l <= r < n");
         return l > r || !n ? -1 : firstPass(1, 0, n - 1, l, r, [&](int i) { return mx[i] > x; });
     }
 
-    // O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int leftmostGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostGteX: needs 0 <= l <= r < n");
         return l > r || !n ? -1 : firstPass(1, 0, n - 1, l, r, [&](int i) { return mx[i] >= x; });
     }
 
-    // O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    // O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int leftmostLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostLtX: needs 0 <= l <= r < n");
         return l > r || !n ? -1 : firstPass(1, 0, n - 1, l, r, [&](int i) { return mn[i] < x; });
     }
 
-    // O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    // O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int leftmostLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostLteX: needs 0 <= l <= r < n");
         return l > r || !n ? -1 : firstPass(1, 0, n - 1, l, r, [&](int i) { return mn[i] <= x; });
     }
 
-    // O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int rightmostGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostGtX: needs 0 <= l <= r < n");
         return l > r || !n ? -1 : lastPass(1, 0, n - 1, l, r, [&](int i) { return mx[i] > x; });
     }
 
-    // O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int rightmostGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostGteX: needs 0 <= l <= r < n");
         return l > r || !n ? -1 : lastPass(1, 0, n - 1, l, r, [&](int i) { return mx[i] >= x; });
     }
 
-    // O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    // O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int rightmostLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostLtX: needs 0 <= l <= r < n");
         return l > r || !n ? -1 : lastPass(1, 0, n - 1, l, r, [&](int i) { return mn[i] < x; });
     }
 
-    // O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    // O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int rightmostLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostLteX: needs 0 <= l <= r < n");
         return l > r || !n ? -1 : lastPass(1, 0, n - 1, l, r, [&](int i) { return mn[i] <= x; });
     }
 

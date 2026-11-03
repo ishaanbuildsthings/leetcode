@@ -70,8 +70,10 @@ class ArithSeqSumBIT:
             i &= i - 1
         return sa + sb * x + sc * _tri(x)
 
-    # O(logN) -- a[l + j] += start + j * step for j in [0, r - l]
+    # O(logN) -- a[l + j] += start + j * step for j in [0, r - l]; needs 0 <= l <= r < n, else IndexError
     def rangeAddArithSeq(self, l, r, start, step):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAddArithSeq: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return
         c0, c1 = start - step * l, step  # adding c0 + c1 * i at index i
@@ -81,16 +83,22 @@ class ArithSeqSumBIT:
             total = c0 * (r - l + 1) + c1 * (_tri(r) - _tri(l - 1))
             self._point(r + 1, total - a, -c0, -c1)
 
-    # O(logN) -- a[i] += v for i in [l, r]
+    # O(logN) -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAdd(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self.rangeAddArithSeq(l, r, v, 0)
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._prefix(r) - self._prefix(l - 1) if l <= r else 0
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.rangeSum(i, i)
 
     # O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
@@ -115,22 +123,30 @@ class ArithSeqSumBIT:
             prev = p
         return out
 
-    # O(logN) -- a[i] += delta
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAdd(i, i, delta)
 
-    # O(logN) -- a[i] = val
+    # O(logN) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAdd(i, i, val - self.pointGet(i))
 
-    # O(logN) -- a[i] = max(a[i], val)
+    # O(logN) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         cur = self.pointGet(i)
         if val > cur:
             self.rangeAdd(i, i, val - cur)
 
-    # O(logN) -- a[i] = min(a[i], val)
+    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         cur = self.pointGet(i)
         if val < cur:
             self.rangeAdd(i, i, val - cur)

@@ -82,16 +82,24 @@ class PersistentTreap:
         self.insertAt(0, v)
 
     # O(logN) expected -- a[l..r] (leave out l and r: the whole array, O(1)) as a PersistentTreap of its own; this one
-    # is unchanged. The copy shares this one's nodes, so it costs O(logN) however long it is
+    # is unchanged. The copy shares this one's nodes, so it costs O(logN) however long it is; needs
+    # 0 <= l <= r < size(), else IndexError
     def copy(self, l=0, r=None):
+        n = self.size()
         if r is None:
-            r = self.size() - 1
+            r = n - 1
+        whole = l == 0 and r == n - 1  # (an empty treap's whole copy too)
+        if not whole and not 0 <= l <= r < n:
+            raise IndexError(f"copy: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {n}")
         piece = self._empty()
-        piece.root = self.root if l == 0 and r == self.size() - 1 else self._cut(l, r)[1]
+        piece.root = self.root if whole else self._cut(l, r)[1]
         return piece
 
-    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0)
+    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0); needs
+    # 0 <= l <= r < size(), else IndexError
     def cut(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"cut: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         self.root = self._merge(a, c)
         piece = self._empty()
@@ -111,19 +119,27 @@ class PersistentTreap:
             t = R[t]
         return out
 
-    # O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    # O(logN) expected -- insert v so it becomes a[i]; needs 0 <= i <= size(), else IndexError (i = size() appends)
     def insertAt(self, i, v):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"insertAt: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, self._newNode(v)), c)
 
-    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0); needs
+    # 0 <= i <= size(), else IndexError
     def insertCopiesAt(self, i, v, k):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"insertCopiesAt: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         if k > 0:
             a, c = self._split(self.root, i)
             self.root = self._merge(self._merge(a, self._build([v] * k)), c)
 
-    # O(logN) expected -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min)
+    # O(logN) expected -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min); needs
+    # 0 <= l <= r < size(), else IndexError
     def leftmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
         t, i, res = b, 0, -1
@@ -139,8 +155,11 @@ class PersistentTreap:
                     t = R[t]
         return res
 
-    # O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min)
+    # O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min); needs
+    # 0 <= l <= r < size(), else IndexError
     def leftmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
         t, i, res = b, 0, -1
@@ -156,8 +175,11 @@ class PersistentTreap:
                     t = R[t]
         return res
 
-    # O(logN) expected -- the longest run of equal adjacent values in a[l..r]
+    # O(logN) expected -- the longest run of equal adjacent values in a[l..r]; needs 0 <= l <= r < size(), else
+    # IndexError
     def longestEqualRun(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"longestEqualRun: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         res = self.br[b]
         return res
@@ -167,54 +189,70 @@ class PersistentTreap:
         self.root = self._merge(self.root, other.root)
         other.root = 0
 
-    # O(logN) expected -- insert all of other (any PersistentTreap, e.g. a cut piece) so it starts at a[i]
-    # (0 <= i <= size()); other is left empty
+    # O(logN) expected -- insert all of other (any PersistentTreap, e.g. a cut piece) so it starts at a[i] (needs
+    # 0 <= i <= size(), else IndexError); other is left empty
     def paste(self, i, other):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"paste: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, other.root), c)
         other.root = 0
 
-    # O(logN) expected -- a[i] += v
+    # O(logN) expected -- a[i] += v; needs 0 <= i < size(), else IndexError
     def pointAdd(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointAdd: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
         self.val[b] = self.val[b] + v
         self._pull(b)
         self._join(a, b, c)
 
-    # O(logN) expected -- a[i] = v
+    # O(logN) expected -- a[i] = v; needs 0 <= i < size(), else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointAssign: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
         self.val[b] = v
         self._pull(b)
         self._join(a, b, c)
 
-    # O(logN) expected -- a[i] = max(a[i], v)
+    # O(logN) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointChmax: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
         self.val[b] = max(self.val[b], v)
         self._pull(b)
         self._join(a, b, c)
 
-    # O(logN) expected -- a[i] = min(a[i], v)
+    # O(logN) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointChmin: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
         self.val[b] = min(self.val[b], v)
         self._pull(b)
         self._join(a, b, c)
 
-    # O(logN) expected -- a[i]
+    # O(logN) expected -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointGet: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         return self.val[self._find(i)[0]]
 
-    # O(logN) expected -- min of a[l..r]
+    # O(logN) expected -- min of a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         res = self.mn[b]
         return res
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
-    # it is taken mod the length (negative shifts right)
+    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is taken
+    # mod the length (negative shifts right); needs 0 <= l <= r < size(), else IndexError
     def rangeRotateLeft(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeRotateLeft: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         k %= r - l + 1
         if k:
@@ -222,13 +260,18 @@ class PersistentTreap:
             b = self._merge(b2, b1)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
-    # length (negative shifts left)
+    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the length
+    # (negative shifts left); needs 0 <= l <= r < size(), else IndexError
     def rangeRotateRight(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeRotateRight: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         self.rangeRotateLeft(l, r, -k)
 
-    # O(logN) expected -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min)
+    # O(logN) expected -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min); needs
+    # 0 <= l <= r < size(), else IndexError
     def rightmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
         t, i, res = b, 0, -1
@@ -244,8 +287,11 @@ class PersistentTreap:
                     t = L[t]
         return res
 
-    # O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min)
+    # O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min); needs
+    # 0 <= l <= r < size(), else IndexError
     def rightmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
         t, i, res = b, 0, -1
@@ -261,15 +307,21 @@ class PersistentTreap:
                     t = L[t]
         return res
 
-    # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
+    # 0 <= k <= size(), else IndexError
     def split(self, k):
+        if not 0 <= k <= self.size():
+            raise IndexError(f"split: needs 0 <= k <= size(), got k = {k}, n = {self.size()}")
         left, right = self._empty(), self._empty()
         left.root, right.root = self._split(self.root, k)
         self.root = 0
         return left, right
 
-    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty; needs
+    # 0 <= l <= r < size(), else IndexError
     def trisect(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"trisect: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         left, mid, right = self._empty(), self._empty(), self._empty()
         left.root, mid.root, right.root = self._cut(l, r)
         self.root = 0

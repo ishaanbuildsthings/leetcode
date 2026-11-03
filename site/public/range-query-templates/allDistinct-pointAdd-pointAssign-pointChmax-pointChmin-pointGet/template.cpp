@@ -56,8 +56,9 @@ struct DistinctTree {
         for (p >>= 1; p; p >>= 1) tree[p] = min(tree[2 * p], tree[2 * p + 1]);
     }
 
-    // O(logN) -- true iff no value repeats inside a[l..r]
+    // O(logN) -- true iff no value repeats inside a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     bool allDistinct(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("allDistinct: needs 0 <= l <= r < n");
         for (int lo = l + n, hi = r + n + 1; lo < hi; lo >>= 1, hi >>= 1) {
             if ((lo & 1) && tree[lo++] <= r) return false;
             if ((hi & 1) && tree[--hi] <= r) return false;
@@ -65,8 +66,9 @@ struct DistinctTree {
         return true;
     }
 
-    // O(logN) -- a[i] = v
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         if (a[i] == v) return;
         auto oldIt = chains.find(a[i]);
         set<int>& from = oldIt->second;
@@ -85,18 +87,30 @@ struct DistinctTree {
         a[i] = v;
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return a[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return a[i];
+    }
 
     // O(N) -- the whole array (a copy)
     vector<T> getAll() const { return a; }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, const T& delta) { pointAssign(i, a[i] + delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, const T& delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, a[i] + delta);
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, const T& v) { if (v > a[i]) pointAssign(i, v); }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > a[i]) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, const T& v) { if (v < a[i]) pointAssign(i, v); }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < a[i]) pointAssign(i, v);
+    }
 };

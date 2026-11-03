@@ -103,9 +103,11 @@ class RangeMode:
 
     #################### PUBLIC METHODS START HERE ####################
 
-    # O(rootN) -- (mode, frequency) of arr[l...r] inclusive. requires 0 <= l <= r < n
-    # ties: returns any one of the tied values
+    # O(rootN) -- (mode, frequency) of arr[l...r] inclusive. requires needs 0 <= l <= r < n, else IndexError ties:
+    # returns any one of the tied values
     def rangeMode(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMode: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         B = self.B
         comp = self.comp
         positions = self.positions
@@ -146,6 +148,8 @@ class RangeMode:
 
         return self.vals[bestVal], best
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]

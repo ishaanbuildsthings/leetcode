@@ -88,144 +88,205 @@ struct WaveletMatrix {
         order(bits);  // (the final order)
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x
-    int countOccurrences(int l, int r, T x) const { return countInValRange(l, r, x, x); }
+    // O(logN) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < n, else throws out_of_range
+    int countOccurrences(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countOccurrences: needs 0 <= l <= r < n");
+        return countInValRange(l, r, x, x);
+    }
 
-    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal
+    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < n, else throws out_of_range
     int countInValRange(int l, int r, T lowVal, T highVal) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countInValRange: needs 0 <= l <= r < n");
         if (highVal < lowVal) return 0;
         return countBelow(l, r, ub(highVal)) - countBelow(l, r, lb(lowVal));
     }
 
-    // O(logN) -- # of values < x in a[l..r]
-    int countLtX(int l, int r, T x) const { return countBelow(l, r, lb(x)); }
+    // O(logN) -- # of values < x in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    int countLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countLtX: needs 0 <= l <= r < n");
+        return countBelow(l, r, lb(x));
+    }
 
-    // O(logN) -- # of values <= x in a[l..r]
-    int countLteX(int l, int r, T x) const { return countBelow(l, r, ub(x)); }
+    // O(logN) -- # of values <= x in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    int countLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countLteX: needs 0 <= l <= r < n");
+        return countBelow(l, r, ub(x));
+    }
 
-    // O(logN) -- # of values > x in a[l..r]
-    int countGtX(int l, int r, T x) const { return r - l + 1 - countBelow(l, r, ub(x)); }
+    // O(logN) -- # of values > x in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    int countGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countGtX: needs 0 <= l <= r < n");
+        return r - l + 1 - countBelow(l, r, ub(x));
+    }
 
-    // O(logN) -- # of values >= x in a[l..r]
-    int countGteX(int l, int r, T x) const { return r - l + 1 - countBelow(l, r, lb(x)); }
+    // O(logN) -- # of values >= x in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    int countGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countGteX: needs 0 <= l <= r < n");
+        return r - l + 1 - countBelow(l, r, lb(x));
+    }
 
-    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range
+    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < n and 1 <= k <= r - l + 1, else
+    // throws out_of_range
     T kthSmallest(int l, int r, int k) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("kthSmallest: needs 0 <= l <= r < n");
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
         return kth(l, r, k);
     }
 
-    // O(logN) -- min of a[l..r]
-    T rangeMin(int l, int r) const { return kth(l, r, 1); }
+    // O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    T rangeMin(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMin: needs 0 <= l <= r < n");
+        return kth(l, r, 1);
+    }
 
-    // O(logN) -- max of a[l..r]
-    T rangeMax(int l, int r) const { return kth(l, r, r - l + 1); }
+    // O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    T rangeMax(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
+        return kth(l, r, r - l + 1);
+    }
 
-    // O(logN) -- smallest value >= x in a[l..r], or nullopt
+    // O(logN) -- smallest value >= x in a[l..r], or nullopt; needs 0 <= l <= r < n, else throws out_of_range
     optional<T> smallestGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("smallestGteX: needs 0 <= l <= r < n");
         int c = countBelow(l, r, lb(x));
         if (c == r - l + 1) return nullopt;
         return kth(l, r, c + 1);
     }
 
-    // O(logN) -- smallest value > x in a[l..r], or nullopt
+    // O(logN) -- smallest value > x in a[l..r], or nullopt; needs 0 <= l <= r < n, else throws out_of_range
     optional<T> smallestGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("smallestGtX: needs 0 <= l <= r < n");
         int c = countBelow(l, r, ub(x));
         if (c == r - l + 1) return nullopt;
         return kth(l, r, c + 1);
     }
 
-    // O(logN) -- largest value <= x in a[l..r], or nullopt
+    // O(logN) -- largest value <= x in a[l..r], or nullopt; needs 0 <= l <= r < n, else throws out_of_range
     optional<T> largestLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("largestLteX: needs 0 <= l <= r < n");
         int c = countBelow(l, r, ub(x));
         if (c == 0) return nullopt;
         return kth(l, r, c);
     }
 
-    // O(logN) -- largest value < x in a[l..r], or nullopt
+    // O(logN) -- largest value < x in a[l..r], or nullopt; needs 0 <= l <= r < n, else throws out_of_range
     optional<T> largestLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("largestLtX: needs 0 <= l <= r < n");
         int c = countBelow(l, r, lb(x));
         if (c == 0) return nullopt;
         return kth(l, r, c);
     }
 
-    // O(logN) -- xor of the values < x in a[l..r] (copies count); 0 if there are none
+    // O(logN) -- xor of the values < x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n, else
+    // throws out_of_range
     T xorLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("xorLtX: needs 0 <= l <= r < n");
         return xorRanks(l, r, 0, lb(x));
     }
 
-    // O(logN) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none
+    // O(logN) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n, else
+    // throws out_of_range
     T xorLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("xorLteX: needs 0 <= l <= r < n");
         return xorRanks(l, r, 0, ub(x));
     }
 
-    // O(logN) -- xor of the values > x in a[l..r] (copies count); 0 if there are none
+    // O(logN) -- xor of the values > x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n, else
+    // throws out_of_range
     T xorGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("xorGtX: needs 0 <= l <= r < n");
         return xorRanks(l, r, ub(x), m);
     }
 
-    // O(logN) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none
+    // O(logN) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n, else
+    // throws out_of_range
     T xorGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("xorGteX: needs 0 <= l <= r < n");
         return xorRanks(l, r, lb(x), m);
     }
 
-    // O(logN) -- xor of the a[i] with lowVal <= a[i] <= highVal in a[l..r] (copies count); 0 if there are none
+    // O(logN) -- xor of the a[i] with lowVal <= a[i] <= highVal in a[l..r] (copies count); 0 if there are none; needs
+    // 0 <= l <= r < n, else throws out_of_range
     T xorInValRange(int l, int r, T lowVal, T highVal) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("xorInValRange: needs 0 <= l <= r < n");
         if (highVal < lowVal) return T(0);
         return xorRanks(l, r, lb(lowVal), ub(highVal));
     }
 
-    // O(logN) -- OR of the values < x in a[l..r]; 0 if there are none
+    // O(logN) -- OR of the values < x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     T orLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("orLtX: needs 0 <= l <= r < n");
         return orRanks(l, r, 0, lb(x));
     }
 
-    // O(logN) -- OR of the values <= x in a[l..r]; 0 if there are none
+    // O(logN) -- OR of the values <= x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     T orLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("orLteX: needs 0 <= l <= r < n");
         return orRanks(l, r, 0, ub(x));
     }
 
-    // O(logN) -- OR of the values > x in a[l..r]; 0 if there are none
+    // O(logN) -- OR of the values > x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     T orGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("orGtX: needs 0 <= l <= r < n");
         return orRanks(l, r, ub(x), m);
     }
 
-    // O(logN) -- OR of the values >= x in a[l..r]; 0 if there are none
+    // O(logN) -- OR of the values >= x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     T orGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("orGteX: needs 0 <= l <= r < n");
         return orRanks(l, r, lb(x), m);
     }
 
-    // O(logN) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none
+    // O(logN) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none; needs
+    // 0 <= l <= r < n, else throws out_of_range
     T orInValRange(int l, int r, T lowVal, T highVal) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("orInValRange: needs 0 <= l <= r < n");
         if (highVal < lowVal) return T(0);
         return orRanks(l, r, lb(lowVal), ub(highVal));
     }
 
-    // O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none
+    // O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    // throws out_of_range
     T andLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("andLtX: needs 0 <= l <= r < n");
         return andRanks(l, r, 0, lb(x));
     }
 
-    // O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none
+    // O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    // throws out_of_range
     T andLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("andLteX: needs 0 <= l <= r < n");
         return andRanks(l, r, 0, ub(x));
     }
 
-    // O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none
+    // O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    // throws out_of_range
     T andGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("andGtX: needs 0 <= l <= r < n");
         return andRanks(l, r, ub(x), m);
     }
 
-    // O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none
+    // O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    // throws out_of_range
     T andGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("andGteX: needs 0 <= l <= r < n");
         return andRanks(l, r, lb(x), m);
     }
 
-    // O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none
+    // O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; needs
+    // 0 <= l <= r < n, else throws out_of_range
     T andInValRange(int l, int r, T lowVal, T highVal) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("andInValRange: needs 0 <= l <= r < n");
         if (highVal < lowVal) return ~T(0);
         return andRanks(l, r, lb(lowVal), ub(highVal));
     }
@@ -398,182 +459,231 @@ struct SparseWaveletMatrix {
         return {i0, i1, (r - l + 1) - (i1 - i0 + 1)};
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x
+    // O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else throws out_of_range
     long long countOccurrences(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countOccurrences: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countOccurrences(i0, i1, x) : 0) + (x == T(0) ? zeros : 0);
     }
 
-    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal
+    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else throws out_of_range
     long long countInValRange(long long l, long long r, T lowVal, T highVal) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countInValRange: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countInValRange(i0, i1, lowVal, highVal) : 0) + (lowVal <= T(0) && T(0) <= highVal ? zeros : 0);
     }
 
-    // O(logN) -- # of values < x in a[l..r]
+    // O(logN) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     long long countLtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countLtX(i0, i1, x) : 0) + (T(0) < x ? zeros : 0);
     }
 
-    // O(logN) -- # of values <= x in a[l..r]
+    // O(logN) -- # of values <= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     long long countLteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countLteX(i0, i1, x) : 0) + (T(0) <= x ? zeros : 0);
     }
 
-    // O(logN) -- # of values > x in a[l..r]
+    // O(logN) -- # of values > x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     long long countGtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countGtX(i0, i1, x) : 0) + (x < T(0) ? zeros : 0);
     }
 
-    // O(logN) -- # of values >= x in a[l..r]
+    // O(logN) -- # of values >= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     long long countGteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return (i0 <= i1 ? inner.countGteX(i0, i1, x) : 0) + (x <= T(0) ? zeros : 0);
     }
 
-    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range
+    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
+    // else throws out_of_range
     T kthSmallest(long long l, long long r, long long k) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("kthSmallest: needs lo <= l <= r <= hi");
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
         return kth(l, r, k);
     }
 
-    // O(logN) -- min of a[l..r]
-    T rangeMin(long long l, long long r) const { return kth(l, r, 1); }
+    // O(logN) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeMin(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
+        return kth(l, r, 1);
+    }
 
-    // O(logN) -- max of a[l..r]
-    T rangeMax(long long l, long long r) const { return kth(l, r, r - l + 1); }
+    // O(logN) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeMax(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
+        return kth(l, r, r - l + 1);
+    }
 
-    // O(logN) -- smallest value >= x in a[l..r], or nullopt
+    // O(logN) -- smallest value >= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     optional<T> smallestGteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("smallestGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         optional<T> a = i0 <= i1 ? inner.smallestGteX(i0, i1, x) : nullopt;
         if (zeros && x <= T(0)) a = a ? min(*a, T(0)) : T(0);
         return a;
     }
 
-    // O(logN) -- smallest value > x in a[l..r], or nullopt
+    // O(logN) -- smallest value > x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     optional<T> smallestGtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("smallestGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         optional<T> a = i0 <= i1 ? inner.smallestGtX(i0, i1, x) : nullopt;
         if (zeros && x < T(0)) a = a ? min(*a, T(0)) : T(0);
         return a;
     }
 
-    // O(logN) -- largest value <= x in a[l..r], or nullopt
+    // O(logN) -- largest value <= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     optional<T> largestLteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("largestLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         optional<T> a = i0 <= i1 ? inner.largestLteX(i0, i1, x) : nullopt;
         if (zeros && T(0) <= x) a = a ? max(*a, T(0)) : T(0);
         return a;
     }
 
-    // O(logN) -- largest value < x in a[l..r], or nullopt
+    // O(logN) -- largest value < x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     optional<T> largestLtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("largestLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         optional<T> a = i0 <= i1 ? inner.largestLtX(i0, i1, x) : nullopt;
         if (zeros && T(0) < x) a = a ? max(*a, T(0)) : T(0);
         return a;
     }
 
-    // O(logN) -- xor of the values < x in a[l..r] (copies count); 0 if there are none (the zeros add nothing)
+    // O(logN) -- xor of the values < x in a[l..r] (copies count); 0 if there are none (the zeros add nothing); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     T xorLtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("xorLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.xorLtX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none (the zeros add nothing)
+    // O(logN) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none (the zeros add nothing); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     T xorLteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("xorLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.xorLteX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- xor of the values > x in a[l..r] (copies count); 0 if there are none (the zeros add nothing)
+    // O(logN) -- xor of the values > x in a[l..r] (copies count); 0 if there are none (the zeros add nothing); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     T xorGtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("xorGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.xorGtX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none (the zeros add nothing)
+    // O(logN) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none (the zeros add nothing); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     T xorGteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("xorGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.xorGteX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- xor of the a[i] with lowVal <= a[i] <= highVal in a[l..r] (copies count); 0 if there are none (the zeros add nothing)
+    // O(logN) -- xor of the a[i] with lowVal <= a[i] <= highVal in a[l..r] (copies count); 0 if there are none (the
+    // zeros add nothing); needs lo <= l <= r <= hi, else throws out_of_range
     T xorInValRange(long long l, long long r, T lowVal, T highVal) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("xorInValRange: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.xorInValRange(i0, i1, lowVal, highVal) : T(0);
     }
 
-    // O(logN) -- OR of the values < x in a[l..r]; 0 if there are none (the zeros add nothing)
+    // O(logN) -- OR of the values < x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     T orLtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("orLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.orLtX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- OR of the values <= x in a[l..r]; 0 if there are none (the zeros add nothing)
+    // O(logN) -- OR of the values <= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     T orLteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("orLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.orLteX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- OR of the values > x in a[l..r]; 0 if there are none (the zeros add nothing)
+    // O(logN) -- OR of the values > x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     T orGtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("orGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.orGtX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- OR of the values >= x in a[l..r]; 0 if there are none (the zeros add nothing)
+    // O(logN) -- OR of the values >= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     T orGteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("orGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.orGteX(i0, i1, x) : T(0);
     }
 
-    // O(logN) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none (the zeros add nothing)
+    // O(logN) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none (the zeros add
+    // nothing); needs lo <= l <= r <= hi, else throws out_of_range
     T orInValRange(long long l, long long r, T lowVal, T highVal) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("orInValRange: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         return i0 <= i1 ? inner.orInValRange(i0, i1, lowVal, highVal) : T(0);
     }
 
-    // O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none
+    // O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     T andLtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("andLtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         if (zeros && T(0) < x) return T(0);  // a 0 in range makes the AND 0
         return i0 <= i1 ? inner.andLtX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none
+    // O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     T andLteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("andLteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         if (zeros && T(0) <= x) return T(0);  // a 0 in range makes the AND 0
         return i0 <= i1 ? inner.andLteX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none
+    // O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     T andGtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("andGtX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         if (zeros && x < T(0)) return T(0);  // a 0 in range makes the AND 0
         return i0 <= i1 ? inner.andGtX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none
+    // O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     T andGteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("andGteX: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         if (zeros && x <= T(0)) return T(0);  // a 0 in range makes the AND 0
         return i0 <= i1 ? inner.andGteX(i0, i1, x) : ~T(0);
     }
 
-    // O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none
+    // O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     T andInValRange(long long l, long long r, T lowVal, T highVal) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("andInValRange: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         if (zeros && lowVal <= T(0) && T(0) <= highVal) return T(0);  // a 0 in range makes the AND 0
         return i0 <= i1 ? inner.andInValRange(i0, i1, lowVal, highVal) : ~T(0);

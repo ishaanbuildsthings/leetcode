@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/append-appendLeft-copy-cut-insertAt-insertCopiesAt-merge-paste-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeRotateLeft-rangeRotateRight-rangeXorApply-split-trisect/template.py
 # @operations: append appendLeft copy cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeRotateLeft rangeRotateRight rangeXorApply split trisect
 # @data-structure-type: persistent-treap
+# @letters: same
 # @complexities:
 #   append: log(N) expected
 #   appendLeft: log(N) expected

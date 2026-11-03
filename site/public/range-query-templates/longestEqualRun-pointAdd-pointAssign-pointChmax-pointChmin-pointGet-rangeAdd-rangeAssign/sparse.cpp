@@ -46,8 +46,10 @@ struct SparseLazySegTree {
         newZero(D);
     }
 
-    // O(logN) -- the longest run of equal adjacent values in a[l..r]
+    // O(logN) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     long long longestEqualRun(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         int t = ns[0];
         long long p = pr[t], q = sr[t], res = br[t], k = 1LL << ls[0];  // (prefix run, suffix run, best, length)
@@ -64,43 +66,50 @@ struct SparseLazySegTree {
         return res;
     }
 
-    // O(logU) -- a[i] += v
+    // O(logU) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
     void pointAdd(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointAdd: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, T(leaf(x) + v)), up(path);
     }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, v), up(path);
     }
 
-    // O(logU) -- a[i] = max(a[i], v)
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmax(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointChmax: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, max(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i] = min(a[i], v)
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmin(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointChmin: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, min(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i]
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) {
+        if (i < first || i > last) throw out_of_range("pointGet: needs lo <= i <= hi");
         int path[64];
         return leaf(leafOf(i, path));
     }
 
-    // O(logU) -- a[i] += v for i in [l, r]
+    // O(logU) -- a[i] += v for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAdd(long long l, long long r, T v) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeAdd: needs lo <= l <= r <= hi");
         update(1, D, first, l, r, [&](int t, int, long long) { applyAdd(t, v); });
     }
 
-    // O(logU) -- a[i] = v for i in [l, r]
+    // O(logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAssign(long long l, long long r, T v) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeAssign: needs lo <= l <= r <= hi");
         update(1, D, first, l, r, [&](int t, int s, long long) { applyAssign(t, s, v); });
     }
 

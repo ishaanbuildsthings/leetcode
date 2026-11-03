@@ -258,12 +258,17 @@ class RangeLIS:
             da += 1
         return res + pa
 
-    # O(logN) -- length of the longest strictly increasing subsequence of a[l..r]
+    # O(logN) -- length of the longest strictly increasing subsequence of a[l..r]; needs 0 <= l <= r < n, else
+    # IndexError
     def rangeLIS(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeLIS: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         return (r - l + 1) - self._countPrefix(l, self.n - 1, bisect_right(self.sortedVals, r))
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]

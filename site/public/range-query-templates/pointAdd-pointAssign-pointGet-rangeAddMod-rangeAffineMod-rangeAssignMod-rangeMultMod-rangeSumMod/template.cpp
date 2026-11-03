@@ -78,8 +78,9 @@ struct AffineSumTree {
         rebuild(l0), rebuild(r0);
     }
 
-    // O(logN) -- (a[l] + ... + a[r]) % MOD
+    // O(logN) -- (a[l] + ... + a[r]) % MOD; needs 0 <= l <= r < n, else throws out_of_range
     T rangeSumMod(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSumMod: needs 0 <= l <= r < n");
         if (l > r) return 0;
         l += n, r += n;
         push(l), push(r);
@@ -91,8 +92,9 @@ struct AffineSumTree {
         return norm(res);
     }
 
-    // O(logN) -- a[i], in [0, mod)
+    // O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         push(i + n);
         return tot[i + n];
     }
@@ -108,21 +110,40 @@ struct AffineSumTree {
         return vector<T>(tot.begin() + n, tot.end());
     }
 
-    // O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]; every other update is this one
-    void rangeAffineMod(int l, int r, T mult, T add) { update(l, r, norm(mult), norm(add)); }
+    // O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]; every other update is this one; needs
+    // 0 <= l <= r < n, else throws out_of_range
+    void rangeAffineMod(int l, int r, T mult, T add) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAffineMod: needs 0 <= l <= r < n");
+        update(l, r, norm(mult), norm(add));
+    }
 
-    // O(logN) -- a[i] += v (% MOD) for i in [l, r]
-    void rangeAddMod(int l, int r, T v) { update(l, r, 1, norm(v)); }
+    // O(logN) -- a[i] += v (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAddMod(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAddMod: needs 0 <= l <= r < n");
+        update(l, r, 1, norm(v));
+    }
 
-    // O(logN) -- a[i] *= m (% MOD) for i in [l, r]
-    void rangeMultMod(int l, int r, T m) { update(l, r, norm(m), 0); }
+    // O(logN) -- a[i] *= m (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeMultMod(int l, int r, T m) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMultMod: needs 0 <= l <= r < n");
+        update(l, r, norm(m), 0);
+    }
 
-    // O(logN) -- a[i] = v for i in [l, r]: multiply by 0, then add v
-    void rangeAssignMod(int l, int r, T v) { update(l, r, 0, norm(v)); }
+    // O(logN) -- a[i] = v for i in [l, r]: multiply by 0, then add v; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAssignMod(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssignMod: needs 0 <= l <= r < n");
+        update(l, r, 0, norm(v));
+    }
 
-    // O(logN) -- a[i] = v (% MOD)
-    void pointAssign(int i, T v) { update(i, i, 0, norm(v)); }
+    // O(logN) -- a[i] = v (% MOD); needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        update(i, i, 0, norm(v));
+    }
 
-    // O(logN) -- a[i] += delta (% MOD)
-    void pointAdd(int i, T delta) { update(i, i, 1, norm(delta)); }
+    // O(logN) -- a[i] += delta (% MOD); needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        update(i, i, 1, norm(delta));
+    }
 };
