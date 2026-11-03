@@ -90,192 +90,288 @@ class WaveletMatrix:
         self.ot.append(self._orTab([srt[v] for v in cur]))  # (the final order)
         self.at.append(self._andTab([srt[v] for v in cur]))  # (the final order)
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]
 
-    # O(logN) -- # of i in [l, r] with a[i] == x
+    # O(logN) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < n, else IndexError
     def countOccurrences(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countOccurrences: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self.countInValRange(l, r, x, x)
 
-    # O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal
+    # O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < n, else IndexError
     def countInValRange(self, l, r, lowVal, highVal):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if lowVal > highVal:
             return 0
         return self._countBelow(l, r, bisect_right(self.srt, highVal)) - self._countBelow(l, r, bisect_left(self.srt, lowVal))
 
-    # O(logN) -- # of values < x in a[l..r]
+    # O(logN) -- # of values < x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def countLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._countBelow(l, r, bisect_left(self.srt, x))
 
-    # O(logN) -- # of values <= x in a[l..r]
+    # O(logN) -- # of values <= x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def countLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._countBelow(l, r, bisect_right(self.srt, x))
 
-    # O(logN) -- # of values > x in a[l..r]
+    # O(logN) -- # of values > x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def countGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return r - l + 1 - self._countBelow(l, r, bisect_right(self.srt, x))
 
-    # O(logN) -- # of values >= x in a[l..r]
+    # O(logN) -- # of values >= x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def countGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return r - l + 1 - self._countBelow(l, r, bisect_left(self.srt, x))
 
-    # O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else IndexError
+    # O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < n and 1 <= k <= r - l + 1, else
+    # IndexError
     def kthSmallest(self, l, r, k):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"kthSmallest: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if not 1 <= k <= r - l + 1:
             raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._kth(l, r, k)
 
-    # O(logN) -- min of a[l..r]
+    # O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._kth(l, r, 1)
 
-    # O(logN) -- max of a[l..r]
+    # O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMax(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._kth(l, r, r - l + 1)
 
-    # O(logN) -- smallest value >= x in a[l..r], or None
+    # O(logN) -- smallest value >= x in a[l..r], or None; needs 0 <= l <= r < n, else IndexError
     def smallestGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"smallestGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         c = self._countBelow(l, r, bisect_left(self.srt, x))
         return None if c == r - l + 1 else self._kth(l, r, c + 1)
 
-    # O(logN) -- smallest value > x in a[l..r], or None
+    # O(logN) -- smallest value > x in a[l..r], or None; needs 0 <= l <= r < n, else IndexError
     def smallestGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"smallestGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         c = self._countBelow(l, r, bisect_right(self.srt, x))
         return None if c == r - l + 1 else self._kth(l, r, c + 1)
 
-    # O(logN) -- largest value <= x in a[l..r], or None
+    # O(logN) -- largest value <= x in a[l..r], or None; needs 0 <= l <= r < n, else IndexError
     def largestLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"largestLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         c = self._countBelow(l, r, bisect_right(self.srt, x))
         return None if c == 0 else self._kth(l, r, c)
 
-    # O(logN) -- largest value < x in a[l..r], or None
+    # O(logN) -- largest value < x in a[l..r], or None; needs 0 <= l <= r < n, else IndexError
     def largestLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"largestLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         c = self._countBelow(l, r, bisect_left(self.srt, x))
         return None if c == 0 else self._kth(l, r, c)
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._sumFirst(l, r, r - l + 1)
 
-    # O(logN) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal
+    # O(logN) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < n, else IndexError
     def sumInValRange(self, l, r, lowVal, highVal):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"sumInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if lowVal > highVal:
             return 0
         return self._sumBelow(l, r, bisect_right(self.srt, highVal)) - self._sumBelow(l, r, bisect_left(self.srt, lowVal))
 
-    # O(logN) -- sum of the values < x in a[l..r]
+    # O(logN) -- sum of the values < x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def sumLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"sumLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._sumBelow(l, r, bisect_left(self.srt, x))
 
-    # O(logN) -- sum of the values <= x in a[l..r]
+    # O(logN) -- sum of the values <= x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def sumLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"sumLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._sumBelow(l, r, bisect_right(self.srt, x))
 
-    # O(logN) -- sum of the values > x in a[l..r]
+    # O(logN) -- sum of the values > x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def sumGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"sumGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._sumFirst(l, r, r - l + 1) - self._sumBelow(l, r, bisect_right(self.srt, x))
 
-    # O(logN) -- sum of the values >= x in a[l..r]
+    # O(logN) -- sum of the values >= x in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def sumGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"sumGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._sumFirst(l, r, r - l + 1) - self._sumBelow(l, r, bisect_left(self.srt, x))
 
-    # O(logN) -- sum of the k smallest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError
+    # O(logN) -- sum of the k smallest values in a[l..r]; needs 0 <= l <= r < n and 0 <= k <= r - l + 1, else
+    # IndexError
     def sumSmallestK(self, l, r, k):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"sumSmallestK: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if not 0 <= k <= r - l + 1:
             raise IndexError(f"sumSmallestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._sumFirst(l, r, k)
 
-    # O(logN) -- sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError
+    # O(logN) -- sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError; needs
+    # 0 <= l <= r < n, else IndexError
     def sumLargestK(self, l, r, k):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"sumLargestK: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n = r - l + 1
         if not 0 <= k <= n:
             raise IndexError(f"sumLargestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {n}")
         return self._sumFirst(l, r, n) - self._sumFirst(l, r, n - k)
 
-    # O(logN) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1,
-    # else IndexError
+    # O(logN) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 0 <= l <= r < n
+    # and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
     def sumKthSmallestRange(self, l, r, kFrom, kTo):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"sumKthSmallestRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if not 1 <= kFrom <= kTo <= r - l + 1:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {r - l + 1}")
+            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got "
+                             f"kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {r - l + 1}")
         return self._sumFirst(l, r, kTo) - self._sumFirst(l, r, kFrom - 1)
 
-    # O(logN) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest); needs
-    # 1 <= kFrom <= kTo <= r - l + 1, else IndexError
+    # O(logN) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest);
+    # needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError; needs 0 <= l <= r < n, else IndexError
     def sumKthLargestRange(self, l, r, kFrom, kTo):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"sumKthLargestRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n = r - l + 1
         if not 1 <= kFrom <= kTo <= n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {n}")
+            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got "
+                             f"kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {n}")
         return self._sumFirst(l, r, n - kFrom + 1) - self._sumFirst(l, r, n - kTo)
 
-    # O(logN) -- sum of |a[i] - x| over i in [l, r]
+    # O(logN) -- sum of |a[i] - x| over i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def sumAbsDiffToX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"sumAbsDiffToX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         rk = bisect_left(self.srt, x)
         c, s = self._countBelow(l, r, rk), self._sumBelow(l, r, rk)
         return x * c - s + (self._sumFirst(l, r, r - l + 1) - s) - x * (r - l + 1 - c)
 
-    # O(logN) -- xor of the values < x in a[l..r] (copies count); 0 if there are none
+    # O(logN) -- xor of the values < x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def xorLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"xorLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._xorRanks(l, r, 0, bisect_left(self.srt, x))
 
-    # O(logN) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none
+    # O(logN) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def xorLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"xorLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._xorRanks(l, r, 0, bisect_right(self.srt, x))
 
-    # O(logN) -- xor of the values > x in a[l..r] (copies count); 0 if there are none
+    # O(logN) -- xor of the values > x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def xorGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"xorGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._xorRanks(l, r, bisect_right(self.srt, x), self.m)
 
-    # O(logN) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none
+    # O(logN) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def xorGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"xorGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._xorRanks(l, r, bisect_left(self.srt, x), self.m)
 
-    # O(logN) -- xor of the a[i] with lowVal <= a[i] <= highVal in a[l..r] (copies count); 0 if there are none
+    # O(logN) -- xor of the a[i] with lowVal <= a[i] <= highVal in a[l..r] (copies count); 0 if there are none; needs
+    # 0 <= l <= r < n, else IndexError
     def xorInValRange(self, l, r, lowVal, highVal):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"xorInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if lowVal > highVal:
             return 0
         return self._xorRanks(l, r, bisect_left(self.srt, lowVal), bisect_right(self.srt, highVal))
 
-    # O(logN) -- OR of the values < x in a[l..r]; 0 if there are none
+    # O(logN) -- OR of the values < x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else IndexError
     def orLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"orLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._orRanks(l, r, 0, bisect_left(self.srt, x))
 
-    # O(logN) -- OR of the values <= x in a[l..r]; 0 if there are none
+    # O(logN) -- OR of the values <= x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else IndexError
     def orLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"orLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._orRanks(l, r, 0, bisect_right(self.srt, x))
 
-    # O(logN) -- OR of the values > x in a[l..r]; 0 if there are none
+    # O(logN) -- OR of the values > x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else IndexError
     def orGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"orGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._orRanks(l, r, bisect_right(self.srt, x), self.m)
 
-    # O(logN) -- OR of the values >= x in a[l..r]; 0 if there are none
+    # O(logN) -- OR of the values >= x in a[l..r]; 0 if there are none; needs 0 <= l <= r < n, else IndexError
     def orGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"orGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._orRanks(l, r, bisect_left(self.srt, x), self.m)
 
-    # O(logN) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none
+    # O(logN) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none; needs 0 <= l <= r < n,
+    # else IndexError
     def orInValRange(self, l, r, lowVal, highVal):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"orInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if lowVal > highVal:
             return 0
         return self._orRanks(l, r, bisect_left(self.srt, lowVal), bisect_right(self.srt, highVal))
 
-    # O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none
+    # O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def andLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"andLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._andRanks(l, r, 0, bisect_left(self.srt, x))
 
-    # O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none
+    # O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def andLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"andLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._andRanks(l, r, 0, bisect_right(self.srt, x))
 
-    # O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none
+    # O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def andGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"andGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._andRanks(l, r, bisect_right(self.srt, x), self.m)
 
-    # O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none
+    # O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def andGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"andGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._andRanks(l, r, bisect_left(self.srt, x), self.m)
 
-    # O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none
+    # O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; needs
+    # 0 <= l <= r < n, else IndexError
     def andInValRange(self, l, r, lowVal, highVal):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"andInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if lowVal > highVal:
             return -1
         return self._andRanks(l, r, bisect_left(self.srt, lowVal), bisect_right(self.srt, highVal))

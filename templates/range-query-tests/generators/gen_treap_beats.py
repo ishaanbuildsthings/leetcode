@@ -22,6 +22,7 @@ from gen_treap_algebra import (CPP_BUILD, CPP_PIECES, CPP_SEQ, CPP_TAIL, PY_PIEC
                                py_public, py_skeleton, rev_line)
 from gen_treap_more import slots_line
 from gen_treap_algebra import piece_example
+from aos import aosify
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -699,7 +700,7 @@ def main():
         os.makedirs(os.path.join(DIR, folder), exist_ok=True)
         write_template(os.path.join(DIR, folder, "template.py"), py(b).rstrip("\n") + "\n" +
                        piece_example("py", "ImplicitTreap([1, 2, 3, 4, 5])", list("12345")))
-        write_template(os.path.join(DIR, folder, "template.cpp"), cpp(b) + piece_example("cpp", "ImplicitTreap<int> t({1, 2, 3, 4, 5})", list("12345")))
+        write_template(os.path.join(DIR, folder, "template.cpp"), aosify(cpp(b)) + piece_example("cpp", "ImplicitTreap<int> t({1, 2, 3, 4, 5})", list("12345")))
         n += 1
     print("wrote", n, "beats treaps")
 

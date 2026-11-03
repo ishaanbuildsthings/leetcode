@@ -76,7 +76,9 @@ struct SortedRunsSumMinMaxOrAndHash {
         r = (r & HP) + (r >> 61);
         return r >= HP ? r - HP : r;
     }
-    static unsigned long long hadd(unsigned long long a, unsigned long long b) { return a + b >= HP ? a + b - HP : a + b; }
+    static unsigned long long hadd(unsigned long long a, unsigned long long b) {
+        return a + b >= HP ? a + b - HP : a + b;
+    }
     static unsigned long long hraw(T v) {  // v as a residue (what an add changes a hash by, per position)
         long long r = (long long)v % (long long)HP;
         return r < 0 ? (unsigned long long)(r + (long long)HP) : (unsigned long long)r;
@@ -92,7 +94,8 @@ struct SortedRunsSumMinMaxOrAndHash {
         return g();
     }
 
-    // O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi] (U = valHi - valLo + 1)
+    // O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi] (U = valHi - valLo
+    // + 1)
     SortedRunsSumMinMaxOrAndHash(const vector<T>& arr, long long valLo, long long valHi)
         : n((int)arr.size()), vlo(valLo), vhi(valHi), root(n), len(n, 1), desc(n, 0), bc(n + 1, 1) {
         grow(n);
@@ -187,7 +190,8 @@ struct SortedRunsSumMinMaxOrAndHash {
         return f == b;
     }
 
-    // O(log N + log U) amortized -- hash of a[l..r] read left to right (a[l] B^(len-1) + ... + a[r], mod 2^61 - 1; B random per run): equal ranges hash equal
+    // O(log N + log U) amortized -- hash of a[l..r] read left to right (a[l] B^(len-1) + ... + a[r], mod 2^61 - 1; B
+    // random per run): equal ranges hash equal
     unsigned long long rangeHash(int l, int r) {
         cutAt(l), cutAt(r + 1);
         return askHash(l, r).first;
@@ -200,7 +204,9 @@ struct SortedRunsSumMinMaxOrAndHash {
     }
 
     // O(log N + log U) amortized -- a[l1..r1] == a[l2..r2]? (equal lengths and equal hashes)
-    bool rangesEqual(int l1, int r1, int l2, int r2) { return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2); }
+    bool rangesEqual(int l1, int r1, int l2, int r2) {
+        return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
+    }
 
     // O(N log U) -- the whole current array
     vector<T> getAll() const {

@@ -52,8 +52,9 @@ struct RangeMode {
         }
     }
 
-    // O(sqrt N) -- (mode of a[l..r], its frequency); requires 0 <= l <= r < n
+    // O(sqrt N) -- (mode of a[l..r], its frequency); requires needs 0 <= l <= r < n, else throws out_of_range
     pair<T, int> rangeMode(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMode: needs 0 <= l <= r < n");
         int lb = l / B, rb = r / B, best, bestVal, leftEdgeEnd, rightEdgeStart;
         if (rb - lb <= 1) {
             best = 0, bestVal = comp[l], leftEdgeEnd = r, rightEdgeStart = r + 1;  // no whole middle block
@@ -75,8 +76,11 @@ struct RangeMode {
         return {vals[bestVal], best};
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 };
 
 // ======================================================================================== sparse wrapper
@@ -110,8 +114,10 @@ struct SparseStaticRangeMode {
         zeros = (r - l + 1) - (i1 - i0 + 1);
     }
 
-    // O(sqrtN) -- (mode, frequency) of a[l..r]; ties: any one of the tied values
+    // O(sqrtN) -- (mode, frequency) of a[l..r]; ties: any one of the tied values; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     pair<T, long long> rangeMode(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMode: needs lo <= l <= r <= hi");
         int i0, i1;
         long long zeros;
         span(l, r, i0, i1, zeros);
@@ -121,8 +127,9 @@ struct SparseStaticRangeMode {
         return f0 >= f ? pair<T, long long>{T(0), f0} : pair<T, long long>{v, f};
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }

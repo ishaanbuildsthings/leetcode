@@ -55,8 +55,11 @@ class SparseSegTree:
         self.best = [0]
         self._newZero(self.D)
 
-    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in self._cover(l, r):
             if F[t] > x:  # the first covering node with a passing value: walk down it
@@ -70,8 +73,11 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in self._cover(l, r):
             if F[t] >= x:  # the first covering node with a passing value: walk down it
@@ -85,8 +91,11 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums)
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, P, L, R = self.sm, self.pre, self.L, self.R
         acc = 0
         for t, s, tl in self._cover(l, r):
@@ -103,8 +112,11 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums)
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, P, L, R = self.sm, self.pre, self.L, self.R
         acc = 0
         for t, s, tl in self._cover(l, r):
@@ -121,8 +133,10 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logN) -- max of a[l] + ... + a[i] over i in [l, r]
+    # O(logN) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def maxPrefixSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"maxPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, pre = self.sm, self.pre
         ns = self._nodes(l, r)
         t = ns[0][0]
@@ -133,8 +147,10 @@ class SparseSegTree:
             acc += sm[t]
         return res
 
-    # O(logN) -- max sum of a non-empty contiguous subarray of a[l..r]
+    # O(logN) -- max sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def maxSubarraySum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"maxSubarraySum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, pre, suf, best = self.sm, self.pre, self.suf, self.best
         ns = self._nodes(l, r)
         t = ns[0][0]
@@ -144,8 +160,10 @@ class SparseSegTree:
             q = max(suf[t], sm[t] + q)
         return res
 
-    # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]
+    # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def maxSuffixSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"maxSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, suf = self.sm, self.suf
         ns = self._nodes(l, r)
         t = ns[-1][0]
@@ -156,51 +174,68 @@ class SparseSegTree:
             acc += sm[t]
         return res
 
-    # O(logU) -- a[i] += v
+    # O(logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, self._leaf(x) + v)
         self._up(path)
 
-    # O(logU) -- a[i] = v
+    # O(logU) -- a[i] = v; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, v)
         self._up(path)
 
-    # O(logU) -- a[i] = max(a[i], v)
+    # O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, max(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i] = min(a[i], v)
+    # O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU) -- max of a[l..r]
+    # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         mx, res = self.mx, NEG
         for t, _ in self._nodes(l, r):
             if mx[t] > res:
                 res = mx[t]
         return res
 
-    # O(logU) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, res = self.sm, 0
         for t, _ in self._nodes(l, r):
             res += sm[t]
         return res
 
-    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in reversed(self._cover(l, r)):
             if F[t] > x:  # the last covering node with a passing value: walk down it
@@ -214,8 +249,11 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in reversed(self._cover(l, r)):
             if F[t] >= x:  # the last covering node with a passing value: walk down it
@@ -229,8 +267,11 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums)
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostSuffixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, P, L, R = self.sm, self.suf, self.L, self.R
         acc = 0
         for t, s, tl in reversed(self._cover(l, r)):
@@ -247,8 +288,11 @@ class SparseSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums)
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostSuffixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, P, L, R = self.sm, self.suf, self.L, self.R
         acc = 0
         for t, s, tl in reversed(self._cover(l, r)):

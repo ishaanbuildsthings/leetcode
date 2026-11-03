@@ -110,25 +110,29 @@ struct SparseMultSumTree {
         return merge(query(pool[x].l, a, m, l, r, down), query(pool[x].r, m + 1, b, l, r, down));
     }
 
-    // O(logU) -- a[i] = a[i] * m (% MOD) for i in [l, r]
+    // O(logU) -- a[i] = a[i] * m (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeMultMod(long long l, long long r, T m) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMultMod: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, Tag{norm(m)});
     }
 
-    // O(logU) -- (a[l] + ... + a[r]) % MOD
+    // O(logU) -- (a[l] + ... + a[r]) % MOD; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeSumMod(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeSumMod: needs lo <= l <= r <= hi");
         Agg res = query(root, lo, hi, l, r, ID);
         return res.sm;
     }
 
-    // O(logU) -- a[i], in [0, mod)
+    // O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         Agg res = query(root, lo, hi, i, i, ID);
         return res.sm;
     }
 
-    // O(logU) -- a[i] = v (% MOD)
+    // O(logU) -- a[i] = v (% MOD); needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int path[130], d = 0, y = root;
         long long a = lo, b = hi;
         while (a < b) {
@@ -142,6 +146,9 @@ struct SparseMultSumTree {
         while (d--) pull(path[d]);
     }
 
-    // O(logU) -- a[i] += delta (% MOD)
-    void pointAdd(long long i, T delta) { pointAssign(i, norm(W(pointGet(i)) + delta)); }
+    // O(logU) -- a[i] += delta (% MOD); needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, norm(W(pointGet(i)) + delta));
+    }
 };

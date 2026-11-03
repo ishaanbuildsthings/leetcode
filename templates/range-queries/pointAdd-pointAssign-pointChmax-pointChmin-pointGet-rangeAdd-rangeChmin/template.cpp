@@ -57,14 +57,22 @@ struct AddChminTree {
         }
     }
 
-    // O(logN) -- a[i] += v for i in [l, r]
-    void rangeAdd(int l, int r, T v) { update(l, r, INF, v); }
+    // O(logN) -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAdd(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAdd: needs 0 <= l <= r < n");
+        update(l, r, INF, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v) for i in [l, r]
-    void rangeChmin(int l, int r, T v) { update(l, r, v, T(0)); }
+    // O(logN) -- a[i] = min(a[i], v) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeChmin(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeChmin: needs 0 <= l <= r < n");
+        update(l, r, v, T(0));
+    }
 
-    // O(logN) -- a[i]: start from the leaf and apply ancestors' clamps bottom-up (deeper tags are older)
+    // O(logN) -- a[i]: start from the leaf and apply ancestors' clamps bottom-up (deeper tags are older); needs
+    // 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         T v = val[i];
         for (int p = (i + n) >> 1; p; p >>= 1) v = min(A[p], v + C[p]);
         return v;
@@ -78,15 +86,27 @@ struct AddChminTree {
         return val;
     }
 
-    // O(logN) -- a[i] = v
-    void pointAssign(int i, T v) { push(i + n); val[i] = v; }
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        push(i + n); val[i] = v;
+    }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { push(i + n); val[i] = val[i] + delta; }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        push(i + n); val[i] = val[i] + delta;
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { push(i + n); if (v > val[i]) val[i] = v; }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        push(i + n); if (v > val[i]) val[i] = v;
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { push(i + n); if (v < val[i]) val[i] = v; }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        push(i + n); if (v < val[i]) val[i] = v;
+    }
 };

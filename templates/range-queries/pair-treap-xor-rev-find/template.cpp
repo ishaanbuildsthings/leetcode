@@ -54,14 +54,17 @@ struct PairSwapTreap {
     // one node pool shared by every PairSwapTreap<T>: cut / paste move nodes between them, so a piece from one can go
     // into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
     // whole run), so there is nothing to reset between test cases
-    static inline vector<T> val{T(0)};
-    static inline vector<unsigned long long> pri{0};
-    static inline vector<int> L{0};
-    static inline vector<int> R{0};
-    static inline vector<int> sz{0};
-    static inline vector<T> xr{T(0)};
-    static inline vector<int> par{0};
-    static inline vector<char> rev{0};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        unsigned long long pri = 0;
+        T val = T(0);
+        T xr = T(0);
+        int L = 0;
+        int R = 0;
+        int sz = 0;
+        int par = 0;
+        char rev = 0;
+    };
+    static inline vector<Node> nd{Node{}};  // node 0 = the empty tree
     static inline unordered_map<T, int, SafeHash> where;
     int rE = 0, rO = 0;  // lane E: a[0], a[2], ...; lane O: a[1], a[3], ...
 
@@ -80,7 +83,7 @@ struct PairSwapTreap {
     }
 
     // O(1) -- the current length of the array
-    int size() const { return sz[rE] + sz[rO]; }
+    int size() const { return nd[rE].sz + nd[rO].sz; }
 
     // O(logN) expected -- append v to the end
     void append(T v) { tie(rE, rO) = pmerge(rE, rO, newNode(v), 0); }
@@ -88,8 +91,10 @@ struct PairSwapTreap {
     // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0)
+    // O(logN) expected -- remove a[l..r] and return it as a PairSwapTreap of its own (indices from 0); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     PairSwapTreap cut(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("cut: needs 0 <= l <= r < size()");
         auto [ae, ao, be, bo, ce, co] = parts(l, r);
         tie(rE, rO) = pmerge(ae, ao, ce, co);
         PairSwapTreap piece = makeEmpty();
@@ -100,20 +105,20 @@ struct PairSwapTreap {
     // O(logN) expected -- the index of x, or -1 if x isn't in this treap (values distinct across all treaps)
     int find(T x) {
         auto it = where.find(x);
-        if (it == where.end() || val[it->second] != x) return -1;
+        if (it == where.end() || nd[it->second].val != x) return -1;
         int t = it->second;
         vector<int> path{t};
         while (true) {  // up to the root (a parent counts only while it still has the node as a child)
-            int c = path.back(), p = par[c];
-            if (!p || (L[p] != c && R[p] != c)) break;
+            int c = path.back(), p = nd[c].par;
+            if (!p || (nd[p].L != c && nd[p].R != c)) break;
             path.push_back(p);
         }
         int top = path.back();
         if (top != rE && top != rO) return -1;  // (erased, or in another treap)
         for (int k = (int)path.size() - 1; k >= 0; k--) push(path[k]);  // (pending reverses above it, top-down)
-        int i = sz[L[t]];
+        int i = nd[nd[t].L].sz;
         for (size_t k = 1; k < path.size(); k++)
-            if (R[path[k]] == path[k - 1]) i += sz[L[path[k]]] + 1;
+            if (nd[path[k]].R == path[k - 1]) i += nd[nd[path[k]].L].sz + 1;
         return 2 * i + (top == rO);  // (lane index i: a[2i] in lane E, a[2i + 1] in lane O)
     }
 
@@ -125,15 +130,19 @@ struct PairSwapTreap {
         return out;
     }
 
-    // O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    // O(logN) expected -- insert v so it becomes a[i]; needs 0 <= i <= size(), else throws out_of_range (i = size()
+    // appends)
     void insertAt(int i, T v) {
+        if (i < 0 || i > size()) throw out_of_range("insertAt: needs 0 <= i <= size()");
         auto [ae, ao, ce, co] = psplit(rE, rO, i);
         auto [e, o] = pmerge(ae, ao, newNode(v), 0);
         tie(rE, rO) = pmerge(e, o, ce, co);
     }
 
-    // O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    // O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0); needs
+    // 0 <= i <= size(), else throws out_of_range
     void insertCopiesAt(int i, T v, long long k) {
+        if (i < 0 || i > size()) throw out_of_range("insertCopiesAt: needs 0 <= i <= size()");
         if (k <= 0) return;
         auto [ae, ao, ce, co] = psplit(rE, rO, i);
         auto [e, o] = pmerge(ae, ao, build(vector<T>((k + 1) / 2, v)), build(vector<T>(k / 2, v)));
@@ -146,73 +155,84 @@ struct PairSwapTreap {
         other.rE = other.rO = 0;
     }
 
-    // O(logN) expected -- insert all of other (any PairSwapTreap, e.g. a cut piece) so it starts at a[i]
-    // (0 <= i <= size()); other is left empty
+    // O(logN) expected -- insert all of other (any PairSwapTreap, e.g. a cut piece) so it starts at a[i] (needs
+    // 0 <= i <= size(), else throws out_of_range); other is left empty
     void paste(int i, PairSwapTreap& other) {
+        if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         auto [ae, ao, ce, co] = psplit(rE, rO, i);
         auto [e, o] = pmerge(ae, ao, other.rE, other.rO);
         tie(rE, rO) = pmerge(e, o, ce, co);
         other.rE = other.rO = 0;
     }
 
-    // O(logN) expected -- a[i] += v
+    // O(logN) expected -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
     void pointAdd(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
-        T old = val[t];
-        val[t] = val[t] + v;
+        T old = nd[t].val;
+        nd[t].val = nd[t].val + v;
         rekey(t, old);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i] = v
+    // O(logN) expected -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
-        T old = val[t];
-        val[t] = v;
+        T old = nd[t].val;
+        nd[t].val = v;
         rekey(t, old);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i] = max(a[i], v)
+    // O(logN) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
-        T old = val[t];
-        val[t] = max(val[t], v);
+        T old = nd[t].val;
+        nd[t].val = max(nd[t].val, v);
         rekey(t, old);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i] = min(a[i], v)
+    // O(logN) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
-        T old = val[t];
-        val[t] = min(val[t], v);
+        T old = nd[t].val;
+        nd[t].val = min(nd[t].val, v);
         rekey(t, old);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i]
-    T pointGet(int i) { return val[locate(i)]; }
+    // O(logN) expected -- a[i]; needs 0 <= i < size(), else throws out_of_range
+    T pointGet(int i) {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
+        return nd[locate(i)].val;
+    }
 
-    // O(logN) expected -- reverse a[l..r] in place: each lane reverses, and with an even length they trade places
+    // O(logN) expected -- reverse a[l..r] in place: each lane reverses, and with an even length they trade places;
+    // needs 0 <= l <= r < size(), else throws out_of_range
     void rangeReverse(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeReverse: needs 0 <= l <= r < size()");
         auto [ae, ao, be, bo, ce, co] = parts(l, r);
         applyRev(be), applyRev(bo);
         if ((r - l + 1) % 2 == 0) join(ae, ao, bo, be, ce, co);
         else join(ae, ao, be, bo, ce, co);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
-    // it is taken mod the length (negative shifts right)
+    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is
+    // taken mod the length (negative shifts right); needs 0 <= l <= r < size(), else throws out_of_range
     void rangeRotateLeft(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateLeft: needs 0 <= l <= r < size()");
         int len = r - l + 1;
         k = ((k % len) + len) % len;
         if (!k) return;
@@ -222,29 +242,36 @@ struct PairSwapTreap {
         join(ae, ao, e, o, ce, co);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
-    // length (negative shifts left)
-    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
+    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the length
+    // (negative shifts left); needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeRotateRight(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateRight: needs 0 <= l <= r < size()");
+        rangeRotateLeft(l, r, -k);
+    }
 
     // O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length: a[r] stays):
-    // the pairs' two lanes trade places
+    // the pairs' two lanes trade places; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeTwinSpin(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeTwinSpin: needs 0 <= l <= r < size()");
         int k = (r - l + 1) / 2;
         if (!k) return;
         auto [ae, ao, be, bo, ce, co] = parts(l, l + 2 * k - 1);
         join(ae, ao, bo, be, ce, co);
     }
 
-    // O(logN) expected -- a[l] ^ ... ^ a[r]
+    // O(logN) expected -- a[l] ^ ... ^ a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeXorQuery(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeXorQuery: needs 0 <= l <= r < size()");
         auto [ae, ao, be, bo, ce, co] = parts(l, r);
-        T res = xr[be] ^ xr[bo];
+        T res = nd[be].xr ^ nd[bo].xr;
         join(ae, ao, be, bo, ce, co);
         return res;
     }
 
-    // O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty
+    // O(logN) expected -- (a[0..k-1], a[k..]) as two PairSwapTreaps of their own; this one is left empty; needs
+    // 0 <= k <= size(), else throws out_of_range
     pair<PairSwapTreap, PairSwapTreap> split(int k) {
+        if (k < 0 || k > size()) throw out_of_range("split: needs 0 <= k <= size()");
         PairSwapTreap left = makeEmpty(), right = makeEmpty();
         auto [le, lo, re, ro] = psplit(rE, rO, k);
         left.rE = le, left.rO = lo, right.rE = re, right.rO = ro;
@@ -252,8 +279,10 @@ struct PairSwapTreap {
         return {left, right};
     }
 
-    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty
+    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left
+    // empty; needs 0 <= l <= r < size(), else throws out_of_range
     tuple<PairSwapTreap, PairSwapTreap, PairSwapTreap> trisect(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         PairSwapTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         auto [ae, ao, be, bo, ce, co] = parts(l, r);
         left.rE = ae, left.rO = ao, mid.rE = be, mid.rO = bo, right.rE = ce, right.rO = co;
@@ -264,9 +293,11 @@ struct PairSwapTreap {
     // ---- internals ----
 
     int newNode(T v) {
-        val.push_back(v), pri.push_back(rnd()), L.push_back(0), R.push_back(0), sz.push_back(1);
-        xr.push_back(v), rev.push_back(0), par.push_back(0), where[v] = (int)val.size() - 1;
-        return (int)val.size() - 1;
+        Node n;
+        n.val = v, n.pri = rnd(), n.L = 0, n.R = 0, n.sz = 1, n.xr = v, n.rev = 0, n.par = 0;
+        nd.push_back(n);
+        where[v] = (int)nd.size() - 1;
+        return (int)nd.size() - 1;
     }
 
     // a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
@@ -274,9 +305,9 @@ struct PairSwapTreap {
         vector<int> stk, order, todo;
         for (const T& v : vals) {
             int x = newNode(v), last = 0;
-            while (!stk.empty() && pri[stk.back()] < pri[x]) last = stk.back(), stk.pop_back();
-            L[x] = last;
-            if (!stk.empty()) R[stk.back()] = x;
+            while (!stk.empty() && nd[stk.back()].pri < nd[x].pri) last = stk.back(), stk.pop_back();
+            nd[x].L = last;
+            if (!stk.empty()) nd[stk.back()].R = x;
             stk.push_back(x);
         }
         int rt = stk.empty() ? 0 : stk[0];
@@ -284,54 +315,54 @@ struct PairSwapTreap {
         while (!todo.empty()) {
             int x = todo.back();
             todo.pop_back(), order.push_back(x);
-            if (L[x]) todo.push_back(L[x]);
-            if (R[x]) todo.push_back(R[x]);
+            if (nd[x].L) todo.push_back(nd[x].L);
+            if (nd[x].R) todo.push_back(nd[x].R);
         }
         for (int k = (int)order.size() - 1; k >= 0; k--) pull(order[k]);
         return rt;
     }
 
     void pull(int x) {  // recompute x from its children
-        int l = L[x], r = R[x];
-        sz[x] = sz[l] + sz[r] + 1;
-        par[l] = par[r] = x;
-        T v = val[x];
-        xr[x] = xr[l] ^ v ^ xr[r];
+        int l = nd[x].L, r = nd[x].R;
+        nd[x].sz = nd[l].sz + nd[r].sz + 1;
+        nd[l].par = nd[r].par = x;
+        T v = nd[x].val;
+        nd[x].xr = nd[l].xr ^ v ^ nd[r].xr;
     }
 
     void applyRev(int x) {  // reverse x's subtree
         if (!x) return;
-        swap(L[x], R[x]), rev[x] ^= 1;
+        swap(nd[x].L, nd[x].R), nd[x].rev ^= 1;
     }
 
     void push(int x) {  // hand x's pending tags to its children
-        if (rev[x]) applyRev(L[x]), applyRev(R[x]), rev[x] = 0;
+        if (nd[x].rev) applyRev(nd[x].L), applyRev(nd[x].R), nd[x].rev = 0;
     }
 
     void rekey(int t, T old) {  // t's value changed from old: the map follows (find needs distinct values)
         auto it = where.find(old);
         if (it != where.end() && it->second == t) where.erase(it);
-        where[val[t]] = t;
+        where[nd[t].val] = t;
     }
 
     void split(int t, int k, int& a, int& b) {  // a = first k of t, b = the rest
         if (!t) { a = b = 0; return; }
         push(t);
-        if (sz[L[t]] >= k) split(L[t], k, a, L[t]), b = t;
-        else split(R[t], k - sz[L[t]] - 1, R[t], b), a = t;
+        if (nd[nd[t].L].sz >= k) split(nd[t].L, k, a, nd[t].L), b = t;
+        else split(nd[t].R, k - nd[nd[t].L].sz - 1, nd[t].R, b), a = t;
         pull(t);
     }
 
     int merge(int a, int b) {  // a's elements, then b's
         if (!a || !b) return a | b;
-        if (pri[a] > pri[b]) {
+        if (nd[a].pri > nd[b].pri) {
             push(a);
-            R[a] = merge(R[a], b);
+            nd[a].R = merge(nd[a].R, b);
             pull(a);
             return a;
         }
         push(b);
-        L[b] = merge(a, L[b]);
+        nd[b].L = merge(a, nd[b].L);
         pull(b);
         return b;
     }
@@ -347,7 +378,7 @@ struct PairSwapTreap {
     }
 
     pair<int, int> pmerge(int e1, int o1, int e2, int o2) {  // lanes of (the first array, then the second)
-        if ((sz[e1] + sz[o1]) % 2) swap(e2, o2);  // (after an odd length the second's even positions are odd ones)
+        if ((nd[e1].sz + nd[o1].sz) % 2) swap(e2, o2);  // (after an odd length: its even positions are odd ones)
         return {merge(e1, e2), merge(o1, o2)};
     }
 
@@ -366,11 +397,11 @@ struct PairSwapTreap {
         int t = i % 2 ? rO : rE, k = i / 2;
         while (true) {
             push(t);
-            int ls = sz[L[t]];
+            int ls = nd[nd[t].L].sz;
             if (k == ls) return t;
             if (path) path->push_back(t);
-            if (k < ls) t = L[t];
-            else k -= ls + 1, t = R[t];
+            if (k < ls) t = nd[t].L;
+            else k -= ls + 1, t = nd[t].R;
         }
     }
 
@@ -378,10 +409,10 @@ struct PairSwapTreap {
         vector<T> out;
         vector<int> st;
         while (!st.empty() || t) {
-            while (t) push(t), st.push_back(t), t = L[t];
+            while (t) push(t), st.push_back(t), t = nd[t].L;
             t = st.back(), st.pop_back();
-            out.push_back(val[t]);
-            t = R[t];
+            out.push_back(nd[t].val);
+            t = nd[t].R;
         }
         return out;
     }

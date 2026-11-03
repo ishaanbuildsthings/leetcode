@@ -89,8 +89,10 @@ struct SparseArithSeqBITMod {
 
     T norm(W x) const { return T((x % mod + mod) % mod); }
 
-    // O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
+    // O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     void rangeAddArithSeqMod(long long l, long long r, T start, T step) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAddArithSeqMod: needs lo <= l <= r <= hi");
         if (l > r) return;
         l -= lo, r -= lo;
         T c1 = norm(step), c0 = norm(W(start) - W(c1) * norm(l));
@@ -98,18 +100,28 @@ struct SparseArithSeqBITMod {
         if (r + 1 < n) add(r + 1, F{norm(-W(c0)), norm(-W(c1))});
     }
 
-    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
-    void rangeAddMod(long long l, long long r, T v) { rangeAddArithSeqMod(l, r, v, 0); }
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    void rangeAddMod(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAddMod: needs lo <= l <= r <= hi");
+        rangeAddArithSeqMod(l, r, v, 0);
+    }
 
-    // O(logU) -- a[i], in [0, mod)
+    // O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         F s = prefix(i - lo);
         return norm(s[0] + W(s[1]) * norm(i - lo));
     }
 
-    // O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { rangeAddMod(i, i, delta); }
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        rangeAddMod(i, i, delta);
+    }
 
-    // O(logU) -- a[i] = v
-    void pointAssign(long long i, T v) { rangeAddMod(i, i, v - pointGet(i)); }
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
+        rangeAddMod(i, i, v - pointGet(i));
+    }
 };

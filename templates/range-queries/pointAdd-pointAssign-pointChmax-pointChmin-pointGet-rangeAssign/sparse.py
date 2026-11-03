@@ -24,17 +24,19 @@
 
 
 class SparseRangeAssignTree:
-    __slots__ = ("lo", "size", "t", "clock")
+    __slots__ = ("lo", "hi", "size", "t", "clock")
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of i is size + (i - lo)
         self.t = {}
         self.clock = 0
 
-    # O(logU) -- a[i] = val for i in [l, r]
+    # O(logU) -- a[i] = val for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAssign(self, l, r, val):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self.clock += 1
         e = (self.clock, val)
         t = self.t
@@ -50,8 +52,10 @@ class SparseRangeAssignTree:
             l >>= 1
             r >>= 1
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         t = self.t
         p = self.size + i - self.lo
         best, res = t.get(p, (0, 0))
@@ -63,21 +67,29 @@ class SparseRangeAssignTree:
             p >>= 1
         return res
 
-    # O(1) -- a[i] = val
+    # O(1) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         self.clock += 1
         self.t[self.size + i - self.lo] = (self.clock, val)
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logU) -- a[i] = max(a[i], val)
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logU) -- a[i] = min(a[i], val)
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

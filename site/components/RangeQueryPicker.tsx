@@ -175,6 +175,7 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "treap rotate with very large k",
     "best generic lazy seg tree and generic seg tree templates",
     "tuple values with a custom comparator",
+    "size() in the picker",
   ],
 };
 

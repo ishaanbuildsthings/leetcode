@@ -43,8 +43,10 @@ class RangeModTree:
             mx[p] = a if a > b else b
             p >>= 1
 
-    # amortized O(logN logU) -- a[i] %= mod for i in [l, r]
+    # amortized O(logN logU) -- a[i] %= mod for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeMod(self, l, r, mod):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         mx, n = self.mx, self.n
         lo, hi = l + n, r + n + 1
         tops = []
@@ -79,35 +81,45 @@ class RangeModTree:
         self._pull(l + n)
         self._pull(r + n)
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.mx[i + self.n]
 
     # O(N) -- the whole array (a copy of the leaves)
     def getAll(self):
         return self.mx[self.n:]
 
-    # O(logN) -- a[i] = v
+    # O(logN) -- a[i] = v; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self.mx[p] = v
         self._pull(p)
 
-    # O(logN) -- a[i] += delta
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self.mx[p] += delta
         self._pull(p)
 
-    # O(logN) -- a[i] = max(a[i], v)
+    # O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         if v > self.mx[p]:
             self.mx[p] = v
             self._pull(p)
 
-    # O(logN) -- a[i] = min(a[i], v)
+    # O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         if v < self.mx[p]:
             self.mx[p] = v

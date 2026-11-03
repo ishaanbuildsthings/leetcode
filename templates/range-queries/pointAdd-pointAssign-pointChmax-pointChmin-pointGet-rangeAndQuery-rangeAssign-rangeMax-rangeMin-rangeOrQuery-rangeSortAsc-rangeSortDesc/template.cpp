@@ -51,7 +51,8 @@ struct SortedRunsMinMaxOrAnd {
     vector<T> qo;
     vector<T> qa;
 
-    // O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi] (U = valHi - valLo + 1)
+    // O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi] (U = valHi - valLo
+    // + 1)
     SortedRunsMinMaxOrAnd(const vector<T>& arr, long long valLo, long long valHi)
         : n((int)arr.size()), vlo(valLo), vhi(valHi), root(n), len(n, 1), desc(n, 0), bc(n + 1, 1) {
         for (int i = 0; i < n; i++) root[i] = leaf(arr[i]);
@@ -70,14 +71,16 @@ struct SortedRunsMinMaxOrAnd {
         for (int p = size - 1; p > 0; p--) up(p);
     }
 
-    // O(log N + log U) -- a[i]
+    // O(log N + log U) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int s = startOf(i), k = i - s;
         return kth(root[s], desc[s] ? len[s] - k : k + 1);
     }
 
-    // O(log N + log U) amortized -- a[i] = v
+    // O(log N + log U) amortized -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         cutAt(i), cutAt(i + 1);
         io(i, -1);
         freeTree(root[i]);
@@ -86,44 +89,66 @@ struct SortedRunsMinMaxOrAnd {
         io(i, 1);
     }
 
-    // O(log N + log U) amortized -- a[i] += v
-    void pointAdd(int i, T v) { pointAssign(i, pointGet(i) + v); }
+    // O(log N + log U) amortized -- a[i] += v; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + v);
+    }
 
-    // O(log N + log U) amortized -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(log N + log U) amortized -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(log N + log U) amortized -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(log N + log U) amortized -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(log N + log U) amortized -- sort a[l..r] ascending
-    void rangeSortAsc(int l, int r) { sortRange(l, r, false, false, T(0)); }
+    // O(log N + log U) amortized -- sort a[l..r] ascending; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeSortAsc(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSortAsc: needs 0 <= l <= r < n");
+        sortRange(l, r, false, false, T(0));
+    }
 
-    // O(log N + log U) amortized -- sort a[l..r] descending
-    void rangeSortDesc(int l, int r) { sortRange(l, r, true, false, T(0)); }
+    // O(log N + log U) amortized -- sort a[l..r] descending; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeSortDesc(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSortDesc: needs 0 <= l <= r < n");
+        sortRange(l, r, true, false, T(0));
+    }
 
-    // O(log N + log U) amortized -- a[i] = v for i in [l, r]
-    void rangeAssign(int l, int r, T v) { sortRange(l, r, false, true, v); }
+    // O(log N + log U) amortized -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
+        sortRange(l, r, false, true, v);
+    }
 
-    // O(log N + log U) amortized -- min of a[l..r]
+    // O(log N + log U) amortized -- min of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMin(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMin: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         return ask_qn(l, r);
     }
 
-    // O(log N + log U) amortized -- max of a[l..r]
+    // O(log N + log U) amortized -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMax(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         return ask_qm(l, r);
     }
 
-    // O(log N + log U) amortized -- a[l] | ... | a[r]
+    // O(log N + log U) amortized -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeOrQuery(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeOrQuery: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         return ask_qo(l, r);
     }
 
-    // O(log N + log U) amortized -- a[l] & ... & a[r]
+    // O(log N + log U) amortized -- a[l] & ... & a[r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeAndQuery(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAndQuery: needs 0 <= l <= r < n");
         cutAt(l), cutAt(r + 1);
         return ask_qa(l, r);
     }

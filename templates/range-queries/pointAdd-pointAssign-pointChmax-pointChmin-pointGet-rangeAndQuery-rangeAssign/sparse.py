@@ -39,43 +39,57 @@ class SparseLazySegTree:
         self.hasAsg = [0]
         self._newZero(self.D)
 
-    # O(logU) -- a[i] += v
+    # O(logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, self._leaf(x) + v)
         self._up(path)
 
-    # O(logU) -- a[i] = v
+    # O(logU) -- a[i] = v; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, v)
         self._up(path)
 
-    # O(logU) -- a[i] = max(a[i], v)
+    # O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, max(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i] = min(a[i], v)
+    # O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU) -- a[l] & ... & a[r]
+    # O(logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAndQuery(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeAndQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         an, res = self.an, -1
         for t, _ in self._nodes(l, r):
             res &= an[t]
         return res
 
-    # O(logU) -- a[i] = v for i in [l, r]
+    # O(logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAssign(self, l, r, v):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._applyAssign(t, v))
 
     # ---- internals ----

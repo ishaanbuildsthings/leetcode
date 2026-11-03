@@ -34,8 +34,10 @@ class SparseOr:
                     val |= self.sparse[power - 1][rightEdge]
                 self.sparse[power][left] = val
 
-    # O(1) -- a[l] | ... | a[r]
+    # O(1) -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeOrQuery(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeOrQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         width = r - l + 1
         maxPow = width.bit_length() - 1
         powWidth = 1 << maxPow
@@ -44,6 +46,8 @@ class SparseOr:
             self.sparse[maxPow][l + width - powWidth]
         )
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.sparse[0][i]

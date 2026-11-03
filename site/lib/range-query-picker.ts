@@ -33,6 +33,8 @@ export type OpId =
   | "maxSubarraySum"
   | "maxPrefixSum"
   | "maxSuffixSum"
+  | "minPrefixSum"
+  | "minSuffixSum"
   | "rangeAndQuery"
   | "rangeOrQuery"
   | "rangeXorQuery"
@@ -376,6 +378,8 @@ export const OP_GROUPS: OpGroup[] = [
         ops: [
           { id: "maxPrefixSum", signature: "maxPrefixSum(l, r)", description: "Max of a[l] + … + a[i] over i in [l, r]" },
           { id: "maxSuffixSum", signature: "maxSuffixSum(l, r)", description: "Max of a[i] + … + a[r] over i in [l, r]" },
+          { id: "minPrefixSum", signature: "minPrefixSum(l, r)", description: "Min of a[l] + … + a[i] over i in [l, r]" },
+          { id: "minSuffixSum", signature: "minSuffixSum(l, r)", description: "Min of a[i] + … + a[r] over i in [l, r]" },
           { id: "leftmostPrefixSumGteX", signature: "leftmostPrefixSumGteX(l, r, x)", description: "First i in [l, r] with a[l] + … + a[i] ≥ x (needs a[i] ≥ 0)" },
           { id: "leftmostPrefixSumGtX", signature: "leftmostPrefixSumGtX(l, r, x)", description: "First i in [l, r] with a[l] + … + a[i] > x (needs a[i] ≥ 0)" },
           { id: "rightmostSuffixSumGteX", signature: "rightmostSuffixSumGteX(l, r, x)", description: "Last i in [l, r] with a[i] + … + a[r] ≥ x (needs a[i] ≥ 0)" },

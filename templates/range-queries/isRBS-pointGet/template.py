@@ -37,12 +37,21 @@ class StaticBrackets:
             self.table.append([a if a < b else b for a, b in zip(prev, prev[k:])])
             k *= 2
 
-    # O(1) -- brackets[i]
+    # O(1) -- the length of the array
+    def size(self):
+        return len(self.s)
+
+    # O(1) -- brackets[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointGet: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         return self.s[i]
 
-    # O(1) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?
+    # O(1) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?; needs
+    # 0 <= l <= r < size(), else IndexError
     def isRBS(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"isRBS: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         P = self.P
         if P[r + 1] != P[l]:
             return False

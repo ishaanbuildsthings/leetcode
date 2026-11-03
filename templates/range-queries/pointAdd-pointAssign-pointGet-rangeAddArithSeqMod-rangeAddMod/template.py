@@ -45,16 +45,20 @@ class ArithSeqBITMod:
             s[i] = (s[i] + step) % mod
             i += i & -i
 
-    # O(logN) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
+    # O(logN) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]; needs 0 <= l <= r < n, else IndexError
     def rangeAddArithSeqMod(self, l, r, start, step):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAddArithSeqMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         mod = self.mod
         k = (start - l * step) % mod
         self._add(l, k, step % mod)
         if r + 1 < self.n:
             self._add(r + 1, -k, -step)
 
-    # O(logN) -- a[i] for i in [l, r] += v (% MOD)
+    # O(logN) -- a[i] for i in [l, r] += v (% MOD); needs 0 <= l <= r < n, else IndexError
     def rangeAddMod(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAddMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         c, n, mod = self.c, self.n, self.mod
         v %= mod
         i = l + 1
@@ -66,8 +70,10 @@ class ArithSeqBITMod:
             c[i] = (c[i] - v) % mod
             i += i & -i
 
-    # O(logN) -- a[i], in [0, mod)
+    # O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         c, s = self.c, self.s
         k = coef = 0
         j = i + 1
@@ -95,10 +101,14 @@ class ArithSeqBITMod:
             out.append((k + i * coef) % mod)
         return out
 
-    # O(logN) -- a[i] += delta (% MOD)
+    # O(logN) -- a[i] += delta (% MOD); needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAddMod(i, i, delta)
 
-    # O(logN) -- a[i] = val (% MOD)
+    # O(logN) -- a[i] = val (% MOD); needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAddMod(i, i, val - self.pointGet(i))

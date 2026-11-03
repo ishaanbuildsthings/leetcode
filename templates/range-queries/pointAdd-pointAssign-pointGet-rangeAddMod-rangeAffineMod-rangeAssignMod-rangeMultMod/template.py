@@ -78,24 +78,35 @@ class AffineTree:
             l >>= 1
             r >>= 1
 
-    # O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]
+    # O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAffineMod(self, l, r, mult, add):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAffineMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, mult % self.mod, add % self.mod)
 
-    # O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]
+    # O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeMultMod(self, l, r, m):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMultMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, m % self.mod, 0)
 
-    # O(logN) -- a[i] += v (% MOD) for i in [l, r]
+    # O(logN) -- a[i] += v (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAddMod(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAddMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, 1, v % self.mod)
 
-    # O(logN) -- a[i] = v (% MOD) for i in [l, r]
+    # O(logN) -- a[i] = v (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssignMod(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssignMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, 0, v % self.mod)
 
-    # O(logN) -- a[i], in [0, mod): apply ancestors' maps bottom-up (deeper tags are older)
+    # O(logN) -- a[i], in [0, mod): apply ancestors' maps bottom-up (deeper tags are older); needs 0 <= i < n, else
+    # IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         M, K, mod = self.M, self.K, self.mod
         v = self.val[i]
         p = (i + self.n) >> 1
@@ -118,12 +129,16 @@ class AffineTree:
                 K[x] = 0
         return list(self.val)
 
-    # O(logN) -- a[i] = v (% MOD)
+    # O(logN) -- a[i] = v (% MOD); needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._push(i + self.n)
         self.val[i] = v % self.mod
 
-    # O(logN) -- a[i] += delta (% MOD)
+    # O(logN) -- a[i] += delta (% MOD); needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._push(i + self.n)
         self.val[i] = (self.val[i] + delta) % self.mod

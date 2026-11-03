@@ -50,21 +50,24 @@ struct PairSwapTreap {
     // one node pool shared by every PairSwapTreap<T>: cut / paste move nodes between them, so a piece from one can go
     // into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
     // whole run), so there is nothing to reset between test cases
-    static inline vector<T> val{T(0)};
-    static inline vector<unsigned long long> pri{0};
-    static inline vector<int> L{0};
-    static inline vector<int> R{0};
-    static inline vector<int> sz{0};
-    static inline vector<U64> fh{0};
-    static inline vector<U64> bh{0};
-    static inline vector<U64> pw{1};
-    static inline vector<U64> gs{0};
-    static inline vector<T> g{T(0)};
-    static inline vector<T> fv{T(0)};
-    static inline vector<T> lv{T(0)};
-    static inline vector<T> asg{T(0)};
-    static inline vector<char> hasAsg{0};
-    static inline vector<T> add{T(0)};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        unsigned long long pri = 0;
+        U64 fh = 0;
+        U64 bh = 0;
+        U64 pw = 1;
+        U64 gs = 0;
+        T val = T(0);
+        T g = T(0);
+        T fv = T(0);
+        T lv = T(0);
+        T asg = T(0);
+        T add = T(0);
+        int L = 0;
+        int R = 0;
+        int sz = 0;
+        char hasAsg = 0;
+    };
+    static inline vector<Node> nd{Node{}};  // node 0 = the empty tree
     int rE = 0, rO = 0;  // lane E: a[0], a[2], ...; lane O: a[1], a[3], ...
 
     // O(N) -- arr: the initial array (leave it out to start empty)
@@ -111,7 +114,7 @@ struct PairSwapTreap {
 
 
     // O(1) -- the current length of the array
-    int size() const { return sz[rE] + sz[rO]; }
+    int size() const { return nd[rE].sz + nd[rO].sz; }
 
     // O(logN * logU) expected -- append v to the end
     void append(T v) { tie(rE, rO) = pmerge(rE, rO, newNode(v), 0); }
@@ -176,7 +179,7 @@ struct PairSwapTreap {
     void pointAdd(int i, T v) {
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = val[t] + v;
+        nd[t].val = nd[t].val + v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
@@ -185,7 +188,7 @@ struct PairSwapTreap {
     void pointAssign(int i, T v) {
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = v;
+        nd[t].val = v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
@@ -194,7 +197,7 @@ struct PairSwapTreap {
     void pointChmax(int i, T v) {
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = max(val[t], v);
+        nd[t].val = max(nd[t].val, v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
@@ -203,13 +206,13 @@ struct PairSwapTreap {
     void pointChmin(int i, T v) {
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = min(val[t], v);
+        nd[t].val = min(nd[t].val, v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
     // O(logN) expected -- a[i]
-    T pointGet(int i) { return val[locate(i)]; }
+    T pointGet(int i) { return nd[locate(i)].val; }
 
     // O(logN * logU) expected -- a[i] += v for i in [l, r]
     void rangeAdd(int l, int r, T v) {
@@ -228,8 +231,8 @@ struct PairSwapTreap {
     // O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|
     T rangeGcd(int l, int r) {
         auto [ae, ao, be, bo, ce, co] = parts(l, r);
-        T res = gcd(gcd(fv[be], g[be]), g[bo]);
-        if (bo) res = gcd(res, T(fv[bo] - fv[be]));
+        T res = gcd(gcd(nd[be].fv, nd[be].g), nd[bo].g);
+        if (bo) res = gcd(res, T(nd[bo].fv - nd[be].fv));
         join(ae, ao, be, bo, ce, co);
         return res;
     }
@@ -256,8 +259,8 @@ struct PairSwapTreap {
     // length (negative shifts left)
     void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
 
-    // O(logN * logU) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length: a[r] stays):
-    // the pairs' two lanes trade places
+    // O(logN * logU) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length:
+    // a[r] stays): the pairs' two lanes trade places
     void rangeTwinSpin(int l, int r) {
         int k = (r - l + 1) / 2;
         if (!k) return;
@@ -279,7 +282,8 @@ struct PairSwapTreap {
         return {left, right};
     }
 
-    // O(logN * logU) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty
+    // O(logN * logU) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is
+    // left empty
     tuple<PairSwapTreap, PairSwapTreap, PairSwapTreap> trisect(int l, int r) {
         PairSwapTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         auto [ae, ao, be, bo, ce, co] = parts(l, r);
@@ -291,10 +295,11 @@ struct PairSwapTreap {
     // ---- internals ----
 
     int newNode(T v) {
-        val.push_back(v), pri.push_back(rnd()), L.push_back(0), R.push_back(0), sz.push_back(1);
-        fh.push_back(hval(v)), bh.push_back(hval(v)), pw.push_back(HQ()), gs.push_back(1), g.push_back(T(0));
-        fv.push_back(v), lv.push_back(v), asg.push_back(T(0)), hasAsg.push_back(0), add.push_back(T(0));
-        return (int)val.size() - 1;
+        Node n;
+        n.val = v, n.pri = rnd(), n.L = 0, n.R = 0, n.sz = 1, n.fh = hval(v), n.bh = hval(v), n.pw = HQ(), n.gs = 1,
+        n.g = T(0), n.fv = v, n.lv = v, n.asg = T(0), n.hasAsg = 0, n.add = T(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     // a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
@@ -302,9 +307,9 @@ struct PairSwapTreap {
         vector<int> stk, order, todo;
         for (const T& v : vals) {
             int x = newNode(v), last = 0;
-            while (!stk.empty() && pri[stk.back()] < pri[x]) last = stk.back(), stk.pop_back();
-            L[x] = last;
-            if (!stk.empty()) R[stk.back()] = x;
+            while (!stk.empty() && nd[stk.back()].pri < nd[x].pri) last = stk.back(), stk.pop_back();
+            nd[x].L = last;
+            if (!stk.empty()) nd[stk.back()].R = x;
             stk.push_back(x);
         }
         int rt = stk.empty() ? 0 : stk[0];
@@ -312,72 +317,72 @@ struct PairSwapTreap {
         while (!todo.empty()) {
             int x = todo.back();
             todo.pop_back(), order.push_back(x);
-            if (L[x]) todo.push_back(L[x]);
-            if (R[x]) todo.push_back(R[x]);
+            if (nd[x].L) todo.push_back(nd[x].L);
+            if (nd[x].R) todo.push_back(nd[x].R);
         }
         for (int k = (int)order.size() - 1; k >= 0; k--) pull(order[k]);
         return rt;
     }
 
     void pull(int x) {  // recompute x from its children
-        int l = L[x], r = R[x];
-        sz[x] = sz[l] + sz[r] + 1;
-        T v = val[x];
+        int l = nd[x].L, r = nd[x].R;
+        nd[x].sz = nd[l].sz + nd[r].sz + 1;
+        T v = nd[x].val;
         U64 B = HQ(), hv = hval(v);
-        pw[x] = hmul(hmul(pw[l], B), pw[r]);
-        gs[x] = hadd(hmul(hadd(hmul(gs[l], B), 1), pw[r]), gs[r]);
-        fh[x] = hadd(hmul(hadd(hmul(fh[l], B), hv), pw[r]), fh[r]);
-        bh[x] = hadd(hmul(hadd(hmul(bh[r], B), hv), pw[l]), bh[l]);
-        T gg = gcd(g[l], g[r]);
-        if (l) gg = gcd(gg, T(v - lv[l]));
-        if (r) gg = gcd(gg, T(fv[r] - v));
-        g[x] = gg;
-        fv[x] = l ? fv[l] : v;
-        lv[x] = r ? lv[r] : v;
+        nd[x].pw = hmul(hmul(nd[l].pw, B), nd[r].pw);
+        nd[x].gs = hadd(hmul(hadd(hmul(nd[l].gs, B), 1), nd[r].pw), nd[r].gs);
+        nd[x].fh = hadd(hmul(hadd(hmul(nd[l].fh, B), hv), nd[r].pw), nd[r].fh);
+        nd[x].bh = hadd(hmul(hadd(hmul(nd[r].bh, B), hv), nd[l].pw), nd[l].bh);
+        T gg = gcd(nd[l].g, nd[r].g);
+        if (l) gg = gcd(gg, T(v - nd[l].lv));
+        if (r) gg = gcd(gg, T(nd[r].fv - v));
+        nd[x].g = gg;
+        nd[x].fv = l ? nd[l].fv : v;
+        nd[x].lv = r ? nd[r].lv : v;
     }
 
     void applyAssign(int x, T v) {  // every value of x's subtree becomes v
         if (!x) return;
-        val[x] = v;
-        fh[x] = bh[x] = hmul(hval(v), gs[x]);
-        g[x] = T(0);
-        fv[x] = lv[x] = v;
-        asg[x] = v, hasAsg[x] = 1;
-        add[x] = T(0);  // (an add pending below the assign is gone)
+        nd[x].val = v;
+        nd[x].fh = nd[x].bh = hmul(hval(v), nd[x].gs);
+        nd[x].g = T(0);
+        nd[x].fv = nd[x].lv = v;
+        nd[x].asg = v, nd[x].hasAsg = 1;
+        nd[x].add = T(0);  // (an add pending below the assign is gone)
     }
 
     void applyAdd(int x, T v) {  // every value of x's subtree gains v
         if (!x) return;
-        val[x] += v;
-        U64 h = hmul(hraw(v), gs[x]);
-        fh[x] = hadd(fh[x], h), bh[x] = hadd(bh[x], h);
-        fv[x] += v, lv[x] += v;
-        add[x] += v;
+        nd[x].val += v;
+        U64 h = hmul(hraw(v), nd[x].gs);
+        nd[x].fh = hadd(nd[x].fh, h), nd[x].bh = hadd(nd[x].bh, h);
+        nd[x].fv += v, nd[x].lv += v;
+        nd[x].add += v;
     }
 
     void push(int x) {  // hand x's pending tags to its children
-        if (hasAsg[x]) applyAssign(L[x], asg[x]), applyAssign(R[x], asg[x]), hasAsg[x] = 0;
-        if (add[x] != T(0)) applyAdd(L[x], add[x]), applyAdd(R[x], add[x]), add[x] = T(0);
+        if (nd[x].hasAsg) applyAssign(nd[x].L, nd[x].asg), applyAssign(nd[x].R, nd[x].asg), nd[x].hasAsg = 0;
+        if (nd[x].add != T(0)) applyAdd(nd[x].L, nd[x].add), applyAdd(nd[x].R, nd[x].add), nd[x].add = T(0);
     }
 
     void split(int t, int k, int& a, int& b) {  // a = first k of t, b = the rest
         if (!t) { a = b = 0; return; }
         push(t);
-        if (sz[L[t]] >= k) split(L[t], k, a, L[t]), b = t;
-        else split(R[t], k - sz[L[t]] - 1, R[t], b), a = t;
+        if (nd[nd[t].L].sz >= k) split(nd[t].L, k, a, nd[t].L), b = t;
+        else split(nd[t].R, k - nd[nd[t].L].sz - 1, nd[t].R, b), a = t;
         pull(t);
     }
 
     int merge(int a, int b) {  // a's elements, then b's
         if (!a || !b) return a | b;
-        if (pri[a] > pri[b]) {
+        if (nd[a].pri > nd[b].pri) {
             push(a);
-            R[a] = merge(R[a], b);
+            nd[a].R = merge(nd[a].R, b);
             pull(a);
             return a;
         }
         push(b);
-        L[b] = merge(a, L[b]);
+        nd[b].L = merge(a, nd[b].L);
         pull(b);
         return b;
     }
@@ -393,7 +398,7 @@ struct PairSwapTreap {
     }
 
     pair<int, int> pmerge(int e1, int o1, int e2, int o2) {  // lanes of (the first array, then the second)
-        if ((sz[e1] + sz[o1]) % 2) swap(e2, o2);  // (after an odd length the second's even positions are odd ones)
+        if ((nd[e1].sz + nd[o1].sz) % 2) swap(e2, o2);  // (after an odd length: its even positions are odd ones)
         return {merge(e1, e2), merge(o1, o2)};
     }
 
@@ -412,11 +417,11 @@ struct PairSwapTreap {
         int t = i % 2 ? rO : rE, k = i / 2;
         while (true) {
             push(t);
-            int ls = sz[L[t]];
+            int ls = nd[nd[t].L].sz;
             if (k == ls) return t;
             if (path) path->push_back(t);
-            if (k < ls) t = L[t];
-            else k -= ls + 1, t = R[t];
+            if (k < ls) t = nd[t].L;
+            else k -= ls + 1, t = nd[t].R;
         }
     }
 
@@ -424,10 +429,10 @@ struct PairSwapTreap {
         vector<T> out;
         vector<int> st;
         while (!st.empty() || t) {
-            while (t) push(t), st.push_back(t), t = L[t];
+            while (t) push(t), st.push_back(t), t = nd[t].L;
             t = st.back(), st.pop_back();
-            out.push_back(val[t]);
-            t = R[t];
+            out.push_back(nd[t].val);
+            t = nd[t].R;
         }
         return out;
     }
@@ -438,8 +443,8 @@ struct PairSwapTreap {
     pair<U64, U64> hashes(int l, int r) {
         auto [ae, ao, be, bo, ce, co] = parts(l, r);
         U64 B = HB();
-        U64 fwd = (r - l) % 2 == 0 ? hadd(fh[be], hmul(B, fh[bo])) : hadd(hmul(B, fh[be]), fh[bo]);
-        U64 bwd = hadd(bh[be], hmul(B, bh[bo]));
+        U64 fwd = (r - l) % 2 == 0 ? hadd(nd[be].fh, hmul(B, nd[bo].fh)) : hadd(hmul(B, nd[be].fh), nd[bo].fh);
+        U64 bwd = hadd(nd[be].bh, hmul(B, nd[bo].bh));
         join(ae, ao, be, bo, ce, co);
         return {fwd, bwd};
     }

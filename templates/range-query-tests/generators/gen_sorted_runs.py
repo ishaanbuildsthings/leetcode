@@ -22,6 +22,8 @@ import os
 import re
 import shutil
 
+from aos import aosify_runs
+from gen_treap_algebra import fit_comments
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -596,7 +598,8 @@ def py_treap(aggs):
                   "or": ["        self.Sov[x] = self.Sov[L] | self.ov[t] | self.Sov[R]"],
                   "and": ["        self.Sav[x] = self.Sav[L] & self.av[t] & self.Sav[R]"],
                   "hash": ["        pw, Sfh, Sbh = self.pw, self.Sfh, self.Sbh",
-                           "        f, b = (self.bh[t], self.fh[t]) if self.TD[x] else (self.fh[t], self.bh[t])  # the run, read left to right / right to left",
+                           "        # the run, read left to right / right to left",
+                           "        f, b = (self.bh[t], self.fh[t]) if self.TD[x] else (self.fh[t], self.bh[t])",
                            "        m = self.TN[x]",
                            "        Sfh[x] = ((Sfh[L] * pw[m] + f) * pw[TS[R]] + Sfh[R]) % _HP",
                            "        Sbh[x] = ((Sbh[R] * pw[m] + b) * pw[TS[L]] + Sbh[L]) % _HP"]}[a]
@@ -937,11 +940,11 @@ def main(langs=("py", "cpp")):
         if "py" in langs:
             from gen_treap_algebra import piece_example  # noqa: E402
             ex = (piece_example("py", f"{class_name(aggs, seq)}([1, 2, 3, 4, 5], 1, 5)", list("12345")) if seq else "")
-            write_template(os.path.join(folder, "template.py"), python(aggs, seq).rstrip("\n") + "\n" + ex if seq else python(aggs, seq))
+            write_template(os.path.join(folder, "template.py"), fit_comments(python(aggs, seq)).rstrip("\n") + "\n" + ex if seq else fit_comments(python(aggs, seq)))
         if "cpp" in langs:
             from gen_sorted_runs_cpp import cpp  # noqa: E402
             ex = (piece_example("cpp", f"{class_name(aggs, seq)}<int> t({{1, 2, 3, 4, 5}}, 1, 5)", list("12345")) if seq else "")
-            write_template(os.path.join(folder, "template.cpp"), cpp(aggs, seq) + ex)
+            write_template(os.path.join(folder, "template.cpp"), fit_comments(aosify_runs(cpp(aggs, seq)) if seq else cpp(aggs, seq)) + ex)
         count += 1
     print("wrote", count, "sorted-runs templates")
 

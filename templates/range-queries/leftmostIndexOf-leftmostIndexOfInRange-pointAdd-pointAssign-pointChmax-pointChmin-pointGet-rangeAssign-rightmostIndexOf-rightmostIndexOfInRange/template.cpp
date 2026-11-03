@@ -41,8 +41,9 @@ struct IntervalMap {
             if (i == 0 || !(arr[i] == arr[i - 1])) runs.emplace_hint(runs.end(), i, arr[i]), byVal[arr[i]].insert(i);
     }
 
-    // O(logN) amortized -- a[i] = x for i in [l, r]
+    // O(logN) amortized -- a[i] = x for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAssign(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
         if (l > r) return;
         split(l), split(r + 1);
         auto it = runs.find(l);
@@ -68,8 +69,10 @@ struct IntervalMap {
         return p == byVal.end() ? -1 : end(*p->second.rbegin());
     }
 
-    // O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
+    // O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     int leftmostIndexOfInRange(int l, int r, const T& x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostIndexOfInRange: needs 0 <= l <= r < n");
         auto p = byVal.find(x);
         if (p == byVal.end() || l > r) return -1;
         auto j = p->second.upper_bound(l);  // x's next run after l; the one before it starts at or before l
@@ -77,8 +80,10 @@ struct IntervalMap {
         return j != p->second.end() && *j <= r ? *j : -1;
     }
 
-    // O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
+    // O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < n, else throws
+    // out_of_range
     int rightmostIndexOfInRange(int l, int r, const T& x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostIndexOfInRange: needs 0 <= l <= r < n");
         auto p = byVal.find(x);
         if (p == byVal.end() || l > r) return -1;
         auto j = p->second.upper_bound(r);  // x's last run starting at or before r is the one before
@@ -87,8 +92,11 @@ struct IntervalMap {
         return e >= l ? e : -1;
     }
 
-    // O(logN) -- a[i]
-    T pointGet(int i) const { return prev(runs.upper_bound(i))->second; }
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return prev(runs.upper_bound(i))->second;
+    }
 
     // O(N) -- the whole array
     vector<T> getAll() const {
@@ -101,17 +109,29 @@ struct IntervalMap {
         return out;
     }
 
-    // O(logN) amortized -- a[i] = v
-    void pointAssign(int i, T v) { rangeAssign(i, i, v); }
+    // O(logN) amortized -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        rangeAssign(i, i, v);
+    }
 
-    // O(logN) amortized -- a[i] += delta
-    void pointAdd(int i, T delta) { rangeAssign(i, i, pointGet(i) + delta); }
+    // O(logN) amortized -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        rangeAssign(i, i, pointGet(i) + delta);
+    }
 
-    // O(logN) amortized -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (pointGet(i) < v) rangeAssign(i, i, v); }
+    // O(logN) amortized -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (pointGet(i) < v) rangeAssign(i, i, v);
+    }
 
-    // O(logN) amortized -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) rangeAssign(i, i, v); }
+    // O(logN) amortized -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) rangeAssign(i, i, v);
+    }
 
     // ---- internals ----
 

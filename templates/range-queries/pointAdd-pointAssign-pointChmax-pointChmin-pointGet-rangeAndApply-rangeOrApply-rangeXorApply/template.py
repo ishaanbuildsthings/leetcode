@@ -78,20 +78,28 @@ class BitOpTree:
             l >>= 1
             r >>= 1
 
-    # O(logN) -- a[i] &= v for i in [l, r]
+    # O(logN) -- a[i] &= v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAndApply(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAndApply: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, v, 0)
 
-    # O(logN) -- a[i] |= v for i in [l, r]
+    # O(logN) -- a[i] |= v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeOrApply(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeOrApply: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, ~v, v)
 
-    # O(logN) -- a[i] ^= v for i in [l, r]
+    # O(logN) -- a[i] ^= v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeXorApply(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeXorApply: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, -1, v)
 
-    # O(logN) -- a[i]: apply ancestors' maps bottom-up (deeper tags are older)
+    # O(logN) -- a[i]: apply ancestors' maps bottom-up (deeper tags are older); needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         AND, XOR = self.AND, self.XOR
         v = self.val[i]
         p = (i + self.n) >> 1
@@ -114,24 +122,32 @@ class BitOpTree:
                 XOR[y] = 0
         return list(self.val)
 
-    # O(logN) -- a[i] = v
+    # O(logN) -- a[i] = v; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._push(i + self.n)
         self.val[i] = v
 
-    # O(logN) -- a[i] += delta
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._push(i + self.n)
         self.val[i] += delta
 
-    # O(logN) -- a[i] = max(a[i], v)
+    # O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._push(i + self.n)
         if v > self.val[i]:
             self.val[i] = v
 
-    # O(logN) -- a[i] = min(a[i], v)
+    # O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._push(i + self.n)
         if v < self.val[i]:
             self.val[i] = v

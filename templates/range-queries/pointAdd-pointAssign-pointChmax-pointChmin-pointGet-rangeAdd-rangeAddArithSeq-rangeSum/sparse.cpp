@@ -96,8 +96,9 @@ struct SparseArithSeqSumBIT {
         return a % 2 == 0 ? (a / 2) * b : a * (b / 2);
     }
 
-    // O(logU) -- a[l + j] += start + j * step for j in [0, r - l]
+    // O(logU) -- a[l + j] += start + j * step for j in [0, r - l]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAddArithSeq(long long l, long long r, T start, T step) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAddArithSeq: needs lo <= l <= r <= hi");
         if (l > r) return;
         l -= lo, r -= lo;
         W c1 = W(step), c0 = W(start) - c1 * W(l);  // adding c0 + c1 * x at offset x
@@ -109,8 +110,11 @@ struct SparseArithSeqSumBIT {
         }
     }
 
-    // O(logU) -- a[i] += v for i in [l, r]
-    void rangeAdd(long long l, long long r, T v) { rangeAddArithSeq(l, r, v, 0); }
+    // O(logU) -- a[i] += v for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    void rangeAdd(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAdd: needs lo <= l <= r <= hi");
+        rangeAddArithSeq(l, r, v, 0);
+    }
 
     // O(logU) -- a[lo] + ... + a[lo + x] (0 for x = -1)
     W sum(long long x) const {
@@ -118,21 +122,39 @@ struct SparseArithSeqSumBIT {
         return s[0] + s[1] * W(x) + s[2] * tri(x);
     }
 
-    // O(logU) -- a[l] + ... + a[r]
-    long long rangeSum(long long l, long long r) const { return l <= r ? (long long)(sum(r - lo) - sum(l - 1 - lo)) : 0; }
+    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
+    long long rangeSum(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
+        return l <= r ? (long long)(sum(r - lo) - sum(l - 1 - lo)) : 0;
+    }
 
-    // O(logU) -- a[i]
-    T pointGet(long long i) const { return T(rangeSum(i, i)); }
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return T(rangeSum(i, i));
+    }
 
-    // O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { rangeAdd(i, i, delta); }
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        rangeAdd(i, i, delta);
+    }
 
-    // O(logU) -- a[i] = v
-    void pointAssign(long long i, T v) { rangeAdd(i, i, v - pointGet(i)); }
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
+        rangeAdd(i, i, v - pointGet(i));
+    }
 
-    // O(logU) -- a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { T cur = pointGet(i); if (v > cur) rangeAdd(i, i, v - cur); }
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        T cur = pointGet(i); if (v > cur) rangeAdd(i, i, v - cur);
+    }
 
-    // O(logU) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { T cur = pointGet(i); if (v < cur) rangeAdd(i, i, v - cur); }
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        T cur = pointGet(i); if (v < cur) rangeAdd(i, i, v - cur);
+    }
 };

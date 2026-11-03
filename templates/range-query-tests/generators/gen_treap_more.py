@@ -23,6 +23,7 @@ import re
 import shutil
 
 from gen_treap import no_push, wrap
+from aos import aosify
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -1009,7 +1010,7 @@ def main():
             ex_py = piece_example("py", 'ImplicitTreap(list("(()()"))', [f'"{c}"' for c in "(()()"])
             ex_cpp = piece_example("cpp", "ImplicitTreap<char> t(vector<char>{'(', '(', ')', '(', ')'})", [f"'{c}'" for c in "(()()"])
         write_template(os.path.join(folder, "template.py"), python(kind, sp).rstrip("\n") + "\n" + ex_py)
-        write_template(os.path.join(folder, "template.cpp"), cpp(kind, sp) + ex_cpp)
+        write_template(os.path.join(folder, "template.cpp"), aosify(cpp(kind, sp)) + ex_cpp)
     print("wrote", len(variants()), "more treaps")
 
 

@@ -269,7 +269,8 @@ class SortedRunsSumMinAndHashSeq:
         self._join(A, B, C)
         return res
 
-    # O(log N + log U) amortized -- hash of a[l..r] read left to right (a[l] B^(len-1) + ... + a[r], mod 2^61 - 1; B random per run): equal ranges hash equal
+    # O(log N + log U) amortized -- hash of a[l..r] read left to right (a[l] B^(len-1) + ... + a[r], mod 2^61 - 1; B
+    # random per run): equal ranges hash equal
     def rangeHash(self, l, r):
         A, B, C = self._extract(l, r)
         res = self.Sfh[B]
@@ -344,7 +345,8 @@ class SortedRunsSumMinAndHashSeq:
         self.Smn[x] = m
         self.Sav[x] = self.Sav[L] & self.av[t] & self.Sav[R]
         pw, Sfh, Sbh = self.pw, self.Sfh, self.Sbh
-        f, b = (self.bh[t], self.fh[t]) if self.TD[x] else (self.fh[t], self.bh[t])  # the run, read left to right / right to left
+        # the run, read left to right / right to left
+        f, b = (self.bh[t], self.fh[t]) if self.TD[x] else (self.fh[t], self.bh[t])
         m = self.TN[x]
         Sfh[x] = ((Sfh[L] * pw[m] + f) * pw[TS[R]] + Sfh[R]) % _HP
         Sbh[x] = ((Sbh[R] * pw[m] + b) * pw[TS[L]] + Sbh[L]) % _HP

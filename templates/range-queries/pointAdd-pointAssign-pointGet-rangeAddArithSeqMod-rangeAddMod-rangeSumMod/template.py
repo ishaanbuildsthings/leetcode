@@ -70,8 +70,10 @@ class ArithSeqSumBITMod:
             i &= i - 1
         return (sa + sb % mod * x + sc % mod * (_tri(x) % mod)) % mod
 
-    # O(logN) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
+    # O(logN) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]; needs 0 <= l <= r < n, else IndexError
     def rangeAddArithSeqMod(self, l, r, start, step):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAddArithSeqMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return
         c0, c1 = start - step * l, step  # adding c0 + c1 * i at index i
@@ -81,16 +83,22 @@ class ArithSeqSumBITMod:
             total = c0 * (r - l + 1) + c1 * (_tri(r) - _tri(l - 1))
             self._point(r + 1, total - a, -c0, -c1)
 
-    # O(logN) -- a[i] += v (% MOD) for i in [l, r]
+    # O(logN) -- a[i] += v (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAddMod(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAddMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self.rangeAddArithSeqMod(l, r, v, 0)
 
-    # O(logN) -- (a[l] + ... + a[r]) % MOD
+    # O(logN) -- (a[l] + ... + a[r]) % MOD; needs 0 <= l <= r < n, else IndexError
     def rangeSumMod(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSumMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return (self._prefix(r) - self._prefix(l - 1)) % self.mod if l <= r else 0
 
-    # O(logN) -- a[i], in [0, mod)
+    # O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.rangeSumMod(i, i)
 
     # O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
@@ -115,10 +123,14 @@ class ArithSeqSumBITMod:
             prev = p
         return out
 
-    # O(logN) -- a[i] += delta (% MOD)
+    # O(logN) -- a[i] += delta (% MOD); needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAddMod(i, i, delta)
 
-    # O(logN) -- a[i] = val (% MOD)
+    # O(logN) -- a[i] = val (% MOD); needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAddMod(i, i, val - self.pointGet(i))

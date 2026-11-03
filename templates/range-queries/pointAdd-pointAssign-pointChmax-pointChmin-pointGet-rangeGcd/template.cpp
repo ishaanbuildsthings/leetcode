@@ -32,8 +32,10 @@ struct GcdSegmentTree {
         for (int x = n - 1; x > 0; x--) tree[x] = std::gcd(tree[2 * x], tree[2 * x + 1]);
     }
 
-    // O(logN logU) -- a[i] = v; stops early once a node's gcd doesn't change
+    // O(logN logU) -- a[i] = v; stops early once a node's gcd doesn't change; needs 0 <= i < n, else throws
+    // out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = i + n;
         tree[p] = v;
         for (p >>= 1; p; p >>= 1) {
@@ -49,8 +51,10 @@ struct GcdSegmentTree {
         pointAssign(i, v);
     }
 
-    // O(logN + logU) -- gcd of a[l..r]; the gcds telescope, so the whole fold costs one log U
+    // O(logN + logU) -- gcd of a[l..r]; the gcds telescope, so the whole fold costs one log U; needs 0 <= l <= r < n,
+    // else throws out_of_range
     T rangeGcd(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeGcd: needs 0 <= l <= r < n");
         T res = 0;
         for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
             if (l & 1) res = std::gcd(res, tree[l++]);
@@ -59,18 +63,30 @@ struct GcdSegmentTree {
         return res;
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return tree[n + i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return tree[n + i];
+    }
 
     // O(N) -- the whole array (a copy of the leaves)
     vector<T> getAll() const { return vector<T>(tree.begin() + n, tree.end()); }
 
-    // O(logN logU) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > tree[n + i]) pointAssign(i, v); }
+    // O(logN logU) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > tree[n + i]) pointAssign(i, v);
+    }
 
-    // O(logN logU) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < tree[n + i]) pointAssign(i, v); }
+    // O(logN logU) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < tree[n + i]) pointAssign(i, v);
+    }
 
-    // O(logN logU) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, tree[n + i] + delta); }
+    // O(logN logU) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, tree[n + i] + delta);
+    }
 };

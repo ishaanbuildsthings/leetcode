@@ -269,6 +269,8 @@ BRUTE_QUERIES = {
     "rangeHashReversed": ("lr2", lambda a, l, r, l2, r2, c: a[l:r + 1][::-1] == a[l2:r2 + 1]),
     "maxPrefixSum": ("lr", lambda a, l, r, c: max(sum(a[l:i + 1]) for i in range(l, r + 1))),
     "maxSuffixSum": ("lr", lambda a, l, r, c: max(sum(a[i:r + 1]) for i in range(l, r + 1))),
+    "minPrefixSum": ("lr", lambda a, l, r, c: min(sum(a[l:i + 1]) for i in range(l, r + 1))),
+    "minSuffixSum": ("lr", lambda a, l, r, c: min(sum(a[i:r + 1]) for i in range(l, r + 1))),
     "countOccurrences": ("lrx", lambda a, l, r, x, c: a[l:r + 1].count(x)),
     "leftmostIndexOf": ("x", lambda a, x, c: _first(a, range(len(a)), lambda v: v == x)),
     "find": ("xv", lambda a, x, c: a.index(x) if x in a else -1),  # (values are kept distinct for it: see domain)
@@ -431,7 +433,8 @@ def domain(folder, ops):
         return (lambda r: r.randint(0, 63)), nonneg_small, [], ctx
     if "leftmostPrefixSumGteX" in ops:
         return (lambda r: r.randint(0, 6)), nonneg_small, [], ctx
-    sums = {"rangeSum", "maxAltSubseqSum", "maxSubarraySum", "maxPrefixSum", "maxSuffixSum"} & set(ops)  # (these add values up)
+    sums = {"rangeSum", "maxAltSubseqSum", "maxSubarraySum", "maxPrefixSum", "maxSuffixSum", "minPrefixSum",
+            "minSuffixSum"} & set(ops)  # (these add values up)
     if "rangeFloorSqrt" in ops and not sums:
         return (lambda r: r.choice([r.randint(0, 200), r.randint(0, (1 << 62) - 1)])), nonneg_small, [], ctx
     if "rangeFloorDiv" in ops and not sums:
@@ -475,6 +478,38 @@ def update_args(op, rng, gen, mod):
     if op in ("rangeFloorSqrt", "rangeFlip"):
         return []
     return [gen(rng)]
+
+
+def bad_calls(seq, lo, hi, rng, k=4):
+    """a few calls with an index outside [lo, hi] (inserts: outside [lo, hi + 1]), each a copy of the last call the
+    trial made to that op with one index moved out; they are sent as "!op" and must raise (IndexError / out_of_range),
+    which the drivers print as OOR. Pieces, hashes and value-only ops are left out."""
+    last = {}
+    for op, args in seq:
+        if op in PIECE_OPS or op in ("rangeHash", "rangeHashReversed", "find", "append", "appendLeft") or not args:
+            continue
+        kind = SEQ_OPS.get(op) or (BRUTE_QUERIES[op][0] if op in BRUTE_QUERIES else "lr")
+        if op == "pointGet" or op in POINT_UPDATES or kind in ("iv", "ivk") or kind.startswith("lr"):
+            last[op] = (kind, list(args))
+    out = []
+    for op in rng.sample(sorted(last), min(k, len(last))):
+        kind, args = last[op]
+        if op == "pointGet" or op in POINT_UPDATES:
+            args[0] = rng.choice([lo - 1, hi + 1])
+        elif kind in ("iv", "ivk"):  # (an insert position may be one past the end)
+            args[0] = rng.choice([lo - 1, hi + 2])
+        elif kind == "lr2" and rng.random() < 0.5:
+            args[3] = hi + 1
+        else:
+            which = rng.randrange(3)
+            if which == 0:
+                args[1] = hi + 1
+            elif which == 1:
+                args[0] = lo - 1
+            else:
+                args[0] = args[1] + 1  # (l > r)
+        out.append(("!" + op, args))
+    return out
 
 
 def make_trials(folder, ops, trials, letters=False):
@@ -599,6 +634,7 @@ def make_trials(folder, ops, trials, letters=False):
             seq.append((op, args))
             if SEQ_OPS.get(op) in ("v", "iv", "ivk") or op in ("pointAssign", "pointChmax", "pointChmin"):
                 seen.append(args[0] if SEQ_OPS.get(op) == "v" else args[1])  # (a value that may now be in the array)
+        seq += bad_calls(seq, 0, n - 1, rng)
         out.append((a, seq))
     return out, ctx
 
@@ -612,7 +648,9 @@ def expected_outputs(trials, ctx):
         if ctx["mod"]:
             a = [v % ctx["mod"] for v in a]
         for op, args in seq:
-            if op == "pointGet":
+            if op.startswith("!"):  # (an index out of range: the template must raise)
+                exp.append("OOR")
+            elif op == "pointGet":
                 exp.append(a[args[0]])
             elif op in SEQ_OUT:
                 exp.append(brute_update(a, op, args, ctx))
@@ -788,6 +826,8 @@ def sparse_query(op, R, args, ctx):
     if op == "maxSubarraySum": return _runs_sub(runs)[3]
     if op == "maxPrefixSum": return _runs_sub(runs)[1]
     if op == "maxSuffixSum": return _runs_sub(runs)[2]
+    if op == "minPrefixSum": return -_runs_sub([(s_, e, -v) for s_, e, v in runs])[1]  # (min of a = -max of -a)
+    if op == "minSuffixSum": return -_runs_sub([(s_, e, -v) for s_, e, v in runs])[2]
     if op == "longestEqualRun": return _runs_longest(runs)
     if op == "maxAltSubseqSum": return _max_alt([v for s_, e, v in runs for _ in range(min(3, e - s_ + 1))])
     if op in ("rightmostSuffixSumGteX", "rightmostSuffixSumGtX"):  # mirror the runs and search from r leftwards
@@ -912,7 +952,9 @@ def sparse_expected(trials, ctx, ops):
             R.update(i, i, lambda _v, v=v: v)
         get = (lambda i: R.get(i) % mod) if (linear and mod) else R.get
         for op, args in seq:
-            if op == "pointGet":
+            if op.startswith("!"):
+                exp.append("OOR")
+            elif op == "pointGet":
                 exp.append(get(args[0]))
             elif op in POINT_UPDATES:
                 i, v = args
@@ -1005,6 +1047,7 @@ def make_sparse_trials(folder, ops, trials):
                     else:
                         args = [l, r]
             seq.append((op, args))
+        seq += bad_calls(seq, lo, hi, rng)
         out.append((head, seq))
     return out, ctx
 
@@ -1035,6 +1078,16 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
     for a0, seq in trials:
         objs, pieces = {}, []
         for op, args in seq:
+            if op.startswith("!"):  # (must raise IndexError)
+                name = owner(op[1:], table)
+                if name not in objs:
+                    objs[name] = classes[name](*a0, *ctor_extra) if stem == "sparse" else classes[name](list(a0), *ctor_extra)
+                try:
+                    res = getattr(objs[name], op[1:])(*args)
+                    out.append(f"no error, returned {norm(res)}")
+                except IndexError:
+                    out.append("OOR")
+                continue
             name = owner(op, table)
             if op in PIECE_OPS:
                 if name not in objs:  # (built once: a throwaway build would still share the class's node pool)
@@ -1145,7 +1198,8 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
         lines += [f"    {s}<{elem}> s_{s}(a{extra});" for s in used]
     if any(o in ops for o in PIECE_OPS):
         lines += [f"    vector<{owners[next(o for o in PIECE_OPS if o in ops)]}<{'char' if chars else 'long long'}>> pieces;"]
-    lines += ["    while (q--) {", "      string op; cin >> op;", "      if (false) {}"]
+    lines += ["    while (q--) {", "      string op; cin >> op;", "      bool bad = op[0] == '!';  // (an index out of range: must throw)",
+              "      if (bad) op = op.substr(1);", "      try {", "      if (false) {}"]
     for op in ops:
         s = f"s_{owners[op]}"
         if op == "cut":
@@ -1202,7 +1256,9 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
             else:
                 body = f"long long l, r, lo, hi; cin >> l >> r >> lo >> hi; out({s}.{op}(l, r, lo, hi));"
         lines.append(f'      else if (op == "{op}") {{ {body} }}')
-    lines += ["      else { cerr << \"unknown op \" << op << '\\n'; return 1; }", "    }", "  }", "}"]
+    lines += ["      else { cerr << \"unknown op \" << op << '\\n'; return 1; }",
+              "      if (bad) cout << \"no error\\n\";",
+              "      } catch (const out_of_range&) { if (!bad) throw; cout << \"OOR\\n\"; }", "    }", "  }", "}"]
     return "\n".join(lines) + "\n"
 
 

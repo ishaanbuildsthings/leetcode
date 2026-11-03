@@ -42,8 +42,9 @@ struct DynamicOccurrenceLists {
         for (int i = 0; i < (int)arr.size(); i++) pos[arr[i]].insert(i);
     }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x
+    // O(logN) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else throws out_of_range
     int countOccurrences(int l, int r, const T& x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countOccurrences: needs 0 <= l <= r < size()");
         auto it = pos.find(x);
         if (it == pos.end() || l > r) return 0;
         return int(it->second.order_of_key(r + 1) - it->second.order_of_key(l));
@@ -61,16 +62,20 @@ struct DynamicOccurrenceLists {
         return it == pos.end() ? -1 : *it->second.rbegin();
     }
 
-    // O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
+    // O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    // throws out_of_range
     int leftmostIndexOfInRange(int l, int r, const T& x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostIndexOfInRange: needs 0 <= l <= r < size()");
         auto it = pos.find(x);
         if (it == pos.end()) return -1;
         auto j = it->second.lower_bound(l);
         return j != it->second.end() && *j <= r ? *j : -1;
     }
 
-    // O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
+    // O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    // throws out_of_range
     int rightmostIndexOfInRange(int l, int r, const T& x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostIndexOfInRange: needs 0 <= l <= r < size()");
         auto it = pos.find(x);
         if (it == pos.end()) return -1;
         auto j = it->second.upper_bound(r);
@@ -79,8 +84,9 @@ struct DynamicOccurrenceLists {
         return *j >= l ? *j : -1;
     }
 
-    // O(logN) -- a[i] = v
+    // O(logN) -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
     void pointAssign(int i, const T& v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
         if (a[i] == v) return;
         auto it = pos.find(a[i]);
         it->second.erase(i);
@@ -89,18 +95,33 @@ struct DynamicOccurrenceLists {
         a[i] = v;
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return a[i]; }
+    // O(1) -- the length of the array
+    int size() const { return (int)a.size(); }
+
+    // O(1) -- a[i]; needs 0 <= i < size(), else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
+        return a[i];
+    }
 
     // O(N) -- the whole array (a copy)
     vector<T> getAll() const { return a; }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, const T& delta) { pointAssign(i, a[i] + delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < size(), else throws out_of_range
+    void pointAdd(int i, const T& delta) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
+        pointAssign(i, a[i] + delta);
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, const T& v) { if (v > a[i]) pointAssign(i, v); }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
+    void pointChmax(int i, const T& v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
+        if (v > a[i]) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, const T& v) { if (v < a[i]) pointAssign(i, v); }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
+    void pointChmin(int i, const T& v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
+        if (v < a[i]) pointAssign(i, v);
+    }
 };

@@ -144,37 +144,47 @@ class SqrtSequence:
             out += b.values(0, len(b.vals) - 1)
         return out
 
-    # O(sqrt(N)) -- a[i]
+    # O(sqrt(N)) -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointGet: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         b, k = self._locate(i)
         return b.get(k)
 
-    # O(sqrt(N) log N) -- a[i] = v
+    # O(sqrt(N) log N) -- a[i] = v; needs 0 <= i < size(), else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointAssign: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         b, k = self._locate(i)
         nv = v
         b.bake()
         b.vals[k] = nv
         b.rebuild()
 
-    # O(sqrt(N) log N) -- a[i] += v
+    # O(sqrt(N) log N) -- a[i] += v; needs 0 <= i < size(), else IndexError
     def pointAdd(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointAdd: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         b, k = self._locate(i)
         nv = b.get(k) + v
         b.bake()
         b.vals[k] = nv
         b.rebuild()
 
-    # O(sqrt(N) log N) -- a[i] = max(a[i], v)
+    # O(sqrt(N) log N) -- a[i] = max(a[i], v); needs 0 <= i < size(), else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointChmax: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         b, k = self._locate(i)
         nv = max(b.get(k), v)
         b.bake()
         b.vals[k] = nv
         b.rebuild()
 
-    # O(sqrt(N) log N) -- a[i] = min(a[i], v)
+    # O(sqrt(N) log N) -- a[i] = min(a[i], v); needs 0 <= i < size(), else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointChmin: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         b, k = self._locate(i)
         nv = min(b.get(k), v)
         b.bake()
@@ -182,8 +192,10 @@ class SqrtSequence:
         b.rebuild()
 
 
-    # O(sqrt(N) log N) -- a[i] = v for i in [l, r]
+    # O(sqrt(N) log N) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else IndexError
     def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         for b, lo, hi, full, _ in self._span(l, r):
             if full:
                 b.has, b.asg = True, v
@@ -194,8 +206,11 @@ class SqrtSequence:
                     vals[k] = v
                 b.rebuild()
 
-    # O(sqrt(N) log N) amortized -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    # O(sqrt(N) log N) amortized -- insert v so it becomes a[i]; needs 0 <= i <= size(), else IndexError (i = size()
+    # appends)
     def insertAt(self, i, v):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"insertAt: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         j, k = self._at(i)
         if j == len(self.blocks):  # (the end: onto the last block)
             if not j or len(self.blocks[-1].vals) >= 2 * self.B:
@@ -223,8 +238,11 @@ class SqrtSequence:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(k + sqrt(N) log N) amortized -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    # O(k + sqrt(N) log N) amortized -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0); needs
+    # 0 <= i <= size(), else IndexError
     def insertCopiesAt(self, i, v, k):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"insertCopiesAt: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         if k <= 0:
             return
         j = self._splitAt(i)
@@ -232,8 +250,10 @@ class SqrtSequence:
         self.n += k
         self._tidy()
 
-    # O(sqrt(N) log N) amortized -- reverse a[l..r] in place
+    # O(sqrt(N) log N) amortized -- reverse a[l..r] in place; needs 0 <= l <= r < size(), else IndexError
     def rangeReverse(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeReverse: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         j1 = self._splitAt(l)
         j2 = self._splitAt(r + 1)
         seg = self.blocks[j1:j2][::-1]
@@ -243,8 +263,10 @@ class SqrtSequence:
         self._tidy()
 
     # O(sqrt(N) log N) amortized -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
-    # it is taken mod the length (negative shifts right)
+    # it is taken mod the length (negative shifts right); needs 0 <= l <= r < size(), else IndexError
     def rangeRotateLeft(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeRotateLeft: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         k %= r - l + 1
         if k:
             j1 = self._splitAt(l)
@@ -254,12 +276,17 @@ class SqrtSequence:
             self._tidy()
 
     # O(sqrt(N) log N) amortized -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
-    # length (negative shifts left)
+    # length (negative shifts left); needs 0 <= l <= r < size(), else IndexError
     def rangeRotateRight(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeRotateRight: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         self.rangeRotateLeft(l, r, -k)
 
-    # O(sqrt(N) log N) amortized -- remove a[l..r] and return it as a SqrtSequence of its own (indices from 0)
+    # O(sqrt(N) log N) amortized -- remove a[l..r] and return it as a SqrtSequence of its own (indices from 0); needs
+    # 0 <= l <= r < size(), else IndexError
     def cut(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"cut: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         j1 = self._splitAt(l)
         j2 = self._splitAt(r + 1)
         piece = SqrtSequence()
@@ -271,8 +298,10 @@ class SqrtSequence:
         return piece
 
     # O(sqrt(N) log N) amortized -- insert all of other (any SqrtSequence, e.g. a cut piece) so it starts at a[i]
-    # (0 <= i <= size()); other is left empty
+    # (needs 0 <= i <= size(), else IndexError); other is left empty
     def paste(self, i, other):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"paste: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         j = self._splitAt(i)
         self.blocks[j:j] = other.blocks
         self.n += other.n
@@ -283,8 +312,11 @@ class SqrtSequence:
     def merge(self, other):
         self.paste(self.n, other)
 
-    # O(sqrt(N) log N) amortized -- (a[0..k-1], a[k..]) as two SqrtSequences of their own; this one is left empty
+    # O(sqrt(N) log N) amortized -- (a[0..k-1], a[k..]) as two SqrtSequences of their own; this one is left empty;
+    # needs 0 <= k <= size(), else IndexError
     def split(self, k):
+        if not 0 <= k <= self.size():
+            raise IndexError(f"split: needs 0 <= k <= size(), got k = {k}, n = {self.size()}")
         left = SqrtSequence()
         left.blocks, left.n, left.B = self.blocks, self.n, self.B
         self.blocks, self.n = [], 0
@@ -292,39 +324,55 @@ class SqrtSequence:
         return left, right
 
     # O(sqrt(N) log N) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three SqrtSequences of their own; this one is
-    # left empty
+    # left empty; needs 0 <= l <= r < size(), else IndexError
     def trisect(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"trisect: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         left, right = self.split(r + 1)
         left, mid = left.split(l)
         return left, mid, right
 
-    # O(sqrt(N) log N) -- # of values < x in a[l..r]
+    # O(sqrt(N) log N) -- # of values < x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def countLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"countLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._count(l, r, None, x, False, True)
 
-    # O(sqrt(N) log N) -- # of values <= x in a[l..r]
+    # O(sqrt(N) log N) -- # of values <= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def countLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"countLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._count(l, r, None, x, False, False)
 
-    # O(sqrt(N) log N) -- # of values > x in a[l..r]
+    # O(sqrt(N) log N) -- # of values > x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def countGtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"countGtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._count(l, r, x, None, True, False)
 
-    # O(sqrt(N) log N) -- # of values >= x in a[l..r]
+    # O(sqrt(N) log N) -- # of values >= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def countGteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"countGteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._count(l, r, x, None, False, False)
 
-    # O(sqrt(N) log N) -- # of i in [l, r] with lowVal <= a[i] <= highVal
+    # O(sqrt(N) log N) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < size(), else IndexError
     def countInValRange(self, l, r, lowVal, highVal):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"countInValRange: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._count(l, r, lowVal, highVal, False, False) if lowVal <= highVal else 0
 
-    # O(sqrt(N) log N) -- # of i in [l, r] with a[i] == x
+    # O(sqrt(N) log N) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else IndexError
     def countOccurrences(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"countOccurrences: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._count(l, r, x, x, False, False)
 
-    # O(sqrt(N) log N log U) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else
-    # IndexError (a binary search over the values, each step a count)
+    # O(sqrt(N) log N log U) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k
+    # <= r - l + 1, else IndexError (a binary search over the values, each step a count)
     def kthSmallest(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"kthSmallest: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         if not 1 <= k <= r - l + 1:
             raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         whole, part = [], []  # (the values of the partial blocks, sorted once)
@@ -344,28 +392,40 @@ class SqrtSequence:
                 lo = mid + 1
         return lo
 
-    # O(sqrt(N) log N) -- min of a[l..r]
+    # O(sqrt(N) log N) -- min of a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return min(b.kth(0) if full else min(b.values(lo, hi)) for b, lo, hi, full, _ in self._span(l, r))
 
-    # O(sqrt(N) log N) -- max of a[l..r]
+    # O(sqrt(N) log N) -- max of a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeMax(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeMax: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return max(b.kth(hi) if full else max(b.values(lo, hi)) for b, lo, hi, full, _ in self._span(l, r))
 
-    # O(sqrt(N) log N) -- smallest value >= x in a[l..r], or None
+    # O(sqrt(N) log N) -- smallest value >= x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
     def smallestGteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"smallestGteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._nearest(l, r, x, True, False)
 
-    # O(sqrt(N) log N) -- smallest value > x in a[l..r], or None
+    # O(sqrt(N) log N) -- smallest value > x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
     def smallestGtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"smallestGtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._nearest(l, r, x, True, True)
 
-    # O(sqrt(N) log N) -- largest value <= x in a[l..r], or None
+    # O(sqrt(N) log N) -- largest value <= x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
     def largestLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"largestLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._nearest(l, r, x, False, False)
 
-    # O(sqrt(N) log N) -- largest value < x in a[l..r], or None
+    # O(sqrt(N) log N) -- largest value < x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
     def largestLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"largestLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._nearest(l, r, x, False, True)
 
     # O(sqrt(N) log N) -- the first i with a[i] == x, or -1
@@ -376,52 +436,87 @@ class SqrtSequence:
     def rightmostIndexOf(self, x):
         return self.rightmostIndexOfInRange(0, self.n - 1, x) if self.n else -1
 
-    # O(sqrt(N) log N) -- the first i in [l, r] with a[i] == x, or -1
+    # O(sqrt(N) log N) -- the first i in [l, r] with a[i] == x, or -1; needs 0 <= l <= r < size(), else IndexError
     def leftmostIndexOfInRange(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostIndexOfInRange: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
         return self._kthWhere(l, r, 1, x, x, False, False)
 
-    # O(sqrt(N) log N) -- the last i in [l, r] with a[i] == x, or -1
+    # O(sqrt(N) log N) -- the last i in [l, r] with a[i] == x, or -1; needs 0 <= l <= r < size(), else IndexError
     def rightmostIndexOfInRange(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostIndexOfInRange: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
         return self._kthWhere(l, r, -1, x, x, False, False)
 
-    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] < x, or -1
+    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] < x, or -1; needs
+    # 0 <= l <= r < size(), else IndexError
     def kthLtX(self, l, r, k, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"kthLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._kthWhere(l, r, k, None, x, False, True) if k >= 1 else -1
 
-    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] <= x, or -1
+    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] <= x, or -1; needs
+    # 0 <= l <= r < size(), else IndexError
     def kthLteX(self, l, r, k, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"kthLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._kthWhere(l, r, k, None, x, False, False) if k >= 1 else -1
 
-    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] > x, or -1
+    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] > x, or -1; needs
+    # 0 <= l <= r < size(), else IndexError
     def kthGtX(self, l, r, k, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"kthGtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._kthWhere(l, r, k, x, None, True, False) if k >= 1 else -1
 
-    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] >= x, or -1
+    # O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] >= x, or -1; needs
+    # 0 <= l <= r < size(), else IndexError
     def kthGteX(self, l, r, k, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"kthGteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._kthWhere(l, r, k, x, None, False, False) if k >= 1 else -1
 
-    # O(sqrt(N) log N) -- a[l] ^ ... ^ a[r]
+    # O(sqrt(N) log N) -- a[l] ^ ... ^ a[r]; needs 0 <= l <= r < size(), else IndexError
     def rangeXorQuery(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeXorQuery: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._xor(l, r, None, None, False, False)
 
-    # O(sqrt(N) log N) -- xor of the values < x in a[l..r] (copies count); 0 if there are none
+    # O(sqrt(N) log N) -- xor of the values < x in a[l..r] (copies count); 0 if there are none; needs
+    # 0 <= l <= r < size(), else IndexError
     def xorLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"xorLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._xor(l, r, None, x, False, True)
 
-    # O(sqrt(N) log N) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none
+    # O(sqrt(N) log N) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none; needs
+    # 0 <= l <= r < size(), else IndexError
     def xorLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"xorLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._xor(l, r, None, x, False, False)
 
-    # O(sqrt(N) log N) -- xor of the values > x in a[l..r] (copies count); 0 if there are none
+    # O(sqrt(N) log N) -- xor of the values > x in a[l..r] (copies count); 0 if there are none; needs
+    # 0 <= l <= r < size(), else IndexError
     def xorGtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"xorGtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._xor(l, r, x, None, True, False)
 
-    # O(sqrt(N) log N) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none
+    # O(sqrt(N) log N) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none; needs
+    # 0 <= l <= r < size(), else IndexError
     def xorGteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"xorGteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._xor(l, r, x, None, False, False)
 
-    # O(sqrt(N) log N) -- xor of the a[i] in [l, r] with lowVal <= a[i] <= highVal (copies count); 0 if there are none
+    # O(sqrt(N) log N) -- xor of the a[i] in [l, r] with lowVal <= a[i] <= highVal (copies count); 0 if there are
+    # none; needs 0 <= l <= r < size(), else IndexError
     def xorInValRange(self, l, r, lowVal, highVal):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"xorInValRange: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._xor(l, r, lowVal, highVal, False, False) if lowVal <= highVal else 0
 
     def _xor(self, l, r, lo, hi, loStrict, hiStrict):

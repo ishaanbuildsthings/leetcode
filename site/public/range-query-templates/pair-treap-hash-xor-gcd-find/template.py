@@ -233,8 +233,8 @@ class PairSwapTreap:
     def rangeRotateRight(self, l, r, k):
         self.rangeRotateLeft(l, r, -k)
 
-    # O(logN * logU) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length: a[r] stays):
-    # the pairs' two lanes trade places
+    # O(logN * logU) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length:
+    # a[r] stays): the pairs' two lanes trade places
     def rangeTwinSpin(self, l, r):
         k = (r - l + 1) // 2
         if k:
@@ -259,7 +259,8 @@ class PairSwapTreap:
         self.rE = self.rO = 0
         return left, right
 
-    # O(logN * logU) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left empty
+    # O(logN * logU) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three PairSwapTreaps of their own; this one is left
+    # empty
     def trisect(self, l, r):
         left, mid, right = self._empty(), self._empty(), self._empty()
         left.rE, left.rO, mid.rE, mid.rO, right.rE, right.rO = self._cut(l, r)

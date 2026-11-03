@@ -62,8 +62,10 @@ class AssignGcdTree:
             p >>= 1
             t[p] = abs(self.asg[p]) if self.hasAsg[p] else gcd(t[2 * p], t[2 * p + 1])
 
-    # O(logN logU) -- a[i] = v for i in [l, r]
+    # O(logN logU) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return
         l0, r0 = l + self.n, r + self.n
@@ -82,8 +84,11 @@ class AssignGcdTree:
         self._rebuild(l0)
         self._rebuild(r0)
 
-    # O(logN + logU) -- gcd of |a[l]|, ..., |a[r]| (the gcds telescope, so the fold costs one log U)
+    # O(logN + logU) -- gcd of |a[l]|, ..., |a[r]| (the gcds telescope, so the fold costs one log U); needs
+    # 0 <= l <= r < n, else IndexError
     def rangeGcd(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         l += self.n
@@ -103,8 +108,10 @@ class AssignGcdTree:
             r >>= 1
         return res
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         return self.t[p]
@@ -119,20 +126,28 @@ class AssignGcdTree:
                 self.hasAsg[x] = False
         return self.t[self.n:]
 
-    # O(logN logU) -- a[i] = val
+    # O(logN logU) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAssign(i, i, val)
 
-    # O(logN logU) -- a[i] += delta
+    # O(logN logU) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAssign(i, i, self.pointGet(i) + delta)
 
-    # O(logN logU) -- a[i] = max(a[i], val)
+    # O(logN logU) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.pointGet(i):
             self.rangeAssign(i, i, val)
 
-    # O(logN logU) -- a[i] = min(a[i], val)
+    # O(logN logU) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):
             self.rangeAssign(i, i, val)

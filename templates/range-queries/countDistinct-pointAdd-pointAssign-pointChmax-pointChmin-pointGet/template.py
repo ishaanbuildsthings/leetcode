@@ -196,15 +196,20 @@ class DynamicDistinctBIT:
                 j += j & -j
         self.nxt[i] = v
 
-    # O(log^2 N) -- # of distinct values in a[l..r]
+    # O(log^2 N) -- # of distinct values in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def countDistinct(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countDistinct: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         return self._countPast(r, r) - self._countPast(l - 1, r)
 
     # O(log^2 N) -- a[i] = val; rewires i's old predecessor, i's new predecessor, and i. The order matters: no two
-    # positions may share an nxt value < n at any moment (the C++ version keeps them in sets, not multisets)
+    # positions may share an nxt value < n at any moment (the C++ version keeps them in sets, not multisets); needs
+    # 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         old = self.a[i]
         if old == val:
             return
@@ -227,24 +232,32 @@ class DynamicDistinctBIT:
         self._setNxt(i, n if s is None else s)
         self.a[i] = val
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.a[i]
 
     # O(N) -- the whole array (a copy)
     def getAll(self):
         return list(self.a)
 
-    # O(log^2 N) -- a[i] += delta
+    # O(log^2 N) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.a[i] + delta)
 
-    # O(log^2 N) -- a[i] = max(a[i], val)
+    # O(log^2 N) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.a[i]:
             self.pointAssign(i, val)
 
-    # O(log^2 N) -- a[i] = min(a[i], val)
+    # O(log^2 N) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.a[i]:
             self.pointAssign(i, val)

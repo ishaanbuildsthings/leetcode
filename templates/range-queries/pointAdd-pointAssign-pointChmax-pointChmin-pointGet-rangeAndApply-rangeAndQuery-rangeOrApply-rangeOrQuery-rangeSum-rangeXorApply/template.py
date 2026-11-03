@@ -130,37 +130,51 @@ class BitCountTree:
             k <<= 1
         return out
 
-    # O(logN * bits) -- a[i] &= X for i in [l, r]
+    # O(logN * bits) -- a[i] &= X for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAndApply(self, l, r, X):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAndApply: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, X & self.full, 0)
 
-    # O(logN * bits) -- a[i] |= X for i in [l, r]
+    # O(logN * bits) -- a[i] |= X for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeOrApply(self, l, r, X):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeOrApply: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, ~X & self.full, X & self.full)
 
-    # O(logN * bits) -- a[i] ^= X for i in [l, r]
+    # O(logN * bits) -- a[i] ^= X for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeXorApply(self, l, r, X):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeXorApply: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, self.full, X & self.full)
 
-    # O(logN * bits) -- a[l] + ... + a[r]
+    # O(logN * bits) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         nodes = self._nodes(l, r)
         return sum(sum(self.cnt[b][x] for x, _ in nodes) << b for b in range(self.bits))
 
-    # O(logN * bits) -- a[l] & ... & a[r]
+    # O(logN * bits) -- a[l] & ... & a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeAndQuery(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAndQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         nodes = self._nodes(l, r)
         return sum(1 << b for b in range(self.bits) if all(self.cnt[b][x] == k for x, k in nodes))
 
-    # O(logN * bits) -- a[l] | ... | a[r]
+    # O(logN * bits) -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeOrQuery(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeOrQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         nodes = self._nodes(l, r)
         return sum(1 << b for b in range(self.bits) if any(self.cnt[b][x] for x, _ in nodes))
 
-    # O(logN * bits) -- a[i]
+    # O(logN * bits) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         return sum(self.cnt[b][p] << b for b in range(self.bits))
@@ -180,8 +194,10 @@ class BitCountTree:
         cnt = self.cnt
         return [sum(cnt[b][p] << b for b in range(self.bits)) for p in range(n, 2 * n)]
 
-    # O(logN * bits) -- a[i] = val & FULL
+    # O(logN * bits) -- a[i] = val & FULL; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         val &= self.full
@@ -189,16 +205,22 @@ class BitCountTree:
             self.cnt[b][p] = val >> b & 1
         self._rebuild(p)
 
-    # O(logN * bits) -- a[i] = (a[i] + delta) & FULL
+    # O(logN * bits) -- a[i] = (a[i] + delta) & FULL; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logN * bits) -- a[i] = max(a[i], val)
+    # O(logN * bits) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logN * bits) -- a[i] = min(a[i], val)
+    # O(logN * bits) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

@@ -74,8 +74,10 @@ class AddSumMinMaxTree:
             self.mn[p] = min(self.mn[2 * p], self.mn[2 * p + 1]) + self.add[p]
             self.mx[p] = max(self.mx[2 * p], self.mx[2 * p + 1]) + self.add[p]
 
-    # O(logN) -- a[i] += v for i in [l, r]
+    # O(logN) -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAdd(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return
         l0, r0 = l + self.n, r + self.n
@@ -95,8 +97,10 @@ class AddSumMinMaxTree:
         self._rebuild(l0)
         self._rebuild(r0)
 
-    # O(logN) -- a[l] + ... + a[r]
+    # O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         l += self.n
@@ -117,8 +121,10 @@ class AddSumMinMaxTree:
             r >>= 1
         return res
 
-    # O(logN) -- min of a[l..r]
+    # O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return INF
         l += self.n
@@ -141,8 +147,10 @@ class AddSumMinMaxTree:
             r >>= 1
         return res
 
-    # O(logN) -- max of a[l..r]
+    # O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMax(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return NEG
         l += self.n
@@ -178,29 +186,39 @@ class AddSumMinMaxTree:
                     self.add[x] = 0
         return self.sm[n:]
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         return self.sm[p]
 
-    # O(logN) -- a[i] = val
+    # O(logN) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         self.sm[p] = self.mn[p] = self.mx[p] = val
         self._rebuild(p)
 
-    # O(logN) -- a[i] += delta
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logN) -- a[i] = max(a[i], val)
+    # O(logN) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logN) -- a[i] = min(a[i], val)
+    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

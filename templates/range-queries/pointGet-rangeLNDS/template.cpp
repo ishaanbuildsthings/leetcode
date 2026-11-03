@@ -219,13 +219,18 @@ struct RangeLNDS {
         return res + pa;
     }
 
-    // O(logN) -- length of the longest non-decreasing subsequence of a[l..r]
+    // O(logN) -- length of the longest non-decreasing subsequence of a[l..r]; needs 0 <= l <= r < n, else throws
+    // out_of_range
     int rangeLNDS(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeLNDS: needs 0 <= l <= r < n");
         if (l > r) return 0;
         int p = int(upper_bound(sortedVals.begin(), sortedVals.end(), r) - sortedVals.begin());
         return (r - l + 1) - countPrefix(l, n - 1, p);
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 };

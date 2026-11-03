@@ -27,12 +27,16 @@ class PersistentMex:
         self.n = len(arr)
         self._buildMex()
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]
 
-    # O(logN) -- smallest integer >= 0 that is not in a[l..r]
+    # O(logN) -- smallest integer >= 0 that is not in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMex(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMex: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._mexFrom(l, r, 0)
 
     # persistent seg tree over the values 0..n+1: version p holds, per value, its last index before p (-1: none)

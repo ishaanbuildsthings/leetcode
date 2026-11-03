@@ -124,7 +124,8 @@ def cpp_methods(s, dense_internals):
 def zero_py(s):
     """_newZero's appends: a block of 2^s zeros (assign 0 at level s)"""
     fl = [f[0] for f in s.fields()]
-    z = {"sm": "0", "mn": "0", "mx": "0", "fh": "h", "bh": "h", "pre": "0", "suf": "0", "best": "0", "xr": "0", "an": "0",
+    z = {"sm": "0", "mn": "0", "mx": "0", "fh": "h", "bh": "h", "pre": "0", "suf": "0", "best": "0",
+         "npre": "0", "nsuf": "0", "xr": "0", "an": "0",
          "orr": "0", "g": "0", "fv": "0", "lv": "0", "pr": "1 << s", "sr": "1 << s", "br": "1 << s", "a00": "0",
          "a01": "0 if s else NEG", "a10": "0 if s else NEG", "a11": "0"}
     L = (["        h = _HO * self.GS[s] % _HP  # (0 hashes as _HO)"] if "fh" in fl else [])
@@ -135,7 +136,8 @@ def zero_py(s):
 
 def zero_cpp(s):
     fl = [f[0] for f in s.fields()]
-    z = {"sm": "S(0)", "mn": "T(0)", "mx": "T(0)", "fh": "h", "bh": "h", "pre": "S(0)", "suf": "S(0)", "best": "S(0)", "xr": "T(0)",
+    z = {"sm": "S(0)", "mn": "T(0)", "mx": "T(0)", "fh": "h", "bh": "h", "pre": "S(0)", "suf": "S(0)", "best": "S(0)",
+         "npre": "S(0)", "nsuf": "S(0)", "xr": "T(0)",
          "an": "T(0)", "orr": "T(0)", "g": "T(0)", "fv": "T(0)", "lv": "T(0)", "pr": "1 << s", "sr": "1 << s", "br": "1 << s",
          "a00": "S(0)", "a01": "s ? S(0) : NEG", "a10": "s ? S(0) : NEG", "a11": "S(0)"}
     parts = ["L.push_back(0)", "R.push_back(0)"] + [f"{f}.push_back({z[f]})" for f in fl] + [f"{t[0]}.push_back({t[3]})" for t in s.tags()]

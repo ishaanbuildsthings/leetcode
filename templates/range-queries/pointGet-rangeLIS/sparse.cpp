@@ -217,15 +217,20 @@ struct RangeLIS {
         return res + pa;
     }
 
-    // O(logN) -- length of the longest strictly increasing subsequence of a[l..r]
+    // O(logN) -- length of the longest strictly increasing subsequence of a[l..r]; needs 0 <= l <= r < n, else throws
+    // out_of_range
     int rangeLIS(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeLIS: needs 0 <= l <= r < n");
         if (l > r) return 0;
         int p = int(upper_bound(sortedVals.begin(), sortedVals.end(), r) - sortedVals.begin());
         return (r - l + 1) - countPrefix(l, n - 1, p);
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 };
 
 // ======================================================================================== sparse wrapper
@@ -259,11 +264,15 @@ struct SparseStaticLIS {
 
     int element(long long i) const { return int(upper_bound(starts.begin(), starts.end(), i) - starts.begin()) - 1; }
 
-    // O(logN) -- range lis of a[l..r]
-    int rangeLIS(long long l, long long r) const { return inner.rangeLIS(element(l), element(r)); }
+    // O(logN) -- range lis of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    int rangeLIS(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeLIS: needs lo <= l <= r <= hi");
+        return inner.rangeLIS(element(l), element(r));
+    }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }

@@ -89,8 +89,10 @@ class SortedRunsSeq:
     def _empty(self):  # a new, empty one with the same value range (on the same pool, like every one)
         return SortedRunsSeq([], self.vlo, self.vhi)
 
-    # O(log N + log U) expected -- a[i]
+    # O(log N + log U) expected -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointGet: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         x = self.top
         while True:
             self._push(x)
@@ -104,50 +106,72 @@ class SortedRunsSeq:
                 i -= ls + self.TN[x]
                 x = self.TR[x]
 
-    # O(log N + log U) amortized -- a[i] = v
+    # O(log N + log U) amortized -- a[i] = v; needs 0 <= i < size(), else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointAssign: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         self.rangeAssign(i, i, v)
 
-    # O(log N + log U) amortized -- a[i] += v
+    # O(log N + log U) amortized -- a[i] += v; needs 0 <= i < size(), else IndexError
     def pointAdd(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointAdd: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         self.pointAssign(i, self.pointGet(i) + v)
 
-    # O(log N + log U) amortized -- a[i] = max(a[i], v)
+    # O(log N + log U) amortized -- a[i] = max(a[i], v); needs 0 <= i < size(), else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointChmax: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         if v > self.pointGet(i):
             self.pointAssign(i, v)
 
-    # O(log N + log U) amortized -- a[i] = min(a[i], v)
+    # O(log N + log U) amortized -- a[i] = min(a[i], v); needs 0 <= i < size(), else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointChmin: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         if v < self.pointGet(i):
             self.pointAssign(i, v)
 
-    # O(log N + log U) amortized -- sort a[l..r] ascending
+    # O(log N + log U) amortized -- sort a[l..r] ascending; needs 0 <= l <= r < size(), else IndexError
     def rangeSortAsc(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeSortAsc: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         self._sort(l, r, False)
 
-    # O(log N + log U) amortized -- sort a[l..r] descending
+    # O(log N + log U) amortized -- sort a[l..r] descending; needs 0 <= l <= r < size(), else IndexError
     def rangeSortDesc(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeSortDesc: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         self._sort(l, r, True)
 
-    # O(log N + log U) amortized -- a[i] = v for i in [l, r]
+    # O(log N + log U) amortized -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else IndexError
     def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         A, B, C = self._extract(l, r)
         self._drop(B)
         self._join(A, self._run(self._leaf(v, r - l + 1), r - l + 1, False), C)
 
-    # O(log N + log U) amortized -- reverse a[l..r]
+    # O(log N + log U) amortized -- reverse a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeReverse(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeReverse: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         A, B, C = self._extract(l, r)
         self._rev(B)
         self._join(A, B, C)
 
-    # O(log N + log U) amortized -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    # O(log N + log U) amortized -- insert v so it becomes a[i]; needs 0 <= i <= size(), else IndexError (i = size()
+    # appends)
     def insertAt(self, i, v):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"insertAt: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         self.insertCopiesAt(i, v, 1)
 
-    # O(log N + log U) amortized -- insert k copies of v starting at index i (0 <= i <= size(); k <= 0 does nothing)
+    # O(log N + log U) amortized -- insert k copies of v starting at index i (needs 0 <= i <= size(), else IndexError;
+    # k <= 0 does nothing)
     def insertCopiesAt(self, i, v, k):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"insertCopiesAt: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         if k <= 0:
             return
         self.n += k
@@ -162,8 +186,11 @@ class SortedRunsSeq:
     def appendLeft(self, v):
         self.insertCopiesAt(0, v, 1)
 
-    # O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0)
+    # O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0); needs
+    # 0 <= l <= r < size(), else IndexError
     def cut(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"cut: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         A, B, C = self._extract(l, r)
         self.top = self._tmerge(A, C)
         self.n -= r - l + 1
@@ -172,8 +199,10 @@ class SortedRunsSeq:
         return piece
 
     # O(log N + log U) amortized -- insert all of other (one with the same valLo / valHi, e.g. a cut piece) so it
-    # starts at a[i] (0 <= i <= size()); other is left empty
+    # starts at a[i] (needs 0 <= i <= size(), else IndexError); other is left empty
     def paste(self, i, other):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"paste: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         self.n += other.n
         A, C = self._tsplit(self.top, i)
         self.top = self._tmerge(self._tmerge(A, other.top), C)
@@ -183,34 +212,44 @@ class SortedRunsSeq:
     def merge(self, other):
         self.paste(self.n, other)
 
-    # O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
+    # O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty; needs
+    # 0 <= k <= size(), else IndexError
     def split(self, k):
+        if not 0 <= k <= self.size():
+            raise IndexError(f"split: needs 0 <= k <= size(), got k = {k}, n = {self.size()}")
         left, right = self._empty(), self._empty()
         left.top, right.top = self._tsplit(self.top, k)
         left.n, right.n = k, self.n - k
         self.top, self.n = 0, 0
         return left, right
 
-    # O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
+    # O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty;
+    # needs 0 <= l <= r < size(), else IndexError
     def trisect(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"trisect: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         left, mid, right = self._empty(), self._empty(), self._empty()
         left.top, mid.top, right.top = self._extract(l, r)
         left.n, mid.n, right.n = l, r - l + 1, self.n - r - 1
         self.top, self.n = 0, 0
         return left, mid, right
 
-    # O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first); k can be huge or
-    # negative: it is taken mod the length (negative = right)
+    # O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first); k can be huge or negative: it is
+    # taken mod the length (negative = right); needs 0 <= l <= r < size(), else IndexError
     def rangeRotateLeft(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeRotateLeft: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         k %= r - l + 1
         if k:
             A, B, C = self._extract(l, r)
             X, Y = self._tsplit(B, k)
             self._join(A, self._tmerge(Y, X), C)
 
-    # O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod
-    # the length (negative = left)
+    # O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod the length
+    # (negative = left); needs 0 <= l <= r < size(), else IndexError
     def rangeRotateRight(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeRotateRight: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         self.rangeRotateLeft(l, r, -k)
 
     # O(N log U) -- the whole current array

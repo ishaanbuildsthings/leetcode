@@ -149,8 +149,10 @@ class IntervalMap:
         self.val = val  # run start -> its value
         self.byVal = {v: SortedList(s) for v, s in by.items()}  # value -> the starts of its runs
 
-    # O(logN) amortized -- a[i] = x for i in [l, r]
+    # O(logN) amortized -- a[i] = x for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return
         self._split(l)
@@ -183,8 +185,11 @@ class IntervalMap:
         p = self.byVal.get(x)
         return self._end(p.lists[-1][-1]) if p is not None else -1
 
-    # O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
+    # O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < n, else
+    # IndexError
     def leftmostIndexOfInRange(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostIndexOfInRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         p = self.byVal.get(x)
         if p is None or l > r:
             return -1
@@ -194,8 +199,11 @@ class IntervalMap:
         s = p.succ(l)
         return s if s is not None and s <= r else -1
 
-    # O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
+    # O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < n, else
+    # IndexError
     def rightmostIndexOfInRange(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostIndexOfInRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         p = self.byVal.get(x)
         if p is None or l > r:
             return -1
@@ -205,8 +213,10 @@ class IntervalMap:
         e = min(self._end(s), r)
         return e if e >= l else -1
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         val = self.val
         return val[i] if i in val else val[self.starts.pred(i)]
 
@@ -223,21 +233,29 @@ class IntervalMap:
             out += [val[prev]] * (self.n - prev)
         return out
 
-    # O(logN) amortized -- a[i] = v
+    # O(logN) amortized -- a[i] = v; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAssign(i, i, v)
 
-    # O(logN) amortized -- a[i] += delta
+    # O(logN) amortized -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAssign(i, i, self.pointGet(i) + delta)
 
-    # O(logN) amortized -- a[i] = max(a[i], v)
+    # O(logN) amortized -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if v > self.pointGet(i):
             self.rangeAssign(i, i, v)
 
-    # O(logN) amortized -- a[i] = min(a[i], v)
+    # O(logN) amortized -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if v < self.pointGet(i):
             self.rangeAssign(i, i, v)
 

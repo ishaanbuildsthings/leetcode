@@ -72,8 +72,9 @@ struct MultSumTree {
         rebuild(l0), rebuild(r0);
     }
 
-    // O(logN) -- (a[l] + ... + a[r]) % MOD
+    // O(logN) -- (a[l] + ... + a[r]) % MOD; needs 0 <= l <= r < n, else throws out_of_range
     T rangeSumMod(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSumMod: needs 0 <= l <= r < n");
         if (l > r) return 0;
         l += n, r += n;
         push(l), push(r);
@@ -85,8 +86,9 @@ struct MultSumTree {
         return norm(res);
     }
 
-    // O(logN) -- a[i], in [0, mod)
+    // O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         push(i + n);
         return tot[i + n];
     }
@@ -102,17 +104,24 @@ struct MultSumTree {
         return vector<T>(tot.begin() + n, tot.end());
     }
 
-    // O(logN) -- a[i] *= m (% MOD) for i in [l, r]
-    void rangeMultMod(int l, int r, T m) { update(l, r, norm(m)); }
+    // O(logN) -- a[i] *= m (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeMultMod(int l, int r, T m) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMultMod: needs 0 <= l <= r < n");
+        update(l, r, norm(m));
+    }
 
-    // O(logN) -- a[i] = v (% MOD)
+    // O(logN) -- a[i] = v (% MOD); needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = i + n;
         push(p);
         tot[p] = norm(v);
         rebuild(p);
     }
 
-    // O(logN) -- a[i] += delta (% MOD)
-    void pointAdd(int i, T delta) { pointAssign(i, norm(W(pointGet(i)) + delta)); }
+    // O(logN) -- a[i] += delta (% MOD); needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, norm(W(pointGet(i)) + delta));
+    }
 };

@@ -151,11 +151,11 @@ def scalar(folder, query_op, name, desc, py_merge, py_identity, cpp_merge, cpp_i
 
 
 class {name}:
-    __slots__ = ("lo", "size", "t")
+    __slots__ = ("lo", "hi", "size", "t")
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; leaf of i is size + (i - lo)
         self.t = {{}}
 
@@ -262,11 +262,11 @@ def summary(folder, name, desc, fields, py_merge, cpp_merge, py_leaf, cpp_leaf, 
 
 
 class {name}:
-    __slots__ = ("lo", "size", "t")
+    __slots__ = ("lo", "hi", "size", "t")
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; leaf of i is size + (i - lo)
         self.t = {{}}
 
@@ -549,11 +549,11 @@ INF = float("inf")
 
 
 class {name}:
-    __slots__ = ("lo", "size", {", ".join(f'"{a}"' for a in keeps)})
+    __slots__ = ("lo", "hi", "size", {", ".join(f'"{a}"' for a in keeps)})
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; leaf of i is size + (i - lo)
 {"".join(f"        self.{a} = {{}}{chr(10)}" for a in keeps)}
     # O(logU) -- a[i] = val

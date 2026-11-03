@@ -58,8 +58,10 @@ class XorEven:
         z = ((z ^ (z >> 27)) * 0x94D049BB133111EB) & MASK
         return z ^ (z >> 31)
 
-    # O(log n) — assign position i the value val (overwrite, not add)
+    # O(log n) — assign position i the value val (overwrite, not add); needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.vals[i] = val
         t = self._tagOf(val)
         d = self.a[i] ^ t
@@ -86,8 +88,12 @@ class XorEven:
     def rangeXor(self, l, r):
         return self.prefix(r) ^ (self.prefix(l - 1) if l else 0)
 
-    # O(log n) — True iff every value in a[l..r] occurs an even number of times
+    # O(log n) — True iff every value in a[l..r] occurs an even number of times; needs 0 <= l <= r < n, else
+    # IndexError
     def doAllElementsAppearEvenFrequency(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"doAllElementsAppearEvenFrequency: needs 0 <= l <= r < n, got "
+                             f"l = {l}, r = {r}, n = {self.n}")
         return self.rangeXor(l, r) == 0
 
     # O(log n) — True iff exactly one value occurs an odd number of times in
@@ -95,24 +101,32 @@ class XorEven:
     def oneOdd(self, l, r, val):
         return self.rangeXor(l, r) == self._tagOf(val)
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.vals[i]
 
     # O(N) -- the whole array (a copy)
     def getAll(self):
         return list(self.vals)
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.vals[i]:
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.vals[i]:
             self.pointAssign(i, val)
 
-    # a[i] += delta
+    # a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.vals[i] + delta)

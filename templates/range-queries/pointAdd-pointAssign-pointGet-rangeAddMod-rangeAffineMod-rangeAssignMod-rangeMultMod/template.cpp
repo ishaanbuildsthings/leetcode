@@ -70,20 +70,34 @@ struct AffineTree {
         }
     }
 
-    // O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]
-    void rangeAffineMod(int l, int r, T mult, T add) { update(l, r, norm(mult), norm(add)); }
+    // O(logN) -- a[i] = a[i] * mult + add (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAffineMod(int l, int r, T mult, T add) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAffineMod: needs 0 <= l <= r < n");
+        update(l, r, norm(mult), norm(add));
+    }
 
-    // O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]
-    void rangeMultMod(int l, int r, T m) { update(l, r, norm(m), 0); }
+    // O(logN) -- a[i] = a[i] * m (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeMultMod(int l, int r, T m) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMultMod: needs 0 <= l <= r < n");
+        update(l, r, norm(m), 0);
+    }
 
-    // O(logN) -- a[i] += v (% MOD) for i in [l, r]
-    void rangeAddMod(int l, int r, T v) { update(l, r, 1, norm(v)); }
+    // O(logN) -- a[i] += v (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAddMod(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAddMod: needs 0 <= l <= r < n");
+        update(l, r, 1, norm(v));
+    }
 
-    // O(logN) -- a[i] = v (% MOD) for i in [l, r]
-    void rangeAssignMod(int l, int r, T v) { update(l, r, 0, norm(v)); }
+    // O(logN) -- a[i] = v (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAssignMod(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssignMod: needs 0 <= l <= r < n");
+        update(l, r, 0, norm(v));
+    }
 
-    // O(logN) -- a[i], in [0, mod): apply ancestors' maps bottom-up (deeper tags are older)
+    // O(logN) -- a[i], in [0, mod): apply ancestors' maps bottom-up (deeper tags are older); needs 0 <= i < n, else
+    // throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         T v = val[i];
         for (int p = (i + n) >> 1; p; p >>= 1) v = norm(W(v) * M[p] + K[p]);
         return v;
@@ -100,9 +114,15 @@ struct AffineTree {
         return val;
     }
 
-    // O(logN) -- a[i] = v
-    void pointAssign(int i, T v) { push(i + n); val[i] = norm(v); }
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        push(i + n); val[i] = norm(v);
+    }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { push(i + n); val[i] = norm(W(val[i]) + delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        push(i + n); val[i] = norm(W(val[i]) + delta);
+    }
 };

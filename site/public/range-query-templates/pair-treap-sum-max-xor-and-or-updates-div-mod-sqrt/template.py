@@ -249,8 +249,8 @@ class PairSwapTreap:
         self._join(ae, ao, be, bo, ce, co)
         return res
 
-    # O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length: a[r] stays):
-    # the pairs' two lanes trade places
+    # O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length:
+    # a[r] stays): the pairs' two lanes trade places
     def rangeTwinSpin(self, l, r):
         k = (r - l + 1) // 2
         if k:

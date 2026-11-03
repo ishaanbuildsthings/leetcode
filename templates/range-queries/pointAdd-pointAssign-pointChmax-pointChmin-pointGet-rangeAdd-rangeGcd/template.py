@@ -131,14 +131,19 @@ class RangeAddRangeGcd:
 
     #################### PUBLIC METHODS START HERE ####################
 
-    # O(log n * log maxVal) -- adds x to every arr[l...r] inclusive. requires 0 <= l <= r < n, x may be negative
+    # O(log n * log maxVal) -- adds x to every arr[l...r] inclusive. requires needs 0 <= l <= r < n, else IndexError,
+    # x may be negative
     def rangeAdd(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._shiftDiff(l, x)
         if r + 1 < self.n:
             self._shiftDiff(r + 1, -x)
 
-    # O(log n) -- current value of arr[i]
+    # O(log n) -- current value of arr[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self._fenPrefix(i)
 
     # O(N) -- the whole array: prefix sums of the differences
@@ -149,30 +154,40 @@ class RangeAddRangeGcd:
             out.append(s)
         return out
 
-    # O(log n + log maxVal) -- gcd of arr[l...r] inclusive, always >= 0. requires 0 <= l <= r < n
-    # returns 0 only if every value in the range is 0
+    # O(log n + log maxVal) -- gcd of arr[l...r] inclusive, always >= 0. requires needs 0 <= l <= r < n, else
+    # IndexError returns 0 only if every value in the range is 0
     def rangeGcd(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         res = abs(self._fenPrefix(l))
         if l < r:
             res = gcd(res, self._segQuery(l + 1, r))
         return res
 
-    # a[i] += delta
+    # a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAdd(i, i, delta)
 
-    # a[i] = val
+    # a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAdd(i, i, val - self.pointGet(i))
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         cur = self.pointGet(i)
         if val > cur:
             self.rangeAdd(i, i, val - cur)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         cur = self.pointGet(i)
         if val < cur:
             self.rangeAdd(i, i, val - cur)

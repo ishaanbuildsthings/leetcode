@@ -63,11 +63,15 @@ struct SparseDynamicOrderStats {
     SparseDynamicOrderStats(long long lo, long long hi, long long valLo, long long valHi)
         : lo(lo), hi(hi), vlo(valLo), vhi(valHi), L(1, 0), R(1, 0), C(1, 0), X(1, T(0)) {}
 
-    // O(1) -- a[i]
-    T pointGet(long long i) const { return vals.count(i) ? vals.at(i) : T(0); }
+    // O(1) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return vals.count(i) ? vals.at(i) : T(0);
+    }
 
-    // O(logN logU) -- a[i] = v
+    // O(logN logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         T old = pointGet(i);
         if (v == old) return;
         if (old != T(0)) add(i, old, -1);
@@ -75,71 +79,108 @@ struct SparseDynamicOrderStats {
         else vals.erase(i);
     }
 
-    // O(logN logU) -- a[i] += v
-    void pointAdd(long long i, T v) { pointAssign(i, pointGet(i) + v); }
+    // O(logN logU) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, pointGet(i) + v);
+    }
 
-    // O(logN logU) -- a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { pointAssign(i, max(pointGet(i), v)); }
+    // O(logN logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        pointAssign(i, max(pointGet(i), v));
+    }
 
-    // O(logN logU) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { pointAssign(i, min(pointGet(i), v)); }
+    // O(logN logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        pointAssign(i, min(pointGet(i), v));
+    }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x
-    long long countOccurrences(long long l, long long r, T x) const { return countInValRange(l, r, x, x); }
+    // O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else throws out_of_range
+    long long countOccurrences(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countOccurrences: needs lo <= l <= r <= hi");
+        return countInValRange(l, r, x, x);
+    }
 
-    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal
+    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else throws out_of_range
     long long countInValRange(long long l, long long r, T lowVal, T highVal) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countInValRange: needs lo <= l <= r <= hi");
         if (highVal < lowVal) return 0;
         return countBelow(l, r, ub(highVal)) - countBelow(l, r, lb(lowVal));
     }
 
-    // O(logN) -- # of values < x in a[l..r]
-    long long countLtX(long long l, long long r, T x) const { return countBelow(l, r, lb(x)); }
+    // O(logN) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    long long countLtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countLtX: needs lo <= l <= r <= hi");
+        return countBelow(l, r, lb(x));
+    }
 
-    // O(logN) -- # of values <= x in a[l..r]
-    long long countLteX(long long l, long long r, T x) const { return countBelow(l, r, ub(x)); }
+    // O(logN) -- # of values <= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    long long countLteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countLteX: needs lo <= l <= r <= hi");
+        return countBelow(l, r, ub(x));
+    }
 
-    // O(logN) -- # of values > x in a[l..r]
-    long long countGtX(long long l, long long r, T x) const { return r - l + 1 - countBelow(l, r, ub(x)); }
+    // O(logN) -- # of values > x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    long long countGtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countGtX: needs lo <= l <= r <= hi");
+        return r - l + 1 - countBelow(l, r, ub(x));
+    }
 
-    // O(logN) -- # of values >= x in a[l..r]
-    long long countGteX(long long l, long long r, T x) const { return r - l + 1 - countBelow(l, r, lb(x)); }
+    // O(logN) -- # of values >= x in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    long long countGteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("countGteX: needs lo <= l <= r <= hi");
+        return r - l + 1 - countBelow(l, r, lb(x));
+    }
 
-    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else throws out_of_range
+    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
+    // else throws out_of_range
     T kthSmallest(long long l, long long r, long long k) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("kthSmallest: needs lo <= l <= r <= hi");
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
         return kth(l, r, k);
     }
 
-    // O(logN) -- min of a[l..r]
-    T rangeMin(long long l, long long r) const { return kth(l, r, 1); }
+    // O(logN) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeMin(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
+        return kth(l, r, 1);
+    }
 
-    // O(logN) -- max of a[l..r]
-    T rangeMax(long long l, long long r) const { return kth(l, r, r - l + 1); }
+    // O(logN) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeMax(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
+        return kth(l, r, r - l + 1);
+    }
 
-    // O(logN) -- smallest value >= x in a[l..r], or nullopt
+    // O(logN) -- smallest value >= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     optional<T> smallestGteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("smallestGteX: needs lo <= l <= r <= hi");
         long long c = countBelow(l, r, lb(x));
         if (c == r - l + 1) return nullopt;
         return kth(l, r, c + 1);
     }
 
-    // O(logN) -- smallest value > x in a[l..r], or nullopt
+    // O(logN) -- smallest value > x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     optional<T> smallestGtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("smallestGtX: needs lo <= l <= r <= hi");
         long long c = countBelow(l, r, ub(x));
         if (c == r - l + 1) return nullopt;
         return kth(l, r, c + 1);
     }
 
-    // O(logN) -- largest value <= x in a[l..r], or nullopt
+    // O(logN) -- largest value <= x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     optional<T> largestLteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("largestLteX: needs lo <= l <= r <= hi");
         long long c = countBelow(l, r, ub(x));
         if (c == 0) return nullopt;
         return kth(l, r, c);
     }
 
-    // O(logN) -- largest value < x in a[l..r], or nullopt
+    // O(logN) -- largest value < x in a[l..r], or nullopt; needs lo <= l <= r <= hi, else throws out_of_range
     optional<T> largestLtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("largestLtX: needs lo <= l <= r <= hi");
         long long c = countBelow(l, r, lb(x));
         if (c == 0) return nullopt;
         return kth(l, r, c);
@@ -186,20 +227,38 @@ struct SparseDynamicOrderStats {
         return storedBelow(pos, neg, x) + (0 < x ? zeros : 0);
     }
 
-    // O(logN logU) -- xor of the values < x in a[l..r] (copies count); 0 if there are none
-    T xorLtX(long long l, long long r, T x) const { return xorBelow(l, r, lb(x)); }
+    // O(logN logU) -- xor of the values < x in a[l..r] (copies count); 0 if there are none; needs lo <= l <= r <= hi,
+    // else throws out_of_range
+    T xorLtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("xorLtX: needs lo <= l <= r <= hi");
+        return xorBelow(l, r, lb(x));
+    }
 
-    // O(logN logU) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none
-    T xorLteX(long long l, long long r, T x) const { return xorBelow(l, r, ub(x)); }
+    // O(logN logU) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none; needs
+    // lo <= l <= r <= hi, else throws out_of_range
+    T xorLteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("xorLteX: needs lo <= l <= r <= hi");
+        return xorBelow(l, r, ub(x));
+    }
 
-    // O(logN logU) -- xor of the values > x in a[l..r] (copies count); 0 if there are none
-    T xorGtX(long long l, long long r, T x) const { return xorBelow(l, r, vhi + 1) ^ xorBelow(l, r, ub(x)); }
+    // O(logN logU) -- xor of the values > x in a[l..r] (copies count); 0 if there are none; needs lo <= l <= r <= hi,
+    // else throws out_of_range
+    T xorGtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("xorGtX: needs lo <= l <= r <= hi");
+        return xorBelow(l, r, vhi + 1) ^ xorBelow(l, r, ub(x));
+    }
 
-    // O(logN logU) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none
-    T xorGteX(long long l, long long r, T x) const { return xorBelow(l, r, vhi + 1) ^ xorBelow(l, r, lb(x)); }
+    // O(logN logU) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none; needs
+    // lo <= l <= r <= hi, else throws out_of_range
+    T xorGteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("xorGteX: needs lo <= l <= r <= hi");
+        return xorBelow(l, r, vhi + 1) ^ xorBelow(l, r, lb(x));
+    }
 
-    // O(logN logU) -- xor of the a[i] in [l, r] with lowVal <= a[i] <= highVal (copies count); 0 if there are none
+    // O(logN logU) -- xor of the a[i] in [l, r] with lowVal <= a[i] <= highVal (copies count); 0 if there are none;
+    // needs lo <= l <= r <= hi, else throws out_of_range
     T xorInValRange(long long l, long long r, T lowVal, T highVal) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("xorInValRange: needs lo <= l <= r <= hi");
         if (highVal < lowVal) return T(0);
         return xorBelow(l, r, ub(highVal)) ^ xorBelow(l, r, lb(lowVal));
     }

@@ -99,8 +99,9 @@ struct SegTree {
         return out;
     }
 
-    // O(logN) -- is a[l..r] a palindrome (its two hashes agree)
+    // O(logN) -- is a[l..r] a palindrome (its two hashes agree); needs 0 <= l <= r < n, else throws out_of_range
     bool isPalindrome(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("isPalindrome: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 f = 0, b = 0, p = 1;
         for (int i = 0; i < c; i++) {
@@ -109,8 +110,10 @@ struct SegTree {
         return f == b;
     }
 
-    // O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int leftmostGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostGtX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i];
@@ -121,8 +124,10 @@ struct SegTree {
         return -1;
     }
 
-    // O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int leftmostGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostGteX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = 0; i < c; i++) {
             int t = ns[i];
@@ -133,62 +138,73 @@ struct SegTree {
         return -1;
     }
 
-    // O(logN) -- max of a[i] + ... + a[r] over i in [l, r]
+    // O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     S maxSuffixSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("maxSuffixSum: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S res = suf[ns[c - 1]], acc = sm[ns[c - 1]];
         for (int i = c - 2; i >= 0; i--) res = max(res, acc + suf[ns[i]]), acc += sm[ns[i]];
         return res;
     }
 
-    // O(logN) -- a[i] += v
+    // O(logN) -- a[i] += v; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         int p = i + n;
         setLeaf(p, T(leaf(p) + v)), rebuild(p);
     }
 
-    // O(logN) -- a[i] = v
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = i + n;
         setLeaf(p, v), rebuild(p);
     }
 
-    // O(logN) -- a[i] = max(a[i], v)
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         int p = i + n;
         setLeaf(p, max(leaf(p), v)), rebuild(p);
     }
 
-    // O(logN) -- a[i] = min(a[i], v)
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         int p = i + n;
         setLeaf(p, min(leaf(p), v)), rebuild(p);
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int p = i + n;
         return leaf(p);
     }
 
-    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
+    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
+    // 0 <= l <= r < n, else throws out_of_range
     U64 rangeHash(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeHash: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0;
         for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), fh[ns[i]]);
         return res;
     }
 
-    // O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range)
+    // O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs 0 <= l <= r < n, else
+    // throws out_of_range
     U64 rangeHashReversed(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeHashReversed: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0, p = 1;
         for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (in front)
         return res;
     }
 
-    // O(logN) -- max of a[l..r]
+    // O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMax(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
         T res = numeric_limits<T>::lowest();
         for (int lo = l + n, hi = r + n + 1; lo < hi; lo >>= 1, hi >>= 1) {
             if (lo & 1) res = max(res, mx[lo++]);
@@ -197,8 +213,9 @@ struct SegTree {
         return res;
     }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
     S rangeSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
         S res = S(0);
         for (int lo = l + n, hi = r + n + 1; lo < hi; lo >>= 1, hi >>= 1) {
             if (lo & 1) res += sm[lo++];
@@ -207,13 +224,18 @@ struct SegTree {
         return res;
     }
 
-    // O(logN) -- are a[l1..r1] and a[l2..r2] equal (same length and hash)
+    // O(logN) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
+    // 0 <= l1 <= r1 < n and 0 <= l2 <= r2 < n, else throws out_of_range
     bool rangesEqual(int l1, int r1, int l2, int r2) {
+        if (l1 < 0 || l1 > r1 || r1 >= n || l2 < 0 || l2 > r2 || r2 >= n)
+            throw out_of_range("rangesEqual: needs 0 <= l1 <= r1 < n and 0 <= l2 <= r2 < n");
         return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
     }
 
-    // O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int rightmostGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostGtX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
@@ -224,8 +246,10 @@ struct SegTree {
         return -1;
     }
 
-    // O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max)
+    // O(logN) -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the node max); needs 0 <= l <= r < n,
+    // else throws out_of_range
     int rightmostGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostGteX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i];
@@ -236,8 +260,10 @@ struct SegTree {
         return -1;
     }
 
-    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums)
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
     int rightmostSuffixSumGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumGtX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = c - 1; i >= 0; i--) {
@@ -254,8 +280,10 @@ struct SegTree {
         return -1;
     }
 
-    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums)
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
     int rightmostSuffixSumGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumGteX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = c - 1; i >= 0; i--) {

@@ -81,8 +81,9 @@ struct SparseMinSearchTree {
 
     static Agg merge(const Agg& a, const Agg& b) { return Agg{min(a.mn, b.mn)}; }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int path[130], depth;
         int x = descend(i, path, depth);
         pool[x].v = Agg{v};
@@ -99,8 +100,11 @@ struct SparseMinSearchTree {
         return min(foldmn(pool[x].l, a, m, l, r), foldmn(pool[x].r, m + 1, b, l, r));
     }
 
-    // O(logU) -- min of a[l..r]
-    T rangeMin(long long l, long long r) const { return foldmn(root, lo, hi, l, r); }
+    // O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeMin(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
+        return foldmn(root, lo, hi, l, r);
+    }
 
     long long leftLte(int x, long long a, long long b, long long l, long long r, T v) const {
         if (r < a || b < l || !(pool[x].v.mn <= v)) return lo - 1;
@@ -118,11 +122,17 @@ struct SparseMinSearchTree {
         return res != lo - 1 ? res : rightLte(pool[x].l, a, m, l, r, v);
     }
 
-    // O(logU) -- first i in [l, r] with a[i] <= x, or lo - 1
-    long long leftmostLteX(long long l, long long r, T x) const { return leftLte(root, lo, hi, l, r, x); }
+    // O(logU) -- first i in [l, r] with a[i] <= x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    long long leftmostLteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("leftmostLteX: needs lo <= l <= r <= hi");
+        return leftLte(root, lo, hi, l, r, x);
+    }
 
-    // O(logU) -- last i in [l, r] with a[i] <= x, or lo - 1
-    long long rightmostLteX(long long l, long long r, T x) const { return rightLte(root, lo, hi, l, r, x); }
+    // O(logU) -- last i in [l, r] with a[i] <= x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    long long rightmostLteX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rightmostLteX: needs lo <= l <= r <= hi");
+        return rightLte(root, lo, hi, l, r, x);
+    }
 
     long long leftLt(int x, long long a, long long b, long long l, long long r, T v) const {
         if (r < a || b < l || !(pool[x].v.mn < v)) return lo - 1;
@@ -140,21 +150,39 @@ struct SparseMinSearchTree {
         return res != lo - 1 ? res : rightLt(pool[x].l, a, m, l, r, v);
     }
 
-    // O(logU) -- first i in [l, r] with a[i] < x, or lo - 1
-    long long leftmostLtX(long long l, long long r, T x) const { return leftLt(root, lo, hi, l, r, x); }
+    // O(logU) -- first i in [l, r] with a[i] < x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    long long leftmostLtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("leftmostLtX: needs lo <= l <= r <= hi");
+        return leftLt(root, lo, hi, l, r, x);
+    }
 
-    // O(logU) -- last i in [l, r] with a[i] < x, or lo - 1
-    long long rightmostLtX(long long l, long long r, T x) const { return rightLt(root, lo, hi, l, r, x); }
+    // O(logU) -- last i in [l, r] with a[i] < x, or lo - 1; needs lo <= l <= r <= hi, else throws out_of_range
+    long long rightmostLtX(long long l, long long r, T x) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rightmostLtX: needs lo <= l <= r <= hi");
+        return rightLt(root, lo, hi, l, r, x);
+    }
 
-    // O(logU) -- a[i]
-    T pointGet(long long i) const { return pool[find(i)].v.mn; }
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return pool[find(i)].v.mn;
+    }
 
-    // O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logU) -- a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logU) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

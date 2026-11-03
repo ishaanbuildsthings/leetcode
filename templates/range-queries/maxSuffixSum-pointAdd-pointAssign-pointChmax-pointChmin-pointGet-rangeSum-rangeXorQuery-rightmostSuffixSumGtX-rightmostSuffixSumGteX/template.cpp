@@ -51,46 +51,53 @@ struct SegTree {
         return out;
     }
 
-    // O(logN) -- max of a[i] + ... + a[r] over i in [l, r]
+    // O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     S maxSuffixSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("maxSuffixSum: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S res = suf[ns[c - 1]], acc = sm[ns[c - 1]];
         for (int i = c - 2; i >= 0; i--) res = max(res, acc + suf[ns[i]]), acc += sm[ns[i]];
         return res;
     }
 
-    // O(logN) -- a[i] += v
+    // O(logN) -- a[i] += v; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         int p = i + n;
         setLeaf(p, T(leaf(p) + v)), rebuild(p);
     }
 
-    // O(logN) -- a[i] = v
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = i + n;
         setLeaf(p, v), rebuild(p);
     }
 
-    // O(logN) -- a[i] = max(a[i], v)
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         int p = i + n;
         setLeaf(p, max(leaf(p), v)), rebuild(p);
     }
 
-    // O(logN) -- a[i] = min(a[i], v)
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         int p = i + n;
         setLeaf(p, min(leaf(p), v)), rebuild(p);
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int p = i + n;
         return leaf(p);
     }
 
-    // O(logN) -- a[l] + ... + a[r]
+    // O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
     S rangeSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
         S res = S(0);
         for (int lo = l + n, hi = r + n + 1; lo < hi; lo >>= 1, hi >>= 1) {
             if (lo & 1) res += sm[lo++];
@@ -99,8 +106,9 @@ struct SegTree {
         return res;
     }
 
-    // O(logN) -- a[l] ^ ... ^ a[r]
+    // O(logN) -- a[l] ^ ... ^ a[r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeXorQuery(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeXorQuery: needs 0 <= l <= r < n");
         T res = T(0);
         for (int lo = l + n, hi = r + n + 1; lo < hi; lo >>= 1, hi >>= 1) {
             if (lo & 1) res ^= xr[lo++];
@@ -109,8 +117,10 @@ struct SegTree {
         return res;
     }
 
-    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums)
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
     int rightmostSuffixSumGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumGtX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = c - 1; i >= 0; i--) {
@@ -127,8 +137,10 @@ struct SegTree {
         return -1;
     }
 
-    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums)
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
     int rightmostSuffixSumGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumGteX: needs 0 <= l <= r < n");
         int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S acc = 0;
         for (int i = c - 1; i >= 0; i--) {

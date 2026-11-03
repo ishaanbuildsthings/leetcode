@@ -53,21 +53,35 @@ struct SortedRunsSumXorOrAndSeq {
     // one node pool shared by every SortedRunsSumXorOrAndSeq<T>: cut / paste move nodes between them, so a piece from
     // one can go into any other (node 0 = the empty tree). Nodes freed by merges are reused, and there is nothing to
     // reset between test cases
-    static inline vector<int> Lc{0}, Rc{0}, freeList;  // value node 0 = the empty tree; merges free nodes, reused first
-    static inline vector<long long> cnt{0};
-    static inline vector<S> sm{S(0)};
-    static inline vector<T> xr{T(0)};
-    static inline vector<T> ov{T(0)};
-    static inline vector<T> av{T(~T(0))};  // node 0 holds every bit (AND's identity)
+    struct VNode {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        S sm = S(0);
+        long long cnt = 0;
+        T xr = T(0);
+        T ov = T(0);
+        T av = T(~T(0));
+        int Lc = 0;
+        int Rc = 0;
+    };
+    static inline vector<VNode> vn{VNode{}};  // node 0 = the empty tree
+    struct Run {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        unsigned long long TP = 0;
+        S Ssm = S(0);
+        T Sxr = T(0);
+        T Sov = T(0);
+        T Sav = T(~T(0));
+        int TL = 0;
+        int TR = 0;
+        int TV = 0;
+        int TN = 0;
+        int TS = 0;
+        char TD = 0;
+        char TF = 0;
+    };
+    static inline vector<Run> rn{Run{}};  // node 0 = the empty tree
+    static inline vector<int> freeList;  // value nodes freed by merges, reused first
     // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
     // subtree length TS, pending reverse TF, subtree sum / xor / or / and
-    static inline vector<int> TL{0}, TR{0}, TV{0}, TN{0}, TS{0}, tfree;
-    static inline vector<unsigned long long> TP{0};
-    static inline vector<char> TD{0}, TF{0};
-    static inline vector<S> Ssm{S(0)};
-    static inline vector<T> Sxr{T(0)};
-    static inline vector<T> Sov{T(0)};
-    static inline vector<T> Sav{T(~T(0))};
+    static inline vector<int> tfree;
     long long vlo, vhi;  // (each one's value range)
     int n = 0, rt = 0;
 
@@ -78,18 +92,20 @@ struct SortedRunsSumXorOrAndSeq {
 
     // O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi]
     // (U = valHi - valLo + 1)
-    SortedRunsSumXorOrAndSeq(const vector<T>& arr, long long valLo, long long valHi) : vlo(valLo), vhi(valHi) { buildFrom(arr); }
+    SortedRunsSumXorOrAndSeq(const vector<T>& arr, long long valLo, long long valHi) : vlo(valLo),
+        vhi(valHi) { buildFrom(arr); }
 
-    SortedRunsSumXorOrAndSeq makeEmpty() const { return SortedRunsSumXorOrAndSeq({}, vlo, vhi); }  // (a new, empty one: same pool, same value range)
+    // (a new, empty one: same pool, same value range)
+    SortedRunsSumXorOrAndSeq makeEmpty() const { return SortedRunsSumXorOrAndSeq({}, vlo, vhi); }
 
     void buildFrom(const vector<T>& arr) {
         n = (int)arr.size();
         vector<int> st;  // O(N) build: the treap's right spine
         for (const T& v : arr) {
             int x = run(leaf(v), 1, false), last = 0;
-            while (!st.empty() && TP[st.back()] < TP[x]) last = st.back(), st.pop_back(), tpull(last);
-            TL[x] = last;
-            if (!st.empty()) TR[st.back()] = x;
+            while (!st.empty() && rn[st.back()].TP < rn[x].TP) last = st.back(), st.pop_back(), tpull(last);
+            rn[x].TL = last;
+            if (!st.empty()) rn[st.back()].TR = x;
             st.push_back(x);
         }
         for (int i = (int)st.size() - 1; i >= 0; i--) tpull(st[i]);
@@ -99,56 +115,83 @@ struct SortedRunsSumXorOrAndSeq {
     // O(1) -- the current length
     int size() const { return n; }
 
-    // O(log N + log U) expected -- a[i]
+    // O(log N + log U) expected -- a[i]; needs 0 <= i < size(), else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
         for (int x = rt;;) {
             push(x);
-            int ls = TS[TL[x]];
-            if (i < ls) x = TL[x];
-            else if (i < ls + TN[x]) {
+            int ls = rn[rn[x].TL].TS;
+            if (i < ls) x = rn[x].TL;
+            else if (i < ls + rn[x].TN) {
                 int k = i - ls;
-                return kth(TV[x], TD[x] ? TN[x] - k : k + 1);
-            } else i -= ls + TN[x], x = TR[x];
+                return kth(rn[x].TV, rn[x].TD ? rn[x].TN - k : k + 1);
+            } else i -= ls + rn[x].TN, x = rn[x].TR;
         }
     }
 
-    // O(log N + log U) amortized -- a[i] = v
-    void pointAssign(int i, T v) { rangeAssign(i, i, v); }
+    // O(log N + log U) amortized -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
+        rangeAssign(i, i, v);
+    }
 
-    // O(log N + log U) amortized -- a[i] += v
-    void pointAdd(int i, T v) { pointAssign(i, pointGet(i) + v); }
+    // O(log N + log U) amortized -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
+    void pointAdd(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
+        pointAssign(i, pointGet(i) + v);
+    }
 
-    // O(log N + log U) amortized -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(log N + log U) amortized -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(log N + log U) amortized -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(log N + log U) amortized -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(log N + log U) amortized -- sort a[l..r] ascending
-    void rangeSortAsc(int l, int r) { sortRange(l, r, false); }
+    // O(log N + log U) amortized -- sort a[l..r] ascending; needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeSortAsc(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSortAsc: needs 0 <= l <= r < size()");
+        sortRange(l, r, false);
+    }
 
-    // O(log N + log U) amortized -- sort a[l..r] descending
-    void rangeSortDesc(int l, int r) { sortRange(l, r, true); }
+    // O(log N + log U) amortized -- sort a[l..r] descending; needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeSortDesc(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSortDesc: needs 0 <= l <= r < size()");
+        sortRange(l, r, true);
+    }
 
-    // O(log N + log U) amortized -- a[i] = v for i in [l, r]
+    // O(log N + log U) amortized -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAssign: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         drop(B);
         join(A, run(leaf(v, r - l + 1), r - l + 1, false), C);
     }
 
-    // O(log N + log U) amortized -- reverse a[l..r]
+    // O(log N + log U) amortized -- reverse a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeReverse(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeReverse: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         rev(B);
         join(A, B, C);
     }
 
-    // O(log N + log U) amortized -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
-    void insertAt(int i, T v) { insertCopiesAt(i, v, 1); }
+    // O(log N + log U) amortized -- insert v so it becomes a[i]; needs 0 <= i <= size(), else throws out_of_range (i
+    // = size() appends)
+    void insertAt(int i, T v) {
+        if (i < 0 || i > size()) throw out_of_range("insertAt: needs 0 <= i <= size()");
+        insertCopiesAt(i, v, 1);
+    }
 
-    // O(log N + log U) amortized -- insert k copies of v starting at index i (0 <= i <= size(); k <= 0 does nothing)
+    // O(log N + log U) amortized -- insert k copies of v starting at index i (needs 0 <= i <= size(), else throws
+    // out_of_range; k <= 0 does nothing)
     void insertCopiesAt(int i, T v, long long k) {
+        if (i < 0 || i > size()) throw out_of_range("insertCopiesAt: needs 0 <= i <= size()");
         if (k <= 0) return;
         n += (int)k;
         auto [A, C] = tsplit(rt, i);
@@ -161,8 +204,10 @@ struct SortedRunsSumXorOrAndSeq {
     // O(log N + log U) amortized -- insert v at the front (it becomes a[0])
     void appendLeft(T v) { insertCopiesAt(0, v, 1); }
 
-    // O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0)
+    // O(log N + log U) amortized -- remove a[l..r] and return it as one of its own (indices from 0); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     SortedRunsSumXorOrAndSeq cut(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("cut: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
         rt = tmerge(A, C), n -= r - l + 1;
         SortedRunsSumXorOrAndSeq piece = makeEmpty();
@@ -171,8 +216,9 @@ struct SortedRunsSumXorOrAndSeq {
     }
 
     // O(log N + log U) amortized -- insert all of other (one with the same valLo / valHi, e.g. a cut piece) so it
-    // starts at a[i] (0 <= i <= size()); other is left empty
+    // starts at a[i] (needs 0 <= i <= size(), else throws out_of_range); other is left empty
     void paste(int i, SortedRunsSumXorOrAndSeq& other) {
+        if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         n += other.n;
         auto [A, C] = tsplit(rt, i);
         rt = tmerge(tmerge(A, other.rt), C), other.rt = other.n = 0;
@@ -181,25 +227,30 @@ struct SortedRunsSumXorOrAndSeq {
     // O(log N + log U) amortized -- append all of other at the end, leaving it empty (it must share this one's nodes)
     void merge(SortedRunsSumXorOrAndSeq& other) { paste(n, other); }
 
-    // O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty
+    // O(log N + log U) amortized -- (a[0..k-1], a[k..]) as two of their own; this one is left empty; needs
+    // 0 <= k <= size(), else throws out_of_range
     pair<SortedRunsSumXorOrAndSeq, SortedRunsSumXorOrAndSeq> split(int k) {
+        if (k < 0 || k > size()) throw out_of_range("split: needs 0 <= k <= size()");
         SortedRunsSumXorOrAndSeq left = makeEmpty(), right = makeEmpty();
         tie(left.rt, right.rt) = tsplit(rt, k);
         left.n = k, right.n = n - k, rt = n = 0;
         return {left, right};
     }
 
-    // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty
+    // O(log N + log U) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three of their own; this one is left empty;
+    // needs 0 <= l <= r < size(), else throws out_of_range
     tuple<SortedRunsSumXorOrAndSeq, SortedRunsSumXorOrAndSeq, SortedRunsSumXorOrAndSeq> trisect(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         SortedRunsSumXorOrAndSeq left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         tie(left.rt, mid.rt, right.rt) = extract(l, r);
         left.n = l, mid.n = r - l + 1, right.n = n - r - 1, rt = n = 0;
         return {left, mid, right};
     }
 
-    // O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first); k can be huge or
-    // negative: it is taken mod the length (negative = right)
+    // O(log N + log U) amortized -- rotate a[l..r] left by k (a[l + k] comes first); k can be huge or negative: it is
+    // taken mod the length (negative = right); needs 0 <= l <= r < size(), else throws out_of_range
     void rangeRotateLeft(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateLeft: needs 0 <= l <= r < size()");
         long long m = r - l + 1;
         k = ((k % m) + m) % m;
         if (!k) return;
@@ -208,38 +259,45 @@ struct SortedRunsSumXorOrAndSeq {
         join(A, tmerge(Y, X), C);
     }
 
-    // O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod
-    // the length (negative = left)
-    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
+    // O(log N + log U) amortized -- rotate a[l..r] right by k; k can be huge or negative: it is taken mod the length
+    // (negative = left); needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeRotateRight(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateRight: needs 0 <= l <= r < size()");
+        rangeRotateLeft(l, r, -k);
+    }
 
-    // O(log N + log U) amortized -- a[l] + ... + a[r]
+    // O(log N + log U) amortized -- a[l] + ... + a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     S rangeSum(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSum: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
-        S res = Ssm[B];
+        S res = rn[B].Ssm;
         join(A, B, C);
         return res;
     }
 
-    // O(log N + log U) amortized -- a[l] ^ ... ^ a[r]
+    // O(log N + log U) amortized -- a[l] ^ ... ^ a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeXorQuery(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeXorQuery: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
-        T res = Sxr[B];
+        T res = rn[B].Sxr;
         join(A, B, C);
         return res;
     }
 
-    // O(log N + log U) amortized -- a[l] | ... | a[r]
+    // O(log N + log U) amortized -- a[l] | ... | a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeOrQuery(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeOrQuery: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
-        T res = Sov[B];
+        T res = rn[B].Sov;
         join(A, B, C);
         return res;
     }
 
-    // O(log N + log U) amortized -- a[l] & ... & a[r]
+    // O(log N + log U) amortized -- a[l] & ... & a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeAndQuery(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAndQuery: needs 0 <= l <= r < size()");
         auto [A, B, C] = extract(l, r);
-        T res = Sav[B];
+        T res = rn[B].Sav;
         join(A, B, C);
         return res;
     }
@@ -250,11 +308,11 @@ struct SortedRunsSumXorOrAndSeq {
         out.reserve(n);
         vector<int> st;
         for (int x = rt; !st.empty() || x;) {
-            for (; x; x = TL[x]) push(x), st.push_back(x);
+            for (; x; x = rn[x].TL) push(x), st.push_back(x);
             x = st.back();
             st.pop_back();
-            values(TV[x], TD[x], out);
-            x = TR[x];
+            values(rn[x].TV, rn[x].TD, out);
+            x = rn[x].TR;
         }
         return out;
     }
@@ -264,75 +322,77 @@ struct SortedRunsSumXorOrAndSeq {
     // a new run node: value tree t, length ln, descending?
     int run(int t, int ln, bool d) {
         int x;
-        if (!tfree.empty()) x = tfree.back(), tfree.pop_back(), TL[x] = TR[x] = 0, TF[x] = 0;
+        if (!tfree.empty()) x = tfree.back(), tfree.pop_back(), rn[x].TL = rn[x].TR = 0, rn[x].TF = 0;
         else {
-            x = (int)TS.size();
-            TL.push_back(0), TR.push_back(0), TV.push_back(0), TN.push_back(0), TS.push_back(0), TP.push_back(0);
-            TD.push_back(0), TF.push_back(0), Ssm.push_back(S(0)), Sxr.push_back(T(0)), Sov.push_back(T(0)), Sav.push_back(T(~T(0)));
+            x = (int)rn.size();
+            Run n;
+            n.TL = 0, n.TR = 0, n.TV = 0, n.TN = 0, n.TS = 0, n.TP = 0, n.TD = 0, n.TF = 0, n.Ssm = S(0), n.Sxr = T(0),
+            n.Sov = T(0), n.Sav = T(~T(0));
+            rn.push_back(n);
         }
-        TP[x] = rnd(), TV[x] = t, TN[x] = ln, TD[x] = d;
+        rn[x].TP = rnd(), rn[x].TV = t, rn[x].TN = ln, rn[x].TD = d;
         tpull(x);
         return x;
     }
 
     void tpull(int x) {
-        int L = TL[x], R = TR[x], t = TV[x];
-        TS[x] = TS[L] + TN[x] + TS[R];
-        Ssm[x] = Ssm[L] + sm[t] + Ssm[R];
-        Sxr[x] = Sxr[L] ^ xr[t] ^ Sxr[R];
-        Sov[x] = Sov[L] | ov[t] | Sov[R];
-        Sav[x] = Sav[L] & av[t] & Sav[R];
+        int L = rn[x].TL, R = rn[x].TR, t = rn[x].TV;
+        rn[x].TS = rn[L].TS + rn[x].TN + rn[R].TS;
+        rn[x].Ssm = rn[L].Ssm + vn[t].sm + rn[R].Ssm;
+        rn[x].Sxr = rn[L].Sxr ^ vn[t].xr ^ rn[R].Sxr;
+        rn[x].Sov = rn[L].Sov | vn[t].ov | rn[R].Sov;
+        rn[x].Sav = rn[L].Sav & vn[t].av & rn[R].Sav;
     }
 
     void rev(int x) {  // reverse x's subtree: swap its children (and below, lazily), flip its run
-        if (x) swap(TL[x], TR[x]), TD[x] ^= 1, TF[x] ^= 1;
+        if (x) swap(rn[x].TL, rn[x].TR), rn[x].TD ^= 1, rn[x].TF ^= 1;
     }
 
     void push(int x) {
-        if (TF[x]) rev(TL[x]), rev(TR[x]), TF[x] = 0;
+        if (rn[x].TF) rev(rn[x].TL), rev(rn[x].TR), rn[x].TF = 0;
     }
 
     // (the first k elements, the rest), cutting the run that straddles k
     pair<int, int> tsplit(int x, int k) {
         if (!x || k <= 0) return {0, x};
-        if (k >= TS[x]) return {x, 0};
+        if (k >= rn[x].TS) return {x, 0};
         push(x);
-        int ls = TS[TL[x]];
+        int ls = rn[rn[x].TL].TS;
         if (k <= ls) {
-            auto [a, b] = tsplit(TL[x], k);
-            TL[x] = b;
+            auto [a, b] = tsplit(rn[x].TL, k);
+            rn[x].TL = b;
             tpull(x);
             return {a, x};
         }
-        if (k >= ls + TN[x]) {
-            auto [a, b] = tsplit(TR[x], k - ls - TN[x]);
-            TR[x] = a;
+        if (k >= ls + rn[x].TN) {
+            auto [a, b] = tsplit(rn[x].TR, k - ls - rn[x].TN);
+            rn[x].TR = a;
             tpull(x);
             return {x, b};
         }
         k -= ls;  // cut this run: x keeps its first k elements, a new node the rest
-        int t = TV[x], ln = TN[x], a, b;
-        if (TD[x]) split(t, ln - k, vlo, vhi, b, a);  // the first k are the k largest
+        int t = rn[x].TV, ln = rn[x].TN, a, b;
+        if (rn[x].TD) split(t, ln - k, vlo, vhi, b, a);  // the first k are the k largest
         else split(t, k, vlo, vhi, a, b);
-        TV[x] = a, TN[x] = k;
-        int u = run(b, ln - k, TD[x]), R = TR[x];
-        TR[x] = 0;
+        rn[x].TV = a, rn[x].TN = k;
+        int u = run(b, ln - k, rn[x].TD), R = rn[x].TR;
+        rn[x].TR = 0;
         tpull(x);
         return {x, tmerge(u, R)};
     }
 
     int tmerge(int a, int b) {
         if (!a || !b) return a ? a : b;
-        if (TP[a] > TP[b]) {
+        if (rn[a].TP > rn[b].TP) {
             push(a);
-            int r = tmerge(TR[a], b);
-            TR[a] = r;
+            int r = tmerge(rn[a].TR, b);
+            rn[a].TR = r;
             tpull(a);
             return a;
         }
         push(b);
-        int l = tmerge(a, TL[b]);
-        TL[b] = l;
+        int l = tmerge(a, rn[b].TL);
+        rn[b].TL = l;
         tpull(b);
         return b;
     }
@@ -353,21 +413,21 @@ struct SortedRunsSumXorOrAndSeq {
             int y = st.back();
             st.pop_back();
             out.push_back(y);
-            if (TL[y]) st.push_back(TL[y]);
-            if (TR[y]) st.push_back(TR[y]);
+            if (rn[y].TL) st.push_back(rn[y].TL);
+            if (rn[y].TR) st.push_back(rn[y].TR);
         }
         return out;
     }
 
     void drop(int x) {  // free every run of x (value trees and treap nodes)
-        for (int y : nodes(x)) freeTree(TV[y]), tfree.push_back(y);
+        for (int y : nodes(x)) freeTree(rn[y].TV), tfree.push_back(y);
     }
 
     // a[l..r] becomes one sorted run: every run inside merges into one
     void sortRange(int l, int r, bool d) {
         auto [A, B, C] = extract(l, r);
         int t = 0;
-        for (int y : nodes(B)) t = merge(t, TV[y], vlo, vhi), tfree.push_back(y);
+        for (int y : nodes(B)) t = merge(t, rn[y].TV, vlo, vhi), tfree.push_back(y);
         join(A, run(t, r - l + 1, d), C);
     }
 
@@ -377,11 +437,13 @@ struct SortedRunsSumXorOrAndSeq {
         if (!freeList.empty()) {
             int t = freeList.back();
             freeList.pop_back();
-            Lc[t] = Rc[t] = 0, cnt[t] = 0;
+            vn[t].Lc = vn[t].Rc = 0, vn[t].cnt = 0;
             return t;
         }
-        Lc.push_back(0), Rc.push_back(0), cnt.push_back(0), sm.push_back(S(0)), xr.push_back(T(0)), ov.push_back(T(0)), av.push_back(T(~T(0)));
-        return (int)cnt.size() - 1;
+        VNode n;
+        n.Lc = 0, n.Rc = 0, n.cnt = 0, n.sm = S(0), n.xr = T(0), n.ov = T(0), n.av = T(~T(0));
+        vn.push_back(n);
+        return (int)vn.size() - 1;
     }
 
     void freeTree(int t) {  // hand every node of t back
@@ -391,27 +453,27 @@ struct SortedRunsSumXorOrAndSeq {
             int u = st.back();
             st.pop_back();
             freeList.push_back(u);
-            if (Lc[u]) st.push_back(Lc[u]);
-            if (Rc[u]) st.push_back(Rc[u]);
+            if (vn[u].Lc) st.push_back(vn[u].Lc);
+            if (vn[u].Rc) st.push_back(vn[u].Rc);
         }
     }
 
     // node x holds c copies of v (a leaf, or a node with one value under it)
     void setLeaf(int x, long long v, long long c) {
-        cnt[x] = c;
-        sm[x] = S(c) * S(v);
-        xr[x] = (c & 1) ? T(v) : T(0);
-        ov[x] = T(v);
-        av[x] = T(v);
+        vn[x].cnt = c;
+        vn[x].sm = S(c) * S(v);
+        vn[x].xr = (c & 1) ? T(v) : T(0);
+        vn[x].ov = T(v);
+        vn[x].av = T(v);
     }
 
     void pull(int x) {
-        int l = Lc[x], r = Rc[x];
-        cnt[x] = cnt[l] + cnt[r];
-        sm[x] = sm[l] + sm[r];
-        xr[x] = xr[l] ^ xr[r];
-        ov[x] = ov[l] | ov[r];
-        av[x] = av[l] & av[r];
+        int l = vn[x].Lc, r = vn[x].Rc;
+        vn[x].cnt = vn[l].cnt + vn[r].cnt;
+        vn[x].sm = vn[l].sm + vn[r].sm;
+        vn[x].xr = vn[l].xr ^ vn[r].xr;
+        vn[x].ov = vn[l].ov | vn[r].ov;
+        vn[x].av = vn[l].av & vn[r].av;
     }
 
     // a tree holding c copies of v: one node per level
@@ -423,8 +485,8 @@ struct SortedRunsSumXorOrAndSeq {
             if (nl == nh) return top_;
             long long mid = nl + (nh - nl) / 2;
             int u = node();
-            if ((long long)v <= mid) Lc[t] = u, nh = mid;
-            else Rc[t] = u, nl = mid + 1;
+            if ((long long)v <= mid) vn[t].Lc = u, nh = mid;
+            else vn[t].Rc = u, nl = mid + 1;
             t = u;
         }
     }
@@ -432,21 +494,21 @@ struct SortedRunsSumXorOrAndSeq {
     // a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new nodes (one path) the second
     void split(int t, long long k, long long nl, long long nh, int& a, int& b) {
         if (k <= 0) { a = 0, b = t; return; }
-        if (k >= cnt[t]) { a = t, b = 0; return; }
+        if (k >= vn[t].cnt) { a = t, b = 0; return; }
         int nb = node();
         if (nl == nh) {  // one value: split its copies
-            setLeaf(nb, nl, cnt[t] - k), setLeaf(t, nl, k);
+            setLeaf(nb, nl, vn[t].cnt - k), setLeaf(t, nl, k);
             a = t, b = nb;
             return;
         }
-        long long mid = nl + (nh - nl) / 2, cl = cnt[Lc[t]];
+        long long mid = nl + (nh - nl) / 2, cl = vn[vn[t].Lc].cnt;
         int x, y;
         if (k <= cl) {
-            split(Lc[t], k, nl, mid, x, y);
-            Lc[t] = x, Lc[nb] = y, Rc[nb] = Rc[t], Rc[t] = 0;
+            split(vn[t].Lc, k, nl, mid, x, y);
+            vn[t].Lc = x, vn[nb].Lc = y, vn[nb].Rc = vn[t].Rc, vn[t].Rc = 0;
         } else {
-            split(Rc[t], k - cl, mid + 1, nh, x, y);
-            Rc[t] = x, Rc[nb] = y;
+            split(vn[t].Rc, k - cl, mid + 1, nh, x, y);
+            vn[t].Rc = x, vn[nb].Rc = y;
         }
         pull(t), pull(nb);
         a = t, b = nb;
@@ -456,13 +518,13 @@ struct SortedRunsSumXorOrAndSeq {
     int merge(int a, int b, long long nl, long long nh) {
         if (!a || !b) return a ? a : b;
         if (nl == nh) {
-            setLeaf(a, nl, cnt[a] + cnt[b]);
+            setLeaf(a, nl, vn[a].cnt + vn[b].cnt);
         } else {
             long long mid = nl + (nh - nl) / 2;
-            int x = merge(Lc[a], Lc[b], nl, mid);
-            Lc[a] = x;
-            int y = merge(Rc[a], Rc[b], mid + 1, nh);
-            Rc[a] = y;
+            int x = merge(vn[a].Lc, vn[b].Lc, nl, mid);
+            vn[a].Lc = x;
+            int y = merge(vn[a].Rc, vn[b].Rc, mid + 1, nh);
+            vn[a].Rc = y;
             pull(a);
         }
         freeList.push_back(b);
@@ -473,9 +535,9 @@ struct SortedRunsSumXorOrAndSeq {
     T kth(int t, long long k) const {
         long long nl = vlo, nh = vhi;
         while (nl != nh) {
-            long long mid = nl + (nh - nl) / 2, cl = cnt[Lc[t]];
-            if (k <= cl) t = Lc[t], nh = mid;
-            else k -= cl, t = Rc[t], nl = mid + 1;
+            long long mid = nl + (nh - nl) / 2, cl = vn[vn[t].Lc].cnt;
+            if (k <= cl) t = vn[t].Lc, nh = mid;
+            else k -= cl, t = vn[t].Rc, nl = mid + 1;
         }
         return T(nl);
     }
@@ -487,13 +549,13 @@ struct SortedRunsSumXorOrAndSeq {
         while (!st.empty()) {  // in-order, pushed right first
             auto [u, nl, nh] = st.back();
             st.pop_back();
-            if (!cnt[u]) continue;
+            if (!vn[u].cnt) continue;
             if (nl == nh) {
-                out.insert(out.end(), cnt[u], T(nl));
+                out.insert(out.end(), vn[u].cnt, T(nl));
                 continue;
             }
             long long mid = nl + (nh - nl) / 2;
-            st.push_back({Rc[u], mid + 1, nh}), st.push_back({Lc[u], nl, mid});
+            st.push_back({vn[u].Rc, mid + 1, nh}), st.push_back({vn[u].Lc, nl, mid});
         }
         if (d) reverse(out.begin() + from, out.end());
     }

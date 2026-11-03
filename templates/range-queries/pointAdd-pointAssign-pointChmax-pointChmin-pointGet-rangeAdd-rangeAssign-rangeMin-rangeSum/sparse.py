@@ -112,13 +112,17 @@ class SparseAddAssignSumMinTree:
             self._update(self._kid(x, 1), m + 1, b, l, r, t)
         self._pull(x, b - a + 1)
 
-    # O(logU) -- a[i] += v for i in [l, r]
+    # O(logU) -- a[i] += v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAdd(self, l, r, v):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAdd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (None, v))
 
-    # O(logU) -- a[i] = v for i in [l, r]
+    # O(logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAssign(self, l, r, v):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (v, 0))
 
@@ -138,8 +142,10 @@ class SparseAddAssignSumMinTree:
             return self._qSum(R[x], m + 1, b, l, r, d)
         return self._qSum(L[x], a, m, l, r, d) + self._qSum(R[x], m + 1, b, l, r, d)
 
-    # O(logU) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._qSum(1, self.lo, self.hi, l, r, None)
 
     # min of a[max(l, a)..min(r, b)] under node x (covering [a, b]), with the ancestors' tag t on top
@@ -158,16 +164,22 @@ class SparseAddAssignSumMinTree:
             return self._qMin(R[x], m + 1, b, l, r, d)
         return min(self._qMin(L[x], a, m, l, r, d), self._qMin(R[x], m + 1, b, l, r, d))
 
-    # O(logU) -- min of a[l..r]
+    # O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._qMin(1, self.lo, self.hi, l, r, None)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._qSum(1, self.lo, self.hi, i, i, None)
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         path = []
         x, a, b = 1, self.lo, self.hi
         while a < b:
@@ -183,16 +195,22 @@ class SparseAddAssignSumMinTree:
         for y, k in reversed(path):
             self._pull(y, k)
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logU) -- a[i] = max(a[i], val)
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logU) -- a[i] = min(a[i], val)
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

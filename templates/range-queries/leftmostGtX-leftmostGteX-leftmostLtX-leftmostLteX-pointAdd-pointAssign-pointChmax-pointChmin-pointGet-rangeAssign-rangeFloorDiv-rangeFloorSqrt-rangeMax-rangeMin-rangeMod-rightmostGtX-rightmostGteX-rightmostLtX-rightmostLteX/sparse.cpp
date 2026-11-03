@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod/sparse.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMin-rangeMod-rightmostGtX-rightmostGteX-rightmostLtX-rightmostLteX/sparse.cpp
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod
 // @data-structure-type: beats
 // @letters: same
@@ -127,42 +127,72 @@ struct SparseShrinkSeg {
         return min(qmin(Lc[i], tl, tm, ql, qr), qmin(Rc[i], tm + 1, tr, ql, qr));
     }
 
-    // amortized O(logU logU) -- a[i] %= x for i in [l, r]; prunes at max < x, where a % x == a
+    // amortized O(logU logU) -- a[i] %= x for i in [l, r]; prunes at max < x, where a % x == a; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     void rangeMod(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMod: needs lo <= l <= r <= hi");
         if (l <= r && x >= 1) shrink(root, lo, hi, l, r, x, [x](T v) { return v % x; });
     }
 
-    // amortized O(logU logU) -- a[i] /= x (floor) for i in [l, r]; requires x >= 2, prunes at max < 1
+    // amortized O(logU logU) -- a[i] /= x (floor) for i in [l, r]; requires x >= 2, prunes at max < 1; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     void rangeFloorDiv(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeFloorDiv: needs lo <= l <= r <= hi");
         if (l <= r && x >= 2) shrink(root, lo, hi, l, r, T(1), [x](T v) { return v / x; });
     }
 
-    // amortized O(logU loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r]; 0 and 1 are fixed points
+    // amortized O(logU loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r]; 0 and 1 are fixed points; needs
+    // lo <= l <= r <= hi, else throws out_of_range
     void rangeFloorSqrt(long long l, long long r) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeFloorSqrt: needs lo <= l <= r <= hi");
         if (l <= r) shrink(root, lo, hi, l, r, T(2), isqrtT);
     }
 
-    // amortized O(logU) -- a[i] = v for i in [l, r]
-    void rangeAssign(long long l, long long r, T v) { if (l <= r) assign(root, lo, hi, l, r, v); }
+    // amortized O(logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    void rangeAssign(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAssign: needs lo <= l <= r <= hi");
+        if (l <= r) assign(root, lo, hi, l, r, v);
+    }
 
-    // O(logU) -- max of a[l..r]
-    T rangeMax(long long l, long long r) { return qmax(root, lo, hi, l, r); }
+    // O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeMax(long long l, long long r) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
+        return qmax(root, lo, hi, l, r);
+    }
 
-    // O(logU) -- min of a[l..r]
-    T rangeMin(long long l, long long r) { return qmin(root, lo, hi, l, r); }
+    // O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeMin(long long l, long long r) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
+        return qmin(root, lo, hi, l, r);
+    }
 
-    // O(logU) -- a[i] = v, an overwrite that may raise the value
-    void pointAssign(long long i, T v) { rangeAssign(i, i, v); }
+    // O(logU) -- a[i] = v, an overwrite that may raise the value; needs lo <= i <= hi, else throws out_of_range
+    void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
+        rangeAssign(i, i, v);
+    }
 
-    // O(logU) -- a[i]
-    T pointGet(long long i) { return rangeMax(i, i); }
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return rangeMax(i, i);
+    }
 
-    // a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 
-    // a[i] += delta (the result must stay >= 0)
-    void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // a[i] += delta (the result must stay >= 0); needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, pointGet(i) + delta);
+    }
 };

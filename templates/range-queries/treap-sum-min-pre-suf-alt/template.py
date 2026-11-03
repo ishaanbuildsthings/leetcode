@@ -97,8 +97,11 @@ class ImplicitTreap:
     def appendLeft(self, v):
         self.insertAt(0, v)
 
-    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0)
+    # O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0); needs
+    # 0 <= l <= r < size(), else IndexError
     def cut(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"cut: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         self.root = self._merge(a, c)
         piece = self._empty()
@@ -118,19 +121,27 @@ class ImplicitTreap:
             t = R[t]
         return out
 
-    # O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    # O(logN) expected -- insert v so it becomes a[i]; needs 0 <= i <= size(), else IndexError (i = size() appends)
     def insertAt(self, i, v):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"insertAt: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, self._newNode(v)), c)
 
-    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    # O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0); needs
+    # 0 <= i <= size(), else IndexError
     def insertCopiesAt(self, i, v, k):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"insertCopiesAt: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         if k > 0:
             a, c = self._split(self.root, i)
             self.root = self._merge(self._merge(a, self._build([v] * k)), c)
 
-    # O(logN) expected -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min)
+    # O(logN) expected -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min); needs
+    # 0 <= l <= r < size(), else IndexError
     def leftmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
         t, i, res = b, 0, -1
@@ -147,8 +158,11 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min)
+    # O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min); needs
+    # 0 <= l <= r < size(), else IndexError
     def leftmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
         t, i, res = b, 0, -1
@@ -165,8 +179,12 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- first i in [l, r] with a[l] + ... + a[i] > x, or -1 (a walk pruned by best prefix sums)
+    # O(logN) expected -- first i in [l, r] with a[l] + ... + a[i] > x, or -1 (a walk pruned by best prefix sums);
+    # needs 0 <= l <= r < size(), else IndexError
     def leftmostPrefixSumGtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostPrefixSumGtX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.pre
         t, i, acc, res = b, 0, 0, -1
@@ -186,8 +204,12 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- first i in [l, r] with a[l] + ... + a[i] >= x, or -1 (a walk pruned by best prefix sums)
+    # O(logN) expected -- first i in [l, r] with a[l] + ... + a[i] >= x, or -1 (a walk pruned by best prefix sums);
+    # needs 0 <= l <= r < size(), else IndexError
     def leftmostPrefixSumGteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostPrefixSumGteX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.pre
         t, i, acc, res = b, 0, 0, -1
@@ -207,22 +229,29 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]
+    # O(logN) expected -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs
+    # 0 <= l <= r < size(), else IndexError
     def maxAltSubseqSum(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"maxAltSubseqSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         res = max(self.a00[b], self.a01[b])
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- max of a[l] + ... + a[i] over i in [l, r]
+    # O(logN) expected -- max of a[l] + ... + a[i] over i in [l, r]; needs 0 <= l <= r < size(), else IndexError
     def maxPrefixSum(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"maxPrefixSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         res = self.pre[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- max of a[i] + ... + a[r] over i in [l, r]
+    # O(logN) expected -- max of a[i] + ... + a[r] over i in [l, r]; needs 0 <= l <= r < size(), else IndexError
     def maxSuffixSum(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"maxSuffixSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         res = self.suf[b]
         self._join(a, b, c)
@@ -233,59 +262,75 @@ class ImplicitTreap:
         self.root = self._merge(self.root, other.root)
         other.root = 0
 
-    # O(logN) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i]
-    # (0 <= i <= size()); other is left empty
+    # O(logN) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i] (needs
+    # 0 <= i <= size(), else IndexError); other is left empty
     def paste(self, i, other):
+        if not 0 <= i <= self.size():
+            raise IndexError(f"paste: needs 0 <= i <= size(), got i = {i}, n = {self.size()}")
         a, c = self._split(self.root, i)
         self.root = self._merge(self._merge(a, other.root), c)
         other.root = 0
 
-    # O(logN) expected -- a[i] += v
+    # O(logN) expected -- a[i] += v; needs 0 <= i < size(), else IndexError
     def pointAdd(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointAdd: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         t, path = self._find(i)
         self.val[t] = self.val[t] + v
         self._pull(t)
         for x in reversed(path):
             self._pull(x)
 
-    # O(logN) expected -- a[i] = v
+    # O(logN) expected -- a[i] = v; needs 0 <= i < size(), else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointAssign: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         t, path = self._find(i)
         self.val[t] = v
         self._pull(t)
         for x in reversed(path):
             self._pull(x)
 
-    # O(logN) expected -- a[i] = max(a[i], v)
+    # O(logN) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointChmax: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         t, path = self._find(i)
         self.val[t] = max(self.val[t], v)
         self._pull(t)
         for x in reversed(path):
             self._pull(x)
 
-    # O(logN) expected -- a[i] = min(a[i], v)
+    # O(logN) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointChmin: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         t, path = self._find(i)
         self.val[t] = min(self.val[t], v)
         self._pull(t)
         for x in reversed(path):
             self._pull(x)
 
-    # O(logN) expected -- a[i]
+    # O(logN) expected -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointGet: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         return self.val[self._find(i)[0]]
 
-    # O(logN) expected -- min of a[l..r]
+    # O(logN) expected -- min of a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         res = self.mn[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
-    # it is taken mod the length (negative shifts right)
+    # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is taken
+    # mod the length (negative shifts right); needs 0 <= l <= r < size(), else IndexError
     def rangeRotateLeft(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeRotateLeft: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         k %= r - l + 1
         if k:
@@ -293,20 +338,27 @@ class ImplicitTreap:
             b = self._merge(b2, b1)
         self._join(a, b, c)
 
-    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
-    # length (negative shifts left)
+    # O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the length
+    # (negative shifts left); needs 0 <= l <= r < size(), else IndexError
     def rangeRotateRight(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeRotateRight: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         self.rangeRotateLeft(l, r, -k)
 
-    # O(logN) expected -- a[l] + ... + a[r]
+    # O(logN) expected -- a[l] + ... + a[r]; needs 0 <= l <= r < size(), else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         res = self.sm[b]
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min)
+    # O(logN) expected -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min); needs
+    # 0 <= l <= r < size(), else IndexError
     def rightmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
         t, i, res = b, 0, -1
@@ -323,8 +375,11 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min)
+    # O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min); needs
+    # 0 <= l <= r < size(), else IndexError
     def rightmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
         t, i, res = b, 0, -1
@@ -341,8 +396,12 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums)
+    # O(logN) expected -- last i in [l, r] with a[i] + ... + a[r] > x, or -1 (a walk pruned by best suffix sums);
+    # needs 0 <= l <= r < size(), else IndexError
     def rightmostSuffixSumGtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostSuffixSumGtX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.suf
         t, i, acc, res = b, 0, 0, -1
@@ -362,8 +421,12 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums)
+    # O(logN) expected -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1 (a walk pruned by best suffix sums);
+    # needs 0 <= l <= r < size(), else IndexError
     def rightmostSuffixSumGteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostSuffixSumGteX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
         a, b, c = self._cut(l, r)
         L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.suf
         t, i, acc, res = b, 0, 0, -1
@@ -383,15 +446,21 @@ class ImplicitTreap:
         self._join(a, b, c)
         return res
 
-    # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
+    # 0 <= k <= size(), else IndexError
     def split(self, k):
+        if not 0 <= k <= self.size():
+            raise IndexError(f"split: needs 0 <= k <= size(), got k = {k}, n = {self.size()}")
         left, right = self._empty(), self._empty()
         left.root, right.root = self._split(self.root, k)
         self.root = 0
         return left, right
 
-    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    # O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty; needs
+    # 0 <= l <= r < size(), else IndexError
     def trisect(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"trisect: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         left, mid, right = self._empty(), self._empty(), self._empty()
         left.root, mid.root, right.root = self._cut(l, r)
         self.root = 0

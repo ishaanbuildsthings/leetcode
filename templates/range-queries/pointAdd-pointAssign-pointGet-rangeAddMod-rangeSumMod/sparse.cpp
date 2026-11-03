@@ -89,8 +89,9 @@ struct SparseRangeAddSumBITMod {
 
     T norm(W x) const { return T((x % mod + mod) % mod); }
 
-    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAddMod(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAddMod: needs lo <= l <= r <= hi");
         if (l > r) return;
         l -= lo, r -= lo;
         T c = norm(v), a = norm(W(c) * norm(1 - l));
@@ -104,15 +105,27 @@ struct SparseRangeAddSumBITMod {
         return norm(s[0] + W(s[1]) * norm(x));
     }
 
-    // O(logU) -- (a[l] + ... + a[r]) % MOD
-    T rangeSumMod(long long l, long long r) const { return l <= r ? norm(W(sum(r - lo)) - sum(l - 1 - lo)) : T(0); }
+    // O(logU) -- (a[l] + ... + a[r]) % MOD; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeSumMod(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeSumMod: needs lo <= l <= r <= hi");
+        return l <= r ? norm(W(sum(r - lo)) - sum(l - 1 - lo)) : T(0);
+    }
 
-    // O(logU) -- a[i], in [0, mod)
-    T pointGet(long long i) const { return rangeSumMod(i, i); }
+    // O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return rangeSumMod(i, i);
+    }
 
-    // O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { rangeAddMod(i, i, delta); }
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        rangeAddMod(i, i, delta);
+    }
 
-    // O(logU) -- a[i] = v
-    void pointAssign(long long i, T v) { rangeAddMod(i, i, v - pointGet(i)); }
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
+        rangeAddMod(i, i, v - pointGet(i));
+    }
 };

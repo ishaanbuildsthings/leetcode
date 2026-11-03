@@ -202,12 +202,16 @@ class BitBeats_PERFORMANT:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # O(logN logU) -- a[i] &= X for i in [l, r]
+    # O(logN logU) -- a[i] &= X for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAndApply(self, l, r, X):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAndApply: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l <= r and self.n: self._upd(1, 0, self.n - 1, l, r, X & self.FULL, 0)
 
-    # O(logN logU) -- a[i] |= X for i in [l, r]
+    # O(logN logU) -- a[i] |= X for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeOrApply(self, l, r, X):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeOrApply: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l <= r and self.n: self._upd(1, 0, self.n - 1, l, r, ~X & self.FULL, X & self.FULL)
 
     def _set(self, i, tl, tr, p, v):
@@ -221,8 +225,10 @@ class BitBeats_PERFORMANT:
         else: self._set(2 * i + 1, tm + 1, tr, p, v)
         self._pull(i)
 
-    # O(logN) -- a[p] = v
+    # O(logN) -- a[p] = v; needs 0 <= p < n, else IndexError
     def pointAssign(self, p, v):
+        if not 0 <= p < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= p < n, got p = {p}, n = {self.n}")
         if self.n: self._set(1, 0, self.n - 1, p, v & self.FULL)
 
     def _q(self, i, tl, tr, ql, qr, kind):
@@ -241,16 +247,31 @@ class BitBeats_PERFORMANT:
         if kind == 2: return a & b
         return a | b
 
-    # O(logN) -- min of a[l..r]
-    def rangeMin(self, l, r): return None if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 0)
-    # O(logN) -- a[l] + ... + a[r]
-    def rangeSum(self, l, r): return 0 if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 1)
-    # O(logN) -- a[l] & ... & a[r]
-    def rangeAndQuery(self, l, r): return self.FULL if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 2)
-    # O(logN) -- a[l] | ... | a[r]
-    def rangeOrQuery(self, l, r): return 0 if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 3)
-    # O(logN) -- a[p]
-    def pointGet(self, p): return self.rangeAndQuery(p, p)
+    # O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else IndexError
+    def rangeMin(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        return None if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 0)
+    # O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
+    def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        return 0 if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 1)
+    # O(logN) -- a[l] & ... & a[r]; needs 0 <= l <= r < n, else IndexError
+    def rangeAndQuery(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAndQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        return self.FULL if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 2)
+    # O(logN) -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else IndexError
+    def rangeOrQuery(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeOrQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        return 0 if (l > r or not self.n) else self._q(1, 0, self.n-1, l, r, 3)
+    # O(logN) -- a[p]; needs 0 <= p < n, else IndexError
+    def pointGet(self, p):
+        if not 0 <= p < self.n:
+            raise IndexError(f"pointGet: needs 0 <= p < n, got p = {p}, n = {self.n}")
+        return self.rangeAndQuery(p, p)
 
     def _getAllRec(self, i, tl, tr, out):
         if tl == tr:
@@ -267,37 +288,55 @@ class BitBeats_PERFORMANT:
         if self.n: self._getAllRec(1, 0, self.n - 1, out)
         return out
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] += delta
+    # a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._firstPass(1, 0, self.n - 1, l, r, lambda i: F[i] < x) if l <= r and self.n else -1
 
-    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._firstPass(1, 0, self.n - 1, l, r, lambda i: F[i] <= x) if l <= r and self.n else -1
 
-    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._lastPass(1, 0, self.n - 1, l, r, lambda i: F[i] < x) if l <= r and self.n else -1
 
-    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min)
+    # O(logN) -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         F = self.mn
         return self._lastPass(1, 0, self.n - 1, l, r, lambda i: F[i] <= x) if l <= r and self.n else -1
 

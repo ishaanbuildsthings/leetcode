@@ -26,11 +26,17 @@ struct PersistentMex {
     // O(N log N) -- arr: the initial array, 0-indexed
     explicit PersistentMex(const vector<T>& a) : n((int)a.size()), arr(a) { buildMex(); }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return arr[i];
+    }
 
-    // O(logN) -- smallest integer >= 0 that is not in a[l..r]
-    int rangeMex(int l, int r) const { return mexFrom(l, r, 0); }
+    // O(logN) -- smallest integer >= 0 that is not in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    int rangeMex(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMex: needs 0 <= l <= r < n");
+        return mexFrom(l, r, 0);
+    }
 
     // persistent seg tree over the values 0..n+1: version p holds, per value, its last index before p (-1: none)
     void buildMex() {
@@ -96,14 +102,16 @@ struct SparsePersistentMex {
         return {i0, i1, (r - l + 1) - (i1 - i0 + 1)};
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }
 
-    // O(logN) -- smallest integer >= 0 that is not in a[l..r]
+    // O(logN) -- smallest integer >= 0 that is not in a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     long long rangeMex(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMex: needs lo <= l <= r <= hi");
         auto [i0, i1, zeros] = span(l, r);
         if (i0 > i1) return 1;  // all zeros
         return zeros ? inner.mexFrom(i0, i1, 1) : inner.rangeMex(i0, i1);

@@ -128,29 +128,44 @@ struct SparseXorEven {
         return z ^ (z >> 31);
     }
 
-    // O(logU) -- true iff every value in a[l..r] appears an even number of times
+    // O(logU) -- true iff every value in a[l..r] appears an even number of times; needs lo <= l <= r <= hi, else
+    // throws out_of_range
     bool doAllElementsAppearEvenFrequency(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("doAllElementsAppearEvenFrequency: needs lo <= l <= r <= hi");
         U64 h = prefix(r) ^ prefix(l - 1);
         if ((r - l + 1) & 1) h ^= zero;
         return h == 0;
     }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         U64 d = tagOf(valueAt(i)) ^ tagOf(v);
         if (d) add(i, d);
         pool[leafOf(i)].v = v;
     }
 
-    // a[i]
-    T pointGet(long long i) const { return valueAt(i); }
+    // a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return valueAt(i);
+    }
 
-    // a[i] += delta
-    void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

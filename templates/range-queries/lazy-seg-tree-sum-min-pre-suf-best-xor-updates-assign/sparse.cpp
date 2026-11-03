@@ -59,8 +59,10 @@ struct SparseLazySegTree {
         newZero(D);
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min)
+    // O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostLtX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostLtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -79,8 +81,10 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min)
+    // O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostLteX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostLteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -99,8 +103,10 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums)
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostPrefixSumGtX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -122,8 +128,10 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums)
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostPrefixSumGteX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -145,16 +153,19 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logN) -- max of a[l] + ... + a[i] over i in [l, r]
+    // O(logN) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     S maxPrefixSum(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("maxPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S res = pre[ns[0]], acc = sm[ns[0]];
         for (int i = 1; i < c; i++) res = max(res, acc + pre[ns[i]]), acc += sm[ns[i]];
         return res;
     }
 
-    // O(logN) -- max sum of a non-empty contiguous subarray of a[l..r]
+    // O(logN) -- max sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     S maxSubarraySum(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("maxSubarraySum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S res = best[ns[0]], q = suf[ns[0]];  // (q: the best sum ending at the right edge so far)
         for (int i = 1; i < c; i++) {
@@ -164,75 +175,87 @@ struct SparseLazySegTree {
         return res;
     }
 
-    // O(logN) -- max of a[i] + ... + a[r] over i in [l, r]
+    // O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     S maxSuffixSum(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("maxSuffixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S res = suf[ns[c - 1]], acc = sm[ns[c - 1]];
         for (int i = c - 2; i >= 0; i--) res = max(res, acc + suf[ns[i]]), acc += sm[ns[i]];
         return res;
     }
 
-    // O(logU) -- a[i] += v
+    // O(logU) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
     void pointAdd(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointAdd: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, T(leaf(x) + v)), up(path);
     }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, v), up(path);
     }
 
-    // O(logU) -- a[i] = max(a[i], v)
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmax(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointChmax: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, max(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i] = min(a[i], v)
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmin(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointChmin: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, min(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i]
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) {
+        if (i < first || i > last) throw out_of_range("pointGet: needs lo <= i <= hi");
         int path[64];
         return leaf(leafOf(i, path));
     }
 
-    // O(logU) -- a[i] = v for i in [l, r]
+    // O(logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAssign(long long l, long long r, T v) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeAssign: needs lo <= l <= r <= hi");
         update(1, D, first, l, r, [&](int t, int s, long long) { applyAssign(t, s, v); });
     }
 
-    // O(logU) -- min of a[l..r]
+    // O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeMin(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = numeric_limits<T>::max();
         for (int i = 0; i < c; i++) res = min(res, mn[ns[i]]);
         return res;
     }
 
-    // O(logU) -- a[l] + ... + a[r]
+    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
     S rangeSum(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         S res = S(0);
         for (int i = 0; i < c; i++) res += sm[ns[i]];
         return res;
     }
 
-    // O(logU) -- a[l] ^ ... ^ a[r]
+    // O(logU) -- a[l] ^ ... ^ a[r]; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeXorQuery(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeXorQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
         for (int i = 0; i < c; i++) res ^= xr[ns[i]];
         return res;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min)
+    // O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostLtX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("rightmostLtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -251,8 +274,10 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min)
+    // O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostLteX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("rightmostLteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -271,8 +296,10 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums)
+    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostSuffixSumGtX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("rightmostSuffixSumGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -294,8 +321,10 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums)
+    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostSuffixSumGteX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("rightmostSuffixSumGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);

@@ -34,7 +34,8 @@ INF = float("inf")
 
 
 class SortedRunsMax:
-    # O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi] (U = valHi - valLo + 1)
+    # O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi] (U = valHi - valLo
+    # + 1)
     def __init__(self, arr, valLo, valHi):
         n = self.n = len(arr)
         self.vlo, self.vhi = valLo, valHi

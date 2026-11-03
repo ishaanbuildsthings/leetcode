@@ -59,18 +59,21 @@ struct ImplicitTreap {
     // one node pool shared by every ImplicitTreap<T>: cut / paste move nodes between them, so a piece from one can go
     // into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
     // whole run), so there is nothing to reset between test cases
-    static inline vector<T> val{T(0)};
-    static inline vector<unsigned long long> pri{0};
-    static inline vector<int> L{0};
-    static inline vector<int> R{0};
-    static inline vector<int> sz{0};
-    static inline vector<S> sm{0};
-    static inline vector<T> mx{T(0)};
-    static inline vector<T> mx2{NEG};
-    static inline vector<int> cmx{0};
-    static inline vector<T> mn{T(0)};
-    static inline vector<char> rev{0};
-    static inline vector<T> add{T(0)};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        unsigned long long pri = 0;
+        S sm = 0;
+        T val = T(0);
+        T mx = T(0);
+        T mx2 = NEG;
+        T mn = T(0);
+        T add = T(0);
+        int L = 0;
+        int R = 0;
+        int sz = 0;
+        int cmx = 0;
+        char rev = 0;
+    };
+    static inline vector<Node> nd{Node{}};  // node 0 = the empty tree
     int root = 0;
 
     // O(N) -- arr: the initial array (leave it out to start empty)
@@ -84,7 +87,7 @@ struct ImplicitTreap {
     }
 
     // O(1) -- the current length of the array
-    int size() const { return sz[root]; }
+    int size() const { return nd[root].sz; }
 
     // O(logN) expected -- append v to the end
     void append(T v) { root = merge(root, newNode(v)); }
@@ -92,8 +95,10 @@ struct ImplicitTreap {
     // O(logN) expected -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0)
+    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     ImplicitTreap cut(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("cut: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         root = merge(a, c);
@@ -109,91 +114,103 @@ struct ImplicitTreap {
         vector<int> st;
         int t = root;
         while (!st.empty() || t) {
-            while (t) push(t), st.push_back(t), t = L[t];
+            while (t) push(t), st.push_back(t), t = nd[t].L;
             t = st.back(), st.pop_back();
-            out.push_back(val[t]);
-            t = R[t];
+            out.push_back(nd[t].val);
+            t = nd[t].R;
         }
         return out;
     }
 
-    // O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    // O(logN) expected -- insert v so it becomes a[i]; needs 0 <= i <= size(), else throws out_of_range (i = size()
+    // appends)
     void insertAt(int i, T v) {
+        if (i < 0 || i > size()) throw out_of_range("insertAt: needs 0 <= i <= size()");
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, newNode(v)), c);
     }
 
-    // O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    // O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0); needs
+    // 0 <= i <= size(), else throws out_of_range
     void insertCopiesAt(int i, T v, long long k) {
+        if (i < 0 || i > size()) throw out_of_range("insertCopiesAt: needs 0 <= i <= size()");
         if (k <= 0) return;
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, build(vector<T>(k, v))), c);
     }
 
-    // O(logN) expected -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max)
+    // O(logN) expected -- the first i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int leftmostGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostGtX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mx[t] > x) {  // some value in a[l..r] passes
+        if (t && nd[t].mx > x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (L[t] && mx[L[t]] > x) t = L[t];
-                else if (val[t] > x) { res = l + i + sz[L[t]]; break; }
-                else i += sz[L[t]] + 1, t = R[t];
+                if (nd[t].L && nd[nd[t].L].mx > x) t = nd[t].L;
+                else if (nd[t].val > x) { res = l + i + nd[nd[t].L].sz; break; }
+                else i += nd[nd[t].L].sz + 1, t = nd[t].R;
             }
         }
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max)
+    // O(logN) expected -- the first i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int leftmostGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostGteX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mx[t] >= x) {  // some value in a[l..r] passes
+        if (t && nd[t].mx >= x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (L[t] && mx[L[t]] >= x) t = L[t];
-                else if (val[t] >= x) { res = l + i + sz[L[t]]; break; }
-                else i += sz[L[t]] + 1, t = R[t];
+                if (nd[t].L && nd[nd[t].L].mx >= x) t = nd[t].L;
+                else if (nd[t].val >= x) { res = l + i + nd[nd[t].L].sz; break; }
+                else i += nd[nd[t].L].sz + 1, t = nd[t].R;
             }
         }
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min)
+    // O(logN) expected -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int leftmostLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostLtX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mn[t] < x) {  // some value in a[l..r] passes
+        if (t && nd[t].mn < x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (L[t] && mn[L[t]] < x) t = L[t];
-                else if (val[t] < x) { res = l + i + sz[L[t]]; break; }
-                else i += sz[L[t]] + 1, t = R[t];
+                if (nd[t].L && nd[nd[t].L].mn < x) t = nd[t].L;
+                else if (nd[t].val < x) { res = l + i + nd[nd[t].L].sz; break; }
+                else i += nd[nd[t].L].sz + 1, t = nd[t].R;
             }
         }
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min)
+    // O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int leftmostLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostLteX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mn[t] <= x) {  // some value in a[l..r] passes
+        if (t && nd[t].mn <= x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (L[t] && mn[L[t]] <= x) t = L[t];
-                else if (val[t] <= x) { res = l + i + sz[L[t]]; break; }
-                else i += sz[L[t]] + 1, t = R[t];
+                if (nd[t].L && nd[nd[t].L].mn <= x) t = nd[t].L;
+                else if (nd[t].val <= x) { res = l + i + nd[nd[t].L].sz; break; }
+                else i += nd[nd[t].L].sz + 1, t = nd[t].R;
             }
         }
         root = merge(merge(a, b), c);
@@ -203,107 +220,123 @@ struct ImplicitTreap {
     // O(logN) expected -- append all of other at the end; other is left empty
     void merge(ImplicitTreap& other) { root = merge(root, other.root), other.root = 0; }
 
-    // O(logN) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i]
-    // (0 <= i <= size()); other is left empty
+    // O(logN) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i] (needs
+    // 0 <= i <= size(), else throws out_of_range); other is left empty
     void paste(int i, ImplicitTreap& other) {
+        if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, other.root), c);
         other.root = 0;
     }
 
-    // O(logN) expected -- a[i] += v
+    // O(logN) expected -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
     void pointAdd(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = val[t] + v;
+        nd[t].val = nd[t].val + v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i] = v
+    // O(logN) expected -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = v;
+        nd[t].val = v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i] = max(a[i], v)
+    // O(logN) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = max(val[t], v);
+        nd[t].val = max(nd[t].val, v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i] = min(a[i], v)
+    // O(logN) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = min(val[t], v);
+        nd[t].val = min(nd[t].val, v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
-    // O(logN) expected -- a[i]
-    T pointGet(int i) { return val[locate(i)]; }
+    // O(logN) expected -- a[i]; needs 0 <= i < size(), else throws out_of_range
+    T pointGet(int i) {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
+        return nd[locate(i)].val;
+    }
 
-    // O(logN) expected -- a[i] += v for i in [l, r]
+    // O(logN) expected -- a[i] += v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAdd(int l, int r, T v) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAdd: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         applyAdd(b, v);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- a[i] = v for i in [l, r]
+    // O(logN) expected -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAssign: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         applyAssign(b, v);
         root = merge(merge(a, b), c);
     }
 
-    // amortized O(log^2 N) expected -- a[i] = min(a[i], v) for i in [l, r]
+    // amortized O(log^2 N) expected -- a[i] = min(a[i], v) for i in [l, r]; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     void rangeChmin(int l, int r, T v) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeChmin: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         chmin(b, v);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- max of a[l..r]
+    // O(logN) expected -- max of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMax(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMax: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
-        T res = mx[b];
+        T res = nd[b].mx;
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- min of a[l..r]
+    // O(logN) expected -- min of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMin(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMin: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
-        T res = mn[b];
+        T res = nd[b].mn;
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- reverse a[l..r] in place
+    // O(logN) expected -- reverse a[l..r] in place; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeReverse(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeReverse: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         applyRev(b);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
-    // it is taken mod the length (negative shifts right)
+    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is
+    // taken mod the length (negative shifts right); needs 0 <= l <= r < size(), else throws out_of_range
     void rangeRotateLeft(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateLeft: needs 0 <= l <= r < size()");
         int a, b, c, len = r - l + 1;
         cut(l, r, a, b, c);
         k = ((k % len) + len) % len;
@@ -315,97 +348,113 @@ struct ImplicitTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
-    // length (negative shifts left)
-    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
+    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the length
+    // (negative shifts left); needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeRotateRight(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateRight: needs 0 <= l <= r < size()");
+        rangeRotateLeft(l, r, -k);
+    }
 
-    // O(logN) expected -- a[l] + ... + a[r]
+    // O(logN) expected -- a[l] + ... + a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     S rangeSum(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSum: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
-        S res = sm[b];
+        S res = nd[b].sm;
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max)
+    // O(logN) expected -- the last i in [l, r] with a[i] > x, or -1 (a walk pruned by the subtree max); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int rightmostGtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostGtX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mx[t] > x) {  // some value in a[l..r] passes
+        if (t && nd[t].mx > x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (R[t] && mx[R[t]] > x) i += sz[L[t]] + 1, t = R[t];
-                else if (val[t] > x) { res = l + i + sz[L[t]]; break; }
-                else t = L[t];
+                if (nd[t].R && nd[nd[t].R].mx > x) i += nd[nd[t].L].sz + 1, t = nd[t].R;
+                else if (nd[t].val > x) { res = l + i + nd[nd[t].L].sz; break; }
+                else t = nd[t].L;
             }
         }
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max)
+    // O(logN) expected -- the last i in [l, r] with a[i] >= x, or -1 (a walk pruned by the subtree max); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int rightmostGteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostGteX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mx[t] >= x) {  // some value in a[l..r] passes
+        if (t && nd[t].mx >= x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (R[t] && mx[R[t]] >= x) i += sz[L[t]] + 1, t = R[t];
-                else if (val[t] >= x) { res = l + i + sz[L[t]]; break; }
-                else t = L[t];
+                if (nd[t].R && nd[nd[t].R].mx >= x) i += nd[nd[t].L].sz + 1, t = nd[t].R;
+                else if (nd[t].val >= x) { res = l + i + nd[nd[t].L].sz; break; }
+                else t = nd[t].L;
             }
         }
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min)
+    // O(logN) expected -- the last i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int rightmostLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostLtX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mn[t] < x) {  // some value in a[l..r] passes
+        if (t && nd[t].mn < x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (R[t] && mn[R[t]] < x) i += sz[L[t]] + 1, t = R[t];
-                else if (val[t] < x) { res = l + i + sz[L[t]]; break; }
-                else t = L[t];
+                if (nd[t].R && nd[nd[t].R].mn < x) i += nd[nd[t].L].sz + 1, t = nd[t].R;
+                else if (nd[t].val < x) { res = l + i + nd[nd[t].L].sz; break; }
+                else t = nd[t].L;
             }
         }
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min)
+    // O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     int rightmostLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostLteX: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mn[t] <= x) {  // some value in a[l..r] passes
+        if (t && nd[t].mn <= x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (R[t] && mn[R[t]] <= x) i += sz[L[t]] + 1, t = R[t];
-                else if (val[t] <= x) { res = l + i + sz[L[t]]; break; }
-                else t = L[t];
+                if (nd[t].R && nd[nd[t].R].mn <= x) i += nd[nd[t].L].sz + 1, t = nd[t].R;
+                else if (nd[t].val <= x) { res = l + i + nd[nd[t].L].sz; break; }
+                else t = nd[t].L;
             }
         }
         root = merge(merge(a, b), c);
         return res;
     }
 
-    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
+    // 0 <= k <= size(), else throws out_of_range
     pair<ImplicitTreap, ImplicitTreap> split(int k) {
+        if (k < 0 || k > size()) throw out_of_range("split: needs 0 <= k <= size()");
         ImplicitTreap left = makeEmpty(), right = makeEmpty();
         split(root, k, left.root, right.root);
         root = 0;
         return {left, right};
     }
 
-    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty; needs
+    // 0 <= l <= r < size(), else throws out_of_range
     tuple<ImplicitTreap, ImplicitTreap, ImplicitTreap> trisect(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         ImplicitTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         cut(l, r, left.root, mid.root, right.root);
         root = 0;
@@ -415,10 +464,11 @@ struct ImplicitTreap {
     // ---- internals ----
 
     int newNode(T v) {
-        val.push_back(v), pri.push_back(rnd()), L.push_back(0), R.push_back(0), sz.push_back(1);
-        sm.push_back(S(v)), mx.push_back(v), mn.push_back(v), mx2.push_back(NEG), cmx.push_back(1), rev.push_back(0),
-        add.push_back(T(0));
-        return (int)val.size() - 1;
+        Node n;
+        n.val = v, n.pri = rnd(), n.L = 0, n.R = 0, n.sz = 1, n.sm = S(v), n.mx = v, n.mn = v, n.mx2 = NEG, n.cmx = 1,
+        n.rev = 0, n.add = T(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     // a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
@@ -426,9 +476,9 @@ struct ImplicitTreap {
         vector<int> stk, order, todo;
         for (const T& v : vals) {
             int x = newNode(v), last = 0;
-            while (!stk.empty() && pri[stk.back()] < pri[x]) last = stk.back(), stk.pop_back();
-            L[x] = last;
-            if (!stk.empty()) R[stk.back()] = x;
+            while (!stk.empty() && nd[stk.back()].pri < nd[x].pri) last = stk.back(), stk.pop_back();
+            nd[x].L = last;
+            if (!stk.empty()) nd[stk.back()].R = x;
             stk.push_back(x);
         }
         int rt = stk.empty() ? 0 : stk[0];
@@ -436,106 +486,106 @@ struct ImplicitTreap {
         while (!todo.empty()) {
             int x = todo.back();
             todo.pop_back(), order.push_back(x);
-            if (L[x]) todo.push_back(L[x]);
-            if (R[x]) todo.push_back(R[x]);
+            if (nd[x].L) todo.push_back(nd[x].L);
+            if (nd[x].R) todo.push_back(nd[x].R);
         }
         for (int k = (int)order.size() - 1; k >= 0; k--) pull(order[k]);
         return rt;
     }
 
     void pull(int x) {  // recompute x from its children (its own value is one more value of the subtree)
-        int l = L[x], r = R[x];
-        sz[x] = sz[l] + sz[r] + 1;
-        T v = val[x];
-        sm[x] = sm[l] + S(v) + sm[r];
+        int l = nd[x].L, r = nd[x].R;
+        nd[x].sz = nd[l].sz + nd[r].sz + 1;
+        T v = nd[x].val;
+        nd[x].sm = nd[l].sm + S(v) + nd[r].sm;
         {
             T m = v, m2 = NEG;
             int k = 1;
             for (int y : {l, r}) {
                 if (!y) continue;
-                T a = mx[y], a2 = mx2[y];
-                if (a > m) m2 = a2 > m ? a2 : m, m = a, k = cmx[y];
-                else if (a == m) k += cmx[y], m2 = a2 > m2 ? a2 : m2;
+                T a = nd[y].mx, a2 = nd[y].mx2;
+                if (a > m) m2 = a2 > m ? a2 : m, m = a, k = nd[y].cmx;
+                else if (a == m) k += nd[y].cmx, m2 = a2 > m2 ? a2 : m2;
                 else if (a > m2) m2 = a;
             }
-            mx[x] = m, mx2[x] = m2, cmx[x] = k;
+            nd[x].mx = m, nd[x].mx2 = m2, nd[x].cmx = k;
         }
-        mn[x] = v;
-        if (l && mn[l] < mn[x]) mn[x] = mn[l];
-        if (r && mn[r] < mn[x]) mn[x] = mn[r];
+        nd[x].mn = v;
+        if (l && nd[l].mn < nd[x].mn) nd[x].mn = nd[l].mn;
+        if (r && nd[r].mn < nd[x].mn) nd[x].mn = nd[r].mn;
     }
 
     void applyAssign(int t, T v) {  // every value of t's subtree becomes v
         if (!t) return;
-        int n = sz[t];
-        val[t] = v, sm[t] = S(v) * n;
-        mx[t] = v;
-        mn[t] = v;
-        mx2[t] = NEG, cmx[t] = n;
-        add[t] = T(0);
+        int n = nd[t].sz;
+        nd[t].val = v, nd[t].sm = S(v) * n;
+        nd[t].mx = v;
+        nd[t].mn = v;
+        nd[t].mx2 = NEG, nd[t].cmx = n;
+        nd[t].add = T(0);
     }
 
     void applyAdd(int t, T v) {  // every value of t's subtree gains v (a uniform one stays an assign)
         if (!t) return;
-        if (mx2[t] == NEG) { applyAssign(t, T(mx[t] + v)); return; }
-        val[t] += v, sm[t] += S(v) * sz[t];
-        mx[t] += v;
-        mn[t] += v;
-        if (mx2[t] != NEG) mx2[t] += v;
-        add[t] += v;
+        if (nd[t].mx2 == NEG) { applyAssign(t, T(nd[t].mx + v)); return; }
+        nd[t].val += v, nd[t].sm += S(v) * nd[t].sz;
+        nd[t].mx += v;
+        nd[t].mn += v;
+        if (nd[t].mx2 != NEG) nd[t].mx2 += v;
+        nd[t].add += v;
     }
 
     void applyChmin(int t, T v) {  // chmin by v on t, with mx2 < v < mx: only the copies of the max move
-        if (mx2[t] == NEG) { applyAssign(t, v); return; }  // (all equal)
-        if (val[t] == mx[t]) val[t] = v;
-        sm[t] -= S(mx[t] - v) * cmx[t];
-        mx[t] = v;
+        if (nd[t].mx2 == NEG) { applyAssign(t, v); return; }  // (all equal)
+        if (nd[t].val == nd[t].mx) nd[t].val = v;
+        nd[t].sm -= S(nd[t].mx - v) * nd[t].cmx;
+        nd[t].mx = v;
     }
 
     void chmin(int t, T x) {  // a[i] = min(a[i], x) over t's subtree, walking down only where x <= the second max
-        if (!t || mx[t] <= x) return;
-        if (mx2[t] < x) { applyChmin(t, x); return; }
+        if (!t || nd[t].mx <= x) return;
+        if (nd[t].mx2 < x) { applyChmin(t, x); return; }
         push(t);
-        if (val[t] > x) val[t] = x;
-        chmin(L[t], x), chmin(R[t], x);
+        if (nd[t].val > x) nd[t].val = x;
+        chmin(nd[t].L, x), chmin(nd[t].R, x);
         pull(t);
     }
 
     void applyRev(int x) {  // reverse x's subtree (every kept aggregate reads the same both ways)
-        if (x) swap(L[x], R[x]), rev[x] ^= 1;
+        if (x) swap(nd[x].L, nd[x].R), nd[x].rev ^= 1;
     }
 
     void push(int t) {  // hand t's pending changes to its children: one value (an assign), else the add, then the clamp
-        int l = L[t], r = R[t];
-        if (rev[t]) applyRev(l), applyRev(r), rev[t] = 0;
-        if (mx2[t] == NEG) {
-            applyAssign(l, mx[t]), applyAssign(r, mx[t]);
-            add[t] = T(0);
+        int l = nd[t].L, r = nd[t].R;
+        if (nd[t].rev) applyRev(l), applyRev(r), nd[t].rev = 0;
+        if (nd[t].mx2 == NEG) {
+            applyAssign(l, nd[t].mx), applyAssign(r, nd[t].mx);
+            nd[t].add = T(0);
             return;
         }
-        if (add[t] != T(0)) applyAdd(l, add[t]), applyAdd(r, add[t]), add[t] = T(0);
+        if (nd[t].add != T(0)) applyAdd(l, nd[t].add), applyAdd(r, nd[t].add), nd[t].add = T(0);
         for (int y : {l, r})
-            if (y && mx[y] > mx[t]) applyChmin(y, mx[t]);
+            if (y && nd[y].mx > nd[t].mx) applyChmin(y, nd[t].mx);
     }
 
     void split(int t, int k, int& a, int& b) {  // a = first k of t, b = the rest
         if (!t) { a = b = 0; return; }
         push(t);
-        if (sz[L[t]] >= k) split(L[t], k, a, L[t]), b = t;
-        else split(R[t], k - sz[L[t]] - 1, R[t], b), a = t;
+        if (nd[nd[t].L].sz >= k) split(nd[t].L, k, a, nd[t].L), b = t;
+        else split(nd[t].R, k - nd[nd[t].L].sz - 1, nd[t].R, b), a = t;
         pull(t);
     }
 
     int merge(int a, int b) {  // a's elements, then b's
         if (!a || !b) return a | b;
-        if (pri[a] > pri[b]) {
+        if (nd[a].pri > nd[b].pri) {
             push(a);
-            R[a] = merge(R[a], b);
+            nd[a].R = merge(nd[a].R, b);
             pull(a);
             return a;
         }
         push(b);
-        L[b] = merge(a, L[b]);
+        nd[b].L = merge(a, nd[b].L);
         pull(b);
         return b;
     }
@@ -549,11 +599,11 @@ struct ImplicitTreap {
         int t = root;
         while (true) {
             push(t);
-            int ls = sz[L[t]];
+            int ls = nd[nd[t].L].sz;
             if (i == ls) return t;
             if (path) path->push_back(t);
-            if (i < ls) t = L[t];
-            else i -= ls + 1, t = R[t];
+            if (i < ls) t = nd[t].L;
+            else i -= ls + 1, t = nd[t].R;
         }
     }
 };

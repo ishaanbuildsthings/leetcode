@@ -6,11 +6,14 @@ other's. write_template applies it to a file's note line (# -> Python, // -> C++
 
 Every file also starts with two attribution lines (template by <GitHub user>, then the file's own GitHub link).
 
-    python3 note_lang.py    # rewrite the notes and attribution of every template.* / sparse.* in range-queries/
+    python3 note_lang.py    # rewrite the notes, attribution and bounds checks of every template.* / sparse.* /
+                            # letters.* in range-queries/
 """
 import os
 import re
 import textwrap
+
+from bounds import add_bounds
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 LABELS = {"cpp": "C++: ", "py": "Python: "}
@@ -207,18 +210,19 @@ def add_get_all(code, lang):
 
 
 def write_template(path, text):
-    open(path, "w").write(attribute(fix_text(text, "py" if path.endswith(".py") else "cpp"), path))
+    lang = "py" if path.endswith(".py") else "cpp"
+    open(path, "w").write(attribute(fix_text(add_bounds(text, lang), lang), path))
 
 
 if __name__ == "__main__":
     changed = 0
     for folder in sorted(os.listdir(DIR)):
-        for stem in ("template", "sparse"):
+        for stem in ("template", "sparse", "letters"):
             for ext, lang in ((".py", "py"), (".cpp", "cpp")):
                 path = os.path.join(DIR, folder, stem + ext)
                 if os.path.exists(path):
                     text = open(path).read()
-                    new = attribute(fix_text(text, lang), path)
+                    new = attribute(fix_text(add_bounds(text, lang), lang), path)
                     if new != text:
                         open(path, "w").write(new)
                         changed += 1

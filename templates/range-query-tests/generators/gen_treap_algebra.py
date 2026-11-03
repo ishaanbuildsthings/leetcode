@@ -26,10 +26,12 @@ node pool so pieces move between them).
 """
 import itertools
 import os
+import re
 import shutil
 
 from gen_treap import CPP_HASH_HELPERS, PY_HASH_CONST, no_push, wrap
 from gen_treap_more import slots_line
+from aos import aosify
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -43,10 +45,13 @@ CMP = {"Gt": ">", "Gte": ">=", "Lt": "<", "Lte": "<="}
 HASH_OPS = ["isPalindrome", "rangeHash", "rangeHashReversed", "rangesEqual"]
 MAXSUB = {"pre", "suf", "best"}
 MS_SETS = [("pre",), ("suf",), ("pre", "suf"), ("pre", "suf", "best")]
-OTHER = ["ms", "xor", "and", "or", "gcd", "run", "alt"]  # ms = one of MS_SETS
+MINSUB = {"npre", "nsuf"}  # (min prefix / min suffix sums)
+MN_SETS = [("npre",), ("nsuf",), ("npre", "nsuf")]
+OTHER = ["ms", "mn", "xor", "and", "or", "gcd", "run", "alt"]  # ms = one of MS_SETS, mn = one of MN_SETS
 # which update families each aggregate can absorb
 OK = {"sum": {"assign", "add", "ap", "shrink"}, "min": {"assign", "add", "clamp", "shrink"}, "max": {"assign", "add", "clamp", "shrink"},
       "hash": {"assign", "add", "shrink"}, "pre": {"assign", "shrink"}, "suf": {"assign", "shrink"}, "best": {"assign", "shrink"},
+      "npre": {"assign", "shrink"}, "nsuf": {"assign", "shrink"},
       "xor": {"assign", "xor", "shrink"}, "and": {"assign", "bits", "shrink"}, "or": {"assign", "bits", "shrink"},
       "gcd": {"assign", "add"}, "run": {"assign", "add", "shrink"}, "alt": {"assign", "shrink"}}
 # (shrink = range mod / floor div / floor sqrt: a walk down every node whose max still changes, pulling on the way
@@ -69,10 +74,12 @@ UOP = {"assign": "rangeAssign", "add": "rangeAdd", "ap": "rangeAddArithSeq", "ch
 QOPS = {"sum": ["rangeSum"], "min": ["rangeMin"], "max": ["rangeMax"], "hash": HASH_OPS,
         "pre": ["leftmostPrefixSumGtX", "leftmostPrefixSumGteX", "maxPrefixSum"],
         "suf": ["maxSuffixSum", "rightmostSuffixSumGtX", "rightmostSuffixSumGteX"], "best": ["maxSubarraySum"],
+        "npre": ["minPrefixSum"], "nsuf": ["minSuffixSum"],
         "xor": ["rangeXorQuery"], "and": ["rangeAndQuery"], "or": ["rangeOrQuery"], "gcd": ["rangeGcd"],
         "run": ["longestEqualRun"], "alt": ["maxAltSubseqSum"]}
 DESC = {"sum": "its sum", "min": "its min", "max": "its max", "hash": "its forward / backward hash (and B^size)",
-        "pre": "its best prefix sum", "suf": "its best suffix sum", "best": "its best subarray sum", "xor": "its xor",
+        "pre": "its best prefix sum", "suf": "its best suffix sum", "best": "its best subarray sum",
+        "npre": "its min prefix sum", "nsuf": "its min suffix sum", "xor": "its xor",
         "and": "its AND", "or": "its OR", "gcd": "its gcd", "run": "its first / last value and the equal runs at its ends "
         "and inside", "alt": "its best alternating (+ - + ...) subsequence sum for each start / end sign"}
 
@@ -82,7 +89,7 @@ class Spec:
         self.mods, self.fam, self.ups, self.rev, self.find = mods, fam, set(ups), rev, find
         self.ptr = True  # (every treap cuts / pastes: pieces share their source's node pool)
         m, u = set(mods), self.ups
-        self.ms = MAXSUB & m
+        self.ms = (MAXSUB | MINSUB) & m  # (the prefix / suffix pieces, max and min: they combine through the sum)
         self.clamp, self.bits, self.xorf, self.shrink = fam == "clamp", fam == "bits", fam == "xor", fam == "shrink"
         self.asgTag = "assign" in u and not self.clamp and not self.bits
         self.addTag = "add" in u and fam == "add"
@@ -108,7 +115,7 @@ class Spec:
             f.append(("mx", "T", "0", "T(0)"))
         if self.has("hash"):
             f += [("fh", "U64", "0", "0"), ("bh", "U64", "0", "0"), ("pw", "U64", "1", "1")] + ([("gs", "U64", "0", "0")] if self.G else [])
-        for x in ("pre", "suf", "best"):
+        for x in ("pre", "suf", "best", "npre", "nsuf"):
             if x in self.ms:
                 f.append((x, "S", "0", "0"))
         if self.has("xor"):
@@ -184,16 +191,18 @@ def mod_sets():
                 base = core + (("hash",) if H else ())
                 for j in range(3):
                     for ex in itertools.combinations(OTHER, j):
-                        groups = [g for g in ex if g != "ms"]
+                        groups = [g for g in ex if g not in ("ms", "mn")]
                         for ms in (MS_SETS if "ms" in ex else [()]):
-                            if ms and "sum" not in core:
-                                continue  # (the prefix / suffix pieces combine through the sum: those come with sum)
-                            seen.append((base + ms + tuple(groups), False))
+                            for mn in (MN_SETS if "mn" in ex else [()]):
+                                if (ms or mn) and "sum" not in core:
+                                    continue  # (the prefix / suffix pieces combine through the sum: those come with sum)
+                                seen.append((base + ms + mn + tuple(groups), False))
                 for fam, ups in UPDATE_SETS:  # (the cover: every other family this update set allows)
-                    ex = [g for g in OTHER if g != "ms" and fam in OK[g] | {""} and ("assign" not in ups or "assign" in OK[g])]
+                    ex = [g for g in OTHER if g not in ("ms", "mn") and fam in OK[g] | {""} and ("assign" not in ups or "assign" in OK[g])]
                     ms = ("pre", "suf", "best") if "sum" in core and (not fam or fam in OK["pre"]) else ()
-                    if len(ex) + bool(ms) > 2:
-                        seen.append((base + ms + tuple(ex), (fam, ups)))
+                    mn = ("npre", "nsuf") if ms else ()
+                    if len(ex) + bool(ms) + bool(mn) > 2:
+                        seen.append((base + ms + mn + tuple(ex), (fam, ups)))
     return seen
 
 
@@ -204,7 +213,7 @@ def variants():
             if only and only != (fam, ups):
                 continue
             for rev in (False, True):
-                if rev and MAXSUB & set(mods) and not {"pre", "suf"} <= set(mods):
+                if rev and (MAXSUB & set(mods) and not {"pre", "suf"} <= set(mods) or MINSUB & set(mods) and not MINSUB <= set(mods)):
                     continue  # a reverse swaps prefix and suffix: it needs both
                 key = (mods, tuple(sorted(ups)), rev)
                 if key not in have:
@@ -216,7 +225,7 @@ def variants():
         if only and only != ("", ()):
             continue
         for rev in (False, True):
-            if rev and MAXSUB & set(mods) and not {"pre", "suf"} <= set(mods):
+            if rev and (MAXSUB & set(mods) and not {"pre", "suf"} <= set(mods) or MINSUB & set(mods) and not MINSUB <= set(mods)):
                 continue
             key = (mods, (), rev, "find")
             if key not in have:
@@ -352,6 +361,32 @@ def py(s):
     return text if TG else no_push(text, "py")
 
 
+def fit_comments(text):
+    """re-wrap each comment block (same indent, // or #) that has a line past 120 columns (e.g. after gcd_costs)"""
+    lines, out, i = text.split("\n"), [], 0
+    while i < len(lines):
+        m = re.match(r"^( *)(//|#) ", lines[i])
+        if not m or lines[i].lstrip().startswith(("// @", "# @", "// http", "# http")):
+            out.append(lines[i])
+            i += 1
+            continue
+        pre = m.group(1) + m.group(2)
+        j = i
+        while j < len(lines) and lines[j].startswith(pre + " ") and not lines[j].startswith(pre + "  "):
+            j += 1
+        if j == i:  # (an indented comment line: an example or a header field, left as is)
+            out.append(lines[i])
+            i += 1
+            continue
+        block = lines[i:j]
+        if any(len(x) > 120 for x in block):
+            out += wrap(" ".join(x[len(pre) + 1:] for x in block), pre, 118).rstrip("\n").split("\n")
+        else:
+            out += block
+        i = j
+    return "\n".join(out)
+
+
 def gcd_costs(s, text):  # with gcd every pull pays a gcd: the method comments say so (pointGet only finds)
     if not s.has("gcd"):
         return text
@@ -365,6 +400,7 @@ def py_public(s):
     J = "self._join(a, b, c)"
     for mod, op, expr in (("sum", "rangeSum", "self.sm[b]"), ("min", "rangeMin", "self.mn[b]"), ("max", "rangeMax", "self.mx[b]"),
                           ("pre", "maxPrefixSum", "self.pre[b]"), ("suf", "maxSuffixSum", "self.suf[b]"),
+                          ("npre", "minPrefixSum", "self.npre[b]"), ("nsuf", "minSuffixSum", "self.nsuf[b]"),
                           ("best", "maxSubarraySum", "self.best[b]"), ("xor", "rangeXorQuery", "self.xr[b]"),
                           ("and", "rangeAndQuery", "self.an[b]"), ("or", "rangeOrQuery", "self.orr[b]"),
                           ("gcd", "rangeGcd", "gcd(self.fv[b], self.g[b])" if s.gdiff else "self.g[b]"),
@@ -539,6 +575,7 @@ SHRINK_COST = {"rangeMod": "log(N)*log(U) amortized", "rangeFloorDiv": "log(N)*l
                "rangeFloorSqrt": "log(N)*log(log(U)) amortized"}
 QDOC = {"rangeSum": "a[l] + ... + a[r]", "rangeMin": "min of a[l..r]", "rangeMax": "max of a[l..r]",
         "maxPrefixSum": "max of a[l] + ... + a[i] over i in [l, r]", "maxSuffixSum": "max of a[i] + ... + a[r] over i in [l, r]",
+        "minPrefixSum": "min of a[l] + ... + a[i] over i in [l, r]", "minSuffixSum": "min of a[i] + ... + a[r] over i in [l, r]",
         "maxSubarraySum": "max sum of a non-empty contiguous subarray of a[l..r]", "rangeXorQuery": "a[l] ^ ... ^ a[r]",
         "rangeAndQuery": "a[l] & ... & a[r]", "rangeOrQuery": "a[l] | ... | a[r]", "rangeGcd": "gcd of |a[l]|, ..., |a[r]|",
         "longestEqualRun": "the longest run of equal adjacent values in a[l..r]",
@@ -555,6 +592,9 @@ UDOC = {"assign": "a[i] = v for i in [l, r]", "add": "a[i] += v for i in [l, r]"
         "sqrt": "a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0)"}
 
 
+NM = {"pre": "p", "suf": "q", "best": "b", "npre": "u", "nsuf": "w"}  # (the pull's short names for the prefix / suffix pieces)
+
+
 def py_pull(s):
     L = ["        l, r = self.L[x], self.R[x]", "        self.sz[x] = self.sz[l] + self.sz[r] + 1"]
     if s.find:  # (a child's parent is only trusted while the parent still has it as a child: splits leave stale ones)
@@ -563,10 +603,10 @@ def py_pull(s):
         return L
     L.append("        v = self.val[x]")
     if s.ms:
-        nm = ["s"] + [{"pre": "p", "suf": "q", "best": "b"}[f] for f in ("pre", "suf", "best") if f in s.ms]
-        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best"}
+        nm = ["s"] + [NM[f] for f in ("pre", "suf", "best", "npre", "nsuf") if f in s.ms]
+        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best", "u": "npre", "w": "nsuf"}
         e = lambda A, B: {"s": f"{A}s + {B}s", "p": f"max({A}p, {A}s + {B}p)", "q": f"max({B}q, {B}s + {A}q)",  # noqa: E731
-                          "b": f"max({A}b, {B}b, {A}q + {B}p)"}
+                          "b": f"max({A}b, {B}b, {A}q + {B}p)", "u": f"min({A}u, {A}s + {B}u)", "w": f"min({B}w, {B}s + {A}w)"}
         L += [f"        {', '.join(nm)} = {', '.join('v' for _ in nm)}  # the node alone, then with its left / right parts",
               "        if l:", f"            {', '.join('l' + n for n in nm)} = {', '.join(f'self.{fld[n]}[l]' for n in nm)}",
               f"            {', '.join(nm)} = {', '.join(e('l', '')[n] for n in nm)}",
@@ -621,7 +661,7 @@ def py_new(s):
     if s.has("hash"):
         L += ["        self.fh.append((v + _HO) % _HP)", "        self.bh.append((v + _HO) % _HP)", "        self.pw.append(_HB)"] + (
             ["        self.gs.append(1)"] if s.G else [])
-    for f in ("pre", "suf", "best"):
+    for f in ("pre", "suf", "best", "npre", "nsuf"):
         if f in s.ms:
             L.append(f"        self.{f}.append(v)")
     for mod, f in (("xor", "xr"), ("and", "an"), ("or", "orr")):
@@ -685,7 +725,7 @@ def py_internals(s):
     push = []
     if s.rev:
         rv = ["            self.L[x], self.R[x] = self.R[x], self.L[x]", "            self.rev[x] ^= 1"]
-        for a, b in (("fh", "bh"), ("pre", "suf"), ("fv", "lv"), ("pr", "sr"), ("a01", "a10")):
+        for a, b in (("fh", "bh"), ("pre", "suf"), ("npre", "nsuf"), ("fv", "lv"), ("pr", "sr"), ("a01", "a10")):
             if a in [f[0] for f in s.fields()]:
                 rv.append(f"            self.{a}[x], self.{b}[x] = self.{b}[x], self.{a}[x]")
         if s.ap:  # a pending arithmetic add read backwards: start + step * (size - 1), then -step
@@ -695,7 +735,7 @@ def py_internals(s):
         push.append("        if self.rev[x]:\n            self._applyRev(self.L[x])\n            self._applyRev(self.R[x])\n            self.rev[x] = 0\n")
     fl = [f[0] for f in s.fields()]
     if s.asgTag:
-        a = (["            n = self.sz[x]"] if {"sm", "pre", "suf", "best", "xr", "pr", "a00"} & set(fl) else []) + ["            self.val[x] = v"]
+        a = (["            n = self.sz[x]"] if {"sm", "pre", "suf", "best", "npre", "nsuf", "xr", "pr", "a00"} & set(fl) else []) + ["            self.val[x] = v"]
         if "sm" in fl:
             a.append("            self.sm[x] = v * n")
         for f in ("mn", "mx", "an", "orr"):
@@ -706,6 +746,9 @@ def py_internals(s):
         ms = [f for f in ("pre", "suf", "best") if f in fl]
         if ms:
             a.append("            " + " = ".join(f"self.{f}[x]" for f in ms) + " = v * n if v > 0 else v")
+        mns = [f for f in ("npre", "nsuf") if f in fl]
+        if mns:
+            a.append("            " + " = ".join(f"self.{f}[x]" for f in mns) + " = v * n if v < 0 else v")
         if "xr" in fl:
             a.append("            self.xr[x] = v if n & 1 else 0")
         if "g" in fl:
@@ -1020,6 +1063,7 @@ def cpp_public(s):
     J = "root = merge(merge(a, b), c);"
     for mod, op, typ, expr in (("sum", "rangeSum", "S", "sm[b]"), ("min", "rangeMin", "T", "mn[b]"), ("max", "rangeMax", "T", "mx[b]"),
                                ("pre", "maxPrefixSum", "S", "pre[b]"), ("suf", "maxSuffixSum", "S", "suf[b]"),
+                               ("npre", "minPrefixSum", "S", "npre[b]"), ("nsuf", "minSuffixSum", "S", "nsuf[b]"),
                                ("best", "maxSubarraySum", "S", "best[b]"), ("xor", "rangeXorQuery", "T", "xr[b]"),
                                ("and", "rangeAndQuery", "T", "an[b]"), ("or", "rangeOrQuery", "T", "orr[b]"),
                                ("gcd", "rangeGcd", "T", "gcd(fv[b], g[b])" if s.gdiff else "g[b]"),
@@ -1174,10 +1218,10 @@ def cpp_pull(s):
         return L
     L.append("        T v = val[x];")
     if s.ms:
-        nm = ["s"] + [{"pre": "p", "suf": "q", "best": "b"}[f] for f in ("pre", "suf", "best") if f in s.ms]
-        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best"}
+        nm = ["s"] + [NM[f] for f in ("pre", "suf", "best", "npre", "nsuf") if f in s.ms]
+        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best", "u": "npre", "w": "nsuf"}
         e = lambda A, B: {"s": f"{A}s + {B}s", "p": f"max({A}p, {A}s + {B}p)", "q": f"max({B}q, {B}s + {A}q)",  # noqa: E731
-                          "b": f"max({{{A}b, {B}b, {A}q + {B}p}})"}
+                          "b": f"max({{{A}b, {B}b, {A}q + {B}p}})", "u": f"min({A}u, {A}s + {B}u)", "w": f"min({B}w, {B}s + {A}w)"}
         back = ", ".join(f"{n} = n{n}" for n in nm)
         L += [f"        S {', '.join(f'{n} = S(v)' for n in nm)};  // the node alone, then with its left / right parts",
               "        if (l) {", f"            S {', '.join(f'l{n} = {fld[n]}[l]' for n in nm)};",
@@ -1232,7 +1276,7 @@ def cpp_new(s):
             parts.append(f"{f}.push_back(v)")
     if "fh" in fl:
         parts += ["fh.push_back(hval(v))", "bh.push_back(hval(v))", "pw.push_back(HB())"] + (["gs.push_back(1)"] if s.G else [])
-    for f in ("pre", "suf", "best"):
+    for f in ("pre", "suf", "best", "npre", "nsuf"):
         if f in fl:
             parts.append(f"{f}.push_back(S(v))")
     for f in ("xr", "an", "orr"):
@@ -1290,7 +1334,8 @@ def cpp_internals(s):
 ''' + "".join(x + "\n" for x in cpp_pull(s)) + "    }\n"]
     push = []
     if s.rev:
-        sw = [f"swap({a}[x], {b}[x])" for a, b in (("fh", "bh"), ("pre", "suf"), ("fv", "lv"), ("pr", "sr"), ("a01", "a10")) if a in fl]
+        sw = [f"swap({a}[x], {b}[x])" for a, b in (("fh", "bh"), ("pre", "suf"), ("npre", "nsuf"), ("fv", "lv"), ("pr", "sr"), ("a01", "a10"))
+              if a in fl]
         ap = "\n        if (ad[x] || as_[x]) as_[x] += ad[x] * T(sz[x] - 1), ad[x] = -ad[x];  // a pending arithmetic add read backwards" if s.ap else ""
         out.append('''
     void applyRev(int x) {  // reverse x's subtree
@@ -1300,7 +1345,7 @@ def cpp_internals(s):
 ''')
         push.append("        if (rev[x]) applyRev(L[x]), applyRev(R[x]), rev[x] = 0;\n")
     if s.asgTag:
-        a = (["int n = sz[x];"] if {"sm", "pre", "suf", "best", "xr", "pr", "a00"} & set(fl) else []) + ["val[x] = v;"]
+        a = (["int n = sz[x];"] if {"sm", "pre", "suf", "best", "npre", "nsuf", "xr", "pr", "a00"} & set(fl) else []) + ["val[x] = v;"]
         if "sm" in fl:
             a.append("sm[x] = S(v) * n;")
         for f in ("mn", "mx", "an", "orr"):
@@ -1311,6 +1356,9 @@ def cpp_internals(s):
         ms = [f for f in ("pre", "suf", "best") if f in fl]
         if ms:
             a.append(" = ".join(f"{f}[x]" for f in ms) + " = v > T(0) ? S(v) * n : S(v);")
+        mns = [f for f in ("npre", "nsuf") if f in fl]
+        if mns:
+            a.append(" = ".join(f"{f}[x]" for f in mns) + " = v < T(0) ? S(v) * n : S(v);")
         if "xr" in fl:
             a.append("xr[x] = n & 1 ? v : T(0);")
         if "g" in fl:
@@ -1628,7 +1676,7 @@ def main(only=None):
         seen[folder] = s.name()
         os.makedirs(os.path.join(DIR, folder), exist_ok=True)
         write_template(os.path.join(DIR, folder, "template.py"), py(s))
-        write_template(os.path.join(DIR, folder, "template.cpp"), cpp(s))
+        write_template(os.path.join(DIR, folder, "template.cpp"), aosify(cpp(s)))
     print("wrote", len(seen), "treaps")
 
 

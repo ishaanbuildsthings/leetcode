@@ -125,11 +125,11 @@ def tag_tree(ops, name, desc, ident_py, ident_cpp, compose_py, leaf_py, compose_
 
 
 class {name}:
-    __slots__ = ("lo", "size", "t"{', "mod"' if mod else ""})
+    __slots__ = ("lo", "hi", "size", "t"{', "mod"' if mod else ""})
 
     # O(1)
     def __init__(self, lo, hi{", mod=1000000007" if mod else ""}):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of i is size + (i - lo)
         self.t = {{}}{chr(10) + "        self.mod = mod" if mod else ""}
 
@@ -349,11 +349,11 @@ ASSIGN_PY = '''
 
 
 class SparseRangeAssignTree:
-    __slots__ = ("lo", "size", "t", "clock")
+    __slots__ = ("lo", "hi", "size", "t", "clock")
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of i is size + (i - lo)
         self.t = {}
         self.clock = 0
@@ -510,11 +510,11 @@ MOD_PY = '''
 
 
 class SparseRangeModTree:
-    __slots__ = ("lo", "size", "mx")
+    __slots__ = ("lo", "hi", "size", "mx")
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of i is size + (i - lo)
         self.mx = {}  # heap index -> max of the subtree (missing: 0)
 

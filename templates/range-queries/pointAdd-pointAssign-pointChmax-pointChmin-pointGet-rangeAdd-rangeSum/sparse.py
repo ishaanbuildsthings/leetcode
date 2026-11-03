@@ -60,8 +60,10 @@ class SparseRangeAddSumBIT:
             x &= x - 1
         return s0, s1
 
-    # O(logU) -- a[i] += v for i in [l, r]
+    # O(logU) -- a[i] += v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAdd(self, l, r, v):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAdd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return
         l -= self.lo
@@ -76,32 +78,44 @@ class SparseRangeAddSumBIT:
         sa, sb = self._prefix(x)
         return sa + sb * x
 
-    # O(logU) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return 0
         return self._sum(r - self.lo) - self._sum(l - 1 - self.lo)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self.rangeSum(i, i)
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.rangeAdd(i, i, delta)
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         self.rangeAdd(i, i, val - self.pointGet(i))
 
-    # O(logU) -- a[i] = max(a[i], val)
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         cur = self.pointGet(i)
         if val > cur:
             self.rangeAdd(i, i, val - cur)
 
-    # O(logU) -- a[i] = min(a[i], val)
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         cur = self.pointGet(i)
         if val < cur:
             self.rangeAdd(i, i, val - cur)

@@ -1378,7 +1378,8 @@ def cpp_fam(f):
     // O(sqrt(N) log N log U) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs
     // 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
     S sumKthSmallestRange(int l, int r, int kFrom, int kTo) const {
-        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1)
+            throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumFirst(l, r, kTo) - sumFirst(l, r, kFrom - 1);
     }
 
@@ -1386,7 +1387,8 @@ def cpp_fam(f):
     // the 3 biggest); needs 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
     S sumKthLargestRange(int l, int r, int kFrom, int kTo) const {
         int n = r - l + 1;
-        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo || kTo > n)
+            throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumFirst(l, r, n - kFrom + 1) - sumFirst(l, r, n - kTo);
     }
 

@@ -73,8 +73,11 @@ class SparseShrinkSegTree:
         self.hasAsg = [0]
         self._newZero(self.D)
 
-    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in self._cover(l, r):
             if F[t] > x:  # the first covering node with a passing value: walk down it
@@ -89,8 +92,11 @@ class SparseShrinkSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in self._cover(l, r):
             if F[t] >= x:  # the first covering node with a passing value: walk down it
@@ -105,8 +111,11 @@ class SparseShrinkSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostLtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mn, self.L, self.R
         for t, s, tl in self._cover(l, r):
             if F[t] < x:  # the first covering node with a passing value: walk down it
@@ -121,8 +130,11 @@ class SparseShrinkSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostLteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mn, self.L, self.R
         for t, s, tl in self._cover(l, r):
             if F[t] <= x:  # the first covering node with a passing value: walk down it
@@ -137,8 +149,11 @@ class SparseShrinkSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums)
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, P, L, R = self.sm, self.pre, self.L, self.R
         acc = 0
         for t, s, tl in self._cover(l, r):
@@ -156,8 +171,11 @@ class SparseShrinkSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums)
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostPrefixSumGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, P, L, R = self.sm, self.pre, self.L, self.R
         acc = 0
         for t, s, tl in self._cover(l, r):
@@ -175,8 +193,10 @@ class SparseShrinkSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logN) -- max of a[l] + ... + a[i] over i in [l, r]
+    # O(logN) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def maxPrefixSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"maxPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, pre = self.sm, self.pre
         ns = self._nodes(l, r)
         t = ns[0][0]
@@ -187,8 +207,10 @@ class SparseShrinkSegTree:
             acc += sm[t]
         return res
 
-    # O(logN) -- max sum of a non-empty contiguous subarray of a[l..r]
+    # O(logN) -- max sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def maxSubarraySum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"maxSubarraySum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, pre, suf, best = self.sm, self.pre, self.suf, self.best
         ns = self._nodes(l, r)
         t = ns[0][0]
@@ -198,8 +220,10 @@ class SparseShrinkSegTree:
             q = max(suf[t], sm[t] + q)
         return res
 
-    # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]
+    # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def maxSuffixSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"maxSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, suf = self.sm, self.suf
         ns = self._nodes(l, r)
         t = ns[-1][0]
@@ -210,84 +234,116 @@ class SparseShrinkSegTree:
             acc += sm[t]
         return res
 
-    # O(logU) -- a[i] += v
+    # O(logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, self._leaf(x) + v)
         self._up(path)
 
-    # O(logU) -- a[i] = v
+    # O(logU) -- a[i] = v; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, v)
         self._up(path)
 
-    # O(logU) -- a[i] = max(a[i], v)
+    # O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, max(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i] = min(a[i], v)
+    # O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU) -- a[l] & ... & a[r]
+    # O(logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAndQuery(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeAndQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         an, res = self.an, -1
         for t, _ in self._nodes(l, r):
             res &= an[t]
         return res
 
-    # O(logU) -- a[i] = v for i in [l, r]
+    # O(logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAssign(self, l, r, v):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._applyAssign(t, s, v))
 
-    # amortized O(logU * logU) -- a[i] //= x for i in [l, r] (values >= 0; x >= 2, x = 1 does nothing)
+    # amortized O(logU * logU) -- a[i] //= x for i in [l, r] (values >= 0; x >= 2, x = 1 does nothing); needs
+    # lo <= l <= r <= hi, else IndexError
     def rangeFloorDiv(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeFloorDiv: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if x >= 2:
             self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._shrink(t, s, 1, lambda v: v // x))
 
-    # amortized O(logU * loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0)
+    # amortized O(logU * loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0); needs lo <= l <= r <= hi,
+    # else IndexError
     def rangeFloorSqrt(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeFloorSqrt: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._shrink(t, s, 2, isqrt))
 
-    # O(logU) -- max of a[l..r]
+    # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         mx, res = self.mx, NEG
         for t, _ in self._nodes(l, r):
             if mx[t] > res:
                 res = mx[t]
         return res
 
-    # O(logU) -- min of a[l..r]
+    # O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         mn, res = self.mn, INF
         for t, _ in self._nodes(l, r):
             if mn[t] < res:
                 res = mn[t]
         return res
 
-    # amortized O(logU * logU) -- a[i] %= x for i in [l, r] (values >= 0, x >= 1)
+    # amortized O(logU * logU) -- a[i] %= x for i in [l, r] (values >= 0, x >= 1); needs lo <= l <= r <= hi, else
+    # IndexError
     def rangeMod(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeMod: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if x >= 1:
             self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._shrink(t, s, x, lambda v: v % x))
 
-    # O(logU) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, res = self.sm, 0
         for t, _ in self._nodes(l, r):
             res += sm[t]
         return res
 
-    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in reversed(self._cover(l, r)):
             if F[t] > x:  # the last covering node with a passing value: walk down it
@@ -302,8 +358,11 @@ class SparseShrinkSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in reversed(self._cover(l, r)):
             if F[t] >= x:  # the last covering node with a passing value: walk down it
@@ -318,8 +377,11 @@ class SparseShrinkSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostLtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mn, self.L, self.R
         for t, s, tl in reversed(self._cover(l, r)):
             if F[t] < x:  # the last covering node with a passing value: walk down it
@@ -334,8 +396,11 @@ class SparseShrinkSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostLteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mn, self.L, self.R
         for t, s, tl in reversed(self._cover(l, r)):
             if F[t] <= x:  # the last covering node with a passing value: walk down it
@@ -350,8 +415,11 @@ class SparseShrinkSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums)
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] > x, or lo - 1 (a walk pruned by best suffix sums); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostSuffixSumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, P, L, R = self.sm, self.suf, self.L, self.R
         acc = 0
         for t, s, tl in reversed(self._cover(l, r)):
@@ -369,8 +437,11 @@ class SparseShrinkSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums)
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] >= x, or lo - 1 (a walk pruned by best suffix sums); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostSuffixSumGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostSuffixSumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         sm, P, L, R = self.sm, self.suf, self.L, self.R
         acc = 0
         for t, s, tl in reversed(self._cover(l, r)):

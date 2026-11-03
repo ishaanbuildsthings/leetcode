@@ -46,7 +46,8 @@ struct SortedRunsSumXor {
     vector<S> bs;           // Fenwick: each run's sum, at its start
     vector<T> bx;           // Fenwick (of xors): each run's xor, at its start
 
-    // O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi] (U = valHi - valLo + 1)
+    // O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi] (U = valHi - valLo
+    // + 1)
     SortedRunsSumXor(const vector<T>& arr, long long valLo, long long valHi)
         : n((int)arr.size()), vlo(valLo), vhi(valHi), root(n), len(n, 1), desc(n, 0), bc(n + 1, 1), bs(n + 1, S(0)), bx(n + 1, T(0)) {
         for (int i = 0; i < n; i++) root[i] = leaf(arr[i]);

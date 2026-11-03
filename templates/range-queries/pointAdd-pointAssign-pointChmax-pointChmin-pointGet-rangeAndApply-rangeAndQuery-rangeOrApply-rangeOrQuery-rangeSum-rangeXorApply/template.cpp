@@ -105,17 +105,27 @@ struct BitCountTree {
         return out;
     }
 
-    // O(logN * bits) -- a[i] &= X for i in [l, r]
-    void rangeAndApply(int l, int r, T X) { update(l, r, X & full, 0); }
+    // O(logN * bits) -- a[i] &= X for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeAndApply(int l, int r, T X) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAndApply: needs 0 <= l <= r < n");
+        update(l, r, X & full, 0);
+    }
 
-    // O(logN * bits) -- a[i] |= X for i in [l, r]
-    void rangeOrApply(int l, int r, T X) { update(l, r, ~X & full, X & full); }
+    // O(logN * bits) -- a[i] |= X for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeOrApply(int l, int r, T X) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeOrApply: needs 0 <= l <= r < n");
+        update(l, r, ~X & full, X & full);
+    }
 
-    // O(logN * bits) -- a[i] ^= X for i in [l, r]
-    void rangeXorApply(int l, int r, T X) { update(l, r, full, X & full); }
+    // O(logN * bits) -- a[i] ^= X for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
+    void rangeXorApply(int l, int r, T X) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeXorApply: needs 0 <= l <= r < n");
+        update(l, r, full, X & full);
+    }
 
-    // O(logN * bits) -- a[l] + ... + a[r]
+    // O(logN * bits) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
     S rangeSum(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
         if (l > r) return 0;
         S res = 0;
         for (auto [x, k] : nodes(l, r))
@@ -123,8 +133,9 @@ struct BitCountTree {
         return res;
     }
 
-    // O(logN * bits) -- a[l] & ... & a[r]
+    // O(logN * bits) -- a[l] & ... & a[r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeAndQuery(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAndQuery: needs 0 <= l <= r < n");
         T res = full;
         for (auto [x, k] : nodes(l, r))
             for (int b = 0; b < bits; b++)
@@ -132,8 +143,9 @@ struct BitCountTree {
         return res;
     }
 
-    // O(logN * bits) -- a[l] | ... | a[r]
+    // O(logN * bits) -- a[l] | ... | a[r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeOrQuery(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeOrQuery: needs 0 <= l <= r < n");
         T res = 0;
         for (auto [x, k] : nodes(l, r))
             for (int b = 0; b < bits; b++)
@@ -141,8 +153,9 @@ struct BitCountTree {
         return res;
     }
 
-    // O(logN * bits) -- a[i]
+    // O(logN * bits) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         int p = i + n;
         push(p);
         T v = 0;
@@ -167,8 +180,9 @@ struct BitCountTree {
         return out;
     }
 
-    // O(logN * bits) -- a[i] = v & FULL
+    // O(logN * bits) -- a[i] = v & FULL; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = i + n;
         push(p);
         v &= full;
@@ -176,12 +190,21 @@ struct BitCountTree {
         rebuild(p);
     }
 
-    // O(logN * bits) -- a[i] = (a[i] + delta) & FULL
-    void pointAdd(int i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logN * bits) -- a[i] = (a[i] + delta) & FULL; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logN * bits) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) pointAssign(i, v); }
+    // O(logN * bits) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) pointAssign(i, v);
+    }
 
-    // O(logN * bits) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) pointAssign(i, v); }
+    // O(logN * bits) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) pointAssign(i, v);
+    }
 };

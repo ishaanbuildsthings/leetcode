@@ -33,8 +33,9 @@ struct MaxSegTree {
         for (int x = size - 1; x > 0; x--) tree[x] = max(tree[2 * x], tree[2 * x + 1]);
     }
 
-    // O(logN) -- max of a[l..r]
+    // O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMax(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
         T res = numeric_limits<T>::lowest();
         for (l += size, r += size + 1; l < r; l >>= 1, r >>= 1) {
             if (l & 1) res = max(res, tree[l++]);
@@ -43,8 +44,9 @@ struct MaxSegTree {
         return res;
     }
 
-    // O(logN) -- a[i] = v
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         int p = size + i;
         tree[p] = v;
         for (p >>= 1; p; p >>= 1) {
@@ -60,18 +62,30 @@ struct MaxSegTree {
         pointAssign(i, v);
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return tree[size + i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return tree[size + i];
+    }
 
     // O(N) -- the whole array (a copy of the leaves)
     vector<T> getAll() const { return vector<T>(tree.begin() + size, tree.begin() + size + n); }
 
-    // O(logN) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > tree[size + i]) pointAssign(i, v); }
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > tree[size + i]) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < tree[size + i]) pointAssign(i, v); }
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < tree[size + i]) pointAssign(i, v);
+    }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { pointAssign(i, tree[size + i] + delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, tree[size + i] + delta);
+    }
 };

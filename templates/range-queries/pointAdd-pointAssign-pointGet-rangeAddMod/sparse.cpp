@@ -86,20 +86,30 @@ struct SparseRangeAddBITMod {
 
     T norm(W x) const { return T((x % mod + mod) % mod); }
 
-    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAddMod(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAddMod: needs lo <= l <= r <= hi");
         if (l > r) return;
         T x = norm(v);
         add(l - lo, F{x});
         if (r < hi) add(r + 1 - lo, F{norm(-W(x))});
     }
 
-    // O(logU) -- a[i], in [0, mod)
-    T pointGet(long long i) const { return norm(prefix(i - lo)[0]); }
+    // O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return norm(prefix(i - lo)[0]);
+    }
 
-    // O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { rangeAddMod(i, i, delta); }
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        rangeAddMod(i, i, delta);
+    }
 
-    // O(logU) -- a[i] = v
-    void pointAssign(long long i, T v) { rangeAddMod(i, i, v - pointGet(i)); }
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
+        rangeAddMod(i, i, v - pointGet(i));
+    }
 };

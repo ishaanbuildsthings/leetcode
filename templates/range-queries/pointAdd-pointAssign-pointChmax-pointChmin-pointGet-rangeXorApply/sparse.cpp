@@ -84,28 +84,42 @@ struct SparseRangeXorBIT {
         return s;
     }
 
-    // O(logU) -- a[i] ^= x for i in [l, r]
+    // O(logU) -- a[i] ^= x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeXorApply(long long l, long long r, T x) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeXorApply: needs lo <= l <= r <= hi");
         if (l > r) return;
         add(l - lo, F{x});
         if (r < hi) add(r + 1 - lo, F{x});
     }
 
-    // O(logU) -- a[i]
-    T pointGet(long long i) const { return prefix(i - lo)[0]; }
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return prefix(i - lo)[0];
+    }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         T d = pointGet(i) ^ v;
         if (d) rangeXorApply(i, i, d);
     }
 
-    // O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { pointAssign(i, pointGet(i) + delta); }
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        pointAssign(i, pointGet(i) + delta);
+    }
 
-    // O(logU) -- a[i] = max(a[i], v)
-    void pointChmax(long long i, T v) { T cur = pointGet(i); if (v > cur) rangeXorApply(i, i, cur ^ v); }
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
+        T cur = pointGet(i); if (v > cur) rangeXorApply(i, i, cur ^ v);
+    }
 
-    // O(logU) -- a[i] = min(a[i], v)
-    void pointChmin(long long i, T v) { T cur = pointGet(i); if (v < cur) rangeXorApply(i, i, cur ^ v); }
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
+        T cur = pointGet(i); if (v < cur) rangeXorApply(i, i, cur ^ v);
+    }
 };

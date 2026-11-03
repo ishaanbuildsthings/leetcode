@@ -80,8 +80,10 @@ class MultSumTree:
         self._rebuild(l0)
         self._rebuild(r0)
 
-    # O(logN) -- (a[l] + ... + a[r]) % MOD
+    # O(logN) -- (a[l] + ... + a[r]) % MOD; needs 0 <= l <= r < n, else IndexError
     def rangeSumMod(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSumMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         l += self.n
@@ -101,8 +103,10 @@ class MultSumTree:
             r >>= 1
         return res % self.mod
 
-    # O(logN) -- a[i], in [0, mod)
+    # O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         return self.tot[p]
@@ -120,17 +124,23 @@ class MultSumTree:
                     self.mul[x] = 1
         return self.tot[n:]
 
-    # O(logN) -- a[i] *= m (% MOD) for i in [l, r]
+    # O(logN) -- a[i] *= m (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeMultMod(self, l, r, m):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMultMod: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, m % self.mod)
 
-    # O(logN) -- a[i] = val (% MOD)
+    # O(logN) -- a[i] = val (% MOD); needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         p = i + self.n
         self._push(p)
         self.tot[p] = val % self.mod
         self._rebuild(p)
 
-    # O(logN) -- a[i] += delta (% MOD)
+    # O(logN) -- a[i] += delta (% MOD); needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.pointGet(i) + delta)

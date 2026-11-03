@@ -65,8 +65,9 @@ struct SparseRangeMultModTree {
         if (r > m) update(kid(x, true, m + 1 == b), m + 1, b, l, r, v);
     }
 
-    // O(logU) -- a[i] = a[i] * v (% MOD) for i in [l, r]
+    // O(logU) -- a[i] = a[i] * v (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeMultMod(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeMultMod: needs lo <= l <= r <= hi");
         v = norm(v);
         if (l <= r) update(root, lo, hi, l, r, v);
     }
@@ -89,8 +90,9 @@ struct SparseRangeMultModTree {
         return y;
     }
 
-    // O(logU) -- a[i]
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         T t = T(1), x = 0;
         int y = root;
         long long a = lo, b = hi;
@@ -104,14 +106,16 @@ struct SparseRangeMultModTree {
         return leaf(x, t);
     }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int p = push(i);
         pool[p].v = norm(v);
     }
 
-    // O(logU) -- a[i] += delta
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
     void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         int p = push(i);
         pool[p].v = norm(W(pool[p].v) + delta);
     }

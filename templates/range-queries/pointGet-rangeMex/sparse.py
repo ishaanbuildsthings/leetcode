@@ -27,12 +27,16 @@ class PersistentMex:
         self.n = len(arr)
         self._buildMex()
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]
 
-    # O(logN) -- smallest integer >= 0 that is not in a[l..r]
+    # O(logN) -- smallest integer >= 0 that is not in a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMex(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeMex: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._mexFrom(l, r, 0)
 
     # persistent seg tree over the values 0..n+1: version p holds, per value, its last index before p (-1: none)
@@ -107,13 +111,17 @@ class SparsePersistentMex:
         i0, i1 = bisect_left(self.idx, l), bisect_right(self.idx, r) - 1
         return i0, i1, (r - l + 1) - (i1 - i0 + 1)
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         k = bisect_left(self.idx, i)
         return self.vals[k] if k < len(self.idx) and self.idx[k] == i else 0
 
-    # O(logN) -- smallest integer >= 0 that is not in a[l..r]
+    # O(logN) -- smallest integer >= 0 that is not in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMex(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMex: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         i0, i1, zeros = self._span(l, r)
         if i0 > i1:
             return 1  # all zeros

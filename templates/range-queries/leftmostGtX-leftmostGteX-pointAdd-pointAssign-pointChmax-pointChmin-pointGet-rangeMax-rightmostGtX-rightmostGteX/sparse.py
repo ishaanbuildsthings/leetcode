@@ -32,16 +32,18 @@ INF = float("inf")
 
 
 class SparseMaxSearchTree:
-    __slots__ = ("lo", "size", "mx")
+    __slots__ = ("lo", "hi", "size", "mx")
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; leaf of i is size + (i - lo)
         self.mx = {}
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self.mx[p] = val
         p >>= 1
@@ -50,8 +52,10 @@ class SparseMaxSearchTree:
             self.mx[p] = u if u > w else w
             p >>= 1
 
-    # O(logU) -- max of a[l..r]
+    # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         t, res = self.mx, NEG
         l += self.size - self.lo
         r += self.size - self.lo + 1
@@ -70,8 +74,10 @@ class SparseMaxSearchTree:
             r >>= 1
         return res
 
-    # O(logU) -- first i in [l, r] with a[i] >= x, or lo - 1
+    # O(logU) -- first i in [l, r] with a[i] >= x, or lo - 1; needs lo <= l <= r <= hi, else IndexError
     def leftmostGteX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"leftmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         t, size = self.mx, self.size
         p = l - self.lo + size
         while True:
@@ -88,8 +94,10 @@ class SparseMaxSearchTree:
             if not p & (p - 1):  # walked off the right edge
                 return self.lo - 1
 
-    # O(logU) -- last i in [l, r] with a[i] >= x, or lo - 1
+    # O(logU) -- last i in [l, r] with a[i] >= x, or lo - 1; needs lo <= l <= r <= hi, else IndexError
     def rightmostGteX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rightmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         t, size = self.mx, self.size
         p = r - self.lo + size + 1
         while True:
@@ -106,8 +114,10 @@ class SparseMaxSearchTree:
             if not p & (p - 1):  # walked off the left edge
                 return self.lo - 1
 
-    # O(logU) -- first i in [l, r] with a[i] > x, or lo - 1
+    # O(logU) -- first i in [l, r] with a[i] > x, or lo - 1; needs lo <= l <= r <= hi, else IndexError
     def leftmostGtX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"leftmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         t, size = self.mx, self.size
         p = l - self.lo + size
         while True:
@@ -124,8 +134,10 @@ class SparseMaxSearchTree:
             if not p & (p - 1):  # walked off the right edge
                 return self.lo - 1
 
-    # O(logU) -- last i in [l, r] with a[i] > x, or lo - 1
+    # O(logU) -- last i in [l, r] with a[i] > x, or lo - 1; needs lo <= l <= r <= hi, else IndexError
     def rightmostGtX(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rightmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         t, size = self.mx, self.size
         p = r - self.lo + size + 1
         while True:
@@ -142,20 +154,28 @@ class SparseMaxSearchTree:
             if not p & (p - 1):  # walked off the left edge
                 return self.lo - 1
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self.mx.get(self.size + i - self.lo, 0)
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logU) -- a[i] = max(a[i], val)
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logU) -- a[i] = min(a[i], val)
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

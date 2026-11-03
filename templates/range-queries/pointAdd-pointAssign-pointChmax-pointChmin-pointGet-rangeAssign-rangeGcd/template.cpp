@@ -54,8 +54,9 @@ struct AssignGcdTree {
         for (p >>= 1; p; p >>= 1) t[p] = hasAsg[p] ? absT(asg[p]) : std::gcd(absT(t[2 * p]), absT(t[2 * p + 1]));
     }
 
-    // O(logN logU) -- a[i] = v for i in [l, r]
+    // O(logN logU) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAssign: needs 0 <= l <= r < n");
         if (l > r) return;
         int l0 = l + n, r0 = r + n;
         push(l0), push(r0);
@@ -66,8 +67,10 @@ struct AssignGcdTree {
         rebuild(l0), rebuild(r0);
     }
 
-    // O(logN + logU) -- gcd of |a[l]|, ..., |a[r]| (the gcds telescope, so the fold costs one log U)
+    // O(logN + logU) -- gcd of |a[l]|, ..., |a[r]| (the gcds telescope, so the fold costs one log U); needs
+    // 0 <= l <= r < n, else throws out_of_range
     T rangeGcd(int l, int r) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeGcd: needs 0 <= l <= r < n");
         if (l > r) return 0;
         l += n, r += n;
         push(l), push(r);
@@ -79,8 +82,9 @@ struct AssignGcdTree {
         return res;
     }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         push(i + n);
         return t[i + n];
     }
@@ -93,15 +97,27 @@ struct AssignGcdTree {
         return vector<T>(t.begin() + n, t.end());
     }
 
-    // O(logN logU) -- a[i] = v
-    void pointAssign(int i, T v) { rangeAssign(i, i, v); }
+    // O(logN logU) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        rangeAssign(i, i, v);
+    }
 
-    // O(logN logU) -- a[i] += delta
-    void pointAdd(int i, T delta) { rangeAssign(i, i, pointGet(i) + delta); }
+    // O(logN logU) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        rangeAssign(i, i, pointGet(i) + delta);
+    }
 
-    // O(logN logU) -- a[i] = max(a[i], v)
-    void pointChmax(int i, T v) { if (v > pointGet(i)) rangeAssign(i, i, v); }
+    // O(logN logU) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > pointGet(i)) rangeAssign(i, i, v);
+    }
 
-    // O(logN logU) -- a[i] = min(a[i], v)
-    void pointChmin(int i, T v) { if (v < pointGet(i)) rangeAssign(i, i, v); }
+    // O(logN logU) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < pointGet(i)) rangeAssign(i, i, v);
+    }
 };

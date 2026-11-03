@@ -31,8 +31,9 @@ struct OccurrenceLists {
         sort(pos.begin(), pos.end());
     }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x
+    // O(logN) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else throws out_of_range
     int countOccurrences(int l, int r, const T& x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countOccurrences: needs 0 <= l <= r < size()");
         if (l > r) return 0;
         return int(lower_bound(pos.begin(), pos.end(), pair<T, int>{x, r + 1}) - lower_bound(pos.begin(), pos.end(), pair<T, int>{x, l}));
     }
@@ -43,20 +44,30 @@ struct OccurrenceLists {
     // O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
     int rightmostIndexOf(const T& x) const { return rightmostIndexOfInRange(0, (int)arr.size() - 1, x); }
 
-    // O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
+    // O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    // throws out_of_range
     int leftmostIndexOfInRange(int l, int r, const T& x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostIndexOfInRange: needs 0 <= l <= r < size()");
         auto it = lower_bound(pos.begin(), pos.end(), pair<T, int>{x, l});
         return it != pos.end() && it->first == x && it->second <= r ? it->second : -1;
     }
 
-    // O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
+    // O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    // throws out_of_range
     int rightmostIndexOfInRange(int l, int r, const T& x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostIndexOfInRange: needs 0 <= l <= r < size()");
         auto it = lower_bound(pos.begin(), pos.end(), pair<T, int>{x, r + 1});
         if (it == pos.begin()) return -1;
         --it;
         return it->first == x && it->second >= l ? it->second : -1;
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return arr[i]; }
+    // O(1) -- the length of the array
+    int size() const { return (int)arr.size(); }
+
+    // O(1) -- a[i]; needs 0 <= i < size(), else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
+        return arr[i];
+    }
 };

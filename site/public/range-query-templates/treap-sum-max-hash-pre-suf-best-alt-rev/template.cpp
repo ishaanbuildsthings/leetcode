@@ -62,24 +62,27 @@ struct ImplicitTreap {
     // one node pool shared by every ImplicitTreap<T>: cut / paste move nodes between them, so a piece from one can go
     // into any other (node 0 = the empty tree). Nodes are never freed (memory = every value ever inserted, over the
     // whole run), so there is nothing to reset between test cases
-    static inline vector<T> val{T(0)};
-    static inline vector<unsigned long long> pri{0};
-    static inline vector<int> L{0};
-    static inline vector<int> R{0};
-    static inline vector<int> sz{0};
-    static inline vector<S> sm{0};
-    static inline vector<T> mx{T(0)};
-    static inline vector<U64> fh{0};
-    static inline vector<U64> bh{0};
-    static inline vector<U64> pw{1};
-    static inline vector<S> pre{0};
-    static inline vector<S> suf{0};
-    static inline vector<S> best{0};
-    static inline vector<S> a00{0};
-    static inline vector<S> a01{0};
-    static inline vector<S> a10{0};
-    static inline vector<S> a11{0};
-    static inline vector<char> rev{0};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        unsigned long long pri = 0;
+        U64 fh = 0;
+        U64 bh = 0;
+        U64 pw = 1;
+        S sm = 0;
+        S pre = 0;
+        S suf = 0;
+        S best = 0;
+        S a00 = 0;
+        S a01 = 0;
+        S a10 = 0;
+        S a11 = 0;
+        T val = T(0);
+        T mx = T(0);
+        int L = 0;
+        int R = 0;
+        int sz = 0;
+        char rev = 0;
+    };
+    static inline vector<Node> nd{Node{}};  // node 0 = the empty tree
     int root = 0;
 
     // O(N) -- arr: the initial array (leave it out to start empty)
@@ -117,7 +120,7 @@ struct ImplicitTreap {
 
 
     // O(1) -- the current length of the array
-    int size() const { return sz[root]; }
+    int size() const { return nd[root].sz; }
 
     // O(logN) expected -- append v to the end
     void append(T v) { root = merge(root, newNode(v)); }
@@ -142,10 +145,10 @@ struct ImplicitTreap {
         vector<int> st;
         int t = root;
         while (!st.empty() || t) {
-            while (t) push(t), st.push_back(t), t = L[t];
+            while (t) push(t), st.push_back(t), t = nd[t].L;
             t = st.back(), st.pop_back();
-            out.push_back(val[t]);
-            t = R[t];
+            out.push_back(nd[t].val);
+            t = nd[t].R;
         }
         return out;
     }
@@ -169,7 +172,7 @@ struct ImplicitTreap {
     bool isPalindrome(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
-        bool res = fh[b] == bh[b];
+        bool res = nd[b].fh == nd[b].bh;
         root = merge(merge(a, b), c);
         return res;
     }
@@ -179,12 +182,12 @@ struct ImplicitTreap {
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mx[t] > x) {  // some value in a[l..r] passes
+        if (t && nd[t].mx > x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (L[t] && mx[L[t]] > x) t = L[t];
-                else if (val[t] > x) { res = l + i + sz[L[t]]; break; }
-                else i += sz[L[t]] + 1, t = R[t];
+                if (nd[t].L && nd[nd[t].L].mx > x) t = nd[t].L;
+                else if (nd[t].val > x) { res = l + i + nd[nd[t].L].sz; break; }
+                else i += nd[nd[t].L].sz + 1, t = nd[t].R;
             }
         }
         root = merge(merge(a, b), c);
@@ -196,12 +199,12 @@ struct ImplicitTreap {
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mx[t] >= x) {  // some value in a[l..r] passes
+        if (t && nd[t].mx >= x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (L[t] && mx[L[t]] >= x) t = L[t];
-                else if (val[t] >= x) { res = l + i + sz[L[t]]; break; }
-                else i += sz[L[t]] + 1, t = R[t];
+                if (nd[t].L && nd[nd[t].L].mx >= x) t = nd[t].L;
+                else if (nd[t].val >= x) { res = l + i + nd[nd[t].L].sz; break; }
+                else i += nd[nd[t].L].sz + 1, t = nd[t].R;
             }
         }
         root = merge(merge(a, b), c);
@@ -214,14 +217,14 @@ struct ImplicitTreap {
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
         S acc = 0;
-        if (t && pre[t] > S(x)) {
+        if (t && nd[t].pre > S(x)) {
             while (true) {
                 push(t);
-                int lt = L[t];
-                if (lt && acc + pre[lt] > S(x)) { t = lt; continue; }
-                acc += sm[lt];
-                if (acc + S(val[t]) > S(x)) { res = l + i + sz[lt]; break; }
-                acc += S(val[t]), i += sz[lt] + 1, t = R[t];
+                int lt = nd[t].L;
+                if (lt && acc + nd[lt].pre > S(x)) { t = lt; continue; }
+                acc += nd[lt].sm;
+                if (acc + S(nd[t].val) > S(x)) { res = l + i + nd[lt].sz; break; }
+                acc += S(nd[t].val), i += nd[lt].sz + 1, t = nd[t].R;
             }
         }
         root = merge(merge(a, b), c);
@@ -234,14 +237,14 @@ struct ImplicitTreap {
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
         S acc = 0;
-        if (t && pre[t] >= S(x)) {
+        if (t && nd[t].pre >= S(x)) {
             while (true) {
                 push(t);
-                int lt = L[t];
-                if (lt && acc + pre[lt] >= S(x)) { t = lt; continue; }
-                acc += sm[lt];
-                if (acc + S(val[t]) >= S(x)) { res = l + i + sz[lt]; break; }
-                acc += S(val[t]), i += sz[lt] + 1, t = R[t];
+                int lt = nd[t].L;
+                if (lt && acc + nd[lt].pre >= S(x)) { t = lt; continue; }
+                acc += nd[lt].sm;
+                if (acc + S(nd[t].val) >= S(x)) { res = l + i + nd[lt].sz; break; }
+                acc += S(nd[t].val), i += nd[lt].sz + 1, t = nd[t].R;
             }
         }
         root = merge(merge(a, b), c);
@@ -252,7 +255,7 @@ struct ImplicitTreap {
     S maxAltSubseqSum(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
-        S res = max(a00[b], a01[b]);
+        S res = max(nd[b].a00, nd[b].a01);
         root = merge(merge(a, b), c);
         return res;
     }
@@ -261,7 +264,7 @@ struct ImplicitTreap {
     S maxPrefixSum(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
-        S res = pre[b];
+        S res = nd[b].pre;
         root = merge(merge(a, b), c);
         return res;
     }
@@ -270,7 +273,7 @@ struct ImplicitTreap {
     S maxSubarraySum(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
-        S res = best[b];
+        S res = nd[b].best;
         root = merge(merge(a, b), c);
         return res;
     }
@@ -279,7 +282,7 @@ struct ImplicitTreap {
     S maxSuffixSum(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
-        S res = suf[b];
+        S res = nd[b].suf;
         root = merge(merge(a, b), c);
         return res;
     }
@@ -300,7 +303,7 @@ struct ImplicitTreap {
     void pointAdd(int i, T v) {
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = val[t] + v;
+        nd[t].val = nd[t].val + v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
@@ -309,7 +312,7 @@ struct ImplicitTreap {
     void pointAssign(int i, T v) {
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = v;
+        nd[t].val = v;
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
@@ -318,7 +321,7 @@ struct ImplicitTreap {
     void pointChmax(int i, T v) {
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = max(val[t], v);
+        nd[t].val = max(nd[t].val, v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
@@ -327,19 +330,19 @@ struct ImplicitTreap {
     void pointChmin(int i, T v) {
         vector<int> path;
         int t = locate(i, &path);
-        val[t] = min(val[t], v);
+        nd[t].val = min(nd[t].val, v);
         pull(t);
         for (int k = (int)path.size() - 1; k >= 0; k--) pull(path[k]);
     }
 
     // O(logN) expected -- a[i]
-    T pointGet(int i) { return val[locate(i)]; }
+    T pointGet(int i) { return nd[locate(i)].val; }
 
     // O(logN) expected -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal
     U64 rangeHash(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
-        U64 res = fh[b];
+        U64 res = nd[b].fh;
         root = merge(merge(a, b), c);
         return res;
     }
@@ -348,7 +351,7 @@ struct ImplicitTreap {
     U64 rangeHashReversed(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
-        U64 res = bh[b];
+        U64 res = nd[b].bh;
         root = merge(merge(a, b), c);
         return res;
     }
@@ -357,7 +360,7 @@ struct ImplicitTreap {
     T rangeMax(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
-        T res = mx[b];
+        T res = nd[b].mx;
         root = merge(merge(a, b), c);
         return res;
     }
@@ -392,7 +395,7 @@ struct ImplicitTreap {
     S rangeSum(int l, int r) {
         int a, b, c;
         cut(l, r, a, b, c);
-        S res = sm[b];
+        S res = nd[b].sm;
         root = merge(merge(a, b), c);
         return res;
     }
@@ -407,12 +410,12 @@ struct ImplicitTreap {
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mx[t] > x) {  // some value in a[l..r] passes
+        if (t && nd[t].mx > x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (R[t] && mx[R[t]] > x) i += sz[L[t]] + 1, t = R[t];
-                else if (val[t] > x) { res = l + i + sz[L[t]]; break; }
-                else t = L[t];
+                if (nd[t].R && nd[nd[t].R].mx > x) i += nd[nd[t].L].sz + 1, t = nd[t].R;
+                else if (nd[t].val > x) { res = l + i + nd[nd[t].L].sz; break; }
+                else t = nd[t].L;
             }
         }
         root = merge(merge(a, b), c);
@@ -424,12 +427,12 @@ struct ImplicitTreap {
         int a, b, c;
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
-        if (t && mx[t] >= x) {  // some value in a[l..r] passes
+        if (t && nd[t].mx >= x) {  // some value in a[l..r] passes
             while (true) {
                 push(t);
-                if (R[t] && mx[R[t]] >= x) i += sz[L[t]] + 1, t = R[t];
-                else if (val[t] >= x) { res = l + i + sz[L[t]]; break; }
-                else t = L[t];
+                if (nd[t].R && nd[nd[t].R].mx >= x) i += nd[nd[t].L].sz + 1, t = nd[t].R;
+                else if (nd[t].val >= x) { res = l + i + nd[nd[t].L].sz; break; }
+                else t = nd[t].L;
             }
         }
         root = merge(merge(a, b), c);
@@ -442,14 +445,14 @@ struct ImplicitTreap {
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
         S acc = 0;
-        if (t && suf[t] > S(x)) {
+        if (t && nd[t].suf > S(x)) {
             while (true) {
                 push(t);
-                int rt = R[t];
-                if (rt && acc + suf[rt] > S(x)) { i += sz[L[t]] + 1, t = rt; continue; }
-                acc += sm[rt];
-                if (acc + S(val[t]) > S(x)) { res = l + i + sz[L[t]]; break; }
-                acc += S(val[t]), t = L[t];
+                int rt = nd[t].R;
+                if (rt && acc + nd[rt].suf > S(x)) { i += nd[nd[t].L].sz + 1, t = rt; continue; }
+                acc += nd[rt].sm;
+                if (acc + S(nd[t].val) > S(x)) { res = l + i + nd[nd[t].L].sz; break; }
+                acc += S(nd[t].val), t = nd[t].L;
             }
         }
         root = merge(merge(a, b), c);
@@ -462,14 +465,14 @@ struct ImplicitTreap {
         cut(l, r, a, b, c);
         int t = b, i = 0, res = -1;
         S acc = 0;
-        if (t && suf[t] >= S(x)) {
+        if (t && nd[t].suf >= S(x)) {
             while (true) {
                 push(t);
-                int rt = R[t];
-                if (rt && acc + suf[rt] >= S(x)) { i += sz[L[t]] + 1, t = rt; continue; }
-                acc += sm[rt];
-                if (acc + S(val[t]) >= S(x)) { res = l + i + sz[L[t]]; break; }
-                acc += S(val[t]), t = L[t];
+                int rt = nd[t].R;
+                if (rt && acc + nd[rt].suf >= S(x)) { i += nd[nd[t].L].sz + 1, t = rt; continue; }
+                acc += nd[rt].sm;
+                if (acc + S(nd[t].val) >= S(x)) { res = l + i + nd[nd[t].L].sz; break; }
+                acc += S(nd[t].val), t = nd[t].L;
             }
         }
         root = merge(merge(a, b), c);
@@ -495,11 +498,12 @@ struct ImplicitTreap {
     // ---- internals ----
 
     int newNode(T v) {
-        val.push_back(v), pri.push_back(rnd()), L.push_back(0), R.push_back(0), sz.push_back(1);
-        sm.push_back(S(v)), mx.push_back(v), fh.push_back(hval(v)), bh.push_back(hval(v)), pw.push_back(HB());
-        pre.push_back(S(v)), suf.push_back(S(v)), best.push_back(S(v)), a00.push_back(S(v)), a01.push_back(NEG);
-        a10.push_back(NEG), a11.push_back(-S(v)), rev.push_back(0);
-        return (int)val.size() - 1;
+        Node n;
+        n.val = v, n.pri = rnd(), n.L = 0, n.R = 0, n.sz = 1, n.sm = S(v), n.mx = v, n.fh = hval(v), n.bh = hval(v),
+        n.pw = HB(), n.pre = S(v), n.suf = S(v), n.best = S(v), n.a00 = S(v), n.a01 = NEG, n.a10 = NEG, n.a11 = -S(v),
+        n.rev = 0;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     // A's part, then B's: the best alternating sums by (start sign, end sign) = (++, +-, -+, --)
@@ -513,9 +517,9 @@ struct ImplicitTreap {
         vector<int> stk, order, todo;
         for (const T& v : vals) {
             int x = newNode(v), last = 0;
-            while (!stk.empty() && pri[stk.back()] < pri[x]) last = stk.back(), stk.pop_back();
-            L[x] = last;
-            if (!stk.empty()) R[stk.back()] = x;
+            while (!stk.empty() && nd[stk.back()].pri < nd[x].pri) last = stk.back(), stk.pop_back();
+            nd[x].L = last;
+            if (!stk.empty()) nd[stk.back()].R = x;
             stk.push_back(x);
         }
         int rt = stk.empty() ? 0 : stk[0];
@@ -523,69 +527,70 @@ struct ImplicitTreap {
         while (!todo.empty()) {
             int x = todo.back();
             todo.pop_back(), order.push_back(x);
-            if (L[x]) todo.push_back(L[x]);
-            if (R[x]) todo.push_back(R[x]);
+            if (nd[x].L) todo.push_back(nd[x].L);
+            if (nd[x].R) todo.push_back(nd[x].R);
         }
         for (int k = (int)order.size() - 1; k >= 0; k--) pull(order[k]);
         return rt;
     }
 
     void pull(int x) {  // recompute x from its children
-        int l = L[x], r = R[x];
-        sz[x] = sz[l] + sz[r] + 1;
-        T v = val[x];
+        int l = nd[x].L, r = nd[x].R;
+        nd[x].sz = nd[l].sz + nd[r].sz + 1;
+        T v = nd[x].val;
         S s = S(v), p = S(v), q = S(v), b = S(v);  // the node alone, then with its left / right parts
         if (l) {
-            S ls = sm[l], lp = pre[l], lq = suf[l], lb = best[l];
+            S ls = nd[l].sm, lp = nd[l].pre, lq = nd[l].suf, lb = nd[l].best;
             S ns = ls + s, np = max(lp, ls + p), nq = max(q, s + lq), nb = max({lb, b, lq + p});
             s = ns, p = np, q = nq, b = nb;
         }
         if (r) {
-            S rs = sm[r], rp = pre[r], rq = suf[r], rb = best[r];
+            S rs = nd[r].sm, rp = nd[r].pre, rq = nd[r].suf, rb = nd[r].best;
             S ns = s + rs, np = max(p, s + rp), nq = max(rq, rs + q), nb = max({b, rb, q + rp});
             s = ns, p = np, q = nq, b = nb;
         }
-        sm[x] = s, pre[x] = p, suf[x] = q, best[x] = b;
-        mx[x] = v;
-        if (l && mx[l] > mx[x]) mx[x] = mx[l];
-        if (r && mx[r] > mx[x]) mx[x] = mx[r];
+        nd[x].sm = s, nd[x].pre = p, nd[x].suf = q, nd[x].best = b;
+        nd[x].mx = v;
+        if (l && nd[l].mx > nd[x].mx) nd[x].mx = nd[l].mx;
+        if (r && nd[r].mx > nd[x].mx) nd[x].mx = nd[r].mx;
         U64 B = HB(), hv = hval(v);
-        pw[x] = hmul(hmul(pw[l], B), pw[r]);
-        fh[x] = hadd(hmul(hadd(hmul(fh[l], B), hv), pw[r]), fh[r]);
-        bh[x] = hadd(hmul(hadd(hmul(bh[r], B), hv), pw[l]), bh[l]);
+        nd[x].pw = hmul(hmul(nd[l].pw, B), nd[r].pw);
+        nd[x].fh = hadd(hmul(hadd(hmul(nd[l].fh, B), hv), nd[r].pw), nd[r].fh);
+        nd[x].bh = hadd(hmul(hadd(hmul(nd[r].bh, B), hv), nd[l].pw), nd[l].bh);
         array<S, 4> c{S(v), NEG, NEG, -S(v)};
-        if (l) c = altJoin({a00[l], a01[l], a10[l], a11[l]}, c);
-        if (r) c = altJoin(c, {a00[r], a01[r], a10[r], a11[r]});
-        a00[x] = c[0], a01[x] = c[1], a10[x] = c[2], a11[x] = c[3];
+        if (l) c = altJoin({nd[l].a00, nd[l].a01, nd[l].a10, nd[l].a11}, c);
+        if (r) c = altJoin(c, {nd[r].a00, nd[r].a01, nd[r].a10, nd[r].a11});
+        nd[x].a00 = c[0], nd[x].a01 = c[1], nd[x].a10 = c[2], nd[x].a11 = c[3];
     }
 
     void applyRev(int x) {  // reverse x's subtree
         if (!x) return;
-        swap(L[x], R[x]), rev[x] ^= 1, swap(fh[x], bh[x]), swap(pre[x], suf[x]), swap(a01[x], a10[x]);
+        swap(nd[x].L, nd[x].R), nd[x].rev ^= 1, swap(nd[x].fh, nd[x].bh), swap(nd[x].pre, nd[x].suf),
+            swap(nd[x].a01, nd[x].a10);
     }
 
     void push(int x) {  // hand x's pending tags to its children
-        if (rev[x]) applyRev(L[x]), applyRev(R[x]), rev[x] = 0;
+        if (nd[x].rev) applyRev(nd[x].L), applyRev(nd[x].R), nd[x].rev = 0;
     }
 
     void split(int t, int k, int& a, int& b) {  // a = first k of t, b = the rest
         if (!t) { a = b = 0; return; }
         push(t);
-        if (sz[L[t]] >= k) split(L[t], k, a, L[t]), b = t;
-        else split(R[t], k - sz[L[t]] - 1, R[t], b), a = t;
+        if (nd[nd[t].L].sz >= k) split(nd[t].L, k, a, nd[t].L), b = t;
+        else split(nd[t].R, k - nd[nd[t].L].sz - 1, nd[t].R, b), a = t;
         pull(t);
     }
 
     int merge(int a, int b) {  // a's elements, then b's
         if (!a || !b) return a | b;
-        if (pri[a] > pri[b]) {
+        if (nd[a].pri > nd[b].pri) {
             push(a);
-            R[a] = merge(R[a], b);
+            nd[a].R = merge(nd[a].R, b);
             pull(a);
             return a;
         }
         push(b);
-        L[b] = merge(a, L[b]);
+        nd[b].L = merge(a, nd[b].L);
         pull(b);
         return b;
     }
@@ -599,11 +604,11 @@ struct ImplicitTreap {
         int t = root;
         while (true) {
             push(t);
-            int ls = sz[L[t]];
+            int ls = nd[nd[t].L].sz;
             if (i == ls) return t;
             if (path) path->push_back(t);
-            if (i < ls) t = L[t];
-            else i -= ls + 1, t = R[t];
+            if (i < ls) t = nd[t].L;
+            else i -= ls + 1, t = nd[t].R;
         }
     }
 };

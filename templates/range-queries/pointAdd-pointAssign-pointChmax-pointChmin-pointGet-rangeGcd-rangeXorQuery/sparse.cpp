@@ -37,46 +37,53 @@ struct SparseSegTree {
         newZero(D);
     }
 
-    // O(logU * logU) -- a[i] += v
+    // O(logU * logU) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
     void pointAdd(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointAdd: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, T(leaf(x) + v)), up(path);
     }
 
-    // O(logU * logU) -- a[i] = v
+    // O(logU * logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, v), up(path);
     }
 
-    // O(logU * logU) -- a[i] = max(a[i], v)
+    // O(logU * logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmax(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointChmax: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, max(leaf(x), v)), up(path);
     }
 
-    // O(logU * logU) -- a[i] = min(a[i], v)
+    // O(logU * logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmin(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointChmin: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, min(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i]
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) {
+        if (i < first || i > last) throw out_of_range("pointGet: needs lo <= i <= hi");
         int path[64];
         return leaf(leafOf(i, path));
     }
 
-    // O(logU + logU) -- gcd of |a[l]|, ..., |a[r]|
+    // O(logU + logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeGcd(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
         for (int i = 0; i < c; i++) res = gcd(res, g[ns[i]]);
         return res;
     }
 
-    // O(logU) -- a[l] ^ ... ^ a[r]
+    // O(logU) -- a[l] ^ ... ^ a[r]; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeXorQuery(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeXorQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
         for (int i = 0; i < c; i++) res ^= xr[ns[i]];

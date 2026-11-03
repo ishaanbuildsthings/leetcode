@@ -96,8 +96,10 @@ class SqrtOccurrences:
                 for i in range(max(l, lo), min(r, hi) + 1):
                     self._set(b, i, edit(self.vals[i]))
 
-    # O(sqrt N) -- a[i] += x for i in [l, r]
+    # O(sqrt N) -- a[i] += x for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAdd(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return
 
@@ -105,8 +107,10 @@ class SqrtOccurrences:
             self.add[b] += x
         self._apply(l, r, tag, lambda v: v + x)
 
-    # O(sqrt N) -- a[i] = x for i in [l, r]
+    # O(sqrt N) -- a[i] = x for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return
 
@@ -115,8 +119,10 @@ class SqrtOccurrences:
             self.add[b] = 0
         self._apply(l, r, tag, lambda v: x)
 
-    # O(sqrt N) -- # of i in [l, r] with a[i] == x
+    # O(sqrt N) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < n, else IndexError
     def countOccurrences(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"countOccurrences: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         B, res = self.B, 0
@@ -143,12 +149,18 @@ class SqrtOccurrences:
     def rightmostIndexOf(self, x):
         return self._search(0, self.n - 1, x, True)
 
-    # O(sqrt N) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
+    # O(sqrt N) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < n, else
+    # IndexError
     def leftmostIndexOfInRange(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostIndexOfInRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._search(l, r, x, False)
 
-    # O(sqrt N) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
+    # O(sqrt N) -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < n, else
+    # IndexError
     def rightmostIndexOfInRange(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostIndexOfInRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._search(l, r, x, True)
 
     # the first (rev: last) i in [l, r] with a[i] == x, or -1
@@ -173,8 +185,10 @@ class SqrtOccurrences:
                     return i
         return -1
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         b = i // self.B
         asg = self.asg[b]
         return (asg if asg is not None else self.vals[i]) + self.add[b]
@@ -183,22 +197,30 @@ class SqrtOccurrences:
     def getAll(self):
         return [self.pointGet(i) for i in range(self.n)]
 
-    # O(sqrt N) -- a[i] = val
+    # O(sqrt N) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         b = i // self.B
         self._push(b)
         self._set(b, i, val)
 
-    # O(sqrt N) -- a[i] += delta
+    # O(sqrt N) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(sqrt N) -- a[i] = max(a[i], val)
+    # O(sqrt N) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(sqrt N) -- a[i] = min(a[i], val)
+    # O(sqrt N) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

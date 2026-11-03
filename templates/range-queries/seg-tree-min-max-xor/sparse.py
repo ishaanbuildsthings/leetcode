@@ -50,8 +50,11 @@ class SparseSegTree:
         self.xr = [0]
         self._newZero(self.D)
 
-    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in self._cover(l, r):
             if F[t] > x:  # the first covering node with a passing value: walk down it
@@ -65,8 +68,11 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in self._cover(l, r):
             if F[t] >= x:  # the first covering node with a passing value: walk down it
@@ -80,8 +86,11 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the first i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostLtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mn, self.L, self.R
         for t, s, tl in self._cover(l, r):
             if F[t] < x:  # the first covering node with a passing value: walk down it
@@ -95,8 +104,11 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the first i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def leftmostLteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mn, self.L, self.R
         for t, s, tl in self._cover(l, r):
             if F[t] <= x:  # the first covering node with a passing value: walk down it
@@ -110,59 +122,78 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- a[i] += v
+    # O(logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, self._leaf(x) + v)
         self._up(path)
 
-    # O(logU) -- a[i] = v
+    # O(logU) -- a[i] = v; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, v)
         self._up(path)
 
-    # O(logU) -- a[i] = max(a[i], v)
+    # O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, max(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i] = min(a[i], v)
+    # O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, v):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         x, path = self._leafOf(i)
         self._setLeaf(x, min(self._leaf(x), v))
         self._up(path)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.first <= i <= self.last:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU) -- max of a[l..r]
+    # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         mx, res = self.mx, NEG
         for t, _ in self._nodes(l, r):
             if mx[t] > res:
                 res = mx[t]
         return res
 
-    # O(logU) -- min of a[l..r]
+    # O(logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         mn, res = self.mn, INF
         for t, _ in self._nodes(l, r):
             if mn[t] < res:
                 res = mn[t]
         return res
 
-    # O(logU) -- a[l] ^ ... ^ a[r]
+    # O(logU) -- a[l] ^ ... ^ a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeXorQuery(self, l, r):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rangeXorQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         xr, res = self.xr, 0
         for t, _ in self._nodes(l, r):
             res ^= xr[t]
         return res
 
-    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostGtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in reversed(self._cover(l, r)):
             if F[t] > x:  # the last covering node with a passing value: walk down it
@@ -176,8 +207,11 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max)
+    # O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostGteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mx, self.L, self.R
         for t, s, tl in reversed(self._cover(l, r)):
             if F[t] >= x:  # the last covering node with a passing value: walk down it
@@ -191,8 +225,11 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the last i in [l, r] with a[i] < x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostLtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mn, self.L, self.R
         for t, s, tl in reversed(self._cover(l, r)):
             if F[t] < x:  # the last covering node with a passing value: walk down it
@@ -206,8 +243,11 @@ class SparseSegTree:
                 return tl
         return self.first - 1
 
-    # O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min)
+    # O(logU) -- the last i in [l, r] with a[i] <= x, or lo - 1 (a walk pruned by the node min); needs
+    # lo <= l <= r <= hi, else IndexError
     def rightmostLteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         F, L, R = self.mn, self.L, self.R
         for t, s, tl in reversed(self._cover(l, r)):
             if F[t] <= x:  # the last covering node with a passing value: walk down it

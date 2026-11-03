@@ -90,20 +90,29 @@ class ChminChmaxTree:
             l >>= 1
             r >>= 1
 
-    # O(logN) -- a[i] = v for i in [l, r]
+    # O(logN) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, v, v)
 
-    # O(logN) -- a[i] = max(a[i], v) for i in [l, r]
+    # O(logN) -- a[i] = max(a[i], v) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeChmax(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeChmax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, INF, v)
 
-    # O(logN) -- a[i] = min(a[i], v) for i in [l, r]
+    # O(logN) -- a[i] = min(a[i], v) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeChmin(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeChmin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._update(l, r, v, NEG)
 
-    # O(logN) -- a[i]: start from the leaf and apply ancestors' clamps bottom-up (deeper tags are older)
+    # O(logN) -- a[i]: start from the leaf and apply ancestors' clamps bottom-up (deeper tags are older); needs
+    # 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         A, B = self.A, self.B
         v = self.val[i]
         p = (i + self.n) >> 1
@@ -131,19 +140,25 @@ class ChminChmaxTree:
                 B[x] = NEG
         return list(self.val)
 
-    # O(logN) -- a[i] = v
+    # O(logN) -- a[i] = v; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._push(i + self.n)
         self.val[i] = v
 
-    # O(logN) -- a[i] = max(a[i], v)
+    # O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._push(i + self.n)
         if v > self.val[i]:
             self.val[i] = v
 
-    # O(logN) -- a[i] = min(a[i], v)
+    # O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self._push(i + self.n)
         if v < self.val[i]:
             self.val[i] = v

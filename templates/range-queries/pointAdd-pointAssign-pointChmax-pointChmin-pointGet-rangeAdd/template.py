@@ -42,14 +42,18 @@ class RangeAddBIT:
             tree[i] += v
             i += i & -i
 
-    # O(logN) -- a[i] for i in [l, r] += v
+    # O(logN) -- a[i] for i in [l, r] += v; needs 0 <= l <= r < n, else IndexError
     def rangeAdd(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         self._add(l, v)
         if r + 1 < self.n:
             self._add(r + 1, -v)
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         tree = self.tree
         s = 0
         i += 1
@@ -73,22 +77,30 @@ class RangeAddBIT:
             out.append(s)
         return out
 
-    # O(logN) -- a[i] += delta
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAdd(i, i, delta)
 
-    # O(logN) -- a[i] = val
+    # O(logN) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAdd(i, i, val - self.pointGet(i))
 
-    # O(logN) -- a[i] = max(a[i], val)
+    # O(logN) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         cur = self.pointGet(i)
         if val > cur:
             self.rangeAdd(i, i, val - cur)
 
-    # O(logN) -- a[i] = min(a[i], val)
+    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         cur = self.pointGet(i)
         if val < cur:
             self.rangeAdd(i, i, val - cur)

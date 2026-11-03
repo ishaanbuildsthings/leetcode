@@ -43,15 +43,17 @@ struct RangeAddBITMod {
         for (i++; i <= n; i += i & -i) tree[i] = norm(W(tree[i]) + v);
     }
 
-    // O(logN) -- a[i] += v (% MOD) for i in [l, r]
+    // O(logN) -- a[i] += v (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAddMod(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAddMod: needs 0 <= l <= r < n");
         v = norm(v);
         add(l, v);
         if (r + 1 < n) add(r + 1, norm(-W(v)));
     }
 
-    // O(logN) -- a[i], in [0, mod)
+    // O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         W s = 0;
         for (i++; i > 0; i &= i - 1) s += tree[i];
         return norm(s);
@@ -70,9 +72,15 @@ struct RangeAddBITMod {
         return out;
     }
 
-    // O(logN) -- a[i] += delta (% MOD)
-    void pointAdd(int i, T delta) { rangeAddMod(i, i, delta); }
+    // O(logN) -- a[i] += delta (% MOD); needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        rangeAddMod(i, i, delta);
+    }
 
-    // O(logN) -- a[i] = v (% MOD)
-    void pointAssign(int i, T v) { rangeAddMod(i, i, norm(W(v) - pointGet(i))); }
+    // O(logN) -- a[i] = v (% MOD); needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        rangeAddMod(i, i, norm(W(v) - pointGet(i)));
+    }
 };

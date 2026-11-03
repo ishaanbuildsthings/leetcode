@@ -80,12 +80,17 @@ struct DynamicDistinctBIT {
         nxt[i] = v;
     }
 
-    // O(log^2 N) -- # of distinct values in a[l..r]
-    int countDistinct(int l, int r) const { return l > r ? 0 : countPast(r, r) - countPast(l - 1, r); }
+    // O(log^2 N) -- # of distinct values in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    int countDistinct(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countDistinct: needs 0 <= l <= r < n");
+        return l > r ? 0 : countPast(r, r) - countPast(l - 1, r);
+    }
 
     // O(log^2 N) -- a[i] = v; rewires i's old predecessor, i's new predecessor, and i. The order matters: no two
-    // positions may share an nxt value < n at any moment, because the order-statistics trees are sets
+    // positions may share an nxt value < n at any moment, because the order-statistics trees are sets; needs
+    // 0 <= i < n, else throws out_of_range
     void pointAssign(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         if (a[i] == v) return;
         auto oldIt = chains.find(a[i]);
         set<int>& from = oldIt->second;
@@ -105,18 +110,30 @@ struct DynamicDistinctBIT {
         a[i] = v;
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return a[i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return a[i];
+    }
 
     // O(N) -- the whole array (a copy)
     vector<T> getAll() const { return a; }
 
-    // O(log^2 N) -- a[i] += delta
-    void pointAdd(int i, const T& delta) { pointAssign(i, a[i] + delta); }
+    // O(log^2 N) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, const T& delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, a[i] + delta);
+    }
 
-    // O(log^2 N) -- a[i] = max(a[i], v)
-    void pointChmax(int i, const T& v) { if (v > a[i]) pointAssign(i, v); }
+    // O(log^2 N) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmax(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > a[i]) pointAssign(i, v);
+    }
 
-    // O(log^2 N) -- a[i] = min(a[i], v)
-    void pointChmin(int i, const T& v) { if (v < a[i]) pointAssign(i, v); }
+    // O(log^2 N) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    void pointChmin(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < a[i]) pointAssign(i, v);
+    }
 };

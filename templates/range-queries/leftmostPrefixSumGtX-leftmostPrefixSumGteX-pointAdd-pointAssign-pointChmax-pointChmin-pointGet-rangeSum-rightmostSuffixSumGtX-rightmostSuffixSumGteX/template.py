@@ -36,8 +36,10 @@ class BIT:
             if j <= n:
                 tree[j] += tree[i]
 
-    # O(logN) -- a[i] += delta
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         i += 1
         while i <= self.n:
             self.tree[i] += delta
@@ -52,16 +54,20 @@ class BIT:
             i -= i & (-i)
         return s
 
-    # gets sum l...r
+    # gets sum l...r; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
         if l == 0:
             return self.queryPf(r)
         return self.queryPf(r) - self.queryPf(l - 1)
 
-    # O(logN) -- a[i] in one walk instead of two prefix sums
+    # O(logN) -- a[i] in one walk instead of two prefix sums; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         tree = self.tree
         i += 1
         val = tree[i]
@@ -83,18 +89,24 @@ class BIT:
                 t[j] -= t[i]
         return t[1:]
 
-    # O(logN) -- a[i] = val
+    # O(logN) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAdd(i, val - self.pointGet(i))
 
-    # O(logN) -- a[i] = max(a[i], val)
+    # O(logN) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         cur = self.pointGet(i)
         if val > cur:
             self.pointAdd(i, val - cur)
 
-    # O(logN) -- a[i] = min(a[i], val)
+    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         cur = self.pointGet(i)
         if val < cur:
             self.pointAdd(i, val - cur)
@@ -113,32 +125,42 @@ class BIT:
             step >>= 1
         return pos
 
-    # O(logN) -- first i in [l, r] with a[l] + ... + a[i] >= x, or -1. Needs every a[i] >= 0.
-    # e.g. on a 0/1 array, leftmostPrefixSumGteX(0, n - 1, k) is the index of the k-th one.
+    # O(logN) -- first i in [l, r] with a[l] + ... + a[i] >= x, or -1. Needs every a[i] >= 0. e.g. on a 0/1 array,
+    # leftmostPrefixSumGteX(0, n - 1, k) is the index of the k-th one.; needs 0 <= l <= r < n, else IndexError
     def leftmostPrefixSumGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostPrefixSumGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         i = self._prefixLowerBound(self.queryPf(l - 1) + x, False)
         if i < l:
             i = l
         return i if i <= r else -1
 
-    # O(logN) -- first i in [l, r] with a[l] + ... + a[i] > x, or -1. Needs every a[i] >= 0.
+    # O(logN) -- first i in [l, r] with a[l] + ... + a[i] > x, or -1. Needs every a[i] >= 0.; needs 0 <= l <= r < n,
+    # else IndexError
     def leftmostPrefixSumGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostPrefixSumGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         i = self._prefixLowerBound(self.queryPf(l - 1) + x, True)
         if i < l:
             i = l
         return i if i <= r else -1
 
-    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1. Needs every a[i] >= 0.
-    # That is the last i with a[0] + ... + a[i - 1] <= prefix(r) - x: one binary lift.
+    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] >= x, or -1. Needs every a[i] >= 0. That is the last i with
+    # a[0] + ... + a[i - 1] <= prefix(r) - x: one binary lift.; needs 0 <= l <= r < n, else IndexError
     def rightmostSuffixSumGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostSuffixSumGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         t = self.queryPf(r) - x
         if t < 0:
             return -1
         i = min(r, self._prefixLowerBound(t, True))
         return i if i >= l else -1
 
-    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1. Needs every a[i] >= 0.
+    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1. Needs every a[i] >= 0.; needs 0 <= l <= r < n,
+    # else IndexError
     def rightmostSuffixSumGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostSuffixSumGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         t = self.queryPf(r) - x
         if t <= 0:
             return -1

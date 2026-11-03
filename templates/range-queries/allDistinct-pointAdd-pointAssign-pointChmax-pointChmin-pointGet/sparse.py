@@ -153,8 +153,10 @@ class SparseDistinctTree:
             cnt[p] = cnt.get(2 * p, 0) + cnt.get(2 * p + 1, 0)
             p >>= 1
 
-    # O(logU) -- True iff no value repeats inside a[l..r]
+    # O(logU) -- True iff no value repeats inside a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def allDistinct(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"allDistinct: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         mn, cnt = self.mn, self.cnt
         lo_, hi_ = l + self.size - self.lo, r + self.size - self.lo + 1
         best, c = INF, 0
@@ -171,8 +173,10 @@ class SparseDistinctTree:
             hi_ >>= 1
         return (r - l + 1) - c < 2 and best > r
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         old = self.vals.get(i, 0)
         if old == val:
             return
@@ -198,20 +202,28 @@ class SparseDistinctTree:
             self._set(i, INF, 0)
             del self.vals[i]
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self.vals.get(i, 0)
 
-    # a[i] += delta
+    # a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

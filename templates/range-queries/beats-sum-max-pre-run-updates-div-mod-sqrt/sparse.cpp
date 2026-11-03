@@ -57,8 +57,10 @@ struct SparseShrinkSegTree {
         newZero(D);
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max)
+    // O(logU) -- the first i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostGtX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -77,8 +79,10 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max)
+    // O(logU) -- the first i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostGteX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -97,8 +101,10 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums)
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] > x, or lo - 1 (a walk pruned by best prefix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostPrefixSumGtX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -120,8 +126,10 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums)
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] >= x, or lo - 1 (a walk pruned by best prefix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostPrefixSumGteX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -143,8 +151,10 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logN) -- the longest run of equal adjacent values in a[l..r]
+    // O(logN) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     long long longestEqualRun(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         int t = ns[0];
         long long p = pr[t], q = sr[t], res = br[t], k = 1LL << ls[0];  // (prefix run, suffix run, best, length)
@@ -161,77 +171,93 @@ struct SparseShrinkSegTree {
         return res;
     }
 
-    // O(logN) -- max of a[l] + ... + a[i] over i in [l, r]
+    // O(logN) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     S maxPrefixSum(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("maxPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         S res = pre[ns[0]], acc = sm[ns[0]];
         for (int i = 1; i < c; i++) res = max(res, acc + pre[ns[i]]), acc += sm[ns[i]];
         return res;
     }
 
-    // O(logU) -- a[i] += v
+    // O(logU) -- a[i] += v; needs lo <= i <= hi, else throws out_of_range
     void pointAdd(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointAdd: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, T(leaf(x) + v)), up(path);
     }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, v), up(path);
     }
 
-    // O(logU) -- a[i] = max(a[i], v)
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmax(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointChmax: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, max(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i] = min(a[i], v)
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmin(long long i, T v) {
+        if (i < first || i > last) throw out_of_range("pointChmin: needs lo <= i <= hi");
         int path[64], x = leafOf(i, path);
         setLeaf(x, min(leaf(x), v)), up(path);
     }
 
-    // O(logU) -- a[i]
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) {
+        if (i < first || i > last) throw out_of_range("pointGet: needs lo <= i <= hi");
         int path[64];
         return leaf(leafOf(i, path));
     }
 
-    // amortized O(logU * logU) -- a[i] //= x for i in [l, r] (values >= 0; x >= 2, x = 1 does nothing)
+    // amortized O(logU * logU) -- a[i] //= x for i in [l, r] (values >= 0; x >= 2, x = 1 does nothing); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     void rangeFloorDiv(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeFloorDiv: needs lo <= l <= r <= hi");
         if (x >= 2) update(1, D, first, l, r, [&](int t, int s, long long) { shrink(t, s, T(1), [x](T v) { return T(v / x); }); });
     }
 
-    // amortized O(logU * loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0)
+    // amortized O(logU * loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     void rangeFloorSqrt(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeFloorSqrt: needs lo <= l <= r <= hi");
         update(1, D, first, l, r, [&](int t, int s, long long) { shrink(t, s, T(2), isqrtT); });
     }
 
-    // O(logU) -- max of a[l..r]
+    // O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeMax(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = numeric_limits<T>::lowest();
         for (int i = 0; i < c; i++) res = max(res, mx[ns[i]]);
         return res;
     }
 
-    // amortized O(logU * logU) -- a[i] %= x for i in [l, r] (values >= 0, x >= 1)
+    // amortized O(logU * logU) -- a[i] %= x for i in [l, r] (values >= 0, x >= 1); needs lo <= l <= r <= hi, else
+    // throws out_of_range
     void rangeMod(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeMod: needs lo <= l <= r <= hi");
         if (x >= 1) update(1, D, first, l, r, [&](int t, int s, long long) { shrink(t, s, x, [x](T v) { return T(v % x); }); });
     }
 
-    // O(logU) -- a[l] + ... + a[r]
+    // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
     S rangeSum(long long l, long long r) {
+        if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         S res = S(0);
         for (int i = 0; i < c; i++) res += sm[ns[i]];
         return res;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max)
+    // O(logU) -- the last i in [l, r] with a[i] > x, or lo - 1 (a walk pruned by the node max); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostGtX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("rightmostGtX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);
@@ -250,8 +276,10 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max)
+    // O(logU) -- the last i in [l, r] with a[i] >= x, or lo - 1 (a walk pruned by the node max); needs
+    // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostGteX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("rightmostGteX: needs lo <= l <= r <= hi");
         int ns[128], ls[128];
         long long ts[128];
         int c = cover(l, r, ns, ls, ts);

@@ -63,8 +63,9 @@ struct SparseRangeAndTree {
         if (r > m) update(kid(x, true, m + 1 == b), m + 1, b, l, r, v);
     }
 
-    // O(logU) -- a[i] &= v for i in [l, r]
+    // O(logU) -- a[i] &= v for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAndApply(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAndApply: needs lo <= l <= r <= hi");
         if (l <= r) update(root, lo, hi, l, r, v);
     }
 
@@ -86,8 +87,9 @@ struct SparseRangeAndTree {
         return y;
     }
 
-    // O(logU) -- a[i]
+    // O(logU) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         T t = T(-1), x = 0;
         int y = root;
         long long a = lo, b = hi;
@@ -101,26 +103,30 @@ struct SparseRangeAndTree {
         return leaf(x, t);
     }
 
-    // O(logU) -- a[i] = v
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         int p = push(i);
         pool[p].v = v;
     }
 
-    // O(logU) -- a[i] += delta
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
     void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         int p = push(i);
         pool[p].v = pool[p].v + delta;
     }
 
-    // O(logU) -- a[i] = max(a[i], v)
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmax(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         int p = push(i);
         if (v > pool[p].v) pool[p].v = v;
     }
 
-    // O(logU) -- a[i] = min(a[i], v)
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmin(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         int p = push(i);
         if (v < pool[p].v) pool[p].v = v;
     }

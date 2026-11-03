@@ -40,8 +40,10 @@ class SparseStaticOccurrences:
             else:
                 pos[v] = [i]
 
-    # O(logN) -- # of i in [l, r] with a[i] == x
+    # O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else IndexError
     def countOccurrences(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"countOccurrences: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return 0
         p = self.pos.get(x)
@@ -58,8 +60,11 @@ class SparseStaticOccurrences:
     def rightmostIndexOf(self, x):
         return self.rightmostIndexOfInRange(self.lo, self.hi, x)
 
-    # O(logN) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    # O(logN) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs lo <= l <= r <= hi, else
+    # IndexError
     def leftmostIndexOfInRange(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"leftmostIndexOfInRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         best = r + 1
         p = self.pos.get(x)
         if p:
@@ -70,8 +75,11 @@ class SparseStaticOccurrences:
             best = min(best, self._firstGap(l))
         return best if best <= r else self.lo - 1
 
-    # O(logN) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none
+    # O(logN) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs lo <= l <= r <= hi, else
+    # IndexError
     def rightmostIndexOfInRange(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rightmostIndexOfInRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         best = l - 1
         p = self.pos.get(x)
         if p:
@@ -110,7 +118,9 @@ class SparseStaticOccurrences:
                 a = m + 1
         return i - (k - a) - 1
 
-    # O(logN) -- a[i]
+    # O(logN) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         k = bisect_left(self.idx, i)
         return self.vals[k] if k < len(self.idx) and self.idx[k] == i else 0

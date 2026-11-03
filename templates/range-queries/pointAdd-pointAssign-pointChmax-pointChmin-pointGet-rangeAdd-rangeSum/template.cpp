@@ -53,18 +53,25 @@ struct RangeAddSumBIT {
         return s1 * (x + 1) - s2;
     }
 
-    // O(logN) -- a[i] += v for i in [l, r]
+    // O(logN) -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAdd(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAdd: needs 0 <= l <= r < n");
         if (l > r) return;
         addDiff(l, v);
         if (r + 1 < n) addDiff(r + 1, -S(v));
     }
 
-    // O(logN) -- a[l] + ... + a[r]
-    S rangeSum(int l, int r) const { return l <= r ? prefix(r) - prefix(l - 1) : S(0); }
+    // O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else throws out_of_range
+    S rangeSum(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSum: needs 0 <= l <= r < n");
+        return l <= r ? prefix(r) - prefix(l - 1) : S(0);
+    }
 
-    // O(logN) -- a[i]
-    T pointGet(int i) const { return T(rangeSum(i, i)); }
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return T(rangeSum(i, i));
+    }
 
     // O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
     // i + lowbit(i) once complete), then one pass of running prefix sums
@@ -84,20 +91,28 @@ struct RangeAddSumBIT {
         return out;
     }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { rangeAdd(i, i, delta); }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        rangeAdd(i, i, delta);
+    }
 
-    // O(logN) -- a[i] = v
-    void pointAssign(int i, T v) { rangeAdd(i, i, v - pointGet(i)); }
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        rangeAdd(i, i, v - pointGet(i));
+    }
 
-    // O(logN) -- a[i] = max(a[i], v)
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         T cur = pointGet(i);
         if (v > cur) rangeAdd(i, i, v - cur);
     }
 
-    // O(logN) -- a[i] = min(a[i], v)
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         T cur = pointGet(i);
         if (v < cur) rangeAdd(i, i, v - cur);
     }

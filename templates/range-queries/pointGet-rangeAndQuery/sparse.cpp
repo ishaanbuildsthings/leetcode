@@ -33,14 +33,18 @@ struct SparseAnd {
         }
     }
 
-    // O(1) -- a[l] & ... & a[r]
+    // O(1) -- a[l] & ... & a[r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeAndQuery(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAndQuery: needs 0 <= l <= r < n");
         int k = 31 - __builtin_clz(r - l + 1);
         return combine(sp[k][l], sp[k][r - (1 << k) + 1]);
     }
 
-    // O(1) -- a[i]
-    T pointGet(int i) const { return sp[0][i]; }
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return sp[0][i];
+    }
 };
 
 // ======================================================================================== sparse wrapper
@@ -74,11 +78,15 @@ struct SparseStaticAnd {
 
     int element(long long i) const { return int(upper_bound(starts.begin(), starts.end(), i) - starts.begin()) - 1; }
 
-    // O(logN) -- range and of a[l..r]
-    T rangeAndQuery(long long l, long long r) const { return inner.rangeAndQuery(element(l), element(r)); }
+    // O(logN) -- range and of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeAndQuery(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAndQuery: needs lo <= l <= r <= hi");
+        return inner.rangeAndQuery(element(l), element(r));
+    }
 
-    // O(logN) -- a[i]
+    // O(logN) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         auto it = lower_bound(idx.begin(), idx.end(), i);
         return it != idx.end() && *it == i ? vals[it - idx.begin()] : T(0);
     }

@@ -225,38 +225,43 @@ struct SqrtSequence {
         return out;
     }
 
-    // O(sqrt(N)) -- a[i]
+    // O(sqrt(N)) -- a[i]; needs 0 <= i < size(), else throws out_of_range
     T pointGet(int i) const {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
         auto [j, k] = at(i);
         return blocks[j].get(k);
     }
 
-    // O(sqrt(N log N)) -- a[i] = v
+    // O(sqrt(N log N)) -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
     void pointAssign(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
         auto [j, k] = at(i);
         Block& b = blocks[j];
         T nv = v;
         b.update(k, k, [&](T) { return nv; });
     }
 
-    // O(sqrt(N log N)) -- a[i] += v
+    // O(sqrt(N log N)) -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
     void pointAdd(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
         auto [j, k] = at(i);
         Block& b = blocks[j];
         T nv = T(b.get(k) + v);
         b.update(k, k, [&](T) { return nv; });
     }
 
-    // O(sqrt(N log N)) -- a[i] = max(a[i], v)
+    // O(sqrt(N log N)) -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmax(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
         auto [j, k] = at(i);
         Block& b = blocks[j];
         T nv = max(b.get(k), v);
         b.update(k, k, [&](T) { return nv; });
     }
 
-    // O(sqrt(N log N)) -- a[i] = min(a[i], v)
+    // O(sqrt(N log N)) -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmin(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
         auto [j, k] = at(i);
         Block& b = blocks[j];
         T nv = min(b.get(k), v);
@@ -264,8 +269,9 @@ struct SqrtSequence {
     }
 
 
-    // O(sqrt(N log N)) -- a[i] = v for i in [l, r]
+    // O(sqrt(N log N)) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAssign(int l, int r, T v) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAssign: needs 0 <= l <= r < size()");
         int i = 0;
         for (Block& b : blocks) {
             int m = b.size();
@@ -279,8 +285,10 @@ struct SqrtSequence {
         }
     }
 
-    // O(sqrt(N) log N) amortized -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    // O(sqrt(N) log N) amortized -- insert v so it becomes a[i]; needs 0 <= i <= size(), else throws out_of_range (i
+    // = size() appends)
     void insertAt(int i, T v) {
+        if (i < 0 || i > size()) throw out_of_range("insertAt: needs 0 <= i <= size()");
         auto [j, k] = at(i);
         if (j == (int)blocks.size()) {  // (the end: onto the last block)
             if (!j || blocks.back().size() >= 2 * B) {
@@ -304,8 +312,10 @@ struct SqrtSequence {
     // O(sqrt(N) log N) amortized -- insert v at the front (it becomes a[0]; everything else shifts right by one)
     void appendLeft(T v) { insertAt(0, v); }
 
-    // O(k + sqrt(N) log N) amortized -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    // O(k + sqrt(N) log N) amortized -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0); needs
+    // 0 <= i <= size(), else throws out_of_range
     void insertCopiesAt(int i, T v, long long k) {
+        if (i < 0 || i > size()) throw out_of_range("insertCopiesAt: needs 0 <= i <= size()");
         if (k <= 0) return;
         int j = splitAt(i);
         vector<Block> add;
@@ -315,8 +325,9 @@ struct SqrtSequence {
         tidy();
     }
 
-    // O(sqrt(N) log N) amortized -- reverse a[l..r] in place
+    // O(sqrt(N) log N) amortized -- reverse a[l..r] in place; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeReverse(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeReverse: needs 0 <= l <= r < size()");
         int j1 = splitAt(l), j2 = splitAt(r + 1);
         reverse(blocks.begin() + j1, blocks.begin() + j2);
         for (int j = j1; j < j2; j++) blocks[j].rev = !blocks[j].rev;
@@ -324,8 +335,9 @@ struct SqrtSequence {
     }
 
     // O(sqrt(N) log N) amortized -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
-    // it is taken mod the length (negative shifts right)
+    // it is taken mod the length (negative shifts right); needs 0 <= l <= r < size(), else throws out_of_range
     void rangeRotateLeft(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateLeft: needs 0 <= l <= r < size()");
         long long len = r - l + 1;
         k = ((k % len) + len) % len;
         if (!k) return;
@@ -335,11 +347,16 @@ struct SqrtSequence {
     }
 
     // O(sqrt(N) log N) amortized -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
-    // length (negative shifts left)
-    void rangeRotateRight(int l, int r, long long k) { rangeRotateLeft(l, r, -k); }
+    // length (negative shifts left); needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeRotateRight(int l, int r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateRight: needs 0 <= l <= r < size()");
+        rangeRotateLeft(l, r, -k);
+    }
 
-    // O(sqrt(N) log N) amortized -- remove a[l..r] and return it as a SqrtSequence of its own (indices from 0)
+    // O(sqrt(N) log N) amortized -- remove a[l..r] and return it as a SqrtSequence of its own (indices from 0); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     SqrtSequence cut(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("cut: needs 0 <= l <= r < size()");
         int j1 = splitAt(l), j2 = splitAt(r + 1);
         SqrtSequence piece;
         piece.blocks.assign(make_move_iterator(blocks.begin() + j1), make_move_iterator(blocks.begin() + j2));
@@ -351,8 +368,9 @@ struct SqrtSequence {
     }
 
     // O(sqrt(N) log N) amortized -- insert all of other (any SqrtSequence, e.g. a cut piece) so it starts at a[i]
-    // (0 <= i <= size()); other is left empty
+    // (needs 0 <= i <= size(), else throws out_of_range); other is left empty
     void paste(int i, SqrtSequence& other) {
+        if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         int j = splitAt(i);
         blocks.insert(blocks.begin() + j, make_move_iterator(other.blocks.begin()), make_move_iterator(other.blocks.end()));
         n += other.n;
@@ -363,8 +381,10 @@ struct SqrtSequence {
     // O(sqrt(N) log N) amortized -- append all of other at the end; other is left empty
     void merge(SqrtSequence& other) { paste(n, other); }
 
-    // O(sqrt(N) log N) amortized -- (a[0..k-1], a[k..]) as two SqrtSequences of their own; this one is left empty
+    // O(sqrt(N) log N) amortized -- (a[0..k-1], a[k..]) as two SqrtSequences of their own; this one is left empty;
+    // needs 0 <= k <= size(), else throws out_of_range
     pair<SqrtSequence, SqrtSequence> split(int k) {
+        if (k < 0 || k > size()) throw out_of_range("split: needs 0 <= k <= size()");
         SqrtSequence left;
         left.blocks = std::move(blocks), left.n = n, left.B = B;
         blocks.clear(), n = 0;
@@ -373,36 +393,55 @@ struct SqrtSequence {
     }
 
     // O(sqrt(N) log N) amortized -- (a[0..l-1], a[l..r], a[r+1..]) as three SqrtSequences of their own; this one is
-    // left empty
+    // left empty; needs 0 <= l <= r < size(), else throws out_of_range
     tuple<SqrtSequence, SqrtSequence, SqrtSequence> trisect(int l, int r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         auto [left, right] = split(r + 1);
         auto [first, mid] = left.split(l);
         return {std::move(first), std::move(mid), std::move(right)};
     }
 
-    // O(sqrt(N) log N) -- # of values < x in a[l..r]
-    int countLtX(int l, int r, T x) const { return count(l, r, nullopt, x, false, true); }
+    // O(sqrt(N) log N) -- # of values < x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    int countLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countLtX: needs 0 <= l <= r < size()");
+        return count(l, r, nullopt, x, false, true);
+    }
 
-    // O(sqrt(N) log N) -- # of values <= x in a[l..r]
-    int countLteX(int l, int r, T x) const { return count(l, r, nullopt, x, false, false); }
+    // O(sqrt(N) log N) -- # of values <= x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    int countLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countLteX: needs 0 <= l <= r < size()");
+        return count(l, r, nullopt, x, false, false);
+    }
 
-    // O(sqrt(N) log N) -- # of values > x in a[l..r]
-    int countGtX(int l, int r, T x) const { return count(l, r, x, nullopt, true, false); }
+    // O(sqrt(N) log N) -- # of values > x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    int countGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countGtX: needs 0 <= l <= r < size()");
+        return count(l, r, x, nullopt, true, false);
+    }
 
-    // O(sqrt(N) log N) -- # of values >= x in a[l..r]
-    int countGteX(int l, int r, T x) const { return count(l, r, x, nullopt, false, false); }
+    // O(sqrt(N) log N) -- # of values >= x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    int countGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countGteX: needs 0 <= l <= r < size()");
+        return count(l, r, x, nullopt, false, false);
+    }
 
-    // O(sqrt(N) log N) -- # of i in [l, r] with lowVal <= a[i] <= highVal
+    // O(sqrt(N) log N) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     int countInValRange(int l, int r, T lowVal, T highVal) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countInValRange: needs 0 <= l <= r < size()");
         return lowVal <= highVal ? count(l, r, lowVal, highVal, false, false) : 0;
     }
 
-    // O(sqrt(N) log N) -- # of i in [l, r] with a[i] == x
-    int countOccurrences(int l, int r, T x) const { return count(l, r, x, x, false, false); }
+    // O(sqrt(N) log N) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else throws out_of_range
+    int countOccurrences(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countOccurrences: needs 0 <= l <= r < size()");
+        return count(l, r, x, x, false, false);
+    }
 
-    // O(sqrt(N) log N log U) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 1 <= k <= r - l + 1, else
-    // throws out_of_range (a binary search over the values, each step a count)
+    // O(sqrt(N) log N log U) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <=
+    // k <= r - l + 1, else throws out_of_range (a binary search over the values, each step a count)
     T kthSmallest(int l, int r, int k) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("kthSmallest: needs 0 <= l <= r < size()");
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
         vector<const Block*> whole;
         vector<vector<T>> parts;  // (the values of the partial blocks, sorted)
@@ -425,8 +464,9 @@ struct SqrtSequence {
         return *lo;
     }
 
-    // O(sqrt(N) log N) -- min of a[l..r]
+    // O(sqrt(N) log N) -- min of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMin(int l, int r) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMin: needs 0 <= l <= r < size()");
         optional<T> best;
         span(l, r, [&](const Block& b, int lo, int hi, bool whole, int) {
             if (whole) best = best ? min(*best, b.kth(0)) : b.kth(0);
@@ -436,8 +476,9 @@ struct SqrtSequence {
         return *best;
     }
 
-    // O(sqrt(N) log N) -- max of a[l..r]
+    // O(sqrt(N) log N) -- max of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMax(int l, int r) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMax: needs 0 <= l <= r < size()");
         optional<T> best;
         span(l, r, [&](const Block& b, int lo, int hi, bool whole, int) {
             if (whole) best = best ? max(*best, b.kth(hi)) : b.kth(hi);
@@ -447,17 +488,33 @@ struct SqrtSequence {
         return *best;
     }
 
-    // O(sqrt(N) log N) -- smallest value >= x in a[l..r], or nullopt
-    optional<T> smallestGteX(int l, int r, T x) const { return nearest(l, r, x, true, false); }
+    // O(sqrt(N) log N) -- smallest value >= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws
+    // out_of_range
+    optional<T> smallestGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("smallestGteX: needs 0 <= l <= r < size()");
+        return nearest(l, r, x, true, false);
+    }
 
-    // O(sqrt(N) log N) -- smallest value > x in a[l..r], or nullopt
-    optional<T> smallestGtX(int l, int r, T x) const { return nearest(l, r, x, true, true); }
+    // O(sqrt(N) log N) -- smallest value > x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws
+    // out_of_range
+    optional<T> smallestGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("smallestGtX: needs 0 <= l <= r < size()");
+        return nearest(l, r, x, true, true);
+    }
 
-    // O(sqrt(N) log N) -- largest value <= x in a[l..r], or nullopt
-    optional<T> largestLteX(int l, int r, T x) const { return nearest(l, r, x, false, false); }
+    // O(sqrt(N) log N) -- largest value <= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws
+    // out_of_range
+    optional<T> largestLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("largestLteX: needs 0 <= l <= r < size()");
+        return nearest(l, r, x, false, false);
+    }
 
-    // O(sqrt(N) log N) -- largest value < x in a[l..r], or nullopt
-    optional<T> largestLtX(int l, int r, T x) const { return nearest(l, r, x, false, true); }
+    // O(sqrt(N) log N) -- largest value < x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws
+    // out_of_range
+    optional<T> largestLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("largestLtX: needs 0 <= l <= r < size()");
+        return nearest(l, r, x, false, true);
+    }
 
     // O(sqrt(N) log N) -- the first i with a[i] == x, or -1
     int leftmostIndexOf(T x) const { return n ? leftmostIndexOfInRange(0, n - 1, x) : -1; }
@@ -465,41 +522,86 @@ struct SqrtSequence {
     // O(sqrt(N) log N) -- the last i with a[i] == x, or -1
     int rightmostIndexOf(T x) const { return n ? rightmostIndexOfInRange(0, n - 1, x) : -1; }
 
-    // O(sqrt(N) log N) -- the first i in [l, r] with a[i] == x, or -1
-    int leftmostIndexOfInRange(int l, int r, T x) const { return kthWhere(l, r, 1, x, x, false, false); }
+    // O(sqrt(N) log N) -- the first i in [l, r] with a[i] == x, or -1; needs 0 <= l <= r < size(), else throws
+    // out_of_range
+    int leftmostIndexOfInRange(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostIndexOfInRange: needs 0 <= l <= r < size()");
+        return kthWhere(l, r, 1, x, x, false, false);
+    }
 
-    // O(sqrt(N) log N) -- the last i in [l, r] with a[i] == x, or -1
-    int rightmostIndexOfInRange(int l, int r, T x) const { return kthWhere(l, r, -1, x, x, false, false); }
+    // O(sqrt(N) log N) -- the last i in [l, r] with a[i] == x, or -1; needs 0 <= l <= r < size(), else throws
+    // out_of_range
+    int rightmostIndexOfInRange(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostIndexOfInRange: needs 0 <= l <= r < size()");
+        return kthWhere(l, r, -1, x, x, false, false);
+    }
 
-    // O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] < x, or -1
-    int kthLtX(int l, int r, int k, T x) const { return k >= 1 ? kthWhere(l, r, k, nullopt, x, false, true) : -1; }
+    // O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] < x, or -1; needs
+    // 0 <= l <= r < size(), else throws out_of_range
+    int kthLtX(int l, int r, int k, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("kthLtX: needs 0 <= l <= r < size()");
+        return k >= 1 ? kthWhere(l, r, k, nullopt, x, false, true) : -1;
+    }
 
-    // O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] <= x, or -1
-    int kthLteX(int l, int r, int k, T x) const { return k >= 1 ? kthWhere(l, r, k, nullopt, x, false, false) : -1; }
+    // O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] <= x, or -1; needs
+    // 0 <= l <= r < size(), else throws out_of_range
+    int kthLteX(int l, int r, int k, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("kthLteX: needs 0 <= l <= r < size()");
+        return k >= 1 ? kthWhere(l, r, k, nullopt, x, false, false) : -1;
+    }
 
-    // O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] > x, or -1
-    int kthGtX(int l, int r, int k, T x) const { return k >= 1 ? kthWhere(l, r, k, x, nullopt, true, false) : -1; }
+    // O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] > x, or -1; needs
+    // 0 <= l <= r < size(), else throws out_of_range
+    int kthGtX(int l, int r, int k, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("kthGtX: needs 0 <= l <= r < size()");
+        return k >= 1 ? kthWhere(l, r, k, x, nullopt, true, false) : -1;
+    }
 
-    // O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] >= x, or -1
-    int kthGteX(int l, int r, int k, T x) const { return k >= 1 ? kthWhere(l, r, k, x, nullopt, false, false) : -1; }
+    // O(sqrt(N) log N) -- the index of the k-th i in [l, r] (k from 1, left to right) with a[i] >= x, or -1; needs
+    // 0 <= l <= r < size(), else throws out_of_range
+    int kthGteX(int l, int r, int k, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("kthGteX: needs 0 <= l <= r < size()");
+        return k >= 1 ? kthWhere(l, r, k, x, nullopt, false, false) : -1;
+    }
 
-    // O(sqrt(N) log N) -- a[l] & ... & a[r]
-    T rangeAndQuery(int l, int r) const { return andOf(l, r, nullopt, nullopt, false, false); }
+    // O(sqrt(N) log N) -- a[l] & ... & a[r]; needs 0 <= l <= r < size(), else throws out_of_range
+    T rangeAndQuery(int l, int r) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAndQuery: needs 0 <= l <= r < size()");
+        return andOf(l, r, nullopt, nullopt, false, false);
+    }
 
-    // O(sqrt(N) log N) -- AND of the values < x in a[l..r]; ~0 (every bit) if there are none
-    T andLtX(int l, int r, T x) const { return andOf(l, r, nullopt, x, false, true); }
+    // O(sqrt(N) log N) -- AND of the values < x in a[l..r]; ~0 (every bit) if there are none; needs
+    // 0 <= l <= r < size(), else throws out_of_range
+    T andLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("andLtX: needs 0 <= l <= r < size()");
+        return andOf(l, r, nullopt, x, false, true);
+    }
 
-    // O(sqrt(N) log N) -- AND of the values <= x in a[l..r]; ~0 (every bit) if there are none
-    T andLteX(int l, int r, T x) const { return andOf(l, r, nullopt, x, false, false); }
+    // O(sqrt(N) log N) -- AND of the values <= x in a[l..r]; ~0 (every bit) if there are none; needs
+    // 0 <= l <= r < size(), else throws out_of_range
+    T andLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("andLteX: needs 0 <= l <= r < size()");
+        return andOf(l, r, nullopt, x, false, false);
+    }
 
-    // O(sqrt(N) log N) -- AND of the values > x in a[l..r]; ~0 (every bit) if there are none
-    T andGtX(int l, int r, T x) const { return andOf(l, r, x, nullopt, true, false); }
+    // O(sqrt(N) log N) -- AND of the values > x in a[l..r]; ~0 (every bit) if there are none; needs
+    // 0 <= l <= r < size(), else throws out_of_range
+    T andGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("andGtX: needs 0 <= l <= r < size()");
+        return andOf(l, r, x, nullopt, true, false);
+    }
 
-    // O(sqrt(N) log N) -- AND of the values >= x in a[l..r]; ~0 (every bit) if there are none
-    T andGteX(int l, int r, T x) const { return andOf(l, r, x, nullopt, false, false); }
+    // O(sqrt(N) log N) -- AND of the values >= x in a[l..r]; ~0 (every bit) if there are none; needs
+    // 0 <= l <= r < size(), else throws out_of_range
+    T andGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("andGteX: needs 0 <= l <= r < size()");
+        return andOf(l, r, x, nullopt, false, false);
+    }
 
-    // O(sqrt(N) log N) -- AND of the a[i] in [l, r] with lowVal <= a[i] <= highVal; ~0 (every bit) if there are none
+    // O(sqrt(N) log N) -- AND of the a[i] in [l, r] with lowVal <= a[i] <= highVal; ~0 (every bit) if there are none;
+    // needs 0 <= l <= r < size(), else throws out_of_range
     T andInValRange(int l, int r, T lowVal, T highVal) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("andInValRange: needs 0 <= l <= r < size()");
         return lowVal <= highVal ? andOf(l, r, lowVal, highVal, false, false) : ~T(0);
     }
 

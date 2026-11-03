@@ -46,7 +46,8 @@ _HO = random.randrange(1, _HP)  # value v hashes as v + _HO: no common value has
 
 
 class SortedRunsSumMinAndHash:
-    # O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi] (U = valHi - valLo + 1)
+    # O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi] (U = valHi - valLo
+    # + 1)
     def __init__(self, arr, valLo, valHi):
         n = self.n = len(arr)
         self.vlo, self.vhi = valLo, valHi
@@ -145,7 +146,8 @@ class SortedRunsSumMinAndHash:
         res = self._ask(l, r)
         return res[3] == res[4]
 
-    # O(log N + log U) amortized -- hash of a[l..r] read left to right (a[l] B^(len-1) + ... + a[r], mod 2^61 - 1; B random per run): equal ranges hash equal
+    # O(log N + log U) amortized -- hash of a[l..r] read left to right (a[l] B^(len-1) + ... + a[r], mod 2^61 - 1; B
+    # random per run): equal ranges hash equal
     def rangeHash(self, l, r):
         self._cutAt(l)
         self._cutAt(r + 1)

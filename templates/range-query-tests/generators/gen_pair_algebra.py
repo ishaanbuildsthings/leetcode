@@ -25,6 +25,7 @@ from gen_treap import CPP_HASH_HELPERS, PY_HASH_CONST, no_push, wrap
 from gen_treap_algebra import (CMP, OK, PIECES, POINT, QDOC, QOPS, SEARCH, SHRINK_COST, UDOC, UOP, UPDATE_SETS, Spec,
                                allowed, bits_args, clamp_args, cpp_internals, cpp_public, cpp_skeleton, gcd_costs,
                                piece_example, py_internals, py_public, py_skeleton)
+from aos import aosify
 from note_lang import folder_name, write_template
 
 DIR = A.DIR
@@ -153,7 +154,7 @@ def py(s):
     internals = py_internals(s).replace("_HB", "_HQ")
     internals = internals.replace(A.PY_TAIL, PY_TAIL)
     out.append(internals + py_extra(s))
-    text = gcd_costs(s, "".join(out)).rstrip("\n") + "\n" + piece_example("py", f"{CLS}([1, 2, 3, 4, 5])", list("12345"))
+    text = A.fit_comments(gcd_costs(s, "".join(out))).rstrip("\n") + "\n" + piece_example("py", f"{CLS}([1, 2, 3, 4, 5])", list("12345"))
     return text if TG else no_push(text, "py")
 
 
@@ -266,8 +267,8 @@ def py_pub(s):
             be, bo = bo, be
         self._join(ae, ao, be, bo, ce, co)
 ''',
-        "rangeTwinSpin": '''    # O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length: a[r] stays):
-    # the pairs' two lanes trade places
+        "rangeTwinSpin": '''    # O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length:
+    # a[r] stays): the pairs' two lanes trade places
     def rangeTwinSpin(self, l, r):
         k = (r - l + 1) // 2
         if k:
@@ -489,7 +490,7 @@ def cpp(s):
     internals = cpp_internals(s).replace("HB()", "HQ()")
     internals = internals.replace(A.CPP_TAIL, CPP_TAIL + cpp_extra(s) + "};\n")
     out.append(internals)
-    text = gcd_costs(s, "".join(out)) + piece_example("cpp", f"{CLS}<int> t({{1, 2, 3, 4, 5}})", list("12345"))
+    text = A.fit_comments(gcd_costs(s, "".join(out))) + piece_example("cpp", f"{CLS}<int> t({{1, 2, 3, 4, 5}})", list("12345"))
     return text if TG else no_push(text, "cpp")
 
 
@@ -596,8 +597,8 @@ def cpp_pub(s):
         else join(ae, ao, be, bo, ce, co);
     }
 ''',
-        "rangeTwinSpin": '''    // O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length: a[r] stays):
-    // the pairs' two lanes trade places
+        "rangeTwinSpin": '''    // O(logN) expected -- swap a[l] <-> a[l + 1], a[l + 2] <-> a[l + 3], ... over [l, r] (odd length:
+    // a[r] stays): the pairs' two lanes trade places
     void rangeTwinSpin(int l, int r) {
         int k = (r - l + 1) / 2;
         if (!k) return;
@@ -692,7 +693,7 @@ CPP_TAIL = A.CPP_TAIL[:A.CPP_TAIL.index("    void cut(int l, int r, int& a, int&
     }
 
     pair<int, int> pmerge(int e1, int o1, int e2, int o2) {  // lanes of (the first array, then the second)
-        if ((sz[e1] + sz[o1]) % 2) swap(e2, o2);  // (after an odd length the second's even positions are odd ones)
+        if ((sz[e1] + sz[o1]) % 2) swap(e2, o2);  // (after an odd length: its even positions are odd ones)
         return {merge(e1, e2), merge(o1, o2)};
     }
 
@@ -790,7 +791,7 @@ def main(only=None):
         seen[folder] = s.name()
         os.makedirs(os.path.join(DIR, folder), exist_ok=True)
         write_template(os.path.join(DIR, folder, "template.py"), py(s))
-        write_template(os.path.join(DIR, folder, "template.cpp"), cpp(s))
+        write_template(os.path.join(DIR, folder, "template.cpp"), aosify(cpp(s)))
     print("wrote", len(seen), "pair treaps")
 
 

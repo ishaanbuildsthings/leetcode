@@ -49,36 +49,48 @@ class SparseRangeXorBIT:
             x &= x - 1
         return s
 
-    # O(logU) -- a[i] ^= x for i in [l, r]
+    # O(logU) -- a[i] ^= x for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeXorApply(self, l, r, x):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeXorApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return
         self._add(l - self.lo, x)
         if r < self.hi:
             self._add(r + 1 - self.lo, x)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._prefix(i - self.lo)
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         d = self.pointGet(i) ^ val
         if d:
             self.rangeXorApply(i, i, d)
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logU) -- a[i] = max(a[i], val)
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         cur = self.pointGet(i)
         if val > cur:
             self.rangeXorApply(i, i, cur ^ val)
 
-    # O(logU) -- a[i] = min(a[i], val)
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         cur = self.pointGet(i)
         if val < cur:
             self.rangeXorApply(i, i, cur ^ val)

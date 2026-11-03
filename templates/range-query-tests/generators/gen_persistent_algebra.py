@@ -22,6 +22,7 @@ import gen_treap_algebra as A
 from gen_treap import CPP_HASH_HELPERS, PY_HASH_CONST, no_push, wrap
 from gen_treap_algebra import (SEARCH, SHRINK_COST, Spec, cpp_internals, cpp_public, gcd_costs, py_internals,
                                py_public)
+from aos import aosify
 from note_lang import folder_name, write_template
 
 DIR = A.DIR
@@ -133,18 +134,33 @@ def py(s):
         self._join(a, b, c)
 '''
     pub["copy"] = f'''    # O(logN) expected -- a[l..r] (leave out l and r: the whole array, O(1)) as a {CLS} of its own; this one
-    # is unchanged. The copy shares this one's nodes, so it costs O(logN) however long it is
+    # is unchanged. The copy shares this one's nodes, so it costs O(logN) however long it is; needs
+    # 0 <= l <= r < size(), else IndexError
     def copy(self, l=0, r=None):
+        n = self.size()
         if r is None:
-            r = self.size() - 1
+            r = n - 1
+        whole = l == 0 and r == n - 1  # (an empty treap's whole copy too)
+        if not whole and not 0 <= l <= r < n:
+            raise IndexError(f"copy: needs 0 <= l <= r < size(), got l = {{l}}, r = {{r}}, n = {{n}}")
         piece = self._empty()
-        piece.root = self.root if l == 0 and r == self.size() - 1 else self._cut(l, r)[1]
+        piece.root = self.root if whole else self._cut(l, r)[1]
         return piece
 '''
     out.append("\n".join(pub[op].replace("ImplicitTreap", CLS) for op in s.ops if op in pub))
     out.append(py_persist(py_internals(s), s, names))
-    text = gcd_costs(s, "".join(out)).rstrip("\n") + "\n" + A.piece_example("py", f"{CLS}([1, 2, 3, 4, 5])", list("12345"))
+    text = A.fit_comments(gcd_costs(s, "".join(out))).rstrip("\n") + "\n" + A.piece_example("py", f"{CLS}([1, 2, 3, 4, 5])", list("12345"))
     return text if TG else no_push(text, "py")
+
+
+def arrays_tuple(names):  # "self.val, self.L, ..." wrapped under the for line at 120 columns
+    parts, lines = [f"self.{n}" for n in names], [""]
+    for p in parts:
+        if lines[-1] and len(lines[-1]) + len(p) + 24 > 118:
+            lines[-1] += ","
+            lines.append("")
+        lines[-1] += (", " if lines[-1] and not lines[-1].endswith(",") else "") + p
+    return "\n                    ".join(lines)
 
 
 def py_persist(text, s, names):
@@ -166,7 +182,7 @@ def py_persist(text, s, names):
 
     def _clone(self, x):  # a new copy of node x (sharing its children)
         y = len(self.val)
-        for arr in (''' + ", ".join(f"self.{n}" for n in names) + '''):
+        for arr in (''' + arrays_tuple(names) + '''):
             arr.append(arr[x])
         return y
 ''' + text[b:]
@@ -274,8 +290,8 @@ def cpp(s):
     pub["copy"] = f'''    // O(1) -- the whole array as a {CLS} of its own; this one is unchanged (they share nodes)
     {CLS} copy() const {{ return *this; }}
 
-    // O(logN) expected -- a[l..r] as a {CLS} of its own; this one is unchanged. The copy shares this one's
-    // nodes, so it costs O(logN) however long it is
+    // O(logN) expected -- a[l..r] as a {CLS} of its own; this one is unchanged. The copy
+    // shares this one's nodes, so it costs O(logN) however long it is
     {CLS} copy(long long l, long long r) {{
         int a, b, c;
         cut(l, r, a, b, c);
@@ -288,7 +304,7 @@ def cpp(s):
     pub["merge"] = pub["merge"].replace("ImplicitTreap", CLS) + f"    void merge({CLS}&& other) {{ merge(other); }}  // (a temporary: merge(t.copy()))\n"
     out.append("\n".join(pub[op].replace("ImplicitTreap", CLS) for op in s.ops if op in pub))
     out.append(cpp_persist(cpp_internals(s), s, arrays))
-    text = gcd_costs(s, "".join(out)) + A.piece_example("cpp", f"{CLS}<int> t({{1, 2, 3, 4, 5}})", list("12345"))
+    text = A.fit_comments(gcd_costs(s, "".join(out))) + A.piece_example("cpp", f"{CLS}<int> t({{1, 2, 3, 4, 5}})", list("12345"))
     text = wide(text)
     return text if TG else no_push(text, "cpp")
 
@@ -320,12 +336,13 @@ def cpp_persist(text, s, arrays):
         head = "    void push(int x) {  // hand x's pending tags to its children\n"
         assert body.startswith(head), body[:80]
         body = (head + f"        if (!({cond})) return;\n" +
-                "        if (L[x]) L[x] = clone(L[x]);  // (the children get tags: fresh copies of them, since other trees may share them)\n"
+                "        // (the children get tags: fresh copies of them, since other trees may share them)\n"
+                "        if (L[x]) L[x] = clone(L[x]);\n"
                 "        if (R[x]) R[x] = clone(R[x]);\n" + body[len(head):])
         text = text[:a] + body + text[b:]
     a = text.index("    void split(int t, int k, int& a, int& b) {")
     b = text.index("    void cut(int l, int r, int& a, int& b, int& c) {")
-    text = text[:a] + '''    void split(int t, long long k, int& a, int& b) {  // a = first k of t, b = the rest, as new nodes (t's are left as they were)
+    text = text[:a] + '''    void split(int t, long long k, int& a, int& b) {  // a = first k of t, b = the rest (as new nodes)
         if (!t) { a = b = 0; return; }
         t = clone(t);
         push(t);
@@ -395,7 +412,7 @@ def main():
         seen[folder] = s.name()
         os.makedirs(os.path.join(DIR, folder), exist_ok=True)
         write_template(os.path.join(DIR, folder, "template.py"), py(s))
-        write_template(os.path.join(DIR, folder, "template.cpp"), cpp(s))
+        write_template(os.path.join(DIR, folder, "template.cpp"), aosify(cpp(s)))
     print("wrote", len(seen), "persistent treaps")
 
 

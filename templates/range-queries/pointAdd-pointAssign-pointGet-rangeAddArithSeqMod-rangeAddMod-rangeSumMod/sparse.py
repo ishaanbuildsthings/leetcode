@@ -71,8 +71,10 @@ class SparseArithSeqSumBITMod:
         mod = self.mod
         return s0 % mod, s1 % mod, s2 % mod
 
-    # O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
+    # O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]; needs lo <= l <= r <= hi, else IndexError
     def rangeAddArithSeqMod(self, l, r, start, step):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAddArithSeqMod: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return
         l -= self.lo
@@ -84,8 +86,10 @@ class SparseArithSeqSumBITMod:
             total = c0 * (r - l + 1) + c1 * (_tri(r) - _tri(l - 1))
             self._add(r + 1, total - a, -c0, -c1)
 
-    # O(logU) -- a[i] += v (% MOD) for i in [l, r]
+    # O(logU) -- a[i] += v (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAddMod(self, l, r, v):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeAddMod: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self.rangeAddArithSeqMod(l, r, v, 0)
 
     # O(logU) -- a[lo] + ... + a[lo + x] % MOD (0 for x = -1)
@@ -93,20 +97,28 @@ class SparseArithSeqSumBITMod:
         sa, sb, sc = self._prefix(x)
         return (sa + sb * x + sc * _tri(x)) % self.mod
 
-    # O(logU) -- a[l] + ... + a[r] % MOD
+    # O(logU) -- a[l] + ... + a[r] % MOD; needs lo <= l <= r <= hi, else IndexError
     def rangeSumMod(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeSumMod: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return 0
         return (self._sum(r - self.lo) - self._sum(l - 1 - self.lo)) % self.mod
 
-    # O(logU) -- a[i], in [0, mod)
+    # O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self.rangeSumMod(i, i)
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.rangeAddMod(i, i, delta)
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         self.rangeAddMod(i, i, val - self.pointGet(i))

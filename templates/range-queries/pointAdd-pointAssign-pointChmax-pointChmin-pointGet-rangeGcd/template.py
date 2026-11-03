@@ -41,9 +41,11 @@ class GcdSegmentTree:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # Point OVERWRITE (not chmax/add): arr[index] becomes newVal.
-    # Point overwrite: a[index] = newVal. Only updates the tree; the array you passed in is untouched.
+    # Point OVERWRITE (not chmax/add): arr[index] becomes newVal. Point overwrite: a[index] = newVal. Only updates the
+    # tree; the array you passed in is untouched.; needs 0 <= index < n, else IndexError
     def pointAssign(self, index, newVal):
+        if not 0 <= index < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= index < n, got index = {index}, n = {self.n}")
         tree = self.tree
         i = index + self.n
         tree[i] = newVal
@@ -60,8 +62,10 @@ class GcdSegmentTree:
         self.arr[index] = newVal
         self.pointAssign(index, newVal)
 
-    # Inclusive range [l, r]. Requires l <= r. Returns 0 for an empty range.
+    # Inclusive range [l, r]. Requires l <= r. Returns 0 for an empty range.; needs 0 <= l <= r < n, else IndexError
     def rangeGcd(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         tree = self.tree
         res = 0
         l += self.n
@@ -74,24 +78,32 @@ class GcdSegmentTree:
             l >>= 1; r >>= 1
         return res
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.tree[self.n + i]
 
     # O(N) -- the whole array (a copy of the leaves)
     def getAll(self):
         return self.tree[self.n:]
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.tree[self.n + i]:
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.tree[self.n + i]:
             self.pointAssign(i, val)
 
-    # a[i] += delta
+    # a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.tree[self.n + i] + delta)

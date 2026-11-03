@@ -28,11 +28,11 @@ ZERO = (0, 0, 0, 0)  # the summary of any block of zeros
 
 
 class SparseMaxSubarrayTree:
-    __slots__ = ("lo", "size", "t")
+    __slots__ = ("lo", "hi", "size", "t")
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; leaf of i is size + (i - lo)
         self.t = {}
 
@@ -40,8 +40,10 @@ class SparseMaxSubarrayTree:
     def _merge(a, b):
         return (a[0] + b[0], max(a[1], a[0] + b[1]), max(b[2], b[0] + a[2]), max(a[3], b[3], a[2] + b[1]))
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         t = self.t
         p = self.size + i - self.lo
         t[p] = (val, val, val, val)
@@ -80,40 +82,56 @@ class SparseMaxSubarrayTree:
             return left
         return self._merge(left, right)
 
-    # O(logU) -- a[l] + ... + a[r]
+    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(l, r)
         return res[0]
 
-    # O(logU) -- best sum of a non-empty prefix of a[l..r]
+    # O(logU) -- best sum of a non-empty prefix of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def maxPrefixSum(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"maxPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(l, r)
         return res[1]
 
-    # O(logU) -- best sum of a non-empty suffix of a[l..r]
+    # O(logU) -- best sum of a non-empty suffix of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def maxSuffixSum(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"maxSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(l, r)
         return res[2]
 
-    # O(logU) -- best sum of a non-empty subarray of a[l..r]
+    # O(logU) -- best sum of a non-empty subarray of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def maxSubarraySum(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"maxSubarraySum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(l, r)
         return res[3]
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return (lambda v: 0 if v is None else v[0])(self.t.get(self.size + i - self.lo))
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logU) -- a[i] = max(a[i], val)
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logU) -- a[i] = min(a[i], val)
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

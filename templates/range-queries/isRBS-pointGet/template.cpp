@@ -39,11 +39,19 @@ struct StaticBrackets {
         }
     }
 
-    // O(1) -- brackets[i]
-    T pointGet(int i) const { return s[i]; }
+    // O(1) -- the length of the array
+    int size() const { return (int)s.size(); }
 
-    // O(1) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?
+    // O(1) -- brackets[i]; needs 0 <= i < size(), else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
+        return s[i];
+    }
+
+    // O(1) -- is brackets[l..r] a regular bracket sequence (balanced, never closing more than it opened)?; needs
+    // 0 <= l <= r < size(), else throws out_of_range
     bool isRBS(int l, int r) const {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("isRBS: needs 0 <= l <= r < size()");
         if (P[r + 1] != P[l]) return false;
         int lo = l + 1, hi = r + 1, k = 31 - __builtin_clz(hi - lo + 1);
         return min(table[k][lo], table[k][hi - (1 << k) + 1]) >= P[l];

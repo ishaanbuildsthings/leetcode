@@ -27,11 +27,11 @@ NEG = float("-inf")
 
 
 class SparseRangeChmaxTree:
-    __slots__ = ("lo", "size", "t")
+    __slots__ = ("lo", "hi", "size", "t")
 
     # O(1)
     def __init__(self, lo, hi):
-        self.lo = lo
+        self.lo, self.hi = lo, hi
         self.size = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of i is size + (i - lo)
         self.t = {}
 
@@ -45,8 +45,10 @@ class SparseRangeChmaxTree:
             a = t.get(x, NEG)
             t[x] = a if a > v else v
 
-    # O(logU) -- a[i] = max(a[i], v) for i in [l, r]
+    # O(logU) -- a[i] = max(a[i], v) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeChmax(self, l, r, v):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"rangeChmax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         l += self.size - self.lo
         r += self.size - self.lo + 1
         while l < r:
@@ -69,8 +71,10 @@ class SparseRangeChmaxTree:
                 self._apply(2 * x, v)
                 self._apply(2 * x + 1, v)
 
-    # O(logU) -- a[i]
+    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         t = self.t
         p = self.size + i - self.lo
         x = t.get(p, 0)
@@ -84,29 +88,37 @@ class SparseRangeChmaxTree:
         a, v = x, a
         return a if a > v else v
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
         self.t[p] = val
 
-    # O(logU) -- a[i] += delta
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
         t = self.t
         t[p] = (t.get(p, 0) + delta)
 
-    # O(logU) -- a[i] = max(a[i], val)
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
         t = self.t
         if val > t.get(p, 0):
             t[p] = val
 
-    # O(logU) -- a[i] = min(a[i], val)
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
         t = self.t

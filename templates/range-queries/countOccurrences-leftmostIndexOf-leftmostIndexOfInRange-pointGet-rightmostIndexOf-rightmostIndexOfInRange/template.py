@@ -38,8 +38,10 @@ class OccurrenceLists:
             else:
                 pos[v] = [i]
 
-    # O(logN) -- # of i in [l, r] with a[i] == x
+    # O(logN) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else IndexError
     def countOccurrences(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"countOccurrences: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         p = self.pos.get(x)
         return bisect_right(p, r) - bisect_left(p, l) if p and l <= r else 0
 
@@ -53,22 +55,36 @@ class OccurrenceLists:
         p = self.pos.get(x)
         return p[-1] if p else -1
 
-    # O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
+    # O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    # IndexError
     def leftmostIndexOfInRange(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostIndexOfInRange: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
         p = self.pos.get(x)
         if not p:
             return -1
         k = bisect_left(p, l)
         return p[k] if k < len(p) and p[k] <= r else -1
 
-    # O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
+    # O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    # IndexError
     def rightmostIndexOfInRange(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostIndexOfInRange: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
         p = self.pos.get(x)
         if not p:
             return -1
         k = bisect_right(p, r) - 1
         return p[k] if k >= 0 and p[k] >= l else -1
 
-    # O(1) -- a[i]
+    # O(1) -- the length of the array
+    def size(self):
+        return len(self.arr)
+
+    # O(1) -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.size():
+            raise IndexError(f"pointGet: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
         return self.arr[i]

@@ -50,72 +50,112 @@ class SegOfValueTrees:
         for i, v in enumerate(arr):
             self._add(i, v, 1)
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]
 
     # O(N) -- the whole array (a copy)
     def getAll(self):
         return list(self.arr)
 
-    # O(logN logU) -- a[i] = v
+    # O(logN logU) -- a[i] = v; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         old = self.arr[i]
         if v != old:
             self._add(i, old, -1)
             self._add(i, v, 1)
             self.arr[i] = v
 
-    # O(logN logU) -- a[i] += v
+    # O(logN logU) -- a[i] += v; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.arr[i] + v)
 
-    # O(logN logU) -- a[i] = max(a[i], v)
+    # O(logN logU) -- a[i] = max(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, max(self.arr[i], v))
 
-    # O(logN logU) -- a[i] = min(a[i], v)
+    # O(logN logU) -- a[i] = min(a[i], v); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, v):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, min(self.arr[i], v))
 
-    # O(logN logU) -- xor of the values < x in a[l..r] (copies count); 0 if there are none
+    # O(logN logU) -- xor of the values < x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n,
+    # else IndexError
     def xorLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"xorLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._xor(l, r, self.vlo, x - 1)
 
-    # O(logN logU) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none
+    # O(logN logU) -- xor of the values <= x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n,
+    # else IndexError
     def xorLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"xorLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._xor(l, r, self.vlo, x)
 
-    # O(logN logU) -- xor of the values > x in a[l..r] (copies count); 0 if there are none
+    # O(logN logU) -- xor of the values > x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n,
+    # else IndexError
     def xorGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"xorGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._xor(l, r, x + 1, self.vhi)
 
-    # O(logN logU) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none
+    # O(logN logU) -- xor of the values >= x in a[l..r] (copies count); 0 if there are none; needs 0 <= l <= r < n,
+    # else IndexError
     def xorGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"xorGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._xor(l, r, x, self.vhi)
 
-    # O(logN logU) -- xor of the a[i] with lowVal <= a[i] <= highVal in a[l..r] (copies count); 0 if there are none
+    # O(logN logU) -- xor of the a[i] with lowVal <= a[i] <= highVal in a[l..r] (copies count); 0 if there are none;
+    # needs 0 <= l <= r < n, else IndexError
     def xorInValRange(self, l, r, lowVal, highVal):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"xorInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._xor(l, r, lowVal, highVal)
 
-    # O(logN logU) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none
+    # O(logN logU) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def andLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"andLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._and(l, r, self.vlo, x - 1)
 
-    # O(logN logU) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none
+    # O(logN logU) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def andLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"andLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._and(l, r, self.vlo, x)
 
-    # O(logN logU) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none
+    # O(logN logU) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def andGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"andGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._and(l, r, x + 1, self.vhi)
 
-    # O(logN logU) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none
+    # O(logN logU) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; needs 0 <= l <= r < n, else
+    # IndexError
     def andGteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"andGteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._and(l, r, x, self.vhi)
 
-    # O(logN logU) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none
+    # O(logN logU) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none;
+    # needs 0 <= l <= r < n, else IndexError
     def andInValRange(self, l, r, lowVal, highVal):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"andInValRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._and(l, r, lowVal, highVal)
 
     # ---- internals ----

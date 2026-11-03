@@ -538,7 +538,8 @@ CPP_OPS = {
     "sumKthSmallestRange": f'''    // O(logN) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1,
     // else throws out_of_range
     S sumKthSmallestRange(int l, int r, int kFrom, int kTo) const {{
-        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1) {E}("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1)
+            {E}("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumFirst(l, r, kTo) - sumFirst(l, r, kFrom - 1);
     }}
 ''',
@@ -546,7 +547,8 @@ CPP_OPS = {
     // 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
     S sumKthLargestRange(int l, int r, int kFrom, int kTo) const {{
         int n = r - l + 1;
-        if (kFrom < 1 || kFrom > kTo || kTo > n) {E}("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo || kTo > n)
+            {E}("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumFirst(l, r, n - kFrom + 1) - sumFirst(l, r, n - kTo);
     }}
 ''',
@@ -1009,7 +1011,8 @@ CPP_SPARSE_OPS = {
     "sumKthSmallestRange": f'''    // O(logN) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs 1 <= kFrom <= kTo <= r - l + 1,
     // else throws out_of_range
     S sumKthSmallestRange(long long l, long long r, long long kFrom, long long kTo) const {{
-        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1) {E2}("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1)
+            {E2}("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumFirst(l, r, kTo) - sumFirst(l, r, kFrom - 1);
     }}
 ''',
@@ -1017,7 +1020,8 @@ CPP_SPARSE_OPS = {
     // 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
     S sumKthLargestRange(long long l, long long r, long long kFrom, long long kTo) const {{
         long long n = r - l + 1;
-        if (kFrom < 1 || kFrom > kTo || kTo > n) {E2}("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        if (kFrom < 1 || kFrom > kTo || kTo > n)
+            {E2}("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
         return sumFirst(l, r, n - kFrom + 1) - sumFirst(l, r, n - kTo);
     }}
 ''',

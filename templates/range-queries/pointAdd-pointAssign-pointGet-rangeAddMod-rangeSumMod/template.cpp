@@ -56,18 +56,25 @@ struct RangeAddSumBITMod {
         return norm(W(norm(s1)) * (x + 1) - norm(s2));
     }
 
-    // O(logN) -- a[i] += v (% MOD) for i in [l, r]
+    // O(logN) -- a[i] += v (% MOD) for i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     void rangeAddMod(int l, int r, T v) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeAddMod: needs 0 <= l <= r < n");
         if (l > r) return;
         addDiff(l, v);
         if (r + 1 < n) addDiff(r + 1, norm(-W(v)));
     }
 
-    // O(logN) -- (a[l] + ... + a[r]) % MOD
-    T rangeSumMod(int l, int r) const { return l <= r ? norm(W(prefix(r)) - prefix(l - 1)) : T(0); }
+    // O(logN) -- (a[l] + ... + a[r]) % MOD; needs 0 <= l <= r < n, else throws out_of_range
+    T rangeSumMod(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rangeSumMod: needs 0 <= l <= r < n");
+        return l <= r ? norm(W(prefix(r)) - prefix(l - 1)) : T(0);
+    }
 
-    // O(logN) -- a[i], in [0, mod)
-    T pointGet(int i) const { return rangeSumMod(i, i); }
+    // O(logN) -- a[i], in [0, mod); needs 0 <= i < n, else throws out_of_range
+    T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return rangeSumMod(i, i);
+    }
 
     // O(N) -- the whole array: undo the Fenwick sums on a copy (last index first: entry i was added into
     // i + lowbit(i) once complete), then one pass of running prefix sums
@@ -87,9 +94,15 @@ struct RangeAddSumBITMod {
         return out;
     }
 
-    // O(logN) -- a[i] += delta (% MOD)
-    void pointAdd(int i, T delta) { rangeAddMod(i, i, delta); }
+    // O(logN) -- a[i] += delta (% MOD); needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        rangeAddMod(i, i, delta);
+    }
 
-    // O(logN) -- a[i] = v (% MOD)
-    void pointAssign(int i, T v) { rangeAddMod(i, i, norm(W(v) - pointGet(i))); }
+    // O(logN) -- a[i] = v (% MOD); needs 0 <= i < n, else throws out_of_range
+    void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        rangeAddMod(i, i, norm(W(v) - pointGet(i)));
+    }
 };

@@ -44,16 +44,19 @@ struct PersistentTreap {
     // one node pool shared by every PersistentTreap<T>: cut / paste move nodes between them, so a piece from one can
     // go into any other (node 0 = the empty tree). Nodes are never freed (memory = O(log N) per op, over the whole
     // run), so there is nothing to reset between test cases
-    static inline vector<T> val{T(0)};
-    static inline vector<int> L{0};
-    static inline vector<int> R{0};
-    static inline vector<long long> sz{0};
-    static inline vector<T> fv{T(0)};
-    static inline vector<T> lv{T(0)};
-    static inline vector<long long> pr{0};
-    static inline vector<long long> sr{0};
-    static inline vector<long long> br{0};
-    static inline vector<T> add{T(0)};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        long long sz = 0;
+        long long pr = 0;
+        long long sr = 0;
+        long long br = 0;
+        T val = T(0);
+        T fv = T(0);
+        T lv = T(0);
+        T add = T(0);
+        int L = 0;
+        int R = 0;
+    };
+    static inline vector<Node> nd{Node{}};  // node 0 = the empty tree
     int root = 0;
 
     // O(N) -- arr: the initial array (leave it out to start empty)
@@ -67,7 +70,7 @@ struct PersistentTreap {
     }
 
     // O(1) -- the current length of the array
-    long long size() const { return sz[root]; }
+    long long size() const { return nd[root].sz; }
 
     // O(logN) expected -- append v to the end
     void append(T v) { root = merge(root, newNode(v)); }
@@ -79,8 +82,9 @@ struct PersistentTreap {
     PersistentTreap copy() const { return *this; }
 
     // O(logN) expected -- a[l..r] as a PersistentTreap of its own; this one is unchanged. The copy shares this one's
-    // nodes, so it costs O(logN) however long it is
+    // nodes, so it costs O(logN) however long it is; needs 0 <= l <= r < size(), else throws out_of_range
     PersistentTreap copy(long long l, long long r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("copy: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         PersistentTreap piece = makeEmpty();
@@ -88,8 +92,10 @@ struct PersistentTreap {
         return piece;
     }
 
-    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0)
+    // O(logN) expected -- remove a[l..r] and return it as a treap of its own (indices from 0); needs
+    // 0 <= l <= r < size(), else throws out_of_range
     PersistentTreap cut(long long l, long long r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("cut: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         root = merge(a, c);
@@ -105,34 +111,40 @@ struct PersistentTreap {
         vector<int> st;
         int t = root;
         while (!st.empty() || t) {
-            while (t) push(t), st.push_back(t), t = L[t];
+            while (t) push(t), st.push_back(t), t = nd[t].L;
             t = st.back(), st.pop_back();
-            out.push_back(val[t]);
-            t = R[t];
+            out.push_back(nd[t].val);
+            t = nd[t].R;
         }
         return out;
     }
 
-    // O(logN) expected -- insert v so it becomes a[i]; 0 <= i <= size() (i = size() appends)
+    // O(logN) expected -- insert v so it becomes a[i]; needs 0 <= i <= size(), else throws out_of_range (i = size()
+    // appends)
     void insertAt(long long i, T v) {
+        if (i < 0 || i > size()) throw out_of_range("insertAt: needs 0 <= i <= size()");
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, newNode(v)), c);
     }
 
-    // O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0)
+    // O(k + logN) expected -- insert k copies of v so they become a[i..i+k-1] (nothing if k <= 0); needs
+    // 0 <= i <= size(), else throws out_of_range
     void insertCopiesAt(long long i, T v, long long k) {
+        if (i < 0 || i > size()) throw out_of_range("insertCopiesAt: needs 0 <= i <= size()");
         if (k <= 0) return;
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, build(vector<T>(k, v))), c);
     }
 
-    // O(logN) expected -- the longest run of equal adjacent values in a[l..r]
+    // O(logN) expected -- the longest run of equal adjacent values in a[l..r]; needs 0 <= l <= r < size(), else
+    // throws out_of_range
     long long longestEqualRun(long long l, long long r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("longestEqualRun: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
-        int res = br[b];
+        int res = nd[b].br;
         return res;
     }
 
@@ -140,9 +152,10 @@ struct PersistentTreap {
     void merge(PersistentTreap& other) { root = merge(root, other.root), other.root = 0; }
     void merge(PersistentTreap&& other) { merge(other); }  // (a temporary: merge(t.copy()))
 
-    // O(logN) expected -- insert all of other (any PersistentTreap, e.g. a cut piece) so it starts at a[i]
-    // (0 <= i <= size()); other is left empty
+    // O(logN) expected -- insert all of other (any PersistentTreap, e.g. a cut piece) so it starts at a[i] (needs
+    // 0 <= i <= size(), else throws out_of_range); other is left empty
     void paste(long long i, PersistentTreap& other) {
+        if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         int a, c;
         split(root, i, a, c);
         root = merge(merge(a, other.root), c);
@@ -150,56 +163,65 @@ struct PersistentTreap {
     }
     void paste(long long i, PersistentTreap&& other) { paste(i, other); }  // (a temporary: paste(i, t.copy(l, r)))
 
-    // O(logN) expected -- a[i] += v
+    // O(logN) expected -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
     void pointAdd(long long i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
         int a, b, c;
         cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        val[b] = T(val[b] + v);
+        nd[b].val = T(nd[b].val + v);
         pull(b);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- a[i] = v
+    // O(logN) expected -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
     void pointAssign(long long i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
         int a, b, c;
         cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        val[b] = v;
+        nd[b].val = v;
         pull(b);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- a[i] = max(a[i], v)
+    // O(logN) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmax(long long i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
         int a, b, c;
         cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        val[b] = max(val[b], v);
+        nd[b].val = max(nd[b].val, v);
         pull(b);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- a[i] = min(a[i], v)
+    // O(logN) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
     void pointChmin(long long i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
         int a, b, c;
         cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        val[b] = min(val[b], v);
+        nd[b].val = min(nd[b].val, v);
         pull(b);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- a[i]
-    T pointGet(long long i) { return val[locate(i)]; }
+    // O(logN) expected -- a[i]; needs 0 <= i < size(), else throws out_of_range
+    T pointGet(long long i) {
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
+        return nd[locate(i)].val;
+    }
 
-    // O(logN) expected -- a[i] += v for i in [l, r]
+    // O(logN) expected -- a[i] += v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAdd(long long l, long long r, T v) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAdd: needs 0 <= l <= r < size()");
         int a, b, c;
         cut(l, r, a, b, c);
         applyAdd(b, v);
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative:
-    // it is taken mod the length (negative shifts right)
+    // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is
+    // taken mod the length (negative shifts right); needs 0 <= l <= r < size(), else throws out_of_range
     void rangeRotateLeft(long long l, long long r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateLeft: needs 0 <= l <= r < size()");
         int a, b, c;
         long long len = r - l + 1;
         cut(l, r, a, b, c);
@@ -212,20 +234,27 @@ struct PersistentTreap {
         root = merge(merge(a, b), c);
     }
 
-    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the
-    // length (negative shifts left)
-    void rangeRotateRight(long long l, long long r, long long k) { rangeRotateLeft(l, r, -k); }
+    // O(logN) expected -- cyclic shift a[l..r] right by k; k can be huge or negative: it is taken mod the length
+    // (negative shifts left); needs 0 <= l <= r < size(), else throws out_of_range
+    void rangeRotateRight(long long l, long long r, long long k) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeRotateRight: needs 0 <= l <= r < size()");
+        rangeRotateLeft(l, r, -k);
+    }
 
-    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty
+    // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
+    // 0 <= k <= size(), else throws out_of_range
     pair<PersistentTreap, PersistentTreap> split(long long k) {
+        if (k < 0 || k > size()) throw out_of_range("split: needs 0 <= k <= size()");
         PersistentTreap left = makeEmpty(), right = makeEmpty();
         split(root, k, left.root, right.root);
         root = 0;
         return {left, right};
     }
 
-    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty
+    // O(logN) expected -- (a[0..l-1], a[l..r], a[r+1..]) as three treaps of their own; this one is left empty; needs
+    // 0 <= l <= r < size(), else throws out_of_range
     tuple<PersistentTreap, PersistentTreap, PersistentTreap> trisect(long long l, long long r) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("trisect: needs 0 <= l <= r < size()");
         PersistentTreap left = makeEmpty(), mid = makeEmpty(), right = makeEmpty();
         cut(l, r, left.root, mid.root, right.root);
         root = 0;
@@ -235,9 +264,10 @@ struct PersistentTreap {
     // ---- internals ----
 
     int newNode(T v) {
-        val.push_back(v), L.push_back(0), R.push_back(0), sz.push_back(1);
-        fv.push_back(v), lv.push_back(v), pr.push_back(1), sr.push_back(1), br.push_back(1), add.push_back(T(0));
-        return (int)val.size() - 1;
+        Node n;
+        n.val = v, n.L = 0, n.R = 0, n.sz = 1, n.fv = v, n.lv = v, n.pr = 1, n.sr = 1, n.br = 1, n.add = T(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     int build(const vector<T>& vals) { return build(vals, 0, (int)vals.size()); }
@@ -246,83 +276,78 @@ struct PersistentTreap {
         if (lo >= hi) return 0;
         int mid = (lo + hi) / 2, x = newNode(vals[mid]);
         int l = build(vals, lo, mid), r = build(vals, mid + 1, hi);
-        L[x] = l, R[x] = r;
+        nd[x].L = l, nd[x].R = r;
         pull(x);
         return x;
     }
 
     int clone(int x) {  // a new copy of node x (sharing its children)
-        val.push_back(val[x]);
-        L.push_back(L[x]);
-        R.push_back(R[x]);
-        sz.push_back(sz[x]);
-        fv.push_back(fv[x]);
-        lv.push_back(lv[x]);
-        pr.push_back(pr[x]);
-        sr.push_back(sr[x]);
-        br.push_back(br[x]);
-        add.push_back(add[x]);
-        return (int)val.size() - 1;
+        Node n;
+        n.val = nd[x].val, n.L = nd[x].L, n.R = nd[x].R, n.sz = nd[x].sz, n.fv = nd[x].fv, n.lv = nd[x].lv,
+        n.pr = nd[x].pr, n.sr = nd[x].sr, n.br = nd[x].br, n.add = nd[x].add;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     void pull(int x) {  // recompute x from its children
-        int l = L[x], r = R[x];
-        sz[x] = sz[l] + sz[r] + 1;
-        T v = val[x];
+        int l = nd[x].L, r = nd[x].R;
+        nd[x].sz = nd[l].sz + nd[r].sz + 1;
+        T v = nd[x].val;
         long long rp = 1, rq = 1, bb = 1;
         if (l) {
-            bool j = lv[l] == v;
-            rp = pr[l] + (j && pr[l] == sz[l]);
-            rq = j ? sr[l] + 1 : 1;
-            bb = max(br[l], rq);
+            bool j = nd[l].lv == v;
+            rp = nd[l].pr + (j && nd[l].pr == nd[l].sz);
+            rq = j ? nd[l].sr + 1 : 1;
+            bb = max(nd[l].br, rq);
         }
         if (r) {
-            bool j = v == fv[r];
-            bb = max({bb, br[r], j ? rq + pr[r] : 0});
-            if (j && rp == sz[l] + 1) rp += pr[r];
-            rq = j && sr[r] == sz[r] ? sr[r] + rq : sr[r];
+            bool j = v == nd[r].fv;
+            bb = max({bb, nd[r].br, j ? rq + nd[r].pr : 0});
+            if (j && rp == nd[l].sz + 1) rp += nd[r].pr;
+            rq = j && nd[r].sr == nd[r].sz ? nd[r].sr + rq : nd[r].sr;
         }
-        pr[x] = rp, sr[x] = rq, br[x] = bb;
-        fv[x] = l ? fv[l] : v;
-        lv[x] = r ? lv[r] : v;
+        nd[x].pr = rp, nd[x].sr = rq, nd[x].br = bb;
+        nd[x].fv = l ? nd[l].fv : v;
+        nd[x].lv = r ? nd[r].lv : v;
     }
 
     void applyAdd(int x, T v) {  // every value of x's subtree gains v
         if (!x) return;
-        val[x] += v;
-        fv[x] += v, lv[x] += v;
-        add[x] += v;
+        nd[x].val += v;
+        nd[x].fv += v, nd[x].lv += v;
+        nd[x].add += v;
     }
 
     void push(int x) {  // hand x's pending tags to its children
-        if (!(add[x] != T(0))) return;
-        if (L[x]) L[x] = clone(L[x]);  // (the children get tags: fresh copies of them, since other trees may share them)
-        if (R[x]) R[x] = clone(R[x]);
-        if (add[x] != T(0)) applyAdd(L[x], add[x]), applyAdd(R[x], add[x]), add[x] = T(0);
+        if (!(nd[x].add != T(0))) return;
+        // (the children get tags: fresh copies of them, since other trees may share them)
+        if (nd[x].L) nd[x].L = clone(nd[x].L);
+        if (nd[x].R) nd[x].R = clone(nd[x].R);
+        if (nd[x].add != T(0)) applyAdd(nd[x].L, nd[x].add), applyAdd(nd[x].R, nd[x].add), nd[x].add = T(0);
     }
 
-    void split(int t, long long k, int& a, int& b) {  // a = first k of t, b = the rest, as new nodes (t's are left as they were)
+    void split(int t, long long k, int& a, int& b) {  // a = first k of t, b = the rest (as new nodes)
         if (!t) { a = b = 0; return; }
         t = clone(t);
         push(t);
         int x, y;  // (not straight into L[t] / R[t]: the clones below may move those arrays)
-        if (sz[L[t]] >= k) split(L[t], k, x, y), L[t] = y, a = x, b = t;
-        else split(R[t], k - sz[L[t]] - 1, x, y), R[t] = x, a = t, b = y;
+        if (nd[nd[t].L].sz >= k) split(nd[t].L, k, x, y), nd[t].L = y, a = x, b = t;
+        else split(nd[t].R, k - nd[nd[t].L].sz - 1, x, y), nd[t].R = x, a = t, b = y;
         pull(t);
     }
 
     int merge(int a, int b) {  // a's elements, then b's, as new nodes; the root is a with probability |a| / (|a| + |b|)
         if (!a || !b) return a | b;
-        if (rnd() % (unsigned long long)(sz[a] + sz[b]) < (unsigned long long)sz[a]) {
+        if (rnd() % (unsigned long long)(nd[a].sz + nd[b].sz) < (unsigned long long)nd[a].sz) {
             a = clone(a);
             push(a);
-            R[a] = merge(R[a], b);
+            nd[a].R = merge(nd[a].R, b);
             pull(a);
             return a;
         }
         b = clone(b);
         push(b);
-        L[b] = merge(a, L[b]);
+        nd[b].L = merge(a, nd[b].L);
         pull(b);
         return b;
     }
@@ -336,10 +361,10 @@ struct PersistentTreap {
         int t = root;
         while (true) {
             push(t);
-            long long ls = sz[L[t]];
+            long long ls = nd[nd[t].L].sz;
             if (i == ls) return t;
-            if (i < ls) t = L[t];
-            else i -= ls + 1, t = R[t];
+            if (i < ls) t = nd[t].L;
+            else i -= ls + 1, t = nd[t].R;
         }
     }
 };

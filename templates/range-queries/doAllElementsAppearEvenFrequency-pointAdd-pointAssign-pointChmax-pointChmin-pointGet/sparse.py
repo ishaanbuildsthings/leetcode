@@ -68,15 +68,20 @@ class SparseXorEven:
             x &= x - 1
         return s
 
-    # O(logU) -- True iff every value in a[l..r] appears an even number of times
+    # O(logU) -- True iff every value in a[l..r] appears an even number of times; needs lo <= l <= r <= hi, else
+    # IndexError
     def doAllElementsAppearEvenFrequency(self, l, r):
+        if not self.lo <= l <= r <= self.hi:
+            raise IndexError(f"doAllElementsAppearEvenFrequency: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         h = self._prefix(r) ^ self._prefix(l - 1)
         if (r - l + 1) & 1:
             h ^= self.zero
         return h == 0
 
-    # O(logU) -- a[i] = val
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         d = self._tagOf(self.vals.get(i, 0)) ^ self._tagOf(val)
         if val:
             self.vals[i] = val
@@ -85,20 +90,28 @@ class SparseXorEven:
         if d:
             self._add(i, d)
 
-    # O(1) -- a[i]
+    # O(1) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self.vals.get(i, 0)
 
-    # a[i] += delta
+    # a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # a[i] = max(a[i], val)
+    # a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val)
+    # a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
+        if not self.lo <= i <= self.hi:
+            raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)

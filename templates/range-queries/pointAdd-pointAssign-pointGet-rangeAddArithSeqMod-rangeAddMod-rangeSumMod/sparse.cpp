@@ -92,8 +92,10 @@ struct SparseArithSeqSumBITMod {
     T norm(W x) const { return T((x % mod + mod) % mod); }
     T tri(long long k) const { return norm(W((__int128)k * (k + 1) / 2 % mod)); }
 
-    // O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]
+    // O(logU) -- a[l + j] += start + j * step (% MOD) for j in [0, r - l]; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     void rangeAddArithSeqMod(long long l, long long r, T start, T step) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAddArithSeqMod: needs lo <= l <= r <= hi");
         if (l > r) return;
         l -= lo, r -= lo;
         T c1 = norm(step), c0 = norm(W(start) - W(c1) * norm(l));  // adding c0 + c1 * x at offset x
@@ -105,8 +107,11 @@ struct SparseArithSeqSumBITMod {
         }
     }
 
-    // O(logU) -- a[i] += v (% MOD) for i in [l, r]
-    void rangeAddMod(long long l, long long r, T v) { rangeAddArithSeqMod(l, r, v, 0); }
+    // O(logU) -- a[i] += v (% MOD) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    void rangeAddMod(long long l, long long r, T v) {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeAddMod: needs lo <= l <= r <= hi");
+        rangeAddArithSeqMod(l, r, v, 0);
+    }
 
     // O(logU) -- (a[lo] + ... + a[lo + x]) % MOD (0 for x = -1)
     T sum(long long x) const {
@@ -114,15 +119,27 @@ struct SparseArithSeqSumBITMod {
         return norm(s[0] + W(s[1]) * norm(x) % mod + W(s[2]) * tri(x) % mod);
     }
 
-    // O(logU) -- (a[l] + ... + a[r]) % MOD
-    T rangeSumMod(long long l, long long r) const { return l <= r ? norm(W(sum(r - lo)) - sum(l - 1 - lo)) : T(0); }
+    // O(logU) -- (a[l] + ... + a[r]) % MOD; needs lo <= l <= r <= hi, else throws out_of_range
+    T rangeSumMod(long long l, long long r) const {
+        if (l < lo || l > r || r > hi) throw out_of_range("rangeSumMod: needs lo <= l <= r <= hi");
+        return l <= r ? norm(W(sum(r - lo)) - sum(l - 1 - lo)) : T(0);
+    }
 
-    // O(logU) -- a[i], in [0, mod)
-    T pointGet(long long i) const { return rangeSumMod(i, i); }
+    // O(logU) -- a[i], in [0, mod); needs lo <= i <= hi, else throws out_of_range
+    T pointGet(long long i) const {
+        if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
+        return rangeSumMod(i, i);
+    }
 
-    // O(logU) -- a[i] += delta
-    void pointAdd(long long i, T delta) { rangeAddMod(i, i, delta); }
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    void pointAdd(long long i, T delta) {
+        if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
+        rangeAddMod(i, i, delta);
+    }
 
-    // O(logU) -- a[i] = v
-    void pointAssign(long long i, T v) { rangeAddMod(i, i, v - pointGet(i)); }
+    // O(logU) -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    void pointAssign(long long i, T v) {
+        if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
+        rangeAddMod(i, i, v - pointGet(i));
+    }
 };

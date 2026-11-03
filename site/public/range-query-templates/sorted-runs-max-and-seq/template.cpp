@@ -51,17 +51,31 @@ struct SortedRunsMaxAndSeq {
     // one node pool shared by every SortedRunsMaxAndSeq<T>: cut / paste move nodes between them, so a piece from one
     // can go into any other (node 0 = the empty tree). Nodes freed by merges are reused, and there is nothing to
     // reset between test cases
-    static inline vector<int> Lc{0}, Rc{0}, freeList;  // value node 0 = the empty tree; merges free nodes, reused first
-    static inline vector<long long> cnt{0};
-    static inline vector<T> av{T(~T(0))};  // node 0 holds every bit (AND's identity)
+    struct VNode {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        long long cnt = 0;
+        T av = T(~T(0));
+        int Lc = 0;
+        int Rc = 0;
+    };
+    static inline vector<VNode> vn{VNode{}};  // node 0 = the empty tree
+    struct Run {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        unsigned long long TP = 0;
+        T Omx = numeric_limits<T>::lowest();
+        T Smx = numeric_limits<T>::lowest();
+        T Sav = T(~T(0));
+        int TL = 0;
+        int TR = 0;
+        int TV = 0;
+        int TN = 0;
+        int TS = 0;
+        char TD = 0;
+        char TF = 0;
+    };
+    static inline vector<Run> rn{Run{}};  // node 0 = the empty tree
+    static inline vector<int> freeList;  // value nodes freed by merges, reused first
     // treap of runs (node 0 = empty): children TL / TR, priority TP, value tree TV, length TN, descending TD,
     // subtree length TS, pending reverse TF, subtree max / and (O: the run's own min / max)
-    static inline vector<int> TL{0}, TR{0}, TV{0}, TN{0}, TS{0}, tfree;
-    static inline vector<unsigned long long> TP{0};
-    static inline vector<char> TD{0}, TF{0};
-    static inline vector<T> Omx{numeric_limits<T>::lowest()};
-    static inline vector<T> Smx{numeric_limits<T>::lowest()};
-    static inline vector<T> Sav{T(~T(0))};
+    static inline vector<int> tfree;
     long long vlo, vhi;  // (each one's value range)
     int n = 0, rt = 0;
 
@@ -72,18 +86,20 @@ struct SortedRunsMaxAndSeq {
 
     // O(N log U) -- arr: the initial array; every value a[i] ever holds must lie in [valLo, valHi]
     // (U = valHi - valLo + 1)
-    SortedRunsMaxAndSeq(const vector<T>& arr, long long valLo, long long valHi) : vlo(valLo), vhi(valHi) { buildFrom(arr); }
+    SortedRunsMaxAndSeq(const vector<T>& arr, long long valLo, long long valHi) : vlo(valLo),
+        vhi(valHi) { buildFrom(arr); }
 
-    SortedRunsMaxAndSeq makeEmpty() const { return SortedRunsMaxAndSeq({}, vlo, vhi); }  // (a new, empty one: same pool, same value range)
+    // (a new, empty one: same pool, same value range)
+    SortedRunsMaxAndSeq makeEmpty() const { return SortedRunsMaxAndSeq({}, vlo, vhi); }
 
     void buildFrom(const vector<T>& arr) {
         n = (int)arr.size();
         vector<int> st;  // O(N) build: the treap's right spine
         for (const T& v : arr) {
             int x = run(leaf(v), 1, false), last = 0;
-            while (!st.empty() && TP[st.back()] < TP[x]) last = st.back(), st.pop_back(), tpull(last);
-            TL[x] = last;
-            if (!st.empty()) TR[st.back()] = x;
+            while (!st.empty() && rn[st.back()].TP < rn[x].TP) last = st.back(), st.pop_back(), tpull(last);
+            rn[x].TL = last;
+            if (!st.empty()) rn[st.back()].TR = x;
             st.push_back(x);
         }
         for (int i = (int)st.size() - 1; i >= 0; i--) tpull(st[i]);
@@ -97,12 +113,12 @@ struct SortedRunsMaxAndSeq {
     T pointGet(int i) {
         for (int x = rt;;) {
             push(x);
-            int ls = TS[TL[x]];
-            if (i < ls) x = TL[x];
-            else if (i < ls + TN[x]) {
+            int ls = rn[rn[x].TL].TS;
+            if (i < ls) x = rn[x].TL;
+            else if (i < ls + rn[x].TN) {
                 int k = i - ls;
-                return kth(TV[x], TD[x] ? TN[x] - k : k + 1);
-            } else i -= ls + TN[x], x = TR[x];
+                return kth(rn[x].TV, rn[x].TD ? rn[x].TN - k : k + 1);
+            } else i -= ls + rn[x].TN, x = rn[x].TR;
         }
     }
 
@@ -209,7 +225,7 @@ struct SortedRunsMaxAndSeq {
     // O(log N + log U) amortized -- max of a[l..r]
     T rangeMax(int l, int r) {
         auto [A, B, C] = extract(l, r);
-        T res = Smx[B];
+        T res = rn[B].Smx;
         join(A, B, C);
         return res;
     }
@@ -217,7 +233,7 @@ struct SortedRunsMaxAndSeq {
     // O(log N + log U) amortized -- a[l] & ... & a[r]
     T rangeAndQuery(int l, int r) {
         auto [A, B, C] = extract(l, r);
-        T res = Sav[B];
+        T res = rn[B].Sav;
         join(A, B, C);
         return res;
     }
@@ -228,11 +244,11 @@ struct SortedRunsMaxAndSeq {
         out.reserve(n);
         vector<int> st;
         for (int x = rt; !st.empty() || x;) {
-            for (; x; x = TL[x]) push(x), st.push_back(x);
+            for (; x; x = rn[x].TL) push(x), st.push_back(x);
             x = st.back();
             st.pop_back();
-            values(TV[x], TD[x], out);
-            x = TR[x];
+            values(rn[x].TV, rn[x].TD, out);
+            x = rn[x].TR;
         }
         return out;
     }
@@ -242,75 +258,77 @@ struct SortedRunsMaxAndSeq {
     // a new run node: value tree t, length ln, descending?
     int run(int t, int ln, bool d) {
         int x;
-        if (!tfree.empty()) x = tfree.back(), tfree.pop_back(), TL[x] = TR[x] = 0, TF[x] = 0;
+        if (!tfree.empty()) x = tfree.back(), tfree.pop_back(), rn[x].TL = rn[x].TR = 0, rn[x].TF = 0;
         else {
-            x = (int)TS.size();
-            TL.push_back(0), TR.push_back(0), TV.push_back(0), TN.push_back(0), TS.push_back(0), TP.push_back(0);
-            TD.push_back(0), TF.push_back(0), Omx.push_back(numeric_limits<T>::lowest()), Smx.push_back(numeric_limits<T>::lowest()), Sav.push_back(T(~T(0)));
+            x = (int)rn.size();
+            Run n;
+            n.TL = 0, n.TR = 0, n.TV = 0, n.TN = 0, n.TS = 0, n.TP = 0, n.TD = 0, n.TF = 0,
+            n.Omx = numeric_limits<T>::lowest(), n.Smx = numeric_limits<T>::lowest(), n.Sav = T(~T(0));
+            rn.push_back(n);
         }
-        TP[x] = rnd(), TV[x] = t, TN[x] = ln, TD[x] = d;
-        Omx[x] = kth(t, cnt[t]);
+        rn[x].TP = rnd(), rn[x].TV = t, rn[x].TN = ln, rn[x].TD = d;
+        rn[x].Omx = kth(t, vn[t].cnt);
         tpull(x);
         return x;
     }
 
     void tpull(int x) {
-        int L = TL[x], R = TR[x], t = TV[x];
-        TS[x] = TS[L] + TN[x] + TS[R];
-        Smx[x] = max(Omx[x], max(Smx[L], Smx[R]));
-        Sav[x] = Sav[L] & av[t] & Sav[R];
+        int L = rn[x].TL, R = rn[x].TR, t = rn[x].TV;
+        rn[x].TS = rn[L].TS + rn[x].TN + rn[R].TS;
+        rn[x].Smx = max(rn[x].Omx, max(rn[L].Smx, rn[R].Smx));
+        rn[x].Sav = rn[L].Sav & vn[t].av & rn[R].Sav;
     }
 
     void rev(int x) {  // reverse x's subtree: swap its children (and below, lazily), flip its run
-        if (x) swap(TL[x], TR[x]), TD[x] ^= 1, TF[x] ^= 1;
+        if (x) swap(rn[x].TL, rn[x].TR), rn[x].TD ^= 1, rn[x].TF ^= 1;
     }
 
     void push(int x) {
-        if (TF[x]) rev(TL[x]), rev(TR[x]), TF[x] = 0;
+        if (rn[x].TF) rev(rn[x].TL), rev(rn[x].TR), rn[x].TF = 0;
     }
 
     // (the first k elements, the rest), cutting the run that straddles k
     pair<int, int> tsplit(int x, int k) {
         if (!x || k <= 0) return {0, x};
-        if (k >= TS[x]) return {x, 0};
+        if (k >= rn[x].TS) return {x, 0};
         push(x);
-        int ls = TS[TL[x]];
+        int ls = rn[rn[x].TL].TS;
         if (k <= ls) {
-            auto [a, b] = tsplit(TL[x], k);
-            TL[x] = b;
+            auto [a, b] = tsplit(rn[x].TL, k);
+            rn[x].TL = b;
             tpull(x);
             return {a, x};
         }
-        if (k >= ls + TN[x]) {
-            auto [a, b] = tsplit(TR[x], k - ls - TN[x]);
-            TR[x] = a;
+        if (k >= ls + rn[x].TN) {
+            auto [a, b] = tsplit(rn[x].TR, k - ls - rn[x].TN);
+            rn[x].TR = a;
             tpull(x);
             return {x, b};
         }
         k -= ls;  // cut this run: x keeps its first k elements, a new node the rest
-        int t = TV[x], ln = TN[x], a, b;
-        if (TD[x]) split(t, ln - k, vlo, vhi, b, a);  // the first k are the k largest
+        int t = rn[x].TV, ln = rn[x].TN, a, b;
+        if (rn[x].TD) split(t, ln - k, vlo, vhi, b, a);  // the first k are the k largest
         else split(t, k, vlo, vhi, a, b);
-        TV[x] = a, TN[x] = k;
-        Omx[x] = kth(a, cnt[a]);
-        int u = run(b, ln - k, TD[x]), R = TR[x];
-        TR[x] = 0;
+        rn[x].TV = a, rn[x].TN = k;
+        rn[x].Omx = kth(a, vn[a].cnt);
+        int u = run(b, ln - k, rn[x].TD), R = rn[x].TR;
+        rn[x].TR = 0;
         tpull(x);
         return {x, tmerge(u, R)};
     }
 
     int tmerge(int a, int b) {
         if (!a || !b) return a ? a : b;
-        if (TP[a] > TP[b]) {
+        if (rn[a].TP > rn[b].TP) {
             push(a);
-            int r = tmerge(TR[a], b);
-            TR[a] = r;
+            int r = tmerge(rn[a].TR, b);
+            rn[a].TR = r;
             tpull(a);
             return a;
         }
         push(b);
-        int l = tmerge(a, TL[b]);
-        TL[b] = l;
+        int l = tmerge(a, rn[b].TL);
+        rn[b].TL = l;
         tpull(b);
         return b;
     }
@@ -331,21 +349,21 @@ struct SortedRunsMaxAndSeq {
             int y = st.back();
             st.pop_back();
             out.push_back(y);
-            if (TL[y]) st.push_back(TL[y]);
-            if (TR[y]) st.push_back(TR[y]);
+            if (rn[y].TL) st.push_back(rn[y].TL);
+            if (rn[y].TR) st.push_back(rn[y].TR);
         }
         return out;
     }
 
     void drop(int x) {  // free every run of x (value trees and treap nodes)
-        for (int y : nodes(x)) freeTree(TV[y]), tfree.push_back(y);
+        for (int y : nodes(x)) freeTree(rn[y].TV), tfree.push_back(y);
     }
 
     // a[l..r] becomes one sorted run: every run inside merges into one
     void sortRange(int l, int r, bool d) {
         auto [A, B, C] = extract(l, r);
         int t = 0;
-        for (int y : nodes(B)) t = merge(t, TV[y], vlo, vhi), tfree.push_back(y);
+        for (int y : nodes(B)) t = merge(t, rn[y].TV, vlo, vhi), tfree.push_back(y);
         join(A, run(t, r - l + 1, d), C);
     }
 
@@ -355,11 +373,13 @@ struct SortedRunsMaxAndSeq {
         if (!freeList.empty()) {
             int t = freeList.back();
             freeList.pop_back();
-            Lc[t] = Rc[t] = 0, cnt[t] = 0;
+            vn[t].Lc = vn[t].Rc = 0, vn[t].cnt = 0;
             return t;
         }
-        Lc.push_back(0), Rc.push_back(0), cnt.push_back(0), av.push_back(T(~T(0)));
-        return (int)cnt.size() - 1;
+        VNode n;
+        n.Lc = 0, n.Rc = 0, n.cnt = 0, n.av = T(~T(0));
+        vn.push_back(n);
+        return (int)vn.size() - 1;
     }
 
     void freeTree(int t) {  // hand every node of t back
@@ -369,21 +389,21 @@ struct SortedRunsMaxAndSeq {
             int u = st.back();
             st.pop_back();
             freeList.push_back(u);
-            if (Lc[u]) st.push_back(Lc[u]);
-            if (Rc[u]) st.push_back(Rc[u]);
+            if (vn[u].Lc) st.push_back(vn[u].Lc);
+            if (vn[u].Rc) st.push_back(vn[u].Rc);
         }
     }
 
     // node x holds c copies of v (a leaf, or a node with one value under it)
     void setLeaf(int x, long long v, long long c) {
-        cnt[x] = c;
-        av[x] = T(v);
+        vn[x].cnt = c;
+        vn[x].av = T(v);
     }
 
     void pull(int x) {
-        int l = Lc[x], r = Rc[x];
-        cnt[x] = cnt[l] + cnt[r];
-        av[x] = av[l] & av[r];
+        int l = vn[x].Lc, r = vn[x].Rc;
+        vn[x].cnt = vn[l].cnt + vn[r].cnt;
+        vn[x].av = vn[l].av & vn[r].av;
     }
 
     // a tree holding c copies of v: one node per level
@@ -395,8 +415,8 @@ struct SortedRunsMaxAndSeq {
             if (nl == nh) return top_;
             long long mid = nl + (nh - nl) / 2;
             int u = node();
-            if ((long long)v <= mid) Lc[t] = u, nh = mid;
-            else Rc[t] = u, nl = mid + 1;
+            if ((long long)v <= mid) vn[t].Lc = u, nh = mid;
+            else vn[t].Rc = u, nl = mid + 1;
             t = u;
         }
     }
@@ -404,21 +424,21 @@ struct SortedRunsMaxAndSeq {
     // a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new nodes (one path) the second
     void split(int t, long long k, long long nl, long long nh, int& a, int& b) {
         if (k <= 0) { a = 0, b = t; return; }
-        if (k >= cnt[t]) { a = t, b = 0; return; }
+        if (k >= vn[t].cnt) { a = t, b = 0; return; }
         int nb = node();
         if (nl == nh) {  // one value: split its copies
-            setLeaf(nb, nl, cnt[t] - k), setLeaf(t, nl, k);
+            setLeaf(nb, nl, vn[t].cnt - k), setLeaf(t, nl, k);
             a = t, b = nb;
             return;
         }
-        long long mid = nl + (nh - nl) / 2, cl = cnt[Lc[t]];
+        long long mid = nl + (nh - nl) / 2, cl = vn[vn[t].Lc].cnt;
         int x, y;
         if (k <= cl) {
-            split(Lc[t], k, nl, mid, x, y);
-            Lc[t] = x, Lc[nb] = y, Rc[nb] = Rc[t], Rc[t] = 0;
+            split(vn[t].Lc, k, nl, mid, x, y);
+            vn[t].Lc = x, vn[nb].Lc = y, vn[nb].Rc = vn[t].Rc, vn[t].Rc = 0;
         } else {
-            split(Rc[t], k - cl, mid + 1, nh, x, y);
-            Rc[t] = x, Rc[nb] = y;
+            split(vn[t].Rc, k - cl, mid + 1, nh, x, y);
+            vn[t].Rc = x, vn[nb].Rc = y;
         }
         pull(t), pull(nb);
         a = t, b = nb;
@@ -428,13 +448,13 @@ struct SortedRunsMaxAndSeq {
     int merge(int a, int b, long long nl, long long nh) {
         if (!a || !b) return a ? a : b;
         if (nl == nh) {
-            setLeaf(a, nl, cnt[a] + cnt[b]);
+            setLeaf(a, nl, vn[a].cnt + vn[b].cnt);
         } else {
             long long mid = nl + (nh - nl) / 2;
-            int x = merge(Lc[a], Lc[b], nl, mid);
-            Lc[a] = x;
-            int y = merge(Rc[a], Rc[b], mid + 1, nh);
-            Rc[a] = y;
+            int x = merge(vn[a].Lc, vn[b].Lc, nl, mid);
+            vn[a].Lc = x;
+            int y = merge(vn[a].Rc, vn[b].Rc, mid + 1, nh);
+            vn[a].Rc = y;
             pull(a);
         }
         freeList.push_back(b);
@@ -445,9 +465,9 @@ struct SortedRunsMaxAndSeq {
     T kth(int t, long long k) const {
         long long nl = vlo, nh = vhi;
         while (nl != nh) {
-            long long mid = nl + (nh - nl) / 2, cl = cnt[Lc[t]];
-            if (k <= cl) t = Lc[t], nh = mid;
-            else k -= cl, t = Rc[t], nl = mid + 1;
+            long long mid = nl + (nh - nl) / 2, cl = vn[vn[t].Lc].cnt;
+            if (k <= cl) t = vn[t].Lc, nh = mid;
+            else k -= cl, t = vn[t].Rc, nl = mid + 1;
         }
         return T(nl);
     }
@@ -459,13 +479,13 @@ struct SortedRunsMaxAndSeq {
         while (!st.empty()) {  // in-order, pushed right first
             auto [u, nl, nh] = st.back();
             st.pop_back();
-            if (!cnt[u]) continue;
+            if (!vn[u].cnt) continue;
             if (nl == nh) {
-                out.insert(out.end(), cnt[u], T(nl));
+                out.insert(out.end(), vn[u].cnt, T(nl));
                 continue;
             }
             long long mid = nl + (nh - nl) / 2;
-            st.push_back({Rc[u], mid + 1, nh}), st.push_back({Lc[u], nl, mid});
+            st.push_back({vn[u].Rc, mid + 1, nh}), st.push_back({vn[u].Lc, nl, mid});
         }
         if (d) reverse(out.begin() + from, out.end());
     }

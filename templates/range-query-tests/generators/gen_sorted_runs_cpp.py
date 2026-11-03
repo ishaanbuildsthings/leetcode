@@ -1,6 +1,10 @@
 """C++ bodies for gen_sorted_runs.py (same structures and names as the Python ones)."""
 from gen_sorted_runs import AGG_OPS, QDOC, VFIELDS, WORD, class_name, doc, header, kind_of
-from gen_treap import CPP_HASH_HELPERS
+from gen_treap import CPP_HASH_HELPERS as _H
+
+CPP_HASH_HELPERS = _H.replace(
+    "    static unsigned long long hadd(unsigned long long a, unsigned long long b) { return a + b >= HP ? a + b - HP : a + b; }",
+    "    static unsigned long long hadd(unsigned long long a, unsigned long long b) {\n        return a + b >= HP ? a + b - HP : a + b;\n    }")
 
 RND = '''
     static unsigned long long rnd() {
@@ -306,7 +310,9 @@ def cpp_runs(aggs):
             if op == "rangesEqual":
                 queries += f'''
     // O(log N + log U) amortized -- {QDOC[op]}
-    bool rangesEqual(int l1, int r1, int l2, int r2) {{ return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2); }}
+    bool rangesEqual(int l1, int r1, int l2, int r2) {{
+        return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
+    }}
 '''
                 continue
             if kind == "fenwick":
@@ -465,7 +471,9 @@ def cpp_treap(aggs):
             if op == "rangesEqual":
                 queries += f'''
     // O(log N + log U) amortized -- {QDOC[op]}
-    bool rangesEqual(int l1, int r1, int l2, int r2) {{ return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2); }}
+    bool rangesEqual(int l1, int r1, int l2, int r2) {{
+        return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
+    }}
 '''
                 continue
             read = {"rangeSum": "Ssm[B]", "rangeXorQuery": "Sxr[B]", "rangeMin": "Smn[B]", "rangeMax": "Smx[B]", "rangeOrQuery": "Sov[B]",
