@@ -31,6 +31,7 @@ export type OpId =
   | "rangeMax"
   | "rangeGcd"
   | "maxSubarraySum"
+  | "minSubarraySum"
   | "maxPrefixSum"
   | "maxSuffixSum"
   | "minPrefixSum"
@@ -107,6 +108,10 @@ export type OpId =
   | "leftmostPrefixSumGtX"
   | "rightmostSuffixSumGteX"
   | "rightmostSuffixSumGtX"
+  | "leftmostPrefixSumLteX"
+  | "leftmostPrefixSumLtX"
+  | "rightmostSuffixSumLteX"
+  | "rightmostSuffixSumLtX"
   | "kthGteX"
   | "kthGtX"
   | "kthLteX"
@@ -246,6 +251,7 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "rangeMax", signature: "rangeMax(l, r)", description: "max of l..r" },
           { id: "rangeGcd", signature: "rangeGcd(l, r)", description: "gcd of l..r" },
           { id: "maxSubarraySum", signature: "maxSubarraySum(l, r)", description: "Max sum of non-empty subarray within l..r" },
+          { id: "minSubarraySum", signature: "minSubarraySum(l, r)", description: "Min sum of non-empty subarray within l..r" },
           { id: "getAll", signature: "getAll()", description: "Get the whole array (for final answer)" },
         ],
       },
@@ -384,6 +390,10 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "leftmostPrefixSumGtX", signature: "leftmostPrefixSumGtX(l, r, x)", description: "First i in [l, r] with a[l] + … + a[i] > x (needs a[i] ≥ 0)" },
           { id: "rightmostSuffixSumGteX", signature: "rightmostSuffixSumGteX(l, r, x)", description: "Last i in [l, r] with a[i] + … + a[r] ≥ x (needs a[i] ≥ 0)" },
           { id: "rightmostSuffixSumGtX", signature: "rightmostSuffixSumGtX(l, r, x)", description: "Last i in [l, r] with a[i] + … + a[r] > x (needs a[i] ≥ 0)" },
+          { id: "leftmostPrefixSumLteX", signature: "leftmostPrefixSumLteX(l, r, x)", description: "First i in [l, r] with a[l] + … + a[i] ≤ x" },
+          { id: "leftmostPrefixSumLtX", signature: "leftmostPrefixSumLtX(l, r, x)", description: "First i in [l, r] with a[l] + … + a[i] < x" },
+          { id: "rightmostSuffixSumLteX", signature: "rightmostSuffixSumLteX(l, r, x)", description: "Last i in [l, r] with a[i] + … + a[r] ≤ x" },
+          { id: "rightmostSuffixSumLtX", signature: "rightmostSuffixSumLtX(l, r, x)", description: "Last i in [l, r] with a[i] + … + a[r] < x" },
         ],
       },
     ],

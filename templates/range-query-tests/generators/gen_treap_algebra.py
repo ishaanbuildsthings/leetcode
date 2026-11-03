@@ -45,13 +45,18 @@ CMP = {"Gt": ">", "Gte": ">=", "Lt": "<", "Lte": "<="}
 HASH_OPS = ["isPalindrome", "rangeHash", "rangeHashReversed", "rangesEqual"]
 MAXSUB = {"pre", "suf", "best"}
 MS_SETS = [("pre",), ("suf",), ("pre", "suf"), ("pre", "suf", "best")]
-MINSUB = {"npre", "nsuf"}  # (min prefix / min suffix sums)
-MN_SETS = [("npre",), ("nsuf",), ("npre", "nsuf")]
+MINSUB = {"npre", "nsuf", "nbest"}  # (min prefix / min suffix / min subarray sums)
+MN_SETS = [("npre",), ("nsuf",), ("npre", "nsuf"), ("npre", "nsuf", "nbest")]
+# prefix / suffix sum searches: (op, the field pruning the walk, strict); max fields for > / >=, min fields for < / <=
+PREFIX_SEARCHES = [("leftmostPrefixSumGteX", "pre", False), ("leftmostPrefixSumGtX", "pre", True),
+                   ("rightmostSuffixSumGteX", "suf", False), ("rightmostSuffixSumGtX", "suf", True),
+                   ("leftmostPrefixSumLteX", "npre", False), ("leftmostPrefixSumLtX", "npre", True),
+                   ("rightmostSuffixSumLteX", "nsuf", False), ("rightmostSuffixSumLtX", "nsuf", True)]
 OTHER = ["ms", "mn", "xor", "and", "or", "gcd", "run", "alt"]  # ms = one of MS_SETS, mn = one of MN_SETS
 # which update families each aggregate can absorb
 OK = {"sum": {"assign", "add", "ap", "shrink"}, "min": {"assign", "add", "clamp", "shrink"}, "max": {"assign", "add", "clamp", "shrink"},
       "hash": {"assign", "add", "shrink"}, "pre": {"assign", "shrink"}, "suf": {"assign", "shrink"}, "best": {"assign", "shrink"},
-      "npre": {"assign", "shrink"}, "nsuf": {"assign", "shrink"},
+      "npre": {"assign", "shrink"}, "nsuf": {"assign", "shrink"}, "nbest": {"assign", "shrink"},
       "xor": {"assign", "xor", "shrink"}, "and": {"assign", "bits", "shrink"}, "or": {"assign", "bits", "shrink"},
       "gcd": {"assign", "add"}, "run": {"assign", "add", "shrink"}, "alt": {"assign", "shrink"}}
 # (shrink = range mod / floor div / floor sqrt: a walk down every node whose max still changes, pulling on the way
@@ -74,12 +79,13 @@ UOP = {"assign": "rangeAssign", "add": "rangeAdd", "ap": "rangeAddArithSeq", "ch
 QOPS = {"sum": ["rangeSum"], "min": ["rangeMin"], "max": ["rangeMax"], "hash": HASH_OPS,
         "pre": ["leftmostPrefixSumGtX", "leftmostPrefixSumGteX", "maxPrefixSum"],
         "suf": ["maxSuffixSum", "rightmostSuffixSumGtX", "rightmostSuffixSumGteX"], "best": ["maxSubarraySum"],
-        "npre": ["minPrefixSum"], "nsuf": ["minSuffixSum"],
+        "npre": ["leftmostPrefixSumLtX", "leftmostPrefixSumLteX", "minPrefixSum"],
+        "nsuf": ["minSuffixSum", "rightmostSuffixSumLtX", "rightmostSuffixSumLteX"], "nbest": ["minSubarraySum"],
         "xor": ["rangeXorQuery"], "and": ["rangeAndQuery"], "or": ["rangeOrQuery"], "gcd": ["rangeGcd"],
         "run": ["longestEqualRun"], "alt": ["maxAltSubseqSum"]}
 DESC = {"sum": "its sum", "min": "its min", "max": "its max", "hash": "its forward / backward hash (and B^size)",
         "pre": "its best prefix sum", "suf": "its best suffix sum", "best": "its best subarray sum",
-        "npre": "its min prefix sum", "nsuf": "its min suffix sum", "xor": "its xor",
+        "npre": "its min prefix sum", "nsuf": "its min suffix sum", "nbest": "its min subarray sum", "xor": "its xor",
         "and": "its AND", "or": "its OR", "gcd": "its gcd", "run": "its first / last value and the equal runs at its ends "
         "and inside", "alt": "its best alternating (+ - + ...) subsequence sum for each start / end sign"}
 
@@ -115,7 +121,7 @@ class Spec:
             f.append(("mx", "T", "0", "T(0)"))
         if self.has("hash"):
             f += [("fh", "U64", "0", "0"), ("bh", "U64", "0", "0"), ("pw", "U64", "1", "1")] + ([("gs", "U64", "0", "0")] if self.G else [])
-        for x in ("pre", "suf", "best", "npre", "nsuf"):
+        for x in ("pre", "suf", "best", "npre", "nsuf", "nbest"):
             if x in self.ms:
                 f.append((x, "S", "0", "0"))
         if self.has("xor"):
@@ -200,7 +206,7 @@ def mod_sets():
                 for fam, ups in UPDATE_SETS:  # (the cover: every other family this update set allows)
                     ex = [g for g in OTHER if g not in ("ms", "mn") and fam in OK[g] | {""} and ("assign" not in ups or "assign" in OK[g])]
                     ms = ("pre", "suf", "best") if "sum" in core and (not fam or fam in OK["pre"]) else ()
-                    mn = ("npre", "nsuf") if ms else ()
+                    mn = ("npre", "nsuf", "nbest") if ms else ()
                     if len(ex) + bool(ms) + bool(mn) > 2:
                         seen.append((base + ms + mn + tuple(ex), (fam, ups)))
     return seen
@@ -213,7 +219,7 @@ def variants():
             if only and only != (fam, ups):
                 continue
             for rev in (False, True):
-                if rev and (MAXSUB & set(mods) and not {"pre", "suf"} <= set(mods) or MINSUB & set(mods) and not MINSUB <= set(mods)):
+                if rev and (MAXSUB & set(mods) and not {"pre", "suf"} <= set(mods) or MINSUB & set(mods) and not {"npre", "nsuf"} <= set(mods)):
                     continue  # a reverse swaps prefix and suffix: it needs both
                 key = (mods, tuple(sorted(ups)), rev)
                 if key not in have:
@@ -225,7 +231,7 @@ def variants():
         if only and only != ("", ()):
             continue
         for rev in (False, True):
-            if rev and (MAXSUB & set(mods) and not {"pre", "suf"} <= set(mods) or MINSUB & set(mods) and not MINSUB <= set(mods)):
+            if rev and (MAXSUB & set(mods) and not {"pre", "suf"} <= set(mods) or MINSUB & set(mods) and not {"npre", "nsuf"} <= set(mods)):
                 continue
             key = (mods, (), rev, "find")
             if key not in have:
@@ -401,6 +407,7 @@ def py_public(s):
     for mod, op, expr in (("sum", "rangeSum", "self.sm[b]"), ("min", "rangeMin", "self.mn[b]"), ("max", "rangeMax", "self.mx[b]"),
                           ("pre", "maxPrefixSum", "self.pre[b]"), ("suf", "maxSuffixSum", "self.suf[b]"),
                           ("npre", "minPrefixSum", "self.npre[b]"), ("nsuf", "minSuffixSum", "self.nsuf[b]"),
+                          ("nbest", "minSubarraySum", "self.nbest[b]"),
                           ("best", "maxSubarraySum", "self.best[b]"), ("xor", "rangeXorQuery", "self.xr[b]"),
                           ("and", "rangeAndQuery", "self.an[b]"), ("or", "rangeOrQuery", "self.orr[b]"),
                           ("gcd", "rangeGcd", "gcd(self.fv[b], self.g[b])" if s.gdiff else "self.g[b]"),
@@ -454,13 +461,13 @@ def py_public(s):
         {J}
         return res
 '''
-    for op, field, strict in (("leftmostPrefixSumGteX", "pre", False), ("leftmostPrefixSumGtX", "pre", True),
-                              ("rightmostSuffixSumGteX", "suf", False), ("rightmostSuffixSumGtX", "suf", True)):
+    for op, field, strict in PREFIX_SEARCHES:
         if op not in s.ops:
             continue
-        o = ">" if strict else ">="
-        if field == "pre":
-            doc = f"first i in [l, r] with a[l] + ... + a[i] {o} x, or -1 (a walk pruned by best prefix sums)"
+        o = (">" if strict else ">=") if field in ("pre", "suf") else ("<" if strict else "<=")
+        kind = "best" if field in ("pre", "suf") else "min"
+        if field in ("pre", "npre"):
+            doc = f"first i in [l, r] with a[l] + ... + a[i] {o} x, or -1 (a walk pruned by {kind} prefix sums)"
             walk = f'''                lt = L[t]
                 if lt and acc + P[lt] {o} x:
                     t = lt
@@ -473,7 +480,7 @@ def py_public(s):
                 i += sz[lt] + 1
                 t = R[t]'''
         else:
-            doc = f"last i in [l, r] with a[i] + ... + a[r] {o} x, or -1 (a walk pruned by best suffix sums)"
+            doc = f"last i in [l, r] with a[i] + ... + a[r] {o} x, or -1 (a walk pruned by {kind} suffix sums)"
             walk = f'''                rt = R[t]
                 if rt and acc + P[rt] {o} x:
                     i += sz[L[t]] + 1
@@ -576,6 +583,7 @@ SHRINK_COST = {"rangeMod": "log(N)*log(U) amortized", "rangeFloorDiv": "log(N)*l
 QDOC = {"rangeSum": "a[l] + ... + a[r]", "rangeMin": "min of a[l..r]", "rangeMax": "max of a[l..r]",
         "maxPrefixSum": "max of a[l] + ... + a[i] over i in [l, r]", "maxSuffixSum": "max of a[i] + ... + a[r] over i in [l, r]",
         "minPrefixSum": "min of a[l] + ... + a[i] over i in [l, r]", "minSuffixSum": "min of a[i] + ... + a[r] over i in [l, r]",
+        "minSubarraySum": "min sum of a non-empty contiguous subarray of a[l..r]",
         "maxSubarraySum": "max sum of a non-empty contiguous subarray of a[l..r]", "rangeXorQuery": "a[l] ^ ... ^ a[r]",
         "rangeAndQuery": "a[l] & ... & a[r]", "rangeOrQuery": "a[l] | ... | a[r]", "rangeGcd": "gcd of |a[l]|, ..., |a[r]|",
         "longestEqualRun": "the longest run of equal adjacent values in a[l..r]",
@@ -592,7 +600,7 @@ UDOC = {"assign": "a[i] = v for i in [l, r]", "add": "a[i] += v for i in [l, r]"
         "sqrt": "a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0)"}
 
 
-NM = {"pre": "p", "suf": "q", "best": "b", "npre": "u", "nsuf": "w"}  # (the pull's short names for the prefix / suffix pieces)
+NM = {"pre": "p", "suf": "q", "best": "b", "npre": "u", "nsuf": "w", "nbest": "c"}  # (the pull's short names for the prefix / suffix pieces)
 
 
 def py_pull(s):
@@ -603,10 +611,11 @@ def py_pull(s):
         return L
     L.append("        v = self.val[x]")
     if s.ms:
-        nm = ["s"] + [NM[f] for f in ("pre", "suf", "best", "npre", "nsuf") if f in s.ms]
-        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best", "u": "npre", "w": "nsuf"}
+        nm = ["s"] + [NM[f] for f in ("pre", "suf", "best", "npre", "nsuf", "nbest") if f in s.ms]
+        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best", "u": "npre", "w": "nsuf", "c": "nbest"}
         e = lambda A, B: {"s": f"{A}s + {B}s", "p": f"max({A}p, {A}s + {B}p)", "q": f"max({B}q, {B}s + {A}q)",  # noqa: E731
-                          "b": f"max({A}b, {B}b, {A}q + {B}p)", "u": f"min({A}u, {A}s + {B}u)", "w": f"min({B}w, {B}s + {A}w)"}
+                          "b": f"max({A}b, {B}b, {A}q + {B}p)", "u": f"min({A}u, {A}s + {B}u)", "w": f"min({B}w, {B}s + {A}w)",
+                          "c": f"min({A}c, {B}c, {A}w + {B}u)"}
         L += [f"        {', '.join(nm)} = {', '.join('v' for _ in nm)}  # the node alone, then with its left / right parts",
               "        if l:", f"            {', '.join('l' + n for n in nm)} = {', '.join(f'self.{fld[n]}[l]' for n in nm)}",
               f"            {', '.join(nm)} = {', '.join(e('l', '')[n] for n in nm)}",
@@ -661,7 +670,7 @@ def py_new(s):
     if s.has("hash"):
         L += ["        self.fh.append((v + _HO) % _HP)", "        self.bh.append((v + _HO) % _HP)", "        self.pw.append(_HB)"] + (
             ["        self.gs.append(1)"] if s.G else [])
-    for f in ("pre", "suf", "best", "npre", "nsuf"):
+    for f in ("pre", "suf", "best", "npre", "nsuf", "nbest"):
         if f in s.ms:
             L.append(f"        self.{f}.append(v)")
     for mod, f in (("xor", "xr"), ("and", "an"), ("or", "orr")):
@@ -735,7 +744,7 @@ def py_internals(s):
         push.append("        if self.rev[x]:\n            self._applyRev(self.L[x])\n            self._applyRev(self.R[x])\n            self.rev[x] = 0\n")
     fl = [f[0] for f in s.fields()]
     if s.asgTag:
-        a = (["            n = self.sz[x]"] if {"sm", "pre", "suf", "best", "npre", "nsuf", "xr", "pr", "a00"} & set(fl) else []) + ["            self.val[x] = v"]
+        a = (["            n = self.sz[x]"] if {"sm", "pre", "suf", "best", "npre", "nsuf", "nbest", "xr", "pr", "a00"} & set(fl) else []) + ["            self.val[x] = v"]
         if "sm" in fl:
             a.append("            self.sm[x] = v * n")
         for f in ("mn", "mx", "an", "orr"):
@@ -746,7 +755,7 @@ def py_internals(s):
         ms = [f for f in ("pre", "suf", "best") if f in fl]
         if ms:
             a.append("            " + " = ".join(f"self.{f}[x]" for f in ms) + " = v * n if v > 0 else v")
-        mns = [f for f in ("npre", "nsuf") if f in fl]
+        mns = [f for f in ("npre", "nsuf", "nbest") if f in fl]
         if mns:
             a.append("            " + " = ".join(f"self.{f}[x]" for f in mns) + " = v * n if v < 0 else v")
         if "xr" in fl:
@@ -1064,6 +1073,7 @@ def cpp_public(s):
     for mod, op, typ, expr in (("sum", "rangeSum", "S", "sm[b]"), ("min", "rangeMin", "T", "mn[b]"), ("max", "rangeMax", "T", "mx[b]"),
                                ("pre", "maxPrefixSum", "S", "pre[b]"), ("suf", "maxSuffixSum", "S", "suf[b]"),
                                ("npre", "minPrefixSum", "S", "npre[b]"), ("nsuf", "minSuffixSum", "S", "nsuf[b]"),
+                               ("nbest", "minSubarraySum", "S", "nbest[b]"),
                                ("best", "maxSubarraySum", "S", "best[b]"), ("xor", "rangeXorQuery", "T", "xr[b]"),
                                ("and", "rangeAndQuery", "T", "an[b]"), ("or", "rangeOrQuery", "T", "orr[b]"),
                                ("gcd", "rangeGcd", "T", "gcd(fv[b], g[b])" if s.gdiff else "g[b]"),
@@ -1111,20 +1121,20 @@ def cpp_public(s):
         return res;
     }}
 '''
-    for op, field, strict in (("leftmostPrefixSumGteX", "pre", False), ("leftmostPrefixSumGtX", "pre", True),
-                              ("rightmostSuffixSumGteX", "suf", False), ("rightmostSuffixSumGtX", "suf", True)):
+    for op, field, strict in PREFIX_SEARCHES:
         if op not in s.ops:
             continue
-        o = ">" if strict else ">="
-        if field == "pre":
-            doc = f"first i in [l, r] with a[l] + ... + a[i] {o} x, or -1 (a walk pruned by best prefix sums)"
+        o = (">" if strict else ">=") if field in ("pre", "suf") else ("<" if strict else "<=")
+        kind = "best" if field in ("pre", "suf") else "min"
+        if field in ("pre", "npre"):
+            doc = f"first i in [l, r] with a[l] + ... + a[i] {o} x, or -1 (a walk pruned by {kind} prefix sums)"
             walk = f'''                int lt = L[t];
                 if (lt && acc + pre[lt] {o} S(x)) {{ t = lt; continue; }}
                 acc += sm[lt];
                 if (acc + S(val[t]) {o} S(x)) {{ res = l + i + sz[lt]; break; }}
                 acc += S(val[t]), i += sz[lt] + 1, t = R[t];'''
         else:
-            doc = f"last i in [l, r] with a[i] + ... + a[r] {o} x, or -1 (a walk pruned by best suffix sums)"
+            doc = f"last i in [l, r] with a[i] + ... + a[r] {o} x, or -1 (a walk pruned by {kind} suffix sums)"
             walk = f'''                int rt = R[t];
                 if (rt && acc + suf[rt] {o} S(x)) {{ i += sz[L[t]] + 1, t = rt; continue; }}
                 acc += sm[rt];
@@ -1218,10 +1228,11 @@ def cpp_pull(s):
         return L
     L.append("        T v = val[x];")
     if s.ms:
-        nm = ["s"] + [NM[f] for f in ("pre", "suf", "best", "npre", "nsuf") if f in s.ms]
-        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best", "u": "npre", "w": "nsuf"}
+        nm = ["s"] + [NM[f] for f in ("pre", "suf", "best", "npre", "nsuf", "nbest") if f in s.ms]
+        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best", "u": "npre", "w": "nsuf", "c": "nbest"}
         e = lambda A, B: {"s": f"{A}s + {B}s", "p": f"max({A}p, {A}s + {B}p)", "q": f"max({B}q, {B}s + {A}q)",  # noqa: E731
-                          "b": f"max({{{A}b, {B}b, {A}q + {B}p}})", "u": f"min({A}u, {A}s + {B}u)", "w": f"min({B}w, {B}s + {A}w)"}
+                          "b": f"max({{{A}b, {B}b, {A}q + {B}p}})", "u": f"min({A}u, {A}s + {B}u)", "w": f"min({B}w, {B}s + {A}w)",
+                          "c": f"min({{{A}c, {B}c, {A}w + {B}u}})"}
         back = ", ".join(f"{n} = n{n}" for n in nm)
         L += [f"        S {', '.join(f'{n} = S(v)' for n in nm)};  // the node alone, then with its left / right parts",
               "        if (l) {", f"            S {', '.join(f'l{n} = {fld[n]}[l]' for n in nm)};",
@@ -1276,7 +1287,7 @@ def cpp_new(s):
             parts.append(f"{f}.push_back(v)")
     if "fh" in fl:
         parts += ["fh.push_back(hval(v))", "bh.push_back(hval(v))", "pw.push_back(HB())"] + (["gs.push_back(1)"] if s.G else [])
-    for f in ("pre", "suf", "best", "npre", "nsuf"):
+    for f in ("pre", "suf", "best", "npre", "nsuf", "nbest"):
         if f in fl:
             parts.append(f"{f}.push_back(S(v))")
     for f in ("xr", "an", "orr"):
@@ -1345,7 +1356,7 @@ def cpp_internals(s):
 ''')
         push.append("        if (rev[x]) applyRev(L[x]), applyRev(R[x]), rev[x] = 0;\n")
     if s.asgTag:
-        a = (["int n = sz[x];"] if {"sm", "pre", "suf", "best", "npre", "nsuf", "xr", "pr", "a00"} & set(fl) else []) + ["val[x] = v;"]
+        a = (["int n = sz[x];"] if {"sm", "pre", "suf", "best", "npre", "nsuf", "nbest", "xr", "pr", "a00"} & set(fl) else []) + ["val[x] = v;"]
         if "sm" in fl:
             a.append("sm[x] = S(v) * n;")
         for f in ("mn", "mx", "an", "orr"):
@@ -1356,7 +1367,7 @@ def cpp_internals(s):
         ms = [f for f in ("pre", "suf", "best") if f in fl]
         if ms:
             a.append(" = ".join(f"{f}[x]" for f in ms) + " = v > T(0) ? S(v) * n : S(v);")
-        mns = [f for f in ("npre", "nsuf") if f in fl]
+        mns = [f for f in ("npre", "nsuf", "nbest") if f in fl]
         if mns:
             a.append(" = ".join(f"{f}[x]" for f in mns) + " = v < T(0) ? S(v) * n : S(v);")
         if "xr" in fl:

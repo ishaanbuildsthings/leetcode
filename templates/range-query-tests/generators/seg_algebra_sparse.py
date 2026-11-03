@@ -13,7 +13,7 @@ node is pushed before anything below it changes.
 import re
 
 from gen_treap import CPP_HASH_HELPERS, PY_HASH_CONST, wrap
-from gen_treap_algebra import QDOC, SEARCH, CMP, UDOC, UOP, rev_line
+from gen_treap_algebra import PREFIX_SEARCHES, QDOC, SEARCH, CMP, UDOC, UOP, rev_line
 from gen_treap_more import slots_line
 
 SPARSE_NOTE = "built from nothing: every position of [lo, hi] starts at 0"
@@ -21,8 +21,8 @@ PY_TAKE = ["_setLeaf", "_leaf", "_pull", "_setAssign", "_applyAssign", "_setAdd"
            "_applyClamp", "_setBits", "_applyBits", "_setXor", "_applyXor", "_push"]
 CPP_TAKE = ["setLeaf", "leaf", "pull", "setAssign", "applyAssign", "setAdd", "applyAdd", "setAP", "applyAP", "setClamp",
             "applyClamp", "setBits", "applyBits", "setXor", "applyXor", "push"]
-FOLD_OPS = ["rangeGcd", "maxPrefixSum", "maxSuffixSum", "minPrefixSum", "minSuffixSum", "maxSubarraySum", "rangeHash",
-            "rangeHashReversed", "isPalindrome", "rangesEqual", "longestEqualRun", "maxAltSubseqSum"]
+FOLD_OPS = ["rangeGcd", "maxPrefixSum", "maxSuffixSum", "minPrefixSum", "minSuffixSum", "maxSubarraySum", "minSubarraySum",
+            "rangeHash", "rangeHashReversed", "isPalindrome", "rangesEqual", "longestEqualRun", "maxAltSubseqSum"]
 
 
 def sparse_cost(dense_cost):
@@ -125,7 +125,7 @@ def zero_py(s):
     """_newZero's appends: a block of 2^s zeros (assign 0 at level s)"""
     fl = [f[0] for f in s.fields()]
     z = {"sm": "0", "mn": "0", "mx": "0", "fh": "h", "bh": "h", "pre": "0", "suf": "0", "best": "0",
-         "npre": "0", "nsuf": "0", "xr": "0", "an": "0",
+         "npre": "0", "nsuf": "0", "nbest": "0", "xr": "0", "an": "0",
          "orr": "0", "g": "0", "fv": "0", "lv": "0", "pr": "1 << s", "sr": "1 << s", "br": "1 << s", "a00": "0",
          "a01": "0 if s else NEG", "a10": "0 if s else NEG", "a11": "0"}
     L = (["        h = _HO * self.GS[s] % _HP  # (0 hashes as _HO)"] if "fh" in fl else [])
@@ -137,7 +137,7 @@ def zero_py(s):
 def zero_cpp(s):
     fl = [f[0] for f in s.fields()]
     z = {"sm": "S(0)", "mn": "T(0)", "mx": "T(0)", "fh": "h", "bh": "h", "pre": "S(0)", "suf": "S(0)", "best": "S(0)",
-         "npre": "S(0)", "nsuf": "S(0)", "xr": "T(0)",
+         "npre": "S(0)", "nsuf": "S(0)", "nbest": "S(0)", "xr": "T(0)",
          "an": "T(0)", "orr": "T(0)", "g": "T(0)", "fv": "T(0)", "lv": "T(0)", "pr": "1 << s", "sr": "1 << s", "br": "1 << s",
          "a00": "S(0)", "a01": "s ? S(0) : NEG", "a10": "s ? S(0) : NEG", "a11": "S(0)"}
     parts = ["L.push_back(0)", "R.push_back(0)"] + [f"{f}.push_back({z[f]})" for f in fl] + [f"{t[0]}.push_back({t[3]})" for t in s.tags()]
@@ -324,14 +324,14 @@ def py_sparse_public(s):
                 return tl
         return self.first - 1
 '''
-    for op, field, strict in (("leftmostPrefixSumGteX", "pre", False), ("leftmostPrefixSumGtX", "pre", True),
-                              ("rightmostSuffixSumGteX", "suf", False), ("rightmostSuffixSumGtX", "suf", True)):
+    for op, field, strict in PREFIX_SEARCHES:
         if op not in s.ops:
             continue
-        o = ">" if strict else ">="
-        left = field == "pre"
-        doc = (f"first i in [l, r] with a[l] + ... + a[i] {o} x, or lo - 1 (a walk pruned by best prefix sums)" if left else
-               f"last i in [l, r] with a[i] + ... + a[r] {o} x, or lo - 1 (a walk pruned by best suffix sums)")
+        o = (">" if strict else ">=") if field in ("pre", "suf") else ("<" if strict else "<=")
+        kind = "best" if field in ("pre", "suf") else "min"
+        left = field in ("pre", "npre")
+        doc = (f"first i in [l, r] with a[l] + ... + a[i] {o} x, or lo - 1 (a walk pruned by {kind} prefix sums)" if left else
+               f"last i in [l, r] with a[i] + ... + a[r] {o} x, or lo - 1 (a walk pruned by {kind} suffix sums)")
         it = "self._cover(l, r)" if left else "reversed(self._cover(l, r))"
         near, far = ("L", "R") if left else ("R", "L")
         go_far = "t, tl = R[t], tl + (1 << s)" if left else "t = L[t]"
@@ -597,14 +597,14 @@ def cpp_sparse_public(s):
         return first - 1;
     }}
 '''
-    for op, field, strict in (("leftmostPrefixSumGteX", "pre", False), ("leftmostPrefixSumGtX", "pre", True),
-                              ("rightmostSuffixSumGteX", "suf", False), ("rightmostSuffixSumGtX", "suf", True)):
+    for op, field, strict in PREFIX_SEARCHES:
         if op not in s.ops:
             continue
-        o = ">" if strict else ">="
-        left = field == "pre"
-        doc = (f"first i in [l, r] with a[l] + ... + a[i] {o} x, or lo - 1 (a walk pruned by best prefix sums)" if left else
-               f"last i in [l, r] with a[i] + ... + a[r] {o} x, or lo - 1 (a walk pruned by best suffix sums)")
+        o = (">" if strict else ">=") if field in ("pre", "suf") else ("<" if strict else "<=")
+        kind = "best" if field in ("pre", "suf") else "min"
+        left = field in ("pre", "npre")
+        doc = (f"first i in [l, r] with a[l] + ... + a[i] {o} x, or lo - 1 (a walk pruned by {kind} prefix sums)" if left else
+               f"last i in [l, r] with a[i] + ... + a[r] {o} x, or lo - 1 (a walk pruned by {kind} suffix sums)")
         loop = "for (int i = 0; i < c; i++) {" if left else "for (int i = c - 1; i >= 0; i--) {"
         near = "L" if left else "R"
         go_near = "t = L[t]" if left else "t = R[t], tl += 1LL << s"

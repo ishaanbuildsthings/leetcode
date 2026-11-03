@@ -23,14 +23,15 @@ import os
 import shutil
 
 from gen_treap import CPP_HASH_HELPERS, PY_HASH_CONST, wrap
-from gen_treap_algebra import OK, QDOC, QOPS, SEARCH, SHRINK_COST, CMP, UDOC, UOP, Spec, allowed, mod_sets, rev_line
+from gen_treap_algebra import (OK, PREFIX_SEARCHES, QDOC, QOPS, SEARCH, SHRINK_COST, CMP, UDOC, UOP, Spec, allowed, mod_sets,
+                                rev_line)
 from gen_treap_more import slots_line
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 MARK = "with composable aggregates (2N iterative)"
 POINT = ["pointAdd", "pointAssign", "pointChmax", "pointChmin", "pointGet"]
-VALUE_FROM = ["sm", "mn", "mx", "pre", "suf", "best", "npre", "nsuf", "xr", "an", "orr", "fv", "g", "a00"]  # a leaf field holding v
+VALUE_FROM = ["sm", "mn", "mx", "pre", "suf", "best", "npre", "nsuf", "nbest", "xr", "an", "orr", "fv", "g", "a00"]  # a leaf field holding v
 SIMPLE = {"rangeSum": ("sm", "S", "0", "res += {}"), "rangeMin": ("mn", "T", None, "min"), "rangeMax": ("mx", "T", None, "max"),
           "rangeXorQuery": ("xr", "T", "0", "res ^= {}"), "rangeAndQuery": ("an", "T", "-1", "res &= {}"),
           "rangeOrQuery": ("orr", "T", "0", "res |= {}")}
@@ -48,7 +49,7 @@ class SegSpec(Spec):
         self.vf = next((f for f in VALUE_FROM if f in fl and not (f == "g" and self.gdiff)), None)  # None: decode the hash
         tn = [t[0] for t in self.tags()]
         # which internal functions need the node's level s (its length 1 << s)
-        self.kAsg = self.asgTag and bool({"sm", "pre", "suf", "best", "npre", "nsuf", "xr", "pr", "a00", "fh"} & set(fl))
+        self.kAsg = self.asgTag and bool({"sm", "pre", "suf", "best", "npre", "nsuf", "nbest", "xr", "pr", "a00", "fh"} & set(fl))
         self.kAdd = self.addTag and bool({"sm", "fh"} & set(fl))
         self.kAP = self.ap
         self.kXor = self.xorf
@@ -137,14 +138,14 @@ def describe(s):
 def leaf_py(s):
     """{field: Python expr of the leaf value for v}"""
     e = {"sm": "v", "mn": "v", "mx": "v", "fh": "(v + _HO) % _HP", "bh": "(v + _HO) % _HP", "pre": "v", "suf": "v", "best": "v",
-         "npre": "v", "nsuf": "v", "xr": "v", "an": "v", "orr": "v", "g": "0" if s.gdiff else "v", "fv": "v", "lv": "v", "pr": "1", "sr": "1", "br": "1",
+         "npre": "v", "nsuf": "v", "nbest": "v", "xr": "v", "an": "v", "orr": "v", "g": "0" if s.gdiff else "v", "fv": "v", "lv": "v", "pr": "1", "sr": "1", "br": "1",
          "a00": "v", "a01": "NEG", "a10": "NEG", "a11": "-v"}
     return [(f[0], e[f[0]]) for f in s.fields()]
 
 
 def leaf_cpp(s):
     e = {"sm": "S(v)", "mn": "v", "mx": "v", "fh": "hval(v)", "bh": "hval(v)", "pre": "S(v)", "suf": "S(v)", "best": "S(v)",
-         "npre": "S(v)", "nsuf": "S(v)", "xr": "v", "an": "v", "orr": "v", "g": "T(0)" if s.gdiff else "v", "fv": "v", "lv": "v", "pr": "1", "sr": "1", "br": "1",
+         "npre": "S(v)", "nsuf": "S(v)", "nbest": "S(v)", "xr": "v", "an": "v", "orr": "v", "g": "T(0)" if s.gdiff else "v", "fv": "v", "lv": "v", "pr": "1", "sr": "1", "br": "1",
          "a00": "S(v)", "a01": "NEG", "a10": "NEG", "a11": "-S(v)"}
     return [(f[0], e[f[0]]) for f in s.fields()]
 
@@ -327,6 +328,18 @@ def py_public(s):
             q = max(suf[t], sm[t] + q)
         return res
 '''
+    if "minSubarraySum" in s.ops:
+        pub["minSubarraySum"] = f'''    # O(logN) -- {QDOC["minSubarraySum"]}
+    def minSubarraySum(self, l, r):
+        sm, npre, nsuf, nbest = self.sm, self.npre, self.nsuf, self.nbest
+        ns = self._nodes(l, r)
+        t = ns[0][0]
+        res, q = nbest[t], nsuf[t]  # (q: the min sum ending at the right edge so far)
+        for t, _ in ns[1:]:
+            res = min(res, nbest[t], q + npre[t])
+            q = min(nsuf[t], sm[t] + q)
+        return res
+'''
     if s.has("hash"):
         pub["rangeHash"] = f'''    # O(logN) -- {QDOC["rangeHash"]}
     def rangeHash(self, l, r):
@@ -404,16 +417,16 @@ def py_public(s):
                 return t - n
         return -1
 '''
-    for op, field, strict in (("leftmostPrefixSumGteX", "pre", False), ("leftmostPrefixSumGtX", "pre", True),
-                              ("rightmostSuffixSumGteX", "suf", False), ("rightmostSuffixSumGtX", "suf", True)):
+    for op, field, strict in PREFIX_SEARCHES:
         if op not in s.ops:
             continue
-        o = ">" if strict else ">="
-        if field == "pre":
-            doc = f"first i in [l, r] with a[l] + ... + a[i] {o} x, or -1 (a walk pruned by best prefix sums)"
+        o = (">" if strict else ">=") if field in ("pre", "suf") else ("<" if strict else "<=")
+        kind = "best" if field in ("pre", "suf") else "min"
+        if field in ("pre", "npre"):
+            doc = f"first i in [l, r] with a[l] + ... + a[i] {o} x, or -1 (a walk pruned by {kind} prefix sums)"
             first, second, it = "2 * t", "2 * t + 1", "self._nodes(l, r)"
         else:
-            doc = f"last i in [l, r] with a[i] + ... + a[r] {o} x, or -1 (a walk pruned by best suffix sums)"
+            doc = f"last i in [l, r] with a[i] + ... + a[r] {o} x, or -1 (a walk pruned by {kind} suffix sums)"
             first, second, it = "2 * t + 1", "2 * t", "reversed(self._nodes(l, r))"
         pub[op] = f'''    # O(logN) -- {doc}
     def {op}(self, l, r, x):
@@ -542,6 +555,8 @@ def py_pull(s):
                 L.append("        self.npre[x] = min(self.npre[a], sm[a] + self.npre[b])")
             if "nsuf" in fl:
                 L.append("        self.nsuf[x] = min(self.nsuf[b], sm[b] + self.nsuf[a])")
+            if "nbest" in fl:
+                L.append("        self.nbest[x] = min(self.nbest[a], self.nbest[b], self.nsuf[a] + self.npre[b])")
             L.append("        sm[x] = sm[a] + sm[b]")
         else:
             L.append("        self.sm[x] = self.sm[a] + self.sm[b]")
@@ -708,7 +723,7 @@ def py_internals(s):
     ch = lambda fn, args: (f"            self.{fn}(a, c, {args})\n            self.{fn}(b, c, {args})\n" if takes_s(s, fn)  # noqa: E731
                            else f"            self.{fn}(a, {args})\n            self.{fn}(b, {args})\n")
     if s.asgTag:
-        a = (["        k = 1 << s"] if {"sm", "pre", "suf", "best", "npre", "nsuf", "xr", "pr", "a00"} & set(fl) else [])
+        a = (["        k = 1 << s"] if {"sm", "pre", "suf", "best", "npre", "nsuf", "nbest", "xr", "pr", "a00"} & set(fl) else [])
         if "sm" in fl:
             a.append("        self.sm[x] = v * k")
         for f in ("mn", "mx", "an", "orr"):
@@ -719,7 +734,7 @@ def py_internals(s):
         ms = [f for f in ("pre", "suf", "best") if f in fl]
         if ms:
             a.append("        " + " = ".join(f"self.{f}[x]" for f in ms) + " = v * k if v > 0 else v")
-        mns = [f for f in ("npre", "nsuf") if f in fl]
+        mns = [f for f in ("npre", "nsuf", "nbest") if f in fl]
         if mns:
             a.append("        " + " = ".join(f"self.{f}[x]" for f in mns) + " = v * k if v < 0 else v")
         if "xr" in fl:
@@ -978,6 +993,17 @@ def cpp_public(s):
         return res;
     }}
 '''
+    if "minSubarraySum" in s.ops:
+        pub["minSubarraySum"] = f'''    // O(logN) -- {QDOC["minSubarraySum"]}
+    S minSubarraySum(int l, int r) {{
+{cov}        S res = nbest[ns[0]], q = nsuf[ns[0]];  // (q: the min sum ending at the right edge so far)
+        for (int i = 1; i < c; i++) {{
+            int t = ns[i];
+            res = min({{res, nbest[t], q + npre[t]}}), q = min(nsuf[t], sm[t] + q);
+        }}
+        return res;
+    }}
+'''
     if s.has("hash"):
         pub["rangeHash"] = f'''    // O(logN) -- {QDOC["rangeHash"]}
     U64 rangeHash(int l, int r) {{
@@ -1050,16 +1076,16 @@ def cpp_public(s):
         return -1;
     }}
 '''
-    for op, field, strict in (("leftmostPrefixSumGteX", "pre", False), ("leftmostPrefixSumGtX", "pre", True),
-                              ("rightmostSuffixSumGteX", "suf", False), ("rightmostSuffixSumGtX", "suf", True)):
+    for op, field, strict in PREFIX_SEARCHES:
         if op not in s.ops:
             continue
-        o = ">" if strict else ">="
-        if field == "pre":
-            doc = f"first i in [l, r] with a[l] + ... + a[i] {o} x, or -1 (a walk pruned by best prefix sums)"
+        o = (">" if strict else ">=") if field in ("pre", "suf") else ("<" if strict else "<=")
+        kind = "best" if field in ("pre", "suf") else "min"
+        if field in ("pre", "npre"):
+            doc = f"first i in [l, r] with a[l] + ... + a[i] {o} x, or -1 (a walk pruned by {kind} prefix sums)"
             first, second, loop = "2 * t", "2 * t + 1", "for (int i = 0; i < c; i++) {"
         else:
-            doc = f"last i in [l, r] with a[i] + ... + a[r] {o} x, or -1 (a walk pruned by best suffix sums)"
+            doc = f"last i in [l, r] with a[i] + ... + a[r] {o} x, or -1 (a walk pruned by {kind} suffix sums)"
             first, second, loop = "2 * t + 1", "2 * t", "for (int i = c - 1; i >= 0; i--) {"
         pline = " " * 20 + psh[:-2] + ";\n" if psh else ""
         pub[op] = f'''    // O(logN) -- {doc}
@@ -1172,6 +1198,8 @@ def cpp_pull(s):
         L.append("        npre[x] = min(npre[a], sm[a] + npre[b]);")
     if "nsuf" in fl:
         L.append("        nsuf[x] = min(nsuf[b], sm[b] + nsuf[a]);")
+    if "nbest" in fl:
+        L.append("        nbest[x] = min({nbest[a], nbest[b], nsuf[a] + npre[b]});")
     if "sm" in fl:
         L.append("        sm[x] = sm[a] + sm[b];")
     if "mn" in fl:
@@ -1262,7 +1290,7 @@ def cpp_internals(s):
     ks = lambda fn: "int x, int s, " if takes_s(s, "_" + fn) else "int x, "  # noqa: E731
     ch = lambda fn, args: (f"{fn}(a, c, {args}), {fn}(b, c, {args})" if takes_s(s, "_" + fn) else f"{fn}(a, {args}), {fn}(b, {args})")  # noqa: E731
     if s.asgTag:
-        a = (["int k = 1 << s;"] if {"sm", "pre", "suf", "best", "npre", "nsuf", "xr", "pr", "a00"} & set(fl) else [])
+        a = (["int k = 1 << s;"] if {"sm", "pre", "suf", "best", "npre", "nsuf", "nbest", "xr", "pr", "a00"} & set(fl) else [])
         if "sm" in fl:
             a.append("sm[x] = S(v) * k;")
         for f in ("mn", "mx", "an", "orr"):
@@ -1273,7 +1301,7 @@ def cpp_internals(s):
         ms = [f for f in ("pre", "suf", "best") if f in fl]
         if ms:
             a.append(" = ".join(f"{f}[x]" for f in ms) + " = v > T(0) ? S(v) * k : S(v);")
-        mns = [f for f in ("npre", "nsuf") if f in fl]
+        mns = [f for f in ("npre", "nsuf", "nbest") if f in fl]
         if mns:
             a.append(" = ".join(f"{f}[x]" for f in mns) + " = v < T(0) ? S(v) * k : S(v);")
         if "xr" in fl:

@@ -32,7 +32,8 @@ MARK = "Persistent implicit treap"
 QUERY_OPS = {"rangeSum", "rangeMin", "rangeMax", "maxPrefixSum", "maxSuffixSum", "maxSubarraySum", "rangeXorQuery",
              "rangeAndQuery", "rangeOrQuery", "rangeGcd", "longestEqualRun", "maxAltSubseqSum", "rangeHash",
              "rangeHashReversed", "isPalindrome", "leftmostPrefixSumGteX", "leftmostPrefixSumGtX", "rightmostSuffixSumGteX",
-             "rightmostSuffixSumGtX"} | set(SEARCH)
+             "rightmostSuffixSumGtX", "minPrefixSum", "minSuffixSum", "minSubarraySum", "leftmostPrefixSumLtX",
+             "leftmostPrefixSumLteX", "rightmostSuffixSumLtX", "rightmostSuffixSumLteX"} | set(SEARCH)
 
 
 class PSpec(Spec):

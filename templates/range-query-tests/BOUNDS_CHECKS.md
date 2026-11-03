@@ -78,3 +78,18 @@ garbage.
     letters pass over the treap families.
   - Sorted runs (`gen_sorted_runs_cpp.py`, two node kinds) hasn't been converted yet.
 - Nothing is committed; the user commits with `gacp` when told everything passes.
+
+## Done (2026-11-02)
+
+- `generators/bounds.py` (`add_bounds`) runs inside `note_lang.write_template`, so every generator gets it, and
+  `python3 generators/note_lang.py` re-applies it to every existing `template.*` / `sparse.*` / `letters.*`
+  (idempotent). Each op in `@operations` with a doc comment gets one O(1) check chosen by its parameter names
+  (`i` / `index` / `pos` / `idx` / `p`, `l, r` / `ql, qr` / `left, right`, `l1, r1, l2, r2`, insert positions,
+  `split(k)`); sparse files (header `layout: sparse`) check against `[lo, hi]`. The doc comment gets
+  "needs <rule>, else IndexError / throws out_of_range", merged into any existing "needs" clause.
+- Hand-written templates without a length got a `size()` (occurrence lists, static brackets) or an `n`
+  (StaticDistinct); four sparse generators now keep `self.hi`.
+- Harness: every trial ends with `bad_calls` ("!op", a real call with one index moved out of range); Python must raise
+  IndexError and the C++ driver must catch out_of_range, both printed as OOR. Removing one check makes the run fail.
+- Sets: nothing to do (their rank ops already raise; other index-shaped methods are internal or take values).
+- Verified: every range-query template passes, dense, sparse and letters.

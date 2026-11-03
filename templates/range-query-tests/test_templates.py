@@ -298,6 +298,12 @@ BRUTE_QUERIES = {
     "leftmostPrefixSumGtX": ("lrx", lambda a, l, r, x, c: _prefix_search(a, l, r, x, True)),
     "rightmostSuffixSumGteX": ("lrx", lambda a, l, r, x, c: _suffix_search(a, l, r, x, False)),
     "rightmostSuffixSumGtX": ("lrx", lambda a, l, r, x, c: _suffix_search(a, l, r, x, True)),
+    # (< / <= searches: the > / >= ones on -a with -x)
+    "leftmostPrefixSumLteX": ("lrx", lambda a, l, r, x, c: _prefix_search([-v for v in a], l, r, -x, False)),
+    "leftmostPrefixSumLtX": ("lrx", lambda a, l, r, x, c: _prefix_search([-v for v in a], l, r, -x, True)),
+    "rightmostSuffixSumLteX": ("lrx", lambda a, l, r, x, c: _suffix_search([-v for v in a], l, r, -x, False)),
+    "rightmostSuffixSumLtX": ("lrx", lambda a, l, r, x, c: _suffix_search([-v for v in a], l, r, -x, True)),
+    "minSubarraySum": ("lr", lambda a, l, r, c: -_max_sub([-v for v in a[l:r + 1]])),
 }
 for _side, _idx in SIDE.items():
     for _name, _cmp in CMP.items():
@@ -434,7 +440,7 @@ def domain(folder, ops):
     if "leftmostPrefixSumGteX" in ops:
         return (lambda r: r.randint(0, 6)), nonneg_small, [], ctx
     sums = {"rangeSum", "maxAltSubseqSum", "maxSubarraySum", "maxPrefixSum", "maxSuffixSum", "minPrefixSum",
-            "minSuffixSum"} & set(ops)  # (these add values up)
+            "minSuffixSum", "minSubarraySum"} & set(ops)  # (these add values up)
     if "rangeFloorSqrt" in ops and not sums:
         return (lambda r: r.choice([r.randint(0, 200), r.randint(0, (1 << 62) - 1)])), nonneg_small, [], ctx
     if "rangeFloorDiv" in ops and not sums:
@@ -828,6 +834,14 @@ def sparse_query(op, R, args, ctx):
     if op == "maxSuffixSum": return _runs_sub(runs)[2]
     if op == "minPrefixSum": return -_runs_sub([(s_, e, -v) for s_, e, v in runs])[1]  # (min of a = -max of -a)
     if op == "minSuffixSum": return -_runs_sub([(s_, e, -v) for s_, e, v in runs])[2]
+    if op == "minSubarraySum": return -_runs_sub([(s_, e, -v) for s_, e, v in runs])[3]
+    if op.endswith(("SumLtX", "SumLteX")):  # (the > / >= search on -a with -x)
+        neg = [(s_, e, -v) for s_, e, v in runs]
+        if op.startswith("rightmost"):
+            hit = _runs_prefix_search([(-e, -s_, v) for s_, e, v in neg[::-1]], -xs[0], op.endswith("LtX"))
+            return R.lo - 1 if hit is None else -hit
+        hit = _runs_prefix_search(neg, -xs[0], op.endswith("LtX"))
+        return R.lo - 1 if hit is None else hit
     if op == "longestEqualRun": return _runs_longest(runs)
     if op == "maxAltSubseqSum": return _max_alt([v for s_, e, v in runs for _ in range(min(3, e - s_ + 1))])
     if op in ("rightmostSuffixSumGteX", "rightmostSuffixSumGtX"):  # mirror the runs and search from r leftwards
