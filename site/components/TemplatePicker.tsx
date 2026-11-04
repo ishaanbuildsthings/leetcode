@@ -74,7 +74,16 @@ export interface PickerCatalog<V extends PickerTemplate> {
   planned?: string[];
   // templates outside the op grid that you fill in yourself (range queries: the generic seg trees), one button each
   // in the toolbar: the file is at publicBase/<folder>/<file>.<lang>, and on GitHub at githubUrl + <file>.<lang>
-  fillIns?: { label: string; title: string; folder: string; file: string; githubUrl: string }[];
+  // ops: every op with its cost, in the catalog's cost format ("log(N) expected"); note: a line under them
+  fillIns?: {
+    label: string;
+    title: string;
+    folder: string;
+    file: string;
+    githubUrl: string;
+    ops: [string, string][];
+    note?: string;
+  }[];
   // where the static copies live (fetched on click) and where the files are on GitHub
   publicBase: string;
   githubBase: string;
@@ -635,6 +644,18 @@ function FillInDrawer({
           </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
+          {/* every op is there whatever you need, so all of them are highlighted */}
+          <div className="border-b border-border px-4 py-3 text-xs">
+            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
+              {fillIn.ops.map(([op, cost]) => (
+                <div key={op} className="contents">
+                  <span className="font-mono font-medium text-primary">{op}</span>
+                  <span className="text-foreground">{formatCost(cost)}</span>
+                </div>
+              ))}
+            </div>
+            {fillIn.note && <p className="mt-2 text-muted-foreground">{fillIn.note}</p>}
+          </div>
           <pre className="overflow-x-auto bg-card p-4 font-mono text-xs leading-relaxed text-foreground">
             {code === null ? "Couldn't load this template." : (code ?? "Loading…")}
           </pre>
@@ -818,6 +839,7 @@ export function TemplatePicker<V extends PickerTemplate>({
   const [caps, setCaps] = useState<Record<string, number>>({});
   const [openTemplate, setOpenTemplate] = useState<V | null>(null);
   const [openFillIn, setOpenFillIn] = useState<NonNullable<PickerCatalog<V>["fillIns"]>[number] | null>(null);
+  const [fillInMenu, setFillInMenu] = useState(false); // the "Generic seg trees" menu is open
   const [expanded, setExpanded] = useState<Set<string>>(new Set()); // collapsible groups clicked open
   const [query, setQuery] = useState(""); // the search box: only ops whose name or description contains it
   // the bottom sheet (selection + templates) and its current height
@@ -920,17 +942,45 @@ export function TemplatePicker<V extends PickerTemplate>({
         <h1 className="sr-only">{catalog.title}</h1>
         <PickerTabs>
           <>
-            {catalog.fillIns?.map((f) => (
-              <button
-                key={f.file}
-                type="button"
-                title={f.title}
-                onClick={() => setOpenFillIn(f)}
-                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                {f.label}
-              </button>
-            ))}
+            {catalog.fillIns && catalog.fillIns.length > 0 && (
+              <div className="relative">
+                <button
+                  type="button"
+                  aria-expanded={fillInMenu}
+                  onClick={() => setFillInMenu((o) => !o)}
+                  className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  Generic seg trees ▾
+                </button>
+                {fillInMenu && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Close menu"
+                      onClick={() => setFillInMenu(false)}
+                      className="fixed inset-0 z-40 cursor-default"
+                    />
+                    <ul className="absolute right-0 z-50 mt-1 w-80 overflow-hidden rounded-md border border-border bg-background py-1 shadow-lg">
+                      {catalog.fillIns.map((f) => (
+                        <li key={f.file}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenFillIn(f);
+                              setFillInMenu(false);
+                            }}
+                            className="block w-full px-3 py-2 text-left hover:bg-muted"
+                          >
+                            <span className="block text-xs font-medium text-foreground">{f.label}</span>
+                            <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">{f.title}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            )}
             <input
               type="search"
               value={query}

@@ -1,58 +1,50 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/GenericLazySeg.py
-#
-# Generic lazy segment tree: pass combine, apply and compose, then build it from leaves you make yourself.
-# Build O(n) combines; query / update / set / get / maxRight / minLeft O(log n); memory up to 4n nodes and 2n tags.
-#
-# - A leaf is any value you build: it can carry whatever combine and apply need (the value, its index, a flag, ...).
-#   Tuples are the fastest; a class with __slots__ reads better.
-# - combine(left, right) gets two neighbouring segments, left first, and needn't be commutative.
-# - A tag is a pending update to every element of a segment (any value but None). apply sees only the node, so a node
-#   that needs its segment's length (adding to a sum, assigning) stores it: a leaf gets len = 1, combine adds them.
-# - Never mutate a node or tag passed in: return a new one.
-# - No identity node or tag is needed: the tree tracks which nodes are empty and which tags are pending itself.
-# - Need a node's index range? Put lo / hi in the node: a leaf gets lo = hi = i, combine takes left's lo, right's hi.
-#
-# Example, range add + range assign, range sum + max; a node is (sum, mx, len), a tag is (assign, v):
-#   def combine(a, b):
-#       return (a[0] + b[0], max(a[1], b[1]), a[2] + b[2])
-#   def apply(x, g):
-#       return (g[1] * x[2], g[1], x[2]) if g[0] else (x[0] + g[1] * x[2], x[1] + g[1], x[2])
-#   def compose(old, g):
-#       return g if g[0] else (old[0], old[1] + g[1])
-#   seg = LazySeg([(x, x, 1) for x in a], combine, apply, compose)
-#   seg.update(l, r, (False, 5))  # add 5 to l..r
-#   seg.update(l, r, (True, 7))   # assign 7 to l..r
-#   seg.query(l, r)[0]
-#   # first r >= l where max(l..r) reaches k: seg.maxRight(l, lambda s: s[1] < k) + 1
+
+# one raw array element: int, str, tuple, ...
+RawVal = int
+# e.g. (tot, mn, len): apply only sees the node, so keep the length; any value, tuples are fastest
+Node = tuple
+# a pending update to every element of a segment, e.g. add
+Tag = int
 
 
-# TODO: the node for the segment left + right (left ends just before right starts)
-def combine(left, right):
+def leaf(v: RawVal, i: int) -> Node:
+    # return (v, v, 1)
     pass
 
 
-# TODO: the node's segment after tag is applied to every element of it
-def apply(node, tag):
+# combine two nodes
+def combine(left: Node, right: Node) -> Node:
+    # return (left[0] + right[0], min(left[1], right[1]), left[2] + right[2])
     pass
 
 
-# TODO: the single tag that does old first, then newer
-def compose(old, newer):
+# return a new node: this node after tag is applied to it
+# we must handle the case where the tag is a no-op (e.g. negate twice), and we can return the original node
+def apply(node: Node, tag: Tag) -> Node:
+    # return (node[0] + tag * node[2], node[1] + tag, node[2])
+    pass
+
+
+# a tag that is the old tag, then the new tag
+def compose(old: Tag, newer: Tag) -> Tag:
+    # return old + newer
     pass
 
 
 class LazySeg:
-    # leaves: a[0..n-1] as nodes; combine(left, right) -> node; apply(node, tag) -> node; compose(old, newer) -> tag
-    def __init__(self, leaves, combine, apply, compose):
-        self.n = n = len(leaves)
+    _NO_TAG = object()  # a pending-tag slot with nothing pending (so any tag value works, None too)
+
+    def __init__(self, a, leaf, combine, apply, compose):
+        self.n = n = len(a)
         self.cap = cap = 1 << max(0, (n - 1).bit_length())
         self.lg = cap.bit_length() - 1
-        self.combine, self.apply, self.compose = combine, apply, compose
-        # None marks a node over padding only (the padding past n); a node partly over padding is its real part
-        self.t = t = [None] * cap + list(leaves) + [None] * (cap - n)
-        # lz[k]: the tag pending for node k's children, None if there is none
-        self.lz = [None] * cap
+        self.leaf, self.combine, self.apply, self.compose = leaf, combine, apply, compose
+        # None: a node over the padding past n only
+        self.t = t = [None] * cap + [leaf(v, i) for i, v in enumerate(a)] + [None] * (cap - n)
+        # lz[k]: the tag pending for node k's children
+        self.lz = [LazySeg._NO_TAG] * cap
         for k in range(cap - 1, 0, -1):
             t[k] = t[2 * k] if t[2 * k + 1] is None else combine(t[2 * k], t[2 * k + 1])
 
@@ -63,14 +55,14 @@ class LazySeg:
         t[k] = self.apply(t[k], tag)
         if k < self.cap:
             lz = self.lz
-            lz[k] = tag if lz[k] is None else self.compose(lz[k], tag)
+            lz[k] = tag if lz[k] is LazySeg._NO_TAG else self.compose(lz[k], tag)
 
     def _push(self, k):
         tag = self.lz[k]
-        if tag is not None:
+        if tag is not LazySeg._NO_TAG:
             self._applyAt(2 * k, tag)
             self._applyAt(2 * k + 1, tag)
-            self.lz[k] = None
+            self.lz[k] = LazySeg._NO_TAG
 
     def _pull(self, k):
         t = self.t
@@ -84,34 +76,34 @@ class LazySeg:
             if (r >> i) << i != r:
                 self._push((r - 1) >> i)
 
-    # how many leaves
+    # how many elements
     def size(self):
         return self.n
 
-    # the leaf at i, every update applied; needs 0 <= i < n, else IndexError
-    def get(self, i):
+    # the node of a[i]; needs 0 <= i < n, else IndexError
+    def pointGet(self, i):
         if not 0 <= i < self.n:
-            raise IndexError("get: needs 0 <= i < n")
+            raise IndexError("pointGet: needs 0 <= i < n")
         k = self.cap + i
         for j in range(self.lg, 0, -1):
             self._push(k >> j)
         return self.t[k]
 
-    # replaces the leaf at i (earlier updates don't apply to the new leaf); needs 0 <= i < n, else IndexError
-    def set(self, i, leaf):
+    # a[i] = val; needs 0 <= i < n, else IndexError
+    def pointAssign(self, i, val):
         if not 0 <= i < self.n:
-            raise IndexError("set: needs 0 <= i < n")
+            raise IndexError("pointAssign: needs 0 <= i < n")
         k = self.cap + i
         for j in range(self.lg, 0, -1):
             self._push(k >> j)
-        self.t[k] = leaf
+        self.t[k] = self.leaf(val, i)
         for j in range(1, self.lg + 1):
             self._pull(k >> j)
 
-    # combine of the leaves l..r; needs 0 <= l <= r < n, else IndexError
-    def query(self, l, r):
+    # the node of a[l..r]; needs 0 <= l <= r < n, else IndexError
+    def rangeQuery(self, l, r):
         if not 0 <= l <= r < self.n:
-            raise IndexError("query: needs 0 <= l <= r < n")
+            raise IndexError("rangeQuery: needs 0 <= l <= r < n")
         l += self.cap
         r += self.cap + 1
         self._pushAbove(l, r)
@@ -132,16 +124,16 @@ class LazySeg:
             return sl
         return combine(sl, sr)
 
-    # combine of every leaf; needs n >= 1, else IndexError
-    def all(self):
+    # the node of the whole array; needs n >= 1, else IndexError
+    def rangeQueryAll(self):
         if self.n == 0:
-            raise IndexError("all: needs n >= 1")
+            raise IndexError("rangeQueryAll: needs n >= 1")
         return self.t[1]
 
-    # applies tag to every element of l..r; needs 0 <= l <= r < n, else IndexError
-    def update(self, l, r, tag):
+    # tag applied to every element of a[l..r]; needs 0 <= l <= r < n, else IndexError
+    def rangeUpdate(self, l, r, tag):
         if not 0 <= l <= r < self.n:
-            raise IndexError("update: needs 0 <= l <= r < n")
+            raise IndexError("rangeUpdate: needs 0 <= l <= r < n")
         l += self.cap
         r += self.cap + 1
         self._pushAbove(l, r)
@@ -160,61 +152,3 @@ class LazySeg:
                 self._pull(l >> i)
             if (r >> i) << i != r:
                 self._pull((r - 1) >> i)
-
-    # The largest r in [l, n - 1] with ok(query(l, r)) true, or l - 1 if ok(query(l, l)) is false.
-    # ok must be monotone: true for l..r means true for every shorter l..r'. Needs 0 <= l < n, else IndexError.
-    def maxRight(self, l, ok):
-        if not 0 <= l < self.n:
-            raise IndexError("maxRight: needs 0 <= l < n")
-        t, combine, cap = self.t, self.combine, self.cap
-        k = l + cap
-        for i in range(self.lg, 0, -1):
-            self._push(k >> i)
-        sm = None
-        while True:
-            while k % 2 == 0:
-                k >>= 1
-            if t[k] is None:
-                return self.n - 1  # only padding left: every real leaf fit
-            nx = t[k] if sm is None else combine(sm, t[k])
-            if not ok(nx):
-                while k < cap:
-                    self._push(k)
-                    k *= 2
-                    nl = t[k] if sm is None else combine(sm, t[k])
-                    if ok(nl):
-                        sm = nl
-                        k += 1
-                return k - cap - 1
-            sm = nx
-            k += 1
-            if k & -k == k:
-                return self.n - 1
-
-    # The smallest l in [0, r] with ok(query(l, r)) true, or r + 1 if ok(query(r, r)) is false.
-    # ok must be monotone: true for l..r means true for every shorter l'..r. Needs 0 <= r < n, else IndexError.
-    def minLeft(self, r, ok):
-        if not 0 <= r < self.n:
-            raise IndexError("minLeft: needs 0 <= r < n")
-        t, combine, cap = self.t, self.combine, self.cap
-        k = r + 1 + cap
-        for i in range(self.lg, 0, -1):
-            self._push((k - 1) >> i)
-        sm = None
-        while True:
-            k -= 1
-            while k > 1 and k % 2:
-                k >>= 1
-            nx = t[k] if sm is None else combine(t[k], sm)
-            if not ok(nx):
-                while k < cap:
-                    self._push(k)
-                    k = 2 * k + 1
-                    nr = t[k] if sm is None else combine(t[k], sm)
-                    if ok(nr):
-                        sm = nr
-                        k -= 1
-                return k + 1 - cap
-            sm = nx
-            if k & -k == k:
-                return 0
