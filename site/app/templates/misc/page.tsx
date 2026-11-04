@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
-import { GENERIC_SEG_TREES } from "@/lib/generic-seg-trees";
+import { BUBBLE_SORT } from "@/lib/bubble-sort";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -30,7 +30,7 @@ export default async function MiscTemplatesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <MiscTemplates title="Misc. templates" sections={[{ title: "Generic seg trees", items: GENERIC_SEG_TREES }]} publicBase="/range-query-templates" />
+        <MiscTemplates title="Misc. templates" sections={[{ title: "Bubble Sort", items: BUBBLE_SORT }]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>
   );

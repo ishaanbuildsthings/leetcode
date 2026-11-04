@@ -174,9 +174,9 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "persistent binary trie",
     "tuple values with a custom comparator",
     "next permutation templates",
-    "bubble sort templates",
     "max frequency counter",
     "interval tree",
+    "allDistinct with rangeAssign",
   ],
 };
 

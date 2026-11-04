@@ -1,7 +1,7 @@
 import type { FillIn } from "@/components/TemplatePicker";
 
 // The generic seg trees you fill in yourself (templates/segment-trees/generic/): the range query picker's
-// "Generic seg trees" menu and the Misc tab both list them.
+// "Generic seg trees" menu lists them.
 export const GENERIC_SEG_TREES: FillIn[] = [
   {
     label: "Generic seg tree",

@@ -1,3 +1,6 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bubble-sort/MinSwapsToSort.py
+
 # Minimum adjacent swaps to sort arr into non-decreasing order (= bubble sort swap count)
 # Equal values are never swapped past each other, so ties cost nothing
 # Time: O(n log n), Space: O(n)

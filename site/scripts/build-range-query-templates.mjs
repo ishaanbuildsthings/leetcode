@@ -170,6 +170,10 @@ for (const { folder, langs, sparse, letters } of entries) {
 const genericDir = path.resolve(siteDir, "../templates/segment-trees/generic");
 fs.mkdirSync(path.join(publicDir, "_generic"));
 for (const name of fs.readdirSync(genericDir)) fs.copyFileSync(path.join(genericDir, name), path.join(publicDir, "_generic", name));
+// the bubble sort functions (the Misc tab): copied as they are
+const bubbleDir = path.resolve(siteDir, "../templates/bubble-sort");
+fs.mkdirSync(path.join(publicDir, "_bubble-sort"));
+for (const name of fs.readdirSync(bubbleDir)) fs.copyFileSync(path.join(bubbleDir, name), path.join(publicDir, "_bubble-sort", name));
 
 // Thousands of templates share a few op lists, cost lists and memory layouts: the manifest is those tables plus one
 // short row per template, expanded in the browser by decodeRangeTemplates (lib/range-query-picker.ts). The usage panel
