@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/append-appendLeft-cut-insertAt-insertCopiesAt-isRBS-merge-paste-pointAssign-pointGet-rangeAssign-rangeFlip-rangeRotateLeft-rangeRotateRight-split-trisect/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt isRBS merge paste pointAssign pointGet rangeAssign rangeFlip rangeRotateLeft rangeRotateRight split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt isRBS merge paste pointAssign pointGet rangeAssign rangeFlip rangeRotateLeft rangeRotateRight size split trisect
 // @data-structure-type: treap
 // @letters: same
 // @complexities:
@@ -21,6 +21,7 @@
 //   rangeRotateRight: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

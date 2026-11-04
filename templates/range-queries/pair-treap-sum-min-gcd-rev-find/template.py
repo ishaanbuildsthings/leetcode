@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-min-gcd-rev-find/template.py
-# @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rightmostLtX rightmostLteX split trisect
+# @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -30,6 +30,7 @@
 #   rightmostLteX: log(N)*log(U) expected ?
 #   split: log(N)*log(U) expected ?
 #   trisect: log(N)*log(U) expected ?
+#   size: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none

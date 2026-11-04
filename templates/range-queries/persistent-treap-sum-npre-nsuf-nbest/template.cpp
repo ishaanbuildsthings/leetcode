@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-npre-nsuf-nbest/template.cpp
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeRotateLeft rangeRotateRight rangeSum rightmostSuffixSumLtX rightmostSuffixSumLteX split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeRotateLeft rangeRotateRight rangeSum rightmostSuffixSumLtX rightmostSuffixSumLteX size split trisect
 // @data-structure-type: persistent-treap
 // @letters: same
 // @complexities:
@@ -30,6 +30,7 @@
 //   rightmostSuffixSumLteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

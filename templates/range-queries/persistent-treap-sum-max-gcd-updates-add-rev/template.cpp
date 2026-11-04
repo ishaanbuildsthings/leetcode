@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-max-gcd-updates-add-rev/template.cpp
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -30,6 +30,7 @@
 //   rightmostGteX: log(N)*log(U) expected ?
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
+//   size: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none

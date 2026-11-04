@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-xor-gcd-updates-assign/template.cpp
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -25,6 +25,7 @@
 //   rangeXorQuery: log(N)*log(U) expected ?
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
+//   size: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none

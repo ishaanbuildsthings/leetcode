@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-plain-updates-chmin/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeChmin rangeRotateLeft rangeRotateRight rangeTwinSpin split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeChmin rangeRotateLeft rangeRotateRight rangeTwinSpin size split trisect
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N) expected
@@ -22,6 +22,7 @@
 #   rangeTwinSpin: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

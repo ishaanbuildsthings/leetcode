@@ -184,9 +184,41 @@ def attribute(text, path):
 
 
 def folder_name(ops):
-    """A template's folder: its operations, "-" joined. getAll is left out (nearly every structure with updates has
-    it, and its sparse version, which can't, shares the folder)."""
-    return "-".join(o for o in ops if o != "getAll")
+    """A template's folder: its operations, "-" joined. getAll and size are left out (nearly every structure with
+    updates has getAll, and its sparse version, which can't, shares the folder; size came later, and every structure
+    whose length changes has it)."""
+    return "-".join(o for o in ops if o not in ("getAll", "size"))
+
+
+LENGTH_OPS = {"append", "appendLeft", "insertAt", "insertCopiesAt", "cut", "paste", "merge", "split", "trisect"}
+
+
+def add_size(text, lang):
+    """size() as an op (O(1)) on every template whose length changes and whose class has a public size() method:
+    it goes into @operations and @complexities (folder names leave it out)"""
+    cm = "#" if lang == "py" else "//"
+    m = re.search(rf"^{re.escape(cm)} @operations: (.*)$", text, re.M)
+    if not m:
+        return text
+    ops = m.group(1).split()
+    has = re.search(r"^    def size\(self\):" if lang == "py" else r"^    (?:int|long long) size\(\) const", text, re.M)
+    if "size" in ops or not LENGTH_OPS & set(ops) or not has:
+        return text
+    text = text.replace(m.group(0), f"{cm} @operations: {' '.join(sorted(ops + ['size']))}", 1)
+    return re.sub(rf"^({re.escape(cm)}   build: )", rf"{cm}   size: 1\n\1", text, count=1, flags=re.M)
+
+
+def add_size_method(code, lang):
+    """code with size() (the length of arr, the plain array the structure keeps) right after its getAll()"""
+    if lang == "py":
+        a = "\n    def getAll(self):\n        return list(self.arr)\n"
+        block = "\n    # O(1) -- the current length of the array\n    def size(self):\n        return len(self.arr)\n"
+    else:
+        a = "\n    vector<T> getAll() const { return arr; }\n"
+        block = "\n    // O(1) -- the current length of the array\n    int size() const { return (int)arr.size(); }\n"
+    assert a in code, "no getAll returning arr"
+    k = code.index(a) + len(a)
+    return code[:k] + block + code[k:]
 
 
 def drop_get_all(text):
@@ -211,7 +243,7 @@ def add_get_all(code, lang):
 
 def write_template(path, text):
     lang = "py" if path.endswith(".py") else "cpp"
-    open(path, "w").write(attribute(fix_text(add_bounds(text, lang), lang), path))
+    open(path, "w").write(attribute(fix_text(add_bounds(add_size(text, lang), lang), lang), path))
 
 
 if __name__ == "__main__":
@@ -222,7 +254,7 @@ if __name__ == "__main__":
                 path = os.path.join(DIR, folder, stem + ext)
                 if os.path.exists(path):
                     text = open(path).read()
-                    new = attribute(fix_text(add_bounds(text, lang), lang), path)
+                    new = attribute(fix_text(add_bounds(add_size(text, lang), lang), lang), path)
                     if new != text:
                         open(path, "w").write(new)
                         changed += 1

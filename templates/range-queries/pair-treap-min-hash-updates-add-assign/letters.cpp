@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-hash-updates-add-assign/letters.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX merge paste pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeRotateLeft rangeRotateRight rangeTwinSpin rangesEqual rightmostLtX rightmostLteX split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX merge paste pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeRotateLeft rangeRotateRight rangeTwinSpin rangesEqual rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N) expected
@@ -30,6 +30,7 @@
 //   rightmostLteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

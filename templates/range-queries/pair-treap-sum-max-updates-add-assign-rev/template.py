@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-max-updates-add-assign-rev/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rightmostGtX rightmostGteX split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rightmostGtX rightmostGteX size split trisect
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N) expected
@@ -30,6 +30,7 @@
 #   rightmostGteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-min-updates-assign-chmax-chmin-rev/letters.cpp
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmax rangeChmin rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostLtX rightmostLteX split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmax rangeChmin rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N) expected
@@ -29,6 +29,7 @@
 //   rightmostLteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

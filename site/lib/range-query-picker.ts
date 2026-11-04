@@ -130,6 +130,7 @@ export type OpId =
   | "merge"
   | "insertCopiesAt"
   | "getAll"
+  | "size"
   | "rangeHash"
   | "rangeHashReversed"
   | "isPalindrome"
@@ -281,10 +282,11 @@ export const OP_GROUPS: OpGroup[] = [
       {
         kind: "common",
         ops: [
-          { id: "append", signature: "append(v)", description: "Add v at the end" },
-          { id: "appendLeft", signature: "appendLeft(v)", description: "Add v at the front (every index shifts up by 1)" },
-          { id: "insertAt", signature: "insertAt(i, v)", description: "Insert v so it becomes a[i] (i = n appends)" },
-          { id: "insertCopiesAt", signature: "insertCopiesAt(i, v, k)", description: "Insert k copies of v so they become i..i+k−1" },
+          { id: "size", signature: "size()", description: "How many elements the array has right now" },
+          { id: "append", signature: "append(val)", description: "Add val at the end" },
+          { id: "appendLeft", signature: "appendLeft(val)", description: "Add val at the front (every index shifts up by 1)" },
+          { id: "insertAt", signature: "insertAt(i, val)", description: "Insert val so it becomes a[i] (i = n appends)" },
+          { id: "insertCopiesAt", signature: "insertCopiesAt(i, val, k)", description: "Insert k copies of val so they become i..i+k−1" },
           { id: "rangeReverse", signature: "rangeReverse(l, r)", description: "Reverse l..r in place" },
           { id: "rangeTwinSpin", signature: "rangeTwinSpin(l, r)", description: "Swap a[l]↔a[l+1], a[l+2]↔a[l+3], … (an odd last one stays)" },
           { id: "copy", signature: "copy(l, r)", description: "A copy of l..r as a separate treap (this one is unchanged)" },
@@ -297,10 +299,10 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "rangeRotateRight", signature: "rangeRotateRight(l, r, k)", description: "Cyclic shift l..r right by k (a[r−k+1…r] move to the front)" },
           { id: "cut", signature: "cut(l, r)", description: "Remove l..r and get it back as a separate array of the same type" },
           { id: "find", signature: "find(x)", description: "Index of x right now, or −1 (the values must be distinct)" },
-          { id: "paste", signature: "paste(i, other)", description: "Insert all of another array of the same type starting at index i (other ends up empty)" },
+          { id: "paste", signature: "paste(i, treap)", description: "Insert all of another treap of the same type starting at index i (that treap ends up empty)" },
           { id: "split", signature: "split(k)", description: "Split into two arrays: 0..k−1 and a[k]… (the original is left empty)" },
           { id: "trisect", signature: "trisect(l, r)", description: "Split into three arrays: 0..l−1, l..r, a[r+1]… (the original is left empty)" },
-          { id: "merge", signature: "merge(other)", description: "Append all of another array of the same type (other ends up empty)" },
+          { id: "merge", signature: "merge(treap)", description: "Append all of another treap of the same type (that treap ends up empty)" },
         ],
       },
     ],
@@ -676,6 +678,7 @@ export type TemplateView = RangeQueryTemplate & { file: "template" | "sparse" | 
 // Ops that only compare, copy, move or hash values, so they work on letters too (mirrors test_templates.CHAR_SAFE);
 // every other op does arithmetic and needs numbers.
 export const CHAR_SAFE_OPS: ReadonlySet<string> = new Set([
+  "size",
   "pointGet", "pointAssign", "pointChmax", "pointChmin", "rangeAssign", "rangeChmax", "rangeChmin", "rangeSortAsc",
   "rangeSortDesc", "getAll", "append", "appendLeft", "insertAt", "insertCopiesAt",
   "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "cut", "paste", "split", "trisect", "merge",

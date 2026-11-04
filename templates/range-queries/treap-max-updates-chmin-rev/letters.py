@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-max-updates-chmin-rev/letters.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAssign pointChmax pointChmin pointGet rangeChmin rangeMax rangeReverse rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAssign pointChmax pointChmin pointGet rangeChmin rangeMax rangeReverse rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -26,6 +26,7 @@
 #   rightmostGteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

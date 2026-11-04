@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-hash-or-gcd-find/template.cpp
-// @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangesEqual split trisect
+// @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangesEqual size split trisect
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -29,6 +29,7 @@
 //   rangesEqual: log(N)*log(U) expected ?
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
+//   size: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none

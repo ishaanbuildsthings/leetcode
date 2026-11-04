@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-xor-min-max-or-and-seq/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery size split trisect
 // @data-structure-type: sorted-runs
 // @complexities:
 //   append: log(N)+log(U) amortized
@@ -29,6 +29,7 @@
 //   rangeXorQuery: log(N)+log(U) amortized
 //   split: log(N)+log(U) amortized
 //   trisect: log(N)+log(U) amortized
+//   size: 1
 //   build: N*log(U)
 // @memory:
 //   layout: none

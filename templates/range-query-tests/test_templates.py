@@ -67,7 +67,7 @@ MOD_OPS = {"rangeMultMod", "rangeAffineMod", "rangeAddArithSeqMod", "rangeAddMod
 # --letters reruns every template on order-preserving letters using just these ops (the others do arithmetic).
 CHAR_SAFE = {
     "pointGet", "pointAssign", "pointChmax", "pointChmin", "rangeAssign", "rangeChmax", "rangeChmin", "rangeSortAsc",
-    "rangeSortDesc", "getAll", "append", "appendLeft", "insertAt", "insertCopiesAt", "pop", "popLeft", "eraseRange",
+    "rangeSortDesc", "getAll", "size", "append", "appendLeft", "insertAt", "insertCopiesAt", "pop", "popLeft", "eraseRange",
     "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "merge",
     "copyRange", "copy", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
     "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange", "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome", "rangeHash",
@@ -261,6 +261,7 @@ BRUTE_QUERIES = {
     "rangeXorQuery": ("lr", lambda a, l, r, c: reduce(lambda x, y: x ^ y, a[l:r + 1])),
     "maxSubarraySum": ("lr", lambda a, l, r, c: _max_sub(a[l:r + 1])),
     "getAll": ("all", lambda a, c: list(a)),
+    "size": ("all", lambda a, c: len(a)),
     "isPalindrome": ("lr", lambda a, l, r, c: a[l:r + 1] == a[l:r + 1][::-1]),
     "rangesEqual": ("lr2", lambda a, l, r, l2, r2, c: a[l:r + 1] == a[l2:r2 + 1]),
     # hashes are random per run, so the test asks what they promise: rangeHash(l, r) == rangeHash(l2, r2) exactly when the

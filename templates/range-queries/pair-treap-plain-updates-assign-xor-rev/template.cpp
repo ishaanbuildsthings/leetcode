@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-plain-updates-assign-xor-rev/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorApply split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorApply size split trisect
 // @data-structure-type: pair-treap
 // @letters: same
 // @complexities:
@@ -25,6 +25,7 @@
 //   rangeXorApply: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

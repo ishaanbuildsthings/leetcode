@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/append-appendLeft-cut-insertAt-insertCopiesAt-merge-paste-pointAdd-pointAssign-pointGet-rangeAddMod-rangeRotateLeft-rangeRotateRight-rangeSumMod-split-trisect/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointGet rangeAddMod rangeRotateLeft rangeRotateRight rangeSumMod split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointGet rangeAddMod rangeRotateLeft rangeRotateRight rangeSumMod size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -20,6 +20,7 @@
 #   rangeSumMod: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

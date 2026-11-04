@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-suf-npre/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostPrefixSumLtX leftmostPrefixSumLteX maxSuffixSum merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeRotateLeft rangeRotateRight rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostPrefixSumLtX leftmostPrefixSumLteX maxSuffixSum merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeRotateLeft rangeRotateRight rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX size split trisect
 // @data-structure-type: treap
 // @letters: same
 // @complexities:
@@ -28,6 +28,7 @@
 //   rightmostSuffixSumGteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

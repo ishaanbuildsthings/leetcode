@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-and-seq/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc size split trisect
 # @data-structure-type: sorted-runs
 # @complexities:
 #   append: log(N)+log(U) amortized
@@ -25,6 +25,7 @@
 #   rangeSortDesc: log(N)+log(U) amortized
 #   split: log(N)+log(U) amortized
 #   trisect: log(N)+log(U) amortized
+#   size: 1
 #   build: N*log(U)
 # @memory:
 #   layout: none

@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-hash-run-updates-add-assign-rev/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangesEqual split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangesEqual size split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N) expected
@@ -28,6 +28,7 @@
 //   rangesEqual: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none
