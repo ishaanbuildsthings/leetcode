@@ -1,38 +1,33 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bubble-sort/MinSwapsToPalindrome.py
 
-# Minimum adjacent swaps to turn s into a palindrome, or -1 if no rearrangement of s is one (more than one value with
-# an odd count)
-# Greedy: the leftmost unplaced element pairs with the last unplaced copy of its value, taking the outermost free pair
-# of slots; the lone copy of the odd-count value (if any) goes to the middle. Every element then has a destination, and
-# the answer is the number of inversions of the destinations
-# s: a string, or a list of anything hashable
-# Time: O(n log n), Space: O(n)
-def minAdjacentSwapsToPalindrome(s):
-    n = len(s)
-    where = {}  # value -> its indices, left to right
-    for i, c in enumerate(s):
+# Minimum adjacent swaps to turn sequence into a palindrome, or -1 if no rearrangement of it is one (more than one
+# value with an odd count)
+# sequence: a list or a string of hashable values: negatives, floats, chars, tuples ok (not lists of lists)
+def minAdjacentSwapsToPalindrome(sequence):
+    n = len(sequence)
+    where = {}
+    for i, c in enumerate(sequence):
         where.setdefault(c, []).append(i)
     if sum(len(p) & 1 for p in where.values()) > 1:
         return -1
 
-    dest = [-1] * n  # dest[i]: the index s[i] has to end up at
+    dest = [-1] * n
     left, right = 0, n - 1
-    for i, c in enumerate(s):
+    for i, c in enumerate(sequence):
         if dest[i] != -1:
             continue
-        j = where[c].pop()  # the last unplaced copy of c (the copies placed on the left are at the front of the list)
-        if j == i:  # the lone copy of the odd-count value
+        j = where[c].pop()
+        if j == i:
             dest[i] = n // 2
             continue
         dest[i], dest[j] = left, right
         left += 1
         right -= 1
 
-    # inversions of dest (pairs i < j with dest[i] > dest[j]), with a Fenwick tree over destinations
     tree = [0] * (n + 1)
     swaps = 0
-    for i in range(n - 1, -1, -1):  # right to left: destinations already seen that are smaller than this one
+    for i in range(n - 1, -1, -1):
         idx = dest[i]
         while idx > 0:
             swaps += tree[idx]

@@ -5,24 +5,24 @@ const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templat
 
 export const BUBBLE_SORT: FillIn[] = [
   {
-    label: "Min swaps to sort",
-    title: "Min adjacent swaps to sort an array (the bubble sort swap count): its number of inversions",
+    label: "Min swaps to sort O(n log n)",
+    title: "",
     folder: "_bubble-sort",
     file: "MinSwapsToSort",
     ops: [["minAdjacentSwapsToSort(arr)", "N*log(N)"]],
     githubUrl: GITHUB,
   },
   {
-    label: "Min swaps to a target",
-    title: "Min adjacent swaps to turn an array into a given rearrangement of it (-1 if it isn't one)",
+    label: "Min swaps to reach a target state O(n log n)",
+    title: "",
     folder: "_bubble-sort",
     file: "MinSwapsToTarget",
     ops: [["minAdjacentSwapsToTarget(arr, target)", "N*log(N)"]],
     githubUrl: GITHUB,
   },
   {
-    label: "Min swaps to a palindrome",
-    title: "Min adjacent swaps to turn a string (or array) into a palindrome (-1 if none can be)",
+    label: "Min swaps to a palindrome O(n log n)",
+    title: "",
     folder: "_bubble-sort",
     file: "MinSwapsToPalindrome",
     ops: [["minAdjacentSwapsToPalindrome(s)", "N*log(N)"]],

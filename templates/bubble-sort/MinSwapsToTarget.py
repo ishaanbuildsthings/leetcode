@@ -1,29 +1,24 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bubble-sort/MinSwapsToTarget.py
 
-# Minimum adjacent swaps to turn arr into target, or -1 if target isn't a rearrangement of arr
-# The k-th copy of a value in arr always goes to the k-th copy of it in target (crossing two equal values never helps),
-# so the answer is the number of inversions of where each element has to go
-# arr / target: lists (or strings) of anything comparable
-# Time: O(n log n), Space: O(n)
-def minAdjacentSwapsToTarget(arr, target):
-    n = len(arr)
+# Minimum adjacent swaps to turn sequence into target, or -1 if target isn't a rearrangement of sequence
+# sequence, target: lists or strings of values that compare with each other: negatives, floats, chars, tuples ok
+def minAdjacentSwapsToTarget(sequence, target):
+    n = len(sequence)
     if len(target) != n:
         return -1
 
-    # pair the k-th copy of each value in arr with its k-th copy in target: both sorted by (value, position)
-    fromOrder = sorted(range(n), key=lambda i: arr[i])
+    fromOrder = sorted(range(n), key=lambda i: sequence[i])
     toOrder = sorted(range(n), key=lambda i: target[i])
-    dest = [0] * n  # dest[i]: the index arr[i] has to end up at
+    dest = [0] * n
     for i, j in zip(fromOrder, toOrder):
-        if arr[i] != target[j]:
+        if sequence[i] != target[j]:
             return -1
         dest[i] = j
 
-    # inversions of dest (pairs i < j with dest[i] > dest[j]), with a Fenwick tree over destinations
     tree = [0] * (n + 1)
     swaps = 0
-    for i in range(n - 1, -1, -1):  # right to left: destinations already seen that are smaller than this one
+    for i in range(n - 1, -1, -1):
         idx = dest[i]
         while idx > 0:
             swaps += tree[idx]

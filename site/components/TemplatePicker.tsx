@@ -1555,7 +1555,7 @@ export function MiscTemplates({
       {sections.map((section) => (
         <section key={section.title} className="mb-6">
           <h2 className="mb-2 text-sm font-semibold text-foreground">{section.title}</h2>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="flex flex-wrap gap-3">
             {section.items.map((f) => (
               <button
                 key={f.file}
@@ -1564,7 +1564,7 @@ export function MiscTemplates({
                 className="rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary"
               >
                 <span className="block text-sm font-medium text-foreground">{f.label}</span>
-                <span className="mt-1 block text-xs leading-snug text-muted-foreground">{f.title}</span>
+                {f.title && <span className="mt-1 block text-xs leading-snug text-muted-foreground">{f.title}</span>}
               </button>
             ))}
           </div>
