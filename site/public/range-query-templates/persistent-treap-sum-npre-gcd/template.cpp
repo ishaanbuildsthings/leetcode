@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-npre-gcd/template.cpp
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeRotateLeft rangeRotateRight rangeSum split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeRotateLeft rangeRotateRight rangeSum size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -26,6 +26,7 @@
 //   rangeSum: log(N)*log(U) expected ?
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
+//   size: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none

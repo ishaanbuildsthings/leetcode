@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-max-hash-npre-nsuf-nbest-gcd-updates-assign-rev/template.py
-# @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX split trisect
+# @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split trisect
 # @data-structure-type: persistent-treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -41,6 +41,7 @@
 #   rightmostSuffixSumLteX: log(N)*log(U) expected ?
 #   split: log(N)*log(U) expected ?
 #   trisect: log(N)*log(U) expected ?
+#   size: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none

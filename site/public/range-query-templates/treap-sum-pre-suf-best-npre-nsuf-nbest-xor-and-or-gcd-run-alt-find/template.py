@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-pre-suf-best-npre-nsuf-nbest-xor-and-or-gcd-run-alt-find/template.py
-# @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX split trisect
+# @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -42,6 +42,7 @@
 #   rightmostSuffixSumLteX: log(N)*log(U) expected ?
 #   split: log(N)*log(U) expected ?
 #   trisect: log(N)*log(U) expected ?
+#   size: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none

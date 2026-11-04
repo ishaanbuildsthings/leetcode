@@ -2,6 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-order-stats/template.py
 # @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin smallestGtX smallestGteX
 # @data-structure-type: persistent
+# @letters: same
 # @complexities:
 #   countGtX: log(N)
 #   countGteX: log(N)

@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-max-or-gcd-updates-assign/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMax rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rightmostGtX rightmostGteX split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMax rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -30,6 +30,7 @@
 //   rightmostGteX: log(N)*log(U) expected ?
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
+//   size: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none

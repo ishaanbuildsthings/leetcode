@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/append-appendLeft-cut-insertAt-insertCopiesAt-merge-paste-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd-rangeRotateLeft-rangeRotateRight-rangeXorQuery-split-trisect/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeRotateLeft rangeRotateRight rangeXorQuery split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeRotateLeft rangeRotateRight rangeXorQuery size split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -22,6 +22,7 @@
 //   rangeXorQuery: log(N)*log(U) expected ?
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
+//   size: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none

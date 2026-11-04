@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-xor-or-rev/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rightmostLtX rightmostLteX split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -28,6 +28,7 @@
 #   rightmostLteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-max-hash-or-alt-rev-find/template.py
-# @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX split trisect
+# @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -39,6 +39,7 @@
 #   rightmostLteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

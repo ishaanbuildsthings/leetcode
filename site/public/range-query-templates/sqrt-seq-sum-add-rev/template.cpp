@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-seq-sum-add-rev/template.cpp
-// @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostIndexOf rightmostIndexOfInRange smallestGtX smallestGteX split sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK trisect
+// @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK trisect
 // @data-structure-type: sqrt
 // @complexities:
 //   append: sqrt(N)*log(N) amortized
@@ -54,6 +54,7 @@
 //   sumLteX: sqrt(N)*log(N)
 //   sumSmallestK: sqrt(N)*log(N)*log(U)
 //   trisect: sqrt(N)*log(N) amortized
+//   size: 1
 //   build: N*log(N)
 // @memory:
 //   layout: none

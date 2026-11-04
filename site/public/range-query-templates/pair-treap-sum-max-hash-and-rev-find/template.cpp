@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-max-hash-and-rev-find/template.cpp
-// @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangesEqual rightmostGtX rightmostGteX split trisect
+// @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeHash rangeHashReversed rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangesEqual rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N) expected
@@ -34,6 +34,7 @@
 //   rightmostGteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-min-max-pre-suf-best-gcd-updates-assign/template.cpp
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSubarraySum maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSubarraySum maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -41,6 +41,7 @@
 //   rightmostSuffixSumGteX: log(N)*log(U) expected ?
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
+//   size: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none

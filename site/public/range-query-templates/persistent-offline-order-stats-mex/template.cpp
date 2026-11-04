@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-offline-order-stats-mex/template.cpp
-// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointGet rangeMax rangeMex rangeMin smallestGtX smallestGteX
+// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointGet rangeMax rangeMex rangeMin size smallestGtX smallestGteX
 // @data-structure-type: persistent
 // @values: offline
 // @complexities:
@@ -21,6 +21,7 @@
 //   rangeMin: log(N)
 //   smallestGtX: log(N)
 //   smallestGteX: log(N)
+//   size: 1
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -81,107 +82,111 @@ struct PersistentOfflineOrderStats {
         arr.push_back(v), n++;
     }
 
-    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(1) -- a[i]; needs 0 <= i < size(), else throws out_of_range
     T pointGet(int i) const {
-        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        if (i < 0 || i >= size()) throw out_of_range("pointGet: needs 0 <= i < size()");
         return arr[i];
     }
 
     // O(N) -- the whole array (a copy)
     vector<T> getAll() const { return arr; }
 
-    // O(logN) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < n, else throws out_of_range
+    // O(1) -- the current length of the array
+    int size() const { return (int)arr.size(); }
+
+    // O(logN) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else throws out_of_range
     int countOccurrences(int l, int r, T x) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("countOccurrences: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countOccurrences: needs 0 <= l <= r < size()");
         return countInValRange(l, r, x, x);
     }
 
-    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < size(), else throws
+    // out_of_range
     int countInValRange(int l, int r, T lowVal, T highVal) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("countInValRange: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countInValRange: needs 0 <= l <= r < size()");
         if (highVal < lowVal) return 0;
         return countBelow(l, r, ub(highVal)) - countBelow(l, r, lb(lowVal));
     }
 
-    // O(logN) -- # of values < x in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- # of values < x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     int countLtX(int l, int r, T x) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("countLtX: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countLtX: needs 0 <= l <= r < size()");
         return countBelow(l, r, lb(x));
     }
 
-    // O(logN) -- # of values <= x in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- # of values <= x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     int countLteX(int l, int r, T x) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("countLteX: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countLteX: needs 0 <= l <= r < size()");
         return countBelow(l, r, ub(x));
     }
 
-    // O(logN) -- # of values > x in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- # of values > x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     int countGtX(int l, int r, T x) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("countGtX: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countGtX: needs 0 <= l <= r < size()");
         return r - l + 1 - countBelow(l, r, ub(x));
     }
 
-    // O(logN) -- # of values >= x in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- # of values >= x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     int countGteX(int l, int r, T x) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("countGteX: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("countGteX: needs 0 <= l <= r < size()");
         return r - l + 1 - countBelow(l, r, lb(x));
     }
 
-    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < n and 1 <= k <= r - l + 1, else
-    // throws out_of_range
+    // O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    // else throws out_of_range
     T kthSmallest(int l, int r, int k) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("kthSmallest: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("kthSmallest: needs 0 <= l <= r < size()");
         if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
         return kth(l, r, k);
     }
 
-    // O(logN) -- min of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- min of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMin(int l, int r) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMin: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMin: needs 0 <= l <= r < size()");
         return kth(l, r, 1);
     }
 
-    // O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- max of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMax(int l, int r) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMax: needs 0 <= l <= r < size()");
         return kth(l, r, r - l + 1);
     }
 
-    // O(logN) -- smallest value >= x in a[l..r], or nullopt; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- smallest value >= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
     optional<T> smallestGteX(int l, int r, T x) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("smallestGteX: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("smallestGteX: needs 0 <= l <= r < size()");
         int c = countBelow(l, r, lb(x));
         if (c == r - l + 1) return nullopt;
         return kth(l, r, c + 1);
     }
 
-    // O(logN) -- smallest value > x in a[l..r], or nullopt; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- smallest value > x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
     optional<T> smallestGtX(int l, int r, T x) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("smallestGtX: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("smallestGtX: needs 0 <= l <= r < size()");
         int c = countBelow(l, r, ub(x));
         if (c == r - l + 1) return nullopt;
         return kth(l, r, c + 1);
     }
 
-    // O(logN) -- largest value <= x in a[l..r], or nullopt; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- largest value <= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
     optional<T> largestLteX(int l, int r, T x) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("largestLteX: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("largestLteX: needs 0 <= l <= r < size()");
         int c = countBelow(l, r, ub(x));
         if (c == 0) return nullopt;
         return kth(l, r, c);
     }
 
-    // O(logN) -- largest value < x in a[l..r], or nullopt; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- largest value < x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
     optional<T> largestLtX(int l, int r, T x) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("largestLtX: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("largestLtX: needs 0 <= l <= r < size()");
         int c = countBelow(l, r, lb(x));
         if (c == 0) return nullopt;
         return kth(l, r, c);
     }
 
-    // O(logN) -- smallest integer >= 0 that is not in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- smallest integer >= 0 that is not in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     int rangeMex(int l, int r) const {
-        if (l < 0 || l > r || r >= n) throw out_of_range("rangeMex: needs 0 <= l <= r < n");
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMex: needs 0 <= l <= r < size()");
         return mexFrom(l, r, 0);
     }
 

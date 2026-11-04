@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-sum-min-or-hash-seq/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum rangesEqual split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum rangesEqual size split trisect
 // @data-structure-type: sorted-runs
 // @complexities:
 //   append: log(N)+log(U) amortized
@@ -31,6 +31,7 @@
 //   rangesEqual: log(N)+log(U) amortized
 //   split: log(N)+log(U) amortized
 //   trisect: log(N)+log(U) amortized
+//   size: 1
 //   build: N*log(U)
 // @memory:
 //   layout: none

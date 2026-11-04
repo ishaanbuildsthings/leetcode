@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-seq-or-rev/template.py
-# @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge orGtX orGteX orInValRange orLtX orLteX paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange smallestGtX smallestGteX split trisect
+# @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge orGtX orGteX orInValRange orLtX orLteX paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split trisect
 # @data-structure-type: sqrt
 # @complexities:
 #   append: sqrt(N)*log(N) amortized
@@ -48,6 +48,7 @@
 #   smallestGteX: sqrt(N)*log(N)
 #   split: sqrt(N)*log(N) amortized
 #   trisect: sqrt(N)*log(N) amortized
+#   size: 1
 #   build: N*log(N)
 # @memory:
 #   layout: none

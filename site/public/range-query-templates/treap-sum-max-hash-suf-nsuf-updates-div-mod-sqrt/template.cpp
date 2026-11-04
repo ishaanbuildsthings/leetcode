@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-hash-suf-nsuf-updates-div-mod-sqrt/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX maxSuffixSum merge minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX maxSuffixSum merge minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N) expected
@@ -39,6 +39,7 @@
 //   rightmostSuffixSumLteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

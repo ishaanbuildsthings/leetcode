@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-max-hash-xor-and-or-run-alt-updates-div-mod-sqrt-rev/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX longestEqualRun maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual rightmostGtX rightmostGteX split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX longestEqualRun maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N) expected
@@ -38,6 +38,7 @@
 //   rightmostGteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

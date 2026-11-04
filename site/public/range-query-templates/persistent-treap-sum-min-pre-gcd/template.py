@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-min-pre-gcd/template.py
-# @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX split trisect
+# @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: persistent-treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -31,6 +31,7 @@
 #   rightmostLteX: log(N)*log(U) expected ?
 #   split: log(N)*log(U) expected ?
 #   trisect: log(N)*log(U) expected ?
+#   size: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-npre-and-updates-div-mod-sqrt/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -33,6 +33,7 @@
 #   rightmostGteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-nsuf-alt-updates-assign/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX maxAltSubseqSum merge minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX maxAltSubseqSum merge minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -31,6 +31,7 @@
 #   rightmostSuffixSumLteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

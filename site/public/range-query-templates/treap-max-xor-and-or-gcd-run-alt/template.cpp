@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-max-xor-and-or-gcd-run-alt/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeMax rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery rightmostGtX rightmostGteX split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeMax rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -31,6 +31,7 @@
 //   rightmostGteX: log(N)*log(U) expected ?
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
+//   size: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none

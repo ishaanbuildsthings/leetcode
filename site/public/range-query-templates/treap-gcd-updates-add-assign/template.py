@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-gcd-updates-add-assign/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeGcd rangeRotateLeft rangeRotateRight split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeGcd rangeRotateLeft rangeRotateRight size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -23,6 +23,7 @@
 #   rangeRotateRight: log(N)*log(U) expected ?
 #   split: log(N)*log(U) expected ?
 #   trisect: log(N)*log(U) expected ?
+#   size: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none

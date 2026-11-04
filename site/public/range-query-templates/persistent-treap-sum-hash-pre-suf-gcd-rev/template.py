@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-hash-pre-suf-gcd-rev/template.py
-# @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
+# @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX size split trisect
 # @data-structure-type: persistent-treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -34,6 +34,7 @@
 #   rightmostSuffixSumGteX: log(N)*log(U) expected ?
 #   split: log(N)*log(U) expected ?
 #   trisect: log(N)*log(U) expected ?
+#   size: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none

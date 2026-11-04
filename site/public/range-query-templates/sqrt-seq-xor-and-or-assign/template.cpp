@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-seq-xor-and-or-assign/template.cpp
-// @operations: andGtX andGteX andInValRange andLtX andLteX append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge orGtX orGteX orInValRange orLtX orLteX paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeMin rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery rightmostIndexOf rightmostIndexOfInRange smallestGtX smallestGteX split trisect xorGtX xorGteX xorInValRange xorLtX xorLteX
+// @operations: andGtX andGteX andInValRange andLtX andLteX append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge orGtX orGteX orInValRange orLtX orLteX paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeMin rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split trisect xorGtX xorGteX xorInValRange xorLtX xorLteX
 // @data-structure-type: sqrt
 // @complexities:
 //   andGtX: sqrt(N)*log(N)
@@ -60,6 +60,7 @@
 //   xorInValRange: sqrt(N)*log(N)
 //   xorLtX: sqrt(N)*log(N)
 //   xorLteX: sqrt(N)*log(N)
+//   size: 1
 //   build: N*log(N)
 // @memory:
 //   layout: none

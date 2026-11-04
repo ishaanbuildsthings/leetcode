@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-hash-suf-npre-find/template.py
-# @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxSuffixSum merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMin rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
+# @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxSuffixSum merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMin rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -37,6 +37,7 @@
 #   rightmostSuffixSumGteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

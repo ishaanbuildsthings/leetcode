@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-npre-nsuf-rev-find/template.cpp
-// @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX split trisect
+// @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split trisect
 // @data-structure-type: treap
 // @letters: same
 // @complexities:
@@ -35,6 +35,7 @@
 //   rightmostSuffixSumLteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

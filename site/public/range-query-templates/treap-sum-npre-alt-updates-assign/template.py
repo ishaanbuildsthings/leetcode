@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-npre-alt-updates-assign/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostPrefixSumLtX leftmostPrefixSumLteX maxAltSubseqSum merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeRotateLeft rangeRotateRight rangeSum split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostPrefixSumLtX leftmostPrefixSumLteX maxAltSubseqSum merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeRotateLeft rangeRotateRight rangeSum size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -26,6 +26,7 @@
 #   rangeSum: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-hash-xor-and-or-gcd-run-alt-updates-assign-rev/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome longestEqualRun maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome longestEqualRun maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -32,6 +32,7 @@
 #   rangesEqual: log(N)*log(U) expected ?
 #   split: log(N)*log(U) expected ?
 #   trisect: log(N)*log(U) expected ?
+#   size: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none

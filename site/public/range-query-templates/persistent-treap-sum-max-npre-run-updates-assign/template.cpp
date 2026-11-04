@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-max-npre-run-updates-assign/template.cpp
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N) expected
@@ -32,6 +32,7 @@
 //   rightmostGteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-max-xor-run-updates-div-mod-sqrt/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeRotateLeft rangeRotateRight rangeXorQuery rightmostGtX rightmostGteX split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeRotateLeft rangeRotateRight rangeXorQuery rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N) expected
@@ -30,6 +30,7 @@
 //   rightmostGteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

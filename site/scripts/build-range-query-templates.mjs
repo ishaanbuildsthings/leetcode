@@ -166,6 +166,10 @@ for (const { folder, langs, sparse, letters } of entries) {
   ];
   for (const name of files) fs.copyFileSync(path.join(srcDir, folder, name), path.join(publicDir, folder, name));
 }
+// the generic seg trees you fill in yourself (the picker's buttons above the op grid): copied as they are
+const genericDir = path.resolve(siteDir, "../templates/segment-trees/generic");
+fs.mkdirSync(path.join(publicDir, "_generic"));
+for (const name of fs.readdirSync(genericDir)) fs.copyFileSync(path.join(genericDir, name), path.join(publicDir, "_generic", name));
 
 // Thousands of templates share a few op lists, cost lists and memory layouts: the manifest is those tables plus one
 // short row per template, expanded in the browser by decodeRangeTemplates (lib/range-query-picker.ts). The usage panel

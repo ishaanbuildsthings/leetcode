@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-gcd-run-find/template.cpp
-// @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX split trisect
+// @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -29,6 +29,7 @@
 //   rightmostLteX: log(N)*log(U) expected ?
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
+//   size: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none

@@ -165,6 +165,22 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     split: ["left", "right"],
     trisect: ["left", "mid", "right"],
   } satisfies Partial<Record<OpId, string[]>>,
+  fillIns: [
+    {
+      label: "Generic seg tree",
+      title: "Fill in Node and combine(left, right); you build the leaves (any data, e.g. the index): query, set, get, maxRight, minLeft",
+      folder: "_generic",
+      file: "GenericSeg",
+      githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    },
+    {
+      label: "Generic lazy seg tree",
+      title: "Fill in Node, Tag, combine(left, right), apply(node, tag) and compose(old, newer); you build the leaves: range update, query, set, get, maxRight, minLeft",
+      folder: "_generic",
+      file: "GenericLazySeg",
+      githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    },
+  ],
   planned: [
     "mass change queries",
     "2D tree queries",
@@ -172,14 +188,10 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "merge sort tree with updates",
     "persistent binary trie",
     "better treap queries",
-    "treap rotate with very large k",
-    "best generic lazy seg tree and generic seg tree templates",
     "tuple values with a custom comparator",
-    "size() in the picker",
     "next permutation templates",
     "bubble sort templates",
     "max frequency counter",
-    "persistent normal seg tree / lazy seg tree, not just treap",
   ],
 };
 

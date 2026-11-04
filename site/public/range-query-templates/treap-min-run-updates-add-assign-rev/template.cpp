@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-run-updates-add-assign-rev/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostLtX rightmostLteX split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: treap
 // @letters: same
 // @complexities:
@@ -30,6 +30,7 @@
 //   rightmostLteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

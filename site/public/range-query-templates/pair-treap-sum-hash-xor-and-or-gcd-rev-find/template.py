@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-hash-xor-and-or-gcd-rev-find/template.py
-# @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangeXorQuery rangesEqual split trisect
+# @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangeXorQuery rangesEqual size split trisect
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -32,6 +32,7 @@
 #   rangesEqual: log(N)*log(U) expected ?
 #   split: log(N)*log(U) expected ?
 #   trisect: log(N)*log(U) expected ?
+#   size: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none

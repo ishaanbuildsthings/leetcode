@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-xor-find/template.py
-# @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorQuery rightmostLtX rightmostLteX split trisect
+# @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorQuery rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N) expected
@@ -28,6 +28,7 @@
 #   rightmostLteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
+#   size: 1
 #   build: N
 # @memory:
 #   layout: none

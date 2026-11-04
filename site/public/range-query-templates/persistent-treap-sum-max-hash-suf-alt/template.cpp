@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-max-hash-suf-alt/template.cpp
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX maxAltSubseqSum maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX maxAltSubseqSum maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N) expected
@@ -35,6 +35,7 @@
 //   rightmostSuffixSumGteX: log(N) expected
 //   split: log(N) expected
 //   trisect: log(N) expected
+//   size: 1
 //   build: N
 // @memory:
 //   layout: none

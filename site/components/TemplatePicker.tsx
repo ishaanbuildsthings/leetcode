@@ -72,6 +72,9 @@ export interface PickerCatalog<V extends PickerTemplate> {
   opGroups: PickerOpGroup[];
   // a short "still to add" list shown under the op columns
   planned?: string[];
+  // templates outside the op grid that you fill in yourself (range queries: the generic seg trees), one button each
+  // in the toolbar: the file is at publicBase/<folder>/<file>.<lang>, and on GitHub at githubUrl + <file>.<lang>
+  fillIns?: { label: string; title: string; folder: string; file: string; githubUrl: string }[];
   // where the static copies live (fetched on click) and where the files are on GitHub
   publicBase: string;
   githubBase: string;
@@ -537,6 +540,110 @@ function CodeDrawer<V extends PickerTemplate>({
   );
 }
 
+// A fill-in template (catalog.fillIns): just the file, in either language, with Copy and GitHub.
+function FillInDrawer({
+  catalog,
+  fillIn,
+  onClose,
+}: {
+  catalog: { publicBase: string; remoteBase?: string };
+  fillIn: NonNullable<PickerCatalog<PickerTemplate>["fillIns"]>[number];
+  onClose: () => void;
+}) {
+  const [lang, setLang] = useState<TemplateLang>(readPreferredLang);
+  const fileName = `${fillIn.file}.${lang}`;
+  const url = codeUrl(catalog, fillIn.folder, fileName);
+  const [loaded, setLoaded] = useState<{ url: string; code: string | null } | null>(null);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const code = loaded?.url === url ? loaded.code : undefined;
+
+  useEffect(() => {
+    let cancelled = false;
+    loadText(url)
+      .then((text) => !cancelled && setLoaded({ url, code: text }))
+      .catch(() => !cancelled && setLoaded({ url, code: null }));
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const chooseLang = (l: TemplateLang) => {
+    setLang(l);
+    writeStored(LANG_STORAGE_KEY, l);
+  };
+  const copy = async () => {
+    if (!code) return;
+    await navigator.clipboard.writeText(code);
+    setCopiedUrl(url);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex justify-end font-[family-name:var(--font-dm-sans)]">
+      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-foreground/20" />
+      <div className="relative flex h-full w-[min(900px,94vw)] flex-col border-l border-border bg-background shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-border p-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">{fillIn.label}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{fillIn.title}</p>
+          </div>
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <div className="flex overflow-hidden rounded-md border border-border text-xs" role="group" aria-label="Language">
+              {(["py", "cpp"] as const).map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  aria-pressed={lang === l}
+                  onClick={() => chooseLang(l)}
+                  className={`px-2.5 py-1 ${
+                    lang === l ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {TEMPLATE_LANG_LABELS[l]}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={copy}
+              disabled={!code}
+              className="rounded-md border border-border px-2.5 py-1 text-xs text-foreground hover:bg-muted disabled:opacity-50"
+            >
+              {copiedUrl === url ? "Copied" : "Copy"}
+            </button>
+            <a
+              href={`${fillIn.githubUrl}${fileName}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md border border-border px-2.5 py-1 text-xs text-foreground hover:bg-muted"
+            >
+              GitHub ↗
+            </a>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="px-1.5 text-lg leading-none text-muted-foreground hover:text-foreground"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <pre className="overflow-x-auto bg-card p-4 font-mono text-xs leading-relaxed text-foreground">
+            {code === null ? "Couldn't load this template." : (code ?? "Loading…")}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // "Usage": construct, then one block per selected op. Every statement has its comment on the lines above it.
 function UsagePanel<V extends PickerTemplate>({
   catalog,
@@ -710,6 +817,7 @@ export function TemplatePicker<V extends PickerTemplate>({
   // per selected op, the most it may cost (a cost value); templates over any cap are left out
   const [caps, setCaps] = useState<Record<string, number>>({});
   const [openTemplate, setOpenTemplate] = useState<V | null>(null);
+  const [openFillIn, setOpenFillIn] = useState<NonNullable<PickerCatalog<V>["fillIns"]>[number] | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set()); // collapsible groups clicked open
   const [query, setQuery] = useState(""); // the search box: only ops whose name or description contains it
   // the bottom sheet (selection + templates) and its current height
@@ -812,6 +920,17 @@ export function TemplatePicker<V extends PickerTemplate>({
         <h1 className="sr-only">{catalog.title}</h1>
         <PickerTabs>
           <>
+            {catalog.fillIns?.map((f) => (
+              <button
+                key={f.file}
+                type="button"
+                title={f.title}
+                onClick={() => setOpenFillIn(f)}
+                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                {f.label}
+              </button>
+            ))}
             <input
               type="search"
               value={query}
@@ -1276,6 +1395,14 @@ export function TemplatePicker<V extends PickerTemplate>({
           template={openTemplate}
           selected={selected}
           onClose={() => setOpenTemplate(null)}
+        />
+      )}
+      {openFillIn && (
+        <FillInDrawer
+          key={openFillIn.file}
+          catalog={catalog}
+          fillIn={openFillIn}
+          onClose={() => setOpenFillIn(null)}
         />
       )}
     </main>
