@@ -28,7 +28,8 @@ import { readUsage } from "@/lib/template-usage";
 // The picker pages, shown as tabs above each one.
 const PICKER_PAGES = [
   { href: "/templates/range-queries", label: "Range queries" },
-  { href: "/templates/sets", label: "Ordered sets (no indices)" },
+  { href: "/templates/sets", label: "Ordered sets" },
+  { href: "/templates/misc", label: "Misc" },
 ];
 
 // the picker tabs, with the page's controls (children) at the right end of the same row
@@ -63,6 +64,19 @@ function PickerTabs({ children }: { children?: React.ReactNode }) {
   );
 }
 
+// A template you fill in yourself (the generic seg trees): the file is at publicBase/<folder>/<file>.<lang>, and on
+// GitHub at githubUrl + <file>.<lang>. ops: every op with its cost, in the catalog's cost format ("log(N) expected");
+// note: a line under them.
+export type FillIn = {
+  label: string;
+  title: string;
+  folder: string;
+  file: string;
+  githubUrl: string;
+  ops: [string, string][];
+  note?: string;
+};
+
 // Everything a picker page decides for itself; the rest (op grid, matching, ranking, cards, code drawer with usage
 // and memory) is shared.
 export type CtorNote = { py: string; cpp: string; inCall?: boolean };
@@ -74,16 +88,7 @@ export interface PickerCatalog<V extends PickerTemplate> {
   planned?: string[];
   // templates outside the op grid that you fill in yourself (range queries: the generic seg trees), one button each
   // in the toolbar: the file is at publicBase/<folder>/<file>.<lang>, and on GitHub at githubUrl + <file>.<lang>
-  // ops: every op with its cost, in the catalog's cost format ("log(N) expected"); note: a line under them
-  fillIns?: {
-    label: string;
-    title: string;
-    folder: string;
-    file: string;
-    githubUrl: string;
-    ops: [string, string][];
-    note?: string;
-  }[];
+  fillIns?: FillIn[];
   // where the static copies live (fetched on click) and where the files are on GitHub
   publicBase: string;
   githubBase: string;
@@ -556,7 +561,7 @@ function FillInDrawer({
   onClose,
 }: {
   catalog: { publicBase: string; remoteBase?: string };
-  fillIn: NonNullable<PickerCatalog<PickerTemplate>["fillIns"]>[number];
+  fillIn: FillIn;
   onClose: () => void;
 }) {
   const [lang, setLang] = useState<TemplateLang>(readPreferredLang);
@@ -838,7 +843,7 @@ export function TemplatePicker<V extends PickerTemplate>({
   // per selected op, the most it may cost (a cost value); templates over any cap are left out
   const [caps, setCaps] = useState<Record<string, number>>({});
   const [openTemplate, setOpenTemplate] = useState<V | null>(null);
-  const [openFillIn, setOpenFillIn] = useState<NonNullable<PickerCatalog<V>["fillIns"]>[number] | null>(null);
+  const [openFillIn, setOpenFillIn] = useState<FillIn | null>(null);
   const [fillInMenu, setFillInMenu] = useState(false); // the "Generic seg trees" menu is open
   const [expanded, setExpanded] = useState<Set<string>>(new Set()); // collapsible groups clicked open
   const [query, setQuery] = useState(""); // the search box: only ops whose name or description contains it
@@ -1455,6 +1460,44 @@ export function TemplatePicker<V extends PickerTemplate>({
           onClose={() => setOpenFillIn(null)}
         />
       )}
+    </main>
+  );
+}
+
+// The Misc tab: templates outside the pickers, one card each, opening the same drawer as the pickers' fill-ins.
+export function MiscTemplates({
+  sections,
+  publicBase,
+}: {
+  sections: { title: string; items: FillIn[] }[];
+  publicBase: string;
+}) {
+  const [open, setOpen] = useState<FillIn | null>(null);
+  return (
+    <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-16 font-[family-name:var(--font-dm-sans)]">
+      <div className="sticky top-16 z-30 -mx-6 bg-background px-6 pt-2">
+        <h1 className="sr-only">Misc templates</h1>
+        <PickerTabs />
+      </div>
+      {sections.map((section) => (
+        <section key={section.title} className="mb-6">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">{section.title}</h2>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {section.items.map((f) => (
+              <button
+                key={f.file}
+                type="button"
+                onClick={() => setOpen(f)}
+                className="rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary"
+              >
+                <span className="block text-sm font-medium text-foreground">{f.label}</span>
+                <span className="mt-1 block text-xs leading-snug text-muted-foreground">{f.title}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ))}
+      {open && <FillInDrawer key={open.file} catalog={{ publicBase }} fillIn={open} onClose={() => setOpen(null)} />}
     </main>
   );
 }

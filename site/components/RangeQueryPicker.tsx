@@ -23,6 +23,7 @@ import {
   RANGE_OP_NAMES,
   RANGE_TEMPLATE_ROWS,
 } from "@/lib/generated/range-query-templates";
+import { GENERIC_SEG_TREES } from "@/lib/generic-seg-trees";
 
 const RANGE_QUERY_TEMPLATES = decodeRangeTemplates({
   opNames: RANGE_OP_NAMES,
@@ -165,58 +166,7 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     split: ["left", "right"],
     trisect: ["left", "mid", "right"],
   } satisfies Partial<Record<OpId, string[]>>,
-  fillIns: [
-    {
-      label: "Generic seg tree",
-      title: "Fill in Node, leaf(v, i) and combine: pointGet, pointAssign, rangeQuery",
-      folder: "_generic",
-      file: "GenericSeg",
-      ops: [["pointGet(i)", "1"], ["pointAssign(i, val)", "log(N)"], ["rangeQuery(l, r)", "log(N)"], ["rangeQueryAll()", "1"], ["size()", "1"], ["build", "N"]],
-      githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
-    },
-    {
-      label: "Generic lazy seg tree",
-      title: "Also a Tag, apply and compose: rangeUpdate too",
-      folder: "_generic",
-      file: "GenericLazySeg",
-      ops: [["pointGet(i)", "log(N)"], ["pointAssign(i, val)", "log(N)"], ["rangeQuery(l, r)", "log(N)"], ["rangeUpdate(l, r, tag)", "log(N)"], ["rangeQueryAll()", "1"], ["size()", "1"], ["build", "N"]],
-      githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
-    },
-    {
-      label: "Generic dynamic seg tree",
-      title: "Indices lo..hi up to ±1e18, nodes made only where touched; also blank(lo, hi), the node of an untouched range",
-      folder: "_generic",
-      file: "GenericDynamicSeg",
-      ops: [["pointGet(i)", "log(U)"], ["pointAssign(i, val)", "log(U)"], ["rangeQuery(l, r)", "log(U)"], ["rangeQueryAll()", "1"], ["build", "1"]],
-      note: "U = hi - lo + 1. Memory: about log U nodes per set",
-      githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
-    },
-    {
-      label: "Generic lazy dynamic seg tree",
-      title: "The dynamic seg tree plus a Tag, apply and compose: rangeUpdate too",
-      folder: "_generic",
-      file: "GenericLazyDynamicSeg",
-      ops: [["pointGet(i)", "log(U)"], ["pointAssign(i, val)", "log(U)"], ["rangeQuery(l, r)", "log(U)"], ["rangeUpdate(l, r, tag)", "log(U)"], ["rangeQueryAll()", "1"], ["build", "1"]],
-      note: "U = hi - lo + 1. Memory: up to about 4 log U new nodes per update, query or set",
-      githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
-    },
-    {
-      label: "Generic treap",
-      title: "An array you insert into and erase from anywhere: insertAt, eraseAt, cut / paste, rangeReverse (fill in reverse), rangeQuery",
-      folder: "_generic",
-      file: "GenericTreap",
-      ops: [["pointGet(i)", "log(N) expected"], ["pointAssign(i, val)", "log(N) expected"], ["rangeQuery(l, r)", "log(N) expected"], ["rangeQueryAll()", "1"], ["insertAt(i, val)", "log(N) expected"], ["append(val)", "log(N) expected"], ["eraseAt(i)", "log(N) expected"], ["rangeReverse(l, r)", "log(N) expected"], ["cut(l, r)", "log(N) expected"], ["paste(i, treap)", "log(N) expected"], ["size()", "1"], ["build", "N"]],
-      githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
-    },
-    {
-      label: "Generic lazy treap",
-      title: "The treap plus a Tag, apply and compose: rangeUpdate too",
-      folder: "_generic",
-      file: "GenericLazyTreap",
-      ops: [["pointGet(i)", "log(N) expected"], ["pointAssign(i, val)", "log(N) expected"], ["rangeQuery(l, r)", "log(N) expected"], ["rangeUpdate(l, r, tag)", "log(N) expected"], ["rangeQueryAll()", "1"], ["insertAt(i, val)", "log(N) expected"], ["append(val)", "log(N) expected"], ["eraseAt(i)", "log(N) expected"], ["rangeReverse(l, r)", "log(N) expected"], ["cut(l, r)", "log(N) expected"], ["paste(i, treap)", "log(N) expected"], ["size()", "1"], ["build", "N"]],
-      githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
-    },
-  ],
+  fillIns: GENERIC_SEG_TREES,
   planned: [
     "mass change queries",
     "2D tree queries",
@@ -228,6 +178,7 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "next permutation templates",
     "bubble sort templates",
     "max frequency counter",
+    "interval tree",
   ],
 };
 
