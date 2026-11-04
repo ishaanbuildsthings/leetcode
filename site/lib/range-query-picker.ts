@@ -11,6 +11,7 @@ export type OpId =
   | "pointChmin"
   | "rangeAdd"
   | "rangeAssign"
+  | "rangeReplace"
   | "rangeChmax"
   | "rangeChmin"
   | "rangeAddMod"
@@ -193,6 +194,7 @@ export const OP_GROUPS: OpGroup[] = [
       {
         kind: "uncommon",
         ops: [
+          { id: "rangeReplace", signature: "rangeReplace(l, r, x, y)", description: "Every a[i] = x in l..r becomes y (mass change)" },
           { id: "rangeSortAsc", signature: "rangeSortAsc(l, r)", description: "Sort l..r ascending in place" },
           { id: "rangeSortDesc", signature: "rangeSortDesc(l, r)", description: "Sort l..r descending in place" },
           { id: "rangeAddArithSeq", signature: "rangeAddArithSeq(l, r, start, step)", description: "a[l] += start, a[l+1] += start+step, …" },
@@ -557,6 +559,7 @@ export const DATA_STRUCTURE_TYPES = [
   "persistent",
   "bit-of-trees",
   "seg-of-trees",
+  "position-trees",
   // treap-likes, lightest first (on a cost tie): one treap; two (even / odd lanes); copies on every update; value trees
   "treap",
   "pair-treap",
@@ -580,6 +583,7 @@ export const DATA_STRUCTURE_TYPE_LABELS: Record<DataStructureType, string> = {
   persistent: "Persistent seg tree",
   "bit-of-trees": "BIT of value seg trees",
   "seg-of-trees": "Seg tree of value seg trees",
+  "position-trees": "Seg tree of positions per value (split / merge)",
   "pair-treap": "Treap pair (even / odd positions)",
   "sorted-runs": "Sorted runs (mergeable value trees)",
   "persistent-treap": "Persistent treap",
@@ -684,7 +688,7 @@ export const CHAR_SAFE_OPS: ReadonlySet<string> = new Set([
   "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "cut", "paste", "split", "trisect", "merge",
   "copy", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
   "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange",
-  "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome",
+  "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "rangeReplace", "isPalindrome",
   "rangeHash", "rangeHashReversed", "rangesEqual", "doAllElementsAppearEvenFrequency", "kthSmallest",
   "countLtX", "countLteX", "countGtX", "countGteX", "countInValRange", "smallestGtX", "smallestGteX",
   "largestLtX", "largestLteX", "kthLtX", "kthLteX", "kthGtX", "kthGteX",
@@ -730,7 +734,15 @@ export function templateKindLabel(t: TemplateView): string {
       : t.valuesOffline
         ? " (appendable, every value known up front)"
         : " over values (appendable)";
-  const base = DATA_STRUCTURE_TYPE_LABELS[t.dataStructureType] + extras + mex + appendable;
+  // a treap with lazy value tags (a pending assign / add / ... for its children) says so; a reverse flag alone doesn't
+  // count (that's a treap with reverse, not a lazy treap)
+  const lazyTreap =
+    (t.dataStructureType === "treap" || t.dataStructureType === "persistent-treap") &&
+    t.memory.tags.arrays.some((a) => a.name !== "rev");
+  const kind = lazyTreap
+    ? DATA_STRUCTURE_TYPE_LABELS[t.dataStructureType].replace(/ treap$/, " lazy treap")
+    : DATA_STRUCTURE_TYPE_LABELS[t.dataStructureType];
+  const base = kind + extras + mex + appendable;
   const fc = t.fractionalCascading === undefined ? "" : t.fractionalCascading ? " (FC)" : " (no FC)";
   if (t.file !== "sparse") return base + fc;
   // lowercase the first word after "Sparse", unless it's an acronym ("BIT", "BIT of value seg trees")

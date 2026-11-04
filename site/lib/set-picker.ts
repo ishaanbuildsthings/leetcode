@@ -167,7 +167,7 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             id: "pop",
             signature: "pop(i)",
             description:
-              "Remove and return the value at sorted position i (0-indexed)",
+              "Remove and return the value at sorted position i, 0-indexed: pop(0) removes the min",
           },
         ],
       },
@@ -239,7 +239,7 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             id: "kth",
             signature: "kth(i)",
             description:
-              "Value at sorted position i (0-indexed: kth(0) is the min)",
+              "Value at sorted position i, 0-indexed: kth(0) is the min, kth(size − 1) the max",
           },
         ],
       },
@@ -344,24 +344,26 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
           {
             id: "sumSmallestK",
             signature: "sumSmallestK(k)",
-            description: "Sum of the k smallest values",
+            description:
+              "Sum of the k smallest values; k is a count: k = 0 → none (0), k = 1 → just the smallest",
           },
           {
             id: "sumLargestK",
             signature: "sumLargestK(k)",
-            description: "Sum of the k largest values",
+            description:
+              "Sum of the k largest values; k is a count: k = 0 → none (0), k = 1 → just the largest",
           },
           {
             id: "sumKthSmallestRange",
             signature: "sumKthSmallestRange(kFrom, kTo)",
             description:
-              "Sum of the kFrom-th..kTo-th smallest values (1-indexed ranks)",
+              "Sum of the kFrom-th..kTo-th smallest values; 1-indexed ranks, inclusive: (1, 1) = the smallest, (2, 4) = 2nd..4th smallest",
           },
           {
             id: "sumKthLargestRange",
             signature: "sumKthLargestRange(kFrom, kTo)",
             description:
-              "Sum of the kFrom-th..kTo-th largest (e.g. 5th..8th biggest)",
+              "Sum of the kFrom-th..kTo-th largest values; 1-indexed ranks, inclusive: (1, 1) = the largest, (5, 8) = 5th..8th largest",
           },
           {
             id: "sumLtX",
@@ -464,22 +466,26 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
           {
             id: "xorOfSmallestK",
             signature: "xorOfSmallestK(k)",
-            description: "XOR of the k smallest values",
+            description:
+              "XOR of the k smallest values; k is a count: k = 0 → none (0), k = 1 → just the smallest",
           },
           {
             id: "xorOfLargestK",
             signature: "xorOfLargestK(k)",
-            description: "XOR of the k largest values",
+            description:
+              "XOR of the k largest values; k is a count: k = 0 → none (0), k = 1 → just the largest",
           },
           {
             id: "xorOfKthSmallestRange",
             signature: "xorOfKthSmallestRange(kFrom, kTo)",
-            description: "XOR of the kFrom-th..kTo-th smallest values (1-indexed ranks)",
+            description:
+              "XOR of the kFrom-th..kTo-th smallest values; 1-indexed ranks, inclusive: (1, 1) = the smallest, (2, 4) = 2nd..4th smallest",
           },
           {
             id: "xorOfKthLargestRange",
             signature: "xorOfKthLargestRange(kFrom, kTo)",
-            description: "XOR of the kFrom-th..kTo-th largest values (1-indexed ranks)",
+            description:
+              "XOR of the kFrom-th..kTo-th largest values; 1-indexed ranks, inclusive: (1, 1) = the largest, (5, 8) = 5th..8th largest",
           },
         ],
       },
@@ -525,22 +531,26 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
           {
             id: "orOfSmallestK",
             signature: "orOfSmallestK(k)",
-            description: "OR of the k smallest values",
+            description:
+              "OR of the k smallest values; k is a count: k = 0 → none (0), k = 1 → just the smallest",
           },
           {
             id: "orOfLargestK",
             signature: "orOfLargestK(k)",
-            description: "OR of the k largest values",
+            description:
+              "OR of the k largest values; k is a count: k = 0 → none (0), k = 1 → just the largest",
           },
           {
             id: "orOfKthSmallestRange",
             signature: "orOfKthSmallestRange(kFrom, kTo)",
-            description: "OR of the kFrom-th..kTo-th smallest values (1-indexed ranks)",
+            description:
+              "OR of the kFrom-th..kTo-th smallest values; 1-indexed ranks, inclusive: (1, 1) = the smallest, (2, 4) = 2nd..4th smallest",
           },
           {
             id: "orOfKthLargestRange",
             signature: "orOfKthLargestRange(kFrom, kTo)",
-            description: "OR of the kFrom-th..kTo-th largest values (1-indexed ranks)",
+            description:
+              "OR of the kFrom-th..kTo-th largest values; 1-indexed ranks, inclusive: (1, 1) = the largest, (5, 8) = 5th..8th largest",
           },
         ],
       },
@@ -586,22 +596,26 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
           {
             id: "andOfSmallestK",
             signature: "andOfSmallestK(k)",
-            description: "AND of the k smallest values",
+            description:
+              "AND of the k smallest values; k is a count: k = 0 → none (−1), k = 1 → just the smallest",
           },
           {
             id: "andOfLargestK",
             signature: "andOfLargestK(k)",
-            description: "AND of the k largest values",
+            description:
+              "AND of the k largest values; k is a count: k = 0 → none (−1), k = 1 → just the largest",
           },
           {
             id: "andOfKthSmallestRange",
             signature: "andOfKthSmallestRange(kFrom, kTo)",
-            description: "AND of the kFrom-th..kTo-th smallest values (1-indexed ranks)",
+            description:
+              "AND of the kFrom-th..kTo-th smallest values; 1-indexed ranks, inclusive: (1, 1) = the smallest, (2, 4) = 2nd..4th smallest",
           },
           {
             id: "andOfKthLargestRange",
             signature: "andOfKthLargestRange(kFrom, kTo)",
-            description: "AND of the kFrom-th..kTo-th largest values (1-indexed ranks)",
+            description:
+              "AND of the kFrom-th..kTo-th largest values; 1-indexed ranks, inclusive: (1, 1) = the largest, (5, 8) = 5th..8th largest",
           },
         ],
       },
@@ -629,47 +643,56 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
           {
             id: "kthXor",
             signature: "kthXor(x, i)",
-            description: "i-th smallest v ^ x (0-indexed)",
+            description:
+              "i-th smallest v ^ x, 0-indexed: kthXor(x, 0) is the smallest",
           },
           {
             id: "countXorLtK",
             signature: "countXorLtK(x, k)",
-            description: "How many v have v ^ x < k",
+            description:
+              "How many v have v ^ x < k (k is a value, not a rank)",
           },
           {
             id: "countXorLteK",
             signature: "countXorLteK(x, k)",
-            description: "How many v have v ^ x ≤ k",
+            description:
+              "How many v have v ^ x ≤ k (k is a value, not a rank)",
           },
           {
             id: "countXorGtK",
             signature: "countXorGtK(x, k)",
-            description: "How many v have v ^ x > k",
+            description:
+              "How many v have v ^ x > k (k is a value, not a rank)",
           },
           {
             id: "countXorGteK",
             signature: "countXorGteK(x, k)",
-            description: "How many v have v ^ x ≥ k",
+            description:
+              "How many v have v ^ x ≥ k (k is a value, not a rank)",
           },
           {
             id: "largestXorLtK",
             signature: "largestXorLtK(x, k)",
-            description: "Largest v ^ x that is < k",
+            description:
+              "Largest v ^ x that is < k (k is a value, not a rank)",
           },
           {
             id: "largestXorLteK",
             signature: "largestXorLteK(x, k)",
-            description: "Largest v ^ x that is ≤ k",
+            description:
+              "Largest v ^ x that is ≤ k (k is a value, not a rank)",
           },
           {
             id: "smallestXorGtK",
             signature: "smallestXorGtK(x, k)",
-            description: "Smallest v ^ x that is > k",
+            description:
+              "Smallest v ^ x that is > k (k is a value, not a rank)",
           },
           {
             id: "smallestXorGteK",
             signature: "smallestXorGteK(x, k)",
-            description: "Smallest v ^ x that is ≥ k",
+            description:
+              "Smallest v ^ x that is ≥ k (k is a value, not a rank)",
           },
           {
             id: "mexXor",

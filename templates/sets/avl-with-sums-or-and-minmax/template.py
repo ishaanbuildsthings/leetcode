@@ -18,7 +18,7 @@
 #   andOfLtX: log(N)
 #   andOfLteX: log(N)
 #   andOfSmallestK: log(N)
-#   clear: N
+#   clear: 1 amortized
 #   count: log(N)
 #   countDistinct: 1
 #   countGtX: log(N)
@@ -426,19 +426,25 @@ class AVLMultiset:
     def andOfInValRange(self, lo, hi):
         return self._andIn(lo, hi) if lo <= hi else -1
 
-    # O(logN) -- bitwise AND of the kFrom-th..kTo-th largest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    # O(logN) -- bitwise AND of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    # just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); raises
+    # IndexError unless 1 <= kFrom <= kTo <= size
     def andOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
         return self._andIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
-    # O(logN) -- bitwise AND of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    # O(logN) -- bitwise AND of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    # just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); raises IndexError
+    # unless 1 <= kFrom <= kTo <= size
     def andOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
         return self._andIn(self._kth(kFrom), self._kth(kTo))
 
-    # O(logN) -- bitwise AND of the k largest values (-1 (every bit set) for k = 0); raises IndexError unless 0 <= k <= size
+    # O(logN) -- bitwise AND of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
+    # every bit set), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5);
+    # raises IndexError unless 0 <= k <= size
     def andOfLargestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"andOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
@@ -452,13 +458,16 @@ class AVLMultiset:
     def andOfLteX(self, x):
         return self._andLe(x)
 
-    # O(logN) -- bitwise AND of the k smallest values (-1 (every bit set) for k = 0); raises IndexError unless 0 <= k <= size
+    # O(logN) -- bitwise AND of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
+    # every bit set), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2);
+    # raises IndexError unless 0 <= k <= size
     def andOfSmallestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"andOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
         return self._andLe(self._kth(k)) if k else -1
 
-    # O(N) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    # O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    # instead of building a new one
     def clear(self):
         self._clearData()
         self._resetCached()
@@ -491,11 +500,13 @@ class AVLMultiset:
     def countLteX(self, x):
         return self._le(x)
 
-    # O(logN) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    # O(logN) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in
+    # the set
     def firstIndex(self, x):
         return self._lt(x) if self._countOf(x) else -1
 
-    # O(logN) -- the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size
+    # O(logN) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    # kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); raises IndexError unless 0 <= i < size
     def kth(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"kth: needs 0 <= i < size, got i = {i}, size = {self.n}")
@@ -511,7 +522,8 @@ class AVLMultiset:
         c = self._le(x)
         return self._kth(c) if c else None
 
-    # O(logN) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    # O(logN) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is
+    # not in the set
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
@@ -547,19 +559,25 @@ class AVLMultiset:
     def orOfInValRange(self, lo, hi):
         return self._orIn(lo, hi) if lo <= hi else 0
 
-    # O(logN) -- bitwise OR of the kFrom-th..kTo-th largest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    # O(logN) -- bitwise OR of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    # just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); raises
+    # IndexError unless 1 <= kFrom <= kTo <= size
     def orOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(f"orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
         return self._orIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
-    # O(logN) -- bitwise OR of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    # O(logN) -- bitwise OR of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    # just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); raises IndexError
+    # unless 1 <= kFrom <= kTo <= size
     def orOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(f"orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
         return self._orIn(self._kth(kFrom), self._kth(kTo))
 
-    # O(logN) -- bitwise OR of the k largest values (0 for k = 0); raises IndexError unless 0 <= k <= size
+    # O(logN) -- bitwise OR of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k =
+    # 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5); raises IndexError
+    # unless 0 <= k <= size
     def orOfLargestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"orOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
@@ -573,13 +591,16 @@ class AVLMultiset:
     def orOfLteX(self, x):
         return self._orLe(x)
 
-    # O(logN) -- bitwise OR of the k smallest values (0 for k = 0); raises IndexError unless 0 <= k <= size
+    # O(logN) -- bitwise OR of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k =
+    # 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2); raises IndexError
+    # unless 0 <= k <= size
     def orOfSmallestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"orOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
         return self._orLe(self._kth(k)) if k else 0
 
-    # O(logN) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size
+    # O(logN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
+    # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
     def pop(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")
@@ -688,19 +709,25 @@ class AVLMultiset:
     def sumInValRange(self, lo, hi):
         return self._sle(hi) - self._slt(lo) if lo <= hi else 0
 
-    # O(logN) -- sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); raises IndexError unless 1 <= kFrom <= kTo <= size
+    # O(logN) -- sum of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
+    # largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); raises IndexError unless
+    # 1 <= kFrom <= kTo <= size
     def sumKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
         return self._sumFirst(self.n - kFrom + 1) - self._sumFirst(self.n - kTo)
 
-    # O(logN) -- sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    # O(logN) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
+    # smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); raises IndexError unless 1
+    # <= kFrom <= kTo <= size
     def sumKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
         return self._sumFirst(kTo) - self._sumFirst(kFrom - 1)
 
-    # O(logN) -- sum of the k largest values; raises IndexError unless 0 <= k <= size
+    # O(logN) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just
+    # the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5); raises IndexError unless 0 <=
+    # k <= size
     def sumLargestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"sumLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
@@ -714,7 +741,9 @@ class AVLMultiset:
     def sumLteX(self, x):
         return self._sle(x)
 
-    # O(logN) -- sum of the k smallest values; raises IndexError unless 0 <= k <= size
+    # O(logN) -- sum of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just
+    # the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2); raises IndexError unless 0
+    # <= k <= size
     def sumSmallestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"sumSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")

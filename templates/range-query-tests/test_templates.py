@@ -48,7 +48,7 @@ POINT_UPDATES = ("pointAssign", "pointAdd", "pointChmax", "pointChmin")
 RANGE_UPDATES = {  # op -> number of args after (l, r)
     "rangeAdd": 1, "rangeAssign": 1, "rangeAddMod": 1, "rangeAssignMod": 1, "rangeChmax": 1, "rangeChmin": 1, "rangeMultMod": 1, "rangeAffineMod": 2,
     "rangeAddArithSeq": 2, "rangeAddArithSeqMod": 2, "rangeMod": 1, "rangeFloorDiv": 1, "rangeFloorSqrt": 0,
-    "rangeAndApply": 1, "rangeOrApply": 1, "rangeXorApply": 1, "rangeFlip": 0,
+    "rangeAndApply": 1, "rangeOrApply": 1, "rangeXorApply": 1, "rangeFlip": 0, "rangeReplace": 2,
 }
 # sequence edits (implicit treap): op -> arg kind; they change the array's length
 SEQ_OPS = {"append": "v", "appendLeft": "v", "insertAt": "iv", "pop": "i", "popLeft": "none", "eraseRange": "lr", "rangeReverse": "lr", "rangeRotateLeft": "lrk", "rangeRotateRight": "lrk", "moveRange": "lri",
@@ -73,7 +73,7 @@ CHAR_SAFE = {
     "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange", "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome", "rangeHash",
     "rangeHashReversed", "rangesEqual", "doAllElementsAppearEvenFrequency", "kthSmallest", "kthLargest", "medianLow",
     "medianHigh", "countLtX", "countLteX", "countGtX", "countGteX", "countInValRange", "smallestGtX", "smallestGteX",
-    "largestLtX", "largestLteX", "kthLtX", "kthLteX", "kthGtX", "kthGteX",
+    "largestLtX", "largestLteX", "kthLtX", "kthLteX", "kthGtX", "kthGteX", "rangeReplace",
 } | {f"{side}{c}X" for side in ("leftmost", "rightmost") for c in ("Gt", "Gte", "Lt", "Lte")}
 
 
@@ -406,6 +406,7 @@ def brute_update(a, op, args, ctx):
         elif op == "rangeAndApply": v &= xs[0]
         elif op == "rangeOrApply": v |= xs[0]
         elif op == "rangeXorApply": v ^= xs[0]
+        elif op == "rangeReplace": v = xs[1] if v == xs[0] else v
         elif op == "rangeFlip": v = {40: 41, 41: 40, letter(40): letter(41), letter(41): letter(40)}[v]  # brackets: ( <-> )
         a[i] = v % mod if mod else v
 
@@ -416,6 +417,14 @@ def rbs_extra(folder, as_letters=False):
     """ctor args after the brackets: openChar, and closeChar too for the templates that take one"""
     takes_close = "closeChar" in open(os.path.join(DIR, folder, "template.py")).read()
     return [(letter if as_letters else int)(v) for v in ((40, 41) if takes_close else (40,))]
+
+
+def letters_extra(folder, ops, extra):
+    """the ctor args after the array when the values are letters: the bracket characters, or a value range
+    [valLo, valHi] as letters (the mass change templates)"""
+    if "isRBS" in ops:
+        return rbs_extra(folder, True)
+    return [letter(v) if isinstance(v, int) else v for v in extra] if "rangeReplace" in ops else extra
 
 
 def domain(folder, ops):
@@ -464,6 +473,9 @@ def domain(folder, ops):
         return (lambda r: r.randint(0, 2)), (lambda r: r.randint(-1, 1)), [], ctx
     if {"orLtX", "andLtX"} & set(ops):  # by-value OR / AND with point updates (seg tree of value trees): a value range too
         return (lambda r: r.randint(-30, 30)), small, ([-10**9, 10**9] if "pointAssign" in ops else []), ctx
+    if "rangeReplace" in ops:  # mass change: few values, so most changes hit something; a value range [valLo, valHi] to
+        takes_range = "valLo" in open(os.path.join(DIR, folder, "template.py")).read()  # the templates that take one
+        return (lambda r: r.randint(-3, 6)), small, ([-3, 6] if takes_range else []), ctx
     if {"countDistinct", "allDistinct", "rangeMode", "doAllElementsAppearEvenFrequency", "countOccurrences", "leftmostIndexOf"} & set(ops):
         return (lambda r: r.randint(0, 6)), nonneg_small, [], ctx
     if "longestEqualRun" in ops:
@@ -620,6 +632,9 @@ def make_trials(folder, ops, trials, letters=False):
                     l2 = rng.randint(0, n - m) if rng.random() < 0.8 else rng.randrange(n)
                     r2 = l2 + m - 1 if l2 + m - 1 < n and rng.random() < 0.9 else rng.randint(l2, n - 1)
                     args = [l, r, l2, r2]
+                elif op == "rangeReplace":  # (x mostly a value that has been in the array, so something changes)
+                    args = [l, r, rng.choice(seen) if rng.random() < 0.85 else gen(rng), gen(rng)]
+                    seen.append(args[3])
                 elif kind == "upd":
                     args = [l, r] + update_args(op, rng, gen, ctx["mod"])
                 elif kind == "lrx":
@@ -1355,8 +1370,7 @@ def main():
                 stem0, ops = "template", [o for o in ops if o in CHAR_SAFE]
                 if "@letters: same" not in open(py).read():
                     continue  # numbers only
-            if "isRBS" in ops:
-                ctor_extra = rbs_extra(folder, True)
+            ctor_extra = letters_extra(folder, ops, ctor_extra)
             variants = [(stem0, *make_trials(folder, ops, trials_n, letters))]
         else:
             variants = [("template", *make_trials(folder, ops, trials_n))]
@@ -1392,7 +1406,7 @@ def main():
                         results.append((lang, first_mismatch(got, expected_outputs(ntrials, nctx), ntrials, False), warn))
                         continue
                     if lang == "py":
-                        extra = rbs_extra(folder, True) if stem == "letters" and "isRBS" in vops else ctor_extra
+                        extra = letters_extra(folder, vops, ctor_extra) if stem == "letters" else ctor_extra
                         got, warn = run_python(folder, vops, trials, extra, stem), ""
                     else:
                         got, warn = run_cpp(folder, vops, trials, ctor_extra, cxx, stem)

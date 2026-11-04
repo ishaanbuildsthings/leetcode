@@ -3,48 +3,56 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// one raw array element: long long, char, pair, or a struct
+// e.g. long long, char, pair, struct, ...
 using RawVal = long long;
 
 struct Node {
     // long long tot;
-    // long long mn;
-    // int len; // apply only sees the Node, so keep the length if a tag needs it
+    // long long first;  // the value at the left end
+    // long long last;  // the value at the right end
+    // int len;
 };
 
 // a pending update to every element of a segment
+// We never need to worry about initializing empty tags or anything, these tags come in via rangeUpdate(l, r, tag) calls
+// or when pushed down from parents
 struct Tag {
     // long long add;
 };
 
 Node leaf(const RawVal& v) {
     // Node res;
-    // res.tot = v, res.mn = v, res.len = 1;
+    // res.tot = res.first = res.last = v, res.len = 1;
     // return res;
 }
 
-// combine two nodes
 Node combine(const Node& left, const Node& right) {
     // Node res;
-    // res.tot = left.tot + right.tot, res.mn = min(left.mn, right.mn);
-    // res.len = left.len + right.len;
+    // res.tot = left.tot + right.tot, res.len = left.len + right.len;
+    // res.first = left.first, res.last = right.last;
     // return res;
 }
 
-// node becomes the Node of its segment read backwards (only rangeReverse uses it; nothing to do for sums / mins)
-void reverse(Node& node) {
-    // swap(node.pre, node.suf);
+// node becomes the Node of its segment read backwards
+Node reverse(Node node) {
+    // This is NOT mutating since node is taken by value in the arg, we can also just make a new node if needed
+    // swap(node.first, node.last);  // (read backwards, the two ends trade places)
+    // return node;
 }
 
 // return a new node: this node after tag is applied to it
-// we must handle the case where the tag is a no-op (e.g. negate twice), and we can return the original node
+// this function is never called with a tag that never existed, but tags can have things like pending false values or
+// pending no-ops (for instance two lazy bools canceling) and we still need to check for this and no-op (could just
+// return original node)
 Node apply(Node node, const Tag& tag) {
-    // node.tot += tag.add * node.len, node.mn += tag.add;
+    // This is NOT mutating since node is taken by value in the arg, we can also just make a new node if needed
+    // node.tot += tag.add * node.len, node.first += tag.add, node.last += tag.add;
     // return node;
 }
 
 // a tag that is the old tag, then the new tag
 Tag compose(Tag old, const Tag& newer) {
+    // This is NOT mutating since old is taken by value in the arg, we can also just make a new tag if needed
     // old.add += newer.add;
     // return old;
 }
@@ -85,7 +93,7 @@ struct LazyTreap {
     static void flip(int t) {
         if (!t) return;
         swap(nd[t].L, nd[t].R);
-        reverse(nd[t].agg);
+        nd[t].agg = reverse(nd[t].agg);
         nd[t].rev ^= 1;
     }
 
@@ -103,26 +111,61 @@ struct LazyTreap {
     }
 
     // a = the first k items of t, b = the rest
-    static void split(int t, int k, int& a, int& b) {
+    static void splitAt(int t, int k, int& a, int& b) {
         if (!t) return void(a = b = 0);
         push(t);
-        if (nd[nd[t].L].sz < k) split(nd[t].R, k - nd[nd[t].L].sz - 1, nd[t].R, b), a = t;
-        else split(nd[t].L, k, a, nd[t].L), b = t;
+        if (nd[nd[t].L].sz < k) splitAt(nd[t].R, k - nd[nd[t].L].sz - 1, nd[t].R, b), a = t;
+        else splitAt(nd[t].L, k, a, nd[t].L), b = t;
         pull(t);
     }
 
-    static int merge(int a, int b) {
+    static int join(int a, int b) {
         if (!a || !b) return a ? a : b;
         if (nd[a].pr > nd[b].pr) {
             push(a);
-            nd[a].R = merge(nd[a].R, b);
+            nd[a].R = join(nd[a].R, b);
             pull(a);
             return a;
         }
         push(b);
-        nd[b].L = merge(a, nd[b].L);
+        nd[b].L = join(a, nd[b].L);
         pull(b);
         return b;
+    }
+
+    // the Node of items l..r of t: walks down and combines the pieces that cover them (no split / merge)
+    static Node rq(int t, int l, int r) {
+        if (l <= 0 && r >= nd[t].sz - 1) return nd[t].agg;
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        if (r < ls) return rq(nd[t].L, l, r);
+        if (l > ls) return rq(nd[t].R, l - ls - 1, r - ls - 1);
+        Node res = nd[t].self;
+        if (l < ls) res = combine(rq(nd[t].L, l, ls - 1), res);
+        if (r > ls) res = combine(res, rq(nd[t].R, 0, r - ls - 1));
+        return res;
+    }
+
+    // a[i] = val in t's subtree, recomputing the nodes on the way back up
+    static void setAt(int t, int i, const RawVal& val) {
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        if (i < ls) setAt(nd[t].L, i, val);
+        else if (i > ls) setAt(nd[t].R, i - ls - 1, val);
+        else nd[t].self = leaf(val);
+        pull(t);
+    }
+
+    // tag applied to items l..r of t: tags the subtrees that cover them (no split / merge)
+    static void updateRange(int t, int l, int r, const Tag& tag) {
+        if (!t || r < 0 || l >= nd[t].sz) return;
+        if (l <= 0 && r >= nd[t].sz - 1) return applyTag(t, tag);
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        updateRange(nd[t].L, l, r, tag);
+        if (l <= ls && ls <= r) nd[t].self = apply(nd[t].self, tag);
+        updateRange(nd[t].R, l - ls - 1, r - ls - 1, tag);
+        pull(t);
     }
 
     // O(n)
@@ -146,6 +189,12 @@ struct LazyTreap {
         for (int i = order.size() - 1; i >= 0; i--) pull(order[i]);
     }
 
+    static LazyTreap wrap(int t) {
+        LazyTreap res;
+        res.root = t;
+        return res;
+    }
+
     // how many elements
     int size() { return nd[root].sz; }
 
@@ -165,42 +214,32 @@ struct LazyTreap {
     // a[i] = val; needs 0 <= i < size(), else out_of_range
     void pointAssign(int i, const RawVal& val) {
         if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
-        int a, b, c;
-        split(root, i, a, b);
-        split(b, 1, b, c);
-        nd[b].self = leaf(val);
-        pull(b);
-        root = merge(merge(a, b), c);
+        setAt(root, i, val);
     }
 
     // insert val so it becomes a[i] (i = size() appends); needs 0 <= i <= size(), else out_of_range
     void insertAt(int i, const RawVal& val) {
         if (i < 0 || i > size()) throw out_of_range("insertAt: needs 0 <= i <= size()");
         int a, b;
-        split(root, i, a, b);
-        root = merge(merge(a, newItem(val)), b);
+        splitAt(root, i, a, b);
+        root = join(join(a, newItem(val)), b);
     }
 
-    void append(const RawVal& val) { root = merge(root, newItem(val)); }
+    void append(const RawVal& val) { root = join(root, newItem(val)); }
 
     // remove a[i]; needs 0 <= i < size(), else out_of_range
     void eraseAt(int i) {
         if (i < 0 || i >= size()) throw out_of_range("eraseAt: needs 0 <= i < size()");
         int a, b, c;
-        split(root, i, a, b);
-        split(b, 1, b, c);
-        root = merge(a, c);
+        splitAt(root, i, a, b);
+        splitAt(b, 1, b, c);
+        root = join(a, c);
     }
 
     // the Node of a[l..r]; needs 0 <= l <= r < size(), else out_of_range
     Node rangeQuery(int l, int r) {
         if (l < 0 || r >= size() || l > r) throw out_of_range("rangeQuery: needs 0 <= l <= r < size()");
-        int a, b, c;
-        split(root, l, a, b);
-        split(b, r - l + 1, b, c);
-        Node res = nd[b].agg;
-        root = merge(merge(a, b), c);
-        return res;
+        return rq(root, l, r);
     }
 
     // the Node of the whole array; needs size() >= 1, else out_of_range
@@ -212,42 +251,81 @@ struct LazyTreap {
     // tag applied to every element of a[l..r]; needs 0 <= l <= r < size(), else out_of_range
     void rangeUpdate(int l, int r, const Tag& tag) {
         if (l < 0 || r >= size() || l > r) throw out_of_range("rangeUpdate: needs 0 <= l <= r < size()");
-        int a, b, c;
-        split(root, l, a, b);
-        split(b, r - l + 1, b, c);
-        applyTag(b, tag);
-        root = merge(merge(a, b), c);
+        updateRange(root, l, r, tag);
     }
 
     // reverse a[l..r]; needs 0 <= l <= r < size(), else out_of_range
     void rangeReverse(int l, int r) {
         if (l < 0 || r >= size() || l > r) throw out_of_range("rangeReverse: needs 0 <= l <= r < size()");
         int a, b, c;
-        split(root, l, a, b);
-        split(b, r - l + 1, b, c);
+        splitAt(root, l, a, b);
+        splitAt(b, r - l + 1, b, c);
         flip(b);
-        root = merge(merge(a, b), c);
+        root = join(join(a, b), c);
     }
 
     // remove a[l..r] and get it back as a LazyTreap of its own; needs 0 <= l <= r < size(), else out_of_range
     LazyTreap cut(int l, int r) {
         if (l < 0 || r >= size() || l > r) throw out_of_range("cut: needs 0 <= l <= r < size()");
         int a, b, c;
-        split(root, l, a, b);
-        split(b, r - l + 1, b, c);
-        root = merge(a, c);
-        LazyTreap piece;
-        piece.root = b;
-        return piece;
+        splitAt(root, l, a, b);
+        splitAt(b, r - l + 1, b, c);
+        root = join(a, c);
+        return wrap(b);
     }
 
     // insert all of other so it starts at a[i] (other ends up empty); needs 0 <= i <= size(), else out_of_range
     void paste(int i, LazyTreap& other) {
         if (i < 0 || i > size()) throw out_of_range("paste: needs 0 <= i <= size()");
         int a, b;
-        split(root, i, a, b);
-        root = merge(merge(a, other.root), b);
+        splitAt(root, i, a, b);
+        root = join(join(a, other.root), b);
         other.root = 0;
     }
     void paste(int i, LazyTreap&& other) { paste(i, other); }
+
+    // append all of other (other ends up empty)
+    void merge(LazyTreap& other) {
+        root = join(root, other.root);
+        other.root = 0;
+    }
+    void merge(LazyTreap&& other) { merge(other); }
+
+    // split into a[0..k-1] and a[k..] (this one ends up empty); needs 0 <= k <= size(), else out_of_range
+    pair<LazyTreap, LazyTreap> split(int k) {
+        if (k < 0 || k > size()) throw out_of_range("split: needs 0 <= k <= size()");
+        int a, b;
+        splitAt(root, k, a, b);
+        root = 0;
+        return {wrap(a), wrap(b)};
+    }
+
+    // split into a[0..l-1], a[l..r], a[r+1..] (this one ends up empty); needs 0 <= l <= r < size(), else out_of_range
+    tuple<LazyTreap, LazyTreap, LazyTreap> trisect(int l, int r) {
+        if (l < 0 || r >= size() || l > r) throw out_of_range("trisect: needs 0 <= l <= r < size()");
+        int a, b, c;
+        splitAt(root, l, a, b);
+        splitAt(b, r - l + 1, b, c);
+        root = 0;
+        return {wrap(a), wrap(b), wrap(c)};
+    }
+
+    // cyclic shift a[l..r] left by k (a[l+k] moves to l; any k, taken mod r - l + 1); needs 0 <= l <= r < size(), else
+    // out_of_range
+    void rangeRotateLeft(int l, int r, long long k) {
+        if (l < 0 || r >= size() || l > r) throw out_of_range("rangeRotateLeft: needs 0 <= l <= r < size()");
+        int len = r - l + 1, a, b, c, b1, b2;
+        k = ((k % len) + len) % len;
+        splitAt(root, l, a, b);
+        splitAt(b, len, b, c);
+        splitAt(b, k, b1, b2);
+        root = join(join(a, join(b2, b1)), c);
+    }
+
+    // cyclic shift a[l..r] right by k (a[r-k+1..r] move to the front; any k, taken mod r - l + 1); needs
+    // 0 <= l <= r < size(), else out_of_range
+    void rangeRotateRight(int l, int r, long long k) {
+        if (l < 0 || r >= size() || l > r) throw out_of_range("rangeRotateRight: needs 0 <= l <= r < size()");
+        rangeRotateLeft(l, r, -k);
+    }
 };

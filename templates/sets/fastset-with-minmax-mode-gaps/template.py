@@ -8,7 +8,7 @@
 # @complexities:
 #   add: log64(U)
 #   addCount: log64(U)
-#   clear: N*log64(U)
+#   clear: 1 amortized
 #   count: 1
 #   countDistinct: 1
 #   largestLtX: log64(U)
@@ -242,7 +242,8 @@ class FastSetMultiset:
         if cnt > 0:
             self._add(val, cnt)
 
-    # O(N log64(U)) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    # O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    # instead of building a new one
     def clear(self):
         self._clearData()
         self._resetCached()
@@ -269,7 +270,8 @@ class FastSetMultiset:
     def max(self):
         return self.mx if self.n else None
 
-    # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct values
+    # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct
+    # values
     def maxGap(self):
         return self._maxGap() if self.d >= 2 else None
 
@@ -277,7 +279,8 @@ class FastSetMultiset:
     def min(self):
         return self.mn if self.n else None
 
-    # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer than 2 values
+    # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer
+    # than 2 values
     def minAdjacentDiff(self):
         if self.n < 2:
             return None
@@ -328,7 +331,8 @@ class FastSetMultiset:
         self._add(val, -k)
         return k
 
-    # O(log64(U) amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    # O(log64(U) amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed
+    # (0 if lo > hi)
     def removeInValRange(self, lo, hi):
         if lo > hi:
             return 0

@@ -2,9 +2,10 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/GenericDynamicSeg.py
 
 
-# one raw array element: int, str, tuple, ...
+# e.g. int, str, tuple, ...
 RawVal = int
-# e.g. (tot, mn); any value, tuples are fastest
+
+# or can replace this Node type with an entire Node class and it works
 Node = tuple
 
 
@@ -13,7 +14,6 @@ def leaf(v: RawVal, i: int) -> Node:
     pass
 
 
-# combine two nodes
 def combine(left: Node, right: Node) -> Node:
     # return (left[0] + right[0], min(left[1], right[1]))
     pass

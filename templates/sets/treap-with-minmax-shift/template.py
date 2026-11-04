@@ -8,7 +8,7 @@
 # @complexities:
 #   add: log(N) expected
 #   addCount: log(N) expected
-#   clear: N
+#   clear: 1 amortized
 #   count: log(N) expected
 #   countDistinct: 1
 #   countGtX: log(N) expected
@@ -235,7 +235,8 @@ class TreapMultiset:
         if cnt > 0:
             self._add(val, cnt)
 
-    # O(N) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    # O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    # instead of building a new one
     def clear(self):
         self._clearData()
         self._resetCached()
@@ -275,12 +276,14 @@ class TreapMultiset:
         x -= self.off
         return self._le(x)
 
-    # O(logN expected) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    # O(logN expected) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is
+    # not in the set
     def firstIndex(self, x):
         x -= self.off
         return self._lt(x) if self._countOf(x) else -1
 
-    # O(logN expected) -- the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size
+    # O(logN expected) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    # kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); raises IndexError unless 0 <= i < size
     def kth(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"kth: needs 0 <= i < size, got i = {i}, size = {self.n}")
@@ -298,7 +301,8 @@ class TreapMultiset:
         c = self._le(x)
         return self._kth(c) + self.off if c else None
 
-    # O(logN expected) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    # O(logN expected) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1
+    # if x is not in the set
     def lastIndex(self, x):
         x -= self.off
         return self._le(x) - 1 if self._countOf(x) else -1
@@ -319,7 +323,8 @@ class TreapMultiset:
     def min(self):
         return self.mn + self.off if self.n else None
 
-    # O(logN expected) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size
+    # O(logN expected) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
+    # popMin()), pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
     def pop(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")

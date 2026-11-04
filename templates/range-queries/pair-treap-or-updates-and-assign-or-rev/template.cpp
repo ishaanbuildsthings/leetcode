@@ -188,33 +188,40 @@ struct PairSwapTreap {
     // O(logN) expected -- a[i] &= v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAndApply(int l, int r, T v) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAndApply: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
-        applyBits(be, v, T(0)), applyBits(bo, v, T(0));
-        join(ae, ao, be, bo, ce, co);
+        auto ln = lanes(l, r);
+        upd(ln[0][0], ln[0][1], ln[0][2], [&](int x, int off) { applyBits(x, v, T(0)); (void)off; },
+            [&](T w, int off) { (void)off; return T(w & v); });
+        upd(ln[1][0], ln[1][1], ln[1][2], [&](int x, int off) { applyBits(x, v, T(0)); (void)off; },
+            [&](T w, int off) { (void)off; return T(w & v); });
     }
 
     // O(logN) expected -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAssign(int l, int r, T v) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAssign: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
-        applyBits(be, T(0), v), applyBits(bo, T(0), v);
-        join(ae, ao, be, bo, ce, co);
+        auto ln = lanes(l, r);
+        upd(ln[0][0], ln[0][1], ln[0][2], [&](int x, int off) { applyBits(x, T(0), v); (void)off; },
+            [&](T w, int off) { (void)off; return v; });
+        upd(ln[1][0], ln[1][1], ln[1][2], [&](int x, int off) { applyBits(x, T(0), v); (void)off; },
+            [&](T w, int off) { (void)off; return v; });
     }
 
     // O(logN) expected -- a[i] |= v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeOrApply(int l, int r, T v) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeOrApply: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
-        applyBits(be, ~T(0), v), applyBits(bo, ~T(0), v);
-        join(ae, ao, be, bo, ce, co);
+        auto ln = lanes(l, r);
+        upd(ln[0][0], ln[0][1], ln[0][2], [&](int x, int off) { applyBits(x, ~T(0), v); (void)off; },
+            [&](T w, int off) { (void)off; return T(w | v); });
+        upd(ln[1][0], ln[1][1], ln[1][2], [&](int x, int off) { applyBits(x, ~T(0), v); (void)off; },
+            [&](T w, int off) { (void)off; return T(w | v); });
     }
 
     // O(logN) expected -- a[l] | ... | a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeOrQuery(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeOrQuery: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         T res = nd[be].orr | nd[bo].orr;
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         return res;
     }
 
@@ -409,6 +416,82 @@ struct PairSwapTreap {
             t = nd[t].R;
         }
         return out;
+    }
+
+    // ---- queries, searches and range updates walk the pieces of [l, r] instead of cutting it out ----
+
+
+
+    // a node over a[l..r] of t's subtree: t itself if that is all of it, else temporaries made only where two parts
+    // meet (pending tags on the way pushed down)
+    int rq(int t, int l, int r) {
+        if (!t || r < 0 || l >= nd[t].sz) return 0;
+        if (l <= 0 && nd[t].sz - 1 <= r) return t;
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        if (r < ls) return rq(nd[t].L, l, r);
+        if (l > ls) return rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int a = rq(nd[t].L, l, r), b = rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int y = clone(t);
+        nd[y].L = a, nd[y].R = b;
+        pull(y);
+        return y;
+    }
+
+    int clone(int x) {  // a temporary copy of node x (sharing its children), dropped by release
+        Node n;
+        n.val = nd[x].val, n.pri = nd[x].pri, n.L = nd[x].L, n.R = nd[x].R, n.sz = nd[x].sz, n.orr = nd[x].orr,
+        n.rev = nd[x].rev, n.tA = nd[x].tA, n.tO = nd[x].tO;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
+    }
+
+    void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+    }
+
+    // the update on a[l..r] of t's subtree, in place: f(x, off) on a node x covered whole, h(w, off) the new value of a
+    // lone value w (off: the distance from l). Only the nodes on the range's two boundary paths are recomputed, nothing
+    // is cut out
+    template <class F, class H>
+    void upd(int t, int l, int r, const F& f, const H& h) {
+        if (!t || r < 0 || l >= nd[t].sz) return;
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            f(t, -l);
+            return;
+        }
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        upd(nd[t].L, l, r, f, h);
+        upd(nd[t].R, l - ls - 1, r - ls - 1, f, h);
+        if (l <= ls && ls <= r) nd[t].val = h(nd[t].val, ls - l);
+        pull(t);
+    }
+
+    // {lane, first k, last k} holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
+    array<array<int, 3>, 2> lanes(int l, int r) {
+        int roots[2] = {rE, rO};
+        array<int, 3> e = {roots[l % 2], l / 2, (r - (r - l) % 2) / 2};
+        array<int, 3> o = l < r ? array<int,
+            3>{roots[(l + 1) % 2], (l + 1) / 2, (r - (r - l - 1) % 2) / 2} : array<int, 3>{0, 0, -1};
+        return {e, o};
+    }
+
+    // temporary nodes over the two lane slices of a[l..r]; mark = the pool size release() goes back to
+    pair<int, int> laneNodes(int l, int r, size_t& mark) {
+        auto ln = lanes(l, r);
+        mark = nd.size();
+        int be = rq(ln[0][0], ln[0][1], ln[0][2]);
+        int bo = rq(ln[1][0], ln[1][1], ln[1][2]);
+        return {be, bo};
     }
 };
 

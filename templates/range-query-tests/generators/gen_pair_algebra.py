@@ -18,6 +18,7 @@ and twice the step). find works as in the plain treap: an index is 2 * (lane ind
 """
 import itertools
 import os
+import re
 import shutil
 
 import gen_treap_algebra as A
@@ -128,6 +129,121 @@ def upd_calls(s, u, lang):
     return ("v" if py else "T v", call.replace("(b,", "(be,"), call.replace("(b,", "(bo,"))
 
 
+
+# ------------------------------------------------------------------------------------------------ range decomposition
+# A query, search, hash or range update walks each lane's pieces of [l, r] (the lane slices _lanes names) instead of
+# cutting [l, r] out of both lanes and merging it back (see gen_treap_algebra.py's decomposition)
+
+READ_OPS = ["rangeSum", "rangeMin", "rangeMax", "rangeXorQuery", "rangeAndQuery", "rangeOrQuery", "rangeGcd"] + list(SEARCH)
+
+SHR = {"mod": ("x >= 1", "x", "lambda v: v % x", "x", "[x](T v) { return T(v % x); }"),
+       "div": ("x >= 2", "1", "lambda v: v // x", "T(1)", "[x](T v) { return T(v / x); }"),
+       "sqrt": (None, "2", "isqrt", "T(2)", "isqrtT")}
+
+PY_LANES = """
+    def _lanes(self, l, r):  # (lane, first k, last k) holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
+        roots = (self.rE, self.rO)
+        e = (roots[l % 2], l // 2, (r - (r - l) % 2) // 2)
+        o = (roots[(l + 1) % 2], (l + 1) // 2, (r - (r - l - 1) % 2) // 2) if l < r else (0, 0, -1)
+        return e, o
+
+    def _laneNodes(self, l, r):  # (temporary nodes over the two lane slices of a[l..r], the pool size _release goes back to)
+        mark = len(self.val)
+        (te, le, he), (to, lo, ho) = self._lanes(l, r)
+        return self._rq(te, le, he), self._rq(to, lo, ho), mark
+"""
+
+CPP_LANES = """
+    // {lane, first k, last k} holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
+    array<array<int, 3>, 2> lanes(int l, int r) {
+        int roots[2] = {rE, rO};
+        array<int, 3> e = {roots[l % 2], l / 2, (r - (r - l) % 2) / 2};
+        array<int, 3> o = l < r ? array<int, 3>{roots[(l + 1) % 2], (l + 1) / 2, (r - (r - l - 1) % 2) / 2} : array<int, 3>{0, 0, -1};
+        return {e, o};
+    }
+
+    // temporary nodes over the two lane slices of a[l..r]; mark = the pool size release() goes back to
+    pair<int, int> laneNodes(int l, int r, size_t& mark) {
+        auto ln = lanes(l, r);
+        mark = val.size();
+        int be = rq(ln[0][0], ln[0][1], ln[0][2]);
+        int bo = rq(ln[1][0], ln[1][1], ln[1][2]);
+        return {be, bo};
+    }
+"""
+
+
+def lanes_only(helpers):
+    """the shared decomposition helpers without the single-root ones (a pair treap has a root per lane: laneNodes)"""
+    for start in ("\n    def _pieces(", "\n    def _rangeNode(", "\n    // a[l..r] of t's subtree as (node, whole subtree?)",
+                  "\n    // a temporary node holding a[l..r]'s aggregates"):
+        if start in helpers:
+            a = helpers.index(start)
+            b = helpers.index("\n\n", a + 1)
+            helpers = helpers[:a] + helpers[b:]
+    return helpers
+
+
+def _lane_call(call, lane, py):
+    """a per-lane update call on the lane's cut slice (b<lane>) as one on a node x covered whole, and the update on one
+    value w; off: the value's distance (in lane steps) from the slice's start"""
+    m = re.match(r"(.*applyAP)\(b[eo], (.+), (.+)\)$", call)
+    if m:
+        f, A, B = m.groups()
+        if py:
+            return f"{f}(x, {A} + {B} * off, {B})", f"w + {A} + {B} * off"
+        return f"{f}(x, T({A} + {B} * T(off)), {B})", f"T(w + {A} + {B} * T(off))"
+    return call.replace(f"(b{lane},", "(x,").replace(f"(b{lane})", "(x)"), None
+
+
+def py_decompose_pair(s, pub, query_ops):
+    for op in query_ops:
+        q = pub.get(op, "")
+        if "        ae, ao, be, bo, ce, co = self._cut(l, r)\n" in q:
+            q = q.replace("        ae, ao, be, bo, ce, co = self._cut(l, r)\n", "        be, bo, mark = self._laneNodes(l, r)\n")
+            pub[op] = q.replace("self._join(ae, ao, be, bo, ce, co)", "self._release(mark)")
+    for u in s.ups:
+        op = A.UOP[u]
+        head = pub[op][:pub[op].index("\n        ae, ao, be, bo, ce, co = self._cut(l, r)\n")]
+        body = "\n        (te, le, he), (to, lo, ho) = self._lanes(l, r)\n"
+        if u in SHR:
+            guard, lim, fn, _, _ = SHR[u]
+            ind = "        " + ("    " if guard else "")
+            calls = "".join(f"{ind}self._upd(t{k}, l{k}, h{k}, lambda t, off: self._shrink(t, {lim}, {fn}),\n"
+                            f"{ind}          lambda w, off: {A.PY_ONE[u]})\n" for k in "eo")
+            body += (f"        if {guard}:\n" if guard else "") + calls
+        else:
+            _, ce_, co_ = upd_calls(s, u, "py")
+            for k, c in (("e", ce_), ("o", co_)):
+                call, one = _lane_call(c, k, True)
+                body += f"        self._upd(t{k}, l{k}, h{k}, lambda x, off: {call}, lambda w, off: {one or A.PY_ONE[u]})\n"
+        pub[op] = head + body
+
+
+def cpp_decompose_pair(s, pub, query_ops):
+    for op in query_ops:
+        q = pub.get(op, "")
+        if "        auto [ae, ao, be, bo, ce, co] = parts(l, r);\n" in q:
+            q = q.replace("        auto [ae, ao, be, bo, ce, co] = parts(l, r);\n", "        size_t mark;\n        auto [be, bo] = laneNodes(l, r, mark);\n")
+            pub[op] = q.replace("join(ae, ao, be, bo, ce, co);", "release(mark);")
+    for u in s.ups:
+        op = A.UOP[u]
+        head = pub[op][:pub[op].index("\n        auto [ae, ao, be, bo, ce, co] = parts(l, r);\n")]
+        body = "\n        auto ln = lanes(l, r);\n"
+        if u in SHR:
+            guard, _, _, lim, fn = SHR[u]
+            ind = "        " + ("    " if guard else "")
+            calls = "".join(f"{ind}upd(ln[{i}][0], ln[{i}][1], ln[{i}][2], [&](int y, int off) {{ (void)off; shrink(y, {lim}, {fn}); }},\n"
+                            f"{ind}    [&](T w, int off) {{ (void)off; return {A.CPP_ONE[u]}; }});\n" for i in (0, 1))
+            body += (f"        if ({guard}) {{\n" + calls + "        }\n") if guard else calls
+        else:
+            _, ce_, co_ = upd_calls(s, u, "cpp")
+            for i, (k, c) in enumerate((("e", ce_), ("o", co_))):
+                call, one = _lane_call(c, k, False)
+                body += (f"        upd(ln[{i}][0], ln[{i}][1], ln[{i}][2], [&](int x, int off) {{ {call}; (void)off; }},\n"
+                         f"            [&](T w, int off) {{ (void)off; return {one or A.CPP_ONE[u]}; }});\n")
+        pub[op] = head + body + "    }\n"
+
 # ================================================================================================ Python
 
 def py(s):
@@ -150,10 +266,14 @@ def py(s):
     out.append(py_skeleton(F, TG, [("where", "{}")] if s.find else [], cls=CLS, ctor=ctor))
     out.append("    # O(1) -- the current length of the array\n    def size(self):\n        return self.sz[self.rE] + self.sz[self.rO]\n\n")
     pub = py_pub(s)
+    py_decompose_pair(s, pub, READ_OPS)
     out.append("\n".join(pub[op] for op in s.ops if op in pub))
     internals = py_internals(s).replace("_HB", "_HQ")
     internals = internals.replace(A.PY_TAIL, PY_TAIL)
-    out.append(internals + py_extra(s))
+    extra = py_extra(s).replace("        ae, ao, be, bo, ce, co = self._cut(l, r)\n", "        be, bo, mark = self._laneNodes(l, r)\n")
+    extra = extra.replace("        self._join(ae, ao, be, bo, ce, co)\n        return fwd, bwd", "        self._release(mark)\n        return fwd, bwd")
+    so_far = "".join(out) + internals + extra
+    out.append(internals + extra.rstrip("\n") + "\n" + lanes_only(A.py_decomp_helpers(s, A.py_names(so_far))) + PY_LANES)
     text = A.fit_comments(gcd_costs(s, "".join(out))).rstrip("\n") + "\n" + piece_example("py", f"{CLS}([1, 2, 3, 4, 5])", list("12345"))
     return text if TG else no_push(text, "py")
 
@@ -486,9 +606,14 @@ def cpp(s):
 
 ''')
     pub = cpp_pub(s)
+    cpp_decompose_pair(s, pub, READ_OPS)
     out.append("\n".join(pub[op] for op in s.ops if op in pub))
     internals = cpp_internals(s).replace("HB()", "HQ()")
-    internals = internals.replace(A.CPP_TAIL, CPP_TAIL + cpp_extra(s) + "};\n")
+    extra = cpp_extra(s).replace("        auto [ae, ao, be, bo, ce, co] = parts(l, r);\n        U64 B",
+                                 "        size_t mark;\n        auto [be, bo] = laneNodes(l, r, mark);\n        U64 B")
+    extra = extra.replace("        join(ae, ao, be, bo, ce, co);\n        return {fwd, bwd};", "        release(mark);\n        return {fwd, bwd};")
+    names = A.cpp_names("".join(out))
+    internals = internals.replace(A.CPP_TAIL, CPP_TAIL + extra + lanes_only(A.cpp_decomp_helpers(s, names)) + CPP_LANES + "};\n")
     out.append(internals)
     text = A.fit_comments(gcd_costs(s, "".join(out))) + piece_example("cpp", f"{CLS}<int> t({{1, 2, 3, 4, 5}})", list("12345"))
     return text if TG else no_push(text, "cpp")

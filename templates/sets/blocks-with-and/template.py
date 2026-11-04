@@ -18,7 +18,7 @@
 #   andOfLtX: sqrt(N)
 #   andOfLteX: sqrt(N)
 #   andOfSmallestK: sqrt(N)
-#   clear: N
+#   clear: 1 amortized
 #   count: log(N)
 #   countDistinct: 1
 #   countDistinctInValRange: sqrt(N)
@@ -301,19 +301,25 @@ class BlockMultiset:
     def andOfInValRange(self, lo, hi):
         return self._andIn(lo, hi) if lo <= hi else -1
 
-    # O(sqrtN) -- bitwise AND of the kFrom-th..kTo-th largest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    # O(sqrtN) -- bitwise AND of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    # just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); raises
+    # IndexError unless 1 <= kFrom <= kTo <= size
     def andOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
         return self._andIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
-    # O(sqrtN) -- bitwise AND of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    # O(sqrtN) -- bitwise AND of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    # just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); raises IndexError
+    # unless 1 <= kFrom <= kTo <= size
     def andOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
         return self._andIn(self._kth(kFrom), self._kth(kTo))
 
-    # O(sqrtN) -- bitwise AND of the k largest values (-1 (every bit set) for k = 0); raises IndexError unless 0 <= k <= size
+    # O(sqrtN) -- bitwise AND of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
+    # every bit set), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5);
+    # raises IndexError unless 0 <= k <= size
     def andOfLargestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"andOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
@@ -327,13 +333,16 @@ class BlockMultiset:
     def andOfLteX(self, x):
         return self._andLe(x)
 
-    # O(sqrtN) -- bitwise AND of the k smallest values (-1 (every bit set) for k = 0); raises IndexError unless 0 <= k <= size
+    # O(sqrtN) -- bitwise AND of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
+    # every bit set), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2);
+    # raises IndexError unless 0 <= k <= size
     def andOfSmallestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"andOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
         return self._andLe(self._kth(k)) if k else -1
 
-    # O(N) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    # O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    # instead of building a new one
     def clear(self):
         self._clearData()
         self._resetCached()
@@ -372,11 +381,13 @@ class BlockMultiset:
     def countLteX(self, x):
         return self._le(x)
 
-    # O(sqrtN) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    # O(sqrtN) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in
+    # the set
     def firstIndex(self, x):
         return self._lt(x) if self._countOf(x) else -1
 
-    # O(sqrtN) -- the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size
+    # O(sqrtN) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    # kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); raises IndexError unless 0 <= i < size
     def kth(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"kth: needs 0 <= i < size, got i = {i}, size = {self.n}")
@@ -392,7 +403,8 @@ class BlockMultiset:
         c = self._le(x)
         return self._kth(c) if c else None
 
-    # O(sqrtN) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    # O(sqrtN) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is
+    # not in the set
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
@@ -416,7 +428,8 @@ class BlockMultiset:
     def min(self):
         return self._kth(1) if self.n else None
 
-    # O(sqrtN) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size
+    # O(sqrtN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
+    # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
     def pop(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")

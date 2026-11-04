@@ -18,7 +18,7 @@
 #   andOfLtX: log(U)
 #   andOfLteX: log(U)
 #   andOfSmallestK: log(U)
-#   clear: N*log(U)
+#   clear: 1 amortized
 #   count: log(U)
 #   countDistinct: 1
 #   countGtX: log(U)
@@ -275,19 +275,25 @@ class ValueTreeMultiset:
     def andOfInValRange(self, lo, hi):
         return self._andIn(lo, hi) if lo <= hi else -1
 
-    # O(logU) -- bitwise AND of the kFrom-th..kTo-th largest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    # O(logU) -- bitwise AND of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    # just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); raises
+    # IndexError unless 1 <= kFrom <= kTo <= size
     def andOfKthLargestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(f"andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
         return self._andIn(self._kth(self.n - kTo + 1), self._kth(self.n - kFrom + 1))
 
-    # O(logU) -- bitwise AND of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); raises IndexError unless 1 <= kFrom <= kTo <= size
+    # O(logU) -- bitwise AND of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    # just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); raises IndexError
+    # unless 1 <= kFrom <= kTo <= size
     def andOfKthSmallestRange(self, kFrom, kTo):
         if not 1 <= kFrom <= kTo <= self.n:
             raise IndexError(f"andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size, got kFrom = {kFrom}, kTo = {kTo}, size = {self.n}")
         return self._andIn(self._kth(kFrom), self._kth(kTo))
 
-    # O(logU) -- bitwise AND of the k largest values (-1 (every bit set) for k = 0); raises IndexError unless 0 <= k <= size
+    # O(logU) -- bitwise AND of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
+    # every bit set), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5);
+    # raises IndexError unless 0 <= k <= size
     def andOfLargestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"andOfLargestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
@@ -301,13 +307,16 @@ class ValueTreeMultiset:
     def andOfLteX(self, x):
         return self._andLe(x)
 
-    # O(logU) -- bitwise AND of the k smallest values (-1 (every bit set) for k = 0); raises IndexError unless 0 <= k <= size
+    # O(logU) -- bitwise AND of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
+    # every bit set), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2);
+    # raises IndexError unless 0 <= k <= size
     def andOfSmallestK(self, k):
         if not 0 <= k <= self.n:
             raise IndexError(f"andOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
         return self._andLe(self._kth(k)) if k else -1
 
-    # O(N logU) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    # O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    # instead of building a new one
     def clear(self):
         self._clearData()
         self._resetCached()
@@ -340,11 +349,13 @@ class ValueTreeMultiset:
     def countLteX(self, x):
         return self._le(x)
 
-    # O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    # O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in
+    # the set
     def firstIndex(self, x):
         return self._lt(x) if self._countOf(x) else -1
 
-    # O(logU) -- the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size
+    # O(logU) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    # kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); raises IndexError unless 0 <= i < size
     def kth(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"kth: needs 0 <= i < size, got i = {i}, size = {self.n}")
@@ -360,7 +371,8 @@ class ValueTreeMultiset:
         c = self._le(x)
         return self._kth(c) if c else None
 
-    # O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    # O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is
+    # not in the set
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
@@ -368,7 +380,8 @@ class ValueTreeMultiset:
     def max(self):
         return self.mx if self.n else None
 
-    # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct values
+    # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct
+    # values
     def maxGap(self):
         return self._maxGap() if self.d >= 2 else None
 
@@ -384,13 +397,15 @@ class ValueTreeMultiset:
     def min(self):
         return self.mn if self.n else None
 
-    # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer than 2 values
+    # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer
+    # than 2 values
     def minAdjacentDiff(self):
         if self.n < 2:
             return None
         return 0 if self.dups else self._minGap()
 
-    # O(logU) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size
+    # O(logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
+    # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
     def pop(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")

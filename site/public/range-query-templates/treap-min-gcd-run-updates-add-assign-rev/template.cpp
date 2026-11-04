@@ -141,48 +141,64 @@ struct ImplicitTreap {
     // 0 <= l <= r < size(), else throws out_of_range
     int leftmostLtX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostLtX: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
-        int t = b, i = 0, res = -1;
-        if (t && nd[t].mn < x) {  // some value in a[l..r] passes
-            while (true) {
-                push(t);
-                if (nd[t].L && nd[nd[t].L].mn < x) t = nd[t].L;
-                else if (nd[t].val < x) { res = l + i + nd[nd[t].L].sz; break; }
-                else i += nd[nd[t].L].sz + 1, t = nd[t].R;
+        vector<pair<int, bool>> ps;
+        pieces(root, l, r, ps);
+        int pos = l;  // (the index of the current piece's first value)
+        for (auto [t, whole] : ps) {
+            if (!whole) {
+                if (nd[t].val < x) return pos;
+                pos++;
+                continue;
             }
+            if (nd[t].mn < x) {
+                int i = 0;
+                while (true) {
+                    push(t);
+                    if (nd[t].L && nd[nd[t].L].mn < x) t = nd[t].L;
+                    else if (nd[t].val < x) return pos + i + nd[nd[t].L].sz;
+                    else i += nd[nd[t].L].sz + 1, t = nd[t].R;
+                }
+            }
+            pos += nd[t].sz;
         }
-        root = merge(merge(a, b), c);
-        return res;
+        return -1;
     }
 
     // O(logN * logU) expected -- the first i in [l, r] with a[i] <= x, or -1 (pruned by the subtree min); needs
     // 0 <= l <= r < size(), else throws out_of_range
     int leftmostLteX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostLteX: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
-        int t = b, i = 0, res = -1;
-        if (t && nd[t].mn <= x) {  // some value in a[l..r] passes
-            while (true) {
-                push(t);
-                if (nd[t].L && nd[nd[t].L].mn <= x) t = nd[t].L;
-                else if (nd[t].val <= x) { res = l + i + nd[nd[t].L].sz; break; }
-                else i += nd[nd[t].L].sz + 1, t = nd[t].R;
+        vector<pair<int, bool>> ps;
+        pieces(root, l, r, ps);
+        int pos = l;  // (the index of the current piece's first value)
+        for (auto [t, whole] : ps) {
+            if (!whole) {
+                if (nd[t].val <= x) return pos;
+                pos++;
+                continue;
             }
+            if (nd[t].mn <= x) {
+                int i = 0;
+                while (true) {
+                    push(t);
+                    if (nd[t].L && nd[nd[t].L].mn <= x) t = nd[t].L;
+                    else if (nd[t].val <= x) return pos + i + nd[nd[t].L].sz;
+                    else i += nd[nd[t].L].sz + 1, t = nd[t].R;
+                }
+            }
+            pos += nd[t].sz;
         }
-        root = merge(merge(a, b), c);
-        return res;
+        return -1;
     }
 
     // O(logN * logU) expected -- the longest run of equal adjacent values in a[l..r]; needs 0 <= l <= r < size(),
     // else throws out_of_range
     int longestEqualRun(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("longestEqualRun: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         int res = nd[b].br;
-        root = merge(merge(a, b), c);
+        release(mark);
         return res;
     }
 
@@ -248,38 +264,34 @@ struct ImplicitTreap {
     // O(logN * logU) expected -- a[i] += v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAdd(int l, int r, T v) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAdd: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
-        applyAdd(b, v);
-        root = merge(merge(a, b), c);
+        upd(root, l, r, [&](int x, int off) { applyAdd(x, v); (void)off; },
+            [&](T w, int off) { (void)off; return T(w + v); });
     }
 
     // O(logN * logU) expected -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAssign(int l, int r, T v) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAssign: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
-        applyAssign(b, v);
-        root = merge(merge(a, b), c);
+        upd(root, l, r, [&](int x, int off) { applyAssign(x, v); (void)off; },
+            [&](T w, int off) { (void)off; return v; });
     }
 
     // O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeGcd(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeGcd: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         T res = gcd(nd[b].fv, nd[b].g);
-        root = merge(merge(a, b), c);
+        release(mark);
         return res;
     }
 
     // O(logN * logU) expected -- min of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMin(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMin: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         T res = nd[b].mn;
-        root = merge(merge(a, b), c);
+        release(mark);
         return res;
     }
 
@@ -318,38 +330,56 @@ struct ImplicitTreap {
     // 0 <= l <= r < size(), else throws out_of_range
     int rightmostLtX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostLtX: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
-        int t = b, i = 0, res = -1;
-        if (t && nd[t].mn < x) {  // some value in a[l..r] passes
-            while (true) {
-                push(t);
-                if (nd[t].R && nd[nd[t].R].mn < x) i += nd[nd[t].L].sz + 1, t = nd[t].R;
-                else if (nd[t].val < x) { res = l + i + nd[nd[t].L].sz; break; }
-                else t = nd[t].L;
+        vector<pair<int, bool>> ps;
+        pieces(root, l, r, ps);
+        int end = r;  // (the index of the current piece's last value)
+        for (int k = (int)ps.size() - 1; k >= 0; k--) {
+            auto [t, whole] = ps[k];
+            if (!whole) {
+                if (nd[t].val < x) return end;
+                end--;
+                continue;
             }
+            if (nd[t].mn < x) {
+                int start = end - nd[t].sz + 1, i = 0;
+                while (true) {
+                    push(t);
+                    if (nd[t].R && nd[nd[t].R].mn < x) i += nd[nd[t].L].sz + 1, t = nd[t].R;
+                    else if (nd[t].val < x) return start + i + nd[nd[t].L].sz;
+                    else t = nd[t].L;
+                }
+            }
+            end -= nd[t].sz;
         }
-        root = merge(merge(a, b), c);
-        return res;
+        return -1;
     }
 
     // O(logN * logU) expected -- the last i in [l, r] with a[i] <= x, or -1 (pruned by the subtree min); needs
     // 0 <= l <= r < size(), else throws out_of_range
     int rightmostLteX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostLteX: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
-        int t = b, i = 0, res = -1;
-        if (t && nd[t].mn <= x) {  // some value in a[l..r] passes
-            while (true) {
-                push(t);
-                if (nd[t].R && nd[nd[t].R].mn <= x) i += nd[nd[t].L].sz + 1, t = nd[t].R;
-                else if (nd[t].val <= x) { res = l + i + nd[nd[t].L].sz; break; }
-                else t = nd[t].L;
+        vector<pair<int, bool>> ps;
+        pieces(root, l, r, ps);
+        int end = r;  // (the index of the current piece's last value)
+        for (int k = (int)ps.size() - 1; k >= 0; k--) {
+            auto [t, whole] = ps[k];
+            if (!whole) {
+                if (nd[t].val <= x) return end;
+                end--;
+                continue;
             }
+            if (nd[t].mn <= x) {
+                int start = end - nd[t].sz + 1, i = 0;
+                while (true) {
+                    push(t);
+                    if (nd[t].R && nd[nd[t].R].mn <= x) i += nd[nd[t].L].sz + 1, t = nd[t].R;
+                    else if (nd[t].val <= x) return start + i + nd[nd[t].L].sz;
+                    else t = nd[t].L;
+                }
+            }
+            end -= nd[t].sz;
         }
-        root = merge(merge(a, b), c);
-        return res;
+        return -1;
     }
 
     // O(logN * logU) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
@@ -501,6 +531,90 @@ struct ImplicitTreap {
             if (i < ls) t = nd[t].L;
             else i -= ls + 1, t = nd[t].R;
         }
+    }
+
+    // ---- queries, searches and range updates walk the pieces of [l, r] instead of cutting it out ----
+
+    // a[l..r] of t's subtree as (node, whole subtree?) in order; pending tags on the way pushed down
+    void pieces(int t, int l, int r, vector<pair<int, bool>>& out) {
+        if (!t || r < 0 || l >= nd[t].sz) return;
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            out.push_back({t, true});
+            return;
+        }
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        pieces(nd[t].L, l, r, out);
+        if (l <= ls && ls <= r) out.push_back({t, false});
+        pieces(nd[t].R, l - ls - 1, r - ls - 1, out);
+    }
+
+    // a temporary node holding a[l..r]'s aggregates; mark = the pool size release() goes back to
+    int rangeNode(int l, int r, size_t& mark) {
+        mark = nd.size();
+        return rq(root, l, r);
+    }
+
+    // a node over a[l..r] of t's subtree: t itself if that is all of it, else temporaries made only where two parts
+    // meet (pending tags on the way pushed down)
+    int rq(int t, int l, int r) {
+        if (!t || r < 0 || l >= nd[t].sz) return 0;
+        if (l <= 0 && nd[t].sz - 1 <= r) return t;
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        if (r < ls) return rq(nd[t].L, l, r);
+        if (l > ls) return rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int a = rq(nd[t].L, l, r), b = rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int y = clone(t);
+        nd[y].L = a, nd[y].R = b;
+        pull(y);
+        return y;
+    }
+
+    int clone(int x) {  // a temporary copy of node x (sharing its children), dropped by release
+        Node n;
+        n.val = nd[x].val, n.pri = nd[x].pri, n.L = nd[x].L, n.R = nd[x].R, n.sz = nd[x].sz, n.mn = nd[x].mn,
+        n.g = nd[x].g, n.fv = nd[x].fv, n.lv = nd[x].lv, n.pr = nd[x].pr, n.sr = nd[x].sr, n.br = nd[x].br,
+        n.rev = nd[x].rev, n.asg = nd[x].asg, n.hasAsg = nd[x].hasAsg, n.add = nd[x].add;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
+    }
+
+    void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+    }
+
+    // the update on a[l..r] of t's subtree, in place: f(x, off) on a node x covered whole, h(w, off) the new value of a
+    // lone value w (off: the distance from l). Only the nodes on the range's two boundary paths are recomputed, nothing
+    // is cut out
+    template <class F, class H>
+    void upd(int t, int l, int r, const F& f, const H& h) {
+        if (!t || r < 0 || l >= nd[t].sz) return;
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            f(t, -l);
+            return;
+        }
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        upd(nd[t].L, l, r, f, h);
+        upd(nd[t].R, l - ls - 1, r - ls - 1, f, h);
+        if (l <= ls && ls <= r) nd[t].val = h(nd[t].val, ls - l);
+        pull(t);
     }
 };
 

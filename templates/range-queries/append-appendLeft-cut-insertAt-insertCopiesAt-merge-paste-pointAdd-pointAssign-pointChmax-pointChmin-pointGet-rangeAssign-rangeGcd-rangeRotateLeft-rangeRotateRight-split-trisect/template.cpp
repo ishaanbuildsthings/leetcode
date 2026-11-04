@@ -181,19 +181,17 @@ struct ImplicitTreap {
     // O(logN * logU) expected -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAssign(int l, int r, T v) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAssign: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
-        applyAssign(b, v);
-        root = merge(merge(a, b), c);
+        upd(root, l, r, [&](int x, int off) { applyAssign(x, v); (void)off; },
+            [&](T w, int off) { (void)off; return v; });
     }
 
     // O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeGcd(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeGcd: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         T res = nd[b].g;
-        root = merge(merge(a, b), c);
+        release(mark);
         return res;
     }
 
@@ -325,6 +323,81 @@ struct ImplicitTreap {
             if (i < ls) t = nd[t].L;
             else i -= ls + 1, t = nd[t].R;
         }
+    }
+
+    // ---- queries, searches and range updates walk the pieces of [l, r] instead of cutting it out ----
+
+    // a[l..r] of t's subtree as (node, whole subtree?) in order; pending tags on the way pushed down
+    void pieces(int t, int l, int r, vector<pair<int, bool>>& out) {
+        if (!t || r < 0 || l >= nd[t].sz) return;
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            out.push_back({t, true});
+            return;
+        }
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        pieces(nd[t].L, l, r, out);
+        if (l <= ls && ls <= r) out.push_back({t, false});
+        pieces(nd[t].R, l - ls - 1, r - ls - 1, out);
+    }
+
+    // a temporary node holding a[l..r]'s aggregates; mark = the pool size release() goes back to
+    int rangeNode(int l, int r, size_t& mark) {
+        mark = nd.size();
+        return rq(root, l, r);
+    }
+
+    // a node over a[l..r] of t's subtree: t itself if that is all of it, else temporaries made only where two parts
+    // meet (pending tags on the way pushed down)
+    int rq(int t, int l, int r) {
+        if (!t || r < 0 || l >= nd[t].sz) return 0;
+        if (l <= 0 && nd[t].sz - 1 <= r) return t;
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        if (r < ls) return rq(nd[t].L, l, r);
+        if (l > ls) return rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int a = rq(nd[t].L, l, r), b = rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int y = clone(t);
+        nd[y].L = a, nd[y].R = b;
+        pull(y);
+        return y;
+    }
+
+    int clone(int x) {  // a temporary copy of node x (sharing its children), dropped by release
+        Node n;
+        n.val = nd[x].val, n.pri = nd[x].pri, n.L = nd[x].L, n.R = nd[x].R, n.sz = nd[x].sz, n.g = nd[x].g,
+        n.asg = nd[x].asg, n.hasAsg = nd[x].hasAsg;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
+    }
+
+    void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+    }
+
+    // the update on a[l..r] of t's subtree, in place: f(x, off) on a node x covered whole, h(w, off) the new value of a
+    // lone value w (off: the distance from l). Only the nodes on the range's two boundary paths are recomputed, nothing
+    // is cut out
+    template <class F, class H>
+    void upd(int t, int l, int r, const F& f, const H& h) {
+        if (!t || r < 0 || l >= nd[t].sz) return;
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            f(t, -l);
+            return;
+        }
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        upd(nd[t].L, l, r, f, h);
+        upd(nd[t].R, l - ls - 1, r - ls - 1, f, h);
+        if (l <= ls && ls <= r) nd[t].val = h(nd[t].val, ls - l);
+        pull(t);
     }
 };
 

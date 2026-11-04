@@ -168,9 +168,20 @@ def py(b):
     out.append("    # O(1) -- the current length of the array\n    def size(self):\n        return self.sz[self.root]\n\n")
     pub = py_public(b.base)
     pub.update(py_updates(b))
+    import gen_treap_algebra as A
+    A.py_decompose(b.base, pub)
+    A.py_decompose_updates(pub, {op: BEATS_PY_ONE[op] for op in BEATS_PY_ONE if op in b.ops and op in pub})
     out.append("\n".join(pub[op] for op in b.ops if op in pub))
     out.append(py_internals(b))
-    return "".join(out)
+    text = "".join(out)
+    return text.rstrip("\n") + "\n" + A.py_decomp_helpers(None, A.py_names(text))
+
+
+# each range update on one value w (the treap walks [l, r]'s pieces instead of cutting it out)
+BEATS_PY_ONE = {"rangeAssign": "v", "rangeAdd": "w + v", "rangeChmin": "min(w, v)", "rangeChmax": "max(w, v)",
+                "rangeAndApply": "w & v", "rangeOrApply": "w | v"}
+BEATS_CPP_ONE = {"rangeAssign": "v", "rangeAdd": "T(w + v)", "rangeChmin": "min(w, v)", "rangeChmax": "max(w, v)",
+                 "rangeAndApply": "T(w & v)", "rangeOrApply": "T(w | v)"}
 
 
 def py_updates(b):
@@ -388,9 +399,13 @@ def cpp(b):
 ''')
     pub = cpp_public(b.base)
     pub.update(cpp_updates(b))
+    import gen_treap_algebra as A
+    A.cpp_decompose(b.base, pub)
+    A.cpp_decompose_updates(pub, {op: BEATS_CPP_ONE[op] for op in BEATS_CPP_ONE if op in b.ops and op in pub})
     out.append("\n".join(pub[op] for op in b.ops if op in pub))
     out.append(cpp_internals(b))
-    return "".join(out)
+    text = "".join(out)
+    return text.rstrip("\n").rstrip("};").rstrip() + "\n" + A.cpp_decomp_helpers(None, A.cpp_names(text)) + "};\n"
 
 
 def cpp_updates(b):

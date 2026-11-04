@@ -3,7 +3,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// one raw array element: long long, char, pair, or a struct
+// e.g. long long, char, pair, struct, ...
 using RawVal = long long;
 
 struct Node {
@@ -17,7 +17,6 @@ Node leaf(const RawVal& v, long long i) {
     // return res;
 }
 
-// combine two nodes
 Node combine(const Node& left, const Node& right) {
     // Node res;
     // res.tot = left.tot + right.tot;

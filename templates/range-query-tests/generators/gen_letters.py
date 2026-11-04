@@ -82,6 +82,12 @@ def to_letters_py(text):
     text = re.sub(r'float\("inf"\)', "chr(0x10FFFF)", text)
     text = re.sub(r"(?<![\w)\]])-INF\b", '""', text)
     text = re.sub(r"\(([\w.\[\]]+) \+ _HO\)", r"(ord(\1) + _HO)", text)
+    # a value range [valLo, valHi] (mass change): kept as character codes inside, characters at the edges
+    for a, b in (("self.valLo, self.U = valLo, valHi - valLo + 1",
+                  "self.valLo, self.U = ord(valLo), ord(valHi) - ord(valLo) + 1"),
+                 ("o = v - self.valLo", "o = ord(v) - self.valLo"), ("a = x - self.valLo", "a = ord(x) - self.valLo"),
+                 ("return v + self.valLo", "return chr(v + self.valLo)"), ("out.append(v + lo)", "out.append(chr(v + lo))")):
+        text = text.replace(a, b)
     return text
 
 
@@ -92,9 +98,7 @@ def letters_pass(folder, ops, stem, cpp_stem=None):
     """None if stem.py (and, given, cpp_stem.cpp with T = char) answers every query right on characters (just ops),
     else what went wrong"""
     trials, ctx = T.make_trials(folder, ops, TRIALS, letters=True)
-    extra = T.domain(folder, ops)[2]
-    if "isRBS" in ops:
-        extra = T.rbs_extra(folder, True)
+    extra = T.letters_extra(folder, ops, T.domain(folder, ops)[2])
     try:
         got = T.run_python(folder, ops, trials, extra, stem)
         if cpp_stem and CXX:

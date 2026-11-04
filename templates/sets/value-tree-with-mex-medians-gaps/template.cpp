@@ -8,7 +8,7 @@
 // @complexities:
 //   add: log(U)
 //   addCount: log(U)
-//   clear: N*log(U)
+//   clear: 1 amortized
 //   count: log(U)
 //   countDistinct: 1
 //   countDistinctInValRange: log(U)
@@ -253,7 +253,8 @@ struct ValueTreeMultiset {
         if (cnt > 0) addRaw(val, cnt);
     }
 
-    // O(N logU) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    // instead of building a new one
     void clear() {
         clearData();
         resetCached();
@@ -300,12 +301,14 @@ struct ValueTreeMultiset {
         return le(x);
     }
 
-    // O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    // O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in
+    // the set
     long long firstIndex(T x) {
         return countOf(x) ? lt(x) : -1;
     }
 
-    // O(logU) -- the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size
+    // O(logU) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    // kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); throws out_of_range unless 0 <= i < size
     T kth(long long i) {
         if (i < 0 || i >= n) throw out_of_range("kth: needs 0 <= i < size");
         return kthAt(i + 1);
@@ -325,7 +328,8 @@ struct ValueTreeMultiset {
         return kthAt(c);
     }
 
-    // O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    // O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is
+    // not in the set
     long long lastIndex(T x) {
         return countOf(x) ? le(x) - 1 : -1;
     }
@@ -336,7 +340,8 @@ struct ValueTreeMultiset {
         return kthAt(n);
     }
 
-    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct values
+    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct
+    // values
     optional<long long> maxGap() {
         if (d < 2) return nullopt;
         return *gaps.rbegin();
@@ -365,14 +370,16 @@ struct ValueTreeMultiset {
         return kthAt(1);
     }
 
-    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if fewer than 2 values
+    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if
+    // fewer than 2 values
     optional<long long> minAdjacentDiff() {
         if (n < 2) return nullopt;
         if (dups) return 0LL;
         return *gaps.begin();
     }
 
-    // O(logU) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
+    // O(logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
+    // pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
     T pop(long long i) {
         if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
         T v = kthAt(i + 1);

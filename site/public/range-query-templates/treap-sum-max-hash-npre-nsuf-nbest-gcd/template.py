@@ -146,9 +146,9 @@ class ImplicitTreap:
     def isPalindrome(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"isPalindrome: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.fh[b] == self.bh[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- the first i in [l, r] with a[i] > x, or -1 (pruned by the subtree max); needs
@@ -156,42 +156,56 @@ class ImplicitTreap:
     def leftmostGtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostGtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
-        t, i, res = b, 0, -1
-        if t and F[t] > x:  # some value in a[l..r] passes
-            while True:
-                if L[t] and F[L[t]] > x:
-                    t = L[t]
-                elif val[t] > x:
-                    res = l + i + sz[L[t]]
-                    break
-                else:
-                    i += sz[L[t]] + 1
-                    t = R[t]
-        self._join(a, b, c)
-        return res
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        pos = l  # (the index of the current piece's first value)
+        for t, whole in ps:
+            if not whole:
+                if val[t] > x:
+                    return pos
+                pos += 1
+                continue
+            if F[t] > x:
+                i = 0
+                while True:
+                    if L[t] and F[L[t]] > x:
+                        t = L[t]
+                    elif val[t] > x:
+                        return pos + i + sz[L[t]]
+                    else:
+                        i += sz[L[t]] + 1
+                        t = R[t]
+            pos += sz[t]
+        return -1
 
     # O(logN * logU) expected -- the first i in [l, r] with a[i] >= x, or -1 (pruned by the subtree max); needs
     # 0 <= l <= r < size(), else IndexError
     def leftmostGteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostGteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
-        t, i, res = b, 0, -1
-        if t and F[t] >= x:  # some value in a[l..r] passes
-            while True:
-                if L[t] and F[L[t]] >= x:
-                    t = L[t]
-                elif val[t] >= x:
-                    res = l + i + sz[L[t]]
-                    break
-                else:
-                    i += sz[L[t]] + 1
-                    t = R[t]
-        self._join(a, b, c)
-        return res
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        pos = l  # (the index of the current piece's first value)
+        for t, whole in ps:
+            if not whole:
+                if val[t] >= x:
+                    return pos
+                pos += 1
+                continue
+            if F[t] >= x:
+                i = 0
+                while True:
+                    if L[t] and F[L[t]] >= x:
+                        t = L[t]
+                    elif val[t] >= x:
+                        return pos + i + sz[L[t]]
+                    else:
+                        i += sz[L[t]] + 1
+                        t = R[t]
+            pos += sz[t]
+        return -1
 
     # O(logN * logU) expected -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (pruned by min prefix sums);
     # needs 0 <= l <= r < size(), else IndexError
@@ -199,24 +213,33 @@ class ImplicitTreap:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostPrefixSumLtX: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.npre
-        t, i, acc, res = b, 0, 0, -1
-        if t and P[t] < x:
-            while True:
-                lt = L[t]
-                if lt and acc + P[lt] < x:
-                    t = lt
-                    continue
-                acc += sm[lt]
-                if acc + val[t] < x:
-                    res = l + i + sz[lt]
-                    break
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        pos, acc = l, 0  # (the index of the current piece's first value; the sum before it)
+        for t, whole in ps:
+            if not whole:
                 acc += val[t]
-                i += sz[lt] + 1
-                t = R[t]
-        self._join(a, b, c)
-        return res
+                if acc < x:
+                    return pos
+                pos += 1
+                continue
+            if acc + P[t] < x:
+                i = 0
+                while True:
+                    lt = L[t]
+                    if lt and acc + P[lt] < x:
+                        t = lt
+                        continue
+                    acc += sm[lt]
+                    if acc + val[t] < x:
+                        return pos + i + sz[lt]
+                    acc += val[t]
+                    i += sz[lt] + 1
+                    t = R[t]
+            acc += sm[t]
+            pos += sz[t]
+        return -1
 
     # O(logN * logU) expected -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (pruned by min prefix sums);
     # needs 0 <= l <= r < size(), else IndexError
@@ -224,24 +247,33 @@ class ImplicitTreap:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostPrefixSumLteX: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.npre
-        t, i, acc, res = b, 0, 0, -1
-        if t and P[t] <= x:
-            while True:
-                lt = L[t]
-                if lt and acc + P[lt] <= x:
-                    t = lt
-                    continue
-                acc += sm[lt]
-                if acc + val[t] <= x:
-                    res = l + i + sz[lt]
-                    break
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        pos, acc = l, 0  # (the index of the current piece's first value; the sum before it)
+        for t, whole in ps:
+            if not whole:
                 acc += val[t]
-                i += sz[lt] + 1
-                t = R[t]
-        self._join(a, b, c)
-        return res
+                if acc <= x:
+                    return pos
+                pos += 1
+                continue
+            if acc + P[t] <= x:
+                i = 0
+                while True:
+                    lt = L[t]
+                    if lt and acc + P[lt] <= x:
+                        t = lt
+                        continue
+                    acc += sm[lt]
+                    if acc + val[t] <= x:
+                        return pos + i + sz[lt]
+                    acc += val[t]
+                    i += sz[lt] + 1
+                    t = R[t]
+            acc += sm[t]
+            pos += sz[t]
+        return -1
 
     # O(logN * logU) expected -- append all of other at the end; other is left empty
     def merge(self, other):
@@ -253,9 +285,9 @@ class ImplicitTreap:
     def minPrefixSum(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"minPrefixSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.npre[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- min sum of a non-empty contiguous subarray of a[l..r]; needs 0 <= l <= r < size(),
@@ -263,9 +295,9 @@ class ImplicitTreap:
     def minSubarraySum(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"minSubarraySum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.nbest[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- min of a[i] + ... + a[r] over i in [l, r]; needs 0 <= l <= r < size(), else
@@ -273,9 +305,9 @@ class ImplicitTreap:
     def minSuffixSum(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"minSuffixSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.nsuf[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- insert all of other (any ImplicitTreap, e.g. a cut piece) so it starts at a[i] (needs
@@ -337,9 +369,9 @@ class ImplicitTreap:
     def rangeGcd(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeGcd: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.g[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal;
@@ -347,9 +379,9 @@ class ImplicitTreap:
     def rangeHash(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeHash: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.fh[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs
@@ -357,18 +389,18 @@ class ImplicitTreap:
     def rangeHashReversed(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeHashReversed: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.bh[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- max of a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeMax(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeMax: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.mx[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it
@@ -394,9 +426,9 @@ class ImplicitTreap:
     def rangeSum(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.sm[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
@@ -412,42 +444,56 @@ class ImplicitTreap:
     def rightmostGtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostGtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
-        t, i, res = b, 0, -1
-        if t and F[t] > x:  # some value in a[l..r] passes
-            while True:
-                if R[t] and F[R[t]] > x:
-                    i += sz[L[t]] + 1
-                    t = R[t]
-                elif val[t] > x:
-                    res = l + i + sz[L[t]]
-                    break
-                else:
-                    t = L[t]
-        self._join(a, b, c)
-        return res
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        end = r  # (the index of the current piece's last value)
+        for t, whole in reversed(ps):
+            if not whole:
+                if val[t] > x:
+                    return end
+                end -= 1
+                continue
+            if F[t] > x:
+                start, i = end - sz[t] + 1, 0
+                while True:
+                    if R[t] and F[R[t]] > x:
+                        i += sz[L[t]] + 1
+                        t = R[t]
+                    elif val[t] > x:
+                        return start + i + sz[L[t]]
+                    else:
+                        t = L[t]
+            end -= sz[t]
+        return -1
 
     # O(logN * logU) expected -- the last i in [l, r] with a[i] >= x, or -1 (pruned by the subtree max); needs
     # 0 <= l <= r < size(), else IndexError
     def rightmostGteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostGteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mx
-        t, i, res = b, 0, -1
-        if t and F[t] >= x:  # some value in a[l..r] passes
-            while True:
-                if R[t] and F[R[t]] >= x:
-                    i += sz[L[t]] + 1
-                    t = R[t]
-                elif val[t] >= x:
-                    res = l + i + sz[L[t]]
-                    break
-                else:
-                    t = L[t]
-        self._join(a, b, c)
-        return res
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        end = r  # (the index of the current piece's last value)
+        for t, whole in reversed(ps):
+            if not whole:
+                if val[t] >= x:
+                    return end
+                end -= 1
+                continue
+            if F[t] >= x:
+                start, i = end - sz[t] + 1, 0
+                while True:
+                    if R[t] and F[R[t]] >= x:
+                        i += sz[L[t]] + 1
+                        t = R[t]
+                    elif val[t] >= x:
+                        return start + i + sz[L[t]]
+                    else:
+                        t = L[t]
+            end -= sz[t]
+        return -1
 
     # O(logN * logU) expected -- last i in [l, r] with a[i] + ... + a[r] < x, or -1 (pruned by min suffix sums); needs
     # 0 <= l <= r < size(), else IndexError
@@ -455,24 +501,33 @@ class ImplicitTreap:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostSuffixSumLtX: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.nsuf
-        t, i, acc, res = b, 0, 0, -1
-        if t and P[t] < x:
-            while True:
-                rt = R[t]
-                if rt and acc + P[rt] < x:
-                    i += sz[L[t]] + 1
-                    t = rt
-                    continue
-                acc += sm[rt]
-                if acc + val[t] < x:
-                    res = l + i + sz[L[t]]
-                    break
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        end, acc = r, 0  # (the index of the current piece's last value; the sum after it)
+        for t, whole in reversed(ps):
+            if not whole:
                 acc += val[t]
-                t = L[t]
-        self._join(a, b, c)
-        return res
+                if acc < x:
+                    return end
+                end -= 1
+                continue
+            if acc + P[t] < x:
+                start, i = end - sz[t] + 1, 0
+                while True:
+                    rt = R[t]
+                    if rt and acc + P[rt] < x:
+                        i += sz[L[t]] + 1
+                        t = rt
+                        continue
+                    acc += sm[rt]
+                    if acc + val[t] < x:
+                        return start + i + sz[L[t]]
+                    acc += val[t]
+                    t = L[t]
+            acc += sm[t]
+            end -= sz[t]
+        return -1
 
     # O(logN * logU) expected -- last i in [l, r] with a[i] + ... + a[r] <= x, or -1 (pruned by min suffix sums);
     # needs 0 <= l <= r < size(), else IndexError
@@ -480,24 +535,33 @@ class ImplicitTreap:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostSuffixSumLteX: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.nsuf
-        t, i, acc, res = b, 0, 0, -1
-        if t and P[t] <= x:
-            while True:
-                rt = R[t]
-                if rt and acc + P[rt] <= x:
-                    i += sz[L[t]] + 1
-                    t = rt
-                    continue
-                acc += sm[rt]
-                if acc + val[t] <= x:
-                    res = l + i + sz[L[t]]
-                    break
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        end, acc = r, 0  # (the index of the current piece's last value; the sum after it)
+        for t, whole in reversed(ps):
+            if not whole:
                 acc += val[t]
-                t = L[t]
-        self._join(a, b, c)
-        return res
+                if acc <= x:
+                    return end
+                end -= 1
+                continue
+            if acc + P[t] <= x:
+                start, i = end - sz[t] + 1, 0
+                while True:
+                    rt = R[t]
+                    if rt and acc + P[rt] <= x:
+                        i += sz[L[t]] + 1
+                        t = rt
+                        continue
+                    acc += sm[rt]
+                    if acc + val[t] <= x:
+                        return start + i + sz[L[t]]
+                    acc += val[t]
+                    t = L[t]
+            acc += sm[t]
+            end -= sz[t]
+        return -1
 
     # O(logN * logU) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
     # 0 <= k <= size(), else IndexError
@@ -632,6 +696,70 @@ class ImplicitTreap:
             else:
                 i -= ls + 1
                 t = self.R[t]
+
+    def _pieces(self, t, l, r, out):  # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
+        if not t or r < 0 or l >= self.sz[t]:
+            return
+        if l <= 0 and self.sz[t] - 1 <= r:
+            out.append((t, True))
+            return
+        ls = self.sz[self.L[t]]
+        self._pieces(self.L[t], l, r, out)
+        if l <= ls <= r:
+            out.append((t, False))
+        self._pieces(self.R[t], l - ls - 1, r - ls - 1, out)
+
+    def _rangeNode(self, l, r):  # (a temporary node holding a[l..r]'s aggregates, the pool size _release goes back to)
+        mark = len(self.val)
+        return self._rq(self.root, l, r), mark
+
+    # a node over a[l..r] of t's subtree: t itself when it is all of it, else temporaries made only where two parts meet
+    # (pending tags on the way pushed down)
+    def _rq(self, t, l, r):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return 0
+        if l <= 0 and sz[t] - 1 <= r:
+            return t
+        ls = sz[self.L[t]]
+        if r < ls:
+            return self._rq(self.L[t], l, r)
+        if l > ls:
+            return self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        a, b = self._rq(self.L[t], l, r), self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        y = self._clone(t)
+        self.L[y], self.R[y] = a, b
+        self._pull(y)
+        return y
+
+    def _clone(self, x):  # a temporary copy of node x (sharing its children), dropped by _release
+        y = len(self.val)
+        for arr in (self.val, self.pri, self.L, self.R, self.sz, self.sm, self.mx, self.fh, self.bh, self.pw,
+                    self.npre, self.nsuf, self.nbest, self.g):
+            arr.append(arr[x])
+        return y
+
+    def _release(self, mark):  # drop every node made after mark (temporaries: no tree points to them)
+        for arr in (self.val, self.pri, self.L, self.R, self.sz, self.sm, self.mx, self.fh, self.bh, self.pw,
+                    self.npre, self.nsuf, self.nbest, self.g):
+            del arr[mark:]
+
+    # the update on a[l..r] of t's subtree, in place: f(x, off) on a node x covered whole, h(w, off) the new value of a
+    # lone value w (off: the distance from l). Only the nodes on the range's two boundary paths are recomputed, nothing
+    # is cut out
+    def _upd(self, t, l, r, f, h):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return
+        if l <= 0 and sz[t] - 1 <= r:
+            f(t, -l)
+            return
+        ls = sz[self.L[t]]
+        self._upd(self.L[t], l, r, f, h)
+        self._upd(self.R[t], l - ls - 1, r - ls - 1, f, h)
+        if l <= ls <= r:
+            self.val[t] = h(self.val[t], ls - l)
+        self._pull(t)
 
 
 # Example (pieces move between treaps; merge appends and leaves its argument empty):

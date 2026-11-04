@@ -129,9 +129,9 @@ class PairSwapTreap:
     def leftmostGtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostGtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         i, j = self._laneLeftmostGtX(be, x), self._laneLeftmostGtX(bo, x)
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = l + 1 + 2 * j if j >= 0 else -1
         return i if j < 0 else j if i < 0 else min(i, j)
@@ -141,9 +141,9 @@ class PairSwapTreap:
     def leftmostGteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostGteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         i, j = self._laneLeftmostGteX(be, x), self._laneLeftmostGteX(bo, x)
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = l + 1 + 2 * j if j >= 0 else -1
         return i if j < 0 else j if i < 0 else min(i, j)
@@ -213,45 +213,41 @@ class PairSwapTreap:
     def rangeAdd(self, l, r, v):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeAdd: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
-        self._applyClamp(be, INF, NEG, v)
-        self._applyClamp(bo, INF, NEG, v)
-        self._join(ae, ao, be, bo, ce, co)
+        (te, le, he), (to, lo, ho) = self._lanes(l, r)
+        self._upd(te, le, he, lambda x, off: self._applyClamp(x, INF, NEG, v), lambda w, off: w + v)
+        self._upd(to, lo, ho, lambda x, off: self._applyClamp(x, INF, NEG, v), lambda w, off: w + v)
 
     # O(logN) expected -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else IndexError
     def rangeAssign(self, l, r, v):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeAssign: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
-        self._applyClamp(be, v, v, 0)
-        self._applyClamp(bo, v, v, 0)
-        self._join(ae, ao, be, bo, ce, co)
+        (te, le, he), (to, lo, ho) = self._lanes(l, r)
+        self._upd(te, le, he, lambda x, off: self._applyClamp(x, v, v, 0), lambda w, off: v)
+        self._upd(to, lo, ho, lambda x, off: self._applyClamp(x, v, v, 0), lambda w, off: v)
 
     # O(logN) expected -- a[i] = max(a[i], v) for i in [l, r]; needs 0 <= l <= r < size(), else IndexError
     def rangeChmax(self, l, r, v):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeChmax: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
-        self._applyClamp(be, INF, v, 0)
-        self._applyClamp(bo, INF, v, 0)
-        self._join(ae, ao, be, bo, ce, co)
+        (te, le, he), (to, lo, ho) = self._lanes(l, r)
+        self._upd(te, le, he, lambda x, off: self._applyClamp(x, INF, v, 0), lambda w, off: max(w, v))
+        self._upd(to, lo, ho, lambda x, off: self._applyClamp(x, INF, v, 0), lambda w, off: max(w, v))
 
     # O(logN) expected -- a[i] = min(a[i], v) for i in [l, r]; needs 0 <= l <= r < size(), else IndexError
     def rangeChmin(self, l, r, v):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeChmin: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
-        self._applyClamp(be, v, NEG, 0)
-        self._applyClamp(bo, v, NEG, 0)
-        self._join(ae, ao, be, bo, ce, co)
+        (te, le, he), (to, lo, ho) = self._lanes(l, r)
+        self._upd(te, le, he, lambda x, off: self._applyClamp(x, v, NEG, 0), lambda w, off: min(w, v))
+        self._upd(to, lo, ho, lambda x, off: self._applyClamp(x, v, NEG, 0), lambda w, off: min(w, v))
 
     # O(logN) expected -- max of a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeMax(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeMax: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         res = self.mx[be] if not bo else max(self.mx[be], self.mx[bo])
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         return res
 
     # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is taken
@@ -288,9 +284,9 @@ class PairSwapTreap:
     def rightmostGtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostGtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         i, j = self._laneRightmostGtX(be, x), self._laneRightmostGtX(bo, x)
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = l + 1 + 2 * j if j >= 0 else -1
         return max(i, j)
@@ -300,9 +296,9 @@ class PairSwapTreap:
     def rightmostGteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostGteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         i, j = self._laneRightmostGteX(be, x), self._laneRightmostGteX(bo, x)
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = l + 1 + 2 * j if j >= 0 else -1
         return max(i, j)
@@ -526,6 +522,67 @@ class PairSwapTreap:
                 return i + sz[L[t]]
             else:
                 t = L[t]
+
+
+
+    # a node over a[l..r] of t's subtree: t itself when it is all of it, else temporaries made only where two parts meet
+    # (pending tags on the way pushed down)
+    def _rq(self, t, l, r):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return 0
+        if l <= 0 and sz[t] - 1 <= r:
+            return t
+        self._push(t)
+        ls = sz[self.L[t]]
+        if r < ls:
+            return self._rq(self.L[t], l, r)
+        if l > ls:
+            return self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        a, b = self._rq(self.L[t], l, r), self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        y = self._clone(t)
+        self.L[y], self.R[y] = a, b
+        self._pull(y)
+        return y
+
+    def _clone(self, x):  # a temporary copy of node x (sharing its children), dropped by _release
+        y = len(self.val)
+        for arr in (self.val, self.pri, self.L, self.R, self.sz, self.mx, self.hi, self.lo, self.c):
+            arr.append(arr[x])
+        return y
+
+    def _release(self, mark):  # drop every node made after mark (temporaries: no tree points to them)
+        for arr in (self.val, self.pri, self.L, self.R, self.sz, self.mx, self.hi, self.lo, self.c):
+            del arr[mark:]
+
+    # the update on a[l..r] of t's subtree, in place: f(x, off) on a node x covered whole, h(w, off) the new value of a
+    # lone value w (off: the distance from l). Only the nodes on the range's two boundary paths are recomputed, nothing
+    # is cut out
+    def _upd(self, t, l, r, f, h):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return
+        if l <= 0 and sz[t] - 1 <= r:
+            f(t, -l)
+            return
+        self._push(t)
+        ls = sz[self.L[t]]
+        self._upd(self.L[t], l, r, f, h)
+        self._upd(self.R[t], l - ls - 1, r - ls - 1, f, h)
+        if l <= ls <= r:
+            self.val[t] = h(self.val[t], ls - l)
+        self._pull(t)
+
+    def _lanes(self, l, r):  # (lane, first k, last k) holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
+        roots = (self.rE, self.rO)
+        e = (roots[l % 2], l // 2, (r - (r - l) % 2) // 2)
+        o = (roots[(l + 1) % 2], (l + 1) // 2, (r - (r - l - 1) % 2) // 2) if l < r else (0, 0, -1)
+        return e, o
+
+    def _laneNodes(self, l, r):  # (temporary nodes over the two lane slices of a[l..r], the pool size _release goes back to)
+        mark = len(self.val)
+        (te, le, he), (to, lo, ho) = self._lanes(l, r)
+        return self._rq(te, le, he), self._rq(to, lo, ho), mark
 
 
 # Example (pieces move between treaps; merge appends and leaves its argument empty):

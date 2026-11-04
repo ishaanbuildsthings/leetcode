@@ -8,7 +8,7 @@
 # @complexities:
 #   add: log(N)
 #   addCount: log(N)
-#   clear: N
+#   clear: 1 amortized
 #   count: log(N)
 #   countDistinct: 1
 #   countGtX: log(N)
@@ -283,7 +283,8 @@ class AVLMultiset:
         if cnt > 0:
             self._add(val, cnt)
 
-    # O(N) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    # O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    # instead of building a new one
     def clear(self):
         self._clearData()
         self._resetCached()
@@ -316,11 +317,13 @@ class AVLMultiset:
     def countLteX(self, x):
         return self._le(x)
 
-    # O(logN) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    # O(logN) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in
+    # the set
     def firstIndex(self, x):
         return self._lt(x) if self._countOf(x) else -1
 
-    # O(logN) -- the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size
+    # O(logN) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    # kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); raises IndexError unless 0 <= i < size
     def kth(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"kth: needs 0 <= i < size, got i = {i}, size = {self.n}")
@@ -336,7 +339,8 @@ class AVLMultiset:
         c = self._le(x)
         return self._kth(c) if c else None
 
-    # O(logN) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    # O(logN) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is
+    # not in the set
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
@@ -363,7 +367,8 @@ class AVLMultiset:
         f = self.maxF
         return next(iter(self.bk[f])), f
 
-    # O(logN) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size
+    # O(logN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
+    # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
     def pop(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")

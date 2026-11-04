@@ -228,9 +228,10 @@ struct PairSwapTreap {
     // O(logN) expected -- a[l] & ... & a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeAndQuery(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAndQuery: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         T res = nd[be].an & nd[bo].an;
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         return res;
     }
 
@@ -271,9 +272,10 @@ struct PairSwapTreap {
     // O(logN) expected -- a[l] + ... + a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     S rangeSum(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSum: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         S res = nd[be].sm + nd[bo].sm;
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         return res;
     }
 
@@ -433,12 +435,88 @@ struct PairSwapTreap {
     // the range reads x0 y0 x1 y1 ..., so forward = H(x) + B H(y) (odd length) or B H(x) + H(y) (even), and backward
     // = Hrev(x) + B Hrev(y)
     pair<U64, U64> hashes(int l, int r) {
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         U64 B = HB();
         U64 fwd = (r - l) % 2 == 0 ? hadd(nd[be].fh, hmul(B, nd[bo].fh)) : hadd(hmul(B, nd[be].fh), nd[bo].fh);
         U64 bwd = hadd(nd[be].bh, hmul(B, nd[bo].bh));
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         return {fwd, bwd};
+    }
+
+    // ---- queries, searches and range updates walk the pieces of [l, r] instead of cutting it out ----
+
+
+
+    // a node over a[l..r] of t's subtree: t itself if that is all of it, else temporaries made only where two parts
+    // meet (pending tags on the way pushed down)
+    int rq(int t, int l, int r) {
+        if (!t || r < 0 || l >= nd[t].sz) return 0;
+        if (l <= 0 && nd[t].sz - 1 <= r) return t;
+        int ls = nd[nd[t].L].sz;
+        if (r < ls) return rq(nd[t].L, l, r);
+        if (l > ls) return rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int a = rq(nd[t].L, l, r), b = rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int y = clone(t);
+        nd[y].L = a, nd[y].R = b;
+        pull(y);
+        return y;
+    }
+
+    int clone(int x) {  // a temporary copy of node x (sharing its children), dropped by release
+        Node n;
+        n.val = nd[x].val, n.pri = nd[x].pri, n.L = nd[x].L, n.R = nd[x].R, n.sz = nd[x].sz, n.sm = nd[x].sm,
+        n.fh = nd[x].fh, n.bh = nd[x].bh, n.pw = nd[x].pw, n.an = nd[x].an;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
+    }
+
+    void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+    }
+
+    // the update on a[l..r] of t's subtree, in place: f(x, off) on a node x covered whole, h(w, off) the new value of a
+    // lone value w (off: the distance from l). Only the nodes on the range's two boundary paths are recomputed, nothing
+    // is cut out
+    template <class F, class H>
+    void upd(int t, int l, int r, const F& f, const H& h) {
+        if (!t || r < 0 || l >= nd[t].sz) return;
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            f(t, -l);
+            return;
+        }
+        int ls = nd[nd[t].L].sz;
+        upd(nd[t].L, l, r, f, h);
+        upd(nd[t].R, l - ls - 1, r - ls - 1, f, h);
+        if (l <= ls && ls <= r) nd[t].val = h(nd[t].val, ls - l);
+        pull(t);
+    }
+
+    // {lane, first k, last k} holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
+    array<array<int, 3>, 2> lanes(int l, int r) {
+        int roots[2] = {rE, rO};
+        array<int, 3> e = {roots[l % 2], l / 2, (r - (r - l) % 2) / 2};
+        array<int, 3> o = l < r ? array<int,
+            3>{roots[(l + 1) % 2], (l + 1) / 2, (r - (r - l - 1) % 2) / 2} : array<int, 3>{0, 0, -1};
+        return {e, o};
+    }
+
+    // temporary nodes over the two lane slices of a[l..r]; mark = the pool size release() goes back to
+    pair<int, int> laneNodes(int l, int r, size_t& mark) {
+        auto ln = lanes(l, r);
+        mark = nd.size();
+        int be = rq(ln[0][0], ln[0][1], ln[0][2]);
+        int bo = rq(ln[1][0], ln[1][1], ln[1][2]);
+        return {be, bo};
     }
 };
 

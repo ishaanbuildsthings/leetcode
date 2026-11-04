@@ -421,21 +421,27 @@ struct TrieMultiset {
         return lo <= hi ? andIn(lo, hi) : ~T(0);
     }
 
-    // O(logU) -- bitwise AND of the kFrom-th..kTo-th largest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    // O(logU) -- bitwise AND of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
     T andOfKthLargestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("andOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         T a = kthAt(n - kTo + 1);
         return andIn(a, kthAt(n - kFrom + 1));
     }
 
-    // O(logU) -- bitwise AND of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    // O(logU) -- bitwise AND of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
     T andOfKthSmallestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("andOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         T a = kthAt(kFrom);
         return andIn(a, kthAt(kTo));
     }
 
-    // O(logU) -- bitwise AND of the k largest values (-1 (every bit set) for k = 0); throws out_of_range unless 0 <= k <= size
+    // O(logU) -- bitwise AND of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
+    // every bit set), k = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5);
+    // throws out_of_range unless 0 <= k <= size
     T andOfLargestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("andOfLargestK: needs 0 <= k <= size");
         return k ? andGe(kthAt(n - k + 1)) : ~T(0);
@@ -452,13 +458,16 @@ struct TrieMultiset {
         return andLe(x);
     }
 
-    // O(logU) -- bitwise AND of the k smallest values (-1 (every bit set) for k = 0); throws out_of_range unless 0 <= k <= size
+    // O(logU) -- bitwise AND of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns -1,
+    // every bit set), k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2);
+    // throws out_of_range unless 0 <= k <= size
     T andOfSmallestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("andOfSmallestK: needs 0 <= k <= size");
         return k ? andLe(kthAt(k)) : ~T(0);
     }
 
-    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    // instead of building a new one
     void clear() {
         clearData();
         resetCached();
@@ -505,38 +514,41 @@ struct TrieMultiset {
         return le(x);
     }
 
-    // O(logU) -- how many values v have v ^ x > k
+    // O(logU) -- how many values v have v ^ x > k (k is a VALUE to compare against, not a rank or count; copies count)
     long long countXorGtK(T x, long long k) {
         return n - cntLt(k + 1, (long long)x);
     }
 
-    // O(logU) -- how many values v have v ^ x >= k
+    // O(logU) -- how many values v have v ^ x >= k (k is a VALUE to compare against, not a rank or count; copies count)
     long long countXorGteK(T x, long long k) {
         return n - cntLt(k, (long long)x);
     }
 
-    // O(logU) -- how many values v have v ^ x < k
+    // O(logU) -- how many values v have v ^ x < k (k is a VALUE to compare against, not a rank or count; copies count)
     long long countXorLtK(T x, long long k) {
         return cntLt(k, (long long)x);
     }
 
-    // O(logU) -- how many values v have v ^ x <= k
+    // O(logU) -- how many values v have v ^ x <= k (k is a VALUE to compare against, not a rank or count; copies count)
     long long countXorLteK(T x, long long k) {
         return cntLt(k + 1, (long long)x);
     }
 
-    // O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    // O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in
+    // the set
     long long firstIndex(T x) {
         return countOf(x) ? lt(x) : -1;
     }
 
-    // O(logU) -- the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size
+    // O(logU) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    // kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); throws out_of_range unless 0 <= i < size
     T kth(long long i) {
         if (i < 0 || i >= n) throw out_of_range("kth: needs 0 <= i < size");
         return kthAt(i + 1);
     }
 
-    // O(logU) -- the i-th smallest v ^ x over the values v (0-indexed, copies count); throws out_of_range unless 0 <= i < size
+    // O(logU) -- the i-th smallest of v ^ x over the values v, 0-indexed: kthXor(x, 0) is the smallest v ^ x,
+    // kthXor(x, 1) the 2nd smallest (copies count); throws out_of_range unless 0 <= i < size
     T kthXor(T x, long long i) {
         if (i < 0 || i >= n) throw out_of_range("kthXor: needs 0 <= i < size");
         return T(kthX(i + 1, (long long)x));
@@ -556,21 +568,22 @@ struct TrieMultiset {
         return kthAt(c);
     }
 
-    // O(logU) -- largest v ^ x that is < k; nullopt if there is none
+    // O(logU) -- largest v ^ x that is < k (k is a VALUE to compare against, not a rank); nullopt if there is none
     optional<T> largestXorLtK(T x, long long k) {
         long long key = (long long)x, c0 = cntLt(k, key);
         if (!c0) return nullopt;
         return T(kthX(c0, key));
     }
 
-    // O(logU) -- largest v ^ x that is <= k; nullopt if there is none
+    // O(logU) -- largest v ^ x that is <= k (k is a VALUE to compare against, not a rank); nullopt if there is none
     optional<T> largestXorLteK(T x, long long k) {
         long long key = (long long)x, c0 = cntLt(k + 1, key);
         if (!c0) return nullopt;
         return T(kthX(c0, key));
     }
 
-    // O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    // O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is
+    // not in the set
     long long lastIndex(T x) {
         return countOf(x) ? le(x) - 1 : -1;
     }
@@ -581,7 +594,8 @@ struct TrieMultiset {
         return kthAt(n);
     }
 
-    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct values
+    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct
+    // values
     optional<long long> maxGap() {
         if (d < 2) return nullopt;
         return *gaps.rbegin();
@@ -646,7 +660,8 @@ struct TrieMultiset {
         return kthAt(1);
     }
 
-    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if fewer than 2 values
+    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if
+    // fewer than 2 values
     optional<long long> minAdjacentDiff() {
         if (n < 2) return nullopt;
         if (dups) return 0LL;
@@ -684,7 +699,8 @@ struct TrieMultiset {
         return bestIn(x, 0, m, false);
     }
 
-    // O(logU) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
+    // O(logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
+    // pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
     T pop(long long i) {
         if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
         T v = kthAt(i + 1);
@@ -764,14 +780,14 @@ struct TrieMultiset {
         return kthAt(c + 1);
     }
 
-    // O(logU) -- smallest v ^ x that is > k; nullopt if there is none
+    // O(logU) -- smallest v ^ x that is > k (k is a VALUE to compare against, not a rank); nullopt if there is none
     optional<T> smallestXorGtK(T x, long long k) {
         long long key = (long long)x, c0 = cntLt(k + 1, key);
         if (c0 == n) return nullopt;
         return T(kthX(c0 + 1, key));
     }
 
-    // O(logU) -- smallest v ^ x that is >= k; nullopt if there is none
+    // O(logU) -- smallest v ^ x that is >= k (k is a VALUE to compare against, not a rank); nullopt if there is none
     optional<T> smallestXorGteK(T x, long long k) {
         long long key = (long long)x, c0 = cntLt(k, key);
         if (c0 == n) return nullopt;
@@ -808,19 +824,25 @@ struct TrieMultiset {
         return lo <= hi ? T(xle(hi) ^ xlt(lo)) : T(0);
     }
 
-    // O(logU) -- xor of the kFrom-th..kTo-th largest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    // O(logU) -- xor of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
+    // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
+    // unless 1 <= kFrom <= kTo <= size
     T xorOfKthLargestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(n - kFrom + 1) ^ xorFirst(n - kTo);
     }
 
-    // O(logU) -- xor of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    // O(logU) -- xor of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
+    // smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range unless
+    // 1 <= kFrom <= kTo <= size
     T xorOfKthSmallestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("xorOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return xorFirst(kTo) ^ xorFirst(kFrom - 1);
     }
 
-    // O(logU) -- xor of the k largest values (copies count); throws out_of_range unless 0 <= k <= size
+    // O(logU) -- xor of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just
+    // the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5); throws out_of_range unless 0
+    // <= k <= size
     T xorOfLargestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("xorOfLargestK: needs 0 <= k <= size");
         return xtotal ^ xorFirst(n - k);
@@ -836,7 +858,9 @@ struct TrieMultiset {
         return xle(x);
     }
 
-    // O(logU) -- xor of the k smallest values (copies count); throws out_of_range unless 0 <= k <= size
+    // O(logU) -- xor of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1
+    // just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2); throws out_of_range
+    // unless 0 <= k <= size
     T xorOfSmallestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("xorOfSmallestK: needs 0 <= k <= size");
         return xorFirst(k);

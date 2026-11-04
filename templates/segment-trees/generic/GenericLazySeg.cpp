@@ -3,16 +3,18 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// one raw array element: long long, char, pair, or a struct
+// e.g. long long, char, pair, struct, ...
 using RawVal = long long;
 
 struct Node {
     // long long tot;
     // long long mn;
-    // int len; // apply only sees the Node, so keep the length if a tag needs it
+    // int len;
 };
 
 // a pending update to every element of a segment
+// We never need to worry about initializing empty tags or anything, these tags come in via rangeUpdate(l, r, tag) calls
+// or when pushed down from parents
 struct Tag {
     // long long add;
 };
@@ -23,7 +25,6 @@ Node leaf(const RawVal& v, int i) {
     // return res;
 }
 
-// combine two nodes
 Node combine(const Node& left, const Node& right) {
     // Node res;
     // res.tot = left.tot + right.tot, res.mn = min(left.mn, right.mn);
@@ -32,14 +33,18 @@ Node combine(const Node& left, const Node& right) {
 }
 
 // return a new node: this node after tag is applied to it
-// we must handle the case where the tag is a no-op (e.g. negate twice), and we can return the original node
+// this function is never called with a tag that never existed, but tags can have things like pending false values or
+// pending no-ops (for instance two lazy bools canceling) and we still need to check for this and no-op (could just
+// return original node)
 Node apply(Node node, const Tag& tag) {
+    // This is NOT mutating since node is taken by value in the arg, we can also just make a new node if needed
     // node.tot += tag.add * node.len, node.mn += tag.add;
     // return node;
 }
 
 // a tag that is the old tag, then the new tag
 Tag compose(Tag old, const Tag& newer) {
+    // This is NOT mutating since old is taken by value in the arg, we can also just make a new tag if needed
     // old.add += newer.add;
     // return old;
 }

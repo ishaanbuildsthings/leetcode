@@ -8,7 +8,7 @@
 // @complexities:
 //   add: log(U)
 //   addCount: log(U)
-//   clear: N*log(U)
+//   clear: 1 amortized
 //   count: log(U)
 //   countDistinct: 1
 //   countGtX: log(U)
@@ -247,7 +247,8 @@ struct ValueTreeMultiset {
         if (cnt > 0) addRaw(val, cnt);
     }
 
-    // O(N logU) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    // instead of building a new one
     void clear() {
         clearData();
         resetCached();
@@ -288,12 +289,14 @@ struct ValueTreeMultiset {
         return le(x);
     }
 
-    // O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    // O(logU) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in
+    // the set
     long long firstIndex(T x) {
         return countOf(x) ? lt(x) : -1;
     }
 
-    // O(logU) -- the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size
+    // O(logU) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    // kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); throws out_of_range unless 0 <= i < size
     T kth(long long i) {
         if (i < 0 || i >= n) throw out_of_range("kth: needs 0 <= i < size");
         return kthAt(i + 1);
@@ -313,7 +316,8 @@ struct ValueTreeMultiset {
         return kthAt(c);
     }
 
-    // O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    // O(logU) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is
+    // not in the set
     long long lastIndex(T x) {
         return countOf(x) ? le(x) - 1 : -1;
     }
@@ -363,21 +367,27 @@ struct ValueTreeMultiset {
         return lo <= hi ? orIn(lo, hi) : T(0);
     }
 
-    // O(logU) -- bitwise OR of the kFrom-th..kTo-th largest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    // O(logU) -- bitwise OR of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
     T orOfKthLargestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("orOfKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         T a = kthAt(n - kTo + 1);
         return orIn(a, kthAt(n - kFrom + 1));
     }
 
-    // O(logU) -- bitwise OR of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    // O(logU) -- bitwise OR of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
     T orOfKthSmallestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("orOfKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         T a = kthAt(kFrom);
         return orIn(a, kthAt(kTo));
     }
 
-    // O(logU) -- bitwise OR of the k largest values (0 for k = 0); throws out_of_range unless 0 <= k <= size
+    // O(logU) -- bitwise OR of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k =
+    // 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5); throws out_of_range
+    // unless 0 <= k <= size
     T orOfLargestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("orOfLargestK: needs 0 <= k <= size");
         return k ? orGe(kthAt(n - k + 1)) : T(0);
@@ -394,13 +404,16 @@ struct ValueTreeMultiset {
         return orLe(x);
     }
 
-    // O(logU) -- bitwise OR of the k smallest values (0 for k = 0); throws out_of_range unless 0 <= k <= size
+    // O(logU) -- bitwise OR of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k
+    // = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2); throws
+    // out_of_range unless 0 <= k <= size
     T orOfSmallestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("orOfSmallestK: needs 0 <= k <= size");
         return k ? orLe(kthAt(k)) : T(0);
     }
 
-    // O(logU) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
+    // O(logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
+    // pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
     T pop(long long i) {
         if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
         T v = kthAt(i + 1);
@@ -514,19 +527,25 @@ struct ValueTreeMultiset {
         return lo <= hi ? sle(hi) - slt(lo) : S(0);
     }
 
-    // O(logU) -- sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    // O(logU) -- sum of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
+    // largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws out_of_range
+    // unless 1 <= kFrom <= kTo <= size
     S sumKthLargestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(n - kFrom + 1) - sumFirst(n - kTo);
     }
 
-    // O(logU) -- sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    // O(logU) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the
+    // smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws out_of_range unless
+    // 1 <= kFrom <= kTo <= size
     S sumKthSmallestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(kTo) - sumFirst(kFrom - 1);
     }
 
-    // O(logU) -- sum of the k largest values; throws out_of_range unless 0 <= k <= size
+    // O(logU) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just
+    // the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5); throws out_of_range unless 0
+    // <= k <= size
     S sumLargestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("sumLargestK: needs 0 <= k <= size");
         return total - sumFirst(n - k);
@@ -542,7 +561,9 @@ struct ValueTreeMultiset {
         return sle(x);
     }
 
-    // O(logU) -- sum of the k smallest values; throws out_of_range unless 0 <= k <= size
+    // O(logU) -- sum of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1
+    // just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2); throws out_of_range
+    // unless 0 <= k <= size
     S sumSmallestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("sumSmallestK: needs 0 <= k <= size");
         return sumFirst(k);

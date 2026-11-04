@@ -8,7 +8,7 @@
 // @complexities:
 //   add: log(N) expected
 //   addCount: log(N) expected
-//   clear: N
+//   clear: 1 amortized
 //   count: log(N) expected
 //   countDistinct: 1
 //   countDistinctInValRange: log(N) expected
@@ -277,7 +277,8 @@ struct TreapMultiset {
         if (cnt > 0) addRaw(val, cnt);
     }
 
-    // O(N) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    // instead of building a new one
     void clear() {
         clearData();
         resetCached();
@@ -324,12 +325,14 @@ struct TreapMultiset {
         return le(x);
     }
 
-    // O(logN expected) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    // O(logN expected) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is
+    // not in the set
     long long firstIndex(T x) {
         return countOf(x) ? lt(x) : -1;
     }
 
-    // O(logN expected) -- the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size
+    // O(logN expected) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    // kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); throws out_of_range unless 0 <= i < size
     T kth(long long i) {
         if (i < 0 || i >= n) throw out_of_range("kth: needs 0 <= i < size");
         return kthAt(i + 1);
@@ -349,7 +352,8 @@ struct TreapMultiset {
         return kthAt(c);
     }
 
-    // O(logN expected) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    // O(logN expected) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1);
+    // -1 if x is not in the set
     long long lastIndex(T x) {
         return countOf(x) ? le(x) - 1 : -1;
     }
@@ -383,7 +387,8 @@ struct TreapMultiset {
         return kthAt(1);
     }
 
-    // O(logN expected) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
+    // O(logN expected) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
+    // popMin()), pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
     T pop(long long i) {
         if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
         T v = kthAt(i + 1);
@@ -497,19 +502,25 @@ struct TreapMultiset {
         return lo <= hi ? sle(hi) - slt(lo) : S(0);
     }
 
-    // O(logN expected) -- sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    // O(logN expected) -- sum of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    // just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
     S sumKthLargestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(n - kFrom + 1) - sumFirst(n - kTo);
     }
 
-    // O(logN expected) -- sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); throws out_of_range unless 1 <= kFrom <= kTo <= size
+    // O(logN expected) -- sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is
+    // just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); throws
+    // out_of_range unless 1 <= kFrom <= kTo <= size
     S sumKthSmallestRange(long long kFrom, long long kTo) {
         if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= size");
         return sumFirst(kTo) - sumFirst(kFrom - 1);
     }
 
-    // O(logN expected) -- sum of the k largest values; throws out_of_range unless 0 <= k <= size
+    // O(logN expected) -- sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k
+    // = 1 just the largest, k = size every value (copies count: in {2, 5, 5}, k = 2 takes 5 and 5); throws out_of_range
+    // unless 0 <= k <= size
     S sumLargestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("sumLargestK: needs 0 <= k <= size");
         return total - sumFirst(n - k);
@@ -525,7 +536,9 @@ struct TreapMultiset {
         return sle(x);
     }
 
-    // O(logN expected) -- sum of the k smallest values; throws out_of_range unless 0 <= k <= size
+    // O(logN expected) -- sum of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0),
+    // k = 1 just the smallest, k = size every value (copies count: in {2, 2, 5}, k = 2 takes 2 and 2); throws
+    // out_of_range unless 0 <= k <= size
     S sumSmallestK(long long k) {
         if (k < 0 || k > n) throw out_of_range("sumSmallestK: needs 0 <= k <= size");
         return sumFirst(k);

@@ -7,7 +7,7 @@
 # @tracks: minmax
 # @complexities:
 #   add: log64(U)
-#   clear: N*log64(U)
+#   clear: 1 amortized
 #   count: 1
 #   countDistinct: 1
 #   largestLtX: log64(U)

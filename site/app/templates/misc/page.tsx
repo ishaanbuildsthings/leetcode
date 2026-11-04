@@ -6,7 +6,7 @@ import { GENERIC_SEG_TREES } from "@/lib/generic-seg-trees";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
-  title: "Misc Templates — LeetGoat",
+  title: "Misc. Templates — LeetGoat",
 };
 
 export default async function MiscTemplatesPage() {
@@ -30,7 +30,7 @@ export default async function MiscTemplatesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <MiscTemplates sections={[{ title: "Generic seg trees", items: GENERIC_SEG_TREES }]} publicBase="/range-query-templates" />
+        <MiscTemplates title="Misc. templates" sections={[{ title: "Generic seg trees", items: GENERIC_SEG_TREES }]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>
   );

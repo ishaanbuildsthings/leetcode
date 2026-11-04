@@ -8,7 +8,7 @@
 // @complexities:
 //   add: sqrt(N)
 //   addCount: sqrt(N)
-//   clear: N
+//   clear: 1 amortized
 //   count: log(N)
 //   countDistinct: 1
 //   countDistinctInValRange: sqrt(N)
@@ -272,7 +272,8 @@ struct BlockFenwickMultiset {
         if (cnt > 0) addRaw(val, cnt);
     }
 
-    // O(N) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    // instead of building a new one
     void clear() {
         clearData();
         resetCached();
@@ -326,13 +327,15 @@ struct BlockFenwickMultiset {
         return le(x);
     }
 
-    // O(logN) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    // O(logN) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in
+    // the set
     long long firstIndex(T x) {
         x -= off;
         return countOf(x) ? lt(x) : -1;
     }
 
-    // O(logN) -- the value at sorted position i (0-indexed: kth(0) is the min); throws out_of_range unless 0 <= i < size
+    // O(logN) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    // kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); throws out_of_range unless 0 <= i < size
     T kth(long long i) {
         if (i < 0 || i >= n) throw out_of_range("kth: needs 0 <= i < size");
         return T(kthAt(i + 1) + off);
@@ -354,7 +357,8 @@ struct BlockFenwickMultiset {
         return T(kthAt(c) + off);
     }
 
-    // O(logN) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    // O(logN) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is
+    // not in the set
     long long lastIndex(T x) {
         x -= off;
         return countOf(x) ? le(x) - 1 : -1;
@@ -389,7 +393,8 @@ struct BlockFenwickMultiset {
         return T(mn + off);
     }
 
-    // O(sqrtN) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); throws out_of_range unless 0 <= i < size
+    // O(sqrtN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
+    // popMin()), pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
     T pop(long long i) {
         if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
         T v = kthAt(i + 1);
@@ -438,7 +443,8 @@ struct BlockFenwickMultiset {
         return k;
     }
 
-    // O(sqrtN amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    // O(sqrtN amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed
+    // (0 if lo > hi)
     long long removeInValRange(T lo, T hi) {
         lo -= off, hi -= off;
         if (hi < lo) return 0;

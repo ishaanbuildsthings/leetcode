@@ -343,6 +343,9 @@ def python(kind, sp):
         {call}
         self._join(a, b, c)
 '''
+    import gen_treap_algebra as A  # (lazy: gen_treap_algebra imports this module)
+    A.py_decompose_queries(pub, [q for q, _, _ in queries(kind, sp)] + (["isRBS"] if BR else []))
+    A.py_decompose_updates(pub, {u: MORE_PY_ONE[u] for u in upd_call if u in ops})
     norm = " % self.mod" if kind == "affine" else ""
     for op, expr, doc in (("pointAssign", f"v{norm}", "a[i] = v"), ("pointAdd", f"(self.val[t] + v){norm}", "a[i] += v"),
                           ("pointChmax", "max(self.val[t], v)", "a[i] = max(a[i], v)"), ("pointChmin", "min(self.val[t], v)", "a[i] = min(a[i], v)")):
@@ -387,6 +390,8 @@ def python(kind, sp):
     def _push(self, x):  # hand x's pending tags to its children
 ''' + push if push else "") + PY_TAIL)
     out = re.sub(r"(    def __init__\(.*\n)(    # \(like: .*\n)", r"\2\1", out)  # (the like note above the def)
+    import gen_treap_algebra as A  # (lazy: gen_treap_algebra imports this module)
+    out = out.rstrip("\n") + "\n" + A.py_decomp_helpers(None, A.py_names(out))
     return out if push else no_push(out, "py")
 
 
@@ -793,6 +798,9 @@ def cpp(kind, sp):
         root = merge(merge(a, b), c);
     }}
 '''
+    import gen_treap_algebra as A  # (lazy: gen_treap_algebra imports this module)
+    A.cpp_decompose_queries(pub, [q for q, _, _ in queries(kind, sp)] + (["isRBS"] if kind == "brackets" else []))
+    A.cpp_decompose_updates(pub, {u: MORE_CPP_ONE[u] for u in upd if u in ops})
     nv = "T(norm((long long)v))" if kind == "affine" else "v"
     nadd = "T(norm((long long)val[t] + (long long)v))" if kind == "affine" else "val[t] + v"
     for op, expr, doc in (("pointAssign", nv, "a[i] = v"), ("pointAdd", nadd, "a[i] += v"),
@@ -857,6 +865,7 @@ def cpp(kind, sp):
     void push(int x) {  // hand x's pending tags to its children
 ''' + push + '''    }
 ''' if push else "") + CPP_TAIL)
+    out = out.rstrip("\n").rstrip("};").rstrip() + "\n" + A.cpp_decomp_helpers(None, A.cpp_names(out)) + "};\n"
     out = staticify(out, kind, FL)
     return out if push else no_push(out, "cpp")
 
@@ -990,6 +999,14 @@ CPP_TAIL = '''
     }
 };
 '''
+
+
+MORE_PY_ONE = {"rangeAssign": "v", "rangeFlip": "self.cc if w == self.oc else self.oc", "rangeAndApply": "w & v",
+               "rangeOrApply": "w | v", "rangeAddMod": "(w + v) % self.mod", "rangeMultMod": "w * (v % self.mod) % self.mod",
+               "rangeAffineMod": "(w * (mult % self.mod) + add % self.mod) % self.mod", "rangeAssignMod": "v % self.mod"}
+MORE_CPP_ONE = {"rangeAssign": "v", "rangeFlip": "w == oc ? cc : oc", "rangeAndApply": "T(w & v)", "rangeOrApply": "T(w | v)",
+                "rangeAddMod": "T(((long long)w + norm(v)) % mod)", "rangeMultMod": "T(mul((long long)w, norm(v)) % mod)",
+                "rangeAffineMod": "T((mul((long long)w, norm(mult)) + norm(add)) % mod)", "rangeAssignMod": "T(norm(v))"}
 
 
 def main():

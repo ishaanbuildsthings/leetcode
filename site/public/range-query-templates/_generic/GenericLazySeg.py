@@ -1,11 +1,15 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/GenericLazySeg.py
 
-# one raw array element: int, str, tuple, ...
+# e.g. int, str, tuple, ...
 RawVal = int
-# e.g. (tot, mn, len): apply only sees the node, so keep the length; any value, tuples are fastest
+
+# or can replace this Node type with an entire Node class and it works
 Node = tuple
+
 # a pending update to every element of a segment, e.g. add
+# We never need to worry about initializing empty tags or anything, these tags come in via rangeUpdate(l, r, tag) calls
+# or when pushed down from parents
 Tag = int
 
 
@@ -14,14 +18,15 @@ def leaf(v: RawVal, i: int) -> Node:
     pass
 
 
-# combine two nodes
 def combine(left: Node, right: Node) -> Node:
     # return (left[0] + right[0], min(left[1], right[1]), left[2] + right[2])
     pass
 
 
 # return a new node: this node after tag is applied to it
-# we must handle the case where the tag is a no-op (e.g. negate twice), and we can return the original node
+# this function is never called with a tag that never existed, but tags can have things like pending false values or
+# pending no-ops (for instance two lazy bools canceling) and we still need to check for this and no-op (could just
+# return original node)
 def apply(node: Node, tag: Tag) -> Node:
     # return (node[0] + tag * node[2], node[1] + tag, node[2])
     pass

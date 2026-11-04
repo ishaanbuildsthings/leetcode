@@ -8,7 +8,7 @@
 // @complexities:
 //   add: log64(U)
 //   addCount: log64(U)
-//   clear: N*log64(U)
+//   clear: 1 amortized
 //   count: 1
 //   countDistinct: 1
 //   largestLtX: log64(U)
@@ -197,7 +197,8 @@ struct FastSetMultiset {
         if (cnt > 0) addRaw(val, cnt);
     }
 
-    // O(N log64(U)) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    // O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    // instead of building a new one
     void clear() {
         clearData();
         resetCached();
@@ -233,7 +234,8 @@ struct FastSetMultiset {
         return mx;
     }
 
-    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct values
+    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct
+    // values
     optional<long long> maxGap() {
         if (d < 2) return nullopt;
         return *gaps.rbegin();
@@ -245,14 +247,16 @@ struct FastSetMultiset {
         return mn;
     }
 
-    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if fewer than 2 values
+    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if
+    // fewer than 2 values
     optional<long long> minAdjacentDiff() {
         if (n < 2) return nullopt;
         if (dups) return 0LL;
         return *gaps.begin();
     }
 
-    // O(1) -- (a most frequent value, its count); nullopt if empty. C++ returns the smallest of the most frequent values
+    // O(1) -- (a most frequent value, its count); nullopt if empty. C++ returns the smallest of the most frequent
+    // values
     optional<pair<T, long long>> mode() {
         if (!n) return nullopt;
         auto& [f, vs] = *bk.rbegin();
@@ -297,7 +301,8 @@ struct FastSetMultiset {
         return k;
     }
 
-    // O(log64(U) amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    // O(log64(U) amortized) -- remove every value v with lo <= v <= hi; returns how many copies were removed
+    // (0 if lo > hi)
     long long removeInValRange(T lo, T hi) {
         if (hi < lo) return 0;
         long long removed = 0;

@@ -29,6 +29,7 @@ Structures (each in a count-only version and a count + sum version, unless noted
 """
 import os
 import re
+import textwrap
 
 ROOT = os.environ.get("SETS_DIR") or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "sets")
 GITHUB_USER = "https://github.com/ishaanbuildsthings"
@@ -45,7 +46,7 @@ OPS = {
     "clear": ("", "none", "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one"),
     "popMin": ("", "opt", "remove and return the smallest value; {none} if empty"),
     "popMax": ("", "opt", "remove and return the largest value; {none} if empty"),
-    "pop": ("i", "int", "remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); {err} unless 0 <= i < size"),
+    "pop": ("i", "int", "remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()), pop(size - 1) the largest (copies count); {err} unless 0 <= i < size"),
     "size": ("", "int", "how many values (copies count)"),
     "count": ("x", "int", "how many copies of x"),
     "sumAll": ("", "int", "sum of all values"),
@@ -54,15 +55,15 @@ OPS = {
     "maxGap": ("", "opt", "largest difference between two neighbouring distinct values; {none} if fewer than 2 distinct values"),
     "maxXorAgainstX": ("xv", "opt", "largest v ^ x over the values v in the set; {none} if the set is empty (needs 0 <= x < 2^bits)"),
     "minXorAgainstX": ("xv", "opt", "smallest v ^ x over the values v in the set; {none} if the set is empty (needs 0 <= x < 2^bits)"),
-    "kthXor": ("xi", "int", "the i-th smallest v ^ x over the values v (0-indexed, copies count); {err} unless 0 <= i < size"),
-    "countXorLtK": ("xk", "int", "how many values v have v ^ x < k"),
-    "countXorLteK": ("xk", "int", "how many values v have v ^ x <= k"),
-    "countXorGtK": ("xk", "int", "how many values v have v ^ x > k"),
-    "countXorGteK": ("xk", "int", "how many values v have v ^ x >= k"),
-    "largestXorLtK": ("xk", "opt", "largest v ^ x that is < k; {none} if there is none"),
-    "largestXorLteK": ("xk", "opt", "largest v ^ x that is <= k; {none} if there is none"),
-    "smallestXorGtK": ("xk", "opt", "smallest v ^ x that is > k; {none} if there is none"),
-    "smallestXorGteK": ("xk", "opt", "smallest v ^ x that is >= k; {none} if there is none"),
+    "kthXor": ("xi", "int", "the i-th smallest of v ^ x over the values v, 0-indexed: kthXor(x, 0) is the smallest v ^ x, kthXor(x, 1) the 2nd smallest (copies count); {err} unless 0 <= i < size"),
+    "countXorLtK": ("xk", "int", "how many values v have v ^ x < k (k is a VALUE to compare against, not a rank or count; copies count)"),
+    "countXorLteK": ("xk", "int", "how many values v have v ^ x <= k (k is a VALUE to compare against, not a rank or count; copies count)"),
+    "countXorGtK": ("xk", "int", "how many values v have v ^ x > k (k is a VALUE to compare against, not a rank or count; copies count)"),
+    "countXorGteK": ("xk", "int", "how many values v have v ^ x >= k (k is a VALUE to compare against, not a rank or count; copies count)"),
+    "largestXorLtK": ("xk", "opt", "largest v ^ x that is < k (k is a VALUE to compare against, not a rank); {none} if there is none"),
+    "largestXorLteK": ("xk", "opt", "largest v ^ x that is <= k (k is a VALUE to compare against, not a rank); {none} if there is none"),
+    "smallestXorGtK": ("xk", "opt", "smallest v ^ x that is > k (k is a VALUE to compare against, not a rank); {none} if there is none"),
+    "smallestXorGteK": ("xk", "opt", "smallest v ^ x that is >= k (k is a VALUE to compare against, not a rank); {none} if there is none"),
     "mexXor": ("xv", "int", "smallest non-negative integer that is not v ^ x for any value v"),
     "sumXor": ("xv", "int", "sum of v ^ x over every value v (copies count)"),
     "maxXorWithVLtM": ("xm", "opt", "largest v ^ x over the values v < m; {none} if there is none"),
@@ -84,11 +85,11 @@ OPS = {
     "medianHigh": ("", "opt", "upper median: the (floor(size/2) + 1)-th smallest value; {none} if empty"),
     "mex": ("", "int", "smallest non-negative integer not in the set"),
     "sumAbsDiffToMedian": ("", "int", "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty"),
-    "kth": ("i", "int", "the value at sorted position i (0-indexed: kth(0) is the min); {err} unless 0 <= i < size"),
-    "sumSmallestK": ("k", "int", "sum of the k smallest values; {err} unless 0 <= k <= size"),
-    "sumLargestK": ("k", "int", "sum of the k largest values; {err} unless 0 <= k <= size"),
-    "sumKthSmallestRange": ("kk", "int", "sum of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); {err} unless 1 <= kFrom <= kTo <= size"),
-    "sumKthLargestRange": ("kk", "int", "sum of the kFrom-th..kTo-th largest values (1-indexed, inclusive; (5, 8) = 5th..8th biggest); {err} unless 1 <= kFrom <= kTo <= size"),
+    "kth": ("i", "int", "the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest, kth(size - 1) the largest (copies count: in {{2, 2, 5}}, kth(1) is 2); {err} unless 0 <= i < size"),
+    "sumSmallestK": ("k", "int", "sum of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just the smallest, k = size every value (copies count: in {{2, 2, 5}}, k = 2 takes 2 and 2); {err} unless 0 <= k <= size"),
+    "sumLargestK": ("k", "int", "sum of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just the largest, k = size every value (copies count: in {{2, 5, 5}}, k = 2 takes 5 and 5); {err} unless 0 <= k <= size"),
+    "sumKthSmallestRange": ("kk", "int", "sum of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); {err} unless 1 <= kFrom <= kTo <= size"),
+    "sumKthLargestRange": ("kk", "int", "sum of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); {err} unless 1 <= kFrom <= kTo <= size"),
     "largestLtX": ("x", "opt", "largest value < x; {none} if there is none"),
     "largestLteX": ("x", "opt", "largest value <= x; {none} if there is none"),
     "smallestGtX": ("x", "opt", "smallest value > x; {none} if there is none"),
@@ -113,30 +114,30 @@ OPS = {
     "xorOfGtX": ("x", "int", "xor of the values > x (copies count)"),
     "xorOfGteX": ("x", "int", "xor of the values >= x (copies count)"),
     "xorOfInValRange": ("lohi", "int", "xor of the values v with lo <= v <= hi (copies count; 0 if lo > hi)"),
-    "xorOfSmallestK": ("k", "int", "xor of the k smallest values (copies count); {err} unless 0 <= k <= size"),
-    "xorOfLargestK": ("k", "int", "xor of the k largest values (copies count); {err} unless 0 <= k <= size"),
-    "xorOfKthSmallestRange": ("kk", "int", "xor of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); {err} unless 1 <= kFrom <= kTo <= size"),
-    "xorOfKthLargestRange": ("kk", "int", "xor of the kFrom-th..kTo-th largest values (1-indexed, inclusive); {err} unless 1 <= kFrom <= kTo <= size"),
+    "xorOfSmallestK": ("k", "int", "xor of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just the smallest, k = size every value (copies count: in {{2, 2, 5}}, k = 2 takes 2 and 2); {err} unless 0 <= k <= size"),
+    "xorOfLargestK": ("k", "int", "xor of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just the largest, k = size every value (copies count: in {{2, 5, 5}}, k = 2 takes 5 and 5); {err} unless 0 <= k <= size"),
+    "xorOfKthSmallestRange": ("kk", "int", "xor of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); {err} unless 1 <= kFrom <= kTo <= size"),
+    "xorOfKthLargestRange": ("kk", "int", "xor of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); {err} unless 1 <= kFrom <= kTo <= size"),
     "orOfAll": ("", "int", "bitwise OR of all values; 0 if empty"),
     "orOfLtX": ("x", "int", "bitwise OR of the values < x; 0 if there are none"),
     "orOfLteX": ("x", "int", "bitwise OR of the values <= x; 0 if there are none"),
     "orOfGtX": ("x", "int", "bitwise OR of the values > x; 0 if there are none"),
     "orOfGteX": ("x", "int", "bitwise OR of the values >= x; 0 if there are none"),
     "orOfInValRange": ("lohi", "int", "bitwise OR of the values v with lo <= v <= hi; 0 if there are none"),
-    "orOfSmallestK": ("k", "int", "bitwise OR of the k smallest values (0 for k = 0); {err} unless 0 <= k <= size"),
-    "orOfLargestK": ("k", "int", "bitwise OR of the k largest values (0 for k = 0); {err} unless 0 <= k <= size"),
-    "orOfKthSmallestRange": ("kk", "int", "bitwise OR of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); {err} unless 1 <= kFrom <= kTo <= size"),
-    "orOfKthLargestRange": ("kk", "int", "bitwise OR of the kFrom-th..kTo-th largest values (1-indexed, inclusive); {err} unless 1 <= kFrom <= kTo <= size"),
+    "orOfSmallestK": ("k", "int", "bitwise OR of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just the smallest, k = size every value (copies count: in {{2, 2, 5}}, k = 2 takes 2 and 2); {err} unless 0 <= k <= size"),
+    "orOfLargestK": ("k", "int", "bitwise OR of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns 0), k = 1 just the largest, k = size every value (copies count: in {{2, 5, 5}}, k = 2 takes 5 and 5); {err} unless 0 <= k <= size"),
+    "orOfKthSmallestRange": ("kk", "int", "bitwise OR of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); {err} unless 1 <= kFrom <= kTo <= size"),
+    "orOfKthLargestRange": ("kk", "int", "bitwise OR of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); {err} unless 1 <= kFrom <= kTo <= size"),
     "andOfAll": ("", "int", "bitwise AND of all values; -1 (every bit set) if empty"),
     "andOfLtX": ("x", "int", "bitwise AND of the values < x; -1 (every bit set) if there are none"),
     "andOfLteX": ("x", "int", "bitwise AND of the values <= x; -1 (every bit set) if there are none"),
     "andOfGtX": ("x", "int", "bitwise AND of the values > x; -1 (every bit set) if there are none"),
     "andOfGteX": ("x", "int", "bitwise AND of the values >= x; -1 (every bit set) if there are none"),
     "andOfInValRange": ("lohi", "int", "bitwise AND of the values v with lo <= v <= hi; -1 (every bit set) if there are none"),
-    "andOfSmallestK": ("k", "int", "bitwise AND of the k smallest values (-1 (every bit set) for k = 0); {err} unless 0 <= k <= size"),
-    "andOfLargestK": ("k", "int", "bitwise AND of the k largest values (-1 (every bit set) for k = 0); {err} unless 0 <= k <= size"),
-    "andOfKthSmallestRange": ("kk", "int", "bitwise AND of the kFrom-th..kTo-th smallest values (1-indexed, inclusive); {err} unless 1 <= kFrom <= kTo <= size"),
-    "andOfKthLargestRange": ("kk", "int", "bitwise AND of the kFrom-th..kTo-th largest values (1-indexed, inclusive); {err} unless 1 <= kFrom <= kTo <= size"),
+    "andOfSmallestK": ("k", "int", "bitwise AND of the k smallest values; k is a COUNT, not an index: k = 0 takes no values (returns -1, every bit set), k = 1 just the smallest, k = size every value (copies count: in {{2, 2, 5}}, k = 2 takes 2 and 2); {err} unless 0 <= k <= size"),
+    "andOfLargestK": ("k", "int", "bitwise AND of the k largest values; k is a COUNT, not an index: k = 0 takes no values (returns -1, every bit set), k = 1 just the largest, k = size every value (copies count: in {{2, 5, 5}}, k = 2 takes 5 and 5); {err} unless 0 <= k <= size"),
+    "andOfKthSmallestRange": ("kk", "int", "bitwise AND of the kFrom-th through kTo-th smallest values; RANKS, 1-indexed and inclusive: (1, 1) is just the smallest, (2, 4) the 2nd, 3rd and 4th smallest, (1, size) every value (copies count); {err} unless 1 <= kFrom <= kTo <= size"),
+    "andOfKthLargestRange": ("kk", "int", "bitwise AND of the kFrom-th through kTo-th largest values; RANKS, 1-indexed and inclusive: (1, 1) is just the largest, (5, 8) the 5th, 6th, 7th and 8th largest, (1, size) every value (copies count); {err} unless 1 <= kFrom <= kTo <= size"),
 }
 SUM_OPS = {"sumAll", "sumAbsDiffToMedian", "sumSmallestK", "sumLargestK", "sumKthSmallestRange", "sumKthLargestRange",
            "sumLtX", "sumLteX", "sumGtX", "sumGteX", "sumInValRange", "sumAbsDiffToX"}
@@ -255,13 +256,21 @@ def cost_text(c):
     return c.replace("*", " ")
 
 
+def doc_comment(text, cm):  # a method's comment, wrapped at 120 columns (the site joins the lines back up)
+    # short brackets like kth(size - 1) or {2, 2, 5} stay on one line
+    text = re.sub(r"[({][^(){}]{0,24}[)}]", lambda m: m.group(0).replace(" ", "\0"), text)
+    lines = textwrap.wrap(text, 120, initial_indent=f"    {cm} ", subsequent_indent=f"    {cm} ", break_long_words=False,
+                          break_on_hyphens=False)
+    return "".join(line.replace("\0", " ") + "\n" for line in lines)
+
+
 def py_ops(ops, comps, own=None):
     out = []
     for op in ops:
         args = ARGS[OPS[op][0]]
         doc = OPS[op][2].format(none="None", err="raises IndexError")
         body = "\n".join("        " + line for line in ((own or {}).get(op) or PY_OPS[op]).split("\n"))
-        out.append(f"    # O({cost_text(comps[op])}) -- {doc}\n    def {op}(self{''.join(', ' + a for a in args)}):\n{body}\n")
+        out.append(doc_comment(f"O({cost_text(comps[op])}) -- {doc}", "#") + f"    def {op}(self{''.join(', ' + a for a in args)}):\n{body}\n")
         if op == "size":  # so len(ms) works too, like a SortedList
             out.append("    # O(1) -- same as size()\n    def __len__(self):\n        return self.n\n")
     return "\n".join(out)
@@ -273,7 +282,7 @@ def cpp_ops(ops, comps, own=None):
         ret, body = (own or {}).get(op) or CPP_OPS[op]
         doc = OPS[op][2].format(none="nullopt", err="throws out_of_range")
         body = "\n".join("        " + line for line in body.split("\n"))
-        out.append(f"    // O({cost_text(comps[op])}) -- {doc}\n    {ret} {op}({CPP_PARAMS[OPS[op][0]]}) {{\n{body}\n    }}\n")
+        out.append(doc_comment(f"O({cost_text(comps[op])}) -- {doc}", "//") + f"    {ret} {op}({CPP_PARAMS[OPS[op][0]]}) {{\n{body}\n    }}\n")
     return "\n".join(out)
 
 
@@ -4328,7 +4337,7 @@ struct FastSet {
     ops = sorted(["add", "remove", "count", "countDistinct", "size", "min", "max", "popMin", "popMax", "smallestGteX",
                   "smallestGtX", "largestLteX", "largestLtX", "clear", "removeInValRange"] + (["minAdjacentDiff", "maxGap"] if gaps else []))
     comps = {op: "log64(U)" for op in ops}
-    comps.update({"count": "1", "countDistinct": "1", "size": "1", "clear": "N*log64(U)", "removeInValRange": "log64(U) amortized",
+    comps.update({"count": "1", "countDistinct": "1", "size": "1", "clear": "1 amortized", "removeInValRange": "log64(U) amortized",
                   "build": "U/64"})
     if minmax:
         comps.update(min="1", max="1")
@@ -4400,8 +4409,10 @@ DISTINCT_LT_CPP["blocks-fenwick"] = DISTINCT_LT_CPP["blocks"]
 # ------------------------------------------------------------------------------------------------ clear()
 # Every structure empties itself in the cheapest way it can without any other op paying for it (no version stamps,
 # nothing recorded on updates): it touches only what is in use where it can find that cheaply, else it wipes in bulk.
-CLEAR_COST = {"fenwick": "N", "value-tree": "N*log(U)", "avl": "N", "treap": "N", "splay": "N", "blocks": "N",
-              "blocks-fenwick": "N", "pbds": "N", "fastset": "N*log64(U)", "trie": "1 amortized"}
+# Either way the work is at most a constant times what the adds (or the build) since the last clear already spent
+# creating what it touches, so every clear is O(1) amortized.
+CLEAR_COST = {dtype: "1 amortized" for dtype in ("fenwick", "value-tree", "avl", "treap", "splay", "blocks",
+                                                 "blocks-fenwick", "pbds", "fastset", "trie")}
 
 
 def clear_py(dtype, sums, mex, mexc, mode=False, gaps=False, bits=(False, False, False), shift=False):

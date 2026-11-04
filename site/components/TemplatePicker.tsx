@@ -29,7 +29,8 @@ import { readUsage } from "@/lib/template-usage";
 const PICKER_PAGES = [
   { href: "/templates/range-queries", label: "Range queries" },
   { href: "/templates/sets", label: "Ordered sets" },
-  { href: "/templates/misc", label: "Misc" },
+  { href: "/templates/misc", label: "Misc." },
+  { href: "/templates/golden-references", label: "Golden References" },
 ];
 
 // the picker tabs, with the page's controls (children) at the right end of the same row
@@ -66,7 +67,7 @@ function PickerTabs({ children }: { children?: React.ReactNode }) {
 
 // A template you fill in yourself (the generic seg trees): the file is at publicBase/<folder>/<file>.<lang>, and on
 // GitHub at githubUrl + <file>.<lang>. ops: every op with its cost, in the catalog's cost format ("log(N) expected");
-// note: a line under them.
+// note: a line under them. title: the description on its Misc tab card.
 export type FillIn = {
   label: string;
   title: string;
@@ -75,6 +76,25 @@ export type FillIn = {
   githubUrl: string;
   ops: [string, string][];
   note?: string;
+  // the C++ file comes in three example levels (file.simple.cpp, file.cpp, file.complex.cpp): a selector picks one
+  cppLevels?: boolean;
+  // there's a version without rangeReverse (file[.level].norev.*): a checkbox, off by default, adds it back
+  reverseToggle?: boolean;
+};
+
+const REVERSE_STORAGE_KEY = "templatePicker.withReverse";
+
+// the C++ example levels of a fill-in template, and the file each one is (basic is the plain file)
+const CPP_LEVELS = [
+  { id: "simple", label: "Simple types", title: "Plain types, no structs: e.g. using Node = long long; (a max)", suffix: ".simple" },
+  { id: "basic", label: "Basic struct", title: "A struct with int fields, e.g. tot and mn", suffix: "" },
+  { id: "complex", label: "Complex struct", title: "A struct holding an array (letter counts), = {} so it starts at 0, loops in combine", suffix: ".complex" },
+] as const;
+type CppLevel = (typeof CPP_LEVELS)[number]["id"];
+const CPP_LEVEL_STORAGE_KEY = "templatePicker.cppLevel";
+const readCppLevel = (): CppLevel => {
+  const v = readStored(CPP_LEVEL_STORAGE_KEY);
+  return CPP_LEVELS.some((l) => l.id === v) ? (v as CppLevel) : "basic";
 };
 
 // Everything a picker page decides for itself; the rest (op grid, matching, ranking, cards, code drawer with usage
@@ -565,7 +585,13 @@ function FillInDrawer({
   onClose: () => void;
 }) {
   const [lang, setLang] = useState<TemplateLang>(readPreferredLang);
-  const fileName = `${fillIn.file}.${lang}`;
+  const [level, setLevel] = useState<CppLevel>(readCppLevel);
+  const [withReverse, setWithReverse] = useState(() => readStored(REVERSE_STORAGE_KEY) === "1");
+  const levels = lang === "cpp" && fillIn.cppLevels;
+  const suffix = levels ? CPP_LEVELS.find((l) => l.id === level)!.suffix : "";
+  const noRev = fillIn.reverseToggle && !withReverse ? ".norev" : "";
+  const fileName = `${fillIn.file}${suffix}${noRev}.${lang}`;
+  const ops = noRev ? fillIn.ops.filter(([op]) => !op.startsWith("rangeReverse")) : fillIn.ops;
   const url = codeUrl(catalog, fillIn.folder, fileName);
   const [loaded, setLoaded] = useState<{ url: string; code: string | null } | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
@@ -591,6 +617,14 @@ function FillInDrawer({
     setLang(l);
     writeStored(LANG_STORAGE_KEY, l);
   };
+  const chooseLevel = (l: CppLevel) => {
+    setLevel(l);
+    writeStored(CPP_LEVEL_STORAGE_KEY, l);
+  };
+  const chooseReverse = (on: boolean) => {
+    setWithReverse(on);
+    writeStored(REVERSE_STORAGE_KEY, on ? "1" : "0");
+  };
   const copy = async () => {
     if (!code) return;
     await navigator.clipboard.writeText(code);
@@ -604,7 +638,6 @@ function FillInDrawer({
         <div className="flex items-start justify-between gap-4 border-b border-border p-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">{fillIn.label}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{fillIn.title}</p>
           </div>
           <div className="flex flex-shrink-0 items-center gap-2">
             <div className="flex overflow-hidden rounded-md border border-border text-xs" role="group" aria-label="Language">
@@ -648,11 +681,47 @@ function FillInDrawer({
             </button>
           </div>
         </div>
+        {(levels || fillIn.reverseToggle) && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-2 text-xs">
+            {fillIn.reverseToggle && (
+              <label
+                title="With rangeReverse the template also needs reverse(node), the node of a segment read backwards"
+                className="flex cursor-pointer items-center gap-1.5 text-foreground"
+              >
+                <input
+                  type="checkbox"
+                  checked={withReverse}
+                  onChange={(e) => chooseReverse(e.target.checked)}
+                  className="accent-primary"
+                />
+                <span className="font-mono">rangeReverse</span>
+              </label>
+            )}
+            {levels && <span className="text-muted-foreground">Examples:</span>}
+            {levels && <div className="flex overflow-hidden rounded-md border border-border" role="radiogroup" aria-label="Example level">
+              {CPP_LEVELS.map((l) => (
+                <button
+                  key={l.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={level === l.id}
+                  title={l.title}
+                  onClick={() => chooseLevel(l.id)}
+                  className={`px-2.5 py-1 ${
+                    level === l.id ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>}
+          </div>
+        )}
         <div className="min-h-0 flex-1 overflow-y-auto">
           {/* every op is there whatever you need, so all of them are highlighted */}
           <div className="border-b border-border px-4 py-3 text-xs">
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
-              {fillIn.ops.map(([op, cost]) => (
+              {ops.map(([op, cost]) => (
                 <div key={op} className="contents">
                   <span className="font-mono font-medium text-primary">{op}</span>
                   <span className="text-foreground">{formatCost(cost)}</span>
@@ -965,7 +1034,7 @@ export function TemplatePicker<V extends PickerTemplate>({
                       onClick={() => setFillInMenu(false)}
                       className="fixed inset-0 z-40 cursor-default"
                     />
-                    <ul className="absolute right-0 z-50 mt-1 w-80 overflow-hidden rounded-md border border-border bg-background py-1 shadow-lg">
+                    <ul className="absolute right-0 z-50 mt-1 w-56 overflow-hidden rounded-md border border-border bg-background py-1 shadow-lg">
                       {catalog.fillIns.map((f) => (
                         <li key={f.file}>
                           <button
@@ -977,7 +1046,6 @@ export function TemplatePicker<V extends PickerTemplate>({
                             className="block w-full px-3 py-2 text-left hover:bg-muted"
                           >
                             <span className="block text-xs font-medium text-foreground">{f.label}</span>
-                            <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">{f.title}</span>
                           </button>
                         </li>
                       ))}
@@ -1345,12 +1413,12 @@ export function TemplatePicker<V extends PickerTemplate>({
                         }}
                         className="flex h-full w-full flex-col justify-start rounded-lg border border-border bg-background px-2.5 py-1.5 text-left transition-colors hover:border-primary/50"
                       >
-                        <span className="flex items-center justify-between gap-2">
+                        <span className="flex items-start justify-between gap-2">
                           <span className="text-xs font-medium text-foreground">
                             {catalog.kindLabel(template)}
                           </span>
                           {i === 0 && (
-                            <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                            <span className="shrink-0 whitespace-nowrap rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
                               Best match
                             </span>
                           )}
@@ -1464,19 +1532,24 @@ export function TemplatePicker<V extends PickerTemplate>({
   );
 }
 
-// The Misc tab: templates outside the pickers, one card each, opening the same drawer as the pickers' fill-ins.
+// A templates tab without a picker (Misc., Golden References): sections of cards, each opening the same drawer as the
+// pickers' fill-ins, and a "still to add" note under them.
 export function MiscTemplates({
+  title,
   sections,
   publicBase,
+  planned = [],
 }: {
+  title: string;
   sections: { title: string; items: FillIn[] }[];
   publicBase: string;
+  planned?: string[];
 }) {
   const [open, setOpen] = useState<FillIn | null>(null);
   return (
     <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-16 font-[family-name:var(--font-dm-sans)]">
       <div className="sticky top-16 z-30 -mx-6 bg-background px-6 pt-2">
-        <h1 className="sr-only">Misc templates</h1>
+        <h1 className="sr-only">{title}</h1>
         <PickerTabs />
       </div>
       {sections.map((section) => (
@@ -1497,6 +1570,11 @@ export function MiscTemplates({
           </div>
         </section>
       ))}
+      {planned.length > 0 && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          <span className="font-medium">Still to add:</span> {planned.join(" · ")}
+        </p>
+      )}
       {open && <FillInDrawer key={open.file} catalog={{ publicBase }} fillIn={open} onClose={() => setOpen(null)} />}
     </main>
   );

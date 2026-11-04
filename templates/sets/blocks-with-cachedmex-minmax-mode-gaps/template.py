@@ -8,7 +8,7 @@
 # @complexities:
 #   add: sqrt(N)
 #   addCount: sqrt(N)
-#   clear: N
+#   clear: 1 amortized
 #   count: log(N)
 #   countDistinct: 1
 #   countDistinctInValRange: sqrt(N)
@@ -330,7 +330,8 @@ class BlockMultiset:
         if cnt > 0:
             self._add(val, cnt)
 
-    # O(N) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one
+    # O(1 amortized) -- remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it
+    # instead of building a new one
     def clear(self):
         self._clearData()
         self._resetCached()
@@ -369,11 +370,13 @@ class BlockMultiset:
     def countLteX(self, x):
         return self._le(x)
 
-    # O(sqrtN) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in the set
+    # O(sqrtN) -- 0-indexed position of the first copy of x in sorted order (= how many values < x); -1 if x is not in
+    # the set
     def firstIndex(self, x):
         return self._lt(x) if self._countOf(x) else -1
 
-    # O(sqrtN) -- the value at sorted position i (0-indexed: kth(0) is the min); raises IndexError unless 0 <= i < size
+    # O(sqrtN) -- the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest,
+    # kth(size - 1) the largest (copies count: in {2, 2, 5}, kth(1) is 2); raises IndexError unless 0 <= i < size
     def kth(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"kth: needs 0 <= i < size, got i = {i}, size = {self.n}")
@@ -389,7 +392,8 @@ class BlockMultiset:
         c = self._le(x)
         return self._kth(c) if c else None
 
-    # O(sqrtN) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is not in the set
+    # O(sqrtN) -- 0-indexed position of the last copy of x in sorted order (= how many values <= x, minus 1); -1 if x is
+    # not in the set
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
@@ -397,7 +401,8 @@ class BlockMultiset:
     def max(self):
         return self.mx if self.n else None
 
-    # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct values
+    # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct
+    # values
     def maxGap(self):
         return self._maxGap() if self.d >= 2 else None
 
@@ -417,7 +422,8 @@ class BlockMultiset:
     def min(self):
         return self.mn if self.n else None
 
-    # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer than 2 values
+    # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer
+    # than 2 values
     def minAdjacentDiff(self):
         if self.n < 2:
             return None
@@ -430,7 +436,8 @@ class BlockMultiset:
         f = self.maxF
         return next(iter(self.bk[f])), f
 
-    # O(sqrtN) -- remove and return the value at sorted position i (0-indexed: pop(0) is popMin()); raises IndexError unless 0 <= i < size
+    # O(sqrtN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
+    # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
     def pop(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")

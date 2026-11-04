@@ -168,12 +168,10 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   } satisfies Partial<Record<OpId, string[]>>,
   fillIns: GENERIC_SEG_TREES,
   planned: [
-    "mass change queries",
     "2D tree queries",
     "persistent seg tree queries",
     "merge sort tree with updates",
     "persistent binary trie",
-    "better treap queries",
     "tuple values with a custom comparator",
     "next permutation templates",
     "bubble sort templates",

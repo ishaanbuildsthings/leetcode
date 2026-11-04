@@ -211,9 +211,10 @@ struct PairSwapTreap {
     // needs 0 <= l <= r < size(), else throws out_of_range
     int leftmostGtX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostGtX: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         int i = laneLeftmostGtX(be, x), j = laneLeftmostGtX(bo, x);
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         i = i >= 0 ? l + 2 * i : -1;  // (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = j >= 0 ? l + 1 + 2 * j : -1;
         return i < 0 ? j : j < 0 ? i : min(i, j);
@@ -223,9 +224,10 @@ struct PairSwapTreap {
     // needs 0 <= l <= r < size(), else throws out_of_range
     int leftmostGteX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostGteX: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         int i = laneLeftmostGteX(be, x), j = laneLeftmostGteX(bo, x);
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         i = i >= 0 ? l + 2 * i : -1;  // (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = j >= 0 ? l + 1 + 2 * j : -1;
         return i < 0 ? j : j < 0 ? i : min(i, j);
@@ -235,9 +237,10 @@ struct PairSwapTreap {
     // needs 0 <= l <= r < size(), else throws out_of_range
     int leftmostLtX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostLtX: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         int i = laneLeftmostLtX(be, x), j = laneLeftmostLtX(bo, x);
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         i = i >= 0 ? l + 2 * i : -1;  // (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = j >= 0 ? l + 1 + 2 * j : -1;
         return i < 0 ? j : j < 0 ? i : min(i, j);
@@ -247,9 +250,10 @@ struct PairSwapTreap {
     // needs 0 <= l <= r < size(), else throws out_of_range
     int leftmostLteX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostLteX: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         int i = laneLeftmostLteX(be, x), j = laneLeftmostLteX(bo, x);
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         i = i >= 0 ? l + 2 * i : -1;  // (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = j >= 0 ? l + 1 + 2 * j : -1;
         return i < 0 ? j : j < 0 ? i : min(i, j);
@@ -328,9 +332,10 @@ struct PairSwapTreap {
     // O(logN) expected -- a[l] & ... & a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeAndQuery(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAndQuery: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         T res = nd[be].an & nd[bo].an;
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         return res;
     }
 
@@ -351,18 +356,20 @@ struct PairSwapTreap {
     // O(logN) expected -- max of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMax(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMax: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         T res = bo ? max(nd[be].mx, nd[bo].mx) : nd[be].mx;
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         return res;
     }
 
     // O(logN) expected -- min of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
     T rangeMin(int l, int r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeMin: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         T res = bo ? min(nd[be].mn, nd[bo].mn) : nd[be].mn;
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         return res;
     }
 
@@ -418,9 +425,10 @@ struct PairSwapTreap {
     // needs 0 <= l <= r < size(), else throws out_of_range
     int rightmostGtX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostGtX: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         int i = laneRightmostGtX(be, x), j = laneRightmostGtX(bo, x);
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         i = i >= 0 ? l + 2 * i : -1;  // (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = j >= 0 ? l + 1 + 2 * j : -1;
         return max(i, j);
@@ -430,9 +438,10 @@ struct PairSwapTreap {
     // needs 0 <= l <= r < size(), else throws out_of_range
     int rightmostGteX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostGteX: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         int i = laneRightmostGteX(be, x), j = laneRightmostGteX(bo, x);
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         i = i >= 0 ? l + 2 * i : -1;  // (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = j >= 0 ? l + 1 + 2 * j : -1;
         return max(i, j);
@@ -442,9 +451,10 @@ struct PairSwapTreap {
     // needs 0 <= l <= r < size(), else throws out_of_range
     int rightmostLtX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostLtX: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         int i = laneRightmostLtX(be, x), j = laneRightmostLtX(bo, x);
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         i = i >= 0 ? l + 2 * i : -1;  // (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = j >= 0 ? l + 1 + 2 * j : -1;
         return max(i, j);
@@ -454,9 +464,10 @@ struct PairSwapTreap {
     // needs 0 <= l <= r < size(), else throws out_of_range
     int rightmostLteX(int l, int r, T x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostLteX: needs 0 <= l <= r < size()");
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         int i = laneRightmostLteX(be, x), j = laneRightmostLteX(bo, x);
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         i = i >= 0 ? l + 2 * i : -1;  // (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = j >= 0 ? l + 1 + 2 * j : -1;
         return max(i, j);
@@ -626,11 +637,12 @@ struct PairSwapTreap {
     // the range reads x0 y0 x1 y1 ..., so forward = H(x) + B H(y) (odd length) or B H(x) + H(y) (even), and backward
     // = Hrev(x) + B Hrev(y)
     pair<U64, U64> hashes(int l, int r) {
-        auto [ae, ao, be, bo, ce, co] = parts(l, r);
+        size_t mark;
+        auto [be, bo] = laneNodes(l, r, mark);
         U64 B = HB();
         U64 fwd = (r - l) % 2 == 0 ? hadd(nd[be].fh, hmul(B, nd[bo].fh)) : hadd(hmul(B, nd[be].fh), nd[bo].fh);
         U64 bwd = hadd(nd[be].bh, hmul(B, nd[bo].bh));
-        join(ae, ao, be, bo, ce, co);
+        release(mark);
         return {fwd, bwd};
     }
 
@@ -720,6 +732,89 @@ struct PairSwapTreap {
             else if (nd[t].val <= x) return i + nd[nd[t].L].sz;
             else t = nd[t].L;
         }
+    }
+
+    // ---- queries, searches and range updates walk the pieces of [l, r] instead of cutting it out ----
+
+
+
+    // a node over a[l..r] of t's subtree: t itself if that is all of it, else temporaries made only where two parts
+    // meet (pending tags on the way pushed down)
+    int rq(int t, int l, int r) {
+        if (!t || r < 0 || l >= nd[t].sz) return 0;
+        if (l <= 0 && nd[t].sz - 1 <= r) return t;
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        if (r < ls) return rq(nd[t].L, l, r);
+        if (l > ls) return rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int a = rq(nd[t].L, l, r), b = rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int y = clone(t);
+        nd[y].L = a, nd[y].R = b;
+        int pa = nd[a].par, pb = nd[b].par;  // (a temporary's pull must not move its children's parents)
+        pull(y);
+        nd[a].par = pa, nd[b].par = pb;
+        return y;
+    }
+
+    int clone(int x) {  // a temporary copy of node x (sharing its children), dropped by release
+        Node n;
+        n.val = nd[x].val, n.pri = nd[x].pri, n.L = nd[x].L, n.R = nd[x].R, n.sz = nd[x].sz, n.mn = nd[x].mn,
+        n.mx = nd[x].mx, n.fh = nd[x].fh, n.bh = nd[x].bh, n.pw = nd[x].pw, n.an = nd[x].an, n.par = nd[x].par,
+        n.rev = nd[x].rev;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
+    }
+
+    void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+        nd.resize(mark);
+    }
+
+    // the update on a[l..r] of t's subtree, in place: f(x, off) on a node x covered whole, h(w, off) the new value of a
+    // lone value w (off: the distance from l). Only the nodes on the range's two boundary paths are recomputed, nothing
+    // is cut out
+    template <class F, class H>
+    void upd(int t, int l, int r, const F& f, const H& h) {
+        if (!t || r < 0 || l >= nd[t].sz) return;
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            f(t, -l);
+            return;
+        }
+        push(t);
+        int ls = nd[nd[t].L].sz;
+        upd(nd[t].L, l, r, f, h);
+        upd(nd[t].R, l - ls - 1, r - ls - 1, f, h);
+        if (l <= ls && ls <= r) nd[t].val = h(nd[t].val, ls - l);
+        pull(t);
+    }
+
+    // {lane, first k, last k} holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
+    array<array<int, 3>, 2> lanes(int l, int r) {
+        int roots[2] = {rE, rO};
+        array<int, 3> e = {roots[l % 2], l / 2, (r - (r - l) % 2) / 2};
+        array<int, 3> o = l < r ? array<int,
+            3>{roots[(l + 1) % 2], (l + 1) / 2, (r - (r - l - 1) % 2) / 2} : array<int, 3>{0, 0, -1};
+        return {e, o};
+    }
+
+    // temporary nodes over the two lane slices of a[l..r]; mark = the pool size release() goes back to
+    pair<int, int> laneNodes(int l, int r, size_t& mark) {
+        auto ln = lanes(l, r);
+        mark = nd.size();
+        int be = rq(ln[0][0], ln[0][1], ln[0][2]);
+        int bo = rq(ln[1][0], ln[1][1], ln[1][2]);
+        return {be, bo};
     }
 };
 

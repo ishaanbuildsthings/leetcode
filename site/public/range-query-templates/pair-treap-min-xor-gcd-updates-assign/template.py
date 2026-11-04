@@ -128,9 +128,9 @@ class PairSwapTreap:
     def leftmostLtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         i, j = self._laneLeftmostLtX(be, x), self._laneLeftmostLtX(bo, x)
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = l + 1 + 2 * j if j >= 0 else -1
         return i if j < 0 else j if i < 0 else min(i, j)
@@ -140,9 +140,9 @@ class PairSwapTreap:
     def leftmostLteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         i, j = self._laneLeftmostLteX(be, x), self._laneLeftmostLteX(bo, x)
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = l + 1 + 2 * j if j >= 0 else -1
         return i if j < 0 else j if i < 0 else min(i, j)
@@ -212,27 +212,26 @@ class PairSwapTreap:
     def rangeAssign(self, l, r, v):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeAssign: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
-        self._applyAssign(be, v)
-        self._applyAssign(bo, v)
-        self._join(ae, ao, be, bo, ce, co)
+        (te, le, he), (to, lo, ho) = self._lanes(l, r)
+        self._upd(te, le, he, lambda x, off: self._applyAssign(x, v), lambda w, off: v)
+        self._upd(to, lo, ho, lambda x, off: self._applyAssign(x, v), lambda w, off: v)
 
     # O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|; needs 0 <= l <= r < size(), else IndexError
     def rangeGcd(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeGcd: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         res = gcd(self.g[be], self.g[bo])
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- min of a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeMin(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeMin: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         res = self.mn[be] if not bo else min(self.mn[be], self.mn[bo])
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it
@@ -268,9 +267,9 @@ class PairSwapTreap:
     def rangeXorQuery(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeXorQuery: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         res = self.xr[be] ^ self.xr[bo]
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- the last i in [l, r] with a[i] < x, or -1 (each lane's walk pruned by the subtree
@@ -278,9 +277,9 @@ class PairSwapTreap:
     def rightmostLtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         i, j = self._laneRightmostLtX(be, x), self._laneRightmostLtX(bo, x)
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = l + 1 + 2 * j if j >= 0 else -1
         return max(i, j)
@@ -290,9 +289,9 @@ class PairSwapTreap:
     def rightmostLteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        ae, ao, be, bo, ce, co = self._cut(l, r)
+        be, bo, mark = self._laneNodes(l, r)
         i, j = self._laneRightmostLteX(be, x), self._laneRightmostLteX(bo, x)
-        self._join(ae, ao, be, bo, ce, co)
+        self._release(mark)
         i = l + 2 * i if i >= 0 else -1  # (lane E's k-th value is a[l + 2k], lane O's a[l + 1 + 2k])
         j = l + 1 + 2 * j if j >= 0 else -1
         return max(i, j)
@@ -519,6 +518,67 @@ class PairSwapTreap:
                 return i + sz[L[t]]
             else:
                 t = L[t]
+
+
+
+    # a node over a[l..r] of t's subtree: t itself when it is all of it, else temporaries made only where two parts meet
+    # (pending tags on the way pushed down)
+    def _rq(self, t, l, r):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return 0
+        if l <= 0 and sz[t] - 1 <= r:
+            return t
+        self._push(t)
+        ls = sz[self.L[t]]
+        if r < ls:
+            return self._rq(self.L[t], l, r)
+        if l > ls:
+            return self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        a, b = self._rq(self.L[t], l, r), self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        y = self._clone(t)
+        self.L[y], self.R[y] = a, b
+        self._pull(y)
+        return y
+
+    def _clone(self, x):  # a temporary copy of node x (sharing its children), dropped by _release
+        y = len(self.val)
+        for arr in (self.val, self.pri, self.L, self.R, self.sz, self.mn, self.xr, self.g, self.asg, self.hasAsg):
+            arr.append(arr[x])
+        return y
+
+    def _release(self, mark):  # drop every node made after mark (temporaries: no tree points to them)
+        for arr in (self.val, self.pri, self.L, self.R, self.sz, self.mn, self.xr, self.g, self.asg, self.hasAsg):
+            del arr[mark:]
+
+    # the update on a[l..r] of t's subtree, in place: f(x, off) on a node x covered whole, h(w, off) the new value of a
+    # lone value w (off: the distance from l). Only the nodes on the range's two boundary paths are recomputed, nothing
+    # is cut out
+    def _upd(self, t, l, r, f, h):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return
+        if l <= 0 and sz[t] - 1 <= r:
+            f(t, -l)
+            return
+        self._push(t)
+        ls = sz[self.L[t]]
+        self._upd(self.L[t], l, r, f, h)
+        self._upd(self.R[t], l - ls - 1, r - ls - 1, f, h)
+        if l <= ls <= r:
+            self.val[t] = h(self.val[t], ls - l)
+        self._pull(t)
+
+    def _lanes(self, l, r):  # (lane, first k, last k) holding a[l], a[l + 2], ..., then the one holding a[l + 1], a[l + 3], ...
+        roots = (self.rE, self.rO)
+        e = (roots[l % 2], l // 2, (r - (r - l) % 2) // 2)
+        o = (roots[(l + 1) % 2], (l + 1) // 2, (r - (r - l - 1) % 2) // 2) if l < r else (0, 0, -1)
+        return e, o
+
+    def _laneNodes(self, l, r):  # (temporary nodes over the two lane slices of a[l..r], the pool size _release goes back to)
+        mark = len(self.val)
+        (te, le, he), (to, lo, ho) = self._lanes(l, r)
+        return self._rq(te, le, he), self._rq(to, lo, ho), mark
 
 
 # Example (pieces move between treaps; merge appends and leaves its argument empty):

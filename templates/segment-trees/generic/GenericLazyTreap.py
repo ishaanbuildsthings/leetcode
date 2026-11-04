@@ -4,35 +4,40 @@
 import random
 
 
-# one raw array element: int, str, tuple, ...
+# e.g. int, str, tuple, ...
 RawVal = int
-# e.g. (tot, mn, len): apply only sees the node, so keep the length; any value, tuples are fastest
+
+# or can replace this Node type with an entire Node class and it works
 Node = tuple
+
 # a pending update to every element of a segment, e.g. add
+# We never need to worry about initializing empty tags or anything, these tags come in via rangeUpdate(l, r, tag) calls
+# or when pushed down from parents
 Tag = int
 
 
 def leaf(v: RawVal) -> Node:
-    # return (v, v, 1)
+    # return (v, v, v, 1)  # (tot, the value at the left end, at the right end, len)
     pass
 
 
-# combine two nodes
 def combine(left: Node, right: Node) -> Node:
-    # return (left[0] + right[0], min(left[1], right[1]), left[2] + right[2])
+    # return (left[0] + right[0], left[1], right[2], left[3] + right[3])
     pass
 
 
-# the node of the same segment read backwards (only rangeReverse uses it; for sums / mins it's node itself)
+# the node of the same segment read backwards
 def reverse(node: Node) -> Node:
-    # return (node[0], node[2], node[1])  # e.g. swap pre and suf
-    return node
+    # return (node[0], node[2], node[1], node[3])  # (read backwards, the two ends trade places)
+    pass
 
 
 # return a new node: this node after tag is applied to it
-# we must handle the case where the tag is a no-op (e.g. negate twice), and we can return the original node
+# this function is never called with a tag that never existed, but tags can have things like pending false values or
+# pending no-ops (for instance two lazy bools canceling) and we still need to check for this and no-op (could just
+# return original node)
 def apply(node: Node, tag: Tag) -> Node:
-    # return (node[0] + tag * node[2], node[1] + tag, node[2])
+    # return (node[0] + tag * node[3], node[1] + tag, node[2] + tag, node[3])
     pass
 
 
@@ -148,10 +153,64 @@ class LazyTreap:
         self._pull(b)
         return b
 
+    # the node of items l..r of t: walks down and combines the pieces that cover them (no split / merge)
+    def _rq(self, t, l, r):
+        P = LazyTreap
+        if l <= 0 and r >= P._sz[t] - 1:
+            return P._agg[t]
+        self._push(t)
+        L, R = P._L[t], P._R[t]
+        ls = P._sz[L]
+        if r < ls:
+            return self._rq(L, l, r)
+        if l > ls:
+            return self._rq(R, l - ls - 1, r - ls - 1)
+        res = P._self[t]
+        if l < ls:
+            res = self.combine(self._rq(L, l, ls - 1), res)
+        if r > ls:
+            res = self.combine(res, self._rq(R, 0, r - ls - 1))
+        return res
+
+    # a[i] = val in t's subtree, recomputing the nodes on the way back up
+    def _setAt(self, t, i, val):
+        P = LazyTreap
+        self._push(t)
+        ls = P._sz[P._L[t]]
+        if i < ls:
+            self._setAt(P._L[t], i, val)
+        elif i > ls:
+            self._setAt(P._R[t], i - ls - 1, val)
+        else:
+            P._self[t] = self.leaf(val)
+        self._pull(t)
+
+    # tag applied to items l..r of t: tags the subtrees that cover them (no split / merge)
+    def _updateRange(self, t, l, r, tag):
+        P = LazyTreap
+        if not t or r < 0 or l >= P._sz[t]:
+            return
+        if l <= 0 and r >= P._sz[t] - 1:
+            self._applyTag(t, tag)
+            return
+        self._push(t)
+        ls = P._sz[P._L[t]]
+        self._updateRange(P._L[t], l, r, tag)
+        if l <= ls <= r:
+            P._self[t] = self.apply(P._self[t], tag)
+        self._updateRange(P._R[t], l - ls - 1, r - ls - 1, tag)
+        self._pull(t)
+
     def _three(self, l, r):
         a, b = self._split(self.root, l)
         b, c = self._split(b, r - l + 1)
         return a, b, c
+
+    # the items of t as a LazyTreap of its own
+    def _wrap(self, t):
+        res = LazyTreap((), self.leaf, self.combine, self.apply, self.compose, self.reverse)
+        res.root = t
+        return res
 
     # how many elements
     def size(self):
@@ -178,10 +237,7 @@ class LazyTreap:
     def pointAssign(self, i, val):
         if not 0 <= i < self.size():
             raise IndexError("pointAssign: needs 0 <= i < size()")
-        a, b, c = self._three(i, i)
-        LazyTreap._self[b] = self.leaf(val)
-        self._pull(b)
-        self.root = self._merge(self._merge(a, b), c)
+        self._setAt(self.root, i, val)
 
     # insert val so it becomes a[i] (i = size() appends); needs 0 <= i <= size(), else IndexError
     def insertAt(self, i, val):
@@ -204,10 +260,7 @@ class LazyTreap:
     def rangeQuery(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError("rangeQuery: needs 0 <= l <= r < size()")
-        a, b, c = self._three(l, r)
-        res = LazyTreap._agg[b]
-        self.root = self._merge(self._merge(a, b), c)
-        return res
+        return self._rq(self.root, l, r)
 
     # the node of the whole array; needs size() >= 1, else IndexError
     def rangeQueryAll(self):
@@ -219,9 +272,7 @@ class LazyTreap:
     def rangeUpdate(self, l, r, tag):
         if not 0 <= l <= r < self.size():
             raise IndexError("rangeUpdate: needs 0 <= l <= r < size()")
-        a, b, c = self._three(l, r)
-        self._applyTag(b, tag)
-        self.root = self._merge(self._merge(a, b), c)
+        self._updateRange(self.root, l, r, tag)
 
     # reverse a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeReverse(self, l, r):
@@ -237,9 +288,7 @@ class LazyTreap:
             raise IndexError("cut: needs 0 <= l <= r < size()")
         a, b, c = self._three(l, r)
         self.root = self._merge(a, c)
-        piece = LazyTreap((), self.leaf, self.combine, self.apply, self.compose, self.reverse)
-        piece.root = b
-        return piece
+        return self._wrap(b)
 
     # insert all of other so it starts at a[i] (other ends up empty); needs 0 <= i <= size(), else IndexError
     def paste(self, i, other):
@@ -248,3 +297,41 @@ class LazyTreap:
         a, b = self._split(self.root, i)
         self.root = self._merge(self._merge(a, other.root), b)
         other.root = 0
+
+    # append all of other (other ends up empty)
+    def merge(self, other):
+        self.root = self._merge(self.root, other.root)
+        other.root = 0
+
+    # (a[0..k-1], a[k..]) as two LazyTreaps (this one ends up empty); needs 0 <= k <= size(), else IndexError
+    def split(self, k):
+        if not 0 <= k <= self.size():
+            raise IndexError("split: needs 0 <= k <= size()")
+        a, b = self._split(self.root, k)
+        self.root = 0
+        return self._wrap(a), self._wrap(b)
+
+    # (a[0..l-1], a[l..r], a[r+1..]) as three LazyTreaps (this one ends up empty); needs 0 <= l <= r < size(), else
+    # IndexError
+    def trisect(self, l, r):
+        if not 0 <= l <= r < self.size():
+            raise IndexError("trisect: needs 0 <= l <= r < size()")
+        a, b, c = self._three(l, r)
+        self.root = 0
+        return self._wrap(a), self._wrap(b), self._wrap(c)
+
+    # cyclic shift a[l..r] left by k (a[l+k] moves to l; any k, taken mod r - l + 1); needs 0 <= l <= r < size(), else
+    # IndexError
+    def rangeRotateLeft(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError("rangeRotateLeft: needs 0 <= l <= r < size()")
+        a, b, c = self._three(l, r)
+        b1, b2 = self._split(b, k % (r - l + 1))
+        self.root = self._merge(self._merge(a, self._merge(b2, b1)), c)
+
+    # cyclic shift a[l..r] right by k (a[r-k+1..r] move to the front; any k, taken mod r - l + 1); needs
+    # 0 <= l <= r < size(), else IndexError
+    def rangeRotateRight(self, l, r, k):
+        if not 0 <= l <= r < self.size():
+            raise IndexError("rangeRotateRight: needs 0 <= l <= r < size()")
+        self.rangeRotateLeft(l, r, -k)

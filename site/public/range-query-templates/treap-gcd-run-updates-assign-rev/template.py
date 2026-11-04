@@ -128,9 +128,9 @@ class ImplicitTreap:
     def longestEqualRun(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"longestEqualRun: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.br[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- append all of other at the end; other is left empty
@@ -197,17 +197,15 @@ class ImplicitTreap:
     def rangeAssign(self, l, r, v):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeAssign: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
-        self._applyAssign(b, v)
-        self._join(a, b, c)
+        self._upd(self.root, l, r, lambda x, off: self._applyAssign(x, v), lambda w, off: v)
 
     # O(logN * logU) expected -- gcd of |a[l]|, ..., |a[r]|; needs 0 <= l <= r < size(), else IndexError
     def rangeGcd(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeGcd: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.g[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN * logU) expected -- reverse a[l..r] in place; needs 0 <= l <= r < size(), else IndexError
@@ -397,6 +395,73 @@ class ImplicitTreap:
             else:
                 i -= ls + 1
                 t = self.R[t]
+
+    def _pieces(self, t, l, r, out):  # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
+        if not t or r < 0 or l >= self.sz[t]:
+            return
+        if l <= 0 and self.sz[t] - 1 <= r:
+            out.append((t, True))
+            return
+        self._push(t)
+        ls = self.sz[self.L[t]]
+        self._pieces(self.L[t], l, r, out)
+        if l <= ls <= r:
+            out.append((t, False))
+        self._pieces(self.R[t], l - ls - 1, r - ls - 1, out)
+
+    def _rangeNode(self, l, r):  # (a temporary node holding a[l..r]'s aggregates, the pool size _release goes back to)
+        mark = len(self.val)
+        return self._rq(self.root, l, r), mark
+
+    # a node over a[l..r] of t's subtree: t itself when it is all of it, else temporaries made only where two parts meet
+    # (pending tags on the way pushed down)
+    def _rq(self, t, l, r):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return 0
+        if l <= 0 and sz[t] - 1 <= r:
+            return t
+        self._push(t)
+        ls = sz[self.L[t]]
+        if r < ls:
+            return self._rq(self.L[t], l, r)
+        if l > ls:
+            return self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        a, b = self._rq(self.L[t], l, r), self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        y = self._clone(t)
+        self.L[y], self.R[y] = a, b
+        self._pull(y)
+        return y
+
+    def _clone(self, x):  # a temporary copy of node x (sharing its children), dropped by _release
+        y = len(self.val)
+        for arr in (self.val, self.pri, self.L, self.R, self.sz, self.g, self.fv, self.lv, self.pr, self.sr, self.br,
+                    self.rev, self.asg, self.hasAsg):
+            arr.append(arr[x])
+        return y
+
+    def _release(self, mark):  # drop every node made after mark (temporaries: no tree points to them)
+        for arr in (self.val, self.pri, self.L, self.R, self.sz, self.g, self.fv, self.lv, self.pr, self.sr, self.br,
+                    self.rev, self.asg, self.hasAsg):
+            del arr[mark:]
+
+    # the update on a[l..r] of t's subtree, in place: f(x, off) on a node x covered whole, h(w, off) the new value of a
+    # lone value w (off: the distance from l). Only the nodes on the range's two boundary paths are recomputed, nothing
+    # is cut out
+    def _upd(self, t, l, r, f, h):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return
+        if l <= 0 and sz[t] - 1 <= r:
+            f(t, -l)
+            return
+        self._push(t)
+        ls = sz[self.L[t]]
+        self._upd(self.L[t], l, r, f, h)
+        self._upd(self.R[t], l - ls - 1, r - ls - 1, f, h)
+        if l <= ls <= r:
+            self.val[t] = h(self.val[t], ls - l)
+        self._pull(t)
 
 
 # Example (pieces move between treaps; merge appends and leaves its argument empty):
