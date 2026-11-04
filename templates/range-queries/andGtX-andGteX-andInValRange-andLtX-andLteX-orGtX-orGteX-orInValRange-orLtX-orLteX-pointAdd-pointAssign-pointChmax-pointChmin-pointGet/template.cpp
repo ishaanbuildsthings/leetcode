@@ -37,14 +37,20 @@ struct SegOfValueTrees {
     int n;
     long long vlo, vhi;
     vector<T> arr;
-    vector<int> root, L, R, C;  // root[p]: segment node p's value tree; value node 0 = the empty tree
-    vector<T> O;  // OR of the values present below
-    vector<T> A;  // AND of the values present below
+    vector<int> root;  // root[p]: segment node p's value tree; value node 0 = the empty tree
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        T O = T(0);
+        T A = ~T(0);
+        int L = 0;
+        int R = 0;
+        int C = 0;
+    };
+    vector<Node> nd;  // node 0 = the empty tree
 
     // O(N log N log U) -- arr: the initial array, 0-indexed; every value a[i] ever holds must lie in [valLo, valHi]
     // (any integers, negative is fine; U = valHi - valLo + 1)
     SegOfValueTrees(const vector<T>& a, long long valLo, long long valHi)
-        : n((int)a.size()), vlo(valLo), vhi(valHi), arr(a), root(2 * n, 0), L(1, 0), R(1, 0), C(1, 0), O(1, T(0)), A(1, ~T(0)) {
+        : n((int)a.size()), vlo(valLo), vhi(valHi), arr(a), root(2 * n, 0), nd(1) {
         for (int i = 0; i < n; i++) add(i, a[i], 1);
     }
 
@@ -163,10 +169,10 @@ struct SegOfValueTrees {
     }
 
     int newNode() {
-        L.push_back(0), R.push_back(0), C.push_back(0);
-        O.push_back(T(0));
-        A.push_back(~T(0));
-        return (int)C.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.C = 0, n.O = T(0), n.A = ~T(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     // value tree t (0: a new one) with d more copies of v
@@ -176,25 +182,25 @@ struct SegOfValueTrees {
         long long nl = vlo, nh = vhi;
         int path[130], dep = 0;
         while (true) {
-            C[t] += d;
+            nd[t].C += d;
             path[dep++] = t;
             if (nl == nh) break;
             long long mid = nl + (nh - nl) / 2;
             if (v <= mid) {
-                if (!L[t]) { int x = newNode(); L[t] = x; }
-                t = L[t], nh = mid;
+                if (!nd[t].L) { int x = newNode(); nd[t].L = x; }
+                t = nd[t].L, nh = mid;
             } else {
-                if (!R[t]) { int x = newNode(); R[t] = x; }
-                t = R[t], nl = mid + 1;
+                if (!nd[t].R) { int x = newNode(); nd[t].R = x; }
+                t = nd[t].R, nl = mid + 1;
             }
         }
-        if (!C[t] || C[t] == d) {  // v appeared or disappeared here: OR / AND again up the path
-            O[t] = C[t] ? v : T(0);
-            A[t] = C[t] ? v : ~T(0);
+        if (!nd[t].C || nd[t].C == d) {  // v appeared or disappeared here: OR / AND again up the path
+            nd[t].O = nd[t].C ? v : T(0);
+            nd[t].A = nd[t].C ? v : ~T(0);
             for (int k = dep - 2; k >= 0; k--) {
                 int u = path[k];
-                O[u] = O[L[u]] | O[R[u]];
-                A[u] = A[L[u]] & A[R[u]];
+                nd[u].O = nd[nd[u].L].O | nd[nd[u].R].O;
+                nd[u].A = nd[nd[u].L].A & nd[nd[u].R].A;
             }
         }
         return top;
@@ -221,12 +227,12 @@ struct SegOfValueTrees {
             auto [u, nl, nh] = st[--sp];
             if (!u || nh < lo || hi < nl) continue;
             if (lo <= nl && nh <= hi) {
-                res |= O[u];
+                res |= nd[u].O;
                 continue;
             }
             long long mid = nl + (nh - nl) / 2;
-            st[sp++] = {L[u], nl, mid};
-            st[sp++] = {R[u], mid + 1, nh};
+            st[sp++] = {nd[u].L, nl, mid};
+            st[sp++] = {nd[u].R, mid + 1, nh};
         }
         return res;
     }
@@ -252,12 +258,12 @@ struct SegOfValueTrees {
             auto [u, nl, nh] = st[--sp];
             if (!u || nh < lo || hi < nl) continue;
             if (lo <= nl && nh <= hi) {
-                res &= A[u];
+                res &= nd[u].A;
                 continue;
             }
             long long mid = nl + (nh - nl) / 2;
-            st[sp++] = {L[u], nl, mid};
-            st[sp++] = {R[u], mid + 1, nh};
+            st[sp++] = {nd[u].L, nl, mid};
+            st[sp++] = {nd[u].R, mid + 1, nh};
         }
         return res;
     }

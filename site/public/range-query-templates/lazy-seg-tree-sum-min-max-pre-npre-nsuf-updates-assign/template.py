@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-min-max-pre-npre-nsuf-updates-assign/template.py
-# @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX
+# @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -10,6 +10,8 @@
 #   leftmostLteX: log(N)
 #   leftmostPrefixSumGtX: log(N)
 #   leftmostPrefixSumGteX: log(N)
+#   leftmostPrefixSumLtX: log(N)
+#   leftmostPrefixSumLteX: log(N)
 #   maxPrefixSum: log(N)
 #   minPrefixSum: log(N)
 #   minSuffixSum: log(N)
@@ -26,6 +28,8 @@
 #   rightmostGteX: log(N)
 #   rightmostLtX: log(N)
 #   rightmostLteX: log(N)
+#   rightmostSuffixSumLtX: log(N)
+#   rightmostSuffixSumLteX: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -172,6 +176,48 @@ class LazySegTree:
                     self._push(t, s)
                     s -= 1
                     if acc + P[2 * t] >= x:
+                        t = 2 * t
+                    else:
+                        acc += sm[2 * t]
+                        t = 2 * t + 1
+                return t - n
+            acc += sm[t]
+        return -1
+
+    # O(logN) -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (a walk pruned by min prefix sums); needs
+    # 0 <= l <= r < n, else IndexError
+    def leftmostPrefixSumLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostPrefixSumLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        n, sm, P = self.n, self.sm, self.npre
+        acc = 0
+        for t, s in self._nodes(l, r):
+            if acc + P[t] < x:
+                while t < n:
+                    self._push(t, s)
+                    s -= 1
+                    if acc + P[2 * t] < x:
+                        t = 2 * t
+                    else:
+                        acc += sm[2 * t]
+                        t = 2 * t + 1
+                return t - n
+            acc += sm[t]
+        return -1
+
+    # O(logN) -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (a walk pruned by min prefix sums); needs
+    # 0 <= l <= r < n, else IndexError
+    def leftmostPrefixSumLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostPrefixSumLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        n, sm, P = self.n, self.sm, self.npre
+        acc = 0
+        for t, s in self._nodes(l, r):
+            if acc + P[t] <= x:
+                while t < n:
+                    self._push(t, s)
+                    s -= 1
+                    if acc + P[2 * t] <= x:
                         t = 2 * t
                     else:
                         acc += sm[2 * t]
@@ -406,6 +452,48 @@ class LazySegTree:
                     s -= 1
                     t = 2 * t + 1 if F[2 * t + 1] <= x else 2 * t
                 return t - n
+        return -1
+
+    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] < x, or -1 (a walk pruned by min suffix sums); needs
+    # 0 <= l <= r < n, else IndexError
+    def rightmostSuffixSumLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostSuffixSumLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        n, sm, P = self.n, self.sm, self.nsuf
+        acc = 0
+        for t, s in reversed(self._nodes(l, r)):
+            if acc + P[t] < x:
+                while t < n:
+                    self._push(t, s)
+                    s -= 1
+                    if acc + P[2 * t + 1] < x:
+                        t = 2 * t + 1
+                    else:
+                        acc += sm[2 * t + 1]
+                        t = 2 * t
+                return t - n
+            acc += sm[t]
+        return -1
+
+    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] <= x, or -1 (a walk pruned by min suffix sums); needs
+    # 0 <= l <= r < n, else IndexError
+    def rightmostSuffixSumLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostSuffixSumLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        n, sm, P = self.n, self.sm, self.nsuf
+        acc = 0
+        for t, s in reversed(self._nodes(l, r)):
+            if acc + P[t] <= x:
+                while t < n:
+                    self._push(t, s)
+                    s -= 1
+                    if acc + P[2 * t + 1] <= x:
+                        t = 2 * t + 1
+                    else:
+                        acc += sm[2 * t + 1]
+                        t = 2 * t
+                return t - n
+            acc += sm[t]
         return -1
 
     # ---- internals ----

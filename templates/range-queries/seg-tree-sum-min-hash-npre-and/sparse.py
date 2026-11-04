@@ -1,11 +1,13 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-hash-npre-and/sparse.py
-# @operations: isPalindrome leftmostLtX leftmostLteX minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX
+# @operations: isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX
 # @data-structure-type: seg-tree
 # @complexities:
 #   isPalindrome: log(U)
 #   leftmostLtX: log(U)
 #   leftmostLteX: log(U)
+#   leftmostPrefixSumLtX: log(U)
+#   leftmostPrefixSumLteX: log(U)
 #   minPrefixSum: log(U)
 #   pointAdd: log(U)
 #   pointAssign: log(U)
@@ -112,6 +114,48 @@ class SparseSegTree:
                     else:
                         t, tl = R[t], tl + (1 << s)
                 return tl
+        return self.first - 1
+
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
+    def leftmostPrefixSumLtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        sm, P, L, R = self.sm, self.npre, self.L, self.R
+        acc = 0
+        for t, s, tl in self._cover(l, r):
+            if acc + P[t] < x:
+                while s:
+                    self._kids(t, s)
+                    s -= 1
+                    if acc + P[L[t]] < x:
+                        t = L[t]
+                    else:
+                        acc += sm[L[t]]
+                        t, tl = R[t], tl + (1 << s)
+                return tl
+            acc += sm[t]
+        return self.first - 1
+
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
+    def leftmostPrefixSumLteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        sm, P, L, R = self.sm, self.npre, self.L, self.R
+        acc = 0
+        for t, s, tl in self._cover(l, r):
+            if acc + P[t] <= x:
+                while s:
+                    self._kids(t, s)
+                    s -= 1
+                    if acc + P[L[t]] <= x:
+                        t = L[t]
+                    else:
+                        acc += sm[L[t]]
+                        t, tl = R[t], tl + (1 << s)
+                return tl
+            acc += sm[t]
         return self.first - 1
 
     # O(logN) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError

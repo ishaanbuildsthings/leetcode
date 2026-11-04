@@ -198,8 +198,9 @@ struct PairSwapTreap {
         other.rE = other.rO = 0;
     }
 
-    // O(logN) expected -- a[i] += v
+    // O(logN) expected -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
     void pointAdd(int i, T v) {
+        if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
         vector<int> path;
         int t = locate(i, &path);
         nd[t].val = nd[t].val + v;

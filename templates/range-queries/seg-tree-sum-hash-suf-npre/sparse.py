@@ -1,9 +1,11 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-hash-suf-npre/sparse.py
-# @operations: isPalindrome maxSuffixSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeSum rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX
+# @operations: isPalindrome leftmostPrefixSumLtX leftmostPrefixSumLteX maxSuffixSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeSum rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX
 # @data-structure-type: seg-tree
 # @complexities:
 #   isPalindrome: log(U)
+#   leftmostPrefixSumLtX: log(U)
+#   leftmostPrefixSumLteX: log(U)
 #   maxSuffixSum: log(U)
 #   minPrefixSum: log(U)
 #   pointAdd: log(U)
@@ -70,6 +72,48 @@ class SparseSegTree:
             b = (bh[t] * p + b) % P
             p = p * pw[s] % P
         return f == b
+
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
+    def leftmostPrefixSumLtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        sm, P, L, R = self.sm, self.npre, self.L, self.R
+        acc = 0
+        for t, s, tl in self._cover(l, r):
+            if acc + P[t] < x:
+                while s:
+                    self._kids(t, s)
+                    s -= 1
+                    if acc + P[L[t]] < x:
+                        t = L[t]
+                    else:
+                        acc += sm[L[t]]
+                        t, tl = R[t], tl + (1 << s)
+                return tl
+            acc += sm[t]
+        return self.first - 1
+
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
+    def leftmostPrefixSumLteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        sm, P, L, R = self.sm, self.npre, self.L, self.R
+        acc = 0
+        for t, s, tl in self._cover(l, r):
+            if acc + P[t] <= x:
+                while s:
+                    self._kids(t, s)
+                    s -= 1
+                    if acc + P[L[t]] <= x:
+                        t = L[t]
+                    else:
+                        acc += sm[L[t]]
+                        t, tl = R[t], tl + (1 << s)
+                return tl
+            acc += sm[t]
+        return self.first - 1
 
     # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def maxSuffixSum(self, l, r):

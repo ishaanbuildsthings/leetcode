@@ -18,11 +18,11 @@ import re
 SIZE_ORDER = ["unsigned long long", "U64", "S", "long long", "T", "int", "char", "bool"]
 
 
-def _decls(text):
-    """(line, type, [(name, init or None)], comment) for each static vector member line (None: no initial value, e.g.
-    a free list, which never becomes a node field)"""
+def _decls(text, member=False):
+    """(line, type, [(name, init or None)], comment) for each static vector member line (member: plain, per-object
+    vector members instead) (None: no initial value, e.g. a free list, which never becomes a node field)"""
     out = []
-    for m in re.finditer(r"^    static inline vector<(.+?)> (.+?);([ \t]*//[^\n]*)?\n", text, re.M):
+    for m in re.finditer(r"^    " + ("" if member else "static inline ") + r"vector<(.+?)> (.+?);([ \t]*//[^\n]*)?\n", text, re.M):
         items = [x.strip() for x in _split_top(m.group(2))]
         out.append((m.group(0), m.group(1), [(x[:x.index("{")], x[x.index("{") + 1:-1]) if "{" in x else (x, None) for x in items],
                     m.group(3) or ""))
@@ -138,13 +138,22 @@ def _wrap(body, ind):
     return [ind + x for x in lines]
 
 
-def aosify(text, groups=None):
-    decls = _decls(text)
-    allf = [(n, t, i, cm) for _, t, items, cm in decls for n, i in items if i is not None]
+def aosify(text, groups=None, member=False, zero_note="node 0 = the empty tree"):
+    decls = _decls(text, member)
+    named = {n for _, _, names in groups for n in names} if groups else set()
+    allf = [(n, t, i, cm) for _, t, items, cm in decls for n, i in items if i is not None or n in named]
     if not allf:
         return text
     if groups is None:
         groups = [("Node", "nd", [n for n, *_ in allf])]
+    # (fields declared empty, the class making node 0 itself: an empty node vector)
+    empty = all(i is None for n, _, i, _ in allf if n in {m for _, _, names in groups for m in names})
+    # (a field declared empty but started as NAME(1, value) in a constructor: node 0 holds value, so the struct does too)
+    for k, (n, typ, i, cm) in enumerate(allf):
+        if i is None:
+            m = re.search(rf"(?:[:,] {re.escape(n)}\(|\b{re.escape(n)}\.assign\()1, ((?:[^()]|\([^()]*\))*)\)", text)
+            if m:
+                allf[k] = (n, typ, m.group(1), cm)
     field_vec, structs = {}, {}
     for sname, vec, names in groups:
         structs[vec] = sname
@@ -156,18 +165,42 @@ def aosify(text, groups=None):
         fl.sort(key=lambda x: SIZE_ORDER.index(x[1]) if x[1] in SIZE_ORDER else 3)
         body = "".join(f"        {t} {n} = {i or t + '()'};\n" for n, t, i, _ in fl)
         blocks.append(f"    struct {sname} {{  // a node's fields side by side: a walk reads them together (faster than one array per field)\n{body}    }};\n"
-                      f"    static inline vector<{sname}> {vec}{{{sname}{{}}}};  // node 0 = the empty tree\n")
-    mark = "\x00STRUCTS\x00"
+                      f"    {'' if member else 'static inline '}vector<{sname}> {vec}{'' if empty else '{' + sname + '{}}'};  // {zero_note}\n")
+    marks = [f"\x00STRUCT{k}\x00" for k in range(len(groups))]
+    placed = set()
     for line, typ, items, cm in decls:  # (each line keeps the members that are not node fields)
         keep = [(n, i) for n, i in items if n not in field_vec]
         if len(keep) == len(items):
             continue
-        new = f"    static inline vector<{typ}> {', '.join(n + ('{' + i + '}' if i is not None else '') for n, i in keep)};{cm}\n" if keep else ""
-        text = text.replace(line, ("" if mark in text else mark) + new, 1)
-    text = text.replace(mark, "".join(blocks))
+        new = (f"    {'' if member else 'static inline '}vector<{typ}> {', '.join(n + ('{' + i + '}' if i is not None else '') for n, i in keep)};{cm}\n"
+               if keep else "")
+        if empty:  # (each node vector goes after the members kept from its own first line: constructors list those first)
+            here = [k for k, (_, vec, _) in enumerate(groups) if k not in placed and any(field_vec.get(n) == vec for n, _ in items)]
+            text = text.replace(line, new + "".join(marks[k] for k in here), 1)
+        else:  # (every struct where the first node array was)
+            here = [k for k in range(len(groups)) if k not in placed] if not placed else []
+            text = text.replace(line, "".join(marks[k] for k in here) + new, 1)
+        placed |= set(here)
+    for k, b in enumerate(blocks):
+        text = text.replace(marks[k], b)
+    for sname, vec, names in groups:  # L.assign(1, 0), R.assign(1, 0), ... (node 0 made again) -> one vec.assign(1, Node{})
+        one = rf"\b(?:{'|'.join(map(re.escape, names))})\.assign\(1, (?:[^()]|\([^()]*\))*\)"
+        text = re.sub(rf"{one}(?:, {one})*;", f"{vec}.assign(1, {sname}{{}});", text)
+    for sname, vec, names in groups:  # constructor initializers L(1, 0), R(1, 0), ... -> one vec(1)
+        pat = r"\b(?:" + "|".join(map(re.escape, names)) + r")\(1(?:, [^()]*(?:\([^()]*\))?)?\)"
+        for m in re.finditer(r"^(\s+(?:explicit )?\w+\(.*\) : |\s+: )(.*) \{(\})?$", text, re.M):
+            inits = [x.strip() for x in _split_top(m.group(2))]
+            gone = [k for k, x in enumerate(inits) if re.fullmatch(pat, x)]
+            if gone:  # (vec(1) where the first of them was: declaration order)
+                kept = [x for k, x in enumerate(inits) if k not in gone[1:]]
+                kept[gone[0]] = f"{vec}(1)"
+                text = text.replace(m.group(0), m.group(1) + ", ".join(kept) + " {" + (m.group(3) or ""), 1)
     text = _creations(text, field_vec, structs)
     for n, vec in field_vec.items():
         text = re.sub(rf"(?<![A-Za-z0-9_.>]){re.escape(n)}\.size\(\)", f"{vec}.size()", text)
+        text = re.sub(rf"(?<![A-Za-z0-9_.>]){re.escape(n)}\.(resize|reserve)\(", rf"{vec}.\1(", text)  # (one: every field)
+    text = re.sub(r"(\w+\.(?:reserve|resize)\([^()]*\))(?:, \1)+", r"\1", text)  # (L.reserve(k), R.reserve(k) -> one)
+    text = re.sub(r"(\w+\.(?:reserve|resize)\([^()]*\);)(?: \1)+", r"\1", text)  # (and as separate statements)
     return _fit(_rewrite(text, field_vec))
 
 
@@ -180,6 +213,13 @@ def _fit(text, width=120):
             out.append(ln)
             continue
         ind = ln[:len(ln) - len(ln.lstrip())]
+        m = re.match(r"^(\s+)(.*\) (?:const )?)\{ (.*;) \}$", ln)
+        if m and "  // " not in ln:  # (a one-line method: its body on lines of its own, then fitted below)
+            out.append(f"{m.group(1)}{m.group(2)}{{")
+            ln, ind = m.group(1) + "    " + m.group(3), m.group(1) + "    "
+            close = m.group(1) + "}"
+        else:
+            close = None
         k = ln.find("  // ")
         if k > 0:
             out.append(ind + ln[k + 2:])
@@ -198,6 +238,8 @@ def _fit(text, width=120):
             out.append(ln[:cut + 1])
             ln = ind + "    " + ln[cut + 1:].lstrip()
         out.append(ln)
+        if close:
+            out.append(close)
     return "\n".join(out)
 
 
@@ -205,11 +247,39 @@ VALUE_NODE = ("Lc", "Rc", "cnt", "sm", "xr", "ov", "av", "fh", "bh")  # (sorted 
 NOT_NODE = ("pw", "gs")  # (sorted runs: B^k and 1 + B + ... + B^(k-1), indexed by length)
 
 
-def aosify_runs(text):
-    """sorted runs (sequence variants): value-tree nodes -> struct VNode in vn, run (treap) nodes -> struct Run in rn"""
-    names = [n for _, _, items, _ in _decls(text) for n, i in items if i is not None]
+def aosify_runs(text, member=False):
+    """sorted runs: value-tree nodes -> struct VNode in vn, and (sequence variants, static pools) run (treap) nodes ->
+    struct Run in rn; member: the fixed-length variants, whose value trees are per-object vectors (their run arrays are
+    indexed by position, not by node, and stay as they are)"""
+    names = [n for _, _, items, _ in _decls(text, member) for n, i in items if i is not None]
     val = [n for n in names if n in VALUE_NODE]
-    run = [n for n in names if n not in VALUE_NODE and n not in NOT_NODE]
-    text = aosify(text, [("VNode", "vn", val), ("Run", "rn", run)])
-    text = re.sub(r"(static inline vector<int> freeList;)  //.*", r"\1  // value nodes freed by merges, reused first", text)
-    return re.sub(r"(static inline vector<unsigned long long> pw\{1\}, gs\{0\};)  //.*", r"\1  // B^k; 1 + B + ... + B^(k-1)", text)
+    groups = [("VNode", "vn", val)]
+    if not member:
+        groups.append(("Run", "rn", [n for n in names if n not in VALUE_NODE and n not in NOT_NODE]))
+    text = aosify(text, groups, member=member, zero_note="value node 0 = the empty tree" if member else "node 0 = the empty tree")
+    text = re.sub(r"(vector<int> freeList;)  //.*", r"\1  // value nodes freed by merges, reused first", text)
+    return re.sub(r"(vector<unsigned long long> pw\{1\}, gs\{0\};)  //.*", r"\1  // B^k; 1 + B + ... + B^(k-1)", text)
+
+
+VALUE_TREE = ("L", "R", "C", "Sm", "X", "O", "A")  # (order statistics: value-tree nodes)
+MEX_TREE = ("ML", "MR", "MN")  # (and the mex trees' nodes)
+
+
+def aosify_value_trees(text):
+    """order statistics (persistent / BIT / segment tree of value trees): their node arrays -> struct Node in nd (and
+    struct MexNode in mnd for the mex trees); per-position arrays (root, mexRoot, arr) stay as they are"""
+    names = [n for _, _, items, _ in _decls(text, member=True) for n, _ in items]
+    groups = [g for g in (("Node", "nd", [n for n in names if n in VALUE_TREE]), ("MexNode", "mnd", [n for n in names if n in MEX_TREE]))
+              if g[2]]
+    if not groups:
+        return text
+    return aosify(text, groups, member=True, zero_note="node 0 = the empty tree")
+
+
+PER_LEVEL = ("PW", "GS")  # (sparse seg trees: hash powers per level, not per node)
+
+
+def aosify_sparse(text):
+    """a sparse seg tree's per-object node vectors (children L / R and every other field) -> one Node per node"""
+    names = [n for _, _, items, _ in _decls(text, member=True) for n, i in items if i is not None and n not in PER_LEVEL]
+    return aosify(text, [("Node", "nd", names)], member=True, zero_note="node 0: none; node 1 is the root")

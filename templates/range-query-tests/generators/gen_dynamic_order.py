@@ -12,6 +12,7 @@ import os
 import re
 
 from gen_wavelet import BASE, BIT_SUFFIXES, CPP_OPS, ORDER, PY_OPS, SUMS
+from aos import aosify_value_trees
 from note_lang import add_get_all, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -459,10 +460,10 @@ CPP_CORE = '''
         }
     }
 
-    template <class A> auto total(const vector<int>& pos, const vector<int>& neg, const vector<A>& a) const {
-        A s = 0;
-        for (int t : pos) s += a[t];
-        for (int t : neg) s -= a[t];
+    template <class F> auto total(const vector<int>& pos, const vector<int>& neg, F get) const {  // get(t): node t's field
+        decltype(get(0)) s = 0;
+        for (int t : pos) s += get(t);
+        for (int t : neg) s -= get(t);
         return s;
     }
     void goLeft(vector<int>& v) const { for (int& t : v) t = L[t]; }
@@ -615,7 +616,7 @@ def cpp_dense(ops, sums, xr=False):
         if (x <= vlo) return 0;
         vector<int> pos, neg;
         sides(l, r, pos, neg);
-        return x > vhi ? total(pos, neg, Sm) : belowIn(pos, neg, x).second;
+        return x > vhi ? total(pos, neg, [&](int t) { return Sm[t]; }) : belowIn(pos, neg, x).second;
     }
 ''' if sums else "") + (cpp_xor(False) if xr else "") + cpp_core(sums, xr) + "};\n")
 
@@ -666,13 +667,13 @@ def cpp_sparse(ops, sums, xr=False):
     long long sides(long long l, long long r, vector<int>& pos, vector<int>& neg) const {{
         for (long long j = r - lo + 1; j; j &= j - 1) if (auto it = root.find(j); it != root.end()) pos.push_back(it->second);
         for (long long j = l - lo; j; j &= j - 1) if (auto it = root.find(j); it != root.end()) neg.push_back(it->second);
-        return (r - l + 1) - total(pos, neg, C);
+        return (r - l + 1) - total(pos, neg, [&](int t) {{ return C[t]; }});
     }}
 
     // # of stored (nonzero) values < x
     long long storedBelow(const vector<int>& pos, const vector<int>& neg, long long x) const {{
         if (x <= vlo) return 0;
-        if (x > vhi) return total(pos, neg, C);
+        if (x > vhi) return total(pos, neg, [&](int t) {{ return C[t]; }});
         return {below};
     }}
 
@@ -704,7 +705,7 @@ def cpp_sparse(ops, sums, xr=False):
         if (x <= vlo) return 0;
         vector<int> pos, neg;
         sides(l, r, pos, neg);
-        return x > vhi ? total(pos, neg, Sm) : belowIn(pos, neg, x).second;
+        return x > vhi ? total(pos, neg, [&](int t) { return Sm[t]; }) : belowIn(pos, neg, x).second;
     }
 ''' if sums else "") + (cpp_xor(True) if xr else "") + cpp_core(sums, xr) + "};\n")
 
@@ -718,9 +719,9 @@ def main():
             os.makedirs(path, exist_ok=True)
             dense = sorted(ops + ["getAll"])  # the sparse versions below have no getAll
             write_template(os.path.join(path, "template.py"), header("#", dense, sums, False, xr) + "\n" + add_get_all(py_dense(ops, sums, xr), "py"))
-            write_template(os.path.join(path, "template.cpp"), header("//", dense, sums, False, xr) + "\n" + add_get_all(cpp_dense(ops, sums, xr), "cpp"))
+            write_template(os.path.join(path, "template.cpp"), header("//", dense, sums, False, xr) + "\n" + add_get_all(aosify_value_trees(cpp_dense(ops, sums, xr)), "cpp"))
             write_template(os.path.join(path, "sparse.py"), header("#", ops, sums, True, xr) + "\n" + py_sparse(ops, sums, xr))
-            write_template(os.path.join(path, "sparse.cpp"), header("//", ops, sums, True, xr) + "\n" + cpp_sparse(ops, sums, xr))
+            write_template(os.path.join(path, "sparse.cpp"), header("//", ops, sums, True, xr) + "\n" + aosify_value_trees(cpp_sparse(ops, sums, xr)))
             print("wrote", folder)
 
 

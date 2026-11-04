@@ -40,9 +40,16 @@ struct SortedRunsHash {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int n, top;
     long long vlo, vhi;
-    vector<int> Lc{0}, Rc{0}, freeList;  // value node 0 = the empty tree; nodes freed by merges are reused first
-    vector<long long> cnt{0};
-    vector<unsigned long long> fh{0}, bh{0}, pw{1}, gs{0};  // hashes both ways; B^k; 1 + B + ... + B^(k-1)
+    struct VNode {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        unsigned long long fh = 0;
+        unsigned long long bh = 0;
+        long long cnt = 0;
+        int Lc = 0;
+        int Rc = 0;
+    };
+    vector<VNode> vn{VNode{}};  // value node 0 = the empty tree
+    vector<int> freeList;  // value nodes freed by merges, reused first
+    vector<unsigned long long> pw{1}, gs{0};  // B^k; 1 + B + ... + B^(k-1)
     vector<int> root, len;  // per run start: its value tree, its length
     vector<char> desc;      // per run start: sorted descending?
     vector<int> bc;         // Fenwick: 1 at each run start
@@ -255,7 +262,7 @@ struct SortedRunsHash {
     // leaf p of the position tree <- the aggregates of the run starting at s
     void setPos(int p, int s) {
         int t = root[s];
-        qf[p] = desc[s] ? bh[t] : fh[t], qb[p] = desc[s] ? fh[t] : bh[t], ql[p] = len[s];
+        qf[p] = desc[s] ? vn[t].bh : vn[t].fh, qb[p] = desc[s] ? vn[t].fh : vn[t].bh, ql[p] = len[s];
     }
 
     void up(int p) {
@@ -290,11 +297,13 @@ struct SortedRunsHash {
         if (!freeList.empty()) {
             int t = freeList.back();
             freeList.pop_back();
-            Lc[t] = Rc[t] = 0, cnt[t] = 0;
+            vn[t].Lc = vn[t].Rc = 0, vn[t].cnt = 0;
             return t;
         }
-        Lc.push_back(0), Rc.push_back(0), cnt.push_back(0), fh.push_back(0), bh.push_back(0);
-        return (int)cnt.size() - 1;
+        VNode n;
+        n.Lc = 0, n.Rc = 0, n.cnt = 0, n.fh = 0, n.bh = 0;
+        vn.push_back(n);
+        return (int)vn.size() - 1;
     }
 
     void freeTree(int t) {  // hand every node of t back
@@ -304,22 +313,22 @@ struct SortedRunsHash {
             int u = st.back();
             st.pop_back();
             freeList.push_back(u);
-            if (Lc[u]) st.push_back(Lc[u]);
-            if (Rc[u]) st.push_back(Rc[u]);
+            if (vn[u].Lc) st.push_back(vn[u].Lc);
+            if (vn[u].Rc) st.push_back(vn[u].Rc);
         }
     }
 
     // node x holds c copies of v (a leaf, or a node with one value under it)
     void setLeaf(int x, long long v, long long c) {
-        cnt[x] = c;
-        fh[x] = bh[x] = hmul(hval(T(v)), gs[c]);
+        vn[x].cnt = c;
+        vn[x].fh = vn[x].bh = hmul(hval(T(v)), gs[c]);
     }
 
     void pull(int x) {
-        int l = Lc[x], r = Rc[x];
-        cnt[x] = cnt[l] + cnt[r];
-        fh[x] = hadd(hmul(fh[l], pw[cnt[r]]), fh[r]);
-        bh[x] = hadd(hmul(bh[r], pw[cnt[l]]), bh[l]);
+        int l = vn[x].Lc, r = vn[x].Rc;
+        vn[x].cnt = vn[l].cnt + vn[r].cnt;
+        vn[x].fh = hadd(hmul(vn[l].fh, pw[vn[r].cnt]), vn[r].fh);
+        vn[x].bh = hadd(hmul(vn[r].bh, pw[vn[l].cnt]), vn[l].bh);
     }
 
     // hash tables up to length m
@@ -336,8 +345,8 @@ struct SortedRunsHash {
             if (nl == nh) return top_;
             long long mid = nl + (nh - nl) / 2;
             int u = node();
-            if ((long long)v <= mid) Lc[t] = u, nh = mid;
-            else Rc[t] = u, nl = mid + 1;
+            if ((long long)v <= mid) vn[t].Lc = u, nh = mid;
+            else vn[t].Rc = u, nl = mid + 1;
             t = u;
         }
     }
@@ -345,21 +354,21 @@ struct SortedRunsHash {
     // a = the k smallest of t, b = the rest (0 <= k <= cnt[t]); t keeps the first part, new nodes (one path) the second
     void split(int t, long long k, long long nl, long long nh, int& a, int& b) {
         if (k <= 0) { a = 0, b = t; return; }
-        if (k >= cnt[t]) { a = t, b = 0; return; }
+        if (k >= vn[t].cnt) { a = t, b = 0; return; }
         int nb = node();
         if (nl == nh) {  // one value: split its copies
-            setLeaf(nb, nl, cnt[t] - k), setLeaf(t, nl, k);
+            setLeaf(nb, nl, vn[t].cnt - k), setLeaf(t, nl, k);
             a = t, b = nb;
             return;
         }
-        long long mid = nl + (nh - nl) / 2, cl = cnt[Lc[t]];
+        long long mid = nl + (nh - nl) / 2, cl = vn[vn[t].Lc].cnt;
         int x, y;
         if (k <= cl) {
-            split(Lc[t], k, nl, mid, x, y);
-            Lc[t] = x, Lc[nb] = y, Rc[nb] = Rc[t], Rc[t] = 0;
+            split(vn[t].Lc, k, nl, mid, x, y);
+            vn[t].Lc = x, vn[nb].Lc = y, vn[nb].Rc = vn[t].Rc, vn[t].Rc = 0;
         } else {
-            split(Rc[t], k - cl, mid + 1, nh, x, y);
-            Rc[t] = x, Rc[nb] = y;
+            split(vn[t].Rc, k - cl, mid + 1, nh, x, y);
+            vn[t].Rc = x, vn[nb].Rc = y;
         }
         pull(t), pull(nb);
         a = t, b = nb;
@@ -369,13 +378,13 @@ struct SortedRunsHash {
     int merge(int a, int b, long long nl, long long nh) {
         if (!a || !b) return a ? a : b;
         if (nl == nh) {
-            setLeaf(a, nl, cnt[a] + cnt[b]);
+            setLeaf(a, nl, vn[a].cnt + vn[b].cnt);
         } else {
             long long mid = nl + (nh - nl) / 2;
-            int x = merge(Lc[a], Lc[b], nl, mid);
-            Lc[a] = x;
-            int y = merge(Rc[a], Rc[b], mid + 1, nh);
-            Rc[a] = y;
+            int x = merge(vn[a].Lc, vn[b].Lc, nl, mid);
+            vn[a].Lc = x;
+            int y = merge(vn[a].Rc, vn[b].Rc, mid + 1, nh);
+            vn[a].Rc = y;
             pull(a);
         }
         freeList.push_back(b);
@@ -386,9 +395,9 @@ struct SortedRunsHash {
     T kth(int t, long long k) const {
         long long nl = vlo, nh = vhi;
         while (nl != nh) {
-            long long mid = nl + (nh - nl) / 2, cl = cnt[Lc[t]];
-            if (k <= cl) t = Lc[t], nh = mid;
-            else k -= cl, t = Rc[t], nl = mid + 1;
+            long long mid = nl + (nh - nl) / 2, cl = vn[vn[t].Lc].cnt;
+            if (k <= cl) t = vn[t].Lc, nh = mid;
+            else k -= cl, t = vn[t].Rc, nl = mid + 1;
         }
         return T(nl);
     }
@@ -400,13 +409,13 @@ struct SortedRunsHash {
         while (!st.empty()) {  // in-order, pushed right first
             auto [u, nl, nh] = st.back();
             st.pop_back();
-            if (!cnt[u]) continue;
+            if (!vn[u].cnt) continue;
             if (nl == nh) {
-                out.insert(out.end(), cnt[u], T(nl));
+                out.insert(out.end(), vn[u].cnt, T(nl));
                 continue;
             }
             long long mid = nl + (nh - nl) / 2;
-            st.push_back({Rc[u], mid + 1, nh}), st.push_back({Lc[u], nl, mid});
+            st.push_back({vn[u].Rc, mid + 1, nh}), st.push_back({vn[u].Lc, nl, mid});
         }
         if (d) reverse(out.begin() + from, out.end());
     }

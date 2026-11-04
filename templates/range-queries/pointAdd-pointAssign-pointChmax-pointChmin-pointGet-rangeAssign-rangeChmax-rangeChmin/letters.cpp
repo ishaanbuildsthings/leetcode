@@ -101,8 +101,11 @@ struct ChminChmaxTree {
         push(i + n); val[i] = v;
     }
 
-    // O(logN) -- a[i] += delta
-    void pointAdd(int i, T delta) { push(i + n); val[i] = val[i] + delta; }
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        push(i + n); val[i] = val[i] + delta;
+    }
 
     // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {

@@ -21,7 +21,13 @@ template <typename T>
 struct PersistentMex {
     int n;
     vector<T> arr;
-    vector<int> root, ML, MR, MN;
+    vector<int> root;
+    struct MexNode {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        int ML = 0;
+        int MR = 0;
+        int MN = -1;
+    };
+    vector<MexNode> mnd;  // node 0 = the empty tree
 
     // O(N log N) -- arr: the initial array, 0-indexed
     explicit PersistentMex(const vector<T>& a) : n((int)a.size()), arr(a) { buildMex(); }
@@ -40,7 +46,7 @@ struct PersistentMex {
 
     // persistent seg tree over the values 0..n+1: version p holds, per value, its last index before p (-1: none)
     void buildMex() {
-        ML.assign(1, 0), MR.assign(1, 0), MN.assign(1, -1);  // node 0 = the empty tree (every last index -1)
+        mnd.assign(1, MexNode{});  // node 0 = the empty tree (every last index -1)
         root.assign(n + 1, 0);
         for (int i = 0; i < n; i++)
             root[i + 1] = T(0) <= arr[i] && arr[i] <= T(n + 1) ? mexSet(root[i], 0, n + 1, int(arr[i]), i) : root[i];
@@ -48,26 +54,28 @@ struct PersistentMex {
 
     // copy of node with value v's last index set to i
     int mexSet(int node, int nl, int nh, int v, int i) {
-        int l = ML[node], r = MR[node], x;
+        int l = mnd[node].ML, r = mnd[node].MR, x;
         if (nl == nh) x = i;
         else {
             int mid = (nl + nh) >> 1;
             if (v <= mid) l = mexSet(l, nl, mid, v, i);
             else r = mexSet(r, mid + 1, nh, v, i);
-            x = min(MN[l], MN[r]);
+            x = min(mnd[l].MN, mnd[r].MN);
         }
-        ML.push_back(nl == nh ? 0 : l), MR.push_back(nl == nh ? 0 : r), MN.push_back(x);
-        return (int)MN.size() - 1;
+        MexNode n;
+        n.ML = nl == nh ? 0 : l, n.MR = nl == nh ? 0 : r, n.MN = x;
+        mnd.push_back(n);
+        return (int)mnd.size() - 1;
     }
 
     // smallest value >= s that is not in a[l..r]: the leftmost value >= s whose last index (as of r) is < l
     int mexFrom(int l, int r, int s) const {
         auto go = [&](auto&& self, int t, int nl, int nh) -> int {
-            if (nh < s || MN[t] >= l) return -1;  // nothing allowed here, or every value here is in a[l..r]
+            if (nh < s || mnd[t].MN >= l) return -1;  // nothing allowed here, or every value here is in a[l..r]
             if (!t) return max(nl, s);            // no value here was ever seen
             if (nl == nh) return nl;
-            int mid = (nl + nh) >> 1, res = self(self, ML[t], nl, mid);
-            return res >= 0 ? res : self(self, MR[t], mid + 1, nh);
+            int mid = (nl + nh) >> 1, res = self(self, mnd[t].ML, nl, mid);
+            return res >= 0 ? res : self(self, mnd[t].MR, mid + 1, nh);
         };
         return go(go, root[r + 1], 0, n + 1);
     }

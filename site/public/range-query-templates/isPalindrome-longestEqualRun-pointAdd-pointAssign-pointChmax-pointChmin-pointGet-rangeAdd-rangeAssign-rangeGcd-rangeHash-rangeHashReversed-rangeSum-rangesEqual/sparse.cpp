@@ -39,19 +39,23 @@ struct SparseLazySegTree {
     using U64 = unsigned long long;
     long long first, last;  // the index range [lo, hi]
     int D;  // the root's level: 2^D >= hi - lo + 1
-    vector<int> L{0}, R{0};  // children (node 0: none; node 1 is the root)
-    vector<S> sm{0};
-    vector<U64> fh{0};
-    vector<U64> bh{0};
-    vector<T> g{T(0)};
-    vector<T> fv{T(0)};
-    vector<T> lv{T(0)};
-    vector<long long> pr{0};
-    vector<long long> sr{0};
-    vector<long long> br{0};
-    vector<T> asg{T(0)};
-    vector<char> hasAsg{0};
-    vector<T> add{T(0)};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        U64 fh = 0;
+        U64 bh = 0;
+        S sm = 0;
+        long long pr = 0;
+        long long sr = 0;
+        long long br = 0;
+        T g = T(0);
+        T fv = T(0);
+        T lv = T(0);
+        T asg = T(0);
+        T add = T(0);
+        int L = 0;
+        int R = 0;
+        char hasAsg = 0;
+    };
+    vector<Node> nd{Node{}};  // node 0: none; node 1 is the root
     vector<U64> PW, GS;  // PW[s] = B^(2^s), GS[s] = 1 + B + ... + B^(2^s - 1): per level
 
     static unsigned long long rnd() {
@@ -83,7 +87,8 @@ struct SparseLazySegTree {
     }
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseLazySegTree(long long lo, long long hi) : first(lo), last(hi), D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
+    SparseLazySegTree(long long lo, long long hi) : first(lo), last(hi),
+        D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
         PW.assign(1, HB()), GS.assign(1, 1);
         for (int k = 0; k < D; k++) GS.push_back(hadd(hmul(GS[k], PW[k]), GS[k])), PW.push_back(hmul(PW[k], PW[k]));
         newZero(D);
@@ -95,7 +100,7 @@ struct SparseLazySegTree {
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 f = 0, b = 0, p = 1;
         for (int i = 0; i < c; i++) {
-            f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+            f = hadd(hmul(f, PW[ls[i]]), nd[ns[i]].fh), b = hadd(hmul(nd[ns[i]].bh, p), b), p = hmul(p, PW[ls[i]]);
         }
         return f == b;
     }
@@ -106,16 +111,17 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         int t = ns[0];
-        long long p = pr[t], q = sr[t], res = br[t], k = 1LL << ls[0];  // (prefix run, suffix run, best, length)
-        T last = lv[t];
+        // (prefix run, suffix run, best, length)
+        long long p = nd[t].pr, q = nd[t].sr, res = nd[t].br, k = 1LL << ls[0];
+        T last = nd[t].lv;
         for (int i = 1; i < c; i++) {
             t = ns[i];
             long long w = 1LL << ls[i];
-            bool j = last == fv[t];
-            res = max({res, br[t], j ? q + pr[t] : 0LL});
-            if (j && p == k) p += pr[t];
-            q = j && sr[t] == w ? q + sr[t] : sr[t];
-            k += w, last = lv[t];
+            bool j = last == nd[t].fv;
+            res = max({res, nd[t].br, j ? q + nd[t].pr : 0LL});
+            if (j && p == k) p += nd[t].pr;
+            q = j && nd[t].sr == w ? q + nd[t].sr : nd[t].sr;
+            k += w, last = nd[t].lv;
         }
         return res;
     }
@@ -171,8 +177,8 @@ struct SparseLazySegTree {
     T rangeGcd(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        T res = gcd(fv[ns[0]], g[ns[0]]), last = lv[ns[0]];  // the first value, then every adjacent difference
-        for (int i = 1; i < c; i++) res = gcd(gcd(res, T(fv[ns[i]] - last)), g[ns[i]]), last = lv[ns[i]];
+        T res = gcd(nd[ns[0]].fv, nd[ns[0]].g), last = nd[ns[0]].lv;  // the first value, then every adjacent difference
+        for (int i = 1; i < c; i++) res = gcd(gcd(res, T(nd[ns[i]].fv - last)), nd[ns[i]].g), last = nd[ns[i]].lv;
         return res;
     }
 
@@ -182,7 +188,7 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeHash: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0;
-        for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), fh[ns[i]]);
+        for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), nd[ns[i]].fh);
         return res;
     }
 
@@ -192,7 +198,7 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeHashReversed: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0, p = 1;
-        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (in front)
+        for (int i = 0; i < c; i++) res = hadd(hmul(nd[ns[i]].bh, p), res), p = hmul(p, PW[ls[i]]);  // (in front)
         return res;
     }
 
@@ -201,7 +207,7 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         S res = S(0);
-        for (int i = 0; i < c; i++) res += sm[ns[i]];
+        for (int i = 0; i < c; i++) res += nd[ns[i]].sm;
         return res;
     }
 
@@ -217,16 +223,17 @@ struct SparseLazySegTree {
 
     int newZero(int s) {  // a new node: a block of 2^s zeros
         U64 h = hmul(hval(T(0)), GS[s]);
-        L.push_back(0), R.push_back(0), sm.push_back(S(0)), fh.push_back(h), bh.push_back(h), g.push_back(T(0)),
-        fv.push_back(T(0)), lv.push_back(T(0)), pr.push_back(1LL << s), sr.push_back(1LL << s), br.push_back(1LL << s),
-        asg.push_back(T(0)), hasAsg.push_back(0), add.push_back(T(0));
-        return (int)L.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.sm = S(0), n.fh = h, n.bh = h, n.g = T(0), n.fv = T(0), n.lv = T(0), n.pr = 1LL << s,
+        n.sr = 1LL << s, n.br = 1LL << s, n.asg = T(0), n.hasAsg = 0, n.add = T(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     void kids(int x, int s) {  // create node x's children (blocks of zeros) if it has none yet
-        if (L[x]) return;
+        if (nd[x].L) return;
         int a = newZero(s - 1), b = newZero(s - 1);
-        L[x] = a, R[x] = b;
+        nd[x].L = a, nd[x].R = b;
     }
 
     // the nodes covering a[l..r] left to right: ns, their levels ls, their first indices ts
@@ -249,8 +256,8 @@ struct SparseLazySegTree {
         kids(x, s);
         push(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) collect(L[x], s - 1, tl, l, r, ns, ls, ts, c);
-        if (r >= m) collect(R[x], s - 1, m, l, r, ns, ls, ts, c);
+        if (l < m) collect(nd[x].L, s - 1, tl, l, r, ns, ls, ts, c);
+        if (r >= m) collect(nd[x].R, s - 1, m, l, r, ns, ls, ts, c);
     }
 
     template <class F>  // f(node, level, first index) on every node covering a[l..r], then pull up
@@ -262,8 +269,8 @@ struct SparseLazySegTree {
         kids(x, s);
         push(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) update(L[x], s - 1, tl, l, r, f);
-        if (r >= m) update(R[x], s - 1, m, l, r, f);
+        if (l < m) update(nd[x].L, s - 1, tl, l, r, f);
+        if (r >= m) update(nd[x].R, s - 1, m, l, r, f);
         pull(x, s);
     }
 
@@ -274,8 +281,8 @@ struct SparseLazySegTree {
             kids(x, s);
             push(x, s);
             path[D - s] = x;
-            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = R[x];
-            else x = L[x];
+            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = nd[x].R;
+            else x = nd[x].L;
         }
         return x;
     }
@@ -285,55 +292,56 @@ struct SparseLazySegTree {
     }
 
     void setLeaf(int p, T v) {  // leaf p holds v alone
-        sm[p] = S(v), fh[p] = hval(v), bh[p] = hval(v), g[p] = T(0), fv[p] = v, lv[p] = v, pr[p] = 1, sr[p] = 1,
-        br[p] = 1;
+        nd[p].sm = S(v), nd[p].fh = hval(v), nd[p].bh = hval(v), nd[p].g = T(0), nd[p].fv = v, nd[p].lv = v,
+            nd[p].pr = 1, nd[p].sr = 1,
+        nd[p].br = 1;
     }
 
-    T leaf(int p) const { return T(sm[p]); }  // the value at leaf p
+    T leaf(int p) const { return T(nd[p].sm); }  // the value at leaf p
 
     void pull(int x, int s) {  // recompute node x (level s) from its children
-        int a = L[x], b = R[x];
-        sm[x] = sm[a] + sm[b];
-        fh[x] = hadd(hmul(fh[a], PW[s - 1]), fh[b]), bh[x] = hadd(hmul(bh[b], PW[s - 1]), bh[a]);
-        g[x] = gcd(gcd(g[a], g[b]), T(fv[b] - lv[a]));  // (the adjacent differences)
+        int a = nd[x].L, b = nd[x].R;
+        nd[x].sm = nd[a].sm + nd[b].sm;
+        nd[x].fh = hadd(hmul(nd[a].fh, PW[s - 1]), nd[b].fh), nd[x].bh = hadd(hmul(nd[b].bh, PW[s - 1]), nd[a].bh);
+        nd[x].g = gcd(gcd(nd[a].g, nd[b].g), T(nd[b].fv - nd[a].lv));  // (the adjacent differences)
         long long hl = 1LL << (s - 1);
-        bool j = lv[a] == fv[b];
-        br[x] = max({br[a], br[b], j ? sr[a] + pr[b] : 0LL});
-        pr[x] = j && pr[a] == hl ? pr[a] + pr[b] : pr[a];
-        sr[x] = j && sr[b] == hl ? sr[b] + sr[a] : sr[b];
-        fv[x] = fv[a], lv[x] = lv[b];
+        bool j = nd[a].lv == nd[b].fv;
+        nd[x].br = max({nd[a].br, nd[b].br, j ? nd[a].sr + nd[b].pr : 0LL});
+        nd[x].pr = j && nd[a].pr == hl ? nd[a].pr + nd[b].pr : nd[a].pr;
+        nd[x].sr = j && nd[b].sr == hl ? nd[b].sr + nd[a].sr : nd[b].sr;
+        nd[x].fv = nd[a].fv, nd[x].lv = nd[b].lv;
     }
 
     void setAssign(int x, int s, T v) {  // every value under node x becomes v
         long long k = 1LL << s;
-        sm[x] = S(v) * k;
-        fh[x] = bh[x] = hmul(hval(v), GS[s]);
-        g[x] = T(0);
-        fv[x] = lv[x] = v;
-        pr[x] = sr[x] = br[x] = k;
+        nd[x].sm = S(v) * k;
+        nd[x].fh = nd[x].bh = hmul(hval(v), GS[s]);
+        nd[x].g = T(0);
+        nd[x].fv = nd[x].lv = v;
+        nd[x].pr = nd[x].sr = nd[x].br = k;
     }
 
     void applyAssign(int x, int s, T v) {
         setAssign(x, s, v);
-        asg[x] = v, hasAsg[x] = 1, add[x] = T(0);
+        nd[x].asg = v, nd[x].hasAsg = 1, nd[x].add = T(0);
     }
 
     void setAdd(int x, int s, T v) {  // every value under node x gains v
-        sm[x] += S(v) * (S(1) << s);
+        nd[x].sm += S(v) * (S(1) << s);
         U64 hh = hmul(hraw(v), GS[s]);
-        fh[x] = hadd(fh[x], hh), bh[x] = hadd(bh[x], hh);
-        fv[x] += v, lv[x] += v;
+        nd[x].fh = hadd(nd[x].fh, hh), nd[x].bh = hadd(nd[x].bh, hh);
+        nd[x].fv += v, nd[x].lv += v;
     }
 
     void applyAdd(int x, int s, T v) {
         setAdd(x, s, v);
-        if (hasAsg[x]) asg[x] += v;  // (still an assign, of a shifted value)
-        else add[x] += v;
+        if (nd[x].hasAsg) nd[x].asg += v;  // (still an assign, of a shifted value)
+        else nd[x].add += v;
     }
 
     void push(int x, int s) {  // hand node x's pending tags to its children
-        int a = L[x], b = R[x], c = s - 1;  // (their level)
-        if (hasAsg[x]) applyAssign(a, c, asg[x]), applyAssign(b, c, asg[x]), hasAsg[x] = 0;
-        if (add[x] != T(0)) applyAdd(a, c, add[x]), applyAdd(b, c, add[x]), add[x] = T(0);
+        int a = nd[x].L, b = nd[x].R, c = s - 1;  // (their level)
+        if (nd[x].hasAsg) applyAssign(a, c, nd[x].asg), applyAssign(b, c, nd[x].asg), nd[x].hasAsg = 0;
+        if (nd[x].add != T(0)) applyAdd(a, c, nd[x].add), applyAdd(b, c, nd[x].add), nd[x].add = T(0);
     }
 };

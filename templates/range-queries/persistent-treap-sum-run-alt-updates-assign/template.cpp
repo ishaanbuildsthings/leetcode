@@ -153,9 +153,10 @@ struct PersistentTreap {
     // throws out_of_range
     long long longestEqualRun(long long l, long long r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("longestEqualRun: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         int res = nd[b].br;
+        release(mark);
         return res;
     }
 
@@ -163,9 +164,10 @@ struct PersistentTreap {
     // 0 <= l <= r < size(), else throws out_of_range
     S maxAltSubseqSum(long long l, long long r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("maxAltSubseqSum: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         S res = max(nd[b].a00, nd[b].a01);
+        release(mark);
         return res;
     }
 
@@ -184,44 +186,32 @@ struct PersistentTreap {
     }
     void paste(long long i, PersistentTreap&& other) { paste(i, other); }  // (a temporary: paste(i, t.copy(l, r)))
 
-    // O(logN) expected -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
+    // O(logN) expected -- a[i] += v (copies the one path down to a[i]); needs 0 <= i < size(), else throws
+    // out_of_range
     void pointAdd(long long i, T v) {
         if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
-        int a, b, c;
-        cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        nd[b].val = T(nd[b].val + v);
-        pull(b);
-        root = merge(merge(a, b), c);
+        root = setAt(root, i, [&](T w) { return T(w + v); });
     }
 
-    // O(logN) expected -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
+    // O(logN) expected -- a[i] = v (copies the one path down to a[i]); needs 0 <= i < size(), else throws
+    // out_of_range
     void pointAssign(long long i, T v) {
         if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
-        int a, b, c;
-        cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        nd[b].val = v;
-        pull(b);
-        root = merge(merge(a, b), c);
+        root = setAt(root, i, [&](T w) { return v; });
     }
 
-    // O(logN) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
+    // O(logN) expected -- a[i] = max(a[i], v) (copies the one path down to a[i]); needs 0 <= i < size(), else throws
+    // out_of_range
     void pointChmax(long long i, T v) {
         if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
-        int a, b, c;
-        cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        nd[b].val = max(nd[b].val, v);
-        pull(b);
-        root = merge(merge(a, b), c);
+        root = setAt(root, i, [&](T w) { return max(w, v); });
     }
 
-    // O(logN) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
+    // O(logN) expected -- a[i] = min(a[i], v) (copies the one path down to a[i]); needs 0 <= i < size(), else throws
+    // out_of_range
     void pointChmin(long long i, T v) {
         if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
-        int a, b, c;
-        cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        nd[b].val = min(nd[b].val, v);
-        pull(b);
-        root = merge(merge(a, b), c);
+        root = setAt(root, i, [&](T w) { return min(w, v); });
     }
 
     // O(logN) expected -- a[i]; needs 0 <= i < size(), else throws out_of_range
@@ -233,10 +223,7 @@ struct PersistentTreap {
     // O(logN) expected -- a[i] = v for i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
     void rangeAssign(long long l, long long r, T v) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeAssign: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
-        applyAssign(b, v);
-        root = merge(merge(a, b), c);
+        root = upd(root, l, r, [&](int x, long long off) { applyAssign(x, v); (void)off; });
     }
 
     // O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is
@@ -265,9 +252,10 @@ struct PersistentTreap {
     // O(logN) expected -- a[l] + ... + a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     S rangeSum(long long l, long long r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSum: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         S res = nd[b].sm;
+        release(mark);
         return res;
     }
 
@@ -413,6 +401,92 @@ struct PersistentTreap {
             if (i < ls) t = nd[t].L;
             else i -= ls + 1, t = nd[t].R;
         }
+    }
+
+    // ---- read-only range queries keep no copies; updates copy only the nodes they reach ----
+
+    // a[l..r] of t's subtree as (node, whole subtree?) in order; a pending tag on the way is pushed down in place
+    // (harmless: see the top), which copies only the children it hands the tag to, once
+    void pieces(int t, long long l, long long r, vector<pair<int, bool>>& out) {
+        if (!t || r < 0 || l >= nd[t].sz) return;
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            out.push_back({t, true});
+            return;
+        }
+        push(t);
+        long long ls = nd[nd[t].L].sz;
+        pieces(nd[t].L, l, r, out);
+        if (l <= ls && ls <= r) out.push_back({t, false});
+        pieces(nd[t].R, l - ls - 1, r - ls - 1, out);
+    }
+
+    // a temporary node holding a[l..r]'s aggregates; mark = the pool size release() goes back to
+    int rangeNode(long long l, long long r, size_t& mark) {
+        vector<pair<int, bool>> ps;
+        pieces(root, l, r, ps);  // (every pending tag on the two boundary paths pushed down first)
+        mark = nd.size();
+        return rq(root, l, r);
+    }
+
+    int rq(int t, long long l, long long r) {  // a node over a[l..r] of t's subtree: t itself if that is all of it
+        if (!t || r < 0 || l >= nd[t].sz) return 0;
+        if (l <= 0 && nd[t].sz - 1 <= r) return t;
+        long long ls = nd[nd[t].L].sz;
+        if (r < ls) return rq(nd[t].L, l, r);
+        if (l > ls) return rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int a = rq(nd[t].L, l, r), b = rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int y = clone(t);
+        nd[y].L = a, nd[y].R = b;
+        pull(y);
+        return y;
+    }
+
+    void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+        nd.resize(mark);
+    }
+
+    template <class F>
+    int setAt(int t, long long i, const F& f) {  // t with a[i] = f(a[i]): new copies of the nodes on the path to it
+        t = clone(t);
+        push(t);
+        long long ls = nd[nd[t].L].sz;
+        if (i < ls) {
+            int c = setAt(nd[t].L, i, f);
+            nd[t].L = c;
+        } else if (i > ls) {
+            int c = setAt(nd[t].R, i - ls - 1, f);
+            nd[t].R = c;
+        } else {
+            nd[t].val = f(nd[t].val);
+        }
+        pull(t);
+        return t;
+    }
+
+    // t with the update f(x, off) on a[l..r] of its subtree (x: a node covered whole, off: its first value's distance
+    // from l), copying only the nodes on the range's two boundary paths
+    template <class F>
+    int upd(int t, long long l, long long r, const F& f) {
+        if (!t || r < 0 || l >= nd[t].sz) return t;
+        t = clone(t);
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            f(t, -l);
+            return t;
+        }
+        push(t);
+        long long ls = nd[nd[t].L].sz;
+        int a = upd(nd[t].L, l, r, f), b = upd(nd[t].R, l - ls - 1, r - ls - 1, f);
+        nd[t].L = a, nd[t].R = b;
+        if (l <= ls && ls <= r) {  // (t's own value: the update on a lone temporary copy of it)
+            int y = clone(t);
+            nd[y].L = nd[y].R = 0;
+            pull(y);
+            f(y, ls - l);
+            nd[t].val = nd[y].val;
+            release(y);
+        }
+        pull(t);
+        return t;
     }
 };
 

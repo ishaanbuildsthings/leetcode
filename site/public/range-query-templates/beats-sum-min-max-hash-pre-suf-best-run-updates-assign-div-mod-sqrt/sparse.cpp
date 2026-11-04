@@ -59,22 +59,26 @@ struct SparseShrinkSegTree {
     using U64 = unsigned long long;
     long long first, last;  // the index range [lo, hi]
     int D;  // the root's level: 2^D >= hi - lo + 1
-    vector<int> L{0}, R{0};  // children (node 0: none; node 1 is the root)
-    vector<S> sm{0};
-    vector<T> mn{T(0)};
-    vector<T> mx{T(0)};
-    vector<U64> fh{0};
-    vector<U64> bh{0};
-    vector<S> pre{0};
-    vector<S> suf{0};
-    vector<S> best{0};
-    vector<T> fv{T(0)};
-    vector<T> lv{T(0)};
-    vector<long long> pr{0};
-    vector<long long> sr{0};
-    vector<long long> br{0};
-    vector<T> asg{T(0)};
-    vector<char> hasAsg{0};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        U64 fh = 0;
+        U64 bh = 0;
+        S sm = 0;
+        S pre = 0;
+        S suf = 0;
+        S best = 0;
+        long long pr = 0;
+        long long sr = 0;
+        long long br = 0;
+        T mn = T(0);
+        T mx = T(0);
+        T fv = T(0);
+        T lv = T(0);
+        T asg = T(0);
+        int L = 0;
+        int R = 0;
+        char hasAsg = 0;
+    };
+    vector<Node> nd{Node{}};  // node 0: none; node 1 is the root
     vector<U64> PW, GS;  // PW[s] = B^(2^s), GS[s] = 1 + B + ... + B^(2^s - 1): per level
 
     static unsigned long long rnd() {
@@ -106,7 +110,8 @@ struct SparseShrinkSegTree {
     }
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseShrinkSegTree(long long lo, long long hi) : first(lo), last(hi), D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
+    SparseShrinkSegTree(long long lo, long long hi) : first(lo), last(hi),
+        D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
         PW.assign(1, HB()), GS.assign(1, 1);
         for (int k = 0; k < D; k++) GS.push_back(hadd(hmul(GS[k], PW[k]), GS[k])), PW.push_back(hmul(PW[k], PW[k]));
         newZero(D);
@@ -118,7 +123,7 @@ struct SparseShrinkSegTree {
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 f = 0, b = 0, p = 1;
         for (int i = 0; i < c; i++) {
-            f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+            f = hadd(hmul(f, PW[ls[i]]), nd[ns[i]].fh), b = hadd(hmul(nd[ns[i]].bh, p), b), p = hmul(p, PW[ls[i]]);
         }
         return f == b;
     }
@@ -133,12 +138,12 @@ struct SparseShrinkSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mx[t] > x)) continue;
+            if (!(nd[t].mx > x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mx[L[t]] > x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mx > x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -155,12 +160,12 @@ struct SparseShrinkSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mx[t] >= x)) continue;
+            if (!(nd[t].mx >= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mx[L[t]] >= x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mx >= x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -177,12 +182,12 @@ struct SparseShrinkSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] < x)) continue;
+            if (!(nd[t].mn < x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mn[L[t]] < x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mn < x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -199,12 +204,12 @@ struct SparseShrinkSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] <= x)) continue;
+            if (!(nd[t].mn <= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mn[L[t]] <= x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mn <= x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -222,16 +227,16 @@ struct SparseShrinkSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + pre[t] > S(x)) {
+            if (acc + nd[t].pre > S(x)) {
                 while (s) {
                     kids(t, s), push(t, s);
                     s--;
-                    if (acc + pre[L[t]] > S(x)) t = L[t];
-                    else acc += sm[L[t]], t = R[t], tl += 1LL << s;
+                    if (acc + nd[nd[t].L].pre > S(x)) t = nd[t].L;
+                    else acc += nd[nd[t].L].sm, t = nd[t].R, tl += 1LL << s;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -247,16 +252,16 @@ struct SparseShrinkSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + pre[t] >= S(x)) {
+            if (acc + nd[t].pre >= S(x)) {
                 while (s) {
                     kids(t, s), push(t, s);
                     s--;
-                    if (acc + pre[L[t]] >= S(x)) t = L[t];
-                    else acc += sm[L[t]], t = R[t], tl += 1LL << s;
+                    if (acc + nd[nd[t].L].pre >= S(x)) t = nd[t].L;
+                    else acc += nd[nd[t].L].sm, t = nd[t].R, tl += 1LL << s;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -267,16 +272,17 @@ struct SparseShrinkSegTree {
         if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         int t = ns[0];
-        long long p = pr[t], q = sr[t], res = br[t], k = 1LL << ls[0];  // (prefix run, suffix run, best, length)
-        T last = lv[t];
+        // (prefix run, suffix run, best, length)
+        long long p = nd[t].pr, q = nd[t].sr, res = nd[t].br, k = 1LL << ls[0];
+        T last = nd[t].lv;
         for (int i = 1; i < c; i++) {
             t = ns[i];
             long long w = 1LL << ls[i];
-            bool j = last == fv[t];
-            res = max({res, br[t], j ? q + pr[t] : 0LL});
-            if (j && p == k) p += pr[t];
-            q = j && sr[t] == w ? q + sr[t] : sr[t];
-            k += w, last = lv[t];
+            bool j = last == nd[t].fv;
+            res = max({res, nd[t].br, j ? q + nd[t].pr : 0LL});
+            if (j && p == k) p += nd[t].pr;
+            q = j && nd[t].sr == w ? q + nd[t].sr : nd[t].sr;
+            k += w, last = nd[t].lv;
         }
         return res;
     }
@@ -285,8 +291,8 @@ struct SparseShrinkSegTree {
     S maxPrefixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = pre[ns[0]], acc = sm[ns[0]];
-        for (int i = 1; i < c; i++) res = max(res, acc + pre[ns[i]]), acc += sm[ns[i]];
+        S res = nd[ns[0]].pre, acc = nd[ns[0]].sm;
+        for (int i = 1; i < c; i++) res = max(res, acc + nd[ns[i]].pre), acc += nd[ns[i]].sm;
         return res;
     }
 
@@ -295,10 +301,10 @@ struct SparseShrinkSegTree {
     S maxSubarraySum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxSubarraySum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = best[ns[0]], q = suf[ns[0]];  // (q: the best sum ending at the right edge so far)
+        S res = nd[ns[0]].best, q = nd[ns[0]].suf;  // (q: the best sum ending at the right edge so far)
         for (int i = 1; i < c; i++) {
             int t = ns[i];
-            res = max({res, best[t], q + pre[t]}), q = max(suf[t], sm[t] + q);
+            res = max({res, nd[t].best, q + nd[t].pre}), q = max(nd[t].suf, nd[t].sm + q);
         }
         return res;
     }
@@ -307,8 +313,8 @@ struct SparseShrinkSegTree {
     S maxSuffixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxSuffixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = suf[ns[c - 1]], acc = sm[ns[c - 1]];
-        for (int i = c - 2; i >= 0; i--) res = max(res, acc + suf[ns[i]]), acc += sm[ns[i]];
+        S res = nd[ns[c - 1]].suf, acc = nd[ns[c - 1]].sm;
+        for (int i = c - 2; i >= 0; i--) res = max(res, acc + nd[ns[i]].suf), acc += nd[ns[i]].sm;
         return res;
     }
 
@@ -357,14 +363,19 @@ struct SparseShrinkSegTree {
     // lo <= l <= r <= hi, else throws out_of_range
     void rangeFloorDiv(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("rangeFloorDiv: needs lo <= l <= r <= hi");
-        if (x >= 2) update(1, D, first, l, r, [&](int t, int s, long long) { shrink(t, s, T(1), [x](T v) { return T(v / x); }); });
+        if (x >= 2)
+            update(1, D, first, l, r, [&](int t, int s, long long) {
+                shrink(t, s, T(1), [x](T v) { return T(v / x); });
+            });
     }
 
     // amortized O(logU * loglogU) -- a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0); needs
     // lo <= l <= r <= hi, else throws out_of_range
     void rangeFloorSqrt(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeFloorSqrt: needs lo <= l <= r <= hi");
-        update(1, D, first, l, r, [&](int t, int s, long long) { shrink(t, s, T(2), isqrtT); });
+        update(1, D, first, l, r, [&](int t, int s, long long) {
+            shrink(t, s, T(2), isqrtT);
+        });
     }
 
     // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
@@ -373,7 +384,7 @@ struct SparseShrinkSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeHash: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0;
-        for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), fh[ns[i]]);
+        for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), nd[ns[i]].fh);
         return res;
     }
 
@@ -383,7 +394,7 @@ struct SparseShrinkSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeHashReversed: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0, p = 1;
-        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (in front)
+        for (int i = 0; i < c; i++) res = hadd(hmul(nd[ns[i]].bh, p), res), p = hmul(p, PW[ls[i]]);  // (in front)
         return res;
     }
 
@@ -392,7 +403,7 @@ struct SparseShrinkSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = numeric_limits<T>::lowest();
-        for (int i = 0; i < c; i++) res = max(res, mx[ns[i]]);
+        for (int i = 0; i < c; i++) res = max(res, nd[ns[i]].mx);
         return res;
     }
 
@@ -401,7 +412,7 @@ struct SparseShrinkSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = numeric_limits<T>::max();
-        for (int i = 0; i < c; i++) res = min(res, mn[ns[i]]);
+        for (int i = 0; i < c; i++) res = min(res, nd[ns[i]].mn);
         return res;
     }
 
@@ -409,7 +420,10 @@ struct SparseShrinkSegTree {
     // throws out_of_range
     void rangeMod(long long l, long long r, T x) {
         if (l < first || l > r || r > last) throw out_of_range("rangeMod: needs lo <= l <= r <= hi");
-        if (x >= 1) update(1, D, first, l, r, [&](int t, int s, long long) { shrink(t, s, x, [x](T v) { return T(v % x); }); });
+        if (x >= 1)
+            update(1, D, first, l, r, [&](int t, int s, long long) {
+                shrink(t, s, x, [x](T v) { return T(v % x); });
+            });
     }
 
     // O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else throws out_of_range
@@ -417,7 +431,7 @@ struct SparseShrinkSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         S res = S(0);
-        for (int i = 0; i < c; i++) res += sm[ns[i]];
+        for (int i = 0; i < c; i++) res += nd[ns[i]].sm;
         return res;
     }
 
@@ -439,12 +453,12 @@ struct SparseShrinkSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mx[t] > x)) continue;
+            if (!(nd[t].mx > x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mx[R[t]] > x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mx > x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -461,12 +475,12 @@ struct SparseShrinkSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mx[t] >= x)) continue;
+            if (!(nd[t].mx >= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mx[R[t]] >= x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mx >= x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -483,12 +497,12 @@ struct SparseShrinkSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] < x)) continue;
+            if (!(nd[t].mn < x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mn[R[t]] < x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mn < x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -505,12 +519,12 @@ struct SparseShrinkSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] <= x)) continue;
+            if (!(nd[t].mn <= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mn[R[t]] <= x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mn <= x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -528,16 +542,16 @@ struct SparseShrinkSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + suf[t] > S(x)) {
+            if (acc + nd[t].suf > S(x)) {
                 while (s) {
                     kids(t, s), push(t, s);
                     s--;
-                    if (acc + suf[R[t]] > S(x)) t = R[t], tl += 1LL << s;
-                    else acc += sm[R[t]], t = L[t];
+                    if (acc + nd[nd[t].R].suf > S(x)) t = nd[t].R, tl += 1LL << s;
+                    else acc += nd[nd[t].R].sm, t = nd[t].L;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -553,16 +567,16 @@ struct SparseShrinkSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + suf[t] >= S(x)) {
+            if (acc + nd[t].suf >= S(x)) {
                 while (s) {
                     kids(t, s), push(t, s);
                     s--;
-                    if (acc + suf[R[t]] >= S(x)) t = R[t], tl += 1LL << s;
-                    else acc += sm[R[t]], t = L[t];
+                    if (acc + nd[nd[t].R].suf >= S(x)) t = nd[t].R, tl += 1LL << s;
+                    else acc += nd[nd[t].R].sm, t = nd[t].L;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -571,17 +585,18 @@ struct SparseShrinkSegTree {
 
     int newZero(int s) {  // a new node: a block of 2^s zeros
         U64 h = hmul(hval(T(0)), GS[s]);
-        L.push_back(0), R.push_back(0), sm.push_back(S(0)), mn.push_back(T(0)), mx.push_back(T(0)), fh.push_back(h),
-        bh.push_back(h), pre.push_back(S(0)), suf.push_back(S(0)), best.push_back(S(0)), fv.push_back(T(0)),
-        lv.push_back(T(0)), pr.push_back(1LL << s), sr.push_back(1LL << s), br.push_back(1LL << s), asg.push_back(T(0)),
-        hasAsg.push_back(0);
-        return (int)L.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.sm = S(0), n.mn = T(0), n.mx = T(0), n.fh = h, n.bh = h, n.pre = S(0), n.suf = S(0),
+        n.best = S(0), n.fv = T(0), n.lv = T(0), n.pr = 1LL << s, n.sr = 1LL << s, n.br = 1LL << s, n.asg = T(0),
+        n.hasAsg = 0;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     void kids(int x, int s) {  // create node x's children (blocks of zeros) if it has none yet
-        if (L[x]) return;
+        if (nd[x].L) return;
         int a = newZero(s - 1), b = newZero(s - 1);
-        L[x] = a, R[x] = b;
+        nd[x].L = a, nd[x].R = b;
     }
 
     // the nodes covering a[l..r] left to right: ns, their levels ls, their first indices ts
@@ -604,8 +619,8 @@ struct SparseShrinkSegTree {
         kids(x, s);
         push(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) collect(L[x], s - 1, tl, l, r, ns, ls, ts, c);
-        if (r >= m) collect(R[x], s - 1, m, l, r, ns, ls, ts, c);
+        if (l < m) collect(nd[x].L, s - 1, tl, l, r, ns, ls, ts, c);
+        if (r >= m) collect(nd[x].R, s - 1, m, l, r, ns, ls, ts, c);
     }
 
     template <class F>  // f(node, level, first index) on every node covering a[l..r], then pull up
@@ -617,8 +632,8 @@ struct SparseShrinkSegTree {
         kids(x, s);
         push(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) update(L[x], s - 1, tl, l, r, f);
-        if (r >= m) update(R[x], s - 1, m, l, r, f);
+        if (l < m) update(nd[x].L, s - 1, tl, l, r, f);
+        if (r >= m) update(nd[x].R, s - 1, m, l, r, f);
         pull(x, s);
     }
 
@@ -629,8 +644,8 @@ struct SparseShrinkSegTree {
             kids(x, s);
             push(x, s);
             path[D - s] = x;
-            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = R[x];
-            else x = L[x];
+            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = nd[x].R;
+            else x = nd[x].L;
         }
         return x;
     }
@@ -649,57 +664,58 @@ struct SparseShrinkSegTree {
 
     template <class F>
     void shrink(int x, int s, T lim, const F& f) {  // every value v >= lim under node x (level s) becomes f(v)
-        if (mx[x] < lim) return;
-        if (s == 0) { setLeaf(x, f(mx[x])); return; }
-        if (mn[x] == mx[x]) { applyAssign(x, s, f(mx[x])); return; }  // all equal: one assign
+        if (nd[x].mx < lim) return;
+        if (s == 0) { setLeaf(x, f(nd[x].mx)); return; }
+        if (nd[x].mn == nd[x].mx) { applyAssign(x, s, f(nd[x].mx)); return; }  // all equal: one assign
         kids(x, s);
         push(x, s);
-        shrink(L[x], s - 1, lim, f), shrink(R[x], s - 1, lim, f);
+        shrink(nd[x].L, s - 1, lim, f), shrink(nd[x].R, s - 1, lim, f);
         pull(x, s);
     }
 
     void setLeaf(int p, T v) {  // leaf p holds v alone
-        sm[p] = S(v), mn[p] = v, mx[p] = v, fh[p] = hval(v), bh[p] = hval(v), pre[p] = S(v), suf[p] = S(v),
-        best[p] = S(v), fv[p] = v, lv[p] = v, pr[p] = 1, sr[p] = 1, br[p] = 1;
+        nd[p].sm = S(v), nd[p].mn = v, nd[p].mx = v, nd[p].fh = hval(v), nd[p].bh = hval(v), nd[p].pre = S(v),
+            nd[p].suf = S(v),
+        nd[p].best = S(v), nd[p].fv = v, nd[p].lv = v, nd[p].pr = 1, nd[p].sr = 1, nd[p].br = 1;
     }
 
-    T leaf(int p) const { return T(sm[p]); }  // the value at leaf p
+    T leaf(int p) const { return T(nd[p].sm); }  // the value at leaf p
 
     void pull(int x, int s) {  // recompute node x (level s) from its children
-        int a = L[x], b = R[x];
-        pre[x] = max(pre[a], sm[a] + pre[b]);
-        suf[x] = max(suf[b], sm[b] + suf[a]);
-        best[x] = max({best[a], best[b], suf[a] + pre[b]});
-        sm[x] = sm[a] + sm[b];
-        mn[x] = min(mn[a], mn[b]);
-        mx[x] = max(mx[a], mx[b]);
-        fh[x] = hadd(hmul(fh[a], PW[s - 1]), fh[b]), bh[x] = hadd(hmul(bh[b], PW[s - 1]), bh[a]);
+        int a = nd[x].L, b = nd[x].R;
+        nd[x].pre = max(nd[a].pre, nd[a].sm + nd[b].pre);
+        nd[x].suf = max(nd[b].suf, nd[b].sm + nd[a].suf);
+        nd[x].best = max({nd[a].best, nd[b].best, nd[a].suf + nd[b].pre});
+        nd[x].sm = nd[a].sm + nd[b].sm;
+        nd[x].mn = min(nd[a].mn, nd[b].mn);
+        nd[x].mx = max(nd[a].mx, nd[b].mx);
+        nd[x].fh = hadd(hmul(nd[a].fh, PW[s - 1]), nd[b].fh), nd[x].bh = hadd(hmul(nd[b].bh, PW[s - 1]), nd[a].bh);
         long long hl = 1LL << (s - 1);
-        bool j = lv[a] == fv[b];
-        br[x] = max({br[a], br[b], j ? sr[a] + pr[b] : 0LL});
-        pr[x] = j && pr[a] == hl ? pr[a] + pr[b] : pr[a];
-        sr[x] = j && sr[b] == hl ? sr[b] + sr[a] : sr[b];
-        fv[x] = fv[a], lv[x] = lv[b];
+        bool j = nd[a].lv == nd[b].fv;
+        nd[x].br = max({nd[a].br, nd[b].br, j ? nd[a].sr + nd[b].pr : 0LL});
+        nd[x].pr = j && nd[a].pr == hl ? nd[a].pr + nd[b].pr : nd[a].pr;
+        nd[x].sr = j && nd[b].sr == hl ? nd[b].sr + nd[a].sr : nd[b].sr;
+        nd[x].fv = nd[a].fv, nd[x].lv = nd[b].lv;
     }
 
     void setAssign(int x, int s, T v) {  // every value under node x becomes v
         long long k = 1LL << s;
-        sm[x] = S(v) * k;
-        mn[x] = v;
-        mx[x] = v;
-        fh[x] = bh[x] = hmul(hval(v), GS[s]);
-        pre[x] = suf[x] = best[x] = v > T(0) ? S(v) * k : S(v);
-        fv[x] = lv[x] = v;
-        pr[x] = sr[x] = br[x] = k;
+        nd[x].sm = S(v) * k;
+        nd[x].mn = v;
+        nd[x].mx = v;
+        nd[x].fh = nd[x].bh = hmul(hval(v), GS[s]);
+        nd[x].pre = nd[x].suf = nd[x].best = v > T(0) ? S(v) * k : S(v);
+        nd[x].fv = nd[x].lv = v;
+        nd[x].pr = nd[x].sr = nd[x].br = k;
     }
 
     void applyAssign(int x, int s, T v) {
         setAssign(x, s, v);
-        asg[x] = v, hasAsg[x] = 1;
+        nd[x].asg = v, nd[x].hasAsg = 1;
     }
 
     void push(int x, int s) {  // hand node x's pending tags to its children
-        int a = L[x], b = R[x], c = s - 1;  // (their level)
-        if (hasAsg[x]) applyAssign(a, c, asg[x]), applyAssign(b, c, asg[x]), hasAsg[x] = 0;
+        int a = nd[x].L, b = nd[x].R, c = s - 1;  // (their level)
+        if (nd[x].hasAsg) applyAssign(a, c, nd[x].asg), applyAssign(b, c, nd[x].asg), nd[x].hasAsg = 0;
     }
 };

@@ -41,24 +41,29 @@ struct SparseSegTree {
     static constexpr S NEG = numeric_limits<S>::lowest() / 4;  // (no alternating subsequence of that shape)
     long long first, last;  // the index range [lo, hi]
     int D;  // the root's level: 2^D >= hi - lo + 1
-    vector<int> L{0}, R{0};  // children (node 0: none; node 1 is the root)
-    vector<T> mn{T(0)};
-    vector<T> xr{T(0)};
-    vector<T> an{~T(0)};
-    vector<T> orr{T(0)};
-    vector<T> g{T(0)};
-    vector<T> fv{T(0)};
-    vector<T> lv{T(0)};
-    vector<long long> pr{0};
-    vector<long long> sr{0};
-    vector<long long> br{0};
-    vector<S> a00{0};
-    vector<S> a01{0};
-    vector<S> a10{0};
-    vector<S> a11{0};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        S a00 = 0;
+        S a01 = 0;
+        S a10 = 0;
+        S a11 = 0;
+        long long pr = 0;
+        long long sr = 0;
+        long long br = 0;
+        T mn = T(0);
+        T xr = T(0);
+        T an = ~T(0);
+        T orr = T(0);
+        T g = T(0);
+        T fv = T(0);
+        T lv = T(0);
+        int L = 0;
+        int R = 0;
+    };
+    vector<Node> nd{Node{}};  // node 0: none; node 1 is the root
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseSegTree(long long lo, long long hi) : first(lo), last(hi), D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
+    SparseSegTree(long long lo, long long hi) : first(lo), last(hi),
+        D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
         newZero(D);
     }
 
@@ -72,12 +77,12 @@ struct SparseSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] < x)) continue;
+            if (!(nd[t].mn < x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s);
                 s--;
-                if (mn[L[t]] < x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mn < x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -94,12 +99,12 @@ struct SparseSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] <= x)) continue;
+            if (!(nd[t].mn <= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s);
                 s--;
-                if (mn[L[t]] <= x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mn <= x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -112,16 +117,17 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         int t = ns[0];
-        long long p = pr[t], q = sr[t], res = br[t], k = 1LL << ls[0];  // (prefix run, suffix run, best, length)
-        T last = lv[t];
+        // (prefix run, suffix run, best, length)
+        long long p = nd[t].pr, q = nd[t].sr, res = nd[t].br, k = 1LL << ls[0];
+        T last = nd[t].lv;
         for (int i = 1; i < c; i++) {
             t = ns[i];
             long long w = 1LL << ls[i];
-            bool j = last == fv[t];
-            res = max({res, br[t], j ? q + pr[t] : 0LL});
-            if (j && p == k) p += pr[t];
-            q = j && sr[t] == w ? q + sr[t] : sr[t];
-            k += w, last = lv[t];
+            bool j = last == nd[t].fv;
+            res = max({res, nd[t].br, j ? q + nd[t].pr : 0LL});
+            if (j && p == k) p += nd[t].pr;
+            q = j && nd[t].sr == w ? q + nd[t].sr : nd[t].sr;
+            k += w, last = nd[t].lv;
         }
         return res;
     }
@@ -131,8 +137,8 @@ struct SparseSegTree {
     S maxAltSubseqSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxAltSubseqSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        array<S, 4> a{a00[ns[0]], a01[ns[0]], a10[ns[0]], a11[ns[0]]};
-        for (int i = 1; i < c; i++) a = altJoin(a, {a00[ns[i]], a01[ns[i]], a10[ns[i]], a11[ns[i]]});
+        array<S, 4> a{nd[ns[0]].a00, nd[ns[0]].a01, nd[ns[0]].a10, nd[ns[0]].a11};
+        for (int i = 1; i < c; i++) a = altJoin(a, {nd[ns[i]].a00, nd[ns[i]].a01, nd[ns[i]].a10, nd[ns[i]].a11});
         return max(a[0], a[1]);
     }
 
@@ -176,7 +182,7 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeAndQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = ~T(0);
-        for (int i = 0; i < c; i++) res &= an[ns[i]];
+        for (int i = 0; i < c; i++) res &= nd[ns[i]].an;
         return res;
     }
 
@@ -185,7 +191,7 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
-        for (int i = 0; i < c; i++) res = gcd(res, g[ns[i]]);
+        for (int i = 0; i < c; i++) res = gcd(res, nd[ns[i]].g);
         return res;
     }
 
@@ -194,7 +200,7 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = numeric_limits<T>::max();
-        for (int i = 0; i < c; i++) res = min(res, mn[ns[i]]);
+        for (int i = 0; i < c; i++) res = min(res, nd[ns[i]].mn);
         return res;
     }
 
@@ -203,7 +209,7 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeOrQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
-        for (int i = 0; i < c; i++) res |= orr[ns[i]];
+        for (int i = 0; i < c; i++) res |= nd[ns[i]].orr;
         return res;
     }
 
@@ -212,7 +218,7 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeXorQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
-        for (int i = 0; i < c; i++) res ^= xr[ns[i]];
+        for (int i = 0; i < c; i++) res ^= nd[ns[i]].xr;
         return res;
     }
 
@@ -226,12 +232,12 @@ struct SparseSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] < x)) continue;
+            if (!(nd[t].mn < x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s);
                 s--;
-                if (mn[R[t]] < x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mn < x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -248,12 +254,12 @@ struct SparseSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] <= x)) continue;
+            if (!(nd[t].mn <= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s);
                 s--;
-                if (mn[R[t]] <= x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mn <= x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -269,17 +275,18 @@ struct SparseSegTree {
     }
 
     int newZero(int s) {  // a new node: a block of 2^s zeros
-        L.push_back(0), R.push_back(0), mn.push_back(T(0)), xr.push_back(T(0)), an.push_back(T(0)),
-        orr.push_back(T(0)), g.push_back(T(0)), fv.push_back(T(0)), lv.push_back(T(0)), pr.push_back(1LL << s),
-        sr.push_back(1LL << s), br.push_back(1LL << s), a00.push_back(S(0)), a01.push_back(s ? S(0) : NEG),
-        a10.push_back(s ? S(0) : NEG), a11.push_back(S(0));
-        return (int)L.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.mn = T(0), n.xr = T(0), n.an = T(0), n.orr = T(0), n.g = T(0), n.fv = T(0), n.lv = T(0),
+        n.pr = 1LL << s, n.sr = 1LL << s, n.br = 1LL << s, n.a00 = S(0), n.a01 = s ? S(0) : NEG,
+        n.a10 = s ? S(0) : NEG, n.a11 = S(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     void kids(int x, int s) {  // create node x's children (blocks of zeros) if it has none yet
-        if (L[x]) return;
+        if (nd[x].L) return;
         int a = newZero(s - 1), b = newZero(s - 1);
-        L[x] = a, R[x] = b;
+        nd[x].L = a, nd[x].R = b;
     }
 
     // the nodes covering a[l..r] left to right: ns, their levels ls, their first indices ts
@@ -301,8 +308,8 @@ struct SparseSegTree {
         }
         kids(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) collect(L[x], s - 1, tl, l, r, ns, ls, ts, c);
-        if (r >= m) collect(R[x], s - 1, m, l, r, ns, ls, ts, c);
+        if (l < m) collect(nd[x].L, s - 1, tl, l, r, ns, ls, ts, c);
+        if (r >= m) collect(nd[x].R, s - 1, m, l, r, ns, ls, ts, c);
     }
 
     int leafOf(long long i, int* path) {  // the leaf holding a[i]; path: the nodes above it top-down, every tag pushed
@@ -311,8 +318,8 @@ struct SparseSegTree {
         for (int s = D; s > 0; s--) {
             kids(x, s);
             path[D - s] = x;
-            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = R[x];
-            else x = L[x];
+            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = nd[x].R;
+            else x = nd[x].L;
         }
         return x;
     }
@@ -322,26 +329,28 @@ struct SparseSegTree {
     }
 
     void setLeaf(int p, T v) {  // leaf p holds v alone
-        mn[p] = v, xr[p] = v, an[p] = v, orr[p] = v, g[p] = v, fv[p] = v, lv[p] = v, pr[p] = 1, sr[p] = 1, br[p] = 1,
-        a00[p] = S(v), a01[p] = NEG, a10[p] = NEG, a11[p] = -S(v);
+        nd[p].mn = v, nd[p].xr = v, nd[p].an = v, nd[p].orr = v, nd[p].g = v, nd[p].fv = v, nd[p].lv = v, nd[p].pr = 1,
+            nd[p].sr = 1, nd[p].br = 1,
+        nd[p].a00 = S(v), nd[p].a01 = NEG, nd[p].a10 = NEG, nd[p].a11 = -S(v);
     }
 
-    T leaf(int p) const { return T(mn[p]); }  // the value at leaf p
+    T leaf(int p) const { return T(nd[p].mn); }  // the value at leaf p
 
     void pull(int x, int s) {  // recompute node x (level s) from its children
-        int a = L[x], b = R[x];
-        mn[x] = min(mn[a], mn[b]);
-        xr[x] = xr[a] ^ xr[b];
-        an[x] = an[a] & an[b];
-        orr[x] = orr[a] | orr[b];
-        g[x] = gcd(g[a], g[b]);
+        int a = nd[x].L, b = nd[x].R;
+        nd[x].mn = min(nd[a].mn, nd[b].mn);
+        nd[x].xr = nd[a].xr ^ nd[b].xr;
+        nd[x].an = nd[a].an & nd[b].an;
+        nd[x].orr = nd[a].orr | nd[b].orr;
+        nd[x].g = gcd(nd[a].g, nd[b].g);
         long long hl = 1LL << (s - 1);
-        bool j = lv[a] == fv[b];
-        br[x] = max({br[a], br[b], j ? sr[a] + pr[b] : 0LL});
-        pr[x] = j && pr[a] == hl ? pr[a] + pr[b] : pr[a];
-        sr[x] = j && sr[b] == hl ? sr[b] + sr[a] : sr[b];
-        fv[x] = fv[a], lv[x] = lv[b];
-        array<S, 4> c = altJoin({a00[a], a01[a], a10[a], a11[a]}, {a00[b], a01[b], a10[b], a11[b]});
-        a00[x] = c[0], a01[x] = c[1], a10[x] = c[2], a11[x] = c[3];
+        bool j = nd[a].lv == nd[b].fv;
+        nd[x].br = max({nd[a].br, nd[b].br, j ? nd[a].sr + nd[b].pr : 0LL});
+        nd[x].pr = j && nd[a].pr == hl ? nd[a].pr + nd[b].pr : nd[a].pr;
+        nd[x].sr = j && nd[b].sr == hl ? nd[b].sr + nd[a].sr : nd[b].sr;
+        nd[x].fv = nd[a].fv, nd[x].lv = nd[b].lv;
+        array<S,
+            4> c = altJoin({nd[a].a00, nd[a].a01, nd[a].a10, nd[a].a11}, {nd[b].a00, nd[b].a01, nd[b].a10, nd[b].a11});
+        nd[x].a00 = c[0], nd[x].a01 = c[1], nd[x].a10 = c[2], nd[x].a11 = c[3];
     }
 };

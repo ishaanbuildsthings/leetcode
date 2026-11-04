@@ -17,6 +17,7 @@ The op lists are too long for folder names (255 bytes), so these folders are nam
 """
 import os
 
+from aos import aosify_value_trees
 from note_lang import write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -1387,8 +1388,8 @@ def main():
                         write(folder, ops, "wavelet", sums, mex, py_dense(ops, sums, mex, bits), cpp_dense(ops, sums, mex, bits),
                               py_sparse(ops, sums, False), cpp_sparse(ops, sums, False), bits)
     ops = ["pointGet", "rangeMex"]
-    write("pointGet-rangeMex", ops, "persistent", None, True, py_mex_only(), cpp_mex_only(), py_sparse(ops, False, True),
-          cpp_sparse(ops, False, True))
+    write("pointGet-rangeMex", ops, "persistent", None, True, py_mex_only(), aosify_value_trees(cpp_mex_only()),
+          py_sparse(ops, False, True), aosify_value_trees(cpp_sparse(ops, False, True)))
 
 
 if __name__ == "__main__":

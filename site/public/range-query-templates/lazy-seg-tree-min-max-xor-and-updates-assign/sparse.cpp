@@ -40,16 +40,21 @@ template <typename T>
 struct SparseLazySegTree {
     long long first, last;  // the index range [lo, hi]
     int D;  // the root's level: 2^D >= hi - lo + 1
-    vector<int> L{0}, R{0};  // children (node 0: none; node 1 is the root)
-    vector<T> mn{T(0)};
-    vector<T> mx{T(0)};
-    vector<T> xr{T(0)};
-    vector<T> an{~T(0)};
-    vector<T> asg{T(0)};
-    vector<char> hasAsg{0};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        T mn = T(0);
+        T mx = T(0);
+        T xr = T(0);
+        T an = ~T(0);
+        T asg = T(0);
+        int L = 0;
+        int R = 0;
+        char hasAsg = 0;
+    };
+    vector<Node> nd{Node{}};  // node 0: none; node 1 is the root
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseLazySegTree(long long lo, long long hi) : first(lo), last(hi), D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
+    SparseLazySegTree(long long lo, long long hi) : first(lo), last(hi),
+        D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
         newZero(D);
     }
 
@@ -63,12 +68,12 @@ struct SparseLazySegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mx[t] > x)) continue;
+            if (!(nd[t].mx > x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mx[L[t]] > x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mx > x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -85,12 +90,12 @@ struct SparseLazySegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mx[t] >= x)) continue;
+            if (!(nd[t].mx >= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mx[L[t]] >= x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mx >= x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -107,12 +112,12 @@ struct SparseLazySegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] < x)) continue;
+            if (!(nd[t].mn < x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mn[L[t]] < x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mn < x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -129,12 +134,12 @@ struct SparseLazySegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] <= x)) continue;
+            if (!(nd[t].mn <= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mn[L[t]] <= x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mn <= x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -181,7 +186,7 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeAndQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = ~T(0);
-        for (int i = 0; i < c; i++) res &= an[ns[i]];
+        for (int i = 0; i < c; i++) res &= nd[ns[i]].an;
         return res;
     }
 
@@ -196,7 +201,7 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeMax: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = numeric_limits<T>::lowest();
-        for (int i = 0; i < c; i++) res = max(res, mx[ns[i]]);
+        for (int i = 0; i < c; i++) res = max(res, nd[ns[i]].mx);
         return res;
     }
 
@@ -205,7 +210,7 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = numeric_limits<T>::max();
-        for (int i = 0; i < c; i++) res = min(res, mn[ns[i]]);
+        for (int i = 0; i < c; i++) res = min(res, nd[ns[i]].mn);
         return res;
     }
 
@@ -214,7 +219,7 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeXorQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
-        for (int i = 0; i < c; i++) res ^= xr[ns[i]];
+        for (int i = 0; i < c; i++) res ^= nd[ns[i]].xr;
         return res;
     }
 
@@ -228,12 +233,12 @@ struct SparseLazySegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mx[t] > x)) continue;
+            if (!(nd[t].mx > x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mx[R[t]] > x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mx > x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -250,12 +255,12 @@ struct SparseLazySegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mx[t] >= x)) continue;
+            if (!(nd[t].mx >= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mx[R[t]] >= x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mx >= x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -272,12 +277,12 @@ struct SparseLazySegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] < x)) continue;
+            if (!(nd[t].mn < x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mn[R[t]] < x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mn < x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -294,12 +299,12 @@ struct SparseLazySegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] <= x)) continue;
+            if (!(nd[t].mn <= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s), push(t, s);
                 s--;
-                if (mn[R[t]] <= x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mn <= x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -309,15 +314,16 @@ struct SparseLazySegTree {
     // ---- internals ----
 
     int newZero(int s) {  // a new node: a block of 2^s zeros
-        L.push_back(0), R.push_back(0), mn.push_back(T(0)), mx.push_back(T(0)), xr.push_back(T(0)), an.push_back(T(0)),
-        asg.push_back(T(0)), hasAsg.push_back(0);
-        return (int)L.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.mn = T(0), n.mx = T(0), n.xr = T(0), n.an = T(0), n.asg = T(0), n.hasAsg = 0;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     void kids(int x, int s) {  // create node x's children (blocks of zeros) if it has none yet
-        if (L[x]) return;
+        if (nd[x].L) return;
         int a = newZero(s - 1), b = newZero(s - 1);
-        L[x] = a, R[x] = b;
+        nd[x].L = a, nd[x].R = b;
     }
 
     // the nodes covering a[l..r] left to right: ns, their levels ls, their first indices ts
@@ -340,8 +346,8 @@ struct SparseLazySegTree {
         kids(x, s);
         push(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) collect(L[x], s - 1, tl, l, r, ns, ls, ts, c);
-        if (r >= m) collect(R[x], s - 1, m, l, r, ns, ls, ts, c);
+        if (l < m) collect(nd[x].L, s - 1, tl, l, r, ns, ls, ts, c);
+        if (r >= m) collect(nd[x].R, s - 1, m, l, r, ns, ls, ts, c);
     }
 
     template <class F>  // f(node, level, first index) on every node covering a[l..r], then pull up
@@ -353,8 +359,8 @@ struct SparseLazySegTree {
         kids(x, s);
         push(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) update(L[x], s - 1, tl, l, r, f);
-        if (r >= m) update(R[x], s - 1, m, l, r, f);
+        if (l < m) update(nd[x].L, s - 1, tl, l, r, f);
+        if (r >= m) update(nd[x].R, s - 1, m, l, r, f);
         pull(x, s);
     }
 
@@ -365,8 +371,8 @@ struct SparseLazySegTree {
             kids(x, s);
             push(x, s);
             path[D - s] = x;
-            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = R[x];
-            else x = L[x];
+            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = nd[x].R;
+            else x = nd[x].L;
         }
         return x;
     }
@@ -376,34 +382,34 @@ struct SparseLazySegTree {
     }
 
     void setLeaf(int p, T v) {  // leaf p holds v alone
-        mn[p] = v, mx[p] = v, xr[p] = v, an[p] = v;
+        nd[p].mn = v, nd[p].mx = v, nd[p].xr = v, nd[p].an = v;
     }
 
-    T leaf(int p) const { return T(mn[p]); }  // the value at leaf p
+    T leaf(int p) const { return T(nd[p].mn); }  // the value at leaf p
 
     void pull(int x, int s) {  // recompute node x (level s) from its children
-        int a = L[x], b = R[x];
-        mn[x] = min(mn[a], mn[b]);
-        mx[x] = max(mx[a], mx[b]);
-        xr[x] = xr[a] ^ xr[b];
-        an[x] = an[a] & an[b];
+        int a = nd[x].L, b = nd[x].R;
+        nd[x].mn = min(nd[a].mn, nd[b].mn);
+        nd[x].mx = max(nd[a].mx, nd[b].mx);
+        nd[x].xr = nd[a].xr ^ nd[b].xr;
+        nd[x].an = nd[a].an & nd[b].an;
     }
 
     void setAssign(int x, int s, T v) {  // every value under node x becomes v
         long long k = 1LL << s;
-        mn[x] = v;
-        mx[x] = v;
-        an[x] = v;
-        xr[x] = k & 1 ? v : T(0);
+        nd[x].mn = v;
+        nd[x].mx = v;
+        nd[x].an = v;
+        nd[x].xr = k & 1 ? v : T(0);
     }
 
     void applyAssign(int x, int s, T v) {
         setAssign(x, s, v);
-        asg[x] = v, hasAsg[x] = 1;
+        nd[x].asg = v, nd[x].hasAsg = 1;
     }
 
     void push(int x, int s) {  // hand node x's pending tags to its children
-        int a = L[x], b = R[x], c = s - 1;  // (their level)
-        if (hasAsg[x]) applyAssign(a, c, asg[x]), applyAssign(b, c, asg[x]), hasAsg[x] = 0;
+        int a = nd[x].L, b = nd[x].R, c = s - 1;  // (their level)
+        if (nd[x].hasAsg) applyAssign(a, c, nd[x].asg), applyAssign(b, c, nd[x].asg), nd[x].hasAsg = 0;
     }
 };

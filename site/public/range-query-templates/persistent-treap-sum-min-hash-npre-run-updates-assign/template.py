@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-min-hash-npre-run-updates-assign/template.py
-# @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestEqualRun merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostLtX rightmostLteX split trisect
+# @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostLtX rightmostLteX split trisect
 # @data-structure-type: persistent-treap
 # @complexities:
 #   append: log(N) expected
@@ -13,6 +13,8 @@
 #   isPalindrome: log(N) expected
 #   leftmostLtX: log(N) expected
 #   leftmostLteX: log(N) expected
+#   leftmostPrefixSumLtX: log(N) expected
+#   leftmostPrefixSumLteX: log(N) expected
 #   longestEqualRun: log(N) expected
 #   merge: log(N) expected
 #   minPrefixSum: log(N) expected
@@ -160,8 +162,9 @@ class PersistentTreap:
     def isPalindrome(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"isPalindrome: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.fh[b] == self.bh[b]
+        self._release(mark)
         return res
 
     # O(logN) expected -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the subtree min); needs
@@ -169,50 +172,137 @@ class PersistentTreap:
     def leftmostLtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
-        t, i, res = b, 0, -1
-        if t and F[t] < x:  # some value in a[l..r] passes
-            while True:
-                self._push(t)
-                if L[t] and F[L[t]] < x:
-                    t = L[t]
-                elif val[t] < x:
-                    res = l + i + sz[L[t]]
-                    break
-                else:
-                    i += sz[L[t]] + 1
-                    t = R[t]
-        return res
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        pos = l  # (the index of the current piece's first value)
+        for t, whole in ps:
+            if not whole:
+                if val[t] < x:
+                    return pos
+                pos += 1
+                continue
+            if F[t] < x:
+                i = 0
+                while True:
+                    self._push(t)
+                    if L[t] and F[L[t]] < x:
+                        t = L[t]
+                    elif val[t] < x:
+                        return pos + i + sz[L[t]]
+                    else:
+                        i += sz[L[t]] + 1
+                        t = R[t]
+            pos += sz[t]
+        return -1
 
     # O(logN) expected -- the first i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min); needs
     # 0 <= l <= r < size(), else IndexError
     def leftmostLteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
-        t, i, res = b, 0, -1
-        if t and F[t] <= x:  # some value in a[l..r] passes
-            while True:
-                self._push(t)
-                if L[t] and F[L[t]] <= x:
-                    t = L[t]
-                elif val[t] <= x:
-                    res = l + i + sz[L[t]]
-                    break
-                else:
-                    i += sz[L[t]] + 1
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        pos = l  # (the index of the current piece's first value)
+        for t, whole in ps:
+            if not whole:
+                if val[t] <= x:
+                    return pos
+                pos += 1
+                continue
+            if F[t] <= x:
+                i = 0
+                while True:
+                    self._push(t)
+                    if L[t] and F[L[t]] <= x:
+                        t = L[t]
+                    elif val[t] <= x:
+                        return pos + i + sz[L[t]]
+                    else:
+                        i += sz[L[t]] + 1
+                        t = R[t]
+            pos += sz[t]
+        return -1
+
+    # O(logN) expected -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (a walk pruned by min prefix sums);
+    # needs 0 <= l <= r < size(), else IndexError
+    def leftmostPrefixSumLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostPrefixSumLtX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
+        L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.npre
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        pos, acc = l, 0  # (the index of the current piece's first value; the sum before it)
+        for t, whole in ps:
+            if not whole:
+                acc += val[t]
+                if acc < x:
+                    return pos
+                pos += 1
+                continue
+            if acc + P[t] < x:
+                i = 0
+                while True:
+                    self._push(t)
+                    lt = L[t]
+                    if lt and acc + P[lt] < x:
+                        t = lt
+                        continue
+                    acc += sm[lt]
+                    if acc + val[t] < x:
+                        return pos + i + sz[lt]
+                    acc += val[t]
+                    i += sz[lt] + 1
                     t = R[t]
-        return res
+            acc += sm[t]
+            pos += sz[t]
+        return -1
+
+    # O(logN) expected -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (a walk pruned by min prefix sums);
+    # needs 0 <= l <= r < size(), else IndexError
+    def leftmostPrefixSumLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostPrefixSumLteX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
+        L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.npre
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        pos, acc = l, 0  # (the index of the current piece's first value; the sum before it)
+        for t, whole in ps:
+            if not whole:
+                acc += val[t]
+                if acc <= x:
+                    return pos
+                pos += 1
+                continue
+            if acc + P[t] <= x:
+                i = 0
+                while True:
+                    self._push(t)
+                    lt = L[t]
+                    if lt and acc + P[lt] <= x:
+                        t = lt
+                        continue
+                    acc += sm[lt]
+                    if acc + val[t] <= x:
+                        return pos + i + sz[lt]
+                    acc += val[t]
+                    i += sz[lt] + 1
+                    t = R[t]
+            acc += sm[t]
+            pos += sz[t]
+        return -1
 
     # O(logN) expected -- the longest run of equal adjacent values in a[l..r]; needs 0 <= l <= r < size(), else
     # IndexError
     def longestEqualRun(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"longestEqualRun: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.br[b]
+        self._release(mark)
         return res
 
     # O(logN) expected -- append all of other at the end; other is left empty
@@ -224,9 +314,9 @@ class PersistentTreap:
     def minPrefixSum(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"minPrefixSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.npre[b]
-        self._join(a, b, c)
+        self._release(mark)
         return res
 
     # O(logN) expected -- insert all of other (any PersistentTreap, e.g. a cut piece) so it starts at a[i] (needs
@@ -238,41 +328,31 @@ class PersistentTreap:
         self.root = self._merge(self._merge(a, other.root), c)
         other.root = 0
 
-    # O(logN) expected -- a[i] += v; needs 0 <= i < size(), else IndexError
+    # O(logN) expected -- a[i] += v (copies the one path down to a[i]); needs 0 <= i < size(), else IndexError
     def pointAdd(self, i, v):
         if not 0 <= i < self.size():
             raise IndexError(f"pointAdd: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
-        a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
-        self.val[b] = self.val[b] + v
-        self._pull(b)
-        self._join(a, b, c)
+        self.root = self._setAt(self.root, i, lambda w: w + v)
 
-    # O(logN) expected -- a[i] = v; needs 0 <= i < size(), else IndexError
+    # O(logN) expected -- a[i] = v (copies the one path down to a[i]); needs 0 <= i < size(), else IndexError
     def pointAssign(self, i, v):
         if not 0 <= i < self.size():
             raise IndexError(f"pointAssign: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
-        a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
-        self.val[b] = v
-        self._pull(b)
-        self._join(a, b, c)
+        self.root = self._setAt(self.root, i, lambda w: v)
 
-    # O(logN) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else IndexError
+    # O(logN) expected -- a[i] = max(a[i], v) (copies the one path down to a[i]); needs 0 <= i < size(), else
+    # IndexError
     def pointChmax(self, i, v):
         if not 0 <= i < self.size():
             raise IndexError(f"pointChmax: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
-        a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
-        self.val[b] = max(self.val[b], v)
-        self._pull(b)
-        self._join(a, b, c)
+        self.root = self._setAt(self.root, i, lambda w: max(w, v))
 
-    # O(logN) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else IndexError
+    # O(logN) expected -- a[i] = min(a[i], v) (copies the one path down to a[i]); needs 0 <= i < size(), else
+    # IndexError
     def pointChmin(self, i, v):
         if not 0 <= i < self.size():
             raise IndexError(f"pointChmin: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
-        a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
-        self.val[b] = min(self.val[b], v)
-        self._pull(b)
-        self._join(a, b, c)
+        self.root = self._setAt(self.root, i, lambda w: min(w, v))
 
     # O(logN) expected -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
@@ -284,17 +364,16 @@ class PersistentTreap:
     def rangeAssign(self, l, r, v):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeAssign: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
-        self._applyAssign(b, v)
-        self._join(a, b, c)
+        self.root = self._upd(self.root, l, r, lambda x, off: self._applyAssign(x, v))
 
     # O(logN) expected -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
     # 0 <= l <= r < size(), else IndexError
     def rangeHash(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeHash: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.fh[b]
+        self._release(mark)
         return res
 
     # O(logN) expected -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs
@@ -302,16 +381,18 @@ class PersistentTreap:
     def rangeHashReversed(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeHashReversed: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.bh[b]
+        self._release(mark)
         return res
 
     # O(logN) expected -- min of a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeMin(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeMin: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.mn[b]
+        self._release(mark)
         return res
 
     # O(logN) expected -- cyclic shift a[l..r] left by k (a[l + k] moves to l); k can be huge or negative: it is taken
@@ -337,8 +418,9 @@ class PersistentTreap:
     def rangeSum(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.sm[b]
+        self._release(mark)
         return res
 
     # O(logN) expected -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
@@ -354,42 +436,58 @@ class PersistentTreap:
     def rightmostLtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
-        t, i, res = b, 0, -1
-        if t and F[t] < x:  # some value in a[l..r] passes
-            while True:
-                self._push(t)
-                if R[t] and F[R[t]] < x:
-                    i += sz[L[t]] + 1
-                    t = R[t]
-                elif val[t] < x:
-                    res = l + i + sz[L[t]]
-                    break
-                else:
-                    t = L[t]
-        return res
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        end = r  # (the index of the current piece's last value)
+        for t, whole in reversed(ps):
+            if not whole:
+                if val[t] < x:
+                    return end
+                end -= 1
+                continue
+            if F[t] < x:
+                start, i = end - sz[t] + 1, 0
+                while True:
+                    self._push(t)
+                    if R[t] and F[R[t]] < x:
+                        i += sz[L[t]] + 1
+                        t = R[t]
+                    elif val[t] < x:
+                        return start + i + sz[L[t]]
+                    else:
+                        t = L[t]
+            end -= sz[t]
+        return -1
 
     # O(logN) expected -- the last i in [l, r] with a[i] <= x, or -1 (a walk pruned by the subtree min); needs
     # 0 <= l <= r < size(), else IndexError
     def rightmostLteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
         L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.mn
-        t, i, res = b, 0, -1
-        if t and F[t] <= x:  # some value in a[l..r] passes
-            while True:
-                self._push(t)
-                if R[t] and F[R[t]] <= x:
-                    i += sz[L[t]] + 1
-                    t = R[t]
-                elif val[t] <= x:
-                    res = l + i + sz[L[t]]
-                    break
-                else:
-                    t = L[t]
-        return res
+        ps = []
+        self._pieces(self.root, l, r, ps)
+        end = r  # (the index of the current piece's last value)
+        for t, whole in reversed(ps):
+            if not whole:
+                if val[t] <= x:
+                    return end
+                end -= 1
+                continue
+            if F[t] <= x:
+                start, i = end - sz[t] + 1, 0
+                while True:
+                    self._push(t)
+                    if R[t] and F[R[t]] <= x:
+                        i += sz[L[t]] + 1
+                        t = R[t]
+                    elif val[t] <= x:
+                        return start + i + sz[L[t]]
+                    else:
+                        t = L[t]
+            end -= sz[t]
+        return -1
 
     # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
     # 0 <= k <= size(), else IndexError
@@ -572,6 +670,85 @@ class PersistentTreap:
             else:
                 i -= ls + 1
                 t = self.R[t]
+
+    def _pieces(self, t, l, r, out):  # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
+        if not t or r < 0 or l >= self.sz[t]:
+            return
+        if l <= 0 and self.sz[t] - 1 <= r:
+            out.append((t, True))
+            return
+        self._push(t)
+        ls = self.sz[self.L[t]]
+        self._pieces(self.L[t], l, r, out)
+        if l <= ls <= r:
+            out.append((t, False))
+        self._pieces(self.R[t], l - ls - 1, r - ls - 1, out)
+
+    def _rangeNode(self, l, r):  # (a temporary node holding a[l..r]'s aggregates, the pool size _release goes back to)
+        self._pieces(self.root, l, r, [])  # (every pending tag on the two boundary paths pushed down first)
+        mark = len(self.val)
+        return self._rq(self.root, l, r), mark
+
+    def _rq(self, t, l, r):  # a node over a[l..r] of t's subtree: t itself when it is all of it, else temporaries
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return 0
+        if l <= 0 and sz[t] - 1 <= r:
+            return t
+        ls = sz[self.L[t]]
+        if r < ls:
+            return self._rq(self.L[t], l, r)
+        if l > ls:
+            return self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        a, b = self._rq(self.L[t], l, r), self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        y = self._clone(t)
+        self.L[y], self.R[y] = a, b
+        self._pull(y)
+        return y
+
+    def _release(self, mark):  # drop every node made after mark (temporaries: no tree points to them)
+        for arr in (self.val, self.L, self.R, self.sz, self.sm, self.mn, self.fh, self.bh, self.pw, self.gs,
+                    self.npre, self.fv, self.lv, self.pr, self.sr, self.br, self.asg, self.hasAsg):
+            del arr[mark:]
+
+    def _setAt(self, t, i, f):  # t with a[i] = f(a[i]): new copies of the nodes on the path to it
+        t = self._clone(t)
+        self._push(t)
+        L, R = self.L, self.R
+        ls = self.sz[L[t]]
+        if i < ls:
+            L[t] = self._setAt(L[t], i, f)
+        elif i > ls:
+            R[t] = self._setAt(R[t], i - ls - 1, f)
+        else:
+            self.val[t] = f(self.val[t])
+        self._pull(t)
+        return t
+
+    # t with the update f(x, off) on a[l..r] of its subtree (x: a node covered whole, off: its first value's distance
+    # from l), copying only the nodes on the range's two boundary paths
+    def _upd(self, t, l, r, f):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return t
+        t = self._clone(t)
+        if l <= 0 and sz[t] - 1 <= r:
+            f(t, -l)
+            return t
+        self._push(t)
+        L, R = self.L, self.R
+        ls = sz[L[t]]
+        L[t] = self._upd(L[t], l, r, f)
+        R[t] = self._upd(R[t], l - ls - 1, r - ls - 1, f)
+        if l <= ls <= r:  # (t's own value: the update on a lone temporary copy of it)
+            y = self._clone(t)
+            L[y] = R[y] = 0
+            self._pull(y)
+            f(y, ls - l)
+            self.val[t] = self.val[y]
+            self._release(y)
+        self._pull(t)
+        return t
 
 
 # Example (pieces move between treaps; merge appends and leaves its argument empty):

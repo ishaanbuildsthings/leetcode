@@ -25,6 +25,14 @@ FOLD_OPS = ["rangeGcd", "maxPrefixSum", "maxSuffixSum", "minPrefixSum", "minSuff
             "rangeHash", "rangeHashReversed", "isPalindrome", "rangesEqual", "longestEqualRun", "maxAltSubseqSum"]
 
 
+def fit_call(line, ind=8):
+    """an update(..., lambda) call on one line, or with the lambda's body on a line of its own past 120 columns"""
+    if ind + len(line) <= 120:
+        return line
+    head, body = line.split(" { ", 1)
+    return head + " {\n" + " " * (ind + 4) + body[:-len(" });")] + "\n" + " " * ind + "});"
+
+
 def sparse_cost(dense_cost):
     c = dense_cost.replace("log(N)+log(U)", "log(U)").replace("log(N)", "log(U)")
     return "1" if c in ("N", "N*log(U) ?") else c
@@ -646,10 +654,11 @@ def cpp_sparse_public(s):
         for u in s.ups:
             if u in shr:
                 params, cond, lim, f, c = shr[u]
-                call = f"update(1, D, first, l, r, [&](int t, int s, long long) {{ shrink(t, s, {lim}, {f}); }});"
+                ind = "            " if cond else "        "
+                call = (f"update(1, D, first, l, r, [&](int t, int s, long long) {{\n{ind}    shrink(t, s, {lim}, {f});\n{ind}}});")
                 pub[UOP[u]] = f'''    // amortized O({c}) -- {UDOC[u]}
     void {UOP[u]}(long long l, long long r{", " + params if params else ""}) {{
-        {"if (" + cond + ") " if cond else ""}{call}
+        {"if (" + cond + ")" + chr(10) + ind if cond else ""}{call}
     }}
 '''
                 continue
@@ -659,7 +668,7 @@ def cpp_sparse_public(s):
             lam = f"[&](int t, int{' s' if 's' in uses else ''}, long long{' tl' if 'tl' in uses else ''})"
             pub[UOP[u]] = f'''    // O(logU{" * logU" if s.has("gcd") else ""}) -- {UDOC[u]}
     void {UOP[u]}(long long l, long long r, {params}) {{
-        update(1, D, first, l, r, {lam} {{ {fcall}; }});
+        {fit_call(f"update(1, D, first, l, r, {lam} {{ {fcall}; }});")}
     }}
 '''
     for op, expr, doc in (("pointAssign", "v", "a[i] = v"), ("pointAdd", "T(leaf(x) + v)", "a[i] += v"),

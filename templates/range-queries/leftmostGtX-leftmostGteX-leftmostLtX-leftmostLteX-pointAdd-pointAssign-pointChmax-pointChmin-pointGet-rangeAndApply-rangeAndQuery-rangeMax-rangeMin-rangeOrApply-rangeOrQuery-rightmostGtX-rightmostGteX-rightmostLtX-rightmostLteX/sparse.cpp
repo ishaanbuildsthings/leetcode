@@ -48,84 +48,91 @@ template <typename T>
 struct SparseBitBeats {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     T FULL;
-    mutable vector<T> mx = vector<T>(1);
-    mutable vector<T> mn = vector<T>(1);
-    mutable vector<T> andAll = vector<T>(1);
-    mutable vector<T> orAll = vector<T>(1);
-    mutable vector<T> tagAnd = vector<T>(1);
-    mutable vector<T> tagXor = vector<T>(1);
-    mutable vector<int> Lc{0}, Rc{0};  // children (0: none yet)
-    mutable vector<long long> ln{0};   // how many positions each node covers
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        long long ln = 0;
+        T mx = T();
+        T mn = T();
+        T andAll = T();
+        T orAll = T();
+        T tagAnd = T();
+        T tagXor = T();
+        int Lc = 0;
+        int Rc = 0;
+    };
+    mutable vector<Node> nd{Node{}};  // node 0 = the empty tree
     long long lo, hi;
     int root;
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseBitBeats(long long lo, long long hi, int bits = 20) : FULL(T((T(1) << bits) - 1)), lo(lo), hi(hi) { root = node(hi - lo + 1); }
+    SparseBitBeats(long long lo, long long hi, int bits = 20) : FULL(T((T(1) << bits) - 1)), lo(lo), hi(hi) {
+        root = node(hi - lo + 1);
+    }
 
 
     // optional -- reserve room for this many nodes up front
-    void reservePool(size_t nodes) { mx.reserve(nodes); mn.reserve(nodes); andAll.reserve(nodes); orAll.reserve(nodes); tagAnd.reserve(nodes); tagXor.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
+    void reservePool(size_t nodes) { nd.reserve(nodes); }
 
     // a fresh node: a block of k zeros
     int node(long long k) const {  // const: it only grows the (mutable) pool
-        mx.push_back(0); mn.push_back(0); andAll.push_back(0); orAll.push_back(0); tagAnd.push_back(FULL); tagXor.push_back(0);
-        Lc.push_back(0), Rc.push_back(0), ln.push_back(k);
-        return (int)ln.size() - 1;
+        Node n;
+        n.mx = 0, n.mn = 0, n.andAll = 0, n.orAll = 0, n.tagAnd = FULL, n.tagXor = 0, n.Lc = 0, n.Rc = 0, n.ln = k;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     // create node i's children (blocks of zeros: the left one gets the extra position) if it has none yet
     void kids(int i) const {
-        if (Lc[i] || ln[i] <= 1) return;
-        int a = node((ln[i] + 1) / 2), b = node(ln[i] / 2);
-        Lc[i] = a, Rc[i] = b;
+        if (nd[i].Lc || nd[i].ln <= 1) return;
+        int a = node((nd[i].ln + 1) / 2), b = node(nd[i].ln / 2);
+        nd[i].Lc = a, nd[i].Rc = b;
     }
 
     void setLeaf(int i, T v) {
-        mx[i] = mn[i] = andAll[i] = orAll[i] = v;
-        tagAnd[i] = FULL, tagXor[i] = 0;
+        nd[i].mx = nd[i].mn = nd[i].andAll = nd[i].orAll = v;
+        nd[i].tagAnd = FULL, nd[i].tagXor = 0;
     }
 
     void pull(int i) {
-        int l = Lc[i], r = Rc[i];
-        mx[i] = max(mx[l], mx[r]);
-        mn[i] = min(mn[l], mn[r]);
-        andAll[i] = andAll[l] & andAll[r], orAll[i] = orAll[l] | orAll[r];
-        tagAnd[i] = FULL, tagXor[i] = 0;
+        int l = nd[i].Lc, r = nd[i].Rc;
+        nd[i].mx = max(nd[l].mx, nd[r].mx);
+        nd[i].mn = min(nd[l].mn, nd[r].mn);
+        nd[i].andAll = nd[l].andAll & nd[r].andAll, nd[i].orAll = nd[l].orAll | nd[r].orAll;
+        nd[i].tagAnd = FULL, nd[i].tagXor = 0;
     }
 
     // only legal when the node's mixed bits are all kept, so every value shifts by the same delta
     void apply(int i, T a, T x) {
         T keep = (a ^ x) & FULL;
-        T delta = (~orAll[i] & x & FULL) - (andAll[i] & ~keep & FULL);
-        mx[i] += delta, mn[i] += delta;
-        andAll[i] = ((andAll[i] & a) ^ x) & FULL, orAll[i] = ((orAll[i] & a) ^ x) & FULL;
-        tagAnd[i] = tagAnd[i] & a & FULL, tagXor[i] = ((tagXor[i] & a) ^ x) & FULL;
+        T delta = (~nd[i].orAll & x & FULL) - (nd[i].andAll & ~keep & FULL);
+        nd[i].mx += delta, nd[i].mn += delta;
+        nd[i].andAll = ((nd[i].andAll & a) ^ x) & FULL, nd[i].orAll = ((nd[i].orAll & a) ^ x) & FULL;
+        nd[i].tagAnd = nd[i].tagAnd & a & FULL, nd[i].tagXor = ((nd[i].tagXor & a) ^ x) & FULL;
     }
 
     void push(int i, long long tl, long long tr) {
         kids(i);
-        if (tl == tr || (tagAnd[i] == FULL && tagXor[i] == 0)) return;
-        apply(Lc[i], tagAnd[i], tagXor[i]), apply(Rc[i], tagAnd[i], tagXor[i]);
-        tagAnd[i] = FULL, tagXor[i] = 0;
+        if (tl == tr || (nd[i].tagAnd == FULL && nd[i].tagXor == 0)) return;
+        apply(nd[i].Lc, nd[i].tagAnd, nd[i].tagXor), apply(nd[i].Rc, nd[i].tagAnd, nd[i].tagXor);
+        nd[i].tagAnd = FULL, nd[i].tagXor = 0;
     }
 
     // (v & a) ^ x == v for every v in the node? keep bits are fine, flip bits never are, force-0 needs all 0,
     // force-1 needs all 1
     bool noEffect(int i, T a, T x) const {
         if (a & x & FULL) return false;
-        if (~a & ~x & orAll[i] & FULL) return false;
-        if (~a & x & ~andAll[i] & FULL) return false;
+        if (~a & ~x & nd[i].orAll & FULL) return false;
+        if (~a & x & ~nd[i].andAll & FULL) return false;
         return true;
     }
 
     void upd(int i, long long tl, long long tr, long long ql, long long qr, T a, T x) {
         if (qr < tl || ql > tr || noEffect(i, a, x)) return;
-        T mixed = (andAll[i] ^ orAll[i]) & FULL;
+        T mixed = (nd[i].andAll ^ nd[i].orAll) & FULL;
         if (ql <= tl && tr <= qr && (mixed & (~a | x) & FULL) == 0) { apply(i, a, x); return; }
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        upd(Lc[i], tl, tm, ql, qr, a, x), upd(Rc[i], tm + 1, tr, ql, qr, a, x);
+        upd(nd[i].Lc, tl, tm, ql, qr, a, x), upd(nd[i].Rc, tm + 1, tr, ql, qr, a, x);
         pull(i);
     }
 
@@ -134,8 +141,8 @@ struct SparseBitBeats {
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        if (p <= tm) set(Lc[i], tl, tm, p, v);
-        else set(Rc[i], tm + 1, tr, p, v);
+        if (p <= tm) set(nd[i].Lc, tl, tm, p, v);
+        else set(nd[i].Rc, tm + 1, tr, p, v);
         pull(i);
     }
 
@@ -151,16 +158,16 @@ struct SparseBitBeats {
         }
         if (ql <= tl && tr <= qr) {
             switch (kind) {
-                case 0: return mx[i];
-                case 1: return mn[i];
-                case 2: return andAll[i];
-                default: return orAll[i];
+                case 0: return nd[i].mx;
+                case 1: return nd[i].mn;
+                case 2: return nd[i].andAll;
+                default: return nd[i].orAll;
             }
         }
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        S a = query(Lc[i], tl, tm, ql, qr, kind), b = query(Rc[i], tm + 1, tr, ql, qr, kind);
+        S a = query(nd[i].Lc, tl, tm, ql, qr, kind), b = query(nd[i].Rc, tm + 1, tr, ql, qr, kind);
         switch (kind) {
             case 0: return max(a, b);
             case 1: return min(a, b);
@@ -239,7 +246,7 @@ struct SparseBitBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostGtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostGtX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return mx[i] > x; });
+        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return nd[i].mx > x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -247,7 +254,7 @@ struct SparseBitBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostGteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostGteX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return mx[i] >= x; });
+        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return nd[i].mx >= x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -255,7 +262,7 @@ struct SparseBitBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostLtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostLtX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return mn[i] < x; });
+        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return nd[i].mn < x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -263,7 +270,7 @@ struct SparseBitBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostLteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostLteX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return mn[i] <= x; });
+        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return nd[i].mn <= x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -271,7 +278,7 @@ struct SparseBitBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostGtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostGtX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return mx[i] > x; });
+        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return nd[i].mx > x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -279,7 +286,7 @@ struct SparseBitBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostGteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostGteX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return mx[i] >= x; });
+        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return nd[i].mx >= x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -287,7 +294,7 @@ struct SparseBitBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostLtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostLtX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return mn[i] < x; });
+        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return nd[i].mn < x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -295,7 +302,7 @@ struct SparseBitBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostLteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostLteX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return mn[i] <= x; });
+        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return nd[i].mn <= x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -308,8 +315,8 @@ struct SparseBitBeats {
         if (r < tl || tr < l || !ok(i)) return NONE;
         if (tl == tr) return tl;
         push(i, tl, tr), kids(i);
-        long long tm = tl + (tr - tl) / 2, res = firstPass(Lc[i], tl, tm, l, r, ok);
-        return res != NONE ? res : firstPass(Rc[i], tm + 1, tr, l, r, ok);
+        long long tm = tl + (tr - tl) / 2, res = firstPass(nd[i].Lc, tl, tm, l, r, ok);
+        return res != NONE ? res : firstPass(nd[i].Rc, tm + 1, tr, l, r, ok);
     }
 
     // the last index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one
@@ -319,7 +326,7 @@ struct SparseBitBeats {
         if (r < tl || tr < l || !ok(i)) return NONE;
         if (tl == tr) return tl;
         push(i, tl, tr), kids(i);
-        long long tm = tl + (tr - tl) / 2, res = lastPass(Rc[i], tm + 1, tr, l, r, ok);
-        return res != NONE ? res : lastPass(Lc[i], tl, tm, l, r, ok);
+        long long tm = tl + (tr - tl) / 2, res = lastPass(nd[i].Rc, tm + 1, tr, l, r, ok);
+        return res != NONE ? res : lastPass(nd[i].Lc, tl, tm, l, r, ok);
     }
 };

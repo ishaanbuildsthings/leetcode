@@ -48,15 +48,19 @@ template <typename T>
 struct SparseChminChmaxBeats {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr T NEG_INF = numeric_limits<T>::lowest(), POS_INF = numeric_limits<T>::max();
-    mutable vector<T> mx = vector<T>(1);
-    mutable vector<T> mx2 = vector<T>(1);
-    mutable vector<T> mn = vector<T>(1);
-    mutable vector<T> mn2 = vector<T>(1);
-    mutable vector<long long> cntMx = vector<long long>(1);
-    mutable vector<long long> cntMn = vector<long long>(1);
-    mutable vector<S> tot = vector<S>(1);
-    mutable vector<int> Lc{0}, Rc{0};  // children (0: none yet)
-    mutable vector<long long> ln{0};   // how many positions each node covers
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        S tot = S();
+        long long cntMx = 0;
+        long long cntMn = 0;
+        long long ln = 0;
+        T mx = T();
+        T mx2 = T();
+        T mn = T();
+        T mn2 = T();
+        int Lc = 0;
+        int Rc = 0;
+    };
+    mutable vector<Node> nd{Node{}};  // node 0 = the empty tree
     long long lo, hi;
     int root;
 
@@ -65,53 +69,60 @@ struct SparseChminChmaxBeats {
 
 
     // optional -- reserve room for this many nodes up front
-    void reservePool(size_t nodes) { mx.reserve(nodes); mx2.reserve(nodes); mn.reserve(nodes); mn2.reserve(nodes); cntMx.reserve(nodes); cntMn.reserve(nodes); tot.reserve(nodes); Lc.reserve(nodes); Rc.reserve(nodes); ln.reserve(nodes); }
+    void reservePool(size_t nodes) { nd.reserve(nodes); }
 
     // a fresh node: a block of k zeros
     int node(long long k) const {  // const: it only grows the (mutable) pool
-        mx.push_back(0); mx2.push_back(NEG_INF); mn.push_back(0); mn2.push_back(POS_INF); cntMx.push_back(k); cntMn.push_back(k); tot.push_back(0);
-        Lc.push_back(0), Rc.push_back(0), ln.push_back(k);
-        return (int)ln.size() - 1;
+        Node n;
+        n.mx = 0, n.mx2 = NEG_INF, n.mn = 0, n.mn2 = POS_INF, n.cntMx = k, n.cntMn = k, n.tot = 0, n.Lc = 0, n.Rc = 0,
+        n.ln = k;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     // create node i's children (blocks of zeros: the left one gets the extra position) if it has none yet
     void kids(int i) const {
-        if (Lc[i] || ln[i] <= 1) return;
-        int a = node((ln[i] + 1) / 2), b = node(ln[i] / 2);
-        Lc[i] = a, Rc[i] = b;
+        if (nd[i].Lc || nd[i].ln <= 1) return;
+        int a = node((nd[i].ln + 1) / 2), b = node(nd[i].ln / 2);
+        nd[i].Lc = a, nd[i].Rc = b;
     }
 
     void pull(int i) {
-        int l = Lc[i], r = Rc[i];
-        tot[i] = tot[l] + tot[r];
-        if (mx[l] > mx[r]) mx[i] = mx[l], cntMx[i] = cntMx[l], mx2[i] = max(mx2[l], mx[r]);
-        else if (mx[l] < mx[r]) mx[i] = mx[r], cntMx[i] = cntMx[r], mx2[i] = max(mx2[r], mx[l]);
-        else mx[i] = mx[l], cntMx[i] = cntMx[l] + cntMx[r], mx2[i] = max(mx2[l], mx2[r]);
-        if (mn[l] < mn[r]) mn[i] = mn[l], cntMn[i] = cntMn[l], mn2[i] = min(mn2[l], mn[r]);
-        else if (mn[l] > mn[r]) mn[i] = mn[r], cntMn[i] = cntMn[r], mn2[i] = min(mn2[r], mn[l]);
-        else mn[i] = mn[l], cntMn[i] = cntMn[l] + cntMn[r], mn2[i] = min(mn2[l], mn2[r]);
+        int l = nd[i].Lc, r = nd[i].Rc;
+        nd[i].tot = nd[l].tot + nd[r].tot;
+        if (nd[l].mx > nd[r].mx) nd[i].mx = nd[l].mx, nd[i].cntMx = nd[l].cntMx, nd[i].mx2 = max(nd[l].mx2, nd[r].mx);
+        else if (nd[l].mx < nd[r].mx) nd[i].mx = nd[r].mx, nd[i].cntMx = nd[r].cntMx,
+            nd[i].mx2 = max(nd[r].mx2, nd[l].mx);
+        else nd[i].mx = nd[l].mx, nd[i].cntMx = nd[l].cntMx + nd[r].cntMx, nd[i].mx2 = max(nd[l].mx2, nd[r].mx2);
+        if (nd[l].mn < nd[r].mn) nd[i].mn = nd[l].mn, nd[i].cntMn = nd[l].cntMn, nd[i].mn2 = min(nd[l].mn2, nd[r].mn);
+        else if (nd[l].mn > nd[r].mn) nd[i].mn = nd[r].mn, nd[i].cntMn = nd[r].cntMn,
+            nd[i].mn2 = min(nd[r].mn2, nd[l].mn);
+        else nd[i].mn = nd[l].mn, nd[i].cntMn = nd[l].cntMn + nd[r].cntMn, nd[i].mn2 = min(nd[l].mn2, nd[r].mn2);
     }
 
     // every value under node i (sz of them) becomes v
-    void applyAssign(int i, long long sz, T v) { mx[i] = v, mx2[i] = NEG_INF, cntMx[i] = sz, mn[i] = v, mn2[i] = POS_INF, cntMn[i] = sz, tot[i] = S(v) * sz; }
+    void applyAssign(int i, long long sz, T v) {
+        nd[i].mx = v, nd[i].mx2 = NEG_INF, nd[i].cntMx = sz, nd[i].mn = v, nd[i].mn2 = POS_INF, nd[i].cntMn = sz,
+            nd[i].tot = S(v) * sz;
+    }
 
     // chmin by v on node i, with mx2 < v: only the copies of the max move
     void applyChmin(int i, long long sz, T v) {
-        if (mn[i] >= v) { applyAssign(i, sz, v); return; }
-        if (mx[i] > v) {
-            if (mn2[i] == mx[i]) mn2[i] = v;
-            tot[i] -= S(mx[i] - v) * cntMx[i];
-            mx[i] = v;
+        if (nd[i].mn >= v) { applyAssign(i, sz, v); return; }
+        if (nd[i].mx > v) {
+            if (nd[i].mn2 == nd[i].mx) nd[i].mn2 = v;
+            nd[i].tot -= S(nd[i].mx - v) * nd[i].cntMx;
+            nd[i].mx = v;
         }
     }
 
     // chmax by v on node i, with v < mn2: only the copies of the min move
     void applyChmax(int i, long long sz, T v) {
-        if (mx[i] <= v) { applyAssign(i, sz, v); return; }
-        if (mn[i] < v) {
-            if (mx2[i] == mn[i]) mx2[i] = v;
-            tot[i] += S(v - mn[i]) * cntMn[i];
-            mn[i] = v;
+        if (nd[i].mx <= v) { applyAssign(i, sz, v); return; }
+        if (nd[i].mn < v) {
+            if (nd[i].mx2 == nd[i].mn) nd[i].mx2 = v;
+            nd[i].tot += S(v - nd[i].mn) * nd[i].cntMn;
+            nd[i].mn = v;
         }
     }
 
@@ -120,30 +131,30 @@ struct SparseChminChmaxBeats {
         kids(i);
         if (tl == tr) return;
         kids(i);
-        long long tm = tl + (tr - tl) / 2, l = Lc[i], r = Rc[i];
+        long long tm = tl + (tr - tl) / 2, l = nd[i].Lc, r = nd[i].Rc;
         long long lsz = tm - tl + 1, rsz = tr - tm;
-        if (mn[i] == mx[i]) { applyAssign(l, lsz, mx[i]), applyAssign(r, rsz, mx[i]); return; }
-        applyChmin(l, lsz, mx[i]), applyChmin(r, rsz, mx[i]);
-        applyChmax(l, lsz, mn[i]), applyChmax(r, rsz, mn[i]);
+        if (nd[i].mn == nd[i].mx) { applyAssign(l, lsz, nd[i].mx), applyAssign(r, rsz, nd[i].mx); return; }
+        applyChmin(l, lsz, nd[i].mx), applyChmin(r, rsz, nd[i].mx);
+        applyChmax(l, lsz, nd[i].mn), applyChmax(r, rsz, nd[i].mn);
     }
 
     void chmin(int i, long long tl, long long tr, long long ql, long long qr, T x) {
-        if (qr < tl || ql > tr || x >= mx[i]) return;
-        if (ql <= tl && tr <= qr && x > mx2[i]) { applyChmin(i, tr - tl + 1, x); return; }
+        if (qr < tl || ql > tr || x >= nd[i].mx) return;
+        if (ql <= tl && tr <= qr && x > nd[i].mx2) { applyChmin(i, tr - tl + 1, x); return; }
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        chmin(Lc[i], tl, tm, ql, qr, x), chmin(Rc[i], tm + 1, tr, ql, qr, x);
+        chmin(nd[i].Lc, tl, tm, ql, qr, x), chmin(nd[i].Rc, tm + 1, tr, ql, qr, x);
         pull(i);
     }
 
     void chmax(int i, long long tl, long long tr, long long ql, long long qr, T x) {
-        if (qr < tl || ql > tr || x <= mn[i]) return;
-        if (ql <= tl && tr <= qr && x < mn2[i]) { applyChmax(i, tr - tl + 1, x); return; }
+        if (qr < tl || ql > tr || x <= nd[i].mn) return;
+        if (ql <= tl && tr <= qr && x < nd[i].mn2) { applyChmax(i, tr - tl + 1, x); return; }
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        chmax(Lc[i], tl, tm, ql, qr, x), chmax(Rc[i], tm + 1, tr, ql, qr, x);
+        chmax(nd[i].Lc, tl, tm, ql, qr, x), chmax(nd[i].Rc, tm + 1, tr, ql, qr, x);
         pull(i);
     }
 
@@ -153,35 +164,35 @@ struct SparseChminChmaxBeats {
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        assign(Lc[i], tl, tm, ql, qr, v), assign(Rc[i], tm + 1, tr, ql, qr, v);
+        assign(nd[i].Lc, tl, tm, ql, qr, v), assign(nd[i].Rc, tm + 1, tr, ql, qr, v);
         pull(i);
     }
 
     S qsum(int i, long long tl, long long tr, long long ql, long long qr) {
         if (qr < tl || ql > tr) return 0;
-        if (ql <= tl && tr <= qr) return tot[i];
+        if (ql <= tl && tr <= qr) return nd[i].tot;
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        return qsum(Lc[i], tl, tm, ql, qr) + qsum(Rc[i], tm + 1, tr, ql, qr);
+        return qsum(nd[i].Lc, tl, tm, ql, qr) + qsum(nd[i].Rc, tm + 1, tr, ql, qr);
     }
 
     T qmax(int i, long long tl, long long tr, long long ql, long long qr) {
         if (qr < tl || ql > tr) return NEG_INF;
-        if (ql <= tl && tr <= qr) return mx[i];
+        if (ql <= tl && tr <= qr) return nd[i].mx;
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        return max(qmax(Lc[i], tl, tm, ql, qr), qmax(Rc[i], tm + 1, tr, ql, qr));
+        return max(qmax(nd[i].Lc, tl, tm, ql, qr), qmax(nd[i].Rc, tm + 1, tr, ql, qr));
     }
 
     T qmin(int i, long long tl, long long tr, long long ql, long long qr) {
         if (qr < tl || ql > tr) return POS_INF;
-        if (ql <= tl && tr <= qr) return mn[i];
+        if (ql <= tl && tr <= qr) return nd[i].mn;
         push(i, tl, tr);
         kids(i);
         long long tm = tl + (tr - tl) / 2;
-        return min(qmin(Lc[i], tl, tm, ql, qr), qmin(Rc[i], tm + 1, tr, ql, qr));
+        return min(qmin(nd[i].Lc, tl, tm, ql, qr), qmin(nd[i].Rc, tm + 1, tr, ql, qr));
     }
 
     // amortized O(logU) -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
@@ -254,7 +265,7 @@ struct SparseChminChmaxBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostGtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostGtX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return mx[i] > x; });
+        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return nd[i].mx > x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -262,7 +273,7 @@ struct SparseChminChmaxBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostGteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostGteX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return mx[i] >= x; });
+        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return nd[i].mx >= x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -270,7 +281,7 @@ struct SparseChminChmaxBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostLtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostLtX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return mn[i] < x; });
+        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return nd[i].mn < x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -278,7 +289,7 @@ struct SparseChminChmaxBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostLteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostLteX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return mn[i] <= x; });
+        long long res = l > r ? NONE : firstPass(root, lo, hi, l, r, [&](int i) { return nd[i].mn <= x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -286,7 +297,7 @@ struct SparseChminChmaxBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostGtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostGtX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return mx[i] > x; });
+        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return nd[i].mx > x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -294,7 +305,7 @@ struct SparseChminChmaxBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostGteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostGteX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return mx[i] >= x; });
+        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return nd[i].mx >= x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -302,7 +313,7 @@ struct SparseChminChmaxBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostLtX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostLtX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return mn[i] < x; });
+        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return nd[i].mn < x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -310,7 +321,7 @@ struct SparseChminChmaxBeats {
     // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostLteX(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostLteX: needs lo <= l <= r <= hi");
-        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return mn[i] <= x; });
+        long long res = l > r ? NONE : lastPass(root, lo, hi, l, r, [&](int i) { return nd[i].mn <= x; });
         return res == NONE ? lo - 1 : res;
     }
 
@@ -323,8 +334,8 @@ struct SparseChminChmaxBeats {
         if (r < tl || tr < l || !ok(i)) return NONE;
         if (tl == tr) return tl;
         push(i, tl, tr), kids(i);
-        long long tm = tl + (tr - tl) / 2, res = firstPass(Lc[i], tl, tm, l, r, ok);
-        return res != NONE ? res : firstPass(Rc[i], tm + 1, tr, l, r, ok);
+        long long tm = tl + (tr - tl) / 2, res = firstPass(nd[i].Lc, tl, tm, l, r, ok);
+        return res != NONE ? res : firstPass(nd[i].Rc, tm + 1, tr, l, r, ok);
     }
 
     // the last index in [l, r] under node i whose value passes ok(node), or NONE: O(logU), since only one
@@ -334,7 +345,7 @@ struct SparseChminChmaxBeats {
         if (r < tl || tr < l || !ok(i)) return NONE;
         if (tl == tr) return tl;
         push(i, tl, tr), kids(i);
-        long long tm = tl + (tr - tl) / 2, res = lastPass(Rc[i], tm + 1, tr, l, r, ok);
-        return res != NONE ? res : lastPass(Lc[i], tl, tm, l, r, ok);
+        long long tm = tl + (tr - tl) / 2, res = lastPass(nd[i].Rc, tm + 1, tr, l, r, ok);
+        return res != NONE ? res : lastPass(nd[i].Lc, tl, tm, l, r, ok);
     }
 };

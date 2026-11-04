@@ -35,10 +35,16 @@ struct PersistentOrderStats {
     int n, m;
     long long klo, khi;            // the tree is over ranks 0..m-1
     vector<T> arr, srt;            // srt: sorted distinct values
-    vector<int> root, L, R, C;     // node 0 = the empty tree
+    vector<int> root;     // node 0 = the empty tree
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        int L = 0;
+        int R = 0;
+        int C = 0;
+    };
+    vector<Node> nd;  // node 0 = the empty tree
 
     // O(N log N) -- arr: the initial array, 0-indexed
-    explicit PersistentOrderStats(const vector<T>& a) : n((int)a.size()), arr(a), srt(a), root(1, 0), L(1, 0), R(1, 0), C(1, 0) {
+    explicit PersistentOrderStats(const vector<T>& a) : n((int)a.size()), arr(a), srt(a), root(1, 0), nd(1) {
         sort(srt.begin(), srt.end());
         srt.erase(unique(srt.begin(), srt.end()), srt.end());
         m = (int)srt.size();
@@ -152,16 +158,20 @@ struct PersistentOrderStats {
         long long nl = klo, nh = khi;
         while (nl != nh) {
             long long mid = nl + (nh - nl) / 2;
-            if (key <= mid) path.push_back({node, true}), node = L[node], nh = mid;
-            else path.push_back({node, false}), node = R[node], nl = mid + 1;
+            if (key <= mid) path.push_back({node, true}), node = nd[node].L, nh = mid;
+            else path.push_back({node, false}), node = nd[node].R, nl = mid + 1;
         }
-        L.push_back(0), R.push_back(0), C.push_back(C[node] + 1);
-        int cur = (int)C.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.C = nd[node].C + 1;
+        nd.push_back(n);
+        int cur = (int)nd.size() - 1;
         for (int k = (int)path.size() - 1; k >= 0; k--) {
             auto [old, left] = path[k];
-            int lc = left ? cur : L[old], rc = left ? R[old] : cur;
-            L.push_back(lc), R.push_back(rc), C.push_back(C[lc] + C[rc]);
-            cur = (int)C.size() - 1;
+            int lc = left ? cur : nd[old].L, rc = left ? nd[old].R : cur;
+            Node n;
+            n.L = lc, n.R = rc, n.C = nd[lc].C + nd[rc].C;
+            nd.push_back(n);
+            cur = (int)nd.size() - 1;
         }
         return cur;
     }
@@ -171,9 +181,9 @@ struct PersistentOrderStats {
         int a = root[r + 1], b = root[l];
         long long nl = klo, nh = khi;
         while (nl != nh) {
-            long long mid = nl + (nh - nl) / 2, c = C[L[a]] - C[L[b]];
-            if (k <= c) a = L[a], b = L[b], nh = mid;
-            else k -= c, a = R[a], b = R[b], nl = mid + 1;
+            long long mid = nl + (nh - nl) / 2, c = nd[nd[a].L].C - nd[nd[b].L].C;
+            if (k <= c) a = nd[a].L, b = nd[b].L, nh = mid;
+            else k -= c, a = nd[a].R, b = nd[b].R, nl = mid + 1;
         }
         return srt[nl];
     }
@@ -186,8 +196,9 @@ struct PersistentOrderStats {
         long long nl = klo, nh = khi, res = 0;
         while (nl != nh) {
             long long mid = nl + (nh - nl) / 2;
-            if (x <= mid) a = L[a], b = L[b], nh = mid;
-            else res += C[L[a]] - C[L[b]], a = R[a], b = R[b], nl = mid + 1;  // the whole left half is below x
+            if (x <= mid) a = nd[a].L, b = nd[b].L, nh = mid;
+            // the whole left half is below x
+            else res += nd[nd[a].L].C - nd[nd[b].L].C, a = nd[a].R, b = nd[b].R, nl = mid + 1;
         }
         return res;
     }

@@ -29,12 +29,17 @@ template <typename T>
 struct SparseLazySegTree {
     long long first, last;  // the index range [lo, hi]
     int D;  // the root's level: 2^D >= hi - lo + 1
-    vector<int> L{0}, R{0};  // children (node 0: none; node 1 is the root)
-    vector<T> xr{T(0)};
-    vector<T> tx{T(0)};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        T xr = T(0);
+        T tx = T(0);
+        int L = 0;
+        int R = 0;
+    };
+    vector<Node> nd{Node{}};  // node 0: none; node 1 is the root
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseLazySegTree(long long lo, long long hi) : first(lo), last(hi), D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
+    SparseLazySegTree(long long lo, long long hi) : first(lo), last(hi),
+        D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
         newZero(D);
     }
 
@@ -84,21 +89,23 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeXorQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
-        for (int i = 0; i < c; i++) res ^= xr[ns[i]];
+        for (int i = 0; i < c; i++) res ^= nd[ns[i]].xr;
         return res;
     }
 
     // ---- internals ----
 
     int newZero(int s) {  // a new node: a block of 2^s zeros
-        L.push_back(0), R.push_back(0), xr.push_back(T(0)), tx.push_back(T(0));
-        return (int)L.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.xr = T(0), n.tx = T(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     void kids(int x, int s) {  // create node x's children (blocks of zeros) if it has none yet
-        if (L[x]) return;
+        if (nd[x].L) return;
         int a = newZero(s - 1), b = newZero(s - 1);
-        L[x] = a, R[x] = b;
+        nd[x].L = a, nd[x].R = b;
     }
 
     // the nodes covering a[l..r] left to right: ns, their levels ls, their first indices ts
@@ -121,8 +128,8 @@ struct SparseLazySegTree {
         kids(x, s);
         push(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) collect(L[x], s - 1, tl, l, r, ns, ls, ts, c);
-        if (r >= m) collect(R[x], s - 1, m, l, r, ns, ls, ts, c);
+        if (l < m) collect(nd[x].L, s - 1, tl, l, r, ns, ls, ts, c);
+        if (r >= m) collect(nd[x].R, s - 1, m, l, r, ns, ls, ts, c);
     }
 
     template <class F>  // f(node, level, first index) on every node covering a[l..r], then pull up
@@ -134,8 +141,8 @@ struct SparseLazySegTree {
         kids(x, s);
         push(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) update(L[x], s - 1, tl, l, r, f);
-        if (r >= m) update(R[x], s - 1, m, l, r, f);
+        if (l < m) update(nd[x].L, s - 1, tl, l, r, f);
+        if (r >= m) update(nd[x].R, s - 1, m, l, r, f);
         pull(x, s);
     }
 
@@ -146,8 +153,8 @@ struct SparseLazySegTree {
             kids(x, s);
             push(x, s);
             path[D - s] = x;
-            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = R[x];
-            else x = L[x];
+            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = nd[x].R;
+            else x = nd[x].L;
         }
         return x;
     }
@@ -157,27 +164,27 @@ struct SparseLazySegTree {
     }
 
     void setLeaf(int p, T v) {  // leaf p holds v alone
-        xr[p] = v;
+        nd[p].xr = v;
     }
 
-    T leaf(int p) const { return T(xr[p]); }  // the value at leaf p
+    T leaf(int p) const { return T(nd[p].xr); }  // the value at leaf p
 
     void pull(int x, int s) {  // recompute node x (level s) from its children
-        int a = L[x], b = R[x];
-        xr[x] = xr[a] ^ xr[b];
+        int a = nd[x].L, b = nd[x].R;
+        nd[x].xr = nd[a].xr ^ nd[b].xr;
     }
 
     void setXor(int x, int s, T v) {  // every value under node x is xored with v (an even count leaves the xor alone)
-        if (s == 0) xr[x] ^= v;
+        if (s == 0) nd[x].xr ^= v;
     }
 
     void applyXor(int x, int s, T v) {
         setXor(x, s, v);
-        tx[x] ^= v;
+        nd[x].tx ^= v;
     }
 
     void push(int x, int s) {  // hand node x's pending tags to its children
-        int a = L[x], b = R[x], c = s - 1;  // (their level)
-        if (tx[x] != T(0)) applyXor(a, c, tx[x]), applyXor(b, c, tx[x]), tx[x] = T(0);
+        int a = nd[x].L, b = nd[x].R, c = s - 1;  // (their level)
+        if (nd[x].tx != T(0)) applyXor(a, c, nd[x].tx), applyXor(b, c, nd[x].tx), nd[x].tx = T(0);
     }
 };

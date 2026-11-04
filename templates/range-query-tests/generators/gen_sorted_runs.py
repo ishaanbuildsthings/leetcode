@@ -944,7 +944,7 @@ def main(langs=("py", "cpp")):
         if "cpp" in langs:
             from gen_sorted_runs_cpp import cpp  # noqa: E402
             ex = (piece_example("cpp", f"{class_name(aggs, seq)}<int> t({{1, 2, 3, 4, 5}}, 1, 5)", list("12345")) if seq else "")
-            write_template(os.path.join(folder, "template.cpp"), fit_comments(aosify_runs(cpp(aggs, seq)) if seq else cpp(aggs, seq)) + ex)
+            write_template(os.path.join(folder, "template.cpp"), fit_comments(aosify_runs(cpp(aggs, seq), member=not seq)) + ex)
         count += 1
     print("wrote", count, "sorted-runs templates")
 

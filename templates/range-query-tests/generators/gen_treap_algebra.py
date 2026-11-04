@@ -600,7 +600,7 @@ UDOC = {"assign": "a[i] = v for i in [l, r]", "add": "a[i] += v for i in [l, r]"
         "sqrt": "a[i] = floor(sqrt(a[i])) for i in [l, r] (values >= 0)"}
 
 
-NM = {"pre": "p", "suf": "q", "best": "b", "npre": "u", "nsuf": "w", "nbest": "c"}  # (the pull's short names for the prefix / suffix pieces)
+NM = {"pre": "p", "suf": "q", "best": "b", "npre": "u", "nsuf": "w", "nbest": "z"}  # (the pull's short names for the prefix / suffix pieces)
 
 
 def py_pull(s):
@@ -612,10 +612,10 @@ def py_pull(s):
     L.append("        v = self.val[x]")
     if s.ms:
         nm = ["s"] + [NM[f] for f in ("pre", "suf", "best", "npre", "nsuf", "nbest") if f in s.ms]
-        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best", "u": "npre", "w": "nsuf", "c": "nbest"}
+        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best", "u": "npre", "w": "nsuf", "z": "nbest"}
         e = lambda A, B: {"s": f"{A}s + {B}s", "p": f"max({A}p, {A}s + {B}p)", "q": f"max({B}q, {B}s + {A}q)",  # noqa: E731
                           "b": f"max({A}b, {B}b, {A}q + {B}p)", "u": f"min({A}u, {A}s + {B}u)", "w": f"min({B}w, {B}s + {A}w)",
-                          "c": f"min({A}c, {B}c, {A}w + {B}u)"}
+                          "z": f"min({A}z, {B}z, {A}w + {B}u)"}
         L += [f"        {', '.join(nm)} = {', '.join('v' for _ in nm)}  # the node alone, then with its left / right parts",
               "        if l:", f"            {', '.join('l' + n for n in nm)} = {', '.join(f'self.{fld[n]}[l]' for n in nm)}",
               f"            {', '.join(nm)} = {', '.join(e('l', '')[n] for n in nm)}",
@@ -1129,14 +1129,14 @@ def cpp_public(s):
         if field in ("pre", "npre"):
             doc = f"first i in [l, r] with a[l] + ... + a[i] {o} x, or -1 (a walk pruned by {kind} prefix sums)"
             walk = f'''                int lt = L[t];
-                if (lt && acc + pre[lt] {o} S(x)) {{ t = lt; continue; }}
+                if (lt && acc + {field}[lt] {o} S(x)) {{ t = lt; continue; }}
                 acc += sm[lt];
                 if (acc + S(val[t]) {o} S(x)) {{ res = l + i + sz[lt]; break; }}
                 acc += S(val[t]), i += sz[lt] + 1, t = R[t];'''
         else:
             doc = f"last i in [l, r] with a[i] + ... + a[r] {o} x, or -1 (a walk pruned by {kind} suffix sums)"
             walk = f'''                int rt = R[t];
-                if (rt && acc + suf[rt] {o} S(x)) {{ i += sz[L[t]] + 1, t = rt; continue; }}
+                if (rt && acc + {field}[rt] {o} S(x)) {{ i += sz[L[t]] + 1, t = rt; continue; }}
                 acc += sm[rt];
                 if (acc + S(val[t]) {o} S(x)) {{ res = l + i + sz[L[t]]; break; }}
                 acc += S(val[t]), t = L[t];'''
@@ -1229,10 +1229,10 @@ def cpp_pull(s):
     L.append("        T v = val[x];")
     if s.ms:
         nm = ["s"] + [NM[f] for f in ("pre", "suf", "best", "npre", "nsuf", "nbest") if f in s.ms]
-        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best", "u": "npre", "w": "nsuf", "c": "nbest"}
+        fld = {"s": "sm", "p": "pre", "q": "suf", "b": "best", "u": "npre", "w": "nsuf", "z": "nbest"}
         e = lambda A, B: {"s": f"{A}s + {B}s", "p": f"max({A}p, {A}s + {B}p)", "q": f"max({B}q, {B}s + {A}q)",  # noqa: E731
                           "b": f"max({{{A}b, {B}b, {A}q + {B}p}})", "u": f"min({A}u, {A}s + {B}u)", "w": f"min({B}w, {B}s + {A}w)",
-                          "c": f"min({{{A}c, {B}c, {A}w + {B}u}})"}
+                          "z": f"min({{{A}z, {B}z, {A}w + {B}u}})"}
         back = ", ".join(f"{n} = n{n}" for n in nm)
         L += [f"        S {', '.join(f'{n} = S(v)' for n in nm)};  // the node alone, then with its left / right parts",
               "        if (l) {", f"            S {', '.join(f'l{n} = {fld[n]}[l]' for n in nm)};",

@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-max-hash-npre-alt/template.cpp
-// @operations: getAll isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeMin rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX
+// @operations: getAll isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAltSubseqSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeMin rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 // @data-structure-type: seg-tree
 // @complexities:
 //   getAll: N
@@ -9,6 +9,8 @@
 //   leftmostGteX: log(N)
 //   leftmostLtX: log(N)
 //   leftmostLteX: log(N)
+//   leftmostPrefixSumLtX: log(N)
+//   leftmostPrefixSumLteX: log(N)
 //   maxAltSubseqSum: log(N)
 //   minPrefixSum: log(N)
 //   pointAdd: log(N)
@@ -178,6 +180,46 @@ struct SegTree {
             if (!(mn[t] <= x)) continue;
             while (t < n) t = mn[2 * t] <= x ? 2 * t : 2 * t + 1;  // walk down the passing node
             return t - n;
+        }
+        return -1;
+    }
+
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (a walk pruned by min prefix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int leftmostPrefixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumLtX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i];
+            if (acc + npre[t] < S(x)) {
+                while (t < n) {
+                    if (acc + npre[2 * t] < S(x)) t = 2 * t;
+                    else acc += sm[2 * t], t = 2 * t + 1;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (a walk pruned by min prefix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int leftmostPrefixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumLteX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i];
+            if (acc + npre[t] <= S(x)) {
+                while (t < n) {
+                    if (acc + npre[2 * t] <= S(x)) t = 2 * t;
+                    else acc += sm[2 * t], t = 2 * t + 1;
+                }
+                return t - n;
+            }
+            acc += sm[t];
         }
         return -1;
     }

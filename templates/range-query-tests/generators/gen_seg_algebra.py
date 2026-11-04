@@ -26,6 +26,7 @@ from gen_treap import CPP_HASH_HELPERS, PY_HASH_CONST, wrap
 from gen_treap_algebra import (OK, PREFIX_SEARCHES, QDOC, QOPS, SEARCH, SHRINK_COST, CMP, UDOC, UOP, Spec, allowed, mod_sets,
                                 rev_line)
 from gen_treap_more import slots_line
+from aos import aosify_sparse
 from note_lang import folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -1471,7 +1472,7 @@ def main(only=None):
             import seg_algebra_sparse as SP
             desc = describe(s)
             write_template(os.path.join(DIR, folder, "sparse.py"), SP.py(s, py_text, py_internals(s), desc))
-            write_template(os.path.join(DIR, folder, "sparse.cpp"), SP.cpp(s, cpp_text, cpp_internals(s), desc))
+            write_template(os.path.join(DIR, folder, "sparse.cpp"), aosify_sparse(SP.cpp(s, cpp_text, cpp_internals(s), desc)))
     assert not orphans, orphans  # (a sparse version with no dense template left)
     print("wrote", len(seen), f"segment trees ({replaced} replacing a heavier hand-written dense tree, its sparse version kept);",
           skipped, "op sets already had a hand-written template at least as light")

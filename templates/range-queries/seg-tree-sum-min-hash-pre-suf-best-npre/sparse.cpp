@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-hash-pre-suf-best-npre/sparse.cpp
-// @operations: isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSubarraySum maxSuffixSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum maxSubarraySum maxSuffixSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX
 // @data-structure-type: seg-tree
 // @complexities:
 //   isPalindrome: log(U)
@@ -8,6 +8,8 @@
 //   leftmostLteX: log(U)
 //   leftmostPrefixSumGtX: log(U)
 //   leftmostPrefixSumGteX: log(U)
+//   leftmostPrefixSumLtX: log(U)
+//   leftmostPrefixSumLteX: log(U)
 //   maxPrefixSum: log(U)
 //   maxSubarraySum: log(U)
 //   maxSuffixSum: log(U)
@@ -47,15 +49,19 @@ struct SparseSegTree {
     using U64 = unsigned long long;
     long long first, last;  // the index range [lo, hi]
     int D;  // the root's level: 2^D >= hi - lo + 1
-    vector<int> L{0}, R{0};  // children (node 0: none; node 1 is the root)
-    vector<S> sm{0};
-    vector<T> mn{T(0)};
-    vector<U64> fh{0};
-    vector<U64> bh{0};
-    vector<S> pre{0};
-    vector<S> suf{0};
-    vector<S> best{0};
-    vector<S> npre{0};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        U64 fh = 0;
+        U64 bh = 0;
+        S sm = 0;
+        S pre = 0;
+        S suf = 0;
+        S best = 0;
+        S npre = 0;
+        T mn = T(0);
+        int L = 0;
+        int R = 0;
+    };
+    vector<Node> nd{Node{}};  // node 0: none; node 1 is the root
     vector<U64> PW, GS;  // PW[s] = B^(2^s), GS[s] = 1 + B + ... + B^(2^s - 1): per level
 
     static unsigned long long rnd() {
@@ -87,7 +93,8 @@ struct SparseSegTree {
     }
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseSegTree(long long lo, long long hi) : first(lo), last(hi), D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
+    SparseSegTree(long long lo, long long hi) : first(lo), last(hi),
+        D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
         PW.assign(1, HB()), GS.assign(1, 1);
         for (int k = 0; k < D; k++) GS.push_back(hadd(hmul(GS[k], PW[k]), GS[k])), PW.push_back(hmul(PW[k], PW[k]));
         newZero(D);
@@ -99,7 +106,7 @@ struct SparseSegTree {
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 f = 0, b = 0, p = 1;
         for (int i = 0; i < c; i++) {
-            f = hadd(hmul(f, PW[ls[i]]), fh[ns[i]]), b = hadd(hmul(bh[ns[i]], p), b), p = hmul(p, PW[ls[i]]);
+            f = hadd(hmul(f, PW[ls[i]]), nd[ns[i]].fh), b = hadd(hmul(nd[ns[i]].bh, p), b), p = hmul(p, PW[ls[i]]);
         }
         return f == b;
     }
@@ -114,12 +121,12 @@ struct SparseSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] < x)) continue;
+            if (!(nd[t].mn < x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s);
                 s--;
-                if (mn[L[t]] < x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mn < x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -136,12 +143,12 @@ struct SparseSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] <= x)) continue;
+            if (!(nd[t].mn <= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s);
                 s--;
-                if (mn[L[t]] <= x) t = L[t];
-                else t = R[t], tl += 1LL << s;
+                if (nd[nd[t].L].mn <= x) t = nd[t].L;
+                else t = nd[t].R, tl += 1LL << s;
             }
             return tl;
         }
@@ -159,16 +166,16 @@ struct SparseSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + pre[t] > S(x)) {
+            if (acc + nd[t].pre > S(x)) {
                 while (s) {
                     kids(t, s);
                     s--;
-                    if (acc + pre[L[t]] > S(x)) t = L[t];
-                    else acc += sm[L[t]], t = R[t], tl += 1LL << s;
+                    if (acc + nd[nd[t].L].pre > S(x)) t = nd[t].L;
+                    else acc += nd[nd[t].L].sm, t = nd[t].R, tl += 1LL << s;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -184,16 +191,66 @@ struct SparseSegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + pre[t] >= S(x)) {
+            if (acc + nd[t].pre >= S(x)) {
                 while (s) {
                     kids(t, s);
                     s--;
-                    if (acc + pre[L[t]] >= S(x)) t = L[t];
-                    else acc += sm[L[t]], t = R[t], tl += 1LL << s;
+                    if (acc + nd[nd[t].L].pre >= S(x)) t = nd[t].L;
+                    else acc += nd[nd[t].L].sm, t = nd[t].R, tl += 1LL << s;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
+        }
+        return first - 1;
+    }
+
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
+    long long leftmostPrefixSumLtX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumLtX: needs lo <= l <= r <= hi");
+        int ns[128], ls[128];
+        long long ts[128];
+        int c = cover(l, r, ns, ls, ts);
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i], s = ls[i];
+            long long tl = ts[i];
+            if (acc + nd[t].npre < S(x)) {
+                while (s) {
+                    kids(t, s);
+                    s--;
+                    if (acc + nd[nd[t].L].npre < S(x)) t = nd[t].L;
+                    else acc += nd[nd[t].L].sm, t = nd[t].R, tl += 1LL << s;
+                }
+                return tl;
+            }
+            acc += nd[t].sm;
+        }
+        return first - 1;
+    }
+
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
+    long long leftmostPrefixSumLteX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumLteX: needs lo <= l <= r <= hi");
+        int ns[128], ls[128];
+        long long ts[128];
+        int c = cover(l, r, ns, ls, ts);
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i], s = ls[i];
+            long long tl = ts[i];
+            if (acc + nd[t].npre <= S(x)) {
+                while (s) {
+                    kids(t, s);
+                    s--;
+                    if (acc + nd[nd[t].L].npre <= S(x)) t = nd[t].L;
+                    else acc += nd[nd[t].L].sm, t = nd[t].R, tl += 1LL << s;
+                }
+                return tl;
+            }
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -202,8 +259,8 @@ struct SparseSegTree {
     S maxPrefixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = pre[ns[0]], acc = sm[ns[0]];
-        for (int i = 1; i < c; i++) res = max(res, acc + pre[ns[i]]), acc += sm[ns[i]];
+        S res = nd[ns[0]].pre, acc = nd[ns[0]].sm;
+        for (int i = 1; i < c; i++) res = max(res, acc + nd[ns[i]].pre), acc += nd[ns[i]].sm;
         return res;
     }
 
@@ -212,10 +269,10 @@ struct SparseSegTree {
     S maxSubarraySum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxSubarraySum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = best[ns[0]], q = suf[ns[0]];  // (q: the best sum ending at the right edge so far)
+        S res = nd[ns[0]].best, q = nd[ns[0]].suf;  // (q: the best sum ending at the right edge so far)
         for (int i = 1; i < c; i++) {
             int t = ns[i];
-            res = max({res, best[t], q + pre[t]}), q = max(suf[t], sm[t] + q);
+            res = max({res, nd[t].best, q + nd[t].pre}), q = max(nd[t].suf, nd[t].sm + q);
         }
         return res;
     }
@@ -224,8 +281,8 @@ struct SparseSegTree {
     S maxSuffixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxSuffixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = suf[ns[c - 1]], acc = sm[ns[c - 1]];
-        for (int i = c - 2; i >= 0; i--) res = max(res, acc + suf[ns[i]]), acc += sm[ns[i]];
+        S res = nd[ns[c - 1]].suf, acc = nd[ns[c - 1]].sm;
+        for (int i = c - 2; i >= 0; i--) res = max(res, acc + nd[ns[i]].suf), acc += nd[ns[i]].sm;
         return res;
     }
 
@@ -233,8 +290,8 @@ struct SparseSegTree {
     S minPrefixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("minPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = npre[ns[0]], acc = sm[ns[0]];
-        for (int i = 1; i < c; i++) res = min(res, acc + npre[ns[i]]), acc += sm[ns[i]];
+        S res = nd[ns[0]].npre, acc = nd[ns[0]].sm;
+        for (int i = 1; i < c; i++) res = min(res, acc + nd[ns[i]].npre), acc += nd[ns[i]].sm;
         return res;
     }
 
@@ -279,7 +336,7 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeHash: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0;
-        for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), fh[ns[i]]);
+        for (int i = 0; i < c; i++) res = hadd(hmul(res, PW[ls[i]]), nd[ns[i]].fh);
         return res;
     }
 
@@ -289,7 +346,7 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeHashReversed: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
         U64 res = 0, p = 1;
-        for (int i = 0; i < c; i++) res = hadd(hmul(bh[ns[i]], p), res), p = hmul(p, PW[ls[i]]);  // (in front)
+        for (int i = 0; i < c; i++) res = hadd(hmul(nd[ns[i]].bh, p), res), p = hmul(p, PW[ls[i]]);  // (in front)
         return res;
     }
 
@@ -298,7 +355,7 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeMin: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = numeric_limits<T>::max();
-        for (int i = 0; i < c; i++) res = min(res, mn[ns[i]]);
+        for (int i = 0; i < c; i++) res = min(res, nd[ns[i]].mn);
         return res;
     }
 
@@ -307,7 +364,7 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         S res = S(0);
-        for (int i = 0; i < c; i++) res += sm[ns[i]];
+        for (int i = 0; i < c; i++) res += nd[ns[i]].sm;
         return res;
     }
 
@@ -329,12 +386,12 @@ struct SparseSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] < x)) continue;
+            if (!(nd[t].mn < x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s);
                 s--;
-                if (mn[R[t]] < x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mn < x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -351,12 +408,12 @@ struct SparseSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (!(mn[t] <= x)) continue;
+            if (!(nd[t].mn <= x)) continue;
             while (s) {  // walk down the passing node
                 kids(t, s);
                 s--;
-                if (mn[R[t]] <= x) t = R[t], tl += 1LL << s;
-                else t = L[t];
+                if (nd[nd[t].R].mn <= x) t = nd[t].R, tl += 1LL << s;
+                else t = nd[t].L;
             }
             return tl;
         }
@@ -374,16 +431,16 @@ struct SparseSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + suf[t] > S(x)) {
+            if (acc + nd[t].suf > S(x)) {
                 while (s) {
                     kids(t, s);
                     s--;
-                    if (acc + suf[R[t]] > S(x)) t = R[t], tl += 1LL << s;
-                    else acc += sm[R[t]], t = L[t];
+                    if (acc + nd[nd[t].R].suf > S(x)) t = nd[t].R, tl += 1LL << s;
+                    else acc += nd[nd[t].R].sm, t = nd[t].L;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -399,16 +456,16 @@ struct SparseSegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + suf[t] >= S(x)) {
+            if (acc + nd[t].suf >= S(x)) {
                 while (s) {
                     kids(t, s);
                     s--;
-                    if (acc + suf[R[t]] >= S(x)) t = R[t], tl += 1LL << s;
-                    else acc += sm[R[t]], t = L[t];
+                    if (acc + nd[nd[t].R].suf >= S(x)) t = nd[t].R, tl += 1LL << s;
+                    else acc += nd[nd[t].R].sm, t = nd[t].L;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -417,15 +474,17 @@ struct SparseSegTree {
 
     int newZero(int s) {  // a new node: a block of 2^s zeros
         U64 h = hmul(hval(T(0)), GS[s]);
-        L.push_back(0), R.push_back(0), sm.push_back(S(0)), mn.push_back(T(0)), fh.push_back(h), bh.push_back(h),
-        pre.push_back(S(0)), suf.push_back(S(0)), best.push_back(S(0)), npre.push_back(S(0));
-        return (int)L.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.sm = S(0), n.mn = T(0), n.fh = h, n.bh = h, n.pre = S(0), n.suf = S(0), n.best = S(0),
+        n.npre = S(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     void kids(int x, int s) {  // create node x's children (blocks of zeros) if it has none yet
-        if (L[x]) return;
+        if (nd[x].L) return;
         int a = newZero(s - 1), b = newZero(s - 1);
-        L[x] = a, R[x] = b;
+        nd[x].L = a, nd[x].R = b;
     }
 
     // the nodes covering a[l..r] left to right: ns, their levels ls, their first indices ts
@@ -447,8 +506,8 @@ struct SparseSegTree {
         }
         kids(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) collect(L[x], s - 1, tl, l, r, ns, ls, ts, c);
-        if (r >= m) collect(R[x], s - 1, m, l, r, ns, ls, ts, c);
+        if (l < m) collect(nd[x].L, s - 1, tl, l, r, ns, ls, ts, c);
+        if (r >= m) collect(nd[x].R, s - 1, m, l, r, ns, ls, ts, c);
     }
 
     int leafOf(long long i, int* path) {  // the leaf holding a[i]; path: the nodes above it top-down, every tag pushed
@@ -457,8 +516,8 @@ struct SparseSegTree {
         for (int s = D; s > 0; s--) {
             kids(x, s);
             path[D - s] = x;
-            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = R[x];
-            else x = L[x];
+            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = nd[x].R;
+            else x = nd[x].L;
         }
         return x;
     }
@@ -468,20 +527,21 @@ struct SparseSegTree {
     }
 
     void setLeaf(int p, T v) {  // leaf p holds v alone
-        sm[p] = S(v), mn[p] = v, fh[p] = hval(v), bh[p] = hval(v), pre[p] = S(v), suf[p] = S(v), best[p] = S(v),
-        npre[p] = S(v);
+        nd[p].sm = S(v), nd[p].mn = v, nd[p].fh = hval(v), nd[p].bh = hval(v), nd[p].pre = S(v), nd[p].suf = S(v),
+            nd[p].best = S(v),
+        nd[p].npre = S(v);
     }
 
-    T leaf(int p) const { return T(sm[p]); }  // the value at leaf p
+    T leaf(int p) const { return T(nd[p].sm); }  // the value at leaf p
 
     void pull(int x, int s) {  // recompute node x (level s) from its children
-        int a = L[x], b = R[x];
-        pre[x] = max(pre[a], sm[a] + pre[b]);
-        suf[x] = max(suf[b], sm[b] + suf[a]);
-        best[x] = max({best[a], best[b], suf[a] + pre[b]});
-        npre[x] = min(npre[a], sm[a] + npre[b]);
-        sm[x] = sm[a] + sm[b];
-        mn[x] = min(mn[a], mn[b]);
-        fh[x] = hadd(hmul(fh[a], PW[s - 1]), fh[b]), bh[x] = hadd(hmul(bh[b], PW[s - 1]), bh[a]);
+        int a = nd[x].L, b = nd[x].R;
+        nd[x].pre = max(nd[a].pre, nd[a].sm + nd[b].pre);
+        nd[x].suf = max(nd[b].suf, nd[b].sm + nd[a].suf);
+        nd[x].best = max({nd[a].best, nd[b].best, nd[a].suf + nd[b].pre});
+        nd[x].npre = min(nd[a].npre, nd[a].sm + nd[b].npre);
+        nd[x].sm = nd[a].sm + nd[b].sm;
+        nd[x].mn = min(nd[a].mn, nd[b].mn);
+        nd[x].fh = hadd(hmul(nd[a].fh, PW[s - 1]), nd[b].fh), nd[x].bh = hadd(hmul(nd[b].bh, PW[s - 1]), nd[a].bh);
     }
 };

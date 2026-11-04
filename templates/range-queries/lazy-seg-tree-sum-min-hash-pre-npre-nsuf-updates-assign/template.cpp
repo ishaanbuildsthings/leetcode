@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-min-hash-pre-npre-nsuf-updates-assign/template.cpp
-// @operations: getAll isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX
+// @operations: getAll isPalindrome leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -9,6 +9,8 @@
 //   leftmostLteX: log(N)
 //   leftmostPrefixSumGtX: log(N)
 //   leftmostPrefixSumGteX: log(N)
+//   leftmostPrefixSumLtX: log(N)
+//   leftmostPrefixSumLteX: log(N)
 //   maxPrefixSum: log(N)
 //   minPrefixSum: log(N)
 //   minSuffixSum: log(N)
@@ -25,6 +27,8 @@
 //   rangesEqual: log(N)
 //   rightmostLtX: log(N)
 //   rightmostLteX: log(N)
+//   rightmostSuffixSumLtX: log(N)
+//   rightmostSuffixSumLteX: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -201,6 +205,48 @@ struct LazySegTree {
         return -1;
     }
 
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (a walk pruned by min prefix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int leftmostPrefixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumLtX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i], s = ls[i];
+            if (acc + npre[t] < S(x)) {
+                while (t < n) {
+                    push(t, s--);
+                    if (acc + npre[2 * t] < S(x)) t = 2 * t;
+                    else acc += sm[2 * t], t = 2 * t + 1;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (a walk pruned by min prefix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int leftmostPrefixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumLteX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i], s = ls[i];
+            if (acc + npre[t] <= S(x)) {
+                while (t < n) {
+                    push(t, s--);
+                    if (acc + npre[2 * t] <= S(x)) t = 2 * t;
+                    else acc += sm[2 * t], t = 2 * t + 1;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
     // O(logN) -- max of a[l] + ... + a[i] over i in [l, r]; needs 0 <= l <= r < n, else throws out_of_range
     S maxPrefixSum(int l, int r) {
         if (l < 0 || l > r || r >= n) throw out_of_range("maxPrefixSum: needs 0 <= l <= r < n");
@@ -355,6 +401,48 @@ struct LazySegTree {
             if (!(mn[t] <= x)) continue;
             while (t < n) push(t, s--), t = mn[2 * t + 1] <= x ? 2 * t + 1 : 2 * t;  // walk down the passing node
             return t - n;
+        }
+        return -1;
+    }
+
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] < x, or -1 (a walk pruned by min suffix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int rightmostSuffixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumLtX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = c - 1; i >= 0; i--) {
+            int t = ns[i], s = ls[i];
+            if (acc + nsuf[t] < S(x)) {
+                while (t < n) {
+                    push(t, s--);
+                    if (acc + nsuf[2 * t + 1] < S(x)) t = 2 * t + 1;
+                    else acc += sm[2 * t + 1], t = 2 * t;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] <= x, or -1 (a walk pruned by min suffix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int rightmostSuffixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumLteX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = c - 1; i >= 0; i--) {
+            int t = ns[i], s = ls[i];
+            if (acc + nsuf[t] <= S(x)) {
+                while (t < n) {
+                    push(t, s--);
+                    if (acc + nsuf[2 * t + 1] <= S(x)) t = 2 * t + 1;
+                    else acc += sm[2 * t + 1], t = 2 * t;
+                }
+                return t - n;
+            }
+            acc += sm[t];
         }
         return -1;
     }

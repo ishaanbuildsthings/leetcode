@@ -1,12 +1,14 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-pre-npre-nsuf/sparse.py
-# @operations: leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeSum rightmostLtX rightmostLteX
+# @operations: leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeSum rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX
 # @data-structure-type: seg-tree
 # @complexities:
 #   leftmostLtX: log(U)
 #   leftmostLteX: log(U)
 #   leftmostPrefixSumGtX: log(U)
 #   leftmostPrefixSumGteX: log(U)
+#   leftmostPrefixSumLtX: log(U)
+#   leftmostPrefixSumLteX: log(U)
 #   maxPrefixSum: log(U)
 #   minPrefixSum: log(U)
 #   minSuffixSum: log(U)
@@ -19,6 +21,8 @@
 #   rangeSum: log(U)
 #   rightmostLtX: log(U)
 #   rightmostLteX: log(U)
+#   rightmostSuffixSumLtX: log(U)
+#   rightmostSuffixSumLteX: log(U)
 #   build: 1
 # @memory:
 #   layout: sparse
@@ -123,6 +127,48 @@ class SparseSegTree:
                     self._kids(t, s)
                     s -= 1
                     if acc + P[L[t]] >= x:
+                        t = L[t]
+                    else:
+                        acc += sm[L[t]]
+                        t, tl = R[t], tl + (1 << s)
+                return tl
+            acc += sm[t]
+        return self.first - 1
+
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
+    def leftmostPrefixSumLtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        sm, P, L, R = self.sm, self.npre, self.L, self.R
+        acc = 0
+        for t, s, tl in self._cover(l, r):
+            if acc + P[t] < x:
+                while s:
+                    self._kids(t, s)
+                    s -= 1
+                    if acc + P[L[t]] < x:
+                        t = L[t]
+                    else:
+                        acc += sm[L[t]]
+                        t, tl = R[t], tl + (1 << s)
+                return tl
+            acc += sm[t]
+        return self.first - 1
+
+    # O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums); needs
+    # lo <= l <= r <= hi, else IndexError
+    def leftmostPrefixSumLteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"leftmostPrefixSumLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        sm, P, L, R = self.sm, self.npre, self.L, self.R
+        acc = 0
+        for t, s, tl in self._cover(l, r):
+            if acc + P[t] <= x:
+                while s:
+                    self._kids(t, s)
+                    s -= 1
+                    if acc + P[L[t]] <= x:
                         t = L[t]
                     else:
                         acc += sm[L[t]]
@@ -264,6 +310,48 @@ class SparseSegTree:
                     else:
                         t = L[t]
                 return tl
+        return self.first - 1
+
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] < x, or lo - 1 (a walk pruned by min suffix sums); needs
+    # lo <= l <= r <= hi, else IndexError
+    def rightmostSuffixSumLtX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostSuffixSumLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        sm, P, L, R = self.sm, self.nsuf, self.L, self.R
+        acc = 0
+        for t, s, tl in reversed(self._cover(l, r)):
+            if acc + P[t] < x:
+                while s:
+                    self._kids(t, s)
+                    s -= 1
+                    if acc + P[R[t]] < x:
+                        t, tl = R[t], tl + (1 << s)
+                    else:
+                        acc += sm[R[t]]
+                        t = L[t]
+                return tl
+            acc += sm[t]
+        return self.first - 1
+
+    # O(logU) -- last i in [l, r] with a[i] + ... + a[r] <= x, or lo - 1 (a walk pruned by min suffix sums); needs
+    # lo <= l <= r <= hi, else IndexError
+    def rightmostSuffixSumLteX(self, l, r, x):
+        if not self.first <= l <= r <= self.last:
+            raise IndexError(f"rightmostSuffixSumLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
+        sm, P, L, R = self.sm, self.nsuf, self.L, self.R
+        acc = 0
+        for t, s, tl in reversed(self._cover(l, r)):
+            if acc + P[t] <= x:
+                while s:
+                    self._kids(t, s)
+                    s -= 1
+                    if acc + P[R[t]] <= x:
+                        t, tl = R[t], tl + (1 << s)
+                    else:
+                        acc += sm[R[t]]
+                        t = L[t]
+                return tl
+            acc += sm[t]
         return self.first - 1
 
     # ---- internals ----

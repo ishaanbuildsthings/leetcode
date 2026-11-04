@@ -216,8 +216,8 @@ class PersistentOfflineOrderStats:
             raise IndexError(f"sumSmallestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._sumFirst(l, r, k)
 
-    # O(logN) -- sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError; needs
-    # 0 <= l <= r < n, else IndexError
+    # O(logN) -- sum of the k largest values in a[l..r]; needs 0 <= l <= r < n and 0 <= k <= r - l + 1, else
+    # IndexError
     def sumLargestK(self, l, r, k):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"sumLargestK: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -232,19 +232,17 @@ class PersistentOfflineOrderStats:
         if not 0 <= l <= r < self.n:
             raise IndexError(f"sumKthSmallestRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if not 1 <= kFrom <= kTo <= r - l + 1:
-            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got "
-                             f"kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {r - l + 1}")
+            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {r - l + 1}")
         return self._sumFirst(l, r, kTo) - self._sumFirst(l, r, kFrom - 1)
 
     # O(logN) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest);
-    # needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError; needs 0 <= l <= r < n, else IndexError
+    # needs 0 <= l <= r < n and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
     def sumKthLargestRange(self, l, r, kFrom, kTo):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"sumKthLargestRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         n = r - l + 1
         if not 1 <= kFrom <= kTo <= n:
-            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got "
-                             f"kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {n}")
+            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {n}")
         return self._sumFirst(l, r, n - kFrom + 1) - self._sumFirst(l, r, n - kTo)
 
     # O(logN) -- sum of |a[i] - x| over i in [l, r]; needs 0 <= l <= r < n, else IndexError

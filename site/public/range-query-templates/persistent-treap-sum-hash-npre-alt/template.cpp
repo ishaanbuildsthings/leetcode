@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-hash-npre-alt/template.cpp
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome maxAltSubseqSum merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeRotateLeft rangeRotateRight rangeSum rangesEqual split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome leftmostPrefixSumLtX leftmostPrefixSumLteX maxAltSubseqSum merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeRotateLeft rangeRotateRight rangeSum rangesEqual split trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N) expected
@@ -11,6 +11,8 @@
 //   insertAt: log(N) expected
 //   insertCopiesAt: log(N) expected
 //   isPalindrome: log(N) expected
+//   leftmostPrefixSumLtX: log(N) expected
+//   leftmostPrefixSumLteX: log(N) expected
 //   maxAltSubseqSum: log(N) expected
 //   merge: log(N) expected
 //   minPrefixSum: log(N) expected
@@ -177,19 +179,87 @@ struct PersistentTreap {
     // out_of_range
     bool isPalindrome(long long l, long long r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("isPalindrome: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         bool res = nd[b].fh == nd[b].bh;
+        release(mark);
         return res;
+    }
+
+    // O(logN) expected -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (a walk pruned by min prefix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
+    long long leftmostPrefixSumLtX(long long l, long long r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostPrefixSumLtX: needs 0 <= l <= r < size()");
+        vector<pair<int, bool>> ps;
+        pieces(root, l, r, ps);
+        long long pos = l;  // (the index of the current piece's first value; acc: the sum before it)
+        S acc = 0;
+        for (auto [t, whole] : ps) {
+            if (!whole) {
+                acc += S(nd[t].val);
+                if (acc < S(x)) return pos;
+                pos++;
+                continue;
+            }
+            if (acc + nd[t].npre < S(x)) {
+                long long i = 0;
+                while (true) {
+                    int lt = nd[t].L;
+                    if (lt && acc + nd[lt].npre < S(x)) {
+                        t = lt;
+                        continue;
+                    }
+                    acc += nd[lt].sm;
+                    if (acc + S(nd[t].val) < S(x)) return pos + i + nd[lt].sz;
+                    acc += S(nd[t].val), i += nd[lt].sz + 1, t = nd[t].R;
+                }
+            }
+            acc += nd[t].sm, pos += nd[t].sz;
+        }
+        return -1;
+    }
+
+    // O(logN) expected -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (a walk pruned by min prefix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
+    long long leftmostPrefixSumLteX(long long l, long long r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostPrefixSumLteX: needs 0 <= l <= r < size()");
+        vector<pair<int, bool>> ps;
+        pieces(root, l, r, ps);
+        long long pos = l;  // (the index of the current piece's first value; acc: the sum before it)
+        S acc = 0;
+        for (auto [t, whole] : ps) {
+            if (!whole) {
+                acc += S(nd[t].val);
+                if (acc <= S(x)) return pos;
+                pos++;
+                continue;
+            }
+            if (acc + nd[t].npre <= S(x)) {
+                long long i = 0;
+                while (true) {
+                    int lt = nd[t].L;
+                    if (lt && acc + nd[lt].npre <= S(x)) {
+                        t = lt;
+                        continue;
+                    }
+                    acc += nd[lt].sm;
+                    if (acc + S(nd[t].val) <= S(x)) return pos + i + nd[lt].sz;
+                    acc += S(nd[t].val), i += nd[lt].sz + 1, t = nd[t].R;
+                }
+            }
+            acc += nd[t].sm, pos += nd[t].sz;
+        }
+        return -1;
     }
 
     // O(logN) expected -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs
     // 0 <= l <= r < size(), else throws out_of_range
     S maxAltSubseqSum(long long l, long long r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("maxAltSubseqSum: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         S res = max(nd[b].a00, nd[b].a01);
+        release(mark);
         return res;
     }
 
@@ -201,10 +271,10 @@ struct PersistentTreap {
     // out_of_range
     S minPrefixSum(long long l, long long r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("minPrefixSum: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         S res = nd[b].npre;
-        root = merge(merge(a, b), c);
+        release(mark);
         return res;
     }
 
@@ -219,44 +289,32 @@ struct PersistentTreap {
     }
     void paste(long long i, PersistentTreap&& other) { paste(i, other); }  // (a temporary: paste(i, t.copy(l, r)))
 
-    // O(logN) expected -- a[i] += v; needs 0 <= i < size(), else throws out_of_range
+    // O(logN) expected -- a[i] += v (copies the one path down to a[i]); needs 0 <= i < size(), else throws
+    // out_of_range
     void pointAdd(long long i, T v) {
         if (i < 0 || i >= size()) throw out_of_range("pointAdd: needs 0 <= i < size()");
-        int a, b, c;
-        cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        nd[b].val = T(nd[b].val + v);
-        pull(b);
-        root = merge(merge(a, b), c);
+        root = setAt(root, i, [&](T w) { return T(w + v); });
     }
 
-    // O(logN) expected -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
+    // O(logN) expected -- a[i] = v (copies the one path down to a[i]); needs 0 <= i < size(), else throws
+    // out_of_range
     void pointAssign(long long i, T v) {
         if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
-        int a, b, c;
-        cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        nd[b].val = v;
-        pull(b);
-        root = merge(merge(a, b), c);
+        root = setAt(root, i, [&](T w) { return v; });
     }
 
-    // O(logN) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else throws out_of_range
+    // O(logN) expected -- a[i] = max(a[i], v) (copies the one path down to a[i]); needs 0 <= i < size(), else throws
+    // out_of_range
     void pointChmax(long long i, T v) {
         if (i < 0 || i >= size()) throw out_of_range("pointChmax: needs 0 <= i < size()");
-        int a, b, c;
-        cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        nd[b].val = max(nd[b].val, v);
-        pull(b);
-        root = merge(merge(a, b), c);
+        root = setAt(root, i, [&](T w) { return max(w, v); });
     }
 
-    // O(logN) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else throws out_of_range
+    // O(logN) expected -- a[i] = min(a[i], v) (copies the one path down to a[i]); needs 0 <= i < size(), else throws
+    // out_of_range
     void pointChmin(long long i, T v) {
         if (i < 0 || i >= size()) throw out_of_range("pointChmin: needs 0 <= i < size()");
-        int a, b, c;
-        cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        nd[b].val = min(nd[b].val, v);
-        pull(b);
-        root = merge(merge(a, b), c);
+        root = setAt(root, i, [&](T w) { return min(w, v); });
     }
 
     // O(logN) expected -- a[i]; needs 0 <= i < size(), else throws out_of_range
@@ -269,9 +327,10 @@ struct PersistentTreap {
     // 0 <= l <= r < size(), else throws out_of_range
     U64 rangeHash(long long l, long long r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeHash: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         U64 res = nd[b].fh;
+        release(mark);
         return res;
     }
 
@@ -279,9 +338,10 @@ struct PersistentTreap {
     // 0 <= l <= r < size(), else throws out_of_range
     U64 rangeHashReversed(long long l, long long r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeHashReversed: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         U64 res = nd[b].bh;
+        release(mark);
         return res;
     }
 
@@ -311,9 +371,10 @@ struct PersistentTreap {
     // O(logN) expected -- a[l] + ... + a[r]; needs 0 <= l <= r < size(), else throws out_of_range
     S rangeSum(long long l, long long r) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rangeSum: needs 0 <= l <= r < size()");
-        int a, b, c;
-        cut(l, r, a, b, c);
+        size_t mark;
+        int b = rangeNode(l, r, mark);
         S res = nd[b].sm;
+        release(mark);
         return res;
     }
 
@@ -443,6 +504,89 @@ struct PersistentTreap {
             if (i < ls) t = nd[t].L;
             else i -= ls + 1, t = nd[t].R;
         }
+    }
+
+    // ---- read-only range queries keep no copies; updates copy only the nodes they reach ----
+
+    // a[l..r] of t's subtree as (node, whole subtree?) in order; a pending tag on the way is pushed down in place
+    // (harmless: see the top), which copies only the children it hands the tag to, once
+    void pieces(int t, long long l, long long r, vector<pair<int, bool>>& out) {
+        if (!t || r < 0 || l >= nd[t].sz) return;
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            out.push_back({t, true});
+            return;
+        }
+        long long ls = nd[nd[t].L].sz;
+        pieces(nd[t].L, l, r, out);
+        if (l <= ls && ls <= r) out.push_back({t, false});
+        pieces(nd[t].R, l - ls - 1, r - ls - 1, out);
+    }
+
+    // a temporary node holding a[l..r]'s aggregates; mark = the pool size release() goes back to
+    int rangeNode(long long l, long long r, size_t& mark) {
+        vector<pair<int, bool>> ps;
+        pieces(root, l, r, ps);  // (every pending tag on the two boundary paths pushed down first)
+        mark = nd.size();
+        return rq(root, l, r);
+    }
+
+    int rq(int t, long long l, long long r) {  // a node over a[l..r] of t's subtree: t itself if that is all of it
+        if (!t || r < 0 || l >= nd[t].sz) return 0;
+        if (l <= 0 && nd[t].sz - 1 <= r) return t;
+        long long ls = nd[nd[t].L].sz;
+        if (r < ls) return rq(nd[t].L, l, r);
+        if (l > ls) return rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int a = rq(nd[t].L, l, r), b = rq(nd[t].R, l - ls - 1, r - ls - 1);
+        int y = clone(t);
+        nd[y].L = a, nd[y].R = b;
+        pull(y);
+        return y;
+    }
+
+    void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+        nd.resize(mark);
+    }
+
+    template <class F>
+    int setAt(int t, long long i, const F& f) {  // t with a[i] = f(a[i]): new copies of the nodes on the path to it
+        t = clone(t);
+        long long ls = nd[nd[t].L].sz;
+        if (i < ls) {
+            int c = setAt(nd[t].L, i, f);
+            nd[t].L = c;
+        } else if (i > ls) {
+            int c = setAt(nd[t].R, i - ls - 1, f);
+            nd[t].R = c;
+        } else {
+            nd[t].val = f(nd[t].val);
+        }
+        pull(t);
+        return t;
+    }
+
+    // t with the update f(x, off) on a[l..r] of its subtree (x: a node covered whole, off: its first value's distance
+    // from l), copying only the nodes on the range's two boundary paths
+    template <class F>
+    int upd(int t, long long l, long long r, const F& f) {
+        if (!t || r < 0 || l >= nd[t].sz) return t;
+        t = clone(t);
+        if (l <= 0 && nd[t].sz - 1 <= r) {
+            f(t, -l);
+            return t;
+        }
+        long long ls = nd[nd[t].L].sz;
+        int a = upd(nd[t].L, l, r, f), b = upd(nd[t].R, l - ls - 1, r - ls - 1, f);
+        nd[t].L = a, nd[t].R = b;
+        if (l <= ls && ls <= r) {  // (t's own value: the update on a lone temporary copy of it)
+            int y = clone(t);
+            nd[y].L = nd[y].R = 0;
+            pull(y);
+            f(y, ls - l);
+            nd[t].val = nd[y].val;
+            release(y);
+        }
+        pull(t);
+        return t;
     }
 };
 

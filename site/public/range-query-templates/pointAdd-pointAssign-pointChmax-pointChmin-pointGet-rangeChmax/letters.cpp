@@ -86,8 +86,9 @@ struct RangeChmaxTree {
         tree[p] = val;
     }
 
-    // O(logN) -- a[i] += delta
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         int p = i + n;
         push(p);
         tree[p] = tree[p] + delta;

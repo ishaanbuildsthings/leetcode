@@ -28,12 +28,17 @@ template <typename T>
 struct SparseSegTree {
     long long first, last;  // the index range [lo, hi]
     int D;  // the root's level: 2^D >= hi - lo + 1
-    vector<int> L{0}, R{0};  // children (node 0: none; node 1 is the root)
-    vector<T> xr{T(0)};
-    vector<T> g{T(0)};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        T xr = T(0);
+        T g = T(0);
+        int L = 0;
+        int R = 0;
+    };
+    vector<Node> nd{Node{}};  // node 0: none; node 1 is the root
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseSegTree(long long lo, long long hi) : first(lo), last(hi), D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
+    SparseSegTree(long long lo, long long hi) : first(lo), last(hi),
+        D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
         newZero(D);
     }
 
@@ -77,7 +82,7 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
-        for (int i = 0; i < c; i++) res = gcd(res, g[ns[i]]);
+        for (int i = 0; i < c; i++) res = gcd(res, nd[ns[i]].g);
         return res;
     }
 
@@ -86,21 +91,23 @@ struct SparseSegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeXorQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
-        for (int i = 0; i < c; i++) res ^= xr[ns[i]];
+        for (int i = 0; i < c; i++) res ^= nd[ns[i]].xr;
         return res;
     }
 
     // ---- internals ----
 
     int newZero(int s) {  // a new node: a block of 2^s zeros
-        L.push_back(0), R.push_back(0), xr.push_back(T(0)), g.push_back(T(0));
-        return (int)L.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.xr = T(0), n.g = T(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     void kids(int x, int s) {  // create node x's children (blocks of zeros) if it has none yet
-        if (L[x]) return;
+        if (nd[x].L) return;
         int a = newZero(s - 1), b = newZero(s - 1);
-        L[x] = a, R[x] = b;
+        nd[x].L = a, nd[x].R = b;
     }
 
     // the nodes covering a[l..r] left to right: ns, their levels ls, their first indices ts
@@ -122,8 +129,8 @@ struct SparseSegTree {
         }
         kids(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) collect(L[x], s - 1, tl, l, r, ns, ls, ts, c);
-        if (r >= m) collect(R[x], s - 1, m, l, r, ns, ls, ts, c);
+        if (l < m) collect(nd[x].L, s - 1, tl, l, r, ns, ls, ts, c);
+        if (r >= m) collect(nd[x].R, s - 1, m, l, r, ns, ls, ts, c);
     }
 
     int leafOf(long long i, int* path) {  // the leaf holding a[i]; path: the nodes above it top-down, every tag pushed
@@ -132,8 +139,8 @@ struct SparseSegTree {
         for (int s = D; s > 0; s--) {
             kids(x, s);
             path[D - s] = x;
-            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = R[x];
-            else x = L[x];
+            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = nd[x].R;
+            else x = nd[x].L;
         }
         return x;
     }
@@ -143,14 +150,14 @@ struct SparseSegTree {
     }
 
     void setLeaf(int p, T v) {  // leaf p holds v alone
-        xr[p] = v, g[p] = v;
+        nd[p].xr = v, nd[p].g = v;
     }
 
-    T leaf(int p) const { return T(xr[p]); }  // the value at leaf p
+    T leaf(int p) const { return T(nd[p].xr); }  // the value at leaf p
 
     void pull(int x) {  // recompute node x from its children
-        int a = L[x], b = R[x];
-        xr[x] = xr[a] ^ xr[b];
-        g[x] = gcd(g[a], g[b]);
+        int a = nd[x].L, b = nd[x].R;
+        nd[x].xr = nd[a].xr ^ nd[b].xr;
+        nd[x].g = gcd(nd[a].g, nd[b].g);
     }
 };

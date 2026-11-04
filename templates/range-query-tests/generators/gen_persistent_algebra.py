@@ -45,6 +45,412 @@ class PSpec(Spec):
         return "persistent-" + super().name()
 
 
+SEARCH_OPS = set(SEARCH) | {op for op, _, _ in A.PREFIX_SEARCHES}
+
+# Read-only range queries keep no copies: _pieces walks the two boundary paths of [l, r] (pushing a pending tag down in
+# place, which only copies the children it hands the tag to, once), then _rq builds a few temporary nodes over the
+# range from the now tag-free paths, the query reads them, and _release drops them again (nothing points to them).
+PY_QUERY_HELPERS = """
+    def _pieces(self, t, l, r, out):  # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
+        if not t or r < 0 or l >= self.sz[t]:
+            return
+        if l <= 0 and self.sz[t] - 1 <= r:
+            out.append((t, True))
+            return
+        self._push(t)
+        ls = self.sz[self.L[t]]
+        self._pieces(self.L[t], l, r, out)
+        if l <= ls <= r:
+            out.append((t, False))
+        self._pieces(self.R[t], l - ls - 1, r - ls - 1, out)
+
+    def _rangeNode(self, l, r):  # (a temporary node holding a[l..r]'s aggregates, the pool size _release goes back to)
+        self._pieces(self.root, l, r, [])  # (every pending tag on the two boundary paths pushed down first)
+        mark = len(self.val)
+        return self._rq(self.root, l, r), mark
+
+    def _rq(self, t, l, r):  # a node over a[l..r] of t's subtree: t itself when it is all of it, else temporaries
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return 0
+        if l <= 0 and sz[t] - 1 <= r:
+            return t
+        ls = sz[self.L[t]]
+        if r < ls:
+            return self._rq(self.L[t], l, r)
+        if l > ls:
+            return self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        a, b = self._rq(self.L[t], l, r), self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        y = self._clone(t)
+        self.L[y], self.R[y] = a, b
+        self._pull(y)
+        return y
+
+    def _release(self, mark):  # drop every node made after mark (temporaries: no tree points to them)
+        for arr in (ARRAYS):
+            del arr[mark:]
+
+    def _setAt(self, t, i, f):  # t with a[i] = f(a[i]): new copies of the nodes on the path to it
+        t = self._clone(t)
+        self._push(t)
+        L, R = self.L, self.R
+        ls = self.sz[L[t]]
+        if i < ls:
+            L[t] = self._setAt(L[t], i, f)
+        elif i > ls:
+            R[t] = self._setAt(R[t], i - ls - 1, f)
+        else:
+            self.val[t] = f(self.val[t])
+        self._pull(t)
+        return t
+
+    # t with the update f(x, off) on a[l..r] of its subtree (x: a node covered whole, off: its first value's distance
+    # from l), copying only the nodes on the range's two boundary paths
+    def _upd(self, t, l, r, f):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return t
+        t = self._clone(t)
+        if l <= 0 and sz[t] - 1 <= r:
+            f(t, -l)
+            return t
+        self._push(t)
+        L, R = self.L, self.R
+        ls = sz[L[t]]
+        L[t] = self._upd(L[t], l, r, f)
+        R[t] = self._upd(R[t], l - ls - 1, r - ls - 1, f)
+        if l <= ls <= r:  # (t's own value: the update on a lone temporary copy of it)
+            y = self._clone(t)
+            L[y] = R[y] = 0
+            self._pull(y)
+            f(y, ls - l)
+            self.val[t] = self.val[y]
+            self._release(y)
+        self._pull(t)
+        return t
+"""
+
+CPP_QUERY_HELPERS = """
+    // ---- read-only range queries keep no copies; updates copy only the nodes they reach ----
+
+    // a[l..r] of t's subtree as (node, whole subtree?) in order; a pending tag on the way is pushed down in place
+    // (harmless: see the top), which copies only the children it hands the tag to, once
+    void pieces(int t, long long l, long long r, vector<pair<int, bool>>& out) {
+        if (!t || r < 0 || l >= sz[t]) return;
+        if (l <= 0 && sz[t] - 1 <= r) {
+            out.push_back({t, true});
+            return;
+        }
+        push(t);
+        long long ls = sz[L[t]];
+        pieces(L[t], l, r, out);
+        if (l <= ls && ls <= r) out.push_back({t, false});
+        pieces(R[t], l - ls - 1, r - ls - 1, out);
+    }
+
+    // a temporary node holding a[l..r]'s aggregates; mark = the pool size release() goes back to
+    int rangeNode(long long l, long long r, size_t& mark) {
+        vector<pair<int, bool>> ps;
+        pieces(root, l, r, ps);  // (every pending tag on the two boundary paths pushed down first)
+        mark = val.size();
+        return rq(root, l, r);
+    }
+
+    int rq(int t, long long l, long long r) {  // a node over a[l..r] of t's subtree: t itself if that is all of it
+        if (!t || r < 0 || l >= sz[t]) return 0;
+        if (l <= 0 && sz[t] - 1 <= r) return t;
+        long long ls = sz[L[t]];
+        if (r < ls) return rq(L[t], l, r);
+        if (l > ls) return rq(R[t], l - ls - 1, r - ls - 1);
+        int a = rq(L[t], l, r), b = rq(R[t], l - ls - 1, r - ls - 1);
+        int y = clone(t);
+        L[y] = a, R[y] = b;
+        pull(y);
+        return y;
+    }
+
+    void release(size_t mark) {  // drop every node made after mark (temporaries: no tree points to them)
+        val.resize(mark);
+    }
+
+    template <class F>
+    int setAt(int t, long long i, const F& f) {  // t with a[i] = f(a[i]): new copies of the nodes on the path to it
+        t = clone(t);
+        push(t);
+        long long ls = sz[L[t]];
+        if (i < ls) {
+            int c = setAt(L[t], i, f);
+            L[t] = c;
+        } else if (i > ls) {
+            int c = setAt(R[t], i - ls - 1, f);
+            R[t] = c;
+        } else {
+            val[t] = f(val[t]);
+        }
+        pull(t);
+        return t;
+    }
+
+    // t with the update f(x, off) on a[l..r] of its subtree (x: a node covered whole, off: its first value's distance
+    // from l), copying only the nodes on the range's two boundary paths
+    template <class F>
+    int upd(int t, long long l, long long r, const F& f) {
+        if (!t || r < 0 || l >= sz[t]) return t;
+        t = clone(t);
+        if (l <= 0 && sz[t] - 1 <= r) {
+            f(t, -l);
+            return t;
+        }
+        push(t);
+        long long ls = sz[L[t]];
+        int a = upd(L[t], l, r, f), b = upd(R[t], l - ls - 1, r - ls - 1, f);
+        L[t] = a, R[t] = b;
+        if (l <= ls && ls <= r) {  // (t's own value: the update on a lone temporary copy of it)
+            int y = clone(t);
+            L[y] = R[y] = 0;
+            pull(y);
+            f(y, ls - l);
+            val[t] = val[y];
+            release(y);
+        }
+        pull(t);
+        return t;
+    }
+"""
+
+
+def _search_parts(op):
+    """(kind, field, comparator): kind "value" (leftmost / rightmost Gt.. X) or "prefix" (the prefix / suffix sum ones)"""
+    if op in SEARCH:
+        side, cmp = SEARCH[op]
+        return side, "value", ("mx" if cmp.startswith("G") else "mn"), A.CMP[cmp]
+    field, strict = next((f, st) for o, f, st in A.PREFIX_SEARCHES if o == op)
+    o = (">" if strict else ">=") if field in ("pre", "suf") else ("<" if strict else "<=")
+    return ("leftmost" if field in ("pre", "npre") else "rightmost"), "prefix", field, o
+
+
+def py_search(op, s):
+    """the search over the range's pieces: single nodes checked as they come, a whole subtree walked down only when
+    its aggregate says the answer is inside (no copies but the pushes of pending tags)"""
+    side, kind, f, o = _search_parts(op)
+    doc = A.py_public(s)[op].split("\n")[0]
+    if kind == "value":
+        if side == "leftmost":
+            body = f'''        pos = l  # (the index of the current piece's first value)
+        for t, whole in ps:
+            if not whole:
+                if val[t] {o} x:
+                    return pos
+                pos += 1
+                continue
+            if F[t] {o} x:
+                i = 0
+                while True:
+                    self._push(t)
+                    if L[t] and F[L[t]] {o} x:
+                        t = L[t]
+                    elif val[t] {o} x:
+                        return pos + i + sz[L[t]]
+                    else:
+                        i += sz[L[t]] + 1
+                        t = R[t]
+            pos += sz[t]
+        return -1'''
+        else:
+            body = f'''        end = r  # (the index of the current piece's last value)
+        for t, whole in reversed(ps):
+            if not whole:
+                if val[t] {o} x:
+                    return end
+                end -= 1
+                continue
+            if F[t] {o} x:
+                start, i = end - sz[t] + 1, 0
+                while True:
+                    self._push(t)
+                    if R[t] and F[R[t]] {o} x:
+                        i += sz[L[t]] + 1
+                        t = R[t]
+                    elif val[t] {o} x:
+                        return start + i + sz[L[t]]
+                    else:
+                        t = L[t]
+            end -= sz[t]
+        return -1'''
+        names = f"L, R, val, sz, F = self.L, self.R, self.val, self.sz, self.{f}"
+    else:
+        if side == "leftmost":
+            body = f'''        pos, acc = l, 0  # (the index of the current piece's first value; the sum before it)
+        for t, whole in ps:
+            if not whole:
+                acc += val[t]
+                if acc {o} x:
+                    return pos
+                pos += 1
+                continue
+            if acc + P[t] {o} x:
+                i = 0
+                while True:
+                    self._push(t)
+                    lt = L[t]
+                    if lt and acc + P[lt] {o} x:
+                        t = lt
+                        continue
+                    acc += sm[lt]
+                    if acc + val[t] {o} x:
+                        return pos + i + sz[lt]
+                    acc += val[t]
+                    i += sz[lt] + 1
+                    t = R[t]
+            acc += sm[t]
+            pos += sz[t]
+        return -1'''
+        else:
+            body = f'''        end, acc = r, 0  # (the index of the current piece's last value; the sum after it)
+        for t, whole in reversed(ps):
+            if not whole:
+                acc += val[t]
+                if acc {o} x:
+                    return end
+                end -= 1
+                continue
+            if acc + P[t] {o} x:
+                start, i = end - sz[t] + 1, 0
+                while True:
+                    self._push(t)
+                    rt = R[t]
+                    if rt and acc + P[rt] {o} x:
+                        i += sz[L[t]] + 1
+                        t = rt
+                        continue
+                    acc += sm[rt]
+                    if acc + val[t] {o} x:
+                        return start + i + sz[L[t]]
+                    acc += val[t]
+                    t = L[t]
+            acc += sm[t]
+            end -= sz[t]
+        return -1'''
+        names = f"L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.{f}"
+    return f'''{doc}
+    def {op}(self, l, r, x):
+        {names}
+        ps = []
+        self._pieces(self.root, l, r, ps)
+{body}
+'''
+
+
+def cpp_search(op, s):
+    side, kind, f, o = _search_parts(op)
+    doc = A.cpp_public(s)[op].split("\n")[0]
+    if kind == "value":
+        if side == "leftmost":
+            body = f'''        long long pos = l;  // (the index of the current piece's first value)
+        for (auto [t, whole] : ps) {{
+            if (!whole) {{
+                if (val[t] {o} x) return pos;
+                pos++;
+                continue;
+            }}
+            if ({f}[t] {o} x) {{
+                long long i = 0;
+                while (true) {{
+                    push(t);
+                    if (L[t] && {f}[L[t]] {o} x) t = L[t];
+                    else if (val[t] {o} x) return pos + i + sz[L[t]];
+                    else i += sz[L[t]] + 1, t = R[t];
+                }}
+            }}
+            pos += sz[t];
+        }}
+        return -1;'''
+        else:
+            body = f'''        long long end = r;  // (the index of the current piece's last value)
+        for (int k = (int)ps.size() - 1; k >= 0; k--) {{
+            auto [t, whole] = ps[k];
+            if (!whole) {{
+                if (val[t] {o} x) return end;
+                end--;
+                continue;
+            }}
+            if ({f}[t] {o} x) {{
+                long long start = end - sz[t] + 1, i = 0;
+                while (true) {{
+                    push(t);
+                    if (R[t] && {f}[R[t]] {o} x) i += sz[L[t]] + 1, t = R[t];
+                    else if (val[t] {o} x) return start + i + sz[L[t]];
+                    else t = L[t];
+                }}
+            }}
+            end -= sz[t];
+        }}
+        return -1;'''
+    else:
+        if side == "leftmost":
+            body = f'''        long long pos = l;  // (the index of the current piece's first value; acc: the sum before it)
+        S acc = 0;
+        for (auto [t, whole] : ps) {{
+            if (!whole) {{
+                acc += S(val[t]);
+                if (acc {o} S(x)) return pos;
+                pos++;
+                continue;
+            }}
+            if (acc + {f}[t] {o} S(x)) {{
+                long long i = 0;
+                while (true) {{
+                    push(t);
+                    int lt = L[t];
+                    if (lt && acc + {f}[lt] {o} S(x)) {{
+                        t = lt;
+                        continue;
+                    }}
+                    acc += sm[lt];
+                    if (acc + S(val[t]) {o} S(x)) return pos + i + sz[lt];
+                    acc += S(val[t]), i += sz[lt] + 1, t = R[t];
+                }}
+            }}
+            acc += sm[t], pos += sz[t];
+        }}
+        return -1;'''
+        else:
+            body = f'''        long long end = r;  // (the index of the current piece's last value; acc: the sum after it)
+        S acc = 0;
+        for (int k = (int)ps.size() - 1; k >= 0; k--) {{
+            auto [t, whole] = ps[k];
+            if (!whole) {{
+                acc += S(val[t]);
+                if (acc {o} S(x)) return end;
+                end--;
+                continue;
+            }}
+            if (acc + {f}[t] {o} S(x)) {{
+                long long start = end - sz[t] + 1, i = 0;
+                while (true) {{
+                    push(t);
+                    int rt = R[t];
+                    if (rt && acc + {f}[rt] {o} S(x)) {{
+                        i += sz[L[t]] + 1, t = rt;
+                        continue;
+                    }}
+                    acc += sm[rt];
+                    if (acc + S(val[t]) {o} S(x)) return start + i + sz[L[t]];
+                    acc += S(val[t]), t = L[t];
+                }}
+            }}
+            acc += sm[t], end -= sz[t];
+        }}
+        return -1;'''
+    return f'''{doc}
+    long long {op}(long long l, long long r, T x) {{
+        vector<pair<int, bool>> ps;
+        pieces(root, l, r, ps);
+{body}
+    }}
+'''
+
+
 def variants():
     return [PSpec(s.mods, s.fam, s.ups, s.rev) for s in A.variants() if not s.find and not s.shrink]
 
@@ -123,17 +529,27 @@ def py(s):
 
 ''')
     pub = py_public(s)
-    for op in QUERY_OPS & set(pub):  # (a query reads the cut-out range and puts nothing back: the root is unchanged)
-        pub[op] = pub[op].replace("        self._join(a, b, c)\n", "")
-    for op, expr, doc in (("pointAssign", "v", "a[i] = v"), ("pointAdd", "self.val[b] + v", "a[i] += v"),
-                          ("pointChmax", "max(self.val[b], v)", "a[i] = max(a[i], v)"), ("pointChmin", "min(self.val[b], v)", "a[i] = min(a[i], v)")):
-        pub[op] = f'''    # O(logN) expected -- {doc}
+    for op in QUERY_OPS & set(pub):  # (a query builds a few temporary nodes over the range, reads them and drops them)
+        if op in SEARCH_OPS:
+            pub[op] = py_search(op, s)
+            continue
+        q = pub[op].replace("        self._join(a, b, c)\n", "")
+        if "        a, b, c = self._cut(l, r)\n" in q:
+            q = q.replace("        a, b, c = self._cut(l, r)\n", "        b, mark = self._rangeNode(l, r)\n")
+            q = q.replace("        return res\n", "        self._release(mark)\n        return res\n")
+        pub[op] = q
+    for op, expr, doc in (("pointAssign", "v", "a[i] = v"), ("pointAdd", "w + v", "a[i] += v"),
+                          ("pointChmax", "max(w, v)", "a[i] = max(a[i], v)"), ("pointChmin", "min(w, v)", "a[i] = min(a[i], v)")):
+        pub[op] = f'''    # O(logN) expected -- {doc} (copies the one path down to a[i])
     def {op}(self, i, v):
-        a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
-        self.val[b] = {expr}
-        self._pull(b)
-        self._join(a, b, c)
+        self.root = self._setAt(self.root, i, lambda w: {expr})
 '''
+    for u in s.ups:  # range updates: one pass copying only the nodes the update reaches
+        op = A.UOP[u]
+        m = re.search(r"\n        a, b, c = self\._cut\(l, r\)\n        (.+)\n        self\._join\(a, b, c\)\n", pub[op])
+        call = re.sub(r"self\._applyAP\(b, (.+), (.+)\)$", r"self._applyAP(x, \1 + \2 * off, \2)", m.group(1)).replace("(b,", "(x,").replace("(b)", "(x)")
+        head = pub[op][:pub[op].index("\n        a, b, c = self._cut(l, r)")]
+        pub[op] = head + f"\n        self.root = self._upd(self.root, l, r, lambda x, off: {call})\n"
     pub["copy"] = f'''    # O(logN) expected -- a[l..r] (leave out l and r: the whole array, O(1)) as a {CLS} of its own; this one
     # is unchanged. The copy shares this one's nodes, so it costs O(logN) however long it is; needs
     # 0 <= l <= r < size(), else IndexError
@@ -149,7 +565,7 @@ def py(s):
         return piece
 '''
     out.append("\n".join(pub[op].replace("ImplicitTreap", CLS) for op in s.ops if op in pub))
-    out.append(py_persist(py_internals(s), s, names))
+    out.append(py_persist(py_internals(s), s, names) + PY_QUERY_HELPERS.replace("ARRAYS", arrays_tuple(names)))
     text = A.fit_comments(gcd_costs(s, "".join(out))).rstrip("\n") + "\n" + A.piece_example("py", f"{CLS}([1, 2, 3, 4, 5])", list("12345"))
     return text if TG else no_push(text, "py")
 
@@ -274,19 +690,26 @@ def cpp(s):
 
 ''')
     pub = cpp_public(s)
-    for op in QUERY_OPS & set(pub):
-        pub[op] = pub[op].replace("        root = merge(merge(a, b), c);\n", "")
-    for op, expr, doc in (("pointAssign", "v", "a[i] = v"), ("pointAdd", "T(val[b] + v)", "a[i] += v"),
-                          ("pointChmax", "max(val[b], v)", "a[i] = max(a[i], v)"), ("pointChmin", "min(val[b], v)", "a[i] = min(a[i], v)")):
-        pub[op] = f'''    // O(logN) expected -- {doc}
-    void {op}(long long i, T v) {{
-        int a, b, c;
-        cut(i, i, a, b, c);  // (b: a fresh copy of a[i]'s node, alone)
-        val[b] = {expr};
-        pull(b);
-        root = merge(merge(a, b), c);
-    }}
+    for op in QUERY_OPS & set(pub):  # (a query builds a few temporary nodes over the range, reads them and drops them)
+        if op in SEARCH_OPS:
+            pub[op] = cpp_search(op, s)
+            continue
+        q = pub[op].replace("        root = merge(merge(a, b), c);\n", "")
+        if "        int a, b, c;\n        cut(l, r, a, b, c);\n" in q:
+            q = q.replace("        int a, b, c;\n        cut(l, r, a, b, c);\n", "        size_t mark;\n        int b = rangeNode(l, r, mark);\n")
+            q = q.replace("        return res;\n", "        release(mark);\n        return res;\n")
+        pub[op] = q
+    for op, expr, doc in (("pointAssign", "v", "a[i] = v"), ("pointAdd", "T(w + v)", "a[i] += v"),
+                          ("pointChmax", "max(w, v)", "a[i] = max(a[i], v)"), ("pointChmin", "min(w, v)", "a[i] = min(a[i], v)")):
+        pub[op] = f'''    // O(logN) expected -- {doc} (copies the one path down to a[i])
+    void {op}(long long i, T v) {{ root = setAt(root, i, [&](T w) {{ return {expr}; }}); }}
 '''
+    for u in s.ups:  # range updates: one pass copying only the nodes the update reaches
+        op = A.UOP[u]
+        m = re.search(r"\n        cut\(l, r, a, b, c\);\n        (.+);\n        root = merge\(merge\(a, b\), c\);\n", pub[op])
+        call = re.sub(r"applyAP\(b, (.+), (.+)\)$", r"applyAP(x, T(\1 + \2 * T(off)), \2)", m.group(1)).replace("(b,", "(x,").replace("(b)", "(x)")
+        head = pub[op][:pub[op].index("\n        int a, b, c;\n        cut(l, r, a, b, c);")]
+        pub[op] = head + f"\n        root = upd(root, l, r, [&](int x, long long off) {{ {call}; (void)off; }});\n    }}\n"
     pub["pointGet"] = "    // O(logN) expected -- a[i]\n    T pointGet(long long i) { return val[locate(i)]; }\n"
     pub["copy"] = f'''    // O(1) -- the whole array as a {CLS} of its own; this one is unchanged (they share nodes)
     {CLS} copy() const {{ return *this; }}
@@ -304,7 +727,7 @@ def cpp(s):
     pub["paste"] = pub["paste"].replace("ImplicitTreap", CLS) + f"    void paste(long long i, {CLS}&& other) {{ paste(i, other); }}  // (a temporary: paste(i, t.copy(l, r)))\n"
     pub["merge"] = pub["merge"].replace("ImplicitTreap", CLS) + f"    void merge({CLS}&& other) {{ merge(other); }}  // (a temporary: merge(t.copy()))\n"
     out.append("\n".join(pub[op].replace("ImplicitTreap", CLS) for op in s.ops if op in pub))
-    out.append(cpp_persist(cpp_internals(s), s, arrays))
+    out.append(cpp_persist(cpp_internals(s), s, arrays).rstrip("\n").rstrip("};").rstrip() + "\n" + CPP_QUERY_HELPERS + "};\n")
     text = A.fit_comments(gcd_costs(s, "".join(out))) + A.piece_example("cpp", f"{CLS}<int> t({{1, 2, 3, 4, 5}})", list("12345"))
     text = wide(text)
     return text if TG else no_push(text, "cpp")

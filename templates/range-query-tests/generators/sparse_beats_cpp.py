@@ -54,14 +54,15 @@ def convert_cpp(folder, src):
             typ, names = mm.group(1), [x.strip() for x in mm.group(2).split(",")]
             typ = "long long" if typ == "int" else typ
             arrays.extend(names)
-            return "".join(f"    static inline vector<{typ}> {x} = vector<{typ}>(1);\n" for x in names)
+            zero = "0" if typ in ("long long", "int") else f"{typ}()"  # (node 0: a placeholder)
+            return "".join(f"    static inline vector<{typ}> {x}{{{zero}}};\n" for x in names)
         body = re.sub(r"^    vector<(\w+)> ([\w, ]+);\n", make_static, body, flags=re.M)
         # the pool's node 0 is a placeholder; the extra members go after the last array
         last = list(re.finditer(r"^    static inline vector<.*\n", body, re.M))[-1]
         body = body[:last.end()] + pool_extra + body[last.end():]
         zero = ZERO_FLAT[old]
         assert set(arrays) <= set(zero), (old, arrays)  # (gen_bitbeats.py's variants keep only some of the fields)
-        push_zero = " ".join(f"{a}.push_back({zero[a]});" for a in arrays)
+        push_zero = ", ".join(f"{a}.push_back({zero[a]})" for a in arrays) + ";"
         resets = " ".join(f"{a}.resize(1);" for a in arrays)
         reserves = " ".join(f"{a}.reserve(nodes);" for a in arrays)
     else:

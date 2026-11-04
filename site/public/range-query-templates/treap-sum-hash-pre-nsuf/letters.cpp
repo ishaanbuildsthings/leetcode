@@ -346,6 +346,48 @@ struct ImplicitTreap {
         return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
     }
 
+    // O(logN) expected -- last i in [l, r] with a[i] + ... + a[r] < x, or -1 (a walk pruned by min suffix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
+    int rightmostSuffixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostSuffixSumLtX: needs 0 <= l <= r < size()");
+        int a, b, c;
+        cut(l, r, a, b, c);
+        int t = b, i = 0, res = -1;
+        S acc = 0;
+        if (t && nd[t].nsuf < S(x)) {
+            while (true) {
+                int rt = nd[t].R;
+                if (rt && acc + nd[rt].nsuf < S(x)) { i += nd[nd[t].L].sz + 1, t = rt; continue; }
+                acc += nd[rt].sm;
+                if (acc + S(nd[t].val) < S(x)) { res = l + i + nd[nd[t].L].sz; break; }
+                acc += S(nd[t].val), t = nd[t].L;
+            }
+        }
+        root = merge(merge(a, b), c);
+        return res;
+    }
+
+    // O(logN) expected -- last i in [l, r] with a[i] + ... + a[r] <= x, or -1 (a walk pruned by min suffix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
+    int rightmostSuffixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostSuffixSumLteX: needs 0 <= l <= r < size()");
+        int a, b, c;
+        cut(l, r, a, b, c);
+        int t = b, i = 0, res = -1;
+        S acc = 0;
+        if (t && nd[t].nsuf <= S(x)) {
+            while (true) {
+                int rt = nd[t].R;
+                if (rt && acc + nd[rt].nsuf <= S(x)) { i += nd[nd[t].L].sz + 1, t = rt; continue; }
+                acc += nd[rt].sm;
+                if (acc + S(nd[t].val) <= S(x)) { res = l + i + nd[nd[t].L].sz; break; }
+                acc += S(nd[t].val), t = nd[t].L;
+            }
+        }
+        root = merge(merge(a, b), c);
+        return res;
+    }
+
     // O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
     // 0 <= k <= size(), else throws out_of_range
     pair<ImplicitTreap, ImplicitTreap> split(int k) {

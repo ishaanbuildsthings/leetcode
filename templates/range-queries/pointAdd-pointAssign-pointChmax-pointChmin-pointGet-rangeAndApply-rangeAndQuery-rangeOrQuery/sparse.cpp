@@ -30,13 +30,18 @@ template <typename T>
 struct SparseLazySegTree {
     long long first, last;  // the index range [lo, hi]
     int D;  // the root's level: 2^D >= hi - lo + 1
-    vector<int> L{0}, R{0};  // children (node 0: none; node 1 is the root)
-    vector<T> an{~T(0)};
-    vector<T> orr{T(0)};
-    vector<T> tA{~T(0)};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        T an = ~T(0);
+        T orr = T(0);
+        T tA = ~T(0);
+        int L = 0;
+        int R = 0;
+    };
+    vector<Node> nd{Node{}};  // node 0: none; node 1 is the root
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseLazySegTree(long long lo, long long hi) : first(lo), last(hi), D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
+    SparseLazySegTree(long long lo, long long hi) : first(lo), last(hi),
+        D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
         newZero(D);
     }
 
@@ -86,7 +91,7 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeAndQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = ~T(0);
-        for (int i = 0; i < c; i++) res &= an[ns[i]];
+        for (int i = 0; i < c; i++) res &= nd[ns[i]].an;
         return res;
     }
 
@@ -95,21 +100,23 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeOrQuery: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         T res = T(0);
-        for (int i = 0; i < c; i++) res |= orr[ns[i]];
+        for (int i = 0; i < c; i++) res |= nd[ns[i]].orr;
         return res;
     }
 
     // ---- internals ----
 
     int newZero(int s) {  // a new node: a block of 2^s zeros
-        L.push_back(0), R.push_back(0), an.push_back(T(0)), orr.push_back(T(0)), tA.push_back(~T(0));
-        return (int)L.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.an = T(0), n.orr = T(0), n.tA = ~T(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     void kids(int x, int s) {  // create node x's children (blocks of zeros) if it has none yet
-        if (L[x]) return;
+        if (nd[x].L) return;
         int a = newZero(s - 1), b = newZero(s - 1);
-        L[x] = a, R[x] = b;
+        nd[x].L = a, nd[x].R = b;
     }
 
     // the nodes covering a[l..r] left to right: ns, their levels ls, their first indices ts
@@ -132,8 +139,8 @@ struct SparseLazySegTree {
         kids(x, s);
         push(x);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) collect(L[x], s - 1, tl, l, r, ns, ls, ts, c);
-        if (r >= m) collect(R[x], s - 1, m, l, r, ns, ls, ts, c);
+        if (l < m) collect(nd[x].L, s - 1, tl, l, r, ns, ls, ts, c);
+        if (r >= m) collect(nd[x].R, s - 1, m, l, r, ns, ls, ts, c);
     }
 
     template <class F>  // f(node, level, first index) on every node covering a[l..r], then pull up
@@ -145,8 +152,8 @@ struct SparseLazySegTree {
         kids(x, s);
         push(x);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) update(L[x], s - 1, tl, l, r, f);
-        if (r >= m) update(R[x], s - 1, m, l, r, f);
+        if (l < m) update(nd[x].L, s - 1, tl, l, r, f);
+        if (r >= m) update(nd[x].R, s - 1, m, l, r, f);
         pull(x);
     }
 
@@ -157,8 +164,8 @@ struct SparseLazySegTree {
             kids(x, s);
             push(x);
             path[D - s] = x;
-            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = R[x];
-            else x = L[x];
+            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = nd[x].R;
+            else x = nd[x].L;
         }
         return x;
     }
@@ -168,32 +175,32 @@ struct SparseLazySegTree {
     }
 
     void setLeaf(int p, T v) {  // leaf p holds v alone
-        an[p] = v, orr[p] = v;
+        nd[p].an = v, nd[p].orr = v;
     }
 
-    T leaf(int p) const { return T(an[p]); }  // the value at leaf p
+    T leaf(int p) const { return T(nd[p].an); }  // the value at leaf p
 
     void pull(int x) {  // recompute node x from its children
-        int a = L[x], b = R[x];
-        an[x] = an[a] & an[b];
-        orr[x] = orr[a] | orr[b];
+        int a = nd[x].L, b = nd[x].R;
+        nd[x].an = nd[a].an & nd[b].an;
+        nd[x].orr = nd[a].orr | nd[b].orr;
     }
 
     void setBits(int x, T A) {  // every value v under node x becomes v & A
-        an[x] = an[x] & A;
-        orr[x] = orr[x] & A;
+        nd[x].an = nd[x].an & A;
+        nd[x].orr = nd[x].orr & A;
     }
 
     void applyBits(int x, T A) {
         setBits(x, A);
-        tA[x] &= A;
+        nd[x].tA &= A;
     }
 
     void push(int x) {  // hand node x's pending tags to its children
-        int a = L[x], b = R[x];
-        if (tA[x] != ~T(0)) {
-            applyBits(a, tA[x]), applyBits(b, tA[x]);
-            tA[x] = ~T(0);
+        int a = nd[x].L, b = nd[x].R;
+        if (nd[x].tA != ~T(0)) {
+            applyBits(a, nd[x].tA), applyBits(b, nd[x].tA);
+            nd[x].tA = ~T(0);
         }
     }
 };

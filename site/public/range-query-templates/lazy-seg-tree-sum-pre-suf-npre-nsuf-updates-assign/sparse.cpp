@@ -1,10 +1,12 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-pre-suf-npre-nsuf-updates-assign/sparse.cpp
-// @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum maxSuffixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   leftmostPrefixSumGtX: log(U)
 //   leftmostPrefixSumGteX: log(U)
+//   leftmostPrefixSumLtX: log(U)
+//   leftmostPrefixSumLteX: log(U)
 //   maxPrefixSum: log(U)
 //   maxSuffixSum: log(U)
 //   minPrefixSum: log(U)
@@ -18,6 +20,8 @@
 //   rangeSum: log(U)
 //   rightmostSuffixSumGtX: log(U)
 //   rightmostSuffixSumGteX: log(U)
+//   rightmostSuffixSumLtX: log(U)
+//   rightmostSuffixSumLteX: log(U)
 //   build: 1
 // @memory:
 //   layout: sparse
@@ -39,17 +43,22 @@ struct SparseLazySegTree {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     long long first, last;  // the index range [lo, hi]
     int D;  // the root's level: 2^D >= hi - lo + 1
-    vector<int> L{0}, R{0};  // children (node 0: none; node 1 is the root)
-    vector<S> sm{0};
-    vector<S> pre{0};
-    vector<S> suf{0};
-    vector<S> npre{0};
-    vector<S> nsuf{0};
-    vector<T> asg{T(0)};
-    vector<char> hasAsg{0};
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        S sm = 0;
+        S pre = 0;
+        S suf = 0;
+        S npre = 0;
+        S nsuf = 0;
+        T asg = T(0);
+        int L = 0;
+        int R = 0;
+        char hasAsg = 0;
+    };
+    vector<Node> nd{Node{}};  // node 0: none; node 1 is the root
 
     // O(1) -- all zeros over [lo, hi]; any long long range works (lo <= hi)
-    SparseLazySegTree(long long lo, long long hi) : first(lo), last(hi), D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
+    SparseLazySegTree(long long lo, long long hi) : first(lo), last(hi),
+        D(hi > lo ? 64 - __builtin_clzll((unsigned long long)(hi - lo)) : 0) {
         newZero(D);
     }
 
@@ -64,16 +73,16 @@ struct SparseLazySegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + pre[t] > S(x)) {
+            if (acc + nd[t].pre > S(x)) {
                 while (s) {
                     kids(t, s), push(t, s);
                     s--;
-                    if (acc + pre[L[t]] > S(x)) t = L[t];
-                    else acc += sm[L[t]], t = R[t], tl += 1LL << s;
+                    if (acc + nd[nd[t].L].pre > S(x)) t = nd[t].L;
+                    else acc += nd[nd[t].L].sm, t = nd[t].R, tl += 1LL << s;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -89,16 +98,66 @@ struct SparseLazySegTree {
         for (int i = 0; i < c; i++) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + pre[t] >= S(x)) {
+            if (acc + nd[t].pre >= S(x)) {
                 while (s) {
                     kids(t, s), push(t, s);
                     s--;
-                    if (acc + pre[L[t]] >= S(x)) t = L[t];
-                    else acc += sm[L[t]], t = R[t], tl += 1LL << s;
+                    if (acc + nd[nd[t].L].pre >= S(x)) t = nd[t].L;
+                    else acc += nd[nd[t].L].sm, t = nd[t].R, tl += 1LL << s;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
+        }
+        return first - 1;
+    }
+
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] < x, or lo - 1 (a walk pruned by min prefix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
+    long long leftmostPrefixSumLtX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumLtX: needs lo <= l <= r <= hi");
+        int ns[128], ls[128];
+        long long ts[128];
+        int c = cover(l, r, ns, ls, ts);
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i], s = ls[i];
+            long long tl = ts[i];
+            if (acc + nd[t].npre < S(x)) {
+                while (s) {
+                    kids(t, s), push(t, s);
+                    s--;
+                    if (acc + nd[nd[t].L].npre < S(x)) t = nd[t].L;
+                    else acc += nd[nd[t].L].sm, t = nd[t].R, tl += 1LL << s;
+                }
+                return tl;
+            }
+            acc += nd[t].sm;
+        }
+        return first - 1;
+    }
+
+    // O(logU) -- first i in [l, r] with a[l] + ... + a[i] <= x, or lo - 1 (a walk pruned by min prefix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
+    long long leftmostPrefixSumLteX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("leftmostPrefixSumLteX: needs lo <= l <= r <= hi");
+        int ns[128], ls[128];
+        long long ts[128];
+        int c = cover(l, r, ns, ls, ts);
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i], s = ls[i];
+            long long tl = ts[i];
+            if (acc + nd[t].npre <= S(x)) {
+                while (s) {
+                    kids(t, s), push(t, s);
+                    s--;
+                    if (acc + nd[nd[t].L].npre <= S(x)) t = nd[t].L;
+                    else acc += nd[nd[t].L].sm, t = nd[t].R, tl += 1LL << s;
+                }
+                return tl;
+            }
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -107,8 +166,8 @@ struct SparseLazySegTree {
     S maxPrefixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = pre[ns[0]], acc = sm[ns[0]];
-        for (int i = 1; i < c; i++) res = max(res, acc + pre[ns[i]]), acc += sm[ns[i]];
+        S res = nd[ns[0]].pre, acc = nd[ns[0]].sm;
+        for (int i = 1; i < c; i++) res = max(res, acc + nd[ns[i]].pre), acc += nd[ns[i]].sm;
         return res;
     }
 
@@ -116,8 +175,8 @@ struct SparseLazySegTree {
     S maxSuffixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxSuffixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = suf[ns[c - 1]], acc = sm[ns[c - 1]];
-        for (int i = c - 2; i >= 0; i--) res = max(res, acc + suf[ns[i]]), acc += sm[ns[i]];
+        S res = nd[ns[c - 1]].suf, acc = nd[ns[c - 1]].sm;
+        for (int i = c - 2; i >= 0; i--) res = max(res, acc + nd[ns[i]].suf), acc += nd[ns[i]].sm;
         return res;
     }
 
@@ -125,8 +184,8 @@ struct SparseLazySegTree {
     S minPrefixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("minPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = npre[ns[0]], acc = sm[ns[0]];
-        for (int i = 1; i < c; i++) res = min(res, acc + npre[ns[i]]), acc += sm[ns[i]];
+        S res = nd[ns[0]].npre, acc = nd[ns[0]].sm;
+        for (int i = 1; i < c; i++) res = min(res, acc + nd[ns[i]].npre), acc += nd[ns[i]].sm;
         return res;
     }
 
@@ -134,8 +193,8 @@ struct SparseLazySegTree {
     S minSuffixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("minSuffixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
-        S res = nsuf[ns[c - 1]], acc = sm[ns[c - 1]];
-        for (int i = c - 2; i >= 0; i--) res = min(res, acc + nsuf[ns[i]]), acc += sm[ns[i]];
+        S res = nd[ns[c - 1]].nsuf, acc = nd[ns[c - 1]].sm;
+        for (int i = c - 2; i >= 0; i--) res = min(res, acc + nd[ns[i]].nsuf), acc += nd[ns[i]].sm;
         return res;
     }
 
@@ -185,7 +244,7 @@ struct SparseLazySegTree {
         if (l < first || l > r || r > last) throw out_of_range("rangeSum: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);
         S res = S(0);
-        for (int i = 0; i < c; i++) res += sm[ns[i]];
+        for (int i = 0; i < c; i++) res += nd[ns[i]].sm;
         return res;
     }
 
@@ -200,16 +259,16 @@ struct SparseLazySegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + suf[t] > S(x)) {
+            if (acc + nd[t].suf > S(x)) {
                 while (s) {
                     kids(t, s), push(t, s);
                     s--;
-                    if (acc + suf[R[t]] > S(x)) t = R[t], tl += 1LL << s;
-                    else acc += sm[R[t]], t = L[t];
+                    if (acc + nd[nd[t].R].suf > S(x)) t = nd[t].R, tl += 1LL << s;
+                    else acc += nd[nd[t].R].sm, t = nd[t].L;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -225,16 +284,66 @@ struct SparseLazySegTree {
         for (int i = c - 1; i >= 0; i--) {
             int t = ns[i], s = ls[i];
             long long tl = ts[i];
-            if (acc + suf[t] >= S(x)) {
+            if (acc + nd[t].suf >= S(x)) {
                 while (s) {
                     kids(t, s), push(t, s);
                     s--;
-                    if (acc + suf[R[t]] >= S(x)) t = R[t], tl += 1LL << s;
-                    else acc += sm[R[t]], t = L[t];
+                    if (acc + nd[nd[t].R].suf >= S(x)) t = nd[t].R, tl += 1LL << s;
+                    else acc += nd[nd[t].R].sm, t = nd[t].L;
                 }
                 return tl;
             }
-            acc += sm[t];
+            acc += nd[t].sm;
+        }
+        return first - 1;
+    }
+
+    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] < x, or lo - 1 (a walk pruned by min suffix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
+    long long rightmostSuffixSumLtX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("rightmostSuffixSumLtX: needs lo <= l <= r <= hi");
+        int ns[128], ls[128];
+        long long ts[128];
+        int c = cover(l, r, ns, ls, ts);
+        S acc = 0;
+        for (int i = c - 1; i >= 0; i--) {
+            int t = ns[i], s = ls[i];
+            long long tl = ts[i];
+            if (acc + nd[t].nsuf < S(x)) {
+                while (s) {
+                    kids(t, s), push(t, s);
+                    s--;
+                    if (acc + nd[nd[t].R].nsuf < S(x)) t = nd[t].R, tl += 1LL << s;
+                    else acc += nd[nd[t].R].sm, t = nd[t].L;
+                }
+                return tl;
+            }
+            acc += nd[t].sm;
+        }
+        return first - 1;
+    }
+
+    // O(logU) -- last i in [l, r] with a[i] + ... + a[r] <= x, or lo - 1 (a walk pruned by min suffix sums); needs
+    // lo <= l <= r <= hi, else throws out_of_range
+    long long rightmostSuffixSumLteX(long long l, long long r, T x) {
+        if (l < first || l > r || r > last) throw out_of_range("rightmostSuffixSumLteX: needs lo <= l <= r <= hi");
+        int ns[128], ls[128];
+        long long ts[128];
+        int c = cover(l, r, ns, ls, ts);
+        S acc = 0;
+        for (int i = c - 1; i >= 0; i--) {
+            int t = ns[i], s = ls[i];
+            long long tl = ts[i];
+            if (acc + nd[t].nsuf <= S(x)) {
+                while (s) {
+                    kids(t, s), push(t, s);
+                    s--;
+                    if (acc + nd[nd[t].R].nsuf <= S(x)) t = nd[t].R, tl += 1LL << s;
+                    else acc += nd[nd[t].R].sm, t = nd[t].L;
+                }
+                return tl;
+            }
+            acc += nd[t].sm;
         }
         return first - 1;
     }
@@ -242,15 +351,17 @@ struct SparseLazySegTree {
     // ---- internals ----
 
     int newZero(int s) {  // a new node: a block of 2^s zeros
-        L.push_back(0), R.push_back(0), sm.push_back(S(0)), pre.push_back(S(0)), suf.push_back(S(0)),
-        npre.push_back(S(0)), nsuf.push_back(S(0)), asg.push_back(T(0)), hasAsg.push_back(0);
-        return (int)L.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.sm = S(0), n.pre = S(0), n.suf = S(0), n.npre = S(0), n.nsuf = S(0), n.asg = T(0),
+        n.hasAsg = 0;
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     void kids(int x, int s) {  // create node x's children (blocks of zeros) if it has none yet
-        if (L[x]) return;
+        if (nd[x].L) return;
         int a = newZero(s - 1), b = newZero(s - 1);
-        L[x] = a, R[x] = b;
+        nd[x].L = a, nd[x].R = b;
     }
 
     // the nodes covering a[l..r] left to right: ns, their levels ls, their first indices ts
@@ -273,8 +384,8 @@ struct SparseLazySegTree {
         kids(x, s);
         push(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) collect(L[x], s - 1, tl, l, r, ns, ls, ts, c);
-        if (r >= m) collect(R[x], s - 1, m, l, r, ns, ls, ts, c);
+        if (l < m) collect(nd[x].L, s - 1, tl, l, r, ns, ls, ts, c);
+        if (r >= m) collect(nd[x].R, s - 1, m, l, r, ns, ls, ts, c);
     }
 
     template <class F>  // f(node, level, first index) on every node covering a[l..r], then pull up
@@ -286,8 +397,8 @@ struct SparseLazySegTree {
         kids(x, s);
         push(x, s);
         long long m = tl + (1LL << (s - 1));
-        if (l < m) update(L[x], s - 1, tl, l, r, f);
-        if (r >= m) update(R[x], s - 1, m, l, r, f);
+        if (l < m) update(nd[x].L, s - 1, tl, l, r, f);
+        if (r >= m) update(nd[x].R, s - 1, m, l, r, f);
         pull(x, s);
     }
 
@@ -298,8 +409,8 @@ struct SparseLazySegTree {
             kids(x, s);
             push(x, s);
             path[D - s] = x;
-            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = R[x];
-            else x = L[x];
+            if (i >= tl + (1LL << (s - 1))) tl += 1LL << (s - 1), x = nd[x].R;
+            else x = nd[x].L;
         }
         return x;
     }
@@ -309,34 +420,34 @@ struct SparseLazySegTree {
     }
 
     void setLeaf(int p, T v) {  // leaf p holds v alone
-        sm[p] = S(v), pre[p] = S(v), suf[p] = S(v), npre[p] = S(v), nsuf[p] = S(v);
+        nd[p].sm = S(v), nd[p].pre = S(v), nd[p].suf = S(v), nd[p].npre = S(v), nd[p].nsuf = S(v);
     }
 
-    T leaf(int p) const { return T(sm[p]); }  // the value at leaf p
+    T leaf(int p) const { return T(nd[p].sm); }  // the value at leaf p
 
     void pull(int x, int s) {  // recompute node x (level s) from its children
-        int a = L[x], b = R[x];
-        pre[x] = max(pre[a], sm[a] + pre[b]);
-        suf[x] = max(suf[b], sm[b] + suf[a]);
-        npre[x] = min(npre[a], sm[a] + npre[b]);
-        nsuf[x] = min(nsuf[b], sm[b] + nsuf[a]);
-        sm[x] = sm[a] + sm[b];
+        int a = nd[x].L, b = nd[x].R;
+        nd[x].pre = max(nd[a].pre, nd[a].sm + nd[b].pre);
+        nd[x].suf = max(nd[b].suf, nd[b].sm + nd[a].suf);
+        nd[x].npre = min(nd[a].npre, nd[a].sm + nd[b].npre);
+        nd[x].nsuf = min(nd[b].nsuf, nd[b].sm + nd[a].nsuf);
+        nd[x].sm = nd[a].sm + nd[b].sm;
     }
 
     void setAssign(int x, int s, T v) {  // every value under node x becomes v
         long long k = 1LL << s;
-        sm[x] = S(v) * k;
-        pre[x] = suf[x] = v > T(0) ? S(v) * k : S(v);
-        npre[x] = nsuf[x] = v < T(0) ? S(v) * k : S(v);
+        nd[x].sm = S(v) * k;
+        nd[x].pre = nd[x].suf = v > T(0) ? S(v) * k : S(v);
+        nd[x].npre = nd[x].nsuf = v < T(0) ? S(v) * k : S(v);
     }
 
     void applyAssign(int x, int s, T v) {
         setAssign(x, s, v);
-        asg[x] = v, hasAsg[x] = 1;
+        nd[x].asg = v, nd[x].hasAsg = 1;
     }
 
     void push(int x, int s) {  // hand node x's pending tags to its children
-        int a = L[x], b = R[x], c = s - 1;  // (their level)
-        if (hasAsg[x]) applyAssign(a, c, asg[x]), applyAssign(b, c, asg[x]), hasAsg[x] = 0;
+        int a = nd[x].L, b = nd[x].R, c = s - 1;  // (their level)
+        if (nd[x].hasAsg) applyAssign(a, c, nd[x].asg), applyAssign(b, c, nd[x].asg), nd[x].hasAsg = 0;
     }
 };

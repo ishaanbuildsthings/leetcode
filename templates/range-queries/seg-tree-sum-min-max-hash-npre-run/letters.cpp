@@ -182,6 +182,46 @@ struct SegTree {
         return -1;
     }
 
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (a walk pruned by min prefix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int leftmostPrefixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumLtX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i];
+            if (acc + npre[t] < S(x)) {
+                while (t < n) {
+                    if (acc + npre[2 * t] < S(x)) t = 2 * t;
+                    else acc += sm[2 * t], t = 2 * t + 1;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (a walk pruned by min prefix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int leftmostPrefixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumLteX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i];
+            if (acc + npre[t] <= S(x)) {
+                while (t < n) {
+                    if (acc + npre[2 * t] <= S(x)) t = 2 * t;
+                    else acc += sm[2 * t], t = 2 * t + 1;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
     // O(logN) -- the longest run of equal adjacent values in a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     int longestEqualRun(int l, int r) {
         if (l < 0 || l > r || r >= n) throw out_of_range("longestEqualRun: needs 0 <= l <= r < n");

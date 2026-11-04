@@ -1,11 +1,13 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-max-npre-alt-updates-div-mod-sqrt/template.py
-# @operations: getAll leftmostGtX leftmostGteX maxAltSubseqSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeSum rightmostGtX rightmostGteX
+# @operations: getAll leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAltSubseqSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeSum rightmostGtX rightmostGteX
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
 #   leftmostGtX: log(N)
 #   leftmostGteX: log(N)
+#   leftmostPrefixSumLtX: log(N)
+#   leftmostPrefixSumLteX: log(N)
 #   maxAltSubseqSum: log(N)
 #   minPrefixSum: log(N)
 #   pointAdd: log(N)
@@ -93,6 +95,44 @@ class ShrinkSegTree:
                 while t < n:
                     t = 2 * t if F[2 * t] >= x else 2 * t + 1
                 return t - n
+        return -1
+
+    # O(logN) -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (a walk pruned by min prefix sums); needs
+    # 0 <= l <= r < n, else IndexError
+    def leftmostPrefixSumLtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostPrefixSumLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        n, sm, P = self.n, self.sm, self.npre
+        acc = 0
+        for t, s in self._nodes(l, r):
+            if acc + P[t] < x:
+                while t < n:
+                    if acc + P[2 * t] < x:
+                        t = 2 * t
+                    else:
+                        acc += sm[2 * t]
+                        t = 2 * t + 1
+                return t - n
+            acc += sm[t]
+        return -1
+
+    # O(logN) -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (a walk pruned by min prefix sums); needs
+    # 0 <= l <= r < n, else IndexError
+    def leftmostPrefixSumLteX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"leftmostPrefixSumLteX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        n, sm, P = self.n, self.sm, self.npre
+        acc = 0
+        for t, s in self._nodes(l, r):
+            if acc + P[t] <= x:
+                while t < n:
+                    if acc + P[2 * t] <= x:
+                        t = 2 * t
+                    else:
+                        acc += sm[2 * t]
+                        t = 2 * t + 1
+                return t - n
+            acc += sm[t]
         return -1
 
     # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs 0 <= l <= r < n, else

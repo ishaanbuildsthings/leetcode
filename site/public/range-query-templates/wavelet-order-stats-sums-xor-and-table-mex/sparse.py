@@ -226,8 +226,8 @@ class WaveletMatrix:
             raise IndexError(f"sumSmallestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._sumFirst(l, r, k)
 
-    # O(logN) -- sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError; needs
-    # 0 <= l <= r < n, else IndexError
+    # O(logN) -- sum of the k largest values in a[l..r]; needs 0 <= l <= r < n and 0 <= k <= r - l + 1, else
+    # IndexError
     def sumLargestK(self, l, r, k):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"sumLargestK: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -247,7 +247,7 @@ class WaveletMatrix:
         return self._sumFirst(l, r, kTo) - self._sumFirst(l, r, kFrom - 1)
 
     # O(logN) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest);
-    # needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError; needs 0 <= l <= r < n, else IndexError
+    # needs 0 <= l <= r < n and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
     def sumKthLargestRange(self, l, r, kFrom, kTo):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"sumKthLargestRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -711,8 +711,8 @@ class SparseWaveletMatrix:
             raise IndexError(f"sumSmallestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._sumFirst(l, r, k)
 
-    # O(logN) -- sum of the k largest values in a[l..r]; needs 0 <= k <= r - l + 1, else IndexError; needs
-    # lo <= l <= r <= hi, else IndexError
+    # O(logN) -- sum of the k largest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
+    # IndexError
     def sumLargestK(self, l, r, k):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumLargestK: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -732,7 +732,7 @@ class SparseWaveletMatrix:
         return self._sumFirst(l, r, kTo) - self._sumFirst(l, r, kFrom - 1)
 
     # O(logN) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest);
-    # needs 1 <= kFrom <= kTo <= r - l + 1, else IndexError; needs lo <= l <= r <= hi, else IndexError
+    # needs lo <= l <= r <= hi and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
     def sumKthLargestRange(self, l, r, kFrom, kTo):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumKthLargestRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

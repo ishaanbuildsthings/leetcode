@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-min-max-hash-nsuf-xor-updates-div-mod-sqrt/template.cpp
-// @operations: getAll isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangeSum rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX
+// @operations: getAll isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangeSum rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX
 // @data-structure-type: beats
 // @complexities:
 //   getAll: N
@@ -29,6 +29,8 @@
 //   rightmostGteX: log(N)
 //   rightmostLtX: log(N)
 //   rightmostLteX: log(N)
+//   rightmostSuffixSumLtX: log(N)
+//   rightmostSuffixSumLteX: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -368,6 +370,46 @@ struct ShrinkSegTree {
             if (!(mn[t] <= x)) continue;
             while (t < n) t = mn[2 * t + 1] <= x ? 2 * t + 1 : 2 * t;  // walk down the passing node
             return t - n;
+        }
+        return -1;
+    }
+
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] < x, or -1 (a walk pruned by min suffix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int rightmostSuffixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumLtX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = c - 1; i >= 0; i--) {
+            int t = ns[i];
+            if (acc + nsuf[t] < S(x)) {
+                while (t < n) {
+                    if (acc + nsuf[2 * t + 1] < S(x)) t = 2 * t + 1;
+                    else acc += sm[2 * t + 1], t = 2 * t;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(logN) -- last i in [l, r] with a[i] + ... + a[r] <= x, or -1 (a walk pruned by min suffix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int rightmostSuffixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("rightmostSuffixSumLteX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = c - 1; i >= 0; i--) {
+            int t = ns[i];
+            if (acc + nsuf[t] <= S(x)) {
+                while (t < n) {
+                    if (acc + nsuf[2 * t + 1] <= S(x)) t = 2 * t + 1;
+                    else acc += sm[2 * t + 1], t = 2 * t;
+                }
+                return t - n;
+            }
+            acc += sm[t];
         }
         return -1;
     }

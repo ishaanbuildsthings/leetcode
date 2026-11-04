@@ -143,7 +143,8 @@ def add_bounds(text, lang):
         cls = (_py_class if lang == "py" else _cpp_class)(cls, ops, b)
         out.append(text[last:s] + cls)
         last = e
-    return "".join(out) + text[last:]
+    text = "".join(out) + text[last:]
+    return _wrap_raises(text) if lang == "py" else text
 
 
 def _py_class(cls, ops, b):
@@ -175,12 +176,20 @@ def _py_class(cls, ops, b):
     return "\n".join(out)
 
 
-def raise_lines(op, rule, got, width=120):
+def raise_lines(op, rule, got, width=120, ind="            "):
     """the Python raise, its message split after "got" when the line would pass width"""
-    one = f'            raise IndexError(f"{op}: needs {rule}, got {got}")'
+    one = f'{ind}raise IndexError(f"{op}: needs {rule}, got {got}")'
     if len(one) <= width:
         return [one]
-    return [f'            raise IndexError(f"{op}: needs {rule}, got "', f'                             f"{got}")']
+    return [f'{ind}raise IndexError(f"{op}: needs {rule}, got "', f'{ind}                 f"{got}")']
+
+
+def _wrap_raises(text):  # every one-line raise IndexError(f"op: needs ..., got ...") past 120 columns, whoever wrote it
+    out = []
+    for ln in text.split("\n"):
+        m = re.match(r'^( +)raise IndexError\(f"(\w+): needs (.*), got (.*)"\)$', ln)
+        out += raise_lines(m.group(2), m.group(3), m.group(4), ind=m.group(1)) if m and len(ln) > 120 else [ln]
+    return "\n".join(out)
 
 
 def _cpp_class(cls, ops, b):
@@ -226,4 +235,59 @@ def _cpp_class(cls, ops, b):
         else:
             out += [head, check]
         k += 1
+    return "\n".join(out)
+
+
+def strip_bounds(text, lang):
+    """text without the dense index checks add_bounds put in (and their doc clauses): for a generator that turns a
+    dense template into a sparse one (whose checks are against [lo, hi] instead)"""
+    out, lines, k = [], text.split("\n"), 0
+    n = r"(?:self\.n|self\.size\(\)|n|size\(\))"
+    while k < len(lines):
+        ln = lines[k]
+        if lang == "py" and re.match(rf"^        if not \(?0 <= .* {n}\)?:$", ln) and "raise IndexError" in lines[k + 1]:
+            k += 2
+            while k < len(lines) and lines[k].startswith("                 f\""):  # (a raise wrapped after "got")
+                k += 1
+            continue
+        if lang == "cpp" and re.match(r"^        if \(.*\) throw out_of_range\(\"\w+: needs 0 <= ", ln):
+            k += 1
+            continue
+        if lang == "cpp" and re.match(r"^        if \(.*>= ?(?:n|size\(\))\)$|^        if \(.*> ?(?:n|size\(\))\)$", ln) and \
+                re.match(r"^            throw out_of_range\(\"\w+: needs 0 <= ", lines[k + 1] if k + 1 < len(lines) else ""):
+            k += 2
+            continue
+        out.append(ln)
+        k += 1
+    text = "\n".join(out)
+    err = r"(?:IndexError|throws out_of_range)"
+    rule = r"0 <= [^,;]*?(?:< |<= )(?:n|size\(\))(?: and 0 <= [^,;]*?(?:< |<= )(?:n|size\(\)))?"
+    # (comment lines are re-joined first: a clause may be wrapped across two)
+    def fix(block):
+        cm = re.match(r"^( *(?://|#) )", block[0]).group(1)
+        words = " ".join(x[len(cm):] for x in block)
+        new = re.sub(rf"; needs {rule}, else {err}", "", words)
+        new = re.sub(rf"needs {rule} and ", "needs ", new)
+        new = re.sub(rf"needs {rule}, else {err} ", "", new)
+        if new == words:
+            return block
+        lines, cur = [], cm.rstrip()
+        for w in new.split(" "):
+            if len(cur) + 1 + len(w) > 118 and cur != cm.rstrip():
+                lines.append(cur)
+                cur = cm.rstrip()
+            cur += " " + w
+        return lines + [cur]
+    out, lines, k = [], text.split("\n"), 0
+    while k < len(lines):
+        m = re.match(r"^( +(?://|#) )(?!@|  )", lines[k])
+        if not m:
+            out.append(lines[k])
+            k += 1
+            continue
+        j = k
+        while j < len(lines) and lines[j].startswith(m.group(1)) and not lines[j].startswith(m.group(1) + " "):
+            j += 1
+        out += fix(lines[k:j])
+        k = j
     return "\n".join(out)

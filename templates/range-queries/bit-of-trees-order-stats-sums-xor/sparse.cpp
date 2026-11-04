@@ -67,14 +67,19 @@ struct SparseDynamicOrderStats {
     long long lo, hi, vlo, vhi;
     unordered_map<long long, T, SafeHash> vals;     // nonzero values only
     unordered_map<long long, int, SafeHash> root;   // BIT node -> its value tree (missing: empty)
-    vector<int> L, R, C;                            // node 0 = the empty tree
-    vector<S> Sm;
-    vector<T> X;  // xor of the values below with an odd count
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        S Sm = S(0);
+        T X = T(0);
+        int L = 0;
+        int R = 0;
+        int C = 0;
+    };
+    vector<Node> nd;  // node 0 = the empty tree
 
     // O(1) -- indices: any integers in [lo, hi], every position starting at 0; every value a[i] ever holds must lie in
     // [valLo, valHi] (U = the larger of the two ranges' sizes)
     SparseDynamicOrderStats(long long lo, long long hi, long long valLo, long long valHi)
-        : lo(lo), hi(hi), vlo(valLo), vhi(valHi), L(1, 0), R(1, 0), C(1, 0), Sm(1, S(0)), X(1, T(0)) {}
+        : lo(lo), hi(hi), vlo(valLo), vhi(valHi), nd(1) {}
 
     // O(1) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
@@ -296,13 +301,13 @@ struct SparseDynamicOrderStats {
     long long sides(long long l, long long r, vector<int>& pos, vector<int>& neg) const {
         for (long long j = r - lo + 1; j; j &= j - 1) if (auto it = root.find(j); it != root.end()) pos.push_back(it->second);
         for (long long j = l - lo; j; j &= j - 1) if (auto it = root.find(j); it != root.end()) neg.push_back(it->second);
-        return (r - l + 1) - total(pos, neg, C);
+        return (r - l + 1) - total(pos, neg, [&](int t) { return nd[t].C; });
     }
 
     // # of stored (nonzero) values < x
     long long storedBelow(const vector<int>& pos, const vector<int>& neg, long long x) const {
         if (x <= vlo) return 0;
-        if (x > vhi) return total(pos, neg, C);
+        if (x > vhi) return total(pos, neg, [&](int t) { return nd[t].C; });
         return belowIn(pos, neg, x).first;
     }
 
@@ -334,7 +339,7 @@ struct SparseDynamicOrderStats {
         if (x <= vlo) return 0;
         vector<int> pos, neg;
         sides(l, r, pos, neg);
-        return x > vhi ? total(pos, neg, Sm) : belowIn(pos, neg, x).second;
+        return x > vhi ? total(pos, neg, [&](int t) { return nd[t].Sm; }) : belowIn(pos, neg, x).second;
     }
 
     // O(logN logU) -- xor of the values < x in a[l..r] (copies count); 0 if there are none; needs lo <= l <= r <= hi,
@@ -380,8 +385,8 @@ struct SparseDynamicOrderStats {
         sides(l, r, pos, neg);
         T res = 0;
         if (x > vhi) {
-            for (int t : pos) res ^= X[t];
-            for (int t : neg) res ^= X[t];
+            for (int t : pos) res ^= nd[t].X;
+            for (int t : neg) res ^= nd[t].X;
             return res;
         }
         long long nl = vlo, nh = vhi;
@@ -389,8 +394,8 @@ struct SparseDynamicOrderStats {
             long long mid = nl + (nh - nl) / 2;
             if (x <= mid) goLeft(pos), goLeft(neg), nh = mid;
             else {  // the whole left half is below x
-                for (int t : pos) res ^= X[L[t]];
-                for (int t : neg) res ^= X[L[t]];
+                for (int t : pos) res ^= nd[nd[t].L].X;
+                for (int t : neg) res ^= nd[nd[t].L].X;
                 goRight(pos), goRight(neg), nl = mid + 1;
             }
         }
@@ -404,8 +409,10 @@ struct SparseDynamicOrderStats {
     static long long ub(T x) { return (long long)x + 1; }
 
     int newNode() {
-        L.push_back(0), R.push_back(0), C.push_back(0), Sm.push_back(S(0)), X.push_back(T(0));
-        return (int)C.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.C = 0, n.Sm = S(0), n.X = T(0);
+        nd.push_back(n);
+        return (int)nd.size() - 1;
     }
 
     // tree t (0: a new one) with d more copies of v
@@ -414,33 +421,34 @@ struct SparseDynamicOrderStats {
         int top = t;
         long long nl = vlo, nh = vhi;
         while (true) {
-            C[t] += d;
-            Sm[t] += S(v) * d;
-            if (d & 1) X[t] ^= v;
+            nd[t].C += d;
+            nd[t].Sm += S(v) * d;
+            if (d & 1) nd[t].X ^= v;
             if (nl == nh) return top;
             long long mid = nl + (nh - nl) / 2;
             if (v <= mid) {
-                if (!L[t]) { int x = newNode(); L[t] = x; }
-                t = L[t], nh = mid;
+                if (!nd[t].L) { int x = newNode(); nd[t].L = x; }
+                t = nd[t].L, nh = mid;
             } else {
-                if (!R[t]) { int x = newNode(); R[t] = x; }
-                t = R[t], nl = mid + 1;
+                if (!nd[t].R) { int x = newNode(); nd[t].R = x; }
+                t = nd[t].R, nl = mid + 1;
             }
         }
     }
 
-    template <class A> auto total(const vector<int>& pos, const vector<int>& neg, const vector<A>& a) const {
-        A s = 0;
-        for (int t : pos) s += a[t];
-        for (int t : neg) s -= a[t];
+    // get(t): node t's field
+    template <class F> auto total(const vector<int>& pos, const vector<int>& neg, F get) const {
+        decltype(get(0)) s = 0;
+        for (int t : pos) s += get(t);
+        for (int t : neg) s -= get(t);
         return s;
     }
-    void goLeft(vector<int>& v) const { for (int& t : v) t = L[t]; }
-    void goRight(vector<int>& v) const { for (int& t : v) t = R[t]; }
+    void goLeft(vector<int>& v) const { for (int& t : v) t = nd[t].L; }
+    void goRight(vector<int>& v) const { for (int& t : v) t = nd[t].R; }
     long long leftCount(const vector<int>& pos, const vector<int>& neg) const {
         long long c = 0;
-        for (int t : pos) c += C[L[t]];
-        for (int t : neg) c -= C[L[t]];
+        for (int t : pos) c += nd[nd[t].L].C;
+        for (int t : neg) c -= nd[nd[t].L].C;
         return c;
     }
 
@@ -464,8 +472,8 @@ struct SparseDynamicOrderStats {
             if (x <= mid) goLeft(pos), goLeft(neg), nh = mid;
             else {  // the whole left half is below x
                 cnt += leftCount(pos, neg);
-                for (int t : pos) sm += Sm[L[t]];
-                for (int t : neg) sm -= Sm[L[t]];
+                for (int t : pos) sm += nd[nd[t].L].Sm;
+                for (int t : neg) sm -= nd[nd[t].L].Sm;
                 goRight(pos), goRight(neg), nl = mid + 1;
             }
         }
@@ -482,8 +490,8 @@ struct SparseDynamicOrderStats {
             if (k <= c) goLeft(pos), goLeft(neg), nh = mid;
             else {  // the whole left half is among the k smallest
                 k -= c;
-                for (int t : pos) res += Sm[L[t]];
-                for (int t : neg) res -= Sm[L[t]];
+                for (int t : pos) res += nd[nd[t].L].Sm;
+                for (int t : neg) res -= nd[nd[t].L].Sm;
                 goRight(pos), goRight(neg), nl = mid + 1;
             }
         }

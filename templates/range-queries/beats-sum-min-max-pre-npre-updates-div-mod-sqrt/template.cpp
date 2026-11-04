@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-min-max-pre-npre-updates-div-mod-sqrt/template.cpp
-// @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX
+// @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 // @data-structure-type: beats
 // @complexities:
 //   getAll: N
@@ -10,6 +10,8 @@
 //   leftmostLteX: log(N)
 //   leftmostPrefixSumGtX: log(N)
 //   leftmostPrefixSumGteX: log(N)
+//   leftmostPrefixSumLtX: log(N)
+//   leftmostPrefixSumLteX: log(N)
 //   maxPrefixSum: log(N)
 //   minPrefixSum: log(N)
 //   pointAdd: log(N)
@@ -157,6 +159,46 @@ struct ShrinkSegTree {
             if (acc + pre[t] >= S(x)) {
                 while (t < n) {
                     if (acc + pre[2 * t] >= S(x)) t = 2 * t;
+                    else acc += sm[2 * t], t = 2 * t + 1;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (a walk pruned by min prefix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int leftmostPrefixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumLtX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i];
+            if (acc + npre[t] < S(x)) {
+                while (t < n) {
+                    if (acc + npre[2 * t] < S(x)) t = 2 * t;
+                    else acc += sm[2 * t], t = 2 * t + 1;
+                }
+                return t - n;
+            }
+            acc += sm[t];
+        }
+        return -1;
+    }
+
+    // O(logN) -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (a walk pruned by min prefix sums); needs
+    // 0 <= l <= r < n, else throws out_of_range
+    int leftmostPrefixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= n) throw out_of_range("leftmostPrefixSumLteX: needs 0 <= l <= r < n");
+        int ns[64]{}, ls[64]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
+        S acc = 0;
+        for (int i = 0; i < c; i++) {
+            int t = ns[i];
+            if (acc + npre[t] <= S(x)) {
+                while (t < n) {
+                    if (acc + npre[2 * t] <= S(x)) t = 2 * t;
                     else acc += sm[2 * t], t = 2 * t + 1;
                 }
                 return t - n;

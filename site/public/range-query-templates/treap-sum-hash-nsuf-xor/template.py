@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-hash-nsuf-xor/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome merge minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rangesEqual split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome merge minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rangesEqual rightmostSuffixSumLtX rightmostSuffixSumLteX split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -25,6 +25,8 @@
 #   rangeSum: log(N) expected
 #   rangeXorQuery: log(N) expected
 #   rangesEqual: log(N) expected
+#   rightmostSuffixSumLtX: log(N) expected
+#   rightmostSuffixSumLteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
 #   build: N
@@ -265,6 +267,56 @@ class ImplicitTreap:
             raise IndexError(f"rangesEqual: needs 0 <= l1 <= r1 < size() and 0 <= l2 <= r2 < size(), got "
                              f"l1 = {l1}, r1 = {r1}, l2 = {l2}, r2 = {r2}, n = {self.size()}")
         return r1 - l1 == r2 - l2 and self.rangeHash(l1, r1) == self.rangeHash(l2, r2)
+
+    # O(logN) expected -- last i in [l, r] with a[i] + ... + a[r] < x, or -1 (a walk pruned by min suffix sums); needs
+    # 0 <= l <= r < size(), else IndexError
+    def rightmostSuffixSumLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostSuffixSumLtX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
+        a, b, c = self._cut(l, r)
+        L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.nsuf
+        t, i, acc, res = b, 0, 0, -1
+        if t and P[t] < x:
+            while True:
+                rt = R[t]
+                if rt and acc + P[rt] < x:
+                    i += sz[L[t]] + 1
+                    t = rt
+                    continue
+                acc += sm[rt]
+                if acc + val[t] < x:
+                    res = l + i + sz[L[t]]
+                    break
+                acc += val[t]
+                t = L[t]
+        self._join(a, b, c)
+        return res
+
+    # O(logN) expected -- last i in [l, r] with a[i] + ... + a[r] <= x, or -1 (a walk pruned by min suffix sums);
+    # needs 0 <= l <= r < size(), else IndexError
+    def rightmostSuffixSumLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostSuffixSumLteX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
+        a, b, c = self._cut(l, r)
+        L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.nsuf
+        t, i, acc, res = b, 0, 0, -1
+        if t and P[t] <= x:
+            while True:
+                rt = R[t]
+                if rt and acc + P[rt] <= x:
+                    i += sz[L[t]] + 1
+                    t = rt
+                    continue
+                acc += sm[rt]
+                if acc + val[t] <= x:
+                    res = l + i + sz[L[t]]
+                    break
+                acc += val[t]
+                t = L[t]
+        self._join(a, b, c)
+        return res
 
     # O(logN) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs
     # 0 <= k <= size(), else IndexError

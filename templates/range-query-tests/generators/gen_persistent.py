@@ -16,6 +16,7 @@ import os
 
 import gen_wavelet as W
 from gen_dynamic_order import cpp_query_ops, py_query_ops
+from aos import aosify_value_trees
 from note_lang import add_get_all, write_template
 
 DIR = W.DIR
@@ -474,7 +475,7 @@ def main():
                 cpp += W.cpp_sparse(ops, sums, False, names)
             stem = "sparse" if sparse else "template"
             write_template(os.path.join(path, f"{stem}.py"), W.header("#", ops, "persistent", sparse, node, other, nt) + "\n" + py)
-            write_template(os.path.join(path, f"{stem}.cpp"), W.header("//", ops, "persistent", sparse, node, other, nt) + "\n" + cpp)
+            write_template(os.path.join(path, f"{stem}.cpp"), W.header("//", ops, "persistent", sparse, node, other, nt) + "\n" + aosify_value_trees(cpp))
         print("wrote", folder)
     for sums in (False, True):
         for mex in (False, True):
@@ -486,7 +487,7 @@ def main():
             other = "root[1*N] arr[1*N]" + (f" mexRoot[1*N] ML[{LOGU}] MR[{LOGU}] MN[{LOGU}]" if mex else "")
             note = ("N = every value ever added (initial array plus each append); each adds one root-to-leaf path of log U "
                     "nodes over the value range [valLo, valHi]" + (" (and one in the mex tree)" if mex else ""))
-            for ext, cm, code in (("py", "#", add_get_all(py_online(ops, sums, mex), "py")), ("cpp", "//", add_get_all(cpp_online(ops, sums, mex), "cpp"))):
+            for ext, cm, code in (("py", "#", add_get_all(py_online(ops, sums, mex), "py")), ("cpp", "//", add_get_all(aosify_value_trees(cpp_online(ops, sums, mex)), "cpp"))):
                 write_template(os.path.join(path, f"template.{ext}"), header(cm, ops, True, sums, mex, node, other, note) + "\n" + code)
             print("wrote", folder)
     for sums in (False, True):
@@ -499,7 +500,7 @@ def main():
             other = "root[1*N] arr[1*N] srt[1*N]" + (f" mexRoot[1*N] ML[{LOGN}] MR[{LOGN}] MN[{LOGN}]" if mex else "")
             note = ("N = every value ever added (initial array plus each append); each adds one root-to-leaf path of log N "
                     "nodes over the compressed values" + (" (and one in the mex tree)" if mex else ""))
-            for ext, cm, code in (("py", "#", add_get_all(py_offline(ops, sums, mex), "py")), ("cpp", "//", add_get_all(cpp_offline(ops, sums, mex), "cpp"))):
+            for ext, cm, code in (("py", "#", add_get_all(py_offline(ops, sums, mex), "py")), ("cpp", "//", add_get_all(aosify_value_trees(cpp_offline(ops, sums, mex)), "cpp"))):
                 write_template(os.path.join(path, f"template.{ext}"),
                                header(cm, ops, False, sums, mex, node, other, note, offline=True) + "\n" + code)
             print("wrote", folder)

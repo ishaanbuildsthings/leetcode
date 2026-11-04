@@ -1,6 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-hash-npre-nsuf-gcd-rev/template.cpp
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome merge minPrefixSum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostSuffixSumLtX rightmostSuffixSumLteX split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -10,6 +10,8 @@
 //   insertAt: log(N)*log(U) expected ?
 //   insertCopiesAt: log(N)*log(U) expected ?
 //   isPalindrome: log(N)*log(U) expected ?
+//   leftmostPrefixSumLtX: log(N)*log(U) expected ?
+//   leftmostPrefixSumLteX: log(N)*log(U) expected ?
 //   merge: log(N)*log(U) expected ?
 //   minPrefixSum: log(N)*log(U) expected ?
 //   minSuffixSum: log(N)*log(U) expected ?
@@ -27,6 +29,8 @@
 //   rangeRotateRight: log(N)*log(U) expected ?
 //   rangeSum: log(N)*log(U) expected ?
 //   rangesEqual: log(N)*log(U) expected ?
+//   rightmostSuffixSumLtX: log(N)*log(U) expected ?
+//   rightmostSuffixSumLteX: log(N)*log(U) expected ?
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
 //   build: N*log(U) ?
@@ -164,6 +168,50 @@ struct ImplicitTreap {
         int a, b, c;
         cut(l, r, a, b, c);
         bool res = nd[b].fh == nd[b].bh;
+        root = merge(merge(a, b), c);
+        return res;
+    }
+
+    // O(logN * logU) expected -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (pruned by min prefix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
+    int leftmostPrefixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostPrefixSumLtX: needs 0 <= l <= r < size()");
+        int a, b, c;
+        cut(l, r, a, b, c);
+        int t = b, i = 0, res = -1;
+        S acc = 0;
+        if (t && nd[t].npre < S(x)) {
+            while (true) {
+                push(t);
+                int lt = nd[t].L;
+                if (lt && acc + nd[lt].npre < S(x)) { t = lt; continue; }
+                acc += nd[lt].sm;
+                if (acc + S(nd[t].val) < S(x)) { res = l + i + nd[lt].sz; break; }
+                acc += S(nd[t].val), i += nd[lt].sz + 1, t = nd[t].R;
+            }
+        }
+        root = merge(merge(a, b), c);
+        return res;
+    }
+
+    // O(logN * logU) expected -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (pruned by min prefix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
+    int leftmostPrefixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostPrefixSumLteX: needs 0 <= l <= r < size()");
+        int a, b, c;
+        cut(l, r, a, b, c);
+        int t = b, i = 0, res = -1;
+        S acc = 0;
+        if (t && nd[t].npre <= S(x)) {
+            while (true) {
+                push(t);
+                int lt = nd[t].L;
+                if (lt && acc + nd[lt].npre <= S(x)) { t = lt; continue; }
+                acc += nd[lt].sm;
+                if (acc + S(nd[t].val) <= S(x)) { res = l + i + nd[lt].sz; break; }
+                acc += S(nd[t].val), i += nd[lt].sz + 1, t = nd[t].R;
+            }
+        }
         root = merge(merge(a, b), c);
         return res;
     }
@@ -328,6 +376,50 @@ struct ImplicitTreap {
         if (l1 < 0 || l1 > r1 || r1 >= size() || l2 < 0 || l2 > r2 || r2 >= size())
             throw out_of_range("rangesEqual: needs 0 <= l1 <= r1 < size() and 0 <= l2 <= r2 < size()");
         return r1 - l1 == r2 - l2 && rangeHash(l1, r1) == rangeHash(l2, r2);
+    }
+
+    // O(logN * logU) expected -- last i in [l, r] with a[i] + ... + a[r] < x, or -1 (pruned by min suffix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
+    int rightmostSuffixSumLtX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostSuffixSumLtX: needs 0 <= l <= r < size()");
+        int a, b, c;
+        cut(l, r, a, b, c);
+        int t = b, i = 0, res = -1;
+        S acc = 0;
+        if (t && nd[t].nsuf < S(x)) {
+            while (true) {
+                push(t);
+                int rt = nd[t].R;
+                if (rt && acc + nd[rt].nsuf < S(x)) { i += nd[nd[t].L].sz + 1, t = rt; continue; }
+                acc += nd[rt].sm;
+                if (acc + S(nd[t].val) < S(x)) { res = l + i + nd[nd[t].L].sz; break; }
+                acc += S(nd[t].val), t = nd[t].L;
+            }
+        }
+        root = merge(merge(a, b), c);
+        return res;
+    }
+
+    // O(logN * logU) expected -- last i in [l, r] with a[i] + ... + a[r] <= x, or -1 (pruned by min suffix sums);
+    // needs 0 <= l <= r < size(), else throws out_of_range
+    int rightmostSuffixSumLteX(int l, int r, T x) {
+        if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostSuffixSumLteX: needs 0 <= l <= r < size()");
+        int a, b, c;
+        cut(l, r, a, b, c);
+        int t = b, i = 0, res = -1;
+        S acc = 0;
+        if (t && nd[t].nsuf <= S(x)) {
+            while (true) {
+                push(t);
+                int rt = nd[t].R;
+                if (rt && acc + nd[rt].nsuf <= S(x)) { i += nd[nd[t].L].sz + 1, t = rt; continue; }
+                acc += nd[rt].sm;
+                if (acc + S(nd[t].val) <= S(x)) { res = l + i + nd[nd[t].L].sz; break; }
+                acc += S(nd[t].val), t = nd[t].L;
+            }
+        }
+        root = merge(merge(a, b), c);
+        return res;
     }
 
     // O(logN * logU) expected -- (a[0..k-1], a[k..]) as two treaps of their own; this one is left empty; needs

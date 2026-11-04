@@ -12,6 +12,7 @@ import itertools
 import os
 
 from gen_wavelet import BIT_SUFFIXES
+from aos import aosify_value_trees
 from note_lang import add_get_all, folder_name, write_template
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
@@ -320,7 +321,7 @@ def main():
             folder = os.path.join(DIR, name if len(name) <= 180 else f"{DTYPE}-" + "-".join(aggs))
             os.makedirs(folder, exist_ok=True)
             write_template(os.path.join(folder, "template.py"), header("#", ops, aggs) + "\n" + add_get_all(python(ops, aggs), "py"))
-            write_template(os.path.join(folder, "template.cpp"), header("//", ops, aggs) + "\n" + add_get_all(cpp(ops, aggs), "cpp"))
+            write_template(os.path.join(folder, "template.cpp"), header("//", ops, aggs) + "\n" + add_get_all(aosify_value_trees(cpp(ops, aggs)), "cpp"))
             print("wrote", os.path.basename(folder))
 
 

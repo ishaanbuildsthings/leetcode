@@ -51,15 +51,28 @@ struct PersistentOnlineOrderStats {
     int n = 0;
     long long klo, khi;            // the tree is over the values valLo..valHi
     vector<T> arr;
-    vector<int> root, L, R, C;     // node 0 = the empty tree
-    vector<S> Sm;
+    vector<int> root;     // node 0 = the empty tree
+    struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        S Sm = S(0);
+        int L = 0;
+        int R = 0;
+        int C = 0;
+    };
+    vector<Node> nd;  // node 0 = the empty tree
     int mexHi;                     // mex <= this: no value here is ever added
-    vector<int> mexRoot, ML, MR, MN;
+    vector<int> mexRoot;
+    struct MexNode {  // a node's fields side by side: a walk reads them together (faster than one array per field)
+        int ML = 0;
+        int MR = 0;
+        int MN = -1;
+    };
+    vector<MexNode> mnd;  // node 0 = the empty tree
 
     // O(N log U) -- arr: the initial array (may be empty), 0-indexed; every value ever added must lie in [valLo, valHi]
     // (any integers, negative is fine; U = valHi - valLo + 1)
     PersistentOnlineOrderStats(const vector<T>& a, long long valLo, long long valHi)
-        : klo(valLo), khi(valHi), root(1, 0), L(1, 0), R(1, 0), C(1, 0), Sm(1, S(0)), mexHi(int(min(max(valHi, 0LL), 1LL << 30) + 1)), mexRoot(1, 0), ML(1, 0), MR(1, 0), MN(1, -1) {
+        : klo(valLo), khi(valHi), root(1, 0), nd(1), mexHi(int(min(max(valHi, 0LL), 1LL << 30) + 1)), mexRoot(1, 0),
+            mnd(1) {
         for (const T& v : a) append(v);
     }
 
@@ -268,16 +281,20 @@ struct PersistentOnlineOrderStats {
         long long nl = klo, nh = khi;
         while (nl != nh) {
             long long mid = nl + (nh - nl) / 2;
-            if (key <= mid) path.push_back({node, true}), node = L[node], nh = mid;
-            else path.push_back({node, false}), node = R[node], nl = mid + 1;
+            if (key <= mid) path.push_back({node, true}), node = nd[node].L, nh = mid;
+            else path.push_back({node, false}), node = nd[node].R, nl = mid + 1;
         }
-        L.push_back(0), R.push_back(0), C.push_back(C[node] + 1), Sm.push_back(Sm[node] + S(v));
-        int cur = (int)C.size() - 1;
+        Node n;
+        n.L = 0, n.R = 0, n.C = nd[node].C + 1, n.Sm = nd[node].Sm + S(v);
+        nd.push_back(n);
+        int cur = (int)nd.size() - 1;
         for (int k = (int)path.size() - 1; k >= 0; k--) {
             auto [old, left] = path[k];
-            int lc = left ? cur : L[old], rc = left ? R[old] : cur;
-            L.push_back(lc), R.push_back(rc), C.push_back(C[lc] + C[rc]), Sm.push_back(Sm[lc] + Sm[rc]);
-            cur = (int)C.size() - 1;
+            int lc = left ? cur : nd[old].L, rc = left ? nd[old].R : cur;
+            Node n;
+            n.L = lc, n.R = rc, n.C = nd[lc].C + nd[rc].C, n.Sm = nd[lc].Sm + nd[rc].Sm;
+            nd.push_back(n);
+            cur = (int)nd.size() - 1;
         }
         return cur;
     }
@@ -287,9 +304,9 @@ struct PersistentOnlineOrderStats {
         int a = root[r + 1], b = root[l];
         long long nl = klo, nh = khi;
         while (nl != nh) {
-            long long mid = nl + (nh - nl) / 2, c = C[L[a]] - C[L[b]];
-            if (k <= c) a = L[a], b = L[b], nh = mid;
-            else k -= c, a = R[a], b = R[b], nl = mid + 1;
+            long long mid = nl + (nh - nl) / 2, c = nd[nd[a].L].C - nd[nd[b].L].C;
+            if (k <= c) a = nd[a].L, b = nd[b].L, nh = mid;
+            else k -= c, a = nd[a].R, b = nd[b].R, nl = mid + 1;
         }
         return T(nl);
     }
@@ -302,8 +319,9 @@ struct PersistentOnlineOrderStats {
         long long nl = klo, nh = khi, res = 0;
         while (nl != nh) {
             long long mid = nl + (nh - nl) / 2;
-            if (x <= mid) a = L[a], b = L[b], nh = mid;
-            else res += C[L[a]] - C[L[b]], a = R[a], b = R[b], nl = mid + 1;  // the whole left half is below x
+            if (x <= mid) a = nd[a].L, b = nd[b].L, nh = mid;
+            // the whole left half is below x
+            else res += nd[nd[a].L].C - nd[nd[b].L].C, a = nd[a].R, b = nd[b].R, nl = mid + 1;
         }
         return res;
     }
@@ -315,9 +333,10 @@ struct PersistentOnlineOrderStats {
         long long nl = klo, nh = khi;
         S res = 0;
         while (nl != nh) {
-            long long mid = nl + (nh - nl) / 2, c = C[L[a]] - C[L[b]];
-            if (k <= c) a = L[a], b = L[b], nh = mid;
-            else k -= c, res += Sm[L[a]] - Sm[L[b]], a = R[a], b = R[b], nl = mid + 1;  // the left half is among them
+            long long mid = nl + (nh - nl) / 2, c = nd[nd[a].L].C - nd[nd[b].L].C;
+            if (k <= c) a = nd[a].L, b = nd[b].L, nh = mid;
+            // the left half is among them
+            else k -= c, res += nd[nd[a].L].Sm - nd[nd[b].L].Sm, a = nd[a].R, b = nd[b].R, nl = mid + 1;
         }
         return res + S(k) * S(T(nl));
     }
@@ -326,39 +345,41 @@ struct PersistentOnlineOrderStats {
     S sumBelow(long long l, long long r, long long x) const {
         if (x <= klo) return 0;
         int a = root[r + 1], b = root[l];
-        if (x > khi) return Sm[a] - Sm[b];
+        if (x > khi) return nd[a].Sm - nd[b].Sm;
         long long nl = klo, nh = khi;
         S res = 0;
         while (nl != nh) {
             long long mid = nl + (nh - nl) / 2;
-            if (x <= mid) a = L[a], b = L[b], nh = mid;
-            else res += Sm[L[a]] - Sm[L[b]], a = R[a], b = R[b], nl = mid + 1;
+            if (x <= mid) a = nd[a].L, b = nd[b].L, nh = mid;
+            else res += nd[nd[a].L].Sm - nd[nd[b].L].Sm, a = nd[a].R, b = nd[b].R, nl = mid + 1;
         }
         return res;
     }
 
     // copy of node with value v's last index set to i
     int mexSet(int node, int nl, int nh, int v, int i) {
-        int l = ML[node], r = MR[node], x;
+        int l = mnd[node].ML, r = mnd[node].MR, x;
         if (nl == nh) x = i;
         else {
             int mid = (nl + nh) >> 1;
             if (v <= mid) l = mexSet(l, nl, mid, v, i);
             else r = mexSet(r, mid + 1, nh, v, i);
-            x = min(MN[l], MN[r]);
+            x = min(mnd[l].MN, mnd[r].MN);
         }
-        ML.push_back(nl == nh ? 0 : l), MR.push_back(nl == nh ? 0 : r), MN.push_back(x);
-        return (int)MN.size() - 1;
+        MexNode n;
+        n.ML = nl == nh ? 0 : l, n.MR = nl == nh ? 0 : r, n.MN = x;
+        mnd.push_back(n);
+        return (int)mnd.size() - 1;
     }
 
     // smallest value >= s that is not in a[l..r]: the leftmost value >= s whose last index (as of r) is < l
     int mexFrom(int l, int r, int s) const {
         auto go = [&](auto&& self, int t, int nl, int nh) -> int {
-            if (nh < s || MN[t] >= l) return -1;  // nothing allowed here, or every value here is in a[l..r]
+            if (nh < s || mnd[t].MN >= l) return -1;  // nothing allowed here, or every value here is in a[l..r]
             if (!t) return max(nl, s);            // no value here was ever seen
             if (nl == nh) return nl;
-            int mid = (nl + nh) >> 1, res = self(self, ML[t], nl, mid);
-            return res >= 0 ? res : self(self, MR[t], mid + 1, nh);
+            int mid = (nl + nh) >> 1, res = self(self, mnd[t].ML, nl, mid);
+            return res >= 0 ? res : self(self, mnd[t].MR, mid + 1, nh);
         };
         return go(go, mexRoot[r + 1], 0, mexHi);
     }

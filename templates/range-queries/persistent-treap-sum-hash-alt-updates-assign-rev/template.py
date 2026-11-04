@@ -163,8 +163,9 @@ class PersistentTreap:
     def isPalindrome(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"isPalindrome: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.fh[b] == self.bh[b]
+        self._release(mark)
         return res
 
     # O(logN) expected -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs
@@ -172,8 +173,9 @@ class PersistentTreap:
     def maxAltSubseqSum(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"maxAltSubseqSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = max(self.a00[b], self.a01[b])
+        self._release(mark)
         return res
 
     # O(logN) expected -- append all of other at the end; other is left empty
@@ -190,41 +192,31 @@ class PersistentTreap:
         self.root = self._merge(self._merge(a, other.root), c)
         other.root = 0
 
-    # O(logN) expected -- a[i] += v; needs 0 <= i < size(), else IndexError
+    # O(logN) expected -- a[i] += v (copies the one path down to a[i]); needs 0 <= i < size(), else IndexError
     def pointAdd(self, i, v):
         if not 0 <= i < self.size():
             raise IndexError(f"pointAdd: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
-        a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
-        self.val[b] = self.val[b] + v
-        self._pull(b)
-        self._join(a, b, c)
+        self.root = self._setAt(self.root, i, lambda w: w + v)
 
-    # O(logN) expected -- a[i] = v; needs 0 <= i < size(), else IndexError
+    # O(logN) expected -- a[i] = v (copies the one path down to a[i]); needs 0 <= i < size(), else IndexError
     def pointAssign(self, i, v):
         if not 0 <= i < self.size():
             raise IndexError(f"pointAssign: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
-        a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
-        self.val[b] = v
-        self._pull(b)
-        self._join(a, b, c)
+        self.root = self._setAt(self.root, i, lambda w: v)
 
-    # O(logN) expected -- a[i] = max(a[i], v); needs 0 <= i < size(), else IndexError
+    # O(logN) expected -- a[i] = max(a[i], v) (copies the one path down to a[i]); needs 0 <= i < size(), else
+    # IndexError
     def pointChmax(self, i, v):
         if not 0 <= i < self.size():
             raise IndexError(f"pointChmax: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
-        a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
-        self.val[b] = max(self.val[b], v)
-        self._pull(b)
-        self._join(a, b, c)
+        self.root = self._setAt(self.root, i, lambda w: max(w, v))
 
-    # O(logN) expected -- a[i] = min(a[i], v); needs 0 <= i < size(), else IndexError
+    # O(logN) expected -- a[i] = min(a[i], v) (copies the one path down to a[i]); needs 0 <= i < size(), else
+    # IndexError
     def pointChmin(self, i, v):
         if not 0 <= i < self.size():
             raise IndexError(f"pointChmin: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
-        a, b, c = self._cut(i, i)  # (b: a fresh copy of a[i]'s node, alone)
-        self.val[b] = min(self.val[b], v)
-        self._pull(b)
-        self._join(a, b, c)
+        self.root = self._setAt(self.root, i, lambda w: min(w, v))
 
     # O(logN) expected -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
@@ -236,17 +228,16 @@ class PersistentTreap:
     def rangeAssign(self, l, r, v):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeAssign: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
-        self._applyAssign(b, v)
-        self._join(a, b, c)
+        self.root = self._upd(self.root, l, r, lambda x, off: self._applyAssign(x, v))
 
     # O(logN) expected -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
     # 0 <= l <= r < size(), else IndexError
     def rangeHash(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeHash: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.fh[b]
+        self._release(mark)
         return res
 
     # O(logN) expected -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs
@@ -254,8 +245,9 @@ class PersistentTreap:
     def rangeHashReversed(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeHashReversed: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.bh[b]
+        self._release(mark)
         return res
 
     # O(logN) expected -- reverse a[l..r] in place; needs 0 <= l <= r < size(), else IndexError
@@ -289,8 +281,9 @@ class PersistentTreap:
     def rangeSum(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        a, b, c = self._cut(l, r)
+        b, mark = self._rangeNode(l, r)
         res = self.sm[b]
+        self._release(mark)
         return res
 
     # O(logN) expected -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
@@ -466,6 +459,85 @@ class PersistentTreap:
             else:
                 i -= ls + 1
                 t = self.R[t]
+
+    def _pieces(self, t, l, r, out):  # a[l..r] of t's subtree as (node, whole subtree?) in order; tags on the way pushed
+        if not t or r < 0 or l >= self.sz[t]:
+            return
+        if l <= 0 and self.sz[t] - 1 <= r:
+            out.append((t, True))
+            return
+        self._push(t)
+        ls = self.sz[self.L[t]]
+        self._pieces(self.L[t], l, r, out)
+        if l <= ls <= r:
+            out.append((t, False))
+        self._pieces(self.R[t], l - ls - 1, r - ls - 1, out)
+
+    def _rangeNode(self, l, r):  # (a temporary node holding a[l..r]'s aggregates, the pool size _release goes back to)
+        self._pieces(self.root, l, r, [])  # (every pending tag on the two boundary paths pushed down first)
+        mark = len(self.val)
+        return self._rq(self.root, l, r), mark
+
+    def _rq(self, t, l, r):  # a node over a[l..r] of t's subtree: t itself when it is all of it, else temporaries
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return 0
+        if l <= 0 and sz[t] - 1 <= r:
+            return t
+        ls = sz[self.L[t]]
+        if r < ls:
+            return self._rq(self.L[t], l, r)
+        if l > ls:
+            return self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        a, b = self._rq(self.L[t], l, r), self._rq(self.R[t], l - ls - 1, r - ls - 1)
+        y = self._clone(t)
+        self.L[y], self.R[y] = a, b
+        self._pull(y)
+        return y
+
+    def _release(self, mark):  # drop every node made after mark (temporaries: no tree points to them)
+        for arr in (self.val, self.L, self.R, self.sz, self.sm, self.fh, self.bh, self.pw, self.gs, self.a00,
+                    self.a01, self.a10, self.a11, self.rev, self.asg, self.hasAsg):
+            del arr[mark:]
+
+    def _setAt(self, t, i, f):  # t with a[i] = f(a[i]): new copies of the nodes on the path to it
+        t = self._clone(t)
+        self._push(t)
+        L, R = self.L, self.R
+        ls = self.sz[L[t]]
+        if i < ls:
+            L[t] = self._setAt(L[t], i, f)
+        elif i > ls:
+            R[t] = self._setAt(R[t], i - ls - 1, f)
+        else:
+            self.val[t] = f(self.val[t])
+        self._pull(t)
+        return t
+
+    # t with the update f(x, off) on a[l..r] of its subtree (x: a node covered whole, off: its first value's distance
+    # from l), copying only the nodes on the range's two boundary paths
+    def _upd(self, t, l, r, f):
+        sz = self.sz
+        if not t or r < 0 or l >= sz[t]:
+            return t
+        t = self._clone(t)
+        if l <= 0 and sz[t] - 1 <= r:
+            f(t, -l)
+            return t
+        self._push(t)
+        L, R = self.L, self.R
+        ls = sz[L[t]]
+        L[t] = self._upd(L[t], l, r, f)
+        R[t] = self._upd(R[t], l - ls - 1, r - ls - 1, f)
+        if l <= ls <= r:  # (t's own value: the update on a lone temporary copy of it)
+            y = self._clone(t)
+            L[y] = R[y] = 0
+            self._pull(y)
+            f(y, ls - l)
+            self.val[t] = self.val[y]
+            self._release(y)
+        self._pull(t)
+        return t
 
 
 # Example (pieces move between treaps; merge appends and leaves its argument empty):

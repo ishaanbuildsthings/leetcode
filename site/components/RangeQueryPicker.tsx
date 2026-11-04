@@ -178,6 +178,8 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "size() in the picker",
     "next permutation templates",
     "bubble sort templates",
+    "max frequency counter",
+    "persistent normal seg tree / lazy seg tree, not just treap",
   ],
 };
 

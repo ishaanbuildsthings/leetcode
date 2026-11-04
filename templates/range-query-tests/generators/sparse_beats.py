@@ -15,6 +15,8 @@ import os
 
 import beats_search as BS
 from beats_search import drop_searches
+from aos import aosify
+from bounds import strip_bounds
 from note_lang import drop_get_all, strip_attribution, write_template
 import re
 
@@ -171,7 +173,7 @@ def main():
             continue
         if "with composable aggregates (2N iterative)" in open(path).read():
             continue  # (gen_seg_algebra.py's tree replaced a heavier dense one: the sparse version made from that stays)
-        head, body = split_header(drop_searches(drop_get_all(open(path).read())))  # a sparse tree has no getAll (or searches)
+        head, body = split_header(drop_searches(drop_get_all(strip_bounds(open(path).read(), "py"))))  # a sparse tree has no getAll (or searches)
         m = re.search(r"^class (\w+)", body, re.M)
         name = "Sparse" + m.group(1).replace("_PERFORMANT", "")
         intro = ("\n# Sparse version: any index range [lo, hi] (huge or negative is fine), every position starting at 0. The root\n"
@@ -188,13 +190,16 @@ def main():
         write_template(os.path.join(DIR, folder, "sparse.py"), py)
         if not only_py:
             from sparse_beats_cpp import convert_cpp  # noqa: E402
-            chead, cbody = split_header(drop_searches(drop_get_all(open(os.path.join(DIR, folder, "template.cpp")).read())))
+            chead, cbody = split_header(drop_searches(drop_get_all(strip_bounds(open(os.path.join(DIR, folder, "template.cpp")).read(),
+                                                                                "cpp"))))
             cpp = "\n".join(sparse_header(chead, "//")) + "\n" + sparse_costs(convert_cpp(folder, cbody), "//")
             if searches:
                 cpp, _ = BS.add_ops(cpp, searches, "//", "log(U)")
                 end = cpp.rindex("};")
                 node = "static inline vector<Node> t" in cpp
                 cpp = cpp[:end].rstrip("\n") + "\n\n" + "\n".join(BS.cpp_sparse_block(searches, node)) + cpp[end:]
+            if "static inline vector<Node> t" not in cpp:  # (flat: one array per field -> one Node per node)
+                cpp = aosify(cpp)
             write_template(os.path.join(DIR, folder, "sparse.cpp"), cpp)
         print("wrote", folder)
 

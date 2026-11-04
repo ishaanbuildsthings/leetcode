@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-max-hash-npre-nsuf-alt-updates-assign/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum merge minPrefixSum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAltSubseqSum merge minPrefixSum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -14,6 +14,8 @@
 #   leftmostGteX: log(N) expected
 #   leftmostLtX: log(N) expected
 #   leftmostLteX: log(N) expected
+#   leftmostPrefixSumLtX: log(N) expected
+#   leftmostPrefixSumLteX: log(N) expected
 #   maxAltSubseqSum: log(N) expected
 #   merge: log(N) expected
 #   minPrefixSum: log(N) expected
@@ -37,6 +39,8 @@
 #   rightmostGteX: log(N) expected
 #   rightmostLtX: log(N) expected
 #   rightmostLteX: log(N) expected
+#   rightmostSuffixSumLtX: log(N) expected
+#   rightmostSuffixSumLteX: log(N) expected
 #   split: log(N) expected
 #   trisect: log(N) expected
 #   build: N
@@ -251,6 +255,58 @@ class ImplicitTreap:
                 else:
                     i += sz[L[t]] + 1
                     t = R[t]
+        self._join(a, b, c)
+        return res
+
+    # O(logN) expected -- first i in [l, r] with a[l] + ... + a[i] < x, or -1 (a walk pruned by min prefix sums);
+    # needs 0 <= l <= r < size(), else IndexError
+    def leftmostPrefixSumLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostPrefixSumLtX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
+        a, b, c = self._cut(l, r)
+        L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.npre
+        t, i, acc, res = b, 0, 0, -1
+        if t and P[t] < x:
+            while True:
+                self._push(t)
+                lt = L[t]
+                if lt and acc + P[lt] < x:
+                    t = lt
+                    continue
+                acc += sm[lt]
+                if acc + val[t] < x:
+                    res = l + i + sz[lt]
+                    break
+                acc += val[t]
+                i += sz[lt] + 1
+                t = R[t]
+        self._join(a, b, c)
+        return res
+
+    # O(logN) expected -- first i in [l, r] with a[l] + ... + a[i] <= x, or -1 (a walk pruned by min prefix sums);
+    # needs 0 <= l <= r < size(), else IndexError
+    def leftmostPrefixSumLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"leftmostPrefixSumLteX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
+        a, b, c = self._cut(l, r)
+        L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.npre
+        t, i, acc, res = b, 0, 0, -1
+        if t and P[t] <= x:
+            while True:
+                self._push(t)
+                lt = L[t]
+                if lt and acc + P[lt] <= x:
+                    t = lt
+                    continue
+                acc += sm[lt]
+                if acc + val[t] <= x:
+                    res = l + i + sz[lt]
+                    break
+                acc += val[t]
+                i += sz[lt] + 1
+                t = R[t]
         self._join(a, b, c)
         return res
 
@@ -509,6 +565,58 @@ class ImplicitTreap:
                     break
                 else:
                     t = L[t]
+        self._join(a, b, c)
+        return res
+
+    # O(logN) expected -- last i in [l, r] with a[i] + ... + a[r] < x, or -1 (a walk pruned by min suffix sums); needs
+    # 0 <= l <= r < size(), else IndexError
+    def rightmostSuffixSumLtX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostSuffixSumLtX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
+        a, b, c = self._cut(l, r)
+        L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.nsuf
+        t, i, acc, res = b, 0, 0, -1
+        if t and P[t] < x:
+            while True:
+                self._push(t)
+                rt = R[t]
+                if rt and acc + P[rt] < x:
+                    i += sz[L[t]] + 1
+                    t = rt
+                    continue
+                acc += sm[rt]
+                if acc + val[t] < x:
+                    res = l + i + sz[L[t]]
+                    break
+                acc += val[t]
+                t = L[t]
+        self._join(a, b, c)
+        return res
+
+    # O(logN) expected -- last i in [l, r] with a[i] + ... + a[r] <= x, or -1 (a walk pruned by min suffix sums);
+    # needs 0 <= l <= r < size(), else IndexError
+    def rightmostSuffixSumLteX(self, l, r, x):
+        if not 0 <= l <= r < self.size():
+            raise IndexError(f"rightmostSuffixSumLteX: needs 0 <= l <= r < size(), got "
+                             f"l = {l}, r = {r}, n = {self.size()}")
+        a, b, c = self._cut(l, r)
+        L, R, val, sz, sm, P = self.L, self.R, self.val, self.sz, self.sm, self.nsuf
+        t, i, acc, res = b, 0, 0, -1
+        if t and P[t] <= x:
+            while True:
+                self._push(t)
+                rt = R[t]
+                if rt and acc + P[rt] <= x:
+                    i += sz[L[t]] + 1
+                    t = rt
+                    continue
+                acc += sm[rt]
+                if acc + val[t] <= x:
+                    res = l + i + sz[L[t]]
+                    break
+                acc += val[t]
+                t = L[t]
         self._join(a, b, c)
         return res
 
