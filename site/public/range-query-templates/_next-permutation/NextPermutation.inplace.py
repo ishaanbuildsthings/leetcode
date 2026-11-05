@@ -13,4 +13,3 @@ def nextPermutation(arr):
             j -= 1
         arr[i], arr[j] = arr[j], arr[i]
     arr[i + 1:] = reversed(arr[i + 1:])
-    return i >= 0  # False when it looped around
