@@ -37,10 +37,6 @@ export const GENERIC_FAST = {
     LEETCODE_NO_SANITIZE Node() { ... }
 };`,
     },
-    {
-      text: "Inside these, use plain comparisons and arrays, because min, max and vector [] don't inline there:",
-      code: "res.mn = left.mn < right.mn ? left.mn : right.mn;  // not min(left.mn, right.mn)",
-    },
     ...FAST_NO_SANITIZE.slice(1),
   ],
 };

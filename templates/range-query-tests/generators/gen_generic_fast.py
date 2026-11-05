@@ -1,7 +1,7 @@
 """Fast mode for the C++ generic seg trees: writes Generic<Name>[.level][.norev].fast.cpp beside each file. The logic is
 unchanged: sanitizers are skipped in the tree and in the functions you fill in, its vectors become HotVector (whose []
-and size() still inline with sanitizers off), and min / max become plain comparisons, which do too. Public signatures
-keep plain vector. Run this after gen_generic_examples.py and add_cpp_prelude.py.
+and size() still inline with sanitizers off), and the tree's min / max become plain comparisons, which do too. Public
+signatures keep plain vector. Run this after gen_generic_examples.py and add_cpp_prelude.py.
 
     python3 gen_generic_fast.py
 """
@@ -20,6 +20,7 @@ TREES = ("LazyDynamicSeg", "DynamicSeg", "LazySeg", "Seg", "PersistentLazyTreap"
 
 MACRO, HOT = FAST_VECTOR_PRELUDE.split("// A vector whose")
 MACRO = must_replace(MACRO, "#ifdef __SSE2__\n#include <immintrin.h>\n#endif\n\n", "")
+MACRO = must_replace(MACRO, "// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.\n", "")
 HOT = must_replace("// A vector whose" + HOT, "    using vector<U>::vector;\n", """    using vector<U>::vector;
     HotVector() = default;
     HotVector(const vector<U>& other) : vector<U>(other) {}
@@ -88,8 +89,7 @@ def fast_cpp(text, source, target):
     assert top in head, f"{target}: no prelude"
     note = FAST_POOL_NOTE.replace("template.cpp", source).replace("inside this template", "in this template and in what you fill in")
     first = head.index(top) + len(top)
-    fill = plain_compares(head[first:])
-    fill, stubs = FILL_IN.subn(r"LEETCODE_NO_SANITIZE \1", fill)
+    fill, stubs = FILL_IN.subn(r"LEETCODE_NO_SANITIZE \1", head[first:])
     fill = CONSTRUCTOR.sub(r"\1LEETCODE_NO_SANITIZE \2", fill)
     tail, fields = FIELD.subn(r"    \1HotVector<\2> \3\4", tail)  # members only: signatures keep plain vector
     tail, methods = METHOD.subn(r"    LEETCODE_NO_SANITIZE \1", tail)

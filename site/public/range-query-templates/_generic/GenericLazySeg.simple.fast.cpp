@@ -13,7 +13,6 @@ using ll = long long;
 // This template already uses it. To go further, put it on the one function with your hot loop:
 //   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
 // A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
-// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
 // Bad memory accesses in a marked function go unreported.
 #ifndef LEETCODE_NO_SANITIZE
 #define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
@@ -41,7 +40,7 @@ LEETCODE_NO_SANITIZE Node leaf(const RawVal& v, int i) {
 }
 
 LEETCODE_NO_SANITIZE Node combine(const Node& left, const Node& right) {
-    // return left > right ? left : right;
+    // return max(left, right);
 }
 
 // return a new node: this node after tag is applied to it
