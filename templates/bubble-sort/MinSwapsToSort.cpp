@@ -3,14 +3,15 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <typename T>
-long long minAdjacentSwapsToSort(const vector<T>& arr) {
-    int n = arr.size();
+// sequence: a vector or a string of values that compare with each other: int, long long, negatives, chars ok
+template <typename Seq>
+long long minAdjacentSwapsToSort(const Seq& sequence) {
+    int n = sequence.size();
 
     vector<int> placeOrder(n);
     iota(placeOrder.begin(), placeOrder.end(), 0);
     stable_sort(placeOrder.begin(), placeOrder.end(), [&](int idx1, int idx2) {
-        return arr[idx1] < arr[idx2];
+        return sequence[idx1] < sequence[idx2];
     });
 
     vector<int> tree(n + 1, 0);

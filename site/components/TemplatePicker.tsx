@@ -80,7 +80,23 @@ export type FillIn = {
   cppLevels?: boolean;
   // there's a version without rangeReverse (file[.level].norev.*): a checkbox, off by default, adds it back
   reverseToggle?: boolean;
+  // there's a recursive version that prints the tree after every operation (file[.level].debug.*): a checkbox
+  debugToggle?: boolean;
+  // another version behind a checkbox, on the card and by the ops in its drawer (off by default, remembered): its
+  // label, hover text, where it's remembered, and what changes while it's ticked (e.g. the in-place next permutation)
+  variant?: { label: string; title: string; storageKey: string; on: Partial<Pick<FillIn, "label" | "file" | "ops">> };
 };
+
+// a section of a templates tab without a picker
+export type MiscSection = { title: string; items: FillIn[] };
+
+// a remembered checkbox, the same everywhere it shows (writeStored tells every subscriber)
+function useStoredFlag(key: string): [boolean, (on: boolean) => void] {
+  const on = useSyncExternalStore(subscribeMode, () => !!key && readStored(key) === "1", () => false);
+  return [on, (v: boolean) => writeStored(key, v ? "1" : "0")];
+}
+
+const withVariant = (f: FillIn, on: boolean): FillIn => (on && f.variant ? { ...f, ...f.variant.on } : f);
 
 const REVERSE_STORAGE_KEY = "templatePicker.withReverse";
 
@@ -145,6 +161,14 @@ export interface PickerCatalog<V extends PickerTemplate> {
     label: string;
     title: string;
     of: (t: V) => Partial<V> | undefined;
+  };
+  // a harder-tuned second file of a template (sets: fast.cpp): the drawer has a toggle that switches to it, and
+  // explain fills the panel shown while it's on
+  fastMode?: {
+    label: string;
+    explain: (t: V) => { how: string; drawbacks: string[]; noSanitize: { text: string; code?: string }[] };
+    title: string;
+    has: (t: V) => boolean;
   };
   // a template may need a selected op before it is offered (range queries: mod-p templates)
   allowed?: (t: V, picked: string[]) => boolean;
@@ -378,10 +402,22 @@ function CodeDrawer<V extends PickerTemplate>({
 }) {
   const variant = catalog.variant?.of(base);
   const [useVariant, setUseVariant] = useState(false);
-  const template = (
+  const hasFast = catalog.fastMode?.has(base) ?? false;
+  const [useFast, setUseFast] = useState(false);
+  const fastInfo = useFast && hasFast ? catalog.fastMode!.explain(base) : null;
+  const chosen = (
     useVariant && variant
       ? { ...base, ...variant, file: catalog.variant!.file }
       : base
+  ) as V;
+  const template = (
+    useFast && hasFast
+      ? {
+          ...chosen,
+          file: useVariant && variant ? `${catalog.variant!.file}-fast` : "fast",
+          langs: ["cpp"] as TemplateLang[],
+        }
+      : chosen
   ) as V;
   const [preferred, setPreferred] = useState<TemplateLang>(readPreferredLang);
   const lang = template.langs.includes(preferred)
@@ -490,6 +526,20 @@ function CodeDrawer<V extends PickerTemplate>({
                 );
               })}
             </div>
+            {hasFast && (
+              <label
+                title={catalog.fastMode!.title}
+                className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <input
+                  type="checkbox"
+                  checked={useFast}
+                  onChange={(e) => setUseFast(e.target.checked)}
+                  className="accent-primary"
+                />
+                {catalog.fastMode!.label}
+              </label>
+            )}
             <button
               type="button"
               onClick={copy}
@@ -518,6 +568,32 @@ function CodeDrawer<V extends PickerTemplate>({
         </div>
         {/* everything under the header scrolls together: a template with many ops can fill the drawer before the code */}
         <div className="min-h-0 flex-1 overflow-y-auto">
+          {fastInfo && (
+            <div className="grid gap-2 border-b border-border bg-muted/40 px-4 py-3 text-xs leading-5 text-muted-foreground">
+              <p className="text-sm font-semibold text-foreground">Fast mode</p>
+              <div>
+                <p className="font-medium text-foreground">Why it's faster</p>
+                <p>{fastInfo.how}</p>
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Drawbacks</p>
+                <ul className="list-disc pl-4">
+                  {fastInfo.drawbacks.map((drawback) => (
+                    <li key={drawback}>{drawback}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium text-foreground">LEETCODE_NO_SANITIZE</p>
+                {fastInfo.noSanitize.map(({ text, code }) => (
+                  <div key={text}>
+                    <p>{text}</p>
+                    {code && <pre className="overflow-x-auto font-mono">{code}</pre>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 border-b border-border px-4 py-3 text-xs">
             {/* the selected ops, then build (always paid, so always highlighted), then the rest */}
             {[
@@ -577,7 +653,7 @@ function CodeDrawer<V extends PickerTemplate>({
 // A fill-in template (catalog.fillIns): just the file, in either language, with Copy and GitHub.
 function FillInDrawer({
   catalog,
-  fillIn,
+  fillIn: base,
   onClose,
 }: {
   catalog: { publicBase: string; remoteBase?: string };
@@ -586,11 +662,15 @@ function FillInDrawer({
 }) {
   const [lang, setLang] = useState<TemplateLang>(readPreferredLang);
   const [level, setLevel] = useState<CppLevel>(readCppLevel);
-  const [withReverse, setWithReverse] = useState(() => readStored(REVERSE_STORAGE_KEY) === "1");
+  const [withReverse, chooseReverse] = useStoredFlag(REVERSE_STORAGE_KEY);
+  const [debugOn, chooseDebug] = useStoredFlag("templatePicker.genericDebug");
+  const [variantOn, chooseVariant] = useStoredFlag(base.variant?.storageKey ?? "");
+  const fillIn = withVariant(base, variantOn);
   const levels = lang === "cpp" && fillIn.cppLevels;
   const suffix = levels ? CPP_LEVELS.find((l) => l.id === level)!.suffix : "";
   const noRev = fillIn.reverseToggle && !withReverse ? ".norev" : "";
-  const fileName = `${fillIn.file}${suffix}${noRev}.${lang}`;
+  const debug = fillIn.debugToggle && debugOn ? ".debug" : "";
+  const fileName = `${fillIn.file}${suffix}${noRev}${debug}.${lang}`;
   const ops = noRev ? fillIn.ops.filter(([op]) => !op.startsWith("rangeReverse")) : fillIn.ops;
   const url = codeUrl(catalog, fillIn.folder, fileName);
   const [loaded, setLoaded] = useState<{ url: string; code: string | null } | null>(null);
@@ -620,10 +700,6 @@ function FillInDrawer({
   const chooseLevel = (l: CppLevel) => {
     setLevel(l);
     writeStored(CPP_LEVEL_STORAGE_KEY, l);
-  };
-  const chooseReverse = (on: boolean) => {
-    setWithReverse(on);
-    writeStored(REVERSE_STORAGE_KEY, on ? "1" : "0");
   };
   const copy = async () => {
     if (!code) return;
@@ -681,24 +757,10 @@ function FillInDrawer({
             </button>
           </div>
         </div>
-        {(levels || fillIn.reverseToggle) && (
+        {levels && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-2 text-xs">
-            {fillIn.reverseToggle && (
-              <label
-                title="With rangeReverse the template also needs reverse(node), the node of a segment read backwards"
-                className="flex cursor-pointer items-center gap-1.5 text-foreground"
-              >
-                <input
-                  type="checkbox"
-                  checked={withReverse}
-                  onChange={(e) => chooseReverse(e.target.checked)}
-                  className="accent-primary"
-                />
-                <span className="font-mono">rangeReverse</span>
-              </label>
-            )}
-            {levels && <span className="text-muted-foreground">Examples:</span>}
-            {levels && <div className="flex overflow-hidden rounded-md border border-border" role="radiogroup" aria-label="Example level">
+            <span className="text-muted-foreground">Examples:</span>
+            <div className="flex overflow-hidden rounded-md border border-border" role="radiogroup" aria-label="Example level">
               {CPP_LEVELS.map((l) => (
                 <button
                   key={l.id}
@@ -714,7 +776,7 @@ function FillInDrawer({
                   {l.label}
                 </button>
               ))}
-            </div>}
+            </div>
           </div>
         )}
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -728,6 +790,34 @@ function FillInDrawer({
                 </div>
               ))}
             </div>
+            {(fillIn.reverseToggle || fillIn.variant || fillIn.debugToggle) && (
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                {fillIn.debugToggle && (
+                  <label
+                    title="A recursive version you can read and change, which prints the tree after every operation"
+                    className="flex w-fit cursor-pointer items-center gap-1.5 text-foreground"
+                  >
+                    <input type="checkbox" checked={debugOn} onChange={(e) => chooseDebug(e.target.checked)} className="accent-primary" />
+                    Debug (recursive, prints the tree)
+                  </label>
+                )}
+                {fillIn.reverseToggle && (
+                  <label
+                    title="With rangeReverse the template also needs reverse(node), the node of a segment read backwards"
+                    className="flex w-fit cursor-pointer items-center gap-1.5 text-foreground"
+                  >
+                    <input type="checkbox" checked={withReverse} onChange={(e) => chooseReverse(e.target.checked)} className="accent-primary" />
+                    <span className="font-mono">rangeReverse</span>
+                  </label>
+                )}
+                {base.variant && (
+                  <label title={base.variant.title} className="flex w-fit cursor-pointer items-center gap-1.5 text-foreground">
+                    <input type="checkbox" checked={variantOn} onChange={(e) => chooseVariant(e.target.checked)} className="accent-primary" />
+                    {base.variant.label}
+                  </label>
+                )}
+              </div>
+            )}
             {fillIn.note && <p className="mt-2 text-muted-foreground">{fillIn.note}</p>}
           </div>
           <pre className="overflow-x-auto bg-card p-4 font-mono text-xs leading-relaxed text-foreground">
@@ -1541,7 +1631,7 @@ export function MiscTemplates({
   planned = [],
 }: {
   title: string;
-  sections: { title: string; items: FillIn[] }[];
+  sections: MiscSection[];
   publicBase: string;
   planned?: string[];
 }) {
@@ -1557,15 +1647,7 @@ export function MiscTemplates({
           <h2 className="mb-2 text-sm font-semibold text-foreground">{section.title}</h2>
           <div className="flex flex-wrap gap-3">
             {section.items.map((f) => (
-              <button
-                key={f.file}
-                type="button"
-                onClick={() => setOpen(f)}
-                className="rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary"
-              >
-                <span className="block text-sm font-medium text-foreground">{f.label}</span>
-                {f.title && <span className="mt-1 block text-xs leading-snug text-muted-foreground">{f.title}</span>}
-              </button>
+              <MiscCard key={f.file} item={f} onOpen={() => setOpen(f)} />
             ))}
           </div>
         </section>
@@ -1577,5 +1659,25 @@ export function MiscTemplates({
       )}
       {open && <FillInDrawer key={open.file} catalog={{ publicBase }} fillIn={open} onClose={() => setOpen(null)} />}
     </main>
+  );
+}
+
+// a Misc card: its label (the variant's while ticked), opening the drawer; a card with a variant shows its checkbox
+function MiscCard({ item, onOpen }: { item: FillIn; onOpen: () => void }) {
+  const [on, choose] = useStoredFlag(item.variant?.storageKey ?? "");
+  const f = withVariant(item, on);
+  return (
+    <div className="rounded-lg border border-border bg-card transition-colors hover:border-primary">
+      <button type="button" onClick={onOpen} className="block w-full p-3 text-left">
+        <span className="block text-sm font-medium text-foreground">{f.label}</span>
+        {f.title && <span className="mt-1 block text-xs leading-snug text-muted-foreground">{f.title}</span>}
+      </button>
+      {item.variant && (
+        <label title={item.variant.title} className="-mt-1 flex w-fit cursor-pointer items-center gap-1.5 px-3 pb-2.5 text-xs text-muted-foreground">
+          <input type="checkbox" checked={on} onChange={(e) => choose(e.target.checked)} className="accent-primary" />
+          {item.variant.label}
+        </label>
+      )}
+    </div>
   );
 }

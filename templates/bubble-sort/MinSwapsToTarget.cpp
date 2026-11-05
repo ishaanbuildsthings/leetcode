@@ -3,21 +3,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Minimum adjacent swaps to turn arr into target, or -1 if target isn't a rearrangement of arr
+// Minimum adjacent swaps to turn sequence into target, or -1 if target isn't a rearrangement of sequence
+// sequence, target: vectors or strings of values that compare with each other: int, long long, negatives, chars ok
 template <typename Seq>
-long long minAdjacentSwapsToTarget(const Seq& arr, const Seq& target) {
-    int n = arr.size();
+long long minAdjacentSwapsToTarget(const Seq& sequence, const Seq& target) {
+    int n = sequence.size();
     if ((int)target.size() != n) return -1;
 
     vector<int> fromOrder(n), toOrder(n);
     iota(fromOrder.begin(), fromOrder.end(), 0);
     iota(toOrder.begin(), toOrder.end(), 0);
-    stable_sort(fromOrder.begin(), fromOrder.end(), [&](int i, int j) { return arr[i] < arr[j]; });
+    stable_sort(fromOrder.begin(), fromOrder.end(), [&](int i, int j) { return sequence[i] < sequence[j]; });
     stable_sort(toOrder.begin(), toOrder.end(), [&](int i, int j) { return target[i] < target[j]; });
     vector<int> dest(n);
     for (int k = 0; k < n; k++) {
         int i = fromOrder[k], j = toOrder[k];
-        if (arr[i] < target[j] || target[j] < arr[i]) return -1;
+        if (sequence[i] < target[j] || target[j] < sequence[i]) return -1;
         dest[i] = j;
     }
 

@@ -60,6 +60,7 @@
 #   tags: none
 #   other: maxes[1*sqrt(N)] bc[2*sqrt(N)] bs[2*sqrt(N)] cnt[1*N]
 #   note: N = distinct values present; blocks of LOAD..2*LOAD values (Python LOAD = 64, C++ 512); queries are O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt)
+from random import getrandbits
 from heapq import heappop, heappush
 from bisect import bisect_left, bisect_right
 from itertools import accumulate
@@ -74,7 +75,7 @@ from operator import and_, sub
 
 class BlockFenwickMultiset:
     LOAD = 64
-    __slots__ = ("keys", "cnts", "fcs", "sums", "fss", "maxes", "bc", "fc", "bs", "fs", "cnt", "n", "mexV", "bk", "maxF", "gc", "gmin", "gmax", "dups", "off", "total", "d")
+    __slots__ = ("keys", "cnts", "fcs", "sums", "fss", "maxes", "bc", "fc", "bs", "fs", "cnt", "n", "mexV", "bk", "maxF", "gc", "gmin", "gmax", "dups", "off", "salt", "total", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -85,6 +86,7 @@ class BlockFenwickMultiset:
         self.bc, self.fc = [], [0]  # per block: total copies; Fenwick over them
         self.bs, self.fs = [], [0]  # per block: total sum; Fenwick over them
         self.cnt = {}  # value -> copies
+        self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.off = 0  # every value v is stored as v - off: shiftAll only moves off
         self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
         self.bk, self.maxF = {}, 0  # mode: count -> the values with that many copies; the highest count
@@ -121,7 +123,7 @@ class BlockFenwickMultiset:
         self.fss[k] = self._build(self.sums[k])
 
     def _insert(self, x, c):
-        old = self.cnt.get(x, 0)
+        old = self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
         if old:
             k = bisect_left(self.maxes, x)
             j = bisect_left(self.keys[k], x)
@@ -130,13 +132,13 @@ class BlockFenwickMultiset:
             self.bs[k] += c * x
             self._fen(self.fs, k, c * x)
             if old + c:  # x stays: point updates only
-                self.cnt[x] = old + c
+                self.cnt[x ^ self.salt if x.__class__ is int else x] = old + c
                 self.cnts[k][j] += c
                 self._fen(self.fcs[k], j, c)
                 self.sums[k][j] += c * x
                 self._fen(self.fss[k], j, c * x)
                 return old + c
-            del self.cnt[x]
+            del self.cnt[x ^ self.salt if x.__class__ is int else x]
             self.d -= 1
             del self.keys[k][j], self.cnts[k][j]
             del self.sums[k][j]
@@ -148,7 +150,7 @@ class BlockFenwickMultiset:
             self.maxes[k] = self.keys[k][-1]
             self._reinner(k)
             return 0
-        self.cnt[x] = c
+        self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
         if not self.keys:
             self.keys.append([x])
@@ -216,7 +218,7 @@ class BlockFenwickMultiset:
         return self._pre(self.fs, k) + self._pre(self.fss[k], bisect_right(self.keys[k], x))
 
     def _countOf(self, x):
-        return self.cnt.get(x, 0)
+        return self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
 
     def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies, sum before it): lift over blocks, then inside one
         fc, fs = self.fc, self.fs
@@ -278,17 +280,17 @@ class BlockFenwickMultiset:
         f = self._insert(x, c)  # x's new count
         g = f - c  # x's old count
         # mode: x moves from the bucket of its old count to its new one
-        bk = self.bk
+        bk, key = self.bk, x ^ self.salt if x.__class__ is int else x  # (salted: no fixed input can force set collisions)
         if g:
             vs = bk[g]
-            vs.discard(x)
+            vs.discard(key)
             if not vs:
                 del bk[g]
         if f:
             if f in bk:
-                bk[f].add(x)
+                bk[f].add(key)
             else:
-                bk[f] = {x}
+                bk[f] = {key}
             if f > self.maxF:
                 self.maxF = f
         while self.maxF and self.maxF not in bk:  # (it only drops as far as copies were removed: amortized O(1))
@@ -296,7 +298,8 @@ class BlockFenwickMultiset:
         if (g >= 2) != (f >= 2):  # values with 2+ copies (then the smallest difference is 0)
             self.dups += 1 if f >= 2 else -1
         if not g or not f:  # x appeared or disappeared: the gap between its neighbours splits or comes back
-            i, j = self._lt(x), self._le(x)  # (stored values: the public ops would shift x again)
+            i = self._lt(x)  # (one walk: the copies of x are known, and stored values skip any shift)
+            j = i + f
             p, q = self._kth(i) if i else None, self._kth(j + 1) if j < self.n else None
             if f:
                 if p is not None and q is not None:
@@ -321,29 +324,29 @@ class BlockFenwickMultiset:
                 self.mexV = x
 
     def _gap(self, g, c):  # one more (c = 1) / fewer (c = -1) gap of size g
-        gc = self.gc
-        k = gc.get(g, 0) + c
+        gc, key = self.gc, g ^ self.salt
+        k = gc.get(key, 0) + c
         if k:
-            gc[g] = k
+            gc[key] = k
             if k == 1 and c > 0:  # (a size already present has an entry in both heaps)
                 if len(self.gmin) > 2 * len(gc) + 8:  # mostly sizes no longer present: rebuild from the live ones
-                    self.gmin = sorted(gc)
+                    self.gmin = sorted(v ^ self.salt for v in gc)
                     self.gmax = [-v for v in reversed(self.gmin)]
                 else:
                     heappush(self.gmin, g)
                     heappush(self.gmax, -g)
         else:
-            del gc[g]
+            del gc[key]
 
     def _minGap(self):  # heap tops of sizes no longer present are dropped as they surface
-        h, gc = self.gmin, self.gc
-        while h[0] not in gc:
+        h, gc, salt = self.gmin, self.gc, self.salt
+        while h[0] ^ salt not in gc:
             heappop(h)
         return h[0]
 
     def _maxGap(self):
-        h, gc = self.gmax, self.gc
-        while -h[0] not in gc:
+        h, gc, salt = self.gmax, self.gc, self.salt
+        while -h[0] ^ salt not in gc:
             heappop(h)
         return -h[0]
 
@@ -464,30 +467,38 @@ class BlockFenwickMultiset:
         x -= self.off
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(logN) -- largest value; None if empty
+    # O(logN) -- largest value; raises IndexError if empty
     def max(self):
-        return self._kth(self.n) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self._kth(self.n) + self.off
 
     # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct
     # values
     def maxGap(self):
         return self._maxGap() if self.d >= 2 else None
 
-    # O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self._kth((self.n >> 1) + 1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self._kth((self.n >> 1) + 1) + self.off
 
-    # O(logN) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(logN) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self._kth((self.n + 1) >> 1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self._kth((self.n + 1) >> 1) + self.off
 
     # O(1) -- smallest non-negative integer not in the set
     def mex(self):
         return self.mexV + self.off
 
-    # O(logN) -- smallest value; None if empty
+    # O(logN) -- smallest value; raises IndexError if empty
     def min(self):
-        return self._kth(1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self._kth(1) + self.off
 
     # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer
     # than 2 values
@@ -496,12 +507,14 @@ class BlockFenwickMultiset:
             return None
         return 0 if self.dups else self._minGap()
 
-    # O(1) -- (a most frequent value, its count); None if empty. C++ returns the smallest of the most frequent values
+    # O(1) -- (a most frequent value, its count); raises IndexError if empty. C++ returns the smallest of the most
+    # frequent values
     def mode(self):
         if not self.n:
-            return None
+            raise IndexError("mode: the set is empty")
         f = self.maxF
-        return next(iter(self.bk[f])) + self.off, f
+        v = next(iter(self.bk[f]))
+        return (v ^ self.salt if v.__class__ is int else v) + self.off, f
 
     # O(sqrtN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
     # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
@@ -512,18 +525,18 @@ class BlockFenwickMultiset:
         self._add(v, -1)
         return v + self.off
 
-    # O(sqrtN) -- remove and return the largest value; None if empty
+    # O(sqrtN) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self._kth(self.n)
         self._add(v, -1)
         return v + self.off
 
-    # O(sqrtN) -- remove and return the smallest value; None if empty
+    # O(sqrtN) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self._kth(1)
         self._add(v, -1)
         return v + self.off

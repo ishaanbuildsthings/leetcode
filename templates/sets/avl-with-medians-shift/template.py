@@ -327,21 +327,29 @@ class AVLMultiset:
         x -= self.off
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(logN) -- largest value; None if empty
+    # O(logN) -- largest value; raises IndexError if empty
     def max(self):
-        return self._kth(self.n) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self._kth(self.n) + self.off
 
-    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self.highV + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self.highV + self.off
 
-    # O(1) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(1) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self.lowV + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self.lowV + self.off
 
-    # O(logN) -- smallest value; None if empty
+    # O(logN) -- smallest value; raises IndexError if empty
     def min(self):
-        return self._kth(1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self._kth(1) + self.off
 
     # O(logN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
     # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
@@ -352,18 +360,18 @@ class AVLMultiset:
         self._add(v, -1)
         return v + self.off
 
-    # O(logN) -- remove and return the largest value; None if empty
+    # O(logN) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self._kth(self.n)
         self._add(v, -1)
         return v + self.off
 
-    # O(logN) -- remove and return the smallest value; None if empty
+    # O(logN) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self._kth(1)
         self._add(v, -1)
         return v + self.off

@@ -3,18 +3,19 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Minimum adjacent swaps to turn s into a palindrome, or -1 if no rearrangement of s is one (more than one value with
-// an odd count)
+// Minimum adjacent swaps to turn sequence into a palindrome, or -1 if no rearrangement of it is one (more than one
+// value with an odd count)
+// sequence: a vector or a string of values that compare with each other: int, long long, negatives, chars ok
 template <typename Seq>
-long long minAdjacentSwapsToPalindrome(const Seq& s) {
-    int n = s.size();
+long long minAdjacentSwapsToPalindrome(const Seq& sequence) {
+    int n = sequence.size();
 
     vector<int> order(n), grp(n), back(n);
     iota(order.begin(), order.end(), 0);
-    stable_sort(order.begin(), order.end(), [&](int i, int j) { return s[i] < s[j]; });
+    stable_sort(order.begin(), order.end(), [&](int i, int j) { return sequence[i] < sequence[j]; });
     int odd = 0;
     for (int a = 0, b; a < n; a = b) {
-        for (b = a; b < n && !(s[order[a]] < s[order[b]]); b++) grp[order[b]] = a;
+        for (b = a; b < n && !(sequence[order[a]] < sequence[order[b]]); b++) grp[order[b]] = a;
         odd += (b - a) & 1;
         back[a] = b - 1;
     }

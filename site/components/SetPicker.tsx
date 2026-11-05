@@ -14,6 +14,7 @@ import {
 } from "@/lib/set-picker";
 import {
   SET_COSTS,
+  SET_FAST_FOLDERS,
   SET_MEMORIES,
   SET_OP_LISTS,
   SET_OP_NAMES,
@@ -63,6 +64,40 @@ const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
   },
 };
 
+const FAST_FOLDERS = new Set<string>(SET_FAST_FOLDERS);
+
+const FAST_DRAWBACKS = [
+  "Harder to debug on LeetCode since sanitizers are skipped",
+  "Needs GCC or Clang, and C++17",
+];
+const FAST_NO_SANITIZE = [
+  { text: "Does nothing on other platforms, so you can ignore it there." },
+  {
+    text: "We can put this on the main function:",
+    code: `public:
+    LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) { // put at the start here`,
+  },
+  {
+    text: "Any inner lambda can use it too:",
+    code: "auto fn = [&](auto&& self, int x) LEETCODE_NO_SANITIZE -> void { ... };",
+  },
+];
+
+function fastExplanation(t: SetView) {
+  const type = t.dataStructureType;
+  return {
+    how:
+      type === "fenwick"
+        ? "Counts use a 16-way tree instead of a Fenwick tree, so a k-th lookup visits about 3 nodes, and sanitizers are skipped inside the template."
+        : "Sanitizers are skipped inside the template, so the gain only shows up on LeetCode.",
+    drawbacks:
+      type === "fenwick"
+        ? ["Can't use addCount(val, cnt) to reach a total count over 2,147,483,647", ...FAST_DRAWBACKS]
+        : FAST_DRAWBACKS,
+    noSanitize: FAST_NO_SANITIZE,
+  };
+}
+
 const SET_CATALOG: PickerCatalog<SetView> = {
   title: "Set Picker",
   opGroups: SET_OP_GROUPS,
@@ -102,6 +137,13 @@ const SET_CATALOG: PickerCatalog<SetView> = {
       "Use the version without duplicates: adding a value that is already in the set does nothing, so there is no count per value and building is just the bit trie (about U / 63 words)",
     of: (t) =>
       t.distinct ? ({ ...t.distinct } as Partial<SetView>) : undefined,
+  },
+  fastMode: {
+    label: "Fast mode",
+    explain: fastExplanation,
+    title:
+      "C++ only. Tuned harder, with sanitizers skipped inside the template, so a bad access there goes unreported. The file's first comment lists its exact drawbacks.",
+    has: (t) => t.file === "template" && FAST_FOLDERS.has(t.folder),
   },
   flag: {
     label: "Values are tuples",

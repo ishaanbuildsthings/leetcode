@@ -86,6 +86,7 @@
 // removed. T: int, long long, ...; sums in S (long long for small T).
 template <typename T>
 struct TrieMultiset {
+    static constexpr T NONE = -1;  // largestLtX and friends when nothing qualifies (values are never negative)
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int B;
     long long top;  // the largest value it can hold
@@ -258,7 +259,10 @@ struct TrieMultiset {
         {  // gaps
             if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
-                optional<T> p = largestLtX(x), q = smallestGtX(x);
+                long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)
+                optional<T> p, q;
+                if (cl) p = kthAt(cl);
+                if (ce < n) q = kthAt(ce + 1);
                 auto drop = [&](long long v) { gaps.erase(gaps.find(v)); };
                 if (f) {
                     if (p && q) drop((long long)*q - (long long)*p);
@@ -395,31 +399,31 @@ struct TrieMultiset {
         return T(kthX(i + 1, (long long)x));
     }
 
-    // O(logU) -- largest value < x; nullopt if there is none
-    optional<T> largestLtX(T x) {
+    // O(logU) -- largest value < x; NONE if there is none
+    T largestLtX(T x) {
         long long c = lt(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logU) -- largest value <= x; nullopt if there is none
-    optional<T> largestLteX(T x) {
+    // O(logU) -- largest value <= x; NONE if there is none
+    T largestLteX(T x) {
         long long c = le(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logU) -- largest v ^ x that is < k (k is a VALUE to compare against, not a rank); nullopt if there is none
-    optional<T> largestXorLtK(T x, long long k) {
+    // O(logU) -- largest v ^ x that is < k (k is a VALUE to compare against, not a rank); -1 if there is none
+    T largestXorLtK(T x, long long k) {
         long long key = (long long)x, c0 = cntLt(k, key);
-        if (!c0) return nullopt;
+        if (!c0) return -1;
         return T(kthX(c0, key));
     }
 
-    // O(logU) -- largest v ^ x that is <= k (k is a VALUE to compare against, not a rank); nullopt if there is none
-    optional<T> largestXorLteK(T x, long long k) {
+    // O(logU) -- largest v ^ x that is <= k (k is a VALUE to compare against, not a rank); -1 if there is none
+    T largestXorLteK(T x, long long k) {
         long long key = (long long)x, c0 = cntLt(k + 1, key);
-        if (!c0) return nullopt;
+        if (!c0) return -1;
         return T(kthX(c0, key));
     }
 
@@ -429,105 +433,106 @@ struct TrieMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(logU) -- largest value; nullopt if empty
-    optional<T> max() {
-        if (!n) return nullopt;
+    // O(logU) -- largest value; throws out_of_range if empty
+    T max() {
+        if (!n) throw out_of_range("max: the set is empty");
         return kthAt(n);
     }
 
-    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct
-    // values
-    optional<long long> maxGap() {
-        if (d < 2) return nullopt;
+    // O(1 amortized) -- largest difference between two neighbouring distinct values; -1 if fewer than 2 distinct values
+    long long maxGap() {
+        if (d < 2) return -1;
         return *gaps.rbegin();
     }
 
-    // O(logU) -- largest v ^ x over the values v in the set; nullopt if the set is empty (needs 0 <= x < 2^bits)
-    optional<T> maxXorAgainstX(T x) {
-        if (!n) return nullopt;
+    // O(logU) -- largest v ^ x over the values v in the set; throws out_of_range if the set is empty
+    // (needs 0 <= x < 2^bits)
+    T maxXorAgainstX(T x) {
+        if (!n) throw out_of_range("maxXorAgainstX: the set is empty");
         return T(extreme(1, B - 1, (long long)x, true));
     }
 
-    // O(logU logU) -- largest v ^ x over the values v > m; nullopt if there is none
-    optional<T> maxXorWithVGtM(T x, long long m) {
-        return bestIn(x, m + 1, top, true);
+    // O(logU logU) -- largest v ^ x over the values v > m; -1 if there is none
+    T maxXorWithVGtM(T x, long long m) {
+        return bestIn(x, m + 1, top, true).value_or(T(-1));
     }
 
-    // O(logU logU) -- largest v ^ x over the values v >= m; nullopt if there is none
-    optional<T> maxXorWithVGteM(T x, long long m) {
-        return bestIn(x, m, top, true);
+    // O(logU logU) -- largest v ^ x over the values v >= m; -1 if there is none
+    T maxXorWithVGteM(T x, long long m) {
+        return bestIn(x, m, top, true).value_or(T(-1));
     }
 
-    // O(logU logU) -- largest v ^ x over the values v with lo <= v <= hi; nullopt if there is none
-    optional<T> maxXorWithVInValRange(T x, long long lo, long long hi) {
-        return bestIn(x, lo, hi, true);
+    // O(logU logU) -- largest v ^ x over the values v with lo <= v <= hi; -1 if there is none
+    T maxXorWithVInValRange(T x, long long lo, long long hi) {
+        return bestIn(x, lo, hi, true).value_or(T(-1));
     }
 
-    // O(logU logU) -- largest v ^ x over the values v < m; nullopt if there is none
-    optional<T> maxXorWithVLtM(T x, long long m) {
-        return bestIn(x, 0, m - 1, true);
+    // O(logU logU) -- largest v ^ x over the values v < m; -1 if there is none
+    T maxXorWithVLtM(T x, long long m) {
+        return bestIn(x, 0, m - 1, true).value_or(T(-1));
     }
 
-    // O(logU logU) -- largest v ^ x over the values v <= m; nullopt if there is none
-    optional<T> maxXorWithVLteM(T x, long long m) {
-        return bestIn(x, 0, m, true);
+    // O(logU logU) -- largest v ^ x over the values v <= m; -1 if there is none
+    T maxXorWithVLteM(T x, long long m) {
+        return bestIn(x, 0, m, true).value_or(T(-1));
     }
 
-    // O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
-    optional<T> medianHigh() {
-        if (!n) return nullopt;
+    // O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; throws out_of_range if empty
+    T medianHigh() {
+        if (!n) throw out_of_range("medianHigh: the set is empty");
         return high.v;
     }
 
-    // O(1) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
-    optional<T> medianLow() {
-        if (!n) return nullopt;
+    // O(1) -- lower median: the ceil(size/2)-th smallest value; throws out_of_range if empty
+    T medianLow() {
+        if (!n) throw out_of_range("medianLow: the set is empty");
         return low.v;
     }
 
-    // O(logU) -- smallest value; nullopt if empty
-    optional<T> min() {
-        if (!n) return nullopt;
+    // O(logU) -- smallest value; throws out_of_range if empty
+    T min() {
+        if (!n) throw out_of_range("min: the set is empty");
         return kthAt(1);
     }
 
-    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if
-    // fewer than 2 values
-    optional<long long> minAdjacentDiff() {
-        if (n < 2) return nullopt;
+    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); -1 if fewer
+    // than 2 values
+    long long minAdjacentDiff() {
+        if (n < 2) return -1;
         if (dups) return 0LL;
         return *gaps.begin();
     }
 
-    // O(logU) -- smallest v ^ x over the values v in the set; nullopt if the set is empty (needs 0 <= x < 2^bits)
-    optional<T> minXorAgainstX(T x) {
-        if (!n) return nullopt;
+    // O(logU) -- smallest v ^ x over the values v in the set; throws out_of_range if the set is empty
+    // (needs 0 <= x < 2^bits)
+    T minXorAgainstX(T x) {
+        if (!n) throw out_of_range("minXorAgainstX: the set is empty");
         return T(extreme(1, B - 1, (long long)x, false));
     }
 
-    // O(logU logU) -- smallest v ^ x over the values v > m; nullopt if there is none
-    optional<T> minXorWithVGtM(T x, long long m) {
-        return bestIn(x, m + 1, top, false);
+    // O(logU logU) -- smallest v ^ x over the values v > m; -1 if there is none
+    T minXorWithVGtM(T x, long long m) {
+        return bestIn(x, m + 1, top, false).value_or(T(-1));
     }
 
-    // O(logU logU) -- smallest v ^ x over the values v >= m; nullopt if there is none
-    optional<T> minXorWithVGteM(T x, long long m) {
-        return bestIn(x, m, top, false);
+    // O(logU logU) -- smallest v ^ x over the values v >= m; -1 if there is none
+    T minXorWithVGteM(T x, long long m) {
+        return bestIn(x, m, top, false).value_or(T(-1));
     }
 
-    // O(logU logU) -- smallest v ^ x over the values v with lo <= v <= hi; nullopt if there is none
-    optional<T> minXorWithVInValRange(T x, long long lo, long long hi) {
-        return bestIn(x, lo, hi, false);
+    // O(logU logU) -- smallest v ^ x over the values v with lo <= v <= hi; -1 if there is none
+    T minXorWithVInValRange(T x, long long lo, long long hi) {
+        return bestIn(x, lo, hi, false).value_or(T(-1));
     }
 
-    // O(logU logU) -- smallest v ^ x over the values v < m; nullopt if there is none
-    optional<T> minXorWithVLtM(T x, long long m) {
-        return bestIn(x, 0, m - 1, false);
+    // O(logU logU) -- smallest v ^ x over the values v < m; -1 if there is none
+    T minXorWithVLtM(T x, long long m) {
+        return bestIn(x, 0, m - 1, false).value_or(T(-1));
     }
 
-    // O(logU logU) -- smallest v ^ x over the values v <= m; nullopt if there is none
-    optional<T> minXorWithVLteM(T x, long long m) {
-        return bestIn(x, 0, m, false);
+    // O(logU logU) -- smallest v ^ x over the values v <= m; -1 if there is none
+    T minXorWithVLteM(T x, long long m) {
+        return bestIn(x, 0, m, false).value_or(T(-1));
     }
 
     // O(logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
@@ -539,17 +544,17 @@ struct TrieMultiset {
         return v;
     }
 
-    // O(logU) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        if (!n) return nullopt;
+    // O(logU) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
         T v = kthAt(n);
         addRaw(v, -1);
         return v;
     }
 
-    // O(logU) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        if (!n) return nullopt;
+    // O(logU) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
         T v = kthAt(1);
         addRaw(v, -1);
         return v;
@@ -597,31 +602,31 @@ struct TrieMultiset {
         return n;
     }
 
-    // O(logU) -- smallest value > x; nullopt if there is none
-    optional<T> smallestGtX(T x) {
+    // O(logU) -- smallest value > x; NONE if there is none
+    T smallestGtX(T x) {
         long long c = le(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logU) -- smallest value >= x; nullopt if there is none
-    optional<T> smallestGteX(T x) {
+    // O(logU) -- smallest value >= x; NONE if there is none
+    T smallestGteX(T x) {
         long long c = lt(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logU) -- smallest v ^ x that is > k (k is a VALUE to compare against, not a rank); nullopt if there is none
-    optional<T> smallestXorGtK(T x, long long k) {
+    // O(logU) -- smallest v ^ x that is > k (k is a VALUE to compare against, not a rank); -1 if there is none
+    T smallestXorGtK(T x, long long k) {
         long long key = (long long)x, c0 = cntLt(k + 1, key);
-        if (c0 == n) return nullopt;
+        if (c0 == n) return -1;
         return T(kthX(c0 + 1, key));
     }
 
-    // O(logU) -- smallest v ^ x that is >= k (k is a VALUE to compare against, not a rank); nullopt if there is none
-    optional<T> smallestXorGteK(T x, long long k) {
+    // O(logU) -- smallest v ^ x that is >= k (k is a VALUE to compare against, not a rank); -1 if there is none
+    T smallestXorGteK(T x, long long k) {
         long long key = (long long)x, c0 = cntLt(k, key);
-        if (c0 == n) return nullopt;
+        if (c0 == n) return -1;
         return T(kthX(c0 + 1, key));
     }
 

@@ -44,6 +44,7 @@
 #   tags: none
 #   other: children[2*N] parent[1*N]
 #   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
+from random import getrandbits
 
 # Ordered multiset (online: any values, nothing known ahead): a splay tree with one node per distinct value. Each node
 # keeps its value, its copies, and the copies in its subtree; every operation splays the
@@ -52,13 +53,14 @@
 
 
 class SplayMultiset:
-    __slots__ = ("K", "C", "Z", "L", "R", "P", "free", "root", "n", "mn", "mx", "bk", "maxF", "off", "d")
+    __slots__ = ("K", "C", "Z", "L", "R", "P", "free", "root", "n", "mn", "mx", "bk", "maxF", "off", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
         self.K, self.C, self.Z = [0], [0], [0]  # key, copies, copies below
         self.L, self.R, self.P = [0], [0], [0]  # children, parent
         self.free = []  # removed nodes, reused first
+        self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.off = 0  # every value v is stored as v - off: shiftAll only moves off
         self.bk, self.maxF = {}, 0  # mode: count -> the values with that many copies; the highest count
         self.root = self.n = self.d = 0
@@ -98,8 +100,8 @@ class SplayMultiset:
                 L[g] = x
             else:
                 R[g] = x
-        self._pull(p)
-        self._pull(x)
+        l, r = self.L[p], self.R[p]
+        self.Z[p] = self.Z[l] + self.Z[r] + self.C[p]
 
     def _splay(self, x):  # x becomes the root of its tree
         P, L = self.P, self.L
@@ -109,6 +111,7 @@ class SplayMultiset:
             if g:
                 self._rotate(p if (L[g] == p) == (L[p] == x) else x)
             self._rotate(x)
+        self._pull(x)
         return x
 
     def _touch(self, t):
@@ -233,17 +236,17 @@ class SplayMultiset:
         f = self._insert(x, c)  # x's new count
         g = f - c  # x's old count
         # mode: x moves from the bucket of its old count to its new one
-        bk = self.bk
+        bk, key = self.bk, x ^ self.salt if x.__class__ is int else x  # (salted: no fixed input can force set collisions)
         if g:
             vs = bk[g]
-            vs.discard(x)
+            vs.discard(key)
             if not vs:
                 del bk[g]
         if f:
             if f in bk:
-                bk[f].add(x)
+                bk[f].add(key)
             else:
-                bk[f] = {x}
+                bk[f] = {key}
             if f > self.maxF:
                 self.maxF = f
         while self.maxF and self.maxF not in bk:  # (it only drops as far as copies were removed: amortized O(1))
@@ -364,28 +367,38 @@ class SplayMultiset:
         x -= self.off
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(1) -- largest value; None if empty
+    # O(1) -- largest value; raises IndexError if empty
     def max(self):
-        return self.mx + self.off if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self.mx + self.off
 
-    # O(logN amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(logN amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self._kth((self.n >> 1) + 1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self._kth((self.n >> 1) + 1) + self.off
 
-    # O(logN amortized) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(logN amortized) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self._kth((self.n + 1) >> 1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self._kth((self.n + 1) >> 1) + self.off
 
-    # O(1) -- smallest value; None if empty
+    # O(1) -- smallest value; raises IndexError if empty
     def min(self):
-        return self.mn + self.off if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self.mn + self.off
 
-    # O(1) -- (a most frequent value, its count); None if empty. C++ returns the smallest of the most frequent values
+    # O(1) -- (a most frequent value, its count); raises IndexError if empty. C++ returns the smallest of the most
+    # frequent values
     def mode(self):
         if not self.n:
-            return None
+            raise IndexError("mode: the set is empty")
         f = self.maxF
-        return next(iter(self.bk[f])) + self.off, f
+        v = next(iter(self.bk[f]))
+        return (v ^ self.salt if v.__class__ is int else v) + self.off, f
 
     # O(logN amortized) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
     # popMin()), pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
@@ -396,18 +409,18 @@ class SplayMultiset:
         self._add(v, -1)
         return v + self.off
 
-    # O(logN amortized) -- remove and return the largest value; None if empty
+    # O(logN amortized) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self.mx
         self._add(v, -1)
         return v + self.off
 
-    # O(logN amortized) -- remove and return the smallest value; None if empty
+    # O(logN amortized) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self.mn
         self._add(v, -1)
         return v + self.off

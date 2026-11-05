@@ -588,14 +588,17 @@ class TrieMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(logU) -- largest value; None if empty
+    # O(logU) -- largest value; raises IndexError if empty
     def max(self):
-        return self._kth(self.n) if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self._kth(self.n)
 
-    # O(logU) -- largest v ^ x over the values v in the set; None if the set is empty (needs 0 <= x < 2^bits)
+    # O(logU) -- largest v ^ x over the values v in the set; raises IndexError if the set is empty
+    # (needs 0 <= x < 2^bits)
     def maxXorAgainstX(self, x):
         if not self.n:
-            return None
+            raise IndexError("maxXorAgainstX: the set is empty")
         return self._extreme(1, self.B - 1, x, True)
 
     # O(logU logU) -- largest v ^ x over the values v > m; None if there is none
@@ -618,13 +621,17 @@ class TrieMultiset:
     def maxXorWithVLteM(self, x, m):
         return self._bestIn(x, 0, m, True)
 
-    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self.highV if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self.highV
 
-    # O(1) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(1) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self.lowV if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self.lowV
 
     # O(logU) -- smallest non-negative integer not in the set
     def mex(self):
@@ -634,14 +641,17 @@ class TrieMultiset:
     def mexXor(self, x):
         return self._mexX(x)
 
-    # O(logU) -- smallest value; None if empty
+    # O(logU) -- smallest value; raises IndexError if empty
     def min(self):
-        return self._kth(1) if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self._kth(1)
 
-    # O(logU) -- smallest v ^ x over the values v in the set; None if the set is empty (needs 0 <= x < 2^bits)
+    # O(logU) -- smallest v ^ x over the values v in the set; raises IndexError if the set is empty
+    # (needs 0 <= x < 2^bits)
     def minXorAgainstX(self, x):
         if not self.n:
-            return None
+            raise IndexError("minXorAgainstX: the set is empty")
         return self._extreme(1, self.B - 1, x, False)
 
     # O(logU logU) -- smallest v ^ x over the values v > m; None if there is none
@@ -673,25 +683,25 @@ class TrieMultiset:
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the largest value; None if empty
+    # O(logU) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self._kth(self.n)
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the smallest value; None if empty
+    # O(logU) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self._kth(1)
         self._add(v, -1)
         return v
 
     # O(logU) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1

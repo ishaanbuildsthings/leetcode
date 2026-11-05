@@ -75,6 +75,13 @@
 // T: an integer type; sums in S.
 template <typename T>
 struct BlockFenwickMultiset {
+    template <class K>
+    static K noneOf() {  // the lowest value of K, part by part for pairs and tuples
+        if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
+        else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
+    }
+    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr int LOAD = 512;
     vector<vector<T>> keys;  // blocks of sorted distinct values
@@ -125,9 +132,22 @@ struct BlockFenwickMultiset {
         fx = buildx(bx);
     }
 
-    void reinner(int k) {
-        fcs[k] = build(cnts[k]);
-        fss[k] = build(sums[k]);
+    template <class V>
+    static void rebuildFrom(vector<V>& f, const vector<V>& a, int from) {  // only positions >= from changed
+        int size = a.size();
+        f.resize(size + 1);
+        for (int i = from + 1; i <= size; i++) f[i] = 0;
+        for (int i = from; i > 0; i &= i - 1)  // finished entries that feed the rebuilt part
+            if (int up = i + (i & -i); up <= size) f[up] += f[i];
+        for (int i = from + 1; i <= size; i++) {
+            f[i] += a[i - 1];
+            if (int up = i + (i & -i); up <= size) f[up] += f[i];
+        }
+    }
+
+    void reinner(int k, int from = 0) {
+        rebuildFrom(fcs[k], cnts[k], from);
+        rebuildFrom(fss[k], sums[k], from);
         fxs[k] = buildx(xvs[k]);
     }
 
@@ -160,7 +180,7 @@ struct BlockFenwickMultiset {
                     return 0;
                 }
                 maxes[k] = keys[k].back();
-                reinner(k);
+                reinner(k, j);
                 return 0;
             }
         }
@@ -197,7 +217,7 @@ struct BlockFenwickMultiset {
             bx[k] = accumulate(xvs[k].begin(), xvs[k].end(), T(0), bit_xor<T>());
             bx.insert(bx.begin() + k + 1, accumulate(xvs[k + 1].begin(), xvs[k + 1].end(), T(0), bit_xor<T>()));
             reblock();
-        } else reinner(k);
+        } else reinner(k, j);
         return c;
     }
 
@@ -448,17 +468,17 @@ struct BlockFenwickMultiset {
         return kthAt(i + 1);
     }
 
-    // O(logN) -- largest value < x; nullopt if there is none
-    optional<T> largestLtX(T x) {
+    // O(logN) -- largest value < x; NONE if there is none
+    T largestLtX(T x) {
         long long c = lt(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logN) -- largest value <= x; nullopt if there is none
-    optional<T> largestLteX(T x) {
+    // O(logN) -- largest value <= x; NONE if there is none
+    T largestLteX(T x) {
         long long c = le(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
@@ -468,21 +488,21 @@ struct BlockFenwickMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(1) -- largest value; nullopt if empty
-    optional<T> max() {
-        if (!n) return nullopt;
+    // O(1) -- largest value; throws out_of_range if empty
+    T max() {
+        if (!n) throw out_of_range("max: the set is empty");
         return mx;
     }
 
-    // O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
-    optional<T> medianHigh() {
-        if (!n) return nullopt;
+    // O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; throws out_of_range if empty
+    T medianHigh() {
+        if (!n) throw out_of_range("medianHigh: the set is empty");
         return high.v;
     }
 
-    // O(1) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
-    optional<T> medianLow() {
-        if (!n) return nullopt;
+    // O(1) -- lower median: the ceil(size/2)-th smallest value; throws out_of_range if empty
+    T medianLow() {
+        if (!n) throw out_of_range("medianLow: the set is empty");
         return low.v;
     }
 
@@ -491,16 +511,16 @@ struct BlockFenwickMultiset {
         return findMex();
     }
 
-    // O(1) -- smallest value; nullopt if empty
-    optional<T> min() {
-        if (!n) return nullopt;
+    // O(1) -- smallest value; throws out_of_range if empty
+    T min() {
+        if (!n) throw out_of_range("min: the set is empty");
         return mn;
     }
 
-    // O(1) -- (a most frequent value, its count); nullopt if empty. C++ returns the smallest of the most frequent
-    // values
-    optional<pair<T, long long>> mode() {
-        if (!n) return nullopt;
+    // O(1) -- (a most frequent value, its count); throws out_of_range if empty. C++ returns the smallest of the most
+    // frequent values
+    pair<T, long long> mode() {
+        if (!n) throw out_of_range("mode: the set is empty");
         auto& [f, vs] = *bk.rbegin();
         return pair<T, long long>{*vs.begin(), f};
     }
@@ -514,17 +534,17 @@ struct BlockFenwickMultiset {
         return v;
     }
 
-    // O(sqrtN) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        if (!n) return nullopt;
+    // O(sqrtN) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
         T v = mx;
         addRaw(v, -1);
         return v;
     }
 
-    // O(sqrtN) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        if (!n) return nullopt;
+    // O(sqrtN) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
         T v = mn;
         addRaw(v, -1);
         return v;
@@ -573,17 +593,17 @@ struct BlockFenwickMultiset {
         return n;
     }
 
-    // O(logN) -- smallest value > x; nullopt if there is none
-    optional<T> smallestGtX(T x) {
+    // O(logN) -- smallest value > x; NONE if there is none
+    T smallestGtX(T x) {
         long long c = le(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logN) -- smallest value >= x; nullopt if there is none
-    optional<T> smallestGteX(T x) {
+    // O(logN) -- smallest value >= x; NONE if there is none
+    T smallestGteX(T x) {
         long long c = lt(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 

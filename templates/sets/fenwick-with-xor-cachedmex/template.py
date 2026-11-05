@@ -53,7 +53,7 @@
 #   node: cnt[1*N] fc[1*N] fp[1*N] fx[1*N]
 #   tags: none
 #   other: vals[1*N]
-#   note: N = how many distinct values were given to the constructor; the arrays are allocated once
+#   note: N = how many distinct values were given to the constructor; the arrays are allocated once. C++ integers also keep a hash table of at most 8*N ints from value to position
 from bisect import bisect_left, bisect_right
 
 
@@ -65,13 +65,14 @@ from bisect import bisect_left, bisect_right
 
 
 class FenwickMultiset:
-    __slots__ = ("vals", "m", "top", "cnt", "fc", "fx", "fp", "z", "run", "n", "mexV", "xtotal", "d")
+    __slots__ = ("vals", "m", "top", "steps", "cnt", "fc", "fx", "fp", "z", "run", "n", "mexV", "xtotal", "d")
 
     # O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order, duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
     def __init__(self, allValuesThatWillEverBeInsertedForOfflineCompression):
         vals = self.vals = sorted(set(allValuesThatWillEverBeInsertedForOfflineCompression))
         m = self.m = len(vals)
         self.top = 1 << (m.bit_length() - 1) if m else 0  # highest power of two <= m, for binary lifting
+        self.steps = tuple(1 << b for b in range(m.bit_length() - 1, -1, -1))  # top, top / 2, ..., 1
         self.cnt = [0] * m  # copies of vals[i]
         self.fc = [0] * (m + 1)  # Fenwick: copies
         self.fx = [0] * (m + 1)  # Fenwick: xor of the values with an odd count
@@ -99,11 +100,16 @@ class FenwickMultiset:
             i &= i - 1
         return s
 
-    def _insert(self, x, c):
-        i = bisect_left(self.vals, x)  # x must be one of the given values
-        old = self.cnt[i]
-        self.cnt[i] = old + c
-        self._fen(self.fc, i, c)
+    def _insert(self, x, c, i=None):  # i: x's position in vals, if known
+        if i is None:
+            i = bisect_left(self.vals, x)  # x must be one of the given values
+        cnt = self.cnt
+        old = cnt[i]
+        cnt[i] = old + c
+        fc, m, j = self.fc, self.m, i + 1
+        while j <= m:
+            fc[j] += c
+            j += j & -j
         if c & 1:  # x's parity flips
             fx, j = self.fx, i + 1
             while j <= self.m:
@@ -118,35 +124,40 @@ class FenwickMultiset:
         return old + c  # (x's new count)
 
     def _lt(self, x):
-        return self._pre(self.fc, bisect_left(self.vals, x))
+        fc, i, c = self.fc, bisect_left(self.vals, x), 0
+        while i:
+            c += fc[i]
+            i &= i - 1
+        return c
 
     def _le(self, x):
-        return self._pre(self.fc, bisect_right(self.vals, x))
+        fc, i, c = self.fc, bisect_right(self.vals, x), 0
+        while i:
+            c += fc[i]
+            i &= i - 1
+        return c
 
     def _countOf(self, x):
         i = bisect_left(self.vals, x)
         return self.cnt[i] if i < self.m and self.vals[i] == x else 0
 
     def _kth(self, k):  # binary lifting: the largest prefix with fewer than k copies ends right before the answer
-        fc, m = self.fc, self.m
-        pos, step = 0, self.top
-        while step:
+        fc, m, pos = self.fc, self.m, 0
+        for step in self.steps:
             nxt = pos + step
             if nxt <= m and fc[nxt] < k:
                 pos = nxt
                 k -= fc[nxt]
-            step >>= 1
         return self.vals[pos]
 
     def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies)
         fc, m = self.fc, self.m
-        pos, step, before = 0, self.top, 0
-        while step:
+        pos, before = 0, 0
+        for step in self.steps:
             nxt = pos + step
             if nxt <= m and before + fc[nxt] < k:
                 pos = nxt
                 before += fc[nxt]
-            step >>= 1
         return self.vals[pos], before, self.cnt[pos]
 
     def _findMex(self):  # smallest non-negative integer not in the set
@@ -164,11 +175,11 @@ class FenwickMultiset:
             step >>= 1
         return min(pos - z, self.run)
 
-    def _add(self, x, c):  # c copies of x (c < 0 removes); keeps the mex current
+    def _add(self, x, c, i=None):  # c copies of x (c < 0 removes); keeps the mex current
         self.n += c
         if c & 1:  # an odd number of copies flips x in or out of the xor of everything
             self.xtotal ^= x
-        f = self._insert(x, c)  # x's new count
+        f = self._insert(x, c, i)  # x's new count
         n = self.n
         if c > 0:
             if x == self.mexV:  # x filled the mex
@@ -316,25 +327,33 @@ class FenwickMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(logN) -- largest value; None if empty
+    # O(logN) -- largest value; raises IndexError if empty
     def max(self):
-        return self._kth(self.n) if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self._kth(self.n)
 
-    # O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self._kth((self.n >> 1) + 1) if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self._kth((self.n >> 1) + 1)
 
-    # O(logN) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(logN) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self._kth((self.n + 1) >> 1) if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self._kth((self.n + 1) >> 1)
 
     # O(1) -- smallest non-negative integer not in the set
     def mex(self):
         return self.mexV
 
-    # O(logN) -- smallest value; None if empty
+    # O(logN) -- smallest value; raises IndexError if empty
     def min(self):
-        return self._kth(1) if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self._kth(1)
 
     # O(logN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
     # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
@@ -345,27 +364,28 @@ class FenwickMultiset:
         self._add(v, -1)
         return v
 
-    # O(logN) -- remove and return the largest value; None if empty
+    # O(logN) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self._kth(self.n)
         self._add(v, -1)
         return v
 
-    # O(logN) -- remove and return the smallest value; None if empty
+    # O(logN) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self._kth(1)
         self._add(v, -1)
         return v
 
     # O(logN) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        i = bisect_left(self.vals, x)  # one lookup for both the check and the removal
+        if i == self.m or self.vals[i] != x or not self.cnt[i]:
             return 0
-        self._add(x, -1)
+        self._add(x, -1, i)
         return 1
 
     # O(logN) -- remove every copy of val; returns how many were removed

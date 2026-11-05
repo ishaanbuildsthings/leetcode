@@ -98,6 +98,7 @@
 #   tags: none
 #   other: children[2*log(U)]
 #   note: per add of a new value, one node per bit of its path; U = 2^bits. Each multiset owns its nodes (clear() keeps the arrays' capacity)
+from random import getrandbits
 from heapq import heappop, heappush
 
 # Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
@@ -107,7 +108,7 @@ from heapq import heappop, heappush
 
 
 class TrieMultiset:
-    __slots__ = ("B", "top", "L", "R", "C", "P", "MN", "MX", "X", "O", "A", "n", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "gc", "gmin", "gmax", "dups", "xtotal", "d")
+    __slots__ = ("B", "top", "L", "R", "C", "P", "MN", "MX", "X", "O", "A", "n", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "gc", "gmin", "gmax", "dups", "xtotal", "salt", "d")
 
     # O(1) -- an empty multiset for integers in [0, 2^bits) (bits = 30 holds values up to 1073741823)
     def __init__(self, bits):
@@ -119,6 +120,7 @@ class TrieMultiset:
         self.X = [0, 0]  # xor of the stored values below with an odd count
         self.O = [0, 0]  # OR of the values below
         self.A = [-1, -1]  # AND of the values below (an empty node's: every bit)
+        self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.xtotal = 0  # xor of all values (copies count)
         self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
         self.mexV = 0  # the mex, kept current (0 for the empty set)
@@ -353,7 +355,9 @@ class TrieMultiset:
         if (g >= 2) != (f >= 2):  # values with 2+ copies (then the smallest difference is 0)
             self.dups += 1 if f >= 2 else -1
         if not g or not f:  # x appeared or disappeared: the gap between its neighbours splits or comes back
-            p, q = self.largestLtX(x), self.smallestGtX(x)
+            i = self._lt(x)  # (one walk: the copies of x are known, and stored values skip any shift)
+            j = i + f
+            p, q = self._kth(i) if i else None, self._kth(j + 1) if j < self.n else None
             if f:
                 if p is not None and q is not None:
                     self._gap(q - p, -1)
@@ -400,29 +404,29 @@ class TrieMultiset:
             self.highV, self.highB, self.highC = self._kthInfo(r)
 
     def _gap(self, g, c):  # one more (c = 1) / fewer (c = -1) gap of size g
-        gc = self.gc
-        k = gc.get(g, 0) + c
+        gc, key = self.gc, g ^ self.salt
+        k = gc.get(key, 0) + c
         if k:
-            gc[g] = k
+            gc[key] = k
             if k == 1 and c > 0:  # (a size already present has an entry in both heaps)
                 if len(self.gmin) > 2 * len(gc) + 8:  # mostly sizes no longer present: rebuild from the live ones
-                    self.gmin = sorted(gc)
+                    self.gmin = sorted(v ^ self.salt for v in gc)
                     self.gmax = [-v for v in reversed(self.gmin)]
                 else:
                     heappush(self.gmin, g)
                     heappush(self.gmax, -g)
         else:
-            del gc[g]
+            del gc[key]
 
     def _minGap(self):  # heap tops of sizes no longer present are dropped as they surface
-        h, gc = self.gmin, self.gc
-        while h[0] not in gc:
+        h, gc, salt = self.gmin, self.gc, self.salt
+        while h[0] ^ salt not in gc:
             heappop(h)
         return h[0]
 
     def _maxGap(self):
-        h, gc = self.gmax, self.gc
-        while -h[0] not in gc:
+        h, gc, salt = self.gmax, self.gc, self.salt
+        while -h[0] ^ salt not in gc:
             heappop(h)
         return -h[0]
 
@@ -715,10 +719,10 @@ class TrieMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(1) -- largest value; None if empty
+    # O(1) -- largest value; raises IndexError if empty
     def max(self):
         if not self.n:
-            return None
+            raise IndexError("max: the set is empty")
         return self.MX[1]
 
     # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct
@@ -726,10 +730,11 @@ class TrieMultiset:
     def maxGap(self):
         return self._maxGap() if self.d >= 2 else None
 
-    # O(logU) -- largest v ^ x over the values v in the set; None if the set is empty (needs 0 <= x < 2^bits)
+    # O(logU) -- largest v ^ x over the values v in the set; raises IndexError if the set is empty
+    # (needs 0 <= x < 2^bits)
     def maxXorAgainstX(self, x):
         if not self.n:
-            return None
+            raise IndexError("maxXorAgainstX: the set is empty")
         return self._extreme(1, self.B - 1, x, True)
 
     # O(logU) -- largest v ^ x over the values v > m; None if there is none
@@ -752,13 +757,17 @@ class TrieMultiset:
     def maxXorWithVLteM(self, x, m):
         return self._bestIn(x, 0, m, True)
 
-    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self.highV if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self.highV
 
-    # O(1) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(1) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self.lowV if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self.lowV
 
     # O(1) -- smallest non-negative integer not in the set
     def mex(self):
@@ -768,10 +777,10 @@ class TrieMultiset:
     def mexXor(self, x):
         return self._mexX(x)
 
-    # O(1) -- smallest value; None if empty
+    # O(1) -- smallest value; raises IndexError if empty
     def min(self):
         if not self.n:
-            return None
+            raise IndexError("min: the set is empty")
         return self.MN[1]
 
     # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer
@@ -781,10 +790,11 @@ class TrieMultiset:
             return None
         return 0 if self.dups else self._minGap()
 
-    # O(logU) -- smallest v ^ x over the values v in the set; None if the set is empty (needs 0 <= x < 2^bits)
+    # O(logU) -- smallest v ^ x over the values v in the set; raises IndexError if the set is empty
+    # (needs 0 <= x < 2^bits)
     def minXorAgainstX(self, x):
         if not self.n:
-            return None
+            raise IndexError("minXorAgainstX: the set is empty")
         return self._extreme(1, self.B - 1, x, False)
 
     # O(logU) -- smallest v ^ x over the values v > m; None if there is none
@@ -872,25 +882,25 @@ class TrieMultiset:
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the largest value; None if empty
+    # O(logU) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self.MX[1]
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the smallest value; None if empty
+    # O(logU) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self.MN[1]
         self._add(v, -1)
         return v
 
     # O(logU) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1

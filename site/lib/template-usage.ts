@@ -173,7 +173,7 @@ function cppClasses(text: string): ParsedClass[] {
           new RegExp(`^\\s{4}(?:explicit\\s+)?${cls.name}\\(`),
         );
         const m = line.match(
-          /^\s{4}(?:(?:static|inline|constexpr|virtual)\s+)*([\w:<>, *&]+?)\s+(\w+)\((.*)\)\s*(?:const\s*)?(?:\{|$)/,
+          /^\s{4}(?:(?:static|inline|constexpr|virtual|LEETCODE_NO_SANITIZE(?:_INLINE)?)\s+)*([\w:<>, *&]+?)\s+(\w+)\((.*)\)\s*(?:const\s*)?(?:\{|$)/,
         );
         if (ctor) {
           cls.ctor = cppParams(parenArgs(line, ctor.index ?? 0));

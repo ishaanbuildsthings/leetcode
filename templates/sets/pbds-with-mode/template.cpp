@@ -48,6 +48,13 @@
 // copy, keyed (value, id) so equal values stay distinct. No sums, no bulk adds. T: any type with < (and +1 for le).
 template <typename T>
 struct PbdsMultiset {
+    template <class K>
+    static K noneOf() {  // the lowest value of K, part by part for pairs and tuples
+        if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
+        else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
+    }
+    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+
     using Tree = __gnu_pbds::tree<pair<T, int>, __gnu_pbds::null_type, less<pair<T, int>>, __gnu_pbds::rb_tree_tag,
                                   __gnu_pbds::tree_order_statistics_node_update>;
     Tree t;
@@ -167,17 +174,17 @@ struct PbdsMultiset {
         return kthAt(i + 1);
     }
 
-    // O(logN) -- largest value < x; nullopt if there is none
-    optional<T> largestLtX(T x) {
+    // O(logN) -- largest value < x; NONE if there is none
+    T largestLtX(T x) {
         long long c = lt(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logN) -- largest value <= x; nullopt if there is none
-    optional<T> largestLteX(T x) {
+    // O(logN) -- largest value <= x; NONE if there is none
+    T largestLteX(T x) {
         long long c = le(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
@@ -187,34 +194,34 @@ struct PbdsMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(logN) -- largest value; nullopt if empty
-    optional<T> max() {
-        if (!n) return nullopt;
+    // O(logN) -- largest value; throws out_of_range if empty
+    T max() {
+        if (!n) throw out_of_range("max: the set is empty");
         return kthAt(n);
     }
 
-    // O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
-    optional<T> medianHigh() {
-        if (!n) return nullopt;
+    // O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; throws out_of_range if empty
+    T medianHigh() {
+        if (!n) throw out_of_range("medianHigh: the set is empty");
         return kthAt(n / 2 + 1);
     }
 
-    // O(logN) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
-    optional<T> medianLow() {
-        if (!n) return nullopt;
+    // O(logN) -- lower median: the ceil(size/2)-th smallest value; throws out_of_range if empty
+    T medianLow() {
+        if (!n) throw out_of_range("medianLow: the set is empty");
         return kthAt((n + 1) / 2);
     }
 
-    // O(logN) -- smallest value; nullopt if empty
-    optional<T> min() {
-        if (!n) return nullopt;
+    // O(logN) -- smallest value; throws out_of_range if empty
+    T min() {
+        if (!n) throw out_of_range("min: the set is empty");
         return kthAt(1);
     }
 
-    // O(1) -- (a most frequent value, its count); nullopt if empty. C++ returns the smallest of the most frequent
-    // values
-    optional<pair<T, long long>> mode() {
-        if (!n) return nullopt;
+    // O(1) -- (a most frequent value, its count); throws out_of_range if empty. C++ returns the smallest of the most
+    // frequent values
+    pair<T, long long> mode() {
+        if (!n) throw out_of_range("mode: the set is empty");
         auto& [f, vs] = *bk.rbegin();
         return pair<T, long long>{*vs.begin(), f};
     }
@@ -228,17 +235,17 @@ struct PbdsMultiset {
         return v;
     }
 
-    // O(logN) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        if (!n) return nullopt;
+    // O(logN) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
         T v = kthAt(n);
         addRaw(v, -1);
         return v;
     }
 
-    // O(logN) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        if (!n) return nullopt;
+    // O(logN) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
         T v = kthAt(1);
         addRaw(v, -1);
         return v;
@@ -268,17 +275,17 @@ struct PbdsMultiset {
         return n;
     }
 
-    // O(logN) -- smallest value > x; nullopt if there is none
-    optional<T> smallestGtX(T x) {
+    // O(logN) -- smallest value > x; NONE if there is none
+    T smallestGtX(T x) {
         long long c = le(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logN) -- smallest value >= x; nullopt if there is none
-    optional<T> smallestGteX(T x) {
+    // O(logN) -- smallest value >= x; NONE if there is none
+    T smallestGteX(T x) {
         long long c = lt(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 };

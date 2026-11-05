@@ -96,6 +96,7 @@
 #   tags: none
 #   other: children[2*log(U)]
 #   note: per add of a new value, one node per bit of its path; U = 2^bits. Each multiset owns its nodes (clear() keeps the arrays' capacity)
+from random import getrandbits
 
 # Ordered multiset of integers in [0, 2^bits) as a binary trie: one level per bit, highest bit first; each node keeps
 # how many copies, their sum, the smallest and largest value, their xor, their AND are below it. Besides the usual ordered queries it answers questions
@@ -104,7 +105,7 @@
 
 
 class TrieMultiset:
-    __slots__ = ("B", "top", "L", "R", "C", "S", "MN", "MX", "X", "A", "n", "lowV", "lowB", "lowC", "lowS", "highV", "highB", "highC", "bk", "maxF", "xtotal", "total", "d")
+    __slots__ = ("B", "top", "L", "R", "C", "S", "MN", "MX", "X", "A", "n", "lowV", "lowB", "lowC", "lowS", "highV", "highB", "highC", "bk", "maxF", "xtotal", "salt", "total", "d")
 
     # O(1) -- an empty multiset for integers in [0, 2^bits) (bits = 30 holds values up to 1073741823)
     def __init__(self, bits):
@@ -115,6 +116,7 @@ class TrieMultiset:
         self.MN, self.MX = [0, 0], [0, 0]  # smallest / largest value below (meaningful while its count > 0)
         self.X = [0, 0]  # xor of the stored values below with an odd count
         self.A = [-1, -1]  # AND of the values below (an empty node's: every bit)
+        self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.xtotal = 0  # xor of all values (copies count)
         self.bk, self.maxF = {}, 0  # mode: count -> the values with that many copies; the highest count
         self.n = self.total = self.d = 0
@@ -323,17 +325,17 @@ class TrieMultiset:
         f = self._insert(x, c)  # x's new count
         g = f - c  # x's old count
         # mode: x moves from the bucket of its old count to its new one
-        bk = self.bk
+        bk, key = self.bk, x ^ self.salt if x.__class__ is int else x  # (salted: no fixed input can force set collisions)
         if g:
             vs = bk[g]
-            vs.discard(x)
+            vs.discard(key)
             if not vs:
                 del bk[g]
         if f:
             if f in bk:
-                bk[f].add(x)
+                bk[f].add(key)
             else:
-                bk[f] = {x}
+                bk[f] = {key}
             if f > self.maxF:
                 self.maxF = f
         while self.maxF and self.maxF not in bk:  # (it only drops as far as copies were removed: amortized O(1))
@@ -616,16 +618,17 @@ class TrieMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(1) -- largest value; None if empty
+    # O(1) -- largest value; raises IndexError if empty
     def max(self):
         if not self.n:
-            return None
+            raise IndexError("max: the set is empty")
         return self.MX[1]
 
-    # O(logU) -- largest v ^ x over the values v in the set; None if the set is empty (needs 0 <= x < 2^bits)
+    # O(logU) -- largest v ^ x over the values v in the set; raises IndexError if the set is empty
+    # (needs 0 <= x < 2^bits)
     def maxXorAgainstX(self, x):
         if not self.n:
-            return None
+            raise IndexError("maxXorAgainstX: the set is empty")
         return self._extreme(1, self.B - 1, x, True)
 
     # O(logU) -- largest v ^ x over the values v > m; None if there is none
@@ -648,24 +651,29 @@ class TrieMultiset:
     def maxXorWithVLteM(self, x, m):
         return self._bestIn(x, 0, m, True)
 
-    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self.highV if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self.highV
 
-    # O(1) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(1) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self.lowV if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self.lowV
 
-    # O(1) -- smallest value; None if empty
+    # O(1) -- smallest value; raises IndexError if empty
     def min(self):
         if not self.n:
-            return None
+            raise IndexError("min: the set is empty")
         return self.MN[1]
 
-    # O(logU) -- smallest v ^ x over the values v in the set; None if the set is empty (needs 0 <= x < 2^bits)
+    # O(logU) -- smallest v ^ x over the values v in the set; raises IndexError if the set is empty
+    # (needs 0 <= x < 2^bits)
     def minXorAgainstX(self, x):
         if not self.n:
-            return None
+            raise IndexError("minXorAgainstX: the set is empty")
         return self._extreme(1, self.B - 1, x, False)
 
     # O(logU) -- smallest v ^ x over the values v > m; None if there is none
@@ -688,12 +696,14 @@ class TrieMultiset:
     def minXorWithVLteM(self, x, m):
         return self._bestIn(x, 0, m, False)
 
-    # O(1) -- (a most frequent value, its count); None if empty. C++ returns the smallest of the most frequent values
+    # O(1) -- (a most frequent value, its count); raises IndexError if empty. C++ returns the smallest of the most
+    # frequent values
     def mode(self):
         if not self.n:
-            return None
+            raise IndexError("mode: the set is empty")
         f = self.maxF
-        return next(iter(self.bk[f])), f
+        v = next(iter(self.bk[f]))
+        return (v ^ self.salt if v.__class__ is int else v), f
 
     # O(logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
     # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
@@ -704,25 +714,25 @@ class TrieMultiset:
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the largest value; None if empty
+    # O(logU) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self.MX[1]
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the smallest value; None if empty
+    # O(logU) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self.MN[1]
         self._add(v, -1)
         return v
 
     # O(logU) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1

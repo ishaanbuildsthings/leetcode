@@ -67,6 +67,13 @@
 // T: an integer type; sums in S (long long for small T).
 template <typename T>
 struct SplayMultiset {
+    template <class K>
+    static K noneOf() {  // the lowest value of K, part by part for pairs and tuples
+        if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
+        else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
+    }
+    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; S s; long long dn; int l, r, p; };  // copies; copies, sum, distinct below; parent
     vector<Node> pool{Node{}};
@@ -113,7 +120,7 @@ struct SplayMultiset {
         if (b) pool[b].p = p;
         pool[p].p = x, pool[x].p = g;
         if (g) (pool[g].l == p ? pool[g].l : pool[g].r) = x;
-        pull(p), pull(x);
+        pull(p);  // (x is pulled once, when it reaches the root)
     }
 
     int splay(int x) {  // x becomes the root of its tree
@@ -121,6 +128,7 @@ struct SplayMultiset {
             if (int g = pool[p].p) rotate((pool[g].l == p) == (pool[p].l == x) ? p : x);
             rotate(x);
         }
+        pull(x);
         return x;
     }
 
@@ -287,7 +295,7 @@ struct SplayMultiset {
         {  // gaps
             if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
-                long long cl = lt(x), ce = le(x);  // (stored values: the public ops would shift x again)
+                long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)
                 optional<T> p, q;
                 if (cl) p = kthAt(cl);
                 if (ce < n) q = kthAt(ce + 1);
@@ -431,19 +439,19 @@ struct SplayMultiset {
         return T(kthAt(i + 1) + off);
     }
 
-    // O(logN amortized) -- largest value < x; nullopt if there is none
-    optional<T> largestLtX(T x) {
+    // O(logN amortized) -- largest value < x; NONE if there is none
+    T largestLtX(T x) {
         x -= off;
         long long c = lt(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return T(kthAt(c) + off);
     }
 
-    // O(logN amortized) -- largest value <= x; nullopt if there is none
-    optional<T> largestLteX(T x) {
+    // O(logN amortized) -- largest value <= x; NONE if there is none
+    T largestLteX(T x) {
         x -= off;
         long long c = le(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return T(kthAt(c) + off);
     }
 
@@ -454,28 +462,27 @@ struct SplayMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(1) -- largest value; nullopt if empty
-    optional<T> max() {
-        if (!n) return nullopt;
+    // O(1) -- largest value; throws out_of_range if empty
+    T max() {
+        if (!n) throw out_of_range("max: the set is empty");
         return T(mx + off);
     }
 
-    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct
-    // values
-    optional<long long> maxGap() {
-        if (d < 2) return nullopt;
+    // O(1 amortized) -- largest difference between two neighbouring distinct values; -1 if fewer than 2 distinct values
+    long long maxGap() {
+        if (d < 2) return -1;
         return *gaps.rbegin();
     }
 
-    // O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
-    optional<T> medianHigh() {
-        if (!n) return nullopt;
+    // O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; throws out_of_range if empty
+    T medianHigh() {
+        if (!n) throw out_of_range("medianHigh: the set is empty");
         return T(high.v + off);
     }
 
-    // O(1) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
-    optional<T> medianLow() {
-        if (!n) return nullopt;
+    // O(1) -- lower median: the ceil(size/2)-th smallest value; throws out_of_range if empty
+    T medianLow() {
+        if (!n) throw out_of_range("medianLow: the set is empty");
         return T(low.v + off);
     }
 
@@ -484,16 +491,16 @@ struct SplayMultiset {
         return mexV + off;
     }
 
-    // O(1) -- smallest value; nullopt if empty
-    optional<T> min() {
-        if (!n) return nullopt;
+    // O(1) -- smallest value; throws out_of_range if empty
+    T min() {
+        if (!n) throw out_of_range("min: the set is empty");
         return T(mn + off);
     }
 
-    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if
-    // fewer than 2 values
-    optional<long long> minAdjacentDiff() {
-        if (n < 2) return nullopt;
+    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); -1 if fewer
+    // than 2 values
+    long long minAdjacentDiff() {
+        if (n < 2) return -1;
         if (dups) return 0LL;
         return *gaps.begin();
     }
@@ -507,17 +514,17 @@ struct SplayMultiset {
         return T(v + off);
     }
 
-    // O(logN amortized) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        if (!n) return nullopt;
+    // O(logN amortized) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
         T v = mx;
         addRaw(v, -1);
         return T(v + off);
     }
 
-    // O(logN amortized) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        if (!n) return nullopt;
+    // O(logN amortized) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
         T v = mn;
         addRaw(v, -1);
         return T(v + off);
@@ -575,19 +582,19 @@ struct SplayMultiset {
         return n;
     }
 
-    // O(logN amortized) -- smallest value > x; nullopt if there is none
-    optional<T> smallestGtX(T x) {
+    // O(logN amortized) -- smallest value > x; NONE if there is none
+    T smallestGtX(T x) {
         x -= off;
         long long c = le(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return T(kthAt(c + 1) + off);
     }
 
-    // O(logN amortized) -- smallest value >= x; nullopt if there is none
-    optional<T> smallestGteX(T x) {
+    // O(logN amortized) -- smallest value >= x; NONE if there is none
+    T smallestGteX(T x) {
         x -= off;
         long long c = lt(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return T(kthAt(c + 1) + off);
     }
 

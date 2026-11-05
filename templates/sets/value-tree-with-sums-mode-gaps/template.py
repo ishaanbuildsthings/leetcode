@@ -57,6 +57,7 @@
 #   tags: none
 #   other: children[2*log(U)]
 #   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset owns its node pool (node 0 = empty); Python: dicts keyed by heap index
+from random import getrandbits
 from heapq import heappop, heappush
 
 # Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
@@ -66,41 +67,58 @@ from heapq import heappop, heappush
 
 
 class ValueTreeMultiset:
-    __slots__ = ("lo", "hi", "cap", "c", "s", "n", "bk", "maxF", "gc", "gmin", "gmax", "dups", "total", "d")
+    __slots__ = ("lo", "hi", "B", "L", "R", "c", "s", "n", "bk", "maxF", "gc", "gmin", "gmax", "dups", "salt", "total", "d")
 
     # O(1) -- an empty multiset for values in [lo, hi] (any integers, negative is fine)
     def __init__(self, lo, hi):
         self.lo, self.hi = lo, hi
-        self.cap = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of value v is cap + (v - lo)
-        self.c = {}  # node -> copies below it
-        self.s = {}  # node -> sum of the copies below it
+        self.B = (hi - lo).bit_length()  # levels below the root: a value's path is the bits of v - lo, highest first
+        self._clearData()
+        self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
         self.bk, self.maxF = {}, 0  # mode: count -> the values with that many copies; the highest count
         self.n = self.total = self.d = 0
 
+    def _newNode(self):
+        self.L.append(0)
+        self.R.append(0)
+        self.c.append(0)
+        self.s.append(0)
+        return len(self.L) - 1
+
     def _insert(self, x, c):
-        cc, ss = self.c, self.s
-        i = self.cap + x - self.lo
-        old = cc.get(i, 0)
+        L, R, cc, ss = self.L, self.R, self.c, self.s
+        off, t, path = x - self.lo, 1, [1]
+        for h in range(self.B - 1, -1, -1):
+            kids = R if off >> h & 1 else L
+            nxt = kids[t]
+            if not nxt:
+                nxt = kids[t] = self._newNode()
+            t = nxt
+            path.append(t)
+        old = cc[t]
         pres = (old + c > 0) - (old > 0)
         self.d += pres
-        while i:
-            cc[i] = cc.get(i, 0) + c
-            ss[i] = ss.get(i, 0) + c * x
-            i >>= 1
+        cx = c * x
+        for i in path:
+            cc[i] += c
+            ss[i] += cx
         return old + c  # (x's new count)
 
     def _prefix(self, f, x):  # f's total over the values < x
         if x <= self.lo:
             return 0
         if x > self.hi:
-            return f.get(1, 0)
-        i = self.cap + x - self.lo
-        res = 0
-        while i > 1:
-            if i & 1:
-                res += f.get(i - 1, 0)
-            i >>= 1
+            return f[1]
+        L, R, off, t, res = self.L, self.R, x - self.lo, 1, 0
+        for h in range(self.B - 1, -1, -1):
+            if off >> h & 1:
+                res += f[L[t]]
+                t = R[t]
+            else:
+                t = L[t]
+            if not t:
+                break
         return res
 
     def _lt(self, x):
@@ -110,7 +128,14 @@ class ValueTreeMultiset:
         return self._prefix(self.c, x + 1)
 
     def _countOf(self, x):  # the leaf of x
-        return self.c.get(self.cap + x - self.lo, 0) if self.lo <= x <= self.hi else 0
+        if not self.lo <= x <= self.hi:
+            return 0
+        L, R, off, t = self.L, self.R, x - self.lo, 1
+        for h in range(self.B - 1, -1, -1):
+            t = R[t] if off >> h & 1 else L[t]
+            if not t:
+                return 0
+        return self.c[t]
 
     def _slt(self, x):
         return self._prefix(self.s, x)
@@ -119,25 +144,31 @@ class ValueTreeMultiset:
         return self._prefix(self.s, x + 1)
 
     def _kth(self, k):
-        c, i, size = self.c, 1, self.cap
-        while i < size:
-            i <<= 1
-            cl = c.get(i, 0)
+        L, R, c, t, v = self.L, self.R, self.c, 1, 0
+        for h in range(self.B - 1, -1, -1):
+            l = L[t]
+            cl = c[l]
             if k > cl:
                 k -= cl
-                i += 1
-        return i - size + self.lo
+                t = R[t]
+                v |= 1 << h
+            else:
+                t = l
+        return v + self.lo
 
     def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies, sum before it)
-        c, s, i, size, before, acc = self.c, self.s, 1, self.cap, 0, 0
-        while i < size:
-            i <<= 1
-            cl = c.get(i, 0)
+        L, R, c, s, t, v, before, acc = self.L, self.R, self.c, self.s, 1, 0, 0, 0
+        for h in range(self.B - 1, -1, -1):
+            l = L[t]
+            cl = c[l]
             if before + cl < k:
                 before += cl
-                acc += s.get(i, 0)
-                i += 1
-        return i - size + self.lo, before, c[i], acc
+                acc += s[l]
+                t = R[t]
+                v |= 1 << h
+            else:
+                t = l
+        return v + self.lo, before, c[t], acc
 
 
     def _add(self, x, c):  # c copies of x (c < 0 removes)
@@ -146,17 +177,17 @@ class ValueTreeMultiset:
         f = self._insert(x, c)  # x's new count
         g = f - c  # x's old count
         # mode: x moves from the bucket of its old count to its new one
-        bk = self.bk
+        bk, key = self.bk, x ^ self.salt if x.__class__ is int else x  # (salted: no fixed input can force set collisions)
         if g:
             vs = bk[g]
-            vs.discard(x)
+            vs.discard(key)
             if not vs:
                 del bk[g]
         if f:
             if f in bk:
-                bk[f].add(x)
+                bk[f].add(key)
             else:
-                bk[f] = {x}
+                bk[f] = {key}
             if f > self.maxF:
                 self.maxF = f
         while self.maxF and self.maxF not in bk:  # (it only drops as far as copies were removed: amortized O(1))
@@ -164,7 +195,9 @@ class ValueTreeMultiset:
         if (g >= 2) != (f >= 2):  # values with 2+ copies (then the smallest difference is 0)
             self.dups += 1 if f >= 2 else -1
         if not g or not f:  # x appeared or disappeared: the gap between its neighbours splits or comes back
-            p, q = self.largestLtX(x), self.smallestGtX(x)
+            i = self._lt(x)  # (one walk: the copies of x are known, and stored values skip any shift)
+            j = i + f
+            p, q = self._kth(i) if i else None, self._kth(j + 1) if j < self.n else None
             if f:
                 if p is not None and q is not None:
                     self._gap(q - p, -1)
@@ -181,29 +214,29 @@ class ValueTreeMultiset:
                     self._gap(q - p, 1)
 
     def _gap(self, g, c):  # one more (c = 1) / fewer (c = -1) gap of size g
-        gc = self.gc
-        k = gc.get(g, 0) + c
+        gc, key = self.gc, g ^ self.salt
+        k = gc.get(key, 0) + c
         if k:
-            gc[g] = k
+            gc[key] = k
             if k == 1 and c > 0:  # (a size already present has an entry in both heaps)
                 if len(self.gmin) > 2 * len(gc) + 8:  # mostly sizes no longer present: rebuild from the live ones
-                    self.gmin = sorted(gc)
+                    self.gmin = sorted(v ^ self.salt for v in gc)
                     self.gmax = [-v for v in reversed(self.gmin)]
                 else:
                     heappush(self.gmin, g)
                     heappush(self.gmax, -g)
         else:
-            del gc[g]
+            del gc[key]
 
     def _minGap(self):  # heap tops of sizes no longer present are dropped as they surface
-        h, gc = self.gmin, self.gc
-        while h[0] not in gc:
+        h, gc, salt = self.gmin, self.gc, self.salt
+        while h[0] ^ salt not in gc:
             heappop(h)
         return h[0]
 
     def _maxGap(self):
-        h, gc = self.gmax, self.gc
-        while -h[0] not in gc:
+        h, gc, salt = self.gmax, self.gc, self.salt
+        while -h[0] ^ salt not in gc:
             heappop(h)
         return -h[0]
 
@@ -219,9 +252,11 @@ class ValueTreeMultiset:
         self.n = self.d = 0
         self.total = 0
 
-    def _clearData(self):
-        self.c = {}
-        self.s = {}
+    def _clearData(self):  # just the empty node 0 and the root 1 (the old lists are freed in bulk)
+        self.L = [0, 0]
+        self.R = [0, 0]
+        self.c = [0, 0]
+        self.s = [0, 0]
 
     # O(logU) -- add one copy of x
     def add(self, x):
@@ -293,26 +328,34 @@ class ValueTreeMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(logU) -- largest value; None if empty
+    # O(logU) -- largest value; raises IndexError if empty
     def max(self):
-        return self._kth(self.n) if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self._kth(self.n)
 
     # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct
     # values
     def maxGap(self):
         return self._maxGap() if self.d >= 2 else None
 
-    # O(logU) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(logU) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self._kth((self.n >> 1) + 1) if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self._kth((self.n >> 1) + 1)
 
-    # O(logU) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(logU) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self._kth((self.n + 1) >> 1) if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self._kth((self.n + 1) >> 1)
 
-    # O(logU) -- smallest value; None if empty
+    # O(logU) -- smallest value; raises IndexError if empty
     def min(self):
-        return self._kth(1) if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self._kth(1)
 
     # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer
     # than 2 values
@@ -321,12 +364,14 @@ class ValueTreeMultiset:
             return None
         return 0 if self.dups else self._minGap()
 
-    # O(1) -- (a most frequent value, its count); None if empty. C++ returns the smallest of the most frequent values
+    # O(1) -- (a most frequent value, its count); raises IndexError if empty. C++ returns the smallest of the most
+    # frequent values
     def mode(self):
         if not self.n:
-            return None
+            raise IndexError("mode: the set is empty")
         f = self.maxF
-        return next(iter(self.bk[f])), f
+        v = next(iter(self.bk[f]))
+        return (v ^ self.salt if v.__class__ is int else v), f
 
     # O(logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
     # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
@@ -337,25 +382,25 @@ class ValueTreeMultiset:
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the largest value; None if empty
+    # O(logU) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self._kth(self.n)
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the smallest value; None if empty
+    # O(logU) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self._kth(1)
         self._add(v, -1)
         return v
 
     # O(logU) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1

@@ -73,6 +73,13 @@
 // T: int, long long, ...; sums in S (long long for small T).
 template <typename T>
 struct ValueTreeMultiset {
+    template <class K>
+    static K noneOf() {  // the lowest value of K, part by part for pairs and tuples
+        if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
+        else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
+    }
+    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { long long c; long long p; T xr; T andv = ~T(0); int l, r; };  // copies, distinct values, xor, AND below
     vector<Node> pool{Node{}};  // node 0: empty, its children are itself
@@ -451,17 +458,17 @@ struct ValueTreeMultiset {
         return kthAt(i + 1);
     }
 
-    // O(logU) -- largest value < x; nullopt if there is none
-    optional<T> largestLtX(T x) {
+    // O(logU) -- largest value < x; NONE if there is none
+    T largestLtX(T x) {
         long long c = lt(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logU) -- largest value <= x; nullopt if there is none
-    optional<T> largestLteX(T x) {
+    // O(logU) -- largest value <= x; NONE if there is none
+    T largestLteX(T x) {
         long long c = le(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
@@ -471,21 +478,21 @@ struct ValueTreeMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(1) -- largest value; nullopt if empty
-    optional<T> max() {
-        if (!n) return nullopt;
+    // O(1) -- largest value; throws out_of_range if empty
+    T max() {
+        if (!n) throw out_of_range("max: the set is empty");
         return mx;
     }
 
-    // O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
-    optional<T> medianHigh() {
-        if (!n) return nullopt;
+    // O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; throws out_of_range if empty
+    T medianHigh() {
+        if (!n) throw out_of_range("medianHigh: the set is empty");
         return high.v;
     }
 
-    // O(1) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
-    optional<T> medianLow() {
-        if (!n) return nullopt;
+    // O(1) -- lower median: the ceil(size/2)-th smallest value; throws out_of_range if empty
+    T medianLow() {
+        if (!n) throw out_of_range("medianLow: the set is empty");
         return low.v;
     }
 
@@ -494,16 +501,16 @@ struct ValueTreeMultiset {
         return findMex();
     }
 
-    // O(1) -- smallest value; nullopt if empty
-    optional<T> min() {
-        if (!n) return nullopt;
+    // O(1) -- smallest value; throws out_of_range if empty
+    T min() {
+        if (!n) throw out_of_range("min: the set is empty");
         return mn;
     }
 
-    // O(1) -- (a most frequent value, its count); nullopt if empty. C++ returns the smallest of the most frequent
-    // values
-    optional<pair<T, long long>> mode() {
-        if (!n) return nullopt;
+    // O(1) -- (a most frequent value, its count); throws out_of_range if empty. C++ returns the smallest of the most
+    // frequent values
+    pair<T, long long> mode() {
+        if (!n) throw out_of_range("mode: the set is empty");
         auto& [f, vs] = *bk.rbegin();
         return pair<T, long long>{*vs.begin(), f};
     }
@@ -517,17 +524,17 @@ struct ValueTreeMultiset {
         return v;
     }
 
-    // O(logU) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        if (!n) return nullopt;
+    // O(logU) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
         T v = mx;
         addRaw(v, -1);
         return v;
     }
 
-    // O(logU) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        if (!n) return nullopt;
+    // O(logU) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
         T v = mn;
         addRaw(v, -1);
         return v;
@@ -575,17 +582,17 @@ struct ValueTreeMultiset {
         return n;
     }
 
-    // O(logU) -- smallest value > x; nullopt if there is none
-    optional<T> smallestGtX(T x) {
+    // O(logU) -- smallest value > x; NONE if there is none
+    T smallestGtX(T x) {
         long long c = le(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logU) -- smallest value >= x; nullopt if there is none
-    optional<T> smallestGteX(T x) {
+    // O(logU) -- smallest value >= x; NONE if there is none
+    T smallestGteX(T x) {
         long long c = lt(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 

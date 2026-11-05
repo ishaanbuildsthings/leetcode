@@ -134,8 +134,11 @@ class SplayMultiset:
                 L[g] = x
             else:
                 R[g] = x
-        self._pull(p)
-        self._pull(x)
+        l, r = self.L[p], self.R[p]
+        self.Z[p] = self.Z[l] + self.Z[r] + self.C[p]
+        self.S[p] = self.S[l] + self.S[r] + self.C[p] * self.K[p]
+        self.O[p] = self.O[l] | self.O[r] | self.K[p]
+        self.A[p] = self.A[l] & self.A[r] & self.K[p]
 
     def _splay(self, x):  # x becomes the root of its tree
         P, L = self.P, self.L
@@ -145,6 +148,7 @@ class SplayMultiset:
             if g:
                 self._rotate(p if (L[g] == p) == (L[p] == x) else x)
             self._rotate(x)
+        self._pull(x)
         return x
 
     def _touch(self, t):
@@ -437,7 +441,9 @@ class SplayMultiset:
 
     # O(logN amortized) -- add one copy of x
     def add(self, x):
-        self._add(x, 1)
+        self.n += 1
+        self.total += x
+        self._insert(x, 1)
 
     # O(logN amortized) -- add cnt copies of val (nothing if cnt <= 0)
     def addCount(self, val, cnt):
@@ -561,21 +567,29 @@ class SplayMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(logN amortized) -- largest value; None if empty
+    # O(logN amortized) -- largest value; raises IndexError if empty
     def max(self):
-        return self._kth(self.n) if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self._kth(self.n)
 
-    # O(logN amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(logN amortized) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self._kth((self.n >> 1) + 1) if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self._kth((self.n >> 1) + 1)
 
-    # O(logN amortized) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(logN amortized) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self._kth((self.n + 1) >> 1) if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self._kth((self.n + 1) >> 1)
 
-    # O(logN amortized) -- smallest value; None if empty
+    # O(logN amortized) -- smallest value; raises IndexError if empty
     def min(self):
-        return self._kth(1) if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self._kth(1)
 
     # O(1) -- bitwise OR of all values; 0 if empty
     def orOfAll(self):
@@ -642,27 +656,29 @@ class SplayMultiset:
         self._add(v, -1)
         return v
 
-    # O(logN amortized) -- remove and return the largest value; None if empty
+    # O(logN amortized) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self._kth(self.n)
         self._add(v, -1)
         return v
 
-    # O(logN amortized) -- remove and return the smallest value; None if empty
+    # O(logN amortized) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self._kth(1)
         self._add(v, -1)
         return v
 
     # O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        if not self._countOf(x):
             return 0
-        self._add(x, -1)
+        self.n -= 1
+        self.total -= x
+        self._insert(x, -1)
         return 1
 
     # O(logN amortized) -- remove every copy of val; returns how many were removed

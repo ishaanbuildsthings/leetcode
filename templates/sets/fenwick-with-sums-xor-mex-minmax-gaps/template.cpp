@@ -67,7 +67,7 @@
 //   node: cnt[1*N] fc[1*N] fp[1*N] fs[1*N] fx[1*N]
 //   tags: none
 //   other: vals[1*N]
-//   note: N = how many distinct values were given to the constructor; the arrays are allocated once
+//   note: N = how many distinct values were given to the constructor; the arrays are allocated once. C++ integers also keep a hash table of at most 8*N ints from value to position; gaps keeps one of 8*N
 
 // Ordered multiset over values known ahead of time (offline): Fenwick trees over the sorted distinct values you pass
 // to the constructor, one counting copies, one summing them, one marking which values are present (for mex), one xor-ing the values with an odd count.
@@ -76,16 +76,29 @@
 // can be anything. T: int, long long, ...; sums in S (long long for small T).
 template <typename T>
 struct FenwickMultiset {
+    template <class K>
+    static K noneOf() {  // the lowest value of K, part by part for pairs and tuples
+        if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
+        else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
+    }
+    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     vector<T> vals;  // the sorted distinct values
     int m, top, z, run;
     vector<long long> cnt, fc, fp;  // copies per value; Fenwick of copies; Fenwick of present values
     vector<S> fs;  // Fenwick of copies * value
     vector<T> fx;  // Fenwick of xor over the values with an odd count
+    vector<int> slotOf;  // integer values only: hash table from a value to its position in vals, -1 for an empty slot
+    unsigned long long hashMultiplier = 1;  // random per instance, so no fixed input can force collisions
+    int hashShift = 0;
+    unsigned hashMask = 0;
+    int segSize = 1;  // positions in the segment trees below (a power of two >= m)
     long long n = 0, d = 0;
     struct Info { T v; long long before, c; S sb; };  // a value, copies before it, its copies, sum before it
     T mn{}, mx{};  // kept current by addRaw while n > 0
-    multiset<long long> gaps;  // differences between neighbouring distinct values
+    vector<int> gapFirst, gapLast;  // segment tree over positions: the first and last present value in each range, -1 if none
+    vector<long long> gapMin, gapMax;  // ... and the smallest and largest gap between neighbours inside it
     long long dups = 0;  // values with 2+ copies
     T xtotal = 0;  // xor of all values (copies count)
     S total = 0;
@@ -97,12 +110,30 @@ struct FenwickMultiset {
         m = (int)vals.size();
         top = m ? 1 << (31 - __builtin_clz(m)) : 0;  // highest power of two <= m, for binary lifting
         cnt.assign(m, 0), fc.assign(m + 1, 0);
+        while (segSize < m) segSize <<= 1;
+        gapFirst.assign(2 * segSize, -1), gapLast.assign(2 * segSize, -1);
+        gapMin.assign(2 * segSize, LLONG_MAX), gapMax.assign(2 * segSize, -1);
         fp.assign(m + 1, 0);
         fs.assign(m + 1, 0);
         fx.assign(m + 1, 0);
         z = int(lower_bound(vals.begin(), vals.end(), T(0)) - vals.begin());
         run = 0;
         while (z + run < m && vals[z + run] == T(run)) run++;  // vals[z .. z + run - 1] = 0, 1, ..., run - 1
+        if constexpr (is_integral_v<T>) {
+            unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count() ^ (unsigned long long)(uintptr_t)this;
+            seed = (seed ^ (seed >> 30)) * 0xBF58476D1CE4E5B9ULL;
+            seed = (seed ^ (seed >> 27)) * 0x94D049BB133111EBULL;
+            hashMultiplier = (seed ^ (seed >> 31)) | 1;
+            int bits = 3;
+            while ((1LL << bits) < 4LL * m) bits++;
+            hashShift = 64 - bits, hashMask = (1u << bits) - 1;
+            slotOf.assign(1u << bits, -1);
+            for (int i = 0; i < m; i++) {
+                unsigned h = hashOf(vals[i]);
+                while (slotOf[h] >= 0) h = (h + 1) & hashMask;
+                slotOf[h] = i;
+            }
+        }
     }
 
     template <class V>
@@ -120,8 +151,48 @@ struct FenwickMultiset {
     int lowerIdx(T x) const { return int(lower_bound(vals.begin(), vals.end(), x) - vals.begin()); }
     int upperIdx(T x) const { return int(upper_bound(vals.begin(), vals.end(), x) - vals.begin()); }
 
+    unsigned hashOf(T x) const {
+        return unsigned((unsigned long long)(long long)x * hashMultiplier >> hashShift);
+    }
+    int rankOf(T x) const {  // x's position in vals, or m if it is not a given value; expected O(1) for integers
+        if constexpr (is_integral_v<T>) {
+            for (unsigned h = hashOf(x);; h = (h + 1) & hashMask) {
+                int i = slotOf[h];
+                if (i < 0) return m;
+                if (vals[i] == x) return i;
+            }
+        } else {
+            int i = lowerIdx(x);
+            return i < m && vals[i] == x ? i : m;
+        }
+    }
+
+    void gapSet(int i, bool present) {  // position i's value appeared or disappeared
+        int j = i + segSize;
+        gapFirst[j] = gapLast[j] = present ? i : -1;
+        for (j >>= 1; j; j >>= 1) {
+            int a = 2 * j, b = a + 1;
+            if (gapLast[a] < 0 || gapFirst[b] < 0) {
+                int side = gapLast[a] < 0 ? b : a;
+                gapFirst[j] = gapFirst[side], gapLast[j] = gapLast[side], gapMin[j] = gapMin[side], gapMax[j] = gapMax[side];
+            } else {
+                long long middle = (long long)vals[gapFirst[b]] - (long long)vals[gapLast[a]];
+                gapFirst[j] = gapFirst[a], gapLast[j] = gapLast[b];
+                gapMin[j] = gapMin[a] < gapMin[b] ? gapMin[a] : gapMin[b];
+                if (middle < gapMin[j]) gapMin[j] = middle;
+                gapMax[j] = gapMax[a] > gapMax[b] ? gapMax[a] : gapMax[b];
+                if (middle > gapMax[j]) gapMax[j] = middle;
+            }
+        }
+    }
+
     long long insert(T x, long long c) {  // returns x's new count
-        int i = lowerIdx(x);  // x must be one of the given values
+        int i = rankOf(x);
+        if (i == m) i = lowerIdx(x);  // x must be one of the given values
+        return insertAt(i, x, c);
+    }
+
+    long long insertAt(int i, T x, long long c) {  // i is x's position in vals; returns x's new count
         long long old = cnt[i];
         cnt[i] += c;
         fen(fc, i, c);
@@ -130,6 +201,7 @@ struct FenwickMultiset {
             for (int j = i + 1; j <= m; j += j & -j) fx[j] ^= x;  // x's parity flips
         if (!old) fen(fp, i, 1LL), d++;
         else if (!cnt[i]) fen(fp, i, -1LL), d--;
+        if (!old || !cnt[i]) gapSet(i, cnt[i] > 0);
         return cnt[i];
     }
 
@@ -137,8 +209,8 @@ struct FenwickMultiset {
     long long le(T x) { return pre(fc, upperIdx(x)); }
 
     long long countOf(T x) const {
-        int i = lowerIdx(x);
-        return i < m && vals[i] == x ? cnt[i] : 0;
+        int i = rankOf(x);
+        return i < m ? cnt[i] : 0;
     }
     S slt(T x) { return pre(fs, lowerIdx(x)); }
     S sle(T x) { return pre(fs, upperIdx(x)); }
@@ -168,26 +240,18 @@ struct FenwickMultiset {
     }
 
     void addRaw(T x, long long c) {  // c copies of x (c < 0 removes); keeps min / max current
+        int i = rankOf(x);
+        addAt(i == m ? lowerIdx(x) : i, x, c);
+    }
+
+    void addAt(int i, T x, long long c) {  // addRaw, with x's position known
         n += c;
         total += S(c) * x;
         if (c & 1) xtotal ^= x;  // an odd number of copies flips x in or out of the xor of everything
-        long long f = insert(x, c);  // x's new count
+        long long f = insertAt(i, x, c);  // x's new count
         long long g = f - c;  // x's old count
         {  // gaps
             if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
-            if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
-                optional<T> p = largestLtX(x), q = smallestGtX(x);
-                auto drop = [&](long long v) { gaps.erase(gaps.find(v)); };
-                if (f) {
-                    if (p && q) drop((long long)*q - (long long)*p);
-                    if (p) gaps.insert((long long)x - (long long)*p);
-                    if (q) gaps.insert((long long)*q - (long long)x);
-                } else {
-                    if (p) drop((long long)x - (long long)*p);
-                    if (q) drop((long long)*q - (long long)x);
-                    if (p && q) gaps.insert((long long)*q - (long long)*p);
-                }
-            }
         }
         if (c > 0) {
             if (n == c) {  // the set was empty
@@ -212,7 +276,7 @@ struct FenwickMultiset {
     }
 
     void resetCached() {  // nothing counted: as newly built
-        gaps.clear(), dups = 0;
+        dups = 0;
         n = d = 0;
         total = 0;
         xtotal = 0;
@@ -231,10 +295,11 @@ struct FenwickMultiset {
             }
             for (int i : slots) {
                 cnt[i] = 0;
+                gapSet(i, false);
                 for (int j = i + 1; j <= m; j += j & -j) fc[j] = 0, fs[j] = 0, fp[j] = 0, fx[j] = 0;
             }
         } else {
-            fill(cnt.begin(), cnt.end(), 0), fill(fc.begin(), fc.end(), 0), fill(fs.begin(), fs.end(), 0), fill(fp.begin(), fp.end(), 0), fill(fx.begin(), fx.end(), 0);
+            fill(cnt.begin(), cnt.end(), 0), fill(fc.begin(), fc.end(), 0), fill(fs.begin(), fs.end(), 0), fill(fp.begin(), fp.end(), 0), fill(fx.begin(), fx.end(), 0), fill(gapFirst.begin(), gapFirst.end(), -1), fill(gapLast.begin(), gapLast.end(), -1), fill(gapMin.begin(), gapMin.end(), LLONG_MAX), fill(gapMax.begin(), gapMax.end(), -1);
         }
     }
 
@@ -330,17 +395,17 @@ struct FenwickMultiset {
         return kthAt(i + 1);
     }
 
-    // O(logN) -- largest value < x; nullopt if there is none
-    optional<T> largestLtX(T x) {
+    // O(logN) -- largest value < x; NONE if there is none
+    T largestLtX(T x) {
         long long c = lt(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logN) -- largest value <= x; nullopt if there is none
-    optional<T> largestLteX(T x) {
+    // O(logN) -- largest value <= x; NONE if there is none
+    T largestLteX(T x) {
         long long c = le(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
@@ -350,28 +415,27 @@ struct FenwickMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(1) -- largest value; nullopt if empty
-    optional<T> max() {
-        if (!n) return nullopt;
+    // O(1) -- largest value; throws out_of_range if empty
+    T max() {
+        if (!n) throw out_of_range("max: the set is empty");
         return mx;
     }
 
-    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct
-    // values
-    optional<long long> maxGap() {
-        if (d < 2) return nullopt;
-        return *gaps.rbegin();
+    // O(1 amortized) -- largest difference between two neighbouring distinct values; -1 if fewer than 2 distinct values
+    long long maxGap() {
+        if (d < 2) return -1;
+        return gapMax[1];
     }
 
-    // O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
-    optional<T> medianHigh() {
-        if (!n) return nullopt;
+    // O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; throws out_of_range if empty
+    T medianHigh() {
+        if (!n) throw out_of_range("medianHigh: the set is empty");
         return kthAt(n / 2 + 1);
     }
 
-    // O(logN) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
-    optional<T> medianLow() {
-        if (!n) return nullopt;
+    // O(logN) -- lower median: the ceil(size/2)-th smallest value; throws out_of_range if empty
+    T medianLow() {
+        if (!n) throw out_of_range("medianLow: the set is empty");
         return kthAt((n + 1) / 2);
     }
 
@@ -380,18 +444,18 @@ struct FenwickMultiset {
         return findMex();
     }
 
-    // O(1) -- smallest value; nullopt if empty
-    optional<T> min() {
-        if (!n) return nullopt;
+    // O(1) -- smallest value; throws out_of_range if empty
+    T min() {
+        if (!n) throw out_of_range("min: the set is empty");
         return mn;
     }
 
-    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if
-    // fewer than 2 values
-    optional<long long> minAdjacentDiff() {
-        if (n < 2) return nullopt;
+    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); -1 if fewer
+    // than 2 values
+    long long minAdjacentDiff() {
+        if (n < 2) return -1;
         if (dups) return 0LL;
-        return *gaps.begin();
+        return gapMin[1];
     }
 
     // O(logN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
@@ -403,17 +467,17 @@ struct FenwickMultiset {
         return v;
     }
 
-    // O(logN) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        if (!n) return nullopt;
+    // O(logN) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
         T v = mx;
         addRaw(v, -1);
         return v;
     }
 
-    // O(logN) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        if (!n) return nullopt;
+    // O(logN) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
         T v = mn;
         addRaw(v, -1);
         return v;
@@ -421,8 +485,9 @@ struct FenwickMultiset {
 
     // O(logN) -- remove one copy of x if present; returns how many were removed (0 or 1)
     long long remove(T x) {
-        if (!count(x)) return 0;
-        addRaw(x, -1);
+        int i = rankOf(x);  // one lookup for both the check and the removal
+        if (i == m || !cnt[i]) return 0;
+        addAt(i, x, -1);
         return 1;
     }
 
@@ -461,17 +526,17 @@ struct FenwickMultiset {
         return n;
     }
 
-    // O(logN) -- smallest value > x; nullopt if there is none
-    optional<T> smallestGtX(T x) {
+    // O(logN) -- smallest value > x; NONE if there is none
+    T smallestGtX(T x) {
         long long c = le(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logN) -- smallest value >= x; nullopt if there is none
-    optional<T> smallestGteX(T x) {
+    // O(logN) -- smallest value >= x; NONE if there is none
+    T smallestGteX(T x) {
         long long c = lt(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 

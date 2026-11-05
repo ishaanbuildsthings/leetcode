@@ -45,6 +45,7 @@
 #   tags: none
 #   other: maxes[1*sqrt(N)] bc[2*sqrt(N)] cnt[1*N]
 #   note: N = distinct values present; blocks of LOAD..2*LOAD values (Python LOAD = 64, C++ 512); queries are O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt)
+from random import getrandbits
 from bisect import bisect_left, bisect_right
 from itertools import accumulate
 from operator import and_, sub
@@ -58,7 +59,7 @@ from operator import and_, sub
 
 class BlockFenwickMultiset:
     LOAD = 64
-    __slots__ = ("keys", "cnts", "fcs", "maxes", "bc", "fc", "cnt", "n", "off", "d")
+    __slots__ = ("keys", "cnts", "fcs", "maxes", "bc", "fc", "cnt", "n", "off", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -67,6 +68,7 @@ class BlockFenwickMultiset:
         self.maxes = []  # last value of each block
         self.bc, self.fc = [], [0]  # per block: total copies; Fenwick over them
         self.cnt = {}  # value -> copies
+        self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.off = 0  # every value v is stored as v - off: shiftAll only moves off
         self.n = self.d = 0
 
@@ -98,18 +100,18 @@ class BlockFenwickMultiset:
         self.fcs[k] = self._build(self.cnts[k])
 
     def _insert(self, x, c):
-        old = self.cnt.get(x, 0)
+        old = self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
         if old:
             k = bisect_left(self.maxes, x)
             j = bisect_left(self.keys[k], x)
             self.bc[k] += c
             self._fen(self.fc, k, c)
             if old + c:  # x stays: point updates only
-                self.cnt[x] = old + c
+                self.cnt[x ^ self.salt if x.__class__ is int else x] = old + c
                 self.cnts[k][j] += c
                 self._fen(self.fcs[k], j, c)
                 return old + c
-            del self.cnt[x]
+            del self.cnt[x ^ self.salt if x.__class__ is int else x]
             self.d -= 1
             del self.keys[k][j], self.cnts[k][j]
             if not self.keys[k]:  # the block is empty: drop it
@@ -119,7 +121,7 @@ class BlockFenwickMultiset:
             self.maxes[k] = self.keys[k][-1]
             self._reinner(k)
             return 0
-        self.cnt[x] = c
+        self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
         if not self.keys:
             self.keys.append([x])
@@ -167,7 +169,7 @@ class BlockFenwickMultiset:
         return self._pre(self.fc, k) + self._pre(self.fcs[k], bisect_right(self.keys[k], x))
 
     def _countOf(self, x):
-        return self.cnt.get(x, 0)
+        return self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
 
     def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies): lift over blocks, then inside one
         fc = self.fc
@@ -242,7 +244,8 @@ class BlockFenwickMultiset:
     # O(sqrtN) -- add one copy of x
     def add(self, x):
         x -= self.off
-        self._add(x, 1)
+        self.n += 1
+        self._insert(x, 1)
 
     # O(sqrtN) -- add cnt copies of val (nothing if cnt <= 0)
     def addCount(self, val, cnt):
@@ -330,25 +333,33 @@ class BlockFenwickMultiset:
         x -= self.off
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(logN) -- largest value; None if empty
+    # O(logN) -- largest value; raises IndexError if empty
     def max(self):
-        return self._kth(self.n) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self._kth(self.n) + self.off
 
-    # O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self._kth((self.n >> 1) + 1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self._kth((self.n >> 1) + 1) + self.off
 
-    # O(logN) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(logN) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self._kth((self.n + 1) >> 1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self._kth((self.n + 1) >> 1) + self.off
 
     # O(sqrtN) -- smallest non-negative integer not in the set
     def mex(self):
         return self._findMex() + self.off
 
-    # O(logN) -- smallest value; None if empty
+    # O(logN) -- smallest value; raises IndexError if empty
     def min(self):
-        return self._kth(1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self._kth(1) + self.off
 
     # O(sqrtN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
     # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
@@ -359,18 +370,18 @@ class BlockFenwickMultiset:
         self._add(v, -1)
         return v + self.off
 
-    # O(sqrtN) -- remove and return the largest value; None if empty
+    # O(sqrtN) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self._kth(self.n)
         self._add(v, -1)
         return v + self.off
 
-    # O(sqrtN) -- remove and return the smallest value; None if empty
+    # O(sqrtN) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self._kth(1)
         self._add(v, -1)
         return v + self.off
@@ -380,7 +391,8 @@ class BlockFenwickMultiset:
         x -= self.off
         if not self._countOf(x):
             return 0
-        self._add(x, -1)
+        self.n -= 1
+        self._insert(x, -1)
         return 1
 
     # O(sqrtN) -- remove every copy of val; returns how many were removed

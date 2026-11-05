@@ -187,28 +187,30 @@ class FastSet:
     def __len__(self):
         return self.n
 
-    # O(log64(U)) -- smallest value; None if empty
+    # O(log64(U)) -- smallest value; raises IndexError if empty
     def min(self):
         i = self._next(0)
-        return None if i < 0 else self.lo + i
+        if i < 0:
+            raise IndexError("min: the set is empty")
+        return self.lo + i
 
-    # O(log64(U)) -- largest value; None if empty
+    # O(log64(U)) -- largest value; raises IndexError if empty
     def max(self):
         i = self._prev(self.u - 1)
-        return None if i < 0 else self.lo + i
+        if i < 0:
+            raise IndexError("max: the set is empty")
+        return self.lo + i
 
-    # O(log64(U)) -- remove and return the smallest value; None if empty
+    # O(log64(U)) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         v = self.min()
-        if v is not None:
-            self.remove(v)
+        self.remove(v)
         return v
 
-    # O(log64(U)) -- remove and return the largest value; None if empty
+    # O(log64(U)) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         v = self.max()
-        if v is not None:
-            self.remove(v)
+        self.remove(v)
         return v
 
     # O(log64(U)) -- smallest value >= x; None if there is none

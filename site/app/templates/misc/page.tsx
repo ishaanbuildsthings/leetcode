@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
 import { BUBBLE_SORT } from "@/lib/bubble-sort";
+import { NEXT_PERMUTATION } from "@/lib/next-permutation";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -30,7 +31,10 @@ export default async function MiscTemplatesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <MiscTemplates title="Misc. templates" sections={[{ title: "Bubble Sort", items: BUBBLE_SORT }]} publicBase="/range-query-templates" />
+        <MiscTemplates title="Misc. templates" sections={[
+            { title: "Bubble Sort", items: BUBBLE_SORT },
+            { title: "Next Permutation", items: NEXT_PERMUTATION },
+          ]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>
   );

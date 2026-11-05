@@ -44,6 +44,7 @@
 #   tags: none
 #   other: children[2*N] prio[1*N]
 #   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
+from random import getrandbits
 from random import random
 
 
@@ -53,13 +54,14 @@ from random import random
 
 
 class TreapMultiset:
-    __slots__ = ("K", "C", "Z", "P", "L", "R", "free", "root", "n", "mn", "mx", "bk", "maxF", "off", "d")
+    __slots__ = ("K", "C", "Z", "P", "L", "R", "free", "root", "n", "mn", "mx", "bk", "maxF", "off", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
         self.K, self.C, self.Z = [0], [0], [0]  # key, copies, copies below
         self.P, self.L, self.R = [0.0], [0], [0]  # priority, children
         self.free = []  # removed nodes, reused first
+        self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.off = 0  # every value v is stored as v - off: shiftAll only moves off
         self.bk, self.maxF = {}, 0  # mode: count -> the values with that many copies; the highest count
         self.root = self.n = self.d = 0
@@ -118,20 +120,50 @@ class TreapMultiset:
         self._pull(b)
         return b
 
-    def _insert(self, x, c):
-        a, b = self._split(self.root, x)
-        m, b = self._splitLe(b, x)  # m: the node of x, or 0
-        if not m:
+    def _insert(self, x, c):  # walks once: a value already present never needs a split or merge
+        K, L, R, C = self.K, self.L, self.R, self.C
+        path, t = [], self.root
+        while t:
+            path.append(t)
+            key = K[t]
+            if x < key:
+                t = L[t]
+            elif key < x:
+                t = R[t]
+            else:
+                break
+        if t:
+            f = C[t] = C[t] + c
+            path.pop()
+            if f:
+                self._pull(t)
+                cur = t
+            else:
+                self.free.append(t)
+                self.d -= 1
+                cur = self._merge(L[t], R[t])
+        else:
             m = self._new(x)
             self.d += 1
-        f = self.C[m] = self.C[m] + c
-        if f:
+            f = C[m] = c
+            P, prio, i = self.P, self.P[m], 0
+            while i < len(path) and P[path[i]] >= prio:  # the new node goes where its priority belongs
+                i += 1
+            if i < len(path):
+                L[m], R[m] = self._split(path[i], x)
+                del path[i:]
             self._pull(m)
-        else:
-            self.free.append(m)
-            m = 0
-            self.d -= 1
-        self.root = self._merge(self._merge(a, m), b)
+            cur = m
+        while path:
+            q = path.pop()
+            if x < K[q]:
+                L[q] = cur
+            else:
+                R[q] = cur
+            l, r = self.L[q], self.R[q]
+            self.Z[q] = self.Z[l] + self.Z[r] + self.C[q]
+            cur = q
+        self.root = cur
         return f  # (x's new count)
 
     def _lt(self, x):  # copies of values < x
@@ -196,17 +228,17 @@ class TreapMultiset:
         f = self._insert(x, c)  # x's new count
         g = f - c  # x's old count
         # mode: x moves from the bucket of its old count to its new one
-        bk = self.bk
+        bk, key = self.bk, x ^ self.salt if x.__class__ is int else x  # (salted: no fixed input can force set collisions)
         if g:
             vs = bk[g]
-            vs.discard(x)
+            vs.discard(key)
             if not vs:
                 del bk[g]
         if f:
             if f in bk:
-                bk[f].add(x)
+                bk[f].add(key)
             else:
-                bk[f] = {x}
+                bk[f] = {key}
             if f > self.maxF:
                 self.maxF = f
         while self.maxF and self.maxF not in bk:  # (it only drops as far as copies were removed: amortized O(1))
@@ -327,28 +359,38 @@ class TreapMultiset:
         x -= self.off
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(1) -- largest value; None if empty
+    # O(1) -- largest value; raises IndexError if empty
     def max(self):
-        return self.mx + self.off if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self.mx + self.off
 
-    # O(logN expected) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(logN expected) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self._kth((self.n >> 1) + 1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self._kth((self.n >> 1) + 1) + self.off
 
-    # O(logN expected) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(logN expected) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self._kth((self.n + 1) >> 1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self._kth((self.n + 1) >> 1) + self.off
 
-    # O(1) -- smallest value; None if empty
+    # O(1) -- smallest value; raises IndexError if empty
     def min(self):
-        return self.mn + self.off if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self.mn + self.off
 
-    # O(1) -- (a most frequent value, its count); None if empty. C++ returns the smallest of the most frequent values
+    # O(1) -- (a most frequent value, its count); raises IndexError if empty. C++ returns the smallest of the most
+    # frequent values
     def mode(self):
         if not self.n:
-            return None
+            raise IndexError("mode: the set is empty")
         f = self.maxF
-        return next(iter(self.bk[f])) + self.off, f
+        v = next(iter(self.bk[f]))
+        return (v ^ self.salt if v.__class__ is int else v) + self.off, f
 
     # O(logN expected) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
     # popMin()), pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
@@ -359,18 +401,18 @@ class TreapMultiset:
         self._add(v, -1)
         return v + self.off
 
-    # O(logN expected) -- remove and return the largest value; None if empty
+    # O(logN expected) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self.mx
         self._add(v, -1)
         return v + self.off
 
-    # O(logN expected) -- remove and return the smallest value; None if empty
+    # O(logN expected) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self.mn
         self._add(v, -1)
         return v + self.off

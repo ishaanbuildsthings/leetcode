@@ -34,6 +34,7 @@
 #   tags: none
 #   other: none
 #   note: U = hi - lo + 1: a count per value, plus the trie's U / 64 + U / 4096 + ... 64-bit words (about U / 63)
+from random import getrandbits
 from heapq import heappop, heappush
 
 # Ordered multiset of integers in [lo, hi] (FastSet): a 64-ary bit trie over the U = hi - lo + 1 slots, a bit meaning
@@ -43,7 +44,7 @@ from heapq import heappop, heappush
 
 
 class FastSetMultiset:
-    __slots__ = ("lo", "hi", "u", "seg", "cnt", "n", "mn", "mx", "bk", "maxF", "gc", "gmin", "gmax", "dups", "d")
+    __slots__ = ("lo", "hi", "u", "seg", "cnt", "n", "mn", "mx", "bk", "maxF", "gc", "gmin", "gmax", "dups", "salt", "d")
 
     # O(U) -- lo, hi: every value added lies in [lo, hi] (any integers, negative is fine); U = hi - lo + 1
     def __init__(self, lo, hi):
@@ -58,6 +59,7 @@ class FastSetMultiset:
             if words == 1:
                 break
             width = words
+        self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
         self.bk, self.maxF = {}, 0  # mode: count -> the values with that many copies; the highest count
         self.n = self.d = 0
@@ -132,17 +134,17 @@ class FastSetMultiset:
         f = self._insert(x, c)  # x's new count
         g = f - c  # x's old count
         # mode: x moves from the bucket of its old count to its new one
-        bk = self.bk
+        bk, key = self.bk, x ^ self.salt if x.__class__ is int else x  # (salted: no fixed input can force set collisions)
         if g:
             vs = bk[g]
-            vs.discard(x)
+            vs.discard(key)
             if not vs:
                 del bk[g]
         if f:
             if f in bk:
-                bk[f].add(x)
+                bk[f].add(key)
             else:
-                bk[f] = {x}
+                bk[f] = {key}
             if f > self.maxF:
                 self.maxF = f
         while self.maxF and self.maxF not in bk:  # (it only drops as far as copies were removed: amortized O(1))
@@ -184,29 +186,29 @@ class FastSetMultiset:
                     self.mx = self._kth(n)
 
     def _gap(self, g, c):  # one more (c = 1) / fewer (c = -1) gap of size g
-        gc = self.gc
-        k = gc.get(g, 0) + c
+        gc, key = self.gc, g ^ self.salt
+        k = gc.get(key, 0) + c
         if k:
-            gc[g] = k
+            gc[key] = k
             if k == 1 and c > 0:  # (a size already present has an entry in both heaps)
                 if len(self.gmin) > 2 * len(gc) + 8:  # mostly sizes no longer present: rebuild from the live ones
-                    self.gmin = sorted(gc)
+                    self.gmin = sorted(v ^ self.salt for v in gc)
                     self.gmax = [-v for v in reversed(self.gmin)]
                 else:
                     heappush(self.gmin, g)
                     heappush(self.gmax, -g)
         else:
-            del gc[g]
+            del gc[key]
 
     def _minGap(self):  # heap tops of sizes no longer present are dropped as they surface
-        h, gc = self.gmin, self.gc
-        while h[0] not in gc:
+        h, gc, salt = self.gmin, self.gc, self.salt
+        while h[0] ^ salt not in gc:
             heappop(h)
         return h[0]
 
     def _maxGap(self):
-        h, gc = self.gmax, self.gc
-        while -h[0] not in gc:
+        h, gc, salt = self.gmax, self.gc, self.salt
+        while -h[0] ^ salt not in gc:
             heappop(h)
         return -h[0]
 
@@ -266,18 +268,22 @@ class FastSetMultiset:
         i = self._prev(x - self.lo)
         return None if i < 0 else self.lo + i
 
-    # O(1) -- largest value; None if empty
+    # O(1) -- largest value; raises IndexError if empty
     def max(self):
-        return self.mx if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self.mx
 
     # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct
     # values
     def maxGap(self):
         return self._maxGap() if self.d >= 2 else None
 
-    # O(1) -- smallest value; None if empty
+    # O(1) -- smallest value; raises IndexError if empty
     def min(self):
-        return self.mn if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self.mn
 
     # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer
     # than 2 values
@@ -286,32 +292,34 @@ class FastSetMultiset:
             return None
         return 0 if self.dups else self._minGap()
 
-    # O(1) -- (a most frequent value, its count); None if empty. C++ returns the smallest of the most frequent values
+    # O(1) -- (a most frequent value, its count); raises IndexError if empty. C++ returns the smallest of the most
+    # frequent values
     def mode(self):
         if not self.n:
-            return None
+            raise IndexError("mode: the set is empty")
         f = self.maxF
-        return next(iter(self.bk[f])), f
+        v = next(iter(self.bk[f]))
+        return (v ^ self.salt if v.__class__ is int else v), f
 
-    # O(log64(U)) -- remove and return the largest value; None if empty
+    # O(log64(U)) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self.mx
         self._add(v, -1)
         return v
 
-    # O(log64(U)) -- remove and return the smallest value; None if empty
+    # O(log64(U)) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self.mn
         self._add(v, -1)
         return v
 
     # O(log64(U)) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1

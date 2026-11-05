@@ -64,7 +64,7 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
   const { langs, data } = readStem("template");
   const distinct = readStem("distinct");
   for (const f of fs.readdirSync(folderPath))
-    if (!["template", "distinct"].some((stem) => Object.keys(LANGS).some((ext) => f === `${stem}${ext}`))) errors.push(`${folder}: unexpected file ${f}`);
+    if (f !== "fast.cpp" && f !== "distinct-fast.cpp" && !["template", "distinct"].some((stem) => Object.keys(LANGS).some((ext) => f === `${stem}${ext}`))) errors.push(`${folder}: unexpected file ${f}`);
   if (!data) {
     errors.push(`${folder}: no template.py or template.cpp`);
     continue;
@@ -73,6 +73,13 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
   if (distinct.data) {
     const d = distinct.data;
     entry.distinct = { langs: distinct.langs, operations: d.operations, complexities: d.complexities, build: d.build, memory: d.memory };
+  }
+  if (fs.existsSync(path.join(folderPath, "fast.cpp"))) {
+    // (an optional harder-tuned C++ file: the picker's fast mode. It must publish the same operations as template.cpp.)
+    const { errs, data: d } = readHeaderFile(`${folder}/fast.cpp`, path.join(folderPath, "fast.cpp"), { tags: TAGS });
+    errors.push(...errs);
+    if (JSON.stringify(d.operations) !== JSON.stringify(entry.operations)) errors.push(`${folder}: fast.cpp and template.cpp list different operations`);
+    entry.fast = true;
   }
   entries.push(entry);
 }
@@ -84,9 +91,9 @@ if (errors.length) {
 
 fs.rmSync(publicDir, { recursive: true, force: true });
 fs.mkdirSync(publicDir, { recursive: true });
-for (const { folder, langs, distinct } of entries) {
+for (const { folder, langs, distinct, fast } of entries) {
   fs.mkdirSync(path.join(publicDir, folder), { recursive: true });
-  const files = [...langs.map((l) => `template.${l}`), ...(distinct?.langs ?? []).map((l) => `distinct.${l}`)];
+  const files = [...langs.map((l) => `template.${l}`), ...(distinct?.langs ?? []).map((l) => `distinct.${l}`), ...(fast ? ["fast.cpp"] : []), ...(distinct && fast ? ["distinct-fast.cpp"] : [])];
   for (const f of files) fs.copyFileSync(path.join(srcDir, folder, f), path.join(publicDir, folder, f));
 }
 
@@ -134,6 +141,7 @@ export const SET_OP_NAMES: readonly SetOpId[] = ${JSON.stringify(opNames)};
 export const SET_COSTS: readonly string[] = ${JSON.stringify(costs.items)};
 export const SET_OP_LISTS: readonly (readonly number[])[] = ${JSON.stringify(opLists.items)};
 export const SET_MEMORIES: readonly MemoryBreakdown[] = ${JSON.stringify(memories.items)};
+export const SET_FAST_FOLDERS: readonly string[] = ${JSON.stringify(entries.filter((e) => e.fast).map((e) => e.folder))};
 // [folder, langs, type, values, keys, tracks, op list, costs, build, memory, distinct?]
 export const SET_TEMPLATE_ROWS: readonly SetTemplateRow[] = [
 ${rows.map((r) => "  " + JSON.stringify(r)).join(",\n")},

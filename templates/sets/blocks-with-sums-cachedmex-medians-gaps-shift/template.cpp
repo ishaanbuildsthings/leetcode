@@ -66,6 +66,13 @@
 // lifting over the block Fenwick for k-th) and then works inside one block. T: an integer type; sums in S.
 template <typename T>
 struct BlockMultiset {
+    template <class K>
+    static K noneOf() {  // the lowest value of K, part by part for pairs and tuples
+        if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
+        else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
+    }
+    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr int LOAD = 512;
     vector<vector<T>> keys;  // blocks of sorted distinct values
@@ -266,7 +273,7 @@ struct BlockMultiset {
         {  // gaps
             if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
-                long long cl = lt(x), ce = le(x);  // (stored values: the public ops would shift x again)
+                long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)
                 optional<T> p, q;
                 if (cl) p = kthAt(cl);
                 if (ce < n) q = kthAt(ce + 1);
@@ -413,19 +420,19 @@ struct BlockMultiset {
         return T(kthAt(i + 1) + off);
     }
 
-    // O(sqrtN) -- largest value < x; nullopt if there is none
-    optional<T> largestLtX(T x) {
+    // O(sqrtN) -- largest value < x; NONE if there is none
+    T largestLtX(T x) {
         x -= off;
         long long c = lt(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return T(kthAt(c) + off);
     }
 
-    // O(sqrtN) -- largest value <= x; nullopt if there is none
-    optional<T> largestLteX(T x) {
+    // O(sqrtN) -- largest value <= x; NONE if there is none
+    T largestLteX(T x) {
         x -= off;
         long long c = le(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return T(kthAt(c) + off);
     }
 
@@ -436,28 +443,27 @@ struct BlockMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(sqrtN) -- largest value; nullopt if empty
-    optional<T> max() {
-        if (!n) return nullopt;
+    // O(sqrtN) -- largest value; throws out_of_range if empty
+    T max() {
+        if (!n) throw out_of_range("max: the set is empty");
         return T(kthAt(n) + off);
     }
 
-    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct
-    // values
-    optional<long long> maxGap() {
-        if (d < 2) return nullopt;
+    // O(1 amortized) -- largest difference between two neighbouring distinct values; -1 if fewer than 2 distinct values
+    long long maxGap() {
+        if (d < 2) return -1;
         return *gaps.rbegin();
     }
 
-    // O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
-    optional<T> medianHigh() {
-        if (!n) return nullopt;
+    // O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; throws out_of_range if empty
+    T medianHigh() {
+        if (!n) throw out_of_range("medianHigh: the set is empty");
         return T(high.v + off);
     }
 
-    // O(1) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
-    optional<T> medianLow() {
-        if (!n) return nullopt;
+    // O(1) -- lower median: the ceil(size/2)-th smallest value; throws out_of_range if empty
+    T medianLow() {
+        if (!n) throw out_of_range("medianLow: the set is empty");
         return T(low.v + off);
     }
 
@@ -466,16 +472,16 @@ struct BlockMultiset {
         return mexV + off;
     }
 
-    // O(sqrtN) -- smallest value; nullopt if empty
-    optional<T> min() {
-        if (!n) return nullopt;
+    // O(sqrtN) -- smallest value; throws out_of_range if empty
+    T min() {
+        if (!n) throw out_of_range("min: the set is empty");
         return T(kthAt(1) + off);
     }
 
-    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if
-    // fewer than 2 values
-    optional<long long> minAdjacentDiff() {
-        if (n < 2) return nullopt;
+    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); -1 if fewer
+    // than 2 values
+    long long minAdjacentDiff() {
+        if (n < 2) return -1;
         if (dups) return 0LL;
         return *gaps.begin();
     }
@@ -489,17 +495,17 @@ struct BlockMultiset {
         return T(v + off);
     }
 
-    // O(sqrtN) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        if (!n) return nullopt;
+    // O(sqrtN) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
         T v = kthAt(n);
         addRaw(v, -1);
         return T(v + off);
     }
 
-    // O(sqrtN) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        if (!n) return nullopt;
+    // O(sqrtN) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
         T v = kthAt(1);
         addRaw(v, -1);
         return T(v + off);
@@ -558,19 +564,19 @@ struct BlockMultiset {
         return n;
     }
 
-    // O(sqrtN) -- smallest value > x; nullopt if there is none
-    optional<T> smallestGtX(T x) {
+    // O(sqrtN) -- smallest value > x; NONE if there is none
+    T smallestGtX(T x) {
         x -= off;
         long long c = le(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return T(kthAt(c + 1) + off);
     }
 
-    // O(sqrtN) -- smallest value >= x; nullopt if there is none
-    optional<T> smallestGteX(T x) {
+    // O(sqrtN) -- smallest value >= x; NONE if there is none
+    T smallestGteX(T x) {
         x -= off;
         long long c = lt(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return T(kthAt(c + 1) + off);
     }
 

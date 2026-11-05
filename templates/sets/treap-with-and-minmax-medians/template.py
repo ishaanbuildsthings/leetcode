@@ -127,20 +127,51 @@ class TreapMultiset:
         self._pull(b)
         return b
 
-    def _insert(self, x, c):
-        a, b = self._split(self.root, x)
-        m, b = self._splitLe(b, x)  # m: the node of x, or 0
-        if not m:
+    def _insert(self, x, c):  # walks once: a value already present never needs a split or merge
+        K, L, R, C = self.K, self.L, self.R, self.C
+        path, t = [], self.root
+        while t:
+            path.append(t)
+            key = K[t]
+            if x < key:
+                t = L[t]
+            elif key < x:
+                t = R[t]
+            else:
+                break
+        if t:
+            f = C[t] = C[t] + c
+            path.pop()
+            if f:
+                self._pull(t)
+                cur = t
+            else:
+                self.free.append(t)
+                self.d -= 1
+                cur = self._merge(L[t], R[t])
+        else:
             m = self._new(x)
             self.d += 1
-        f = self.C[m] = self.C[m] + c
-        if f:
+            f = C[m] = c
+            P, prio, i = self.P, self.P[m], 0
+            while i < len(path) and P[path[i]] >= prio:  # the new node goes where its priority belongs
+                i += 1
+            if i < len(path):
+                L[m], R[m] = self._split(path[i], x)
+                del path[i:]
             self._pull(m)
-        else:
-            self.free.append(m)
-            m = 0
-            self.d -= 1
-        self.root = self._merge(self._merge(a, m), b)
+            cur = m
+        while path:
+            q = path.pop()
+            if x < K[q]:
+                L[q] = cur
+            else:
+                R[q] = cur
+            l, r = self.L[q], self.R[q]
+            self.Z[q] = self.Z[l] + self.Z[r] + self.C[q]
+            self.A[q] = self.A[l] & self.A[r] & self.K[q]
+            cur = q
+        self.root = cur
         return f  # (x's new count)
 
     def _lt(self, x):  # copies of values < x
@@ -426,21 +457,29 @@ class TreapMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(1) -- largest value; None if empty
+    # O(1) -- largest value; raises IndexError if empty
     def max(self):
-        return self.mx if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self.mx
 
-    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self.highV if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self.highV
 
-    # O(1) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(1) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self.lowV if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self.lowV
 
-    # O(1) -- smallest value; None if empty
+    # O(1) -- smallest value; raises IndexError if empty
     def min(self):
-        return self.mn if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self.mn
 
     # O(logN expected) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
     # popMin()), pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
@@ -451,25 +490,25 @@ class TreapMultiset:
         self._add(v, -1)
         return v
 
-    # O(logN expected) -- remove and return the largest value; None if empty
+    # O(logN expected) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self.mx
         self._add(v, -1)
         return v
 
-    # O(logN expected) -- remove and return the smallest value; None if empty
+    # O(logN expected) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self.mn
         self._add(v, -1)
         return v
 
     # O(logN expected) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1

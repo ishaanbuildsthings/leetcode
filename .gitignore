@@ -8,3 +8,4 @@ __pycache__/.claude/
 .cph/
 CLAUDE.md
 .claude/
+.speedup-checkpoints/

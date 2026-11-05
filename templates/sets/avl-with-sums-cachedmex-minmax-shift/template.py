@@ -415,25 +415,33 @@ class AVLMultiset:
         x -= self.off
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(1) -- largest value; None if empty
+    # O(1) -- largest value; raises IndexError if empty
     def max(self):
-        return self.mx + self.off if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self.mx + self.off
 
-    # O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(logN) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self._kth((self.n >> 1) + 1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self._kth((self.n >> 1) + 1) + self.off
 
-    # O(logN) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(logN) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self._kth((self.n + 1) >> 1) + self.off if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self._kth((self.n + 1) >> 1) + self.off
 
     # O(1) -- smallest non-negative integer not in the set
     def mex(self):
         return self.mexV + self.off
 
-    # O(1) -- smallest value; None if empty
+    # O(1) -- smallest value; raises IndexError if empty
     def min(self):
-        return self.mn + self.off if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self.mn + self.off
 
     # O(logN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
     # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
@@ -444,18 +452,18 @@ class AVLMultiset:
         self._add(v, -1)
         return v + self.off
 
-    # O(logN) -- remove and return the largest value; None if empty
+    # O(logN) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self.mx
         self._add(v, -1)
         return v + self.off
 
-    # O(logN) -- remove and return the smallest value; None if empty
+    # O(logN) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self.mn
         self._add(v, -1)
         return v + self.off

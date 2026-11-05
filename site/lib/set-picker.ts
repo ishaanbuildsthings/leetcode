@@ -632,13 +632,13 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             id: "maxXorAgainstX",
             signature: "maxXorAgainstX(x)",
             description:
-              "Largest v ^ x over the values v (None / nullopt if the set is empty)",
+              "Largest v ^ x over the values v (raises an error if the set is empty)",
           },
           {
             id: "minXorAgainstX",
             signature: "minXorAgainstX(x)",
             description:
-              "Smallest v ^ x over the values v (None / nullopt if the set is empty)",
+              "Smallest v ^ x over the values v (raises an error if the set is empty)",
           },
           {
             id: "kthXor",
@@ -884,7 +884,7 @@ export const SET_TYPES = [
 export type SetType = (typeof SET_TYPES)[number];
 
 export const SET_TYPE_LABELS: Record<SetType, string> = {
-  fastset: "Bit trie (FastSet) on [lo, hi]",
+  fastset: "FastSet on [lo, hi]",
   fenwick: "Fenwick tree on values",
   "value-tree": "Value seg tree on [lo, hi]",
   trie: "Binary trie on [0, 2^bits)",

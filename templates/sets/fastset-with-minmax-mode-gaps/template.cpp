@@ -42,6 +42,8 @@
 template <typename T>
 struct FastSetMultiset {
     long long lo, hi;
+    // largestLtX and friends when nothing qualifies: outside [lo, hi], so never a real value
+    T NONE = T(lo >= 0 ? -1 : lo > numeric_limits<T>::min() ? lo - 1 : hi + 1);
     int u;
     vector<vector<unsigned long long>> seg;  // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
     vector<long long> cnt;                   // copies of lo + i
@@ -135,7 +137,10 @@ struct FastSetMultiset {
         {  // gaps
             if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
-                optional<T> p = largestLtX(x), q = smallestGtX(x);
+                T below = largestLtX(x), above = smallestGtX(x);  // (NONE is outside [lo, hi] here)
+                optional<T> p, q;
+                if (below != NONE) p = below;
+                if (above != NONE) q = above;
                 auto drop = [&](long long v) { gaps.erase(gaps.find(v)); };
                 if (f) {
                     if (p && q) drop((long long)*q - (long long)*p);
@@ -214,66 +219,65 @@ struct FastSetMultiset {
         return d;
     }
 
-    // O(log64(U)) -- largest value < x; nullopt if there is none
-    optional<T> largestLtX(T x) {
+    // O(log64(U)) -- largest value < x; NONE if there is none
+    T largestLtX(T x) {
         long long i = prev((long long)x - lo - 1);
-        if (i < 0) return nullopt;
+        if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- largest value <= x; nullopt if there is none
-    optional<T> largestLteX(T x) {
+    // O(log64(U)) -- largest value <= x; NONE if there is none
+    T largestLteX(T x) {
         long long i = prev((long long)x - lo);
-        if (i < 0) return nullopt;
+        if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(1) -- largest value; nullopt if empty
-    optional<T> max() {
-        if (!n) return nullopt;
+    // O(1) -- largest value; throws out_of_range if empty
+    T max() {
+        if (!n) throw out_of_range("max: the set is empty");
         return mx;
     }
 
-    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct
-    // values
-    optional<long long> maxGap() {
-        if (d < 2) return nullopt;
+    // O(1 amortized) -- largest difference between two neighbouring distinct values; -1 if fewer than 2 distinct values
+    long long maxGap() {
+        if (d < 2) return -1;
         return *gaps.rbegin();
     }
 
-    // O(1) -- smallest value; nullopt if empty
-    optional<T> min() {
-        if (!n) return nullopt;
+    // O(1) -- smallest value; throws out_of_range if empty
+    T min() {
+        if (!n) throw out_of_range("min: the set is empty");
         return mn;
     }
 
-    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if
-    // fewer than 2 values
-    optional<long long> minAdjacentDiff() {
-        if (n < 2) return nullopt;
+    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); -1 if fewer
+    // than 2 values
+    long long minAdjacentDiff() {
+        if (n < 2) return -1;
         if (dups) return 0LL;
         return *gaps.begin();
     }
 
-    // O(1) -- (a most frequent value, its count); nullopt if empty. C++ returns the smallest of the most frequent
-    // values
-    optional<pair<T, long long>> mode() {
-        if (!n) return nullopt;
+    // O(1) -- (a most frequent value, its count); throws out_of_range if empty. C++ returns the smallest of the most
+    // frequent values
+    pair<T, long long> mode() {
+        if (!n) throw out_of_range("mode: the set is empty");
         auto& [f, vs] = *bk.rbegin();
         return pair<T, long long>{*vs.begin(), f};
     }
 
-    // O(log64(U)) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        if (!n) return nullopt;
+    // O(log64(U)) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
         T v = mx;
         addRaw(v, -1);
         return v;
     }
 
-    // O(log64(U)) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        if (!n) return nullopt;
+    // O(log64(U)) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
         T v = mn;
         addRaw(v, -1);
         return v;
@@ -318,17 +322,17 @@ struct FastSetMultiset {
         return n;
     }
 
-    // O(log64(U)) -- smallest value > x; nullopt if there is none
-    optional<T> smallestGtX(T x) {
+    // O(log64(U)) -- smallest value > x; NONE if there is none
+    T smallestGtX(T x) {
         long long i = next((long long)x - lo + 1);
-        if (i < 0) return nullopt;
+        if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- smallest value >= x; nullopt if there is none
-    optional<T> smallestGteX(T x) {
+    // O(log64(U)) -- smallest value >= x; NONE if there is none
+    T smallestGteX(T x) {
         long long i = next((long long)x - lo);
-        if (i < 0) return nullopt;
+        if (i < 0) return NONE;
         return T(lo + i);
     }
 };

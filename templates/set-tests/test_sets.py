@@ -11,6 +11,7 @@ Random op sequences run on a plain sorted list and on the template, in Python an
     python3 test_sets.py --py / --cpp    # one language only
     python3 test_sets.py --trials 300    # more random sequences per template (default 150)
     python3 test_sets.py --shard 3/16    # every 16th folder from the 3rd (run 16 of these side by side)
+    python3 test_sets.py --list f.txt    # only the folders named in f.txt (see cover_sets.py)
 """
 import bisect
 from collections import Counter
@@ -68,6 +69,10 @@ def key(v):  # an order-preserving int -> tuple map, so the int brute force stil
 def unkey(t):
     return t[0] * 7 + t[1]
 ERR = "ERR"  # the op must raise IndexError (Python) / throw out_of_range (C++)
+NEIGHBOUR_OPS = {"largestLtX", "largestLteX", "smallestGtX", "smallestGteX"}  # no such value: None / the template's NONE
+MINUS_ONE_OPS = {"minAdjacentDiff", "maxGap", "largestXorLtK", "largestXorLteK", "smallestXorGtK", "smallestXorGteK", "maxXorWithVLtM",
+                 "maxXorWithVLteM", "maxXorWithVGtM", "maxXorWithVGteM", "minXorWithVLtM", "minXorWithVLteM", "minXorWithVGtM",
+                 "minXorWithVGteM", "maxXorWithVInValRange", "minXorWithVInValRange"}  # no such value: None / -1
 
 
 # ------------------------------------------------------------------------------------------------ brute force
@@ -80,7 +85,7 @@ def brute(a, op, args):
         return None
     if op == "mode":  # any most frequent value is right: ("mode", its count, the values with it)
         if not a:
-            return None
+            return ERR
         cnt = Counter(a)
         f = max(cnt.values())
         return ("mode", f, frozenset(v for v, k in cnt.items() if k == f))
@@ -93,8 +98,8 @@ def brute(a, op, args):
     if ARG_KINDS[op] in ("xv", "xi", "xk", "xm", "xlohi"):  # questions about v ^ x
         x = args[0]
         xs = sorted(v ^ x for v in a)
-        if op == "maxXorAgainstX": return xs[-1] if xs else None
-        if op == "minXorAgainstX": return xs[0] if xs else None
+        if op == "maxXorAgainstX": return xs[-1] if xs else ERR
+        if op == "minXorAgainstX": return xs[0] if xs else ERR
         if op == "kthXor": return xs[args[1]] if 0 <= args[1] < n else ERR
         if op == "mexXor":
             have, m = set(xs), 0
@@ -169,15 +174,15 @@ def brute(a, op, args):
         return k
     if op == "pop": return a.pop(args[0]) if 0 <= args[0] < n else ERR
     if op in ("popMin", "popMax"):
-        return (a.pop(0) if op == "popMin" else a.pop()) if a else None
+        return (a.pop(0) if op == "popMin" else a.pop()) if a else ERR
     if op == "size": return n
     if op == "count": return bisect.bisect_right(a, args[0]) - bisect.bisect_left(a, args[0])
     if op == "sumAll": return sum(a)
     if op == "countDistinct": return len(set(a))  # (fine: long trials ask rarely)
-    if op == "min": return a[0] if a else None
-    if op == "max": return a[-1] if a else None
-    if op == "medianLow": return a[(n + 1) // 2 - 1] if a else None
-    if op == "medianHigh": return a[n // 2] if a else None
+    if op == "min": return a[0] if a else ERR
+    if op == "max": return a[-1] if a else ERR
+    if op == "medianLow": return a[(n + 1) // 2 - 1] if a else ERR
+    if op == "medianHigh": return a[n // 2] if a else ERR
     if op == "mex":
         s, m = set(a), 0
         while m in s:
@@ -371,17 +376,15 @@ def run_cpp(path, ops, values_kind, trials, cxx, keyed=False):
     name = names[-1]
     lines = ["#include <bits/stdc++.h>", "using namespace std;", f'#include "{path}"', f"template struct {name}<int>;",
              "void out(long long v) { cout << v << '\\n'; }",
-             "void out(optional<long long> v) { if (v) cout << *v << '\\n'; else cout << \"None\\n\"; }",
              "using P = pair<long long, long long>;",
              "P key(long long v) { long long q = v >= 0 ? v / 7 : -((-v + 6) / 7); return {q, v - 7 * q}; }",
              "void out(const P& p) { cout << p.first * 7 + p.second << '\\n'; }",
-             "void out(optional<P> v) { if (v) out(*v); else cout << \"None\\n\"; }",
 
              "int main() {", "  ios::sync_with_stdio(false); cin.tie(nullptr);", "  int cases; cin >> cases;", "  while (cases--) {"]
     K = "P" if keyed else "long long"
-    # mode() returns (value, count); with int keys that type is the same as optional<P>, so each driver gets only its own
-    lines.insert(lines.index("int main() {"), "void out(optional<pair<P, long long>> v) { if (v) cout << v->first.first * 7 + v->first.second << ' ' << v->second << '\\n'; else cout << \"None\\n\"; }"
-                 if keyed else "void outMode(optional<pair<long long, long long>> v) { if (v) cout << v->first << ' ' << v->second << '\\n'; else cout << \"None\\n\"; }")
+    # mode() returns (value, count); with int keys that type is the same as P, so each driver gets only its own
+    lines.insert(lines.index("int main() {"), "void out(const pair<P, long long>& v) { cout << v.first.first * 7 + v.first.second << ' ' << v.second << '\\n'; }"
+                 if keyed else "void outMode(const pair<long long, long long>& v) { cout << v.first << ' ' << v.second << '\\n'; }")
     if values_kind == "offline":
         lines += [f"    int m; cin >> m; vector<{K}> vals(m); for (auto& v : vals) {{ long long x; cin >> x; v = {'key(x)' if keyed else 'x'}; }}",
                   f"    {name}<{K}> s(vals);"]
@@ -401,7 +404,9 @@ def run_cpp(path, ops, values_kind, trials, cxx, keyed=False):
         decl = f"long long {', '.join(names_)}; cin >> {' >> '.join(names_)}; " if names_ else ""
         call = f"s.{op}({', '.join(f'key({a})' if keyed and k in VALUE_ARGS.get(kind, ()) else a for k, a in enumerate(names_))})"
         printer = "outMode" if op == "mode" and not keyed else "out"
-        body = decl + (f"{call};" if op in NO_RESULT else f'try {{ {printer}({call}); }} catch (const out_of_range&) {{ cout << "ERR\\n"; }}')
+        missing = "s.NONE" if op in NEIGHBOUR_OPS else "-1" if op in MINUS_ONE_OPS else None  # no such value: None, as in Python
+        show = f'auto v = {call}; if (v == {missing}) cout << "None\\n"; else out(v);' if missing else f"{printer}({call});"
+        body = decl + (f"{call};" if op in NO_RESULT else f'try {{ {show} }} catch (const out_of_range&) {{ cout << "ERR\\n"; }}')
         lines.append(f'      else if (op == "{op}") {{ {body} }}')
     lines += ["      else { cerr << \"unknown op \" << op << '\\n'; return 1; }", "    }", "  }", "}"]
     os.makedirs(BUILD, exist_ok=True)
@@ -457,13 +462,16 @@ def main():
     if "--shard" in args:
         i, n = map(int, args[args.index("--shard") + 1].split("/"))
         shard = (i, n)
-    filters = [a for k, a in enumerate(args) if not a.startswith("--") and not a.isdigit() and (k == 0 or args[k - 1] != "--shard")]
+    filters = [a for k, a in enumerate(args) if not a.startswith("--") and not a.isdigit() and (k == 0 or args[k - 1] not in ("--shard", "--list"))]
     cxx = find_cxx() if want_cpp else None
     if want_cpp and not cxx:
         print("no GCC with bits/stdc++.h found (set CXX); running Python only\n")
         want_cpp = False
     folders = sorted(f for f in os.listdir(DIR) if os.path.isdir(os.path.join(DIR, f)))
-    if filters:
+    if "--list" in args:
+        names = set(open(args[args.index("--list") + 1]).read().split())
+        folders = [f for f in folders if f in names]
+    elif filters:
         folders = [f for f in folders if any(x in f for x in filters)]
     if shard:
         folders = folders[shard[0]::shard[1]]
@@ -471,24 +479,27 @@ def main():
     for folder in folders:
         results = []
         for stem, lang, ok, cm in (("template", "py", want_py, "#"), ("template", "cpp", want_cpp, "//"),
-                                   ("distinct", "py", want_py, "#"), ("distinct", "cpp", want_cpp, "//")):
+                                   ("fast", "py", want_py, "#"), ("fast", "cpp", want_cpp, "//"),
+                                   ("distinct", "py", want_py, "#"), ("distinct", "cpp", want_cpp, "//"),
+                                   ("distinct-fast", "cpp", want_cpp, "//")):
             path = os.path.join(DIR, folder, f"{stem}.{lang}")
             if not ok or not os.path.exists(path):
                 continue
             ops, values_kind, keys = parse_header(path, cm)
-            if stem == "distinct":  # a no-duplicates variant (fastset/distinct.*): set semantics in the brute force
+            if stem.startswith("distinct"):  # a no-duplicates variant (fastset/distinct.*): set semantics in the brute force
                 trials = make_trials(ops, values_kind, trials_n, 10**5)
                 exp = expected(trials, distinct=True)
                 total += len(exp)
                 try:
                     got = run_python(path, ops, trials) if lang == "py" else run_cpp(path, ops, values_kind, trials, cxx)[0]
-                    results.append((lang + "(distinct)", first_mismatch(got, exp, trials)))
+                    results.append((stem + "." + lang, first_mismatch(got, exp, trials)))
                 except Exception as e:  # noqa: BLE001
-                    results.append((lang + "(distinct)", f"{type(e).__name__}: {e}"))
+                    results.append((stem + "." + lang, f"{type(e).__name__}: {e}"))
                 continue
             # every template with ints; "@keys: any" ones again with tuple (Python) / pair (C++) keys on the ops that
             # only compare values
-            passes = [(lang, ops, False)] + ([(lang + "(tuples)" if lang == "py" else lang + "(pairs)",
+            base = lang if stem == "template" else "fast-" + lang
+            passes = [(base, ops, False)] + ([(base + "(tuples)" if lang == "py" else base + "(pairs)",
                                                 [o for o in ops if o not in NUMERIC_OPS], True)] if keys == "any" else [])
             for label, ops_, keyed in passes:
                 trials = make_trials(ops_, values_kind, trials_n, 10**5 if folder.startswith("fastset") else None)

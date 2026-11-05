@@ -148,8 +148,12 @@ class SplayMultiset:
                 L[g] = x
             else:
                 R[g] = x
-        self._pull(p)
-        self._pull(x)
+        l, r = self.L[p], self.R[p]
+        self.Z[p] = self.Z[l] + self.Z[r] + self.C[p]
+        self.S[p] = self.S[l] + self.S[r] + self.C[p] * self.K[p]
+        self.X[p] = self.X[l] ^ self.X[r] ^ (self.K[p] if self.C[p] & 1 else 0)
+        self.O[p] = self.O[l] | self.O[r] | self.K[p]
+        self.A[p] = self.A[l] & self.A[r] & self.K[p]
 
     def _splay(self, x):  # x becomes the root of its tree
         P, L = self.P, self.L
@@ -159,6 +163,7 @@ class SplayMultiset:
             if g:
                 self._rotate(p if (L[g] == p) == (L[p] == x) else x)
             self._rotate(x)
+        self._pull(x)
         return x
 
     def _touch(self, t):
@@ -660,21 +665,29 @@ class SplayMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(1) -- largest value; None if empty
+    # O(1) -- largest value; raises IndexError if empty
     def max(self):
-        return self.mx if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self.mx
 
-    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self.highV if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self.highV
 
-    # O(1) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(1) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self.lowV if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self.lowV
 
-    # O(1) -- smallest value; None if empty
+    # O(1) -- smallest value; raises IndexError if empty
     def min(self):
-        return self.mn if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self.mn
 
     # O(1) -- bitwise OR of all values; 0 if empty
     def orOfAll(self):
@@ -741,25 +754,25 @@ class SplayMultiset:
         self._add(v, -1)
         return v
 
-    # O(logN amortized) -- remove and return the largest value; None if empty
+    # O(logN amortized) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self.mx
         self._add(v, -1)
         return v
 
-    # O(logN amortized) -- remove and return the smallest value; None if empty
+    # O(logN amortized) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self.mn
         self._add(v, -1)
         return v
 
     # O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1

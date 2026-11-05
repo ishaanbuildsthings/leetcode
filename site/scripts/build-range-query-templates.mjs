@@ -174,6 +174,10 @@ for (const name of fs.readdirSync(genericDir)) fs.copyFileSync(path.join(generic
 const bubbleDir = path.resolve(siteDir, "../templates/bubble-sort");
 fs.mkdirSync(path.join(publicDir, "_bubble-sort"));
 for (const name of fs.readdirSync(bubbleDir)) fs.copyFileSync(path.join(bubbleDir, name), path.join(publicDir, "_bubble-sort", name));
+// the next permutation functions (the Misc tab): copied as they are
+const nextPermDir = path.resolve(siteDir, "../templates/next-permutation");
+fs.mkdirSync(path.join(publicDir, "_next-permutation"));
+for (const name of fs.readdirSync(nextPermDir)) fs.copyFileSync(path.join(nextPermDir, name), path.join(publicDir, "_next-permutation", name));
 
 // Thousands of templates share a few op lists, cost lists and memory layouts: the manifest is those tables plus one
 // short row per template, expanded in the browser by decodeRangeTemplates (lib/range-query-picker.ts). The usage panel

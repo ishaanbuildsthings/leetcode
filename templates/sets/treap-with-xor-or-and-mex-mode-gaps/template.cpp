@@ -84,6 +84,13 @@
 // Updates split around x and merge back. T: an integer type; sums in S (long long for small T).
 template <typename T>
 struct TreapMultiset {
+    template <class K>
+    static K noneOf() {  // the lowest value of K, part by part for pairs and tuples
+        if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
+        else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
+    }
+    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; long long dn; T xr; T orv; T andv = ~T(0); unsigned prio; int l, r; };  // copies; copies, distinct below
     vector<Node> pool{Node{}};
@@ -167,15 +174,51 @@ struct TreapMultiset {
         return b;
     }
 
-    long long insert(T x, long long c) {  // returns x's new count
-        int a, b, m;
-        split(root, x, a, b);
-        splitLe(b, x, m, b);  // m: the node of x, or 0
-        if (!m) m = make(x), d++;
-        long long f = pool[m].c += c;
-        if (f) pull(m);
-        else freeList.push_back(m), m = 0, d--;
-        root = merge(merge(a, m), b);
+    vector<int> path;  // scratch for insert: the nodes it walked through
+    long long insert(T x, long long c) {  // returns x's new count; a value already present never needs a split or merge
+        path.clear();
+        int t = root, cur;
+        while (t) {
+            path.push_back(t);
+            if (x < pool[t].key) t = pool[t].l;
+            else if (pool[t].key < x) t = pool[t].r;
+            else break;
+        }
+        long long f;
+        if (t) {
+            f = pool[t].c += c;
+            path.pop_back();
+            if (f) {
+                pull(t);
+                cur = t;
+            } else {
+                freeList.push_back(t), d--;
+                cur = merge(pool[t].l, pool[t].r);
+            }
+        } else {
+            int m = make(x);
+            d++;
+            f = pool[m].c = c;
+            int i = 0, walked = int(path.size());
+            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;  // the new node goes where its priority belongs
+            if (i < walked) {
+                int a, b;
+                split(path[i], x, a, b);
+                pool[m].l = a, pool[m].r = b;
+                path.resize(i);
+            }
+            pull(m);
+            cur = m;
+        }
+        while (!path.empty()) {
+            int q = path.back();
+            path.pop_back();
+            if (x < pool[q].key) pool[q].l = cur;
+            else pool[q].r = cur;
+            pull(q);
+            cur = q;
+        }
+        root = cur;
         return f;
     }
 
@@ -267,7 +310,10 @@ struct TreapMultiset {
         {  // gaps
             if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)
             if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back
-                optional<T> p = largestLtX(x), q = smallestGtX(x);
+                long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)
+                optional<T> p, q;
+                if (cl) p = kthAt(cl);
+                if (ce < n) q = kthAt(ce + 1);
                 auto drop = [&](long long v) { gaps.erase(gaps.find(v)); };
                 if (f) {
                     if (p && q) drop((long long)*q - (long long)*p);
@@ -547,17 +593,17 @@ struct TreapMultiset {
         return kthAt(i + 1);
     }
 
-    // O(logN expected) -- largest value < x; nullopt if there is none
-    optional<T> largestLtX(T x) {
+    // O(logN expected) -- largest value < x; NONE if there is none
+    T largestLtX(T x) {
         long long c = lt(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logN expected) -- largest value <= x; nullopt if there is none
-    optional<T> largestLteX(T x) {
+    // O(logN expected) -- largest value <= x; NONE if there is none
+    T largestLteX(T x) {
         long long c = le(x);
-        if (!c) return nullopt;
+        if (!c) return NONE;
         return kthAt(c);
     }
 
@@ -567,28 +613,27 @@ struct TreapMultiset {
         return countOf(x) ? le(x) - 1 : -1;
     }
 
-    // O(logN expected) -- largest value; nullopt if empty
-    optional<T> max() {
-        if (!n) return nullopt;
+    // O(logN expected) -- largest value; throws out_of_range if empty
+    T max() {
+        if (!n) throw out_of_range("max: the set is empty");
         return kthAt(n);
     }
 
-    // O(1 amortized) -- largest difference between two neighbouring distinct values; nullopt if fewer than 2 distinct
-    // values
-    optional<long long> maxGap() {
-        if (d < 2) return nullopt;
+    // O(1 amortized) -- largest difference between two neighbouring distinct values; -1 if fewer than 2 distinct values
+    long long maxGap() {
+        if (d < 2) return -1;
         return *gaps.rbegin();
     }
 
-    // O(logN expected) -- upper median: the (floor(size/2) + 1)-th smallest value; nullopt if empty
-    optional<T> medianHigh() {
-        if (!n) return nullopt;
+    // O(logN expected) -- upper median: the (floor(size/2) + 1)-th smallest value; throws out_of_range if empty
+    T medianHigh() {
+        if (!n) throw out_of_range("medianHigh: the set is empty");
         return kthAt(n / 2 + 1);
     }
 
-    // O(logN expected) -- lower median: the ceil(size/2)-th smallest value; nullopt if empty
-    optional<T> medianLow() {
-        if (!n) return nullopt;
+    // O(logN expected) -- lower median: the ceil(size/2)-th smallest value; throws out_of_range if empty
+    T medianLow() {
+        if (!n) throw out_of_range("medianLow: the set is empty");
         return kthAt((n + 1) / 2);
     }
 
@@ -597,24 +642,24 @@ struct TreapMultiset {
         return findMex();
     }
 
-    // O(logN expected) -- smallest value; nullopt if empty
-    optional<T> min() {
-        if (!n) return nullopt;
+    // O(logN expected) -- smallest value; throws out_of_range if empty
+    T min() {
+        if (!n) throw out_of_range("min: the set is empty");
         return kthAt(1);
     }
 
-    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); nullopt if
-    // fewer than 2 values
-    optional<long long> minAdjacentDiff() {
-        if (n < 2) return nullopt;
+    // O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); -1 if fewer
+    // than 2 values
+    long long minAdjacentDiff() {
+        if (n < 2) return -1;
         if (dups) return 0LL;
         return *gaps.begin();
     }
 
-    // O(1) -- (a most frequent value, its count); nullopt if empty. C++ returns the smallest of the most frequent
-    // values
-    optional<pair<T, long long>> mode() {
-        if (!n) return nullopt;
+    // O(1) -- (a most frequent value, its count); throws out_of_range if empty. C++ returns the smallest of the most
+    // frequent values
+    pair<T, long long> mode() {
+        if (!n) throw out_of_range("mode: the set is empty");
         auto& [f, vs] = *bk.rbegin();
         return pair<T, long long>{*vs.begin(), f};
     }
@@ -694,17 +739,17 @@ struct TreapMultiset {
         return v;
     }
 
-    // O(logN expected) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        if (!n) return nullopt;
+    // O(logN expected) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        if (!n) throw out_of_range("popMax: the set is empty");
         T v = kthAt(n);
         addRaw(v, -1);
         return v;
     }
 
-    // O(logN expected) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        if (!n) return nullopt;
+    // O(logN expected) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        if (!n) throw out_of_range("popMin: the set is empty");
         T v = kthAt(1);
         addRaw(v, -1);
         return v;
@@ -752,17 +797,17 @@ struct TreapMultiset {
         return n;
     }
 
-    // O(logN expected) -- smallest value > x; nullopt if there is none
-    optional<T> smallestGtX(T x) {
+    // O(logN expected) -- smallest value > x; NONE if there is none
+    T smallestGtX(T x) {
         long long c = le(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logN expected) -- smallest value >= x; nullopt if there is none
-    optional<T> smallestGteX(T x) {
+    // O(logN expected) -- smallest value >= x; NONE if there is none
+    T smallestGteX(T x) {
         long long c = lt(x);
-        if (c == n) return nullopt;
+        if (c == n) return NONE;
         return kthAt(c + 1);
     }
 

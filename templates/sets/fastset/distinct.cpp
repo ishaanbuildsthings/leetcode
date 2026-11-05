@@ -36,6 +36,8 @@
 template <typename T>
 struct FastSet {
     long long lo, hi;
+    // largestLtX and friends when nothing qualifies: outside [lo, hi], so never a real value
+    T NONE = T(lo >= 0 ? -1 : lo > numeric_limits<T>::min() ? lo - 1 : hi + 1);
     int u;
     vector<vector<unsigned long long>> seg;  // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
     long long n = 0;
@@ -148,59 +150,59 @@ struct FastSet {
     // O(1) -- how many values
     long long size() const { return n; }
 
-    // O(log64(U)) -- smallest value; nullopt if empty
-    optional<T> min() const {
+    // O(log64(U)) -- smallest value; throws out_of_range if empty
+    T min() const {
         long long i = next(0);
-        if (i < 0) return nullopt;
+        if (i < 0) throw out_of_range("min: the set is empty");
         return T(lo + i);
     }
 
-    // O(log64(U)) -- largest value; nullopt if empty
-    optional<T> max() const {
+    // O(log64(U)) -- largest value; throws out_of_range if empty
+    T max() const {
         long long i = prev(u - 1);
-        if (i < 0) return nullopt;
+        if (i < 0) throw out_of_range("max: the set is empty");
         return T(lo + i);
     }
 
-    // O(log64(U)) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        optional<T> v = min();
-        if (v) remove(*v);
+    // O(log64(U)) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        T v = min();
+        remove(v);
         return v;
     }
 
-    // O(log64(U)) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        optional<T> v = max();
-        if (v) remove(*v);
+    // O(log64(U)) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        T v = max();
+        remove(v);
         return v;
     }
 
-    // O(log64(U)) -- smallest value >= x; nullopt if there is none
-    optional<T> smallestGteX(T x) const {
+    // O(log64(U)) -- smallest value >= x; NONE if there is none
+    T smallestGteX(T x) const {
         long long i = next((long long)x - lo);
-        if (i < 0) return nullopt;
+        if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- smallest value > x; nullopt if there is none
-    optional<T> smallestGtX(T x) const {
+    // O(log64(U)) -- smallest value > x; NONE if there is none
+    T smallestGtX(T x) const {
         long long i = next((long long)x - lo + 1);
-        if (i < 0) return nullopt;
+        if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- largest value <= x; nullopt if there is none
-    optional<T> largestLteX(T x) const {
+    // O(log64(U)) -- largest value <= x; NONE if there is none
+    T largestLteX(T x) const {
         long long i = prev((long long)x - lo);
-        if (i < 0) return nullopt;
+        if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- largest value < x; nullopt if there is none
-    optional<T> largestLtX(T x) const {
+    // O(log64(U)) -- largest value < x; NONE if there is none
+    T largestLtX(T x) const {
         long long i = prev((long long)x - lo - 1);
-        if (i < 0) return nullopt;
+        if (i < 0) return NONE;
         return T(lo + i);
     }
 };

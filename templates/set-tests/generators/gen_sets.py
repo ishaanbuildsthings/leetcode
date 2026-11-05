@@ -21,12 +21,13 @@ Structures (each in a count-only version and a count + sum version, unless noted
     avl          online: AVL tree on a node pool (subtree counts / sums), freed nodes reused   log N worst case
     blocks       online: sorted blocks of distinct keys with per-block counts / sums + Fenwick over blocks   sqrt N
     blocks-fenwick   online: the same blocks with a Fenwick tree inside each block: queries log N, updates sqrt N
-    value-tree   online, values in [lo, hi]: a dynamic value tree (C++: node pool per multiset; Python: dict)   log U
+    value-tree   online, values in [lo, hi]: a dynamic value tree (a node pool per multiset)   log U
     treap        online: treap on a node pool, freed nodes reused   log N expected
     splay        online: splay tree on a node pool, freed nodes reused   log N amortized
     pbds         online, C++ only, count-only: GCC order-statistics tree, one node per copy   log N
 (value-tree, treap, splay and pbds lose to AVL on paper; they stay as options: check_sets.py reports them as kept.)
 """
+import ast
 import os
 import re
 import textwrap
@@ -35,7 +36,7 @@ ROOT = os.environ.get("SETS_DIR") or os.path.join(os.path.dirname(os.path.dirnam
 GITHUB_USER = "https://github.com/ishaanbuildsthings"
 GITHUB_FILES = GITHUB_USER + "/leetcode/blob/main/templates/sets/"
 
-# op -> (argument kind, result kind, description). Result kinds: none / int / opt (None in Python, nullopt in C++).
+# op -> (argument kind, result kind, description). Result kinds: none / int / opt (see EMPTY_ERROR_OPS, NEIGHBOUR_OPS).
 OPS = {
     "add": ("x", "none", "add one copy of x"),
     "addCount": ("vc", "none", "add cnt copies of val (nothing if cnt <= 0)"),
@@ -44,8 +45,8 @@ OPS = {
     "removeAll": ("v", "int", "remove every copy of val; returns how many were removed"),
     "removeInValRange": ("lohi", "int", "remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)"),
     "clear": ("", "none", "remove everything: afterwards it is as if newly built (same constructor arguments), so reuse it instead of building a new one"),
-    "popMin": ("", "opt", "remove and return the smallest value; {none} if empty"),
-    "popMax": ("", "opt", "remove and return the largest value; {none} if empty"),
+    "popMin": ("", "opt", "remove and return the smallest value; {err} if empty"),
+    "popMax": ("", "opt", "remove and return the largest value; {err} if empty"),
     "pop": ("i", "int", "remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()), pop(size - 1) the largest (copies count); {err} unless 0 <= i < size"),
     "size": ("", "int", "how many values (copies count)"),
     "count": ("x", "int", "how many copies of x"),
@@ -53,8 +54,8 @@ OPS = {
     "countDistinct": ("", "int", "how many distinct values"),
     "minAdjacentDiff": ("", "opt", "smallest difference between two values in the set (0 if some value has 2+ copies); {none} if fewer than 2 values"),
     "maxGap": ("", "opt", "largest difference between two neighbouring distinct values; {none} if fewer than 2 distinct values"),
-    "maxXorAgainstX": ("xv", "opt", "largest v ^ x over the values v in the set; {none} if the set is empty (needs 0 <= x < 2^bits)"),
-    "minXorAgainstX": ("xv", "opt", "smallest v ^ x over the values v in the set; {none} if the set is empty (needs 0 <= x < 2^bits)"),
+    "maxXorAgainstX": ("xv", "opt", "largest v ^ x over the values v in the set; {err} if the set is empty (needs 0 <= x < 2^bits)"),
+    "minXorAgainstX": ("xv", "opt", "smallest v ^ x over the values v in the set; {err} if the set is empty (needs 0 <= x < 2^bits)"),
     "kthXor": ("xi", "int", "the i-th smallest of v ^ x over the values v, 0-indexed: kthXor(x, 0) is the smallest v ^ x, kthXor(x, 1) the 2nd smallest (copies count); {err} unless 0 <= i < size"),
     "countXorLtK": ("xk", "int", "how many values v have v ^ x < k (k is a VALUE to compare against, not a rank or count; copies count)"),
     "countXorLteK": ("xk", "int", "how many values v have v ^ x <= k (k is a VALUE to compare against, not a rank or count; copies count)"),
@@ -78,11 +79,11 @@ OPS = {
     "minXorWithVInValRange": ("xlohi", "opt", "smallest v ^ x over the values v with lo <= v <= hi; {none} if there is none"),
     "xorAll": ("y", "none", "replace every value v by v ^ y (needs 0 <= y < 2^bits)"),
     "shiftAll": ("d", "none", "add d to every value (d may be negative)"),
-    "mode": ("", "pair", "(a most frequent value, its count); {none} if empty. C++ returns the smallest of the most frequent values"),
-    "min": ("", "opt", "smallest value; {none} if empty"),
-    "max": ("", "opt", "largest value; {none} if empty"),
-    "medianLow": ("", "opt", "lower median: the ceil(size/2)-th smallest value; {none} if empty"),
-    "medianHigh": ("", "opt", "upper median: the (floor(size/2) + 1)-th smallest value; {none} if empty"),
+    "mode": ("", "pair", "(a most frequent value, its count); {err} if empty. C++ returns the smallest of the most frequent values"),
+    "min": ("", "opt", "smallest value; {err} if empty"),
+    "max": ("", "opt", "largest value; {err} if empty"),
+    "medianLow": ("", "opt", "lower median: the ceil(size/2)-th smallest value; {err} if empty"),
+    "medianHigh": ("", "opt", "upper median: the (floor(size/2) + 1)-th smallest value; {err} if empty"),
     "mex": ("", "int", "smallest non-negative integer not in the set"),
     "sumAbsDiffToMedian": ("", "int", "sum of |v - medianLow()| over all values (min total moves to make all equal); 0 if empty"),
     "kth": ("i", "int", "the value at sorted position i, 0-indexed: kth(0) is the smallest, kth(1) the 2nd smallest, kth(size - 1) the largest (copies count: in {{2, 2, 5}}, kth(1) is 2); {err} unless 0 <= i < size"),
@@ -157,7 +158,7 @@ ARGS = {"d": ["d"], "xv": ["x"], "xi": ["x", "i"], "xk": ["x", "k"], "xm": ["x",
 PY_OPS = {
     "add": "self._add(x, 1)",
     "addCount": "if cnt > 0:\n    self._add(val, cnt)",
-    "remove": "if not self.count(x):\n    return 0\nself._add(x, -1)\nreturn 1",
+    "remove": "if not self._countOf(x):\n    return 0\nself._add(x, -1)\nreturn 1",
     "removeCount": "k = min(cnt, self.count(val))\nif k <= 0:\n    return 0\nself._add(val, -k)\nreturn k",
     "removeAll": "k = self.count(val)\nif k:\n    self._add(val, -k)\nreturn k",
     "countDistinctInValRange": "if lo > hi:\n    return 0\nreturn self._distinctLt(hi) - self._distinctLt(lo) + (1 if self._countOf(hi) else 0)",
@@ -250,6 +251,141 @@ CPP_PARAMS = {"d": "T d", "xv": "T x", "xi": "T x, long long i", "xk": "T x, lon
               "xlohi": "T x, long long lo, long long hi", "y": "T y", "i": "long long i", "x": "T x", "xc": "T x, long long c", "v": "T val", "vc": "T val, long long cnt", "k": "long long k", "kk": "long long kFrom, long long kTo", "lohi": "T lo, T hi", "": ""}
 
 
+def must_replace(text, old, new, count=-1):
+    """str.replace that fails loudly: an edit that matches nothing would silently drop a feature from thousands of files."""
+    assert old in text, f"text edit matched nothing: {old!r}"
+    return text.replace(old, new, count)
+
+
+def must_sub(pattern, repl, text, **kwargs):
+    """re.sub that fails loudly, for the same reason."""
+    out, hits = re.subn(pattern, repl, text, **kwargs)
+    assert hits, f"text edit matched nothing: {pattern!r}"
+    return out
+
+
+LEFTOVER_MARK = re.compile(r"@[A-Z][A-Z0-9_]*@|  @(?:mex|newcount|nonewcount)$|^\s*@\w+[{}]$", re.M)
+
+
+def check_finished(text, where):
+    """A marker left in generated code means a feature's edit was skipped."""
+    m = LEFTOVER_MARK.search(text)
+    assert not m, f"{where}: unfilled marker {m.group(0)!r}"
+    if where.endswith(".py"):
+        check_python(text, where)
+    return text
+
+
+# What a call does when there is no answer. Asking for something of an empty set is a caller error: it raises / throws
+# with a readable message. A value that simply doesn't exist is a normal outcome: None in Python, and in C++ -1 when
+# that can't be mistaken for an answer, else the template's NONE constant.
+EMPTY_ERROR_OPS = {"popMin", "popMax", "min", "max", "medianLow", "medianHigh", "mode", "maxXorAgainstX", "minXorAgainstX"}
+NEIGHBOUR_OPS = {"largestLtX", "largestLteX", "smallestGtX", "smallestGteX"}
+MINUS_ONE_OPS = {"minAdjacentDiff", "maxGap", "largestXorLtK", "largestXorLteK", "smallestXorGtK", "smallestXorGteK",
+                 "maxXorWithVLtM", "maxXorWithVLteM", "maxXorWithVGtM", "maxXorWithVGteM", "minXorWithVLtM", "minXorWithVLteM",
+                 "minXorWithVGtM", "minXorWithVGteM", "maxXorWithVInValRange", "minXorWithVInValRange"}
+NONE_GENERIC = """    template <class K>
+    static K noneOf() {  // the lowest value of K, part by part for pairs and tuples
+        if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
+        else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
+    }
+    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+
+"""
+
+
+def return_rules_cpp(text, dtype):
+    """Public ops stop returning optional: see EMPTY_ERROR_OPS. (Private helpers keep it.)"""
+    lines = text.split("\n")
+    i = 0
+    while i < len(lines):
+        m = re.match(r"^    optional<(.*)> (\w+)\((.*)$", lines[i])
+        if m and m.group(2) in EMPTY_ERROR_OPS | NEIGHBOUR_OPS | MINUS_ONE_OPS:
+            inner, op = m.group(1), m.group(2)
+            none = f'throw out_of_range("{op}: the set is empty")' if op in EMPTY_ERROR_OPS else "return NONE" if op in NEIGHBOUR_OPS else "return -1"
+            word = "throws out_of_range" if op in EMPTY_ERROR_OPS else "NONE" if op in NEIGHBOUR_OPS else "-1"
+            lines[i] = f"    {inner} {op}({m.group(3)}"
+            k = i - 1
+            while lines[k].lstrip().startswith("//"):
+                lines[k] = lines[k].replace("nullopt", word)
+                k -= 1
+            j = i + 1
+            while lines[j] != "    }":
+                lines[j] = lines[j].replace("return nullopt", none)
+                lines[j] = re.sub(r"return (bestIn\(.*\));", r"return \1.value_or(T(-1));", lines[j])
+                j += 1
+            i = j
+        i += 1
+    text = "\n".join(lines)
+    left = set(re.findall(r"^    optional<.*> (\w+)\(", text, re.M)) - {"bestIn", "bestSide"}
+    assert not left, f"public ops still returning optional: {sorted(left)}"
+    if "NONE" in text.split("struct ", 1)[-1]:
+        if dtype == "trie":
+            decl = "    static constexpr T NONE = -1;  // largestLtX and friends when nothing qualifies (values are never negative)\n"
+        elif dtype == "fastset":
+            decl = None
+            text = must_replace(text, "    long long lo, hi;\n", "    long long lo, hi;\n    // largestLtX and friends when nothing qualifies: outside [lo, hi], so never a real value\n"
+                                "    T NONE = T(lo >= 0 ? -1 : lo > numeric_limits<T>::min() ? lo - 1 : hi + 1);\n")
+        else:
+            decl = NONE_GENERIC
+        if decl:
+            name = re.findall(r"^template <typename T>\nstruct (\w+) \{\n", text, re.M)[-1]
+            text = must_replace(text, f"template <typename T>\nstruct {name} {{\n", f"template <typename T>\nstruct {name} {{\n" + decl)
+    return text
+
+
+def return_rules_py(text):
+    """Python: None stays for a value that doesn't exist; asking something of an empty set raises."""
+    lines = text.split("\n")
+    out = []
+    i = 0
+    while i < len(lines):
+        m = re.match(r"^    def (\w+)\(self", lines[i])
+        if not (m and m.group(1) in EMPTY_ERROR_OPS):
+            out.append(lines[i])
+            i += 1
+            continue
+        op = m.group(1)
+        k = len(out) - 1
+        while out[k].lstrip().startswith("#"):
+            out[k] = re.sub(r"\bNone\b", "raises IndexError", out[k])
+            k -= 1
+        out.append(lines[i])
+        i += 1
+        err = f'raise IndexError("{op}: the set is empty")'
+        while i < len(lines) and (not lines[i].strip() or lines[i].startswith("        ")):
+            pad, line = re.match(r"^( *)(.*)$", lines[i]).groups()
+            t = re.match(r"^return (.+) if (.+) else None$", line)
+            f = re.match(r"^return None if (.+) else (.+)$", line)
+            if t:
+                out += [f"{pad}if not {t.group(2)}:", f"{pad}    {err}", f"{pad}return {t.group(1)}"]
+            elif f:
+                out += [f"{pad}if {f.group(1)}:", f"{pad}    {err}", f"{pad}return {f.group(2)}"]
+            else:
+                assert line == "return None" or not re.search(r"\bNone\b", line), f"{op}: {line}"
+                out.append(f"{pad}{err}" if line == "return None" else lines[i])
+            i += 1
+    return "\n".join(out)
+
+
+def check_python(text, where):
+    """Every self.name a Python template reads must exist in its class: a feature written for one structure can reach
+    another that lacks the helper, and Python would only fail when that line runs."""
+    for cls in ast.walk(ast.parse(text)):
+        if not isinstance(cls, ast.ClassDef):
+            continue
+        known = {n.name for n in cls.body if isinstance(n, ast.FunctionDef)}
+        known |= {t.id for n in cls.body if isinstance(n, ast.Assign) for t in n.targets if isinstance(t, ast.Name)}
+        used = set()
+        for n in ast.walk(cls):
+            if isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name) and n.value.id == "self":
+                (used if isinstance(n.ctx, ast.Load) else known).add(n.attr)
+            elif isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "__slots__" for t in n.targets):
+                known |= {c.value for c in ast.walk(n.value) if isinstance(c, ast.Constant) and isinstance(c.value, str)}
+        missing = used - known
+        assert not missing, f"{where}: {cls.name} uses {sorted(missing)} but never defines them"
+
+
 def cost_text(c):
     """'log(N)' -> 'logN', 'log^2(N) expected' -> 'log^2 N expected', for code comments."""
     c = c.replace("log^2(N)", "log^2 N").replace("log(N)", "logN").replace("log(U)", "logU").replace("sqrt(N)", "sqrtN")
@@ -280,7 +416,7 @@ def cpp_ops(ops, comps, own=None):
     out = []
     for op in ops:
         ret, body = (own or {}).get(op) or CPP_OPS[op]
-        doc = OPS[op][2].format(none="nullopt", err="throws out_of_range")
+        doc = OPS[op][2].format(none="NONE" if op in NEIGHBOUR_OPS else "-1", err="throws out_of_range")
         body = "\n".join("        " + line for line in body.split("\n"))
         out.append(doc_comment(f"O({cost_text(comps[op])}) -- {doc}", "//") + f"    {ret} {op}({CPP_PARAMS[OPS[op][0]]}) {{\n{body}\n    }}\n")
     return "\n".join(out)
@@ -292,7 +428,7 @@ def needs_count(mexc, minmax, mode, gaps):
     return mexc or minmax or mode or gaps
 
 
-def py_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift=False):
+def py_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift=False, ranks=True):
     """_add: every update goes through here. It keeps current exactly what this variant caches (min / max, both
     medians, the mex) and nothing else: no flags, no lazy starts. A variant without a cache answers that query with a
     walk instead, and its updates do none of this work."""
@@ -306,9 +442,9 @@ def py_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift
         out += ["        g = f - c  # x's old count"]
     if mode:  # move x from the bucket of its old count to its new one
         out += ["        # mode: x moves from the bucket of its old count to its new one",
-                "        bk = self.bk", "        if g:", "            vs = bk[g]", "            vs.discard(x)", "            if not vs:",
-                "                del bk[g]", "        if f:", "            if f in bk:", "                bk[f].add(x)", "            else:",
-                "                bk[f] = {x}", "            if f > self.maxF:", "                self.maxF = f",
+                "        bk, key = self.bk, x ^ self.salt if x.__class__ is int else x  # (salted: no fixed input can force set collisions)", "        if g:", "            vs = bk[g]", "            vs.discard(key)", "            if not vs:",
+                "                del bk[g]", "        if f:", "            if f in bk:", "                bk[f].add(key)", "            else:",
+                "                bk[f] = {key}", "            if f > self.maxF:", "                self.maxF = f",
                 "        while self.maxF and self.maxF not in bk:  # (it only drops as far as copies were removed: amortized O(1))",
                 "            self.maxF -= 1"]
     if gaps:  # x's count went g -> f: duplicates, and the gaps around x when it appears or disappears
@@ -316,8 +452,9 @@ def py_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift
             "        if (g >= 2) != (f >= 2):  # values with 2+ copies (then the smallest difference is 0)",
             "            self.dups += 1 if f >= 2 else -1",
             "        if not g or not f:  # x appeared or disappeared: the gap between its neighbours splits or comes back",
-            *(["            p, q = self.largestLtX(x), self.smallestGtX(x)"] if not shift else [
-                "            i, j = self._lt(x), self._le(x)  # (stored values: the public ops would shift x again)",
+            *(["            p, q = self.largestLtX(x), self.smallestGtX(x)"] if not ranks else [
+                "            i = self._lt(x)  # (one walk: the copies of x are known, and stored values skip any shift)",
+                "            j = i + f",
                 "            p, q = self._kth(i) if i else None, self._kth(j + 1) if j < self.n else None"]),
             "            if f:",
             "                if p is not None and q is not None:", "                    self._gap(q - p, -1)",
@@ -356,15 +493,15 @@ def py_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift
                     "            self.highV, self.highB, self.highC = self._kthInfo(r)" + ("[:3]" if S else "")]
     if gaps:
         out += ["", "    def _gap(self, g, c):  # one more (c = 1) / fewer (c = -1) gap of size g",
-                "        gc = self.gc", "        k = gc.get(g, 0) + c", "        if k:", "            gc[g] = k",
+                "        gc, key = self.gc, g ^ self.salt", "        k = gc.get(key, 0) + c", "        if k:", "            gc[key] = k",
                 "            if k == 1 and c > 0:  # (a size already present has an entry in both heaps)",
                 "                if len(self.gmin) > 2 * len(gc) + 8:  # mostly sizes no longer present: rebuild from the live ones",
-                "                    self.gmin = sorted(gc)", "                    self.gmax = [-v for v in reversed(self.gmin)]",
+                "                    self.gmin = sorted(v ^ self.salt for v in gc)", "                    self.gmax = [-v for v in reversed(self.gmin)]",
                 "                else:", "                    heappush(self.gmin, g)", "                    heappush(self.gmax, -g)",
-                "        else:", "            del gc[g]", "",
+                "        else:", "            del gc[key]", "",
                 "    def _minGap(self):  # heap tops of sizes no longer present are dropped as they surface",
-                "        h, gc = self.gmin, self.gc", "        while h[0] not in gc:", "            heappop(h)", "        return h[0]", "",
-                "    def _maxGap(self):", "        h, gc = self.gmax, self.gc", "        while -h[0] not in gc:", "            heappop(h)",
+                "        h, gc, salt = self.gmin, self.gc, self.salt", "        while h[0] ^ salt not in gc:", "            heappop(h)", "        return h[0]", "",
+                "    def _maxGap(self):", "        h, gc, salt = self.gmax, self.gc, self.salt", "        while -h[0] ^ salt not in gc:", "            heappop(h)",
                 "        return -h[0]"]
     if S:
         out += ["", "    def _sumFirst(self, k):  # sum of the k smallest values", "        if k <= 0:", "            return 0",
@@ -372,7 +509,7 @@ def py_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift
     return "\n".join(out) + "\n"
 
 
-def cpp_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift=False):
+def cpp_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift=False, ranks=True):
     S = sums
     kept = (["min / max"] if minmax else []) + (["both medians"] if medians else []) + (["the mex"] if mexc else [])
     out = ["", "    void addRaw(T x, long long c) {  // c copies of x (c < 0 removes)" + ("; keeps " + ", ".join(kept) + " current" if kept else ""),
@@ -389,8 +526,11 @@ def cpp_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shif
         out += ["        {  // gaps",
                 "            if ((g >= 2) != (f >= 2)) dups += f >= 2 ? 1 : -1;  // values with 2+ copies (then the smallest difference is 0)",
                 "            if (!g || !f) {  // x appeared or disappeared: the gap between its neighbours splits or comes back",
-                *(["                optional<T> p = largestLtX(x), q = smallestGtX(x);"] if not shift else [
-                    "                long long cl = lt(x), ce = le(x);  // (stored values: the public ops would shift x again)",
+                *(["                T below = largestLtX(x), above = smallestGtX(x);  // (NONE is outside [lo, hi] here)",
+                   "                optional<T> p, q;",
+                   "                if (below != NONE) p = below;",
+                   "                if (above != NONE) q = above;"] if not ranks else [
+                    "                long long cl = lt(x), ce = cl + f;  // (ranks, not the public ops: a real value may equal NONE)",
                     "                optional<T> p, q;",
                     "                if (cl) p = kthAt(cl);",
                     "                if (ce < n) q = kthAt(ce + 1);"]),
@@ -502,13 +642,14 @@ def fenwick(sums, mex, bits=(False, False, False)):
 
 
 class FenwickMultiset:
-    __slots__ = ("vals", "m", "top", "cnt", "fc",{' "fs",' if s else ""}{' "fx",' if X else ""}{' "fp", "z", "run",' if M else ""} "n",{' "total",' if s else ""} "d")
+    __slots__ = ("vals", "m", "top", "steps", "cnt", "fc",{' "fs",' if s else ""}{' "fx",' if X else ""}{' "fp", "z", "run",' if M else ""} "n",{' "total",' if s else ""} "d")
 
     # O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order, duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
     def __init__(self, allValuesThatWillEverBeInsertedForOfflineCompression):
         vals = self.vals = sorted(set(allValuesThatWillEverBeInsertedForOfflineCompression))
         m = self.m = len(vals)
         self.top = 1 << (m.bit_length() - 1) if m else 0  # highest power of two <= m, for binary lifting
+        self.steps = tuple(1 << b for b in range(m.bit_length() - 1, -1, -1))  # top, top / 2, ..., 1
         self.cnt = [0] * m  # copies of vals[i]
         self.fc = [0] * (m + 1)  # Fenwick: copies
 {"        self.fs = [0] * (m + 1)  # Fenwick: copies * value" + chr(10) if s else ""}        self.fx = [0] * (m + 1)  # Fenwick: xor of the values with an odd count  @xor
@@ -538,10 +679,19 @@ class FenwickMultiset:
 
     def _insert(self, x, c):
         i = bisect_left(self.vals, x)  # x must be one of the given values
-        old = self.cnt[i]
-        self.cnt[i] = old + c
-        self._fen(self.fc, i, c)
-{"        self._fen(self.fs, i, c * x)" + chr(10) if s else ""}        if c & 1:  # x's parity flips  @xor
+        cnt = self.cnt
+        old = cnt[i]
+        cnt[i] = old + c
+        fc, m, j = self.fc, self.m, i + 1
+{f"""        fs, cx = self.fs, c * x
+        while j <= m:
+            fc[j] += c
+            fs[j] += cx
+            j += j & -j
+""" if s else f"""        while j <= m:
+            fc[j] += c
+            j += j & -j
+"""}        if c & 1:  # x's parity flips  @xor
             fx, j = self.fx, i + 1  @xor
             while j <= self.m:  @xor
                 fx[j] ^= x  @xor
@@ -555,10 +705,18 @@ class FenwickMultiset:
         return old + c  # (x's new count)
 
     def _lt(self, x):
-        return self._pre(self.fc, bisect_left(self.vals, x))
+        fc, i, c = self.fc, bisect_left(self.vals, x), 0
+        while i:
+            c += fc[i]
+            i &= i - 1
+        return c
 
     def _le(self, x):
-        return self._pre(self.fc, bisect_right(self.vals, x))
+        fc, i, c = self.fc, bisect_right(self.vals, x), 0
+        while i:
+            c += fc[i]
+            i &= i - 1
+        return c
 
     def _countOf(self, x):
         i = bisect_left(self.vals, x)
@@ -571,26 +729,23 @@ class FenwickMultiset:
         return self._pre(self.fs, bisect_right(self.vals, x))
 """ if s else ""}
     def _kth(self, k):  # binary lifting: the largest prefix with fewer than k copies ends right before the answer
-        fc, m = self.fc, self.m
-        pos, step = 0, self.top
-        while step:
+        fc, m, pos = self.fc, self.m, 0
+        for step in self.steps:
             nxt = pos + step
             if nxt <= m and fc[nxt] < k:
                 pos = nxt
                 k -= fc[nxt]
-            step >>= 1
         return self.vals[pos]
 
     def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies{", sum before it" if s else ""})
         fc,{" fs," if s else ""} m = self.fc,{" self.fs," if s else ""} self.m
-        pos, step, before{", acc" if s else ""} = 0, self.top, 0{", 0" if s else ""}
-        while step:
+        pos, before{", acc" if s else ""} = 0, 0{", 0" if s else ""}
+        for step in self.steps:
             nxt = pos + step
             if nxt <= m and before + fc[nxt] < k:
                 pos = nxt
                 before += fc[nxt]
-{"                acc += fs[nxt]" + chr(10) if s else ""}            step >>= 1
-        return self.vals[pos], before, self.cnt[pos]{", acc" if s else ""}
+{"                acc += fs[nxt]" + chr(10) if s else ""}        return self.vals[pos], before, self.cnt[pos]{", acc" if s else ""}
 
 @mex{{
     def _findMex(self):  # smallest non-negative integer not in the set
@@ -622,6 +777,10 @@ struct FenwickMultiset {{
     int m, top{", z, run" if M else ""};
     vector<long long> cnt, fc{", fp" if M else ""};  // copies per value; Fenwick of copies{"; Fenwick of present values" if M else ""}
 {"    vector<S> fs;  // Fenwick of copies * value" + chr(10) if s else ""}    vector<T> fx;  // Fenwick of xor over the values with an odd count  @xor
+    vector<int> slotOf;  // integer values only: hash table from a value to its position in vals, -1 for an empty slot
+    unsigned long long hashMultiplier = 1;  // random per instance, so no fixed input can force collisions
+    int hashShift = 0;
+    unsigned hashMask = 0;
     long long n = 0, d = 0;
 {"    S total = 0;" + chr(10) if s else ""}
     // O(N log N) -- allValuesThatWillEverBeInsertedForOfflineCompression: every value you will EVER add (any order, duplicates fine), only to compress values; this does NOT add them, the multiset starts empty; N = distinct values
@@ -638,6 +797,21 @@ struct FenwickMultiset {{
         run = 0;
         while (z + run < m && vals[z + run] == T(run)) run++;  // vals[z .. z + run - 1] = 0, 1, ..., run - 1
 @mex}}
+        if constexpr (is_integral_v<T>) {{
+            unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count() ^ (unsigned long long)(uintptr_t)this;
+            seed = (seed ^ (seed >> 30)) * 0xBF58476D1CE4E5B9ULL;
+            seed = (seed ^ (seed >> 27)) * 0x94D049BB133111EBULL;
+            hashMultiplier = (seed ^ (seed >> 31)) | 1;
+            int bits = 3;
+            while ((1LL << bits) < 4LL * m) bits++;
+            hashShift = 64 - bits, hashMask = (1u << bits) - 1;
+            slotOf.assign(1u << bits, -1);
+            for (int i = 0; i < m; i++) {{
+                unsigned h = hashOf(vals[i]);
+                while (slotOf[h] >= 0) h = (h + 1) & hashMask;
+                slotOf[h] = i;
+            }}
+        }}
     }}
 
     template <class V>
@@ -655,8 +829,25 @@ struct FenwickMultiset {{
     int lowerIdx(T x) const {{ return int(lower_bound(vals.begin(), vals.end(), x) - vals.begin()); }}
     int upperIdx(T x) const {{ return int(upper_bound(vals.begin(), vals.end(), x) - vals.begin()); }}
 
+    unsigned hashOf(T x) const {{
+        return unsigned((unsigned long long)(long long)x * hashMultiplier >> hashShift);
+    }}
+    int rankOf(T x) const {{  // x's position in vals, or m if it is not a given value; expected O(1) for integers
+        if constexpr (is_integral_v<T>) {{
+            for (unsigned h = hashOf(x);; h = (h + 1) & hashMask) {{
+                int i = slotOf[h];
+                if (i < 0) return m;
+                if (vals[i] == x) return i;
+            }}
+        }} else {{
+            int i = lowerIdx(x);
+            return i < m && vals[i] == x ? i : m;
+        }}
+    }}
+
     long long insert(T x, long long c) {{  // returns x's new count
-        int i = lowerIdx(x);  // x must be one of the given values
+        int i = rankOf(x);
+        if (i == m) i = lowerIdx(x);  // x must be one of the given values
         long long old = cnt[i];
         cnt[i] += c;
         fen(fc, i, c);
@@ -671,8 +862,8 @@ struct FenwickMultiset {{
     long long le(T x) {{ return pre(fc, upperIdx(x)); }}
 
     long long countOf(T x) const {{
-        int i = lowerIdx(x);
-        return i < m && vals[i] == x ? cnt[i] : 0;
+        int i = rankOf(x);
+        return i < m ? cnt[i] : 0;
     }}
 {"    S slt(T x) { return pre(fs, lowerIdx(x)); }" + chr(10) + "    S sle(T x) { return pre(fs, upperIdx(x)); }" + chr(10) if s else ""}
     T kthAt(long long k) {{  // binary lifting: the largest prefix with fewer than k copies ends right before the answer
@@ -706,7 +897,408 @@ struct FenwickMultiset {{
     comps["xorOfAll"] = "1"
     return dict(name="FenwickMultiset", dtype="fenwick", values="offline", py=keep_aggs(keep_mex(py, M), X), cpp=keep_aggs(keep_mex(cpp, M), X),
                 comps=comps, mex=M, bits=(X, False, False), mem=("none", node, "none", "vals[1*N]"),
-                note="N = how many distinct values were given to the constructor; the arrays are allocated once")
+                note="N = how many distinct values were given to the constructor; the arrays are allocated once. C++ integers also keep a hash table of at most 8*N ints from value to position")
+
+
+# ------------------------------------------------------------------------------------------------ fast mode
+
+# fast.cpp is an optional second file next to template.cpp: the same public operations, tuned harder, with the drawbacks
+# listed in FAST_NOTE. It is made from the finished template text, so every feature keeps working without being written
+# twice; every edit uses must_replace / must_sub, so a change to the default that a fast edit depends on fails loudly.
+FAST_PRELUDE = """#ifdef __SSE2__
+#include <immintrin.h>
+#endif
+
+// LEETCODE_NO_SANITIZE skips sanitizers in a function. It only changes anything where sanitizers run, like LeetCode: on
+// Codeforces it compiles and does nothing.
+// This template already uses it. To go further, put it on the one function with your hot loop:
+//   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
+// A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
+// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
+// Bad memory accesses in a marked function go unreported.
+#ifndef LEETCODE_NO_SANITIZE
+#define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
+#endif
+#define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
+
+// A minimal array: unlike vector, its accessors always inline, even with sanitizers skipped
+template <typename U>
+struct FlatArray {
+    U* items = nullptr;
+    int count = 0;
+    FlatArray() = default;
+    FlatArray(const FlatArray& other) { *this = other; }
+    FlatArray& operator=(const FlatArray& other) {
+        if (this == &other) return *this;
+        delete[] items;
+        count = other.count;
+        items = count ? new U[count] : nullptr;
+        std::copy(other.items, other.items + count, items);
+        return *this;
+    }
+    ~FlatArray() { delete[] items; }
+    void assign(int size, U value) {
+        delete[] items;
+        count = size;
+        items = size ? new U[size] : nullptr;
+        std::fill(items, items + size, value);
+    }
+    LEETCODE_NO_SANITIZE_INLINE U& operator[](int i) { return items[i]; }
+    LEETCODE_NO_SANITIZE_INLINE const U& operator[](int i) const { return items[i]; }
+    LEETCODE_NO_SANITIZE_INLINE U* data() { return items; }
+    LEETCODE_NO_SANITIZE_INLINE const U* data() const { return items; }
+    U* begin() { return items; }
+    U* end() { return items + count; }
+    const U* begin() const { return items; }
+    const U* end() const { return items + count; }
+};
+
+"""
+
+FAST_POOL_PRELUDE = FAST_PRELUDE.split("// A minimal array:")[0] + """// A minimal growable array: unlike vector, its accessors always inline, even with sanitizers skipped
+template <typename U>
+struct FlatPool {
+    U* items = nullptr;
+    int count = 0, room = 0;
+    explicit FlatPool(int size = 0) { resize(size); }
+    FlatPool(const FlatPool& other) { *this = other; }
+    FlatPool& operator=(const FlatPool& other) {
+        if (this == &other) return *this;
+        delete[] items;
+        count = room = other.count;
+        items = count ? new U[count] : nullptr;
+        std::copy(other.items, other.items + count, items);
+        return *this;
+    }
+    ~FlatPool() { delete[] items; }
+    void reserve(size_t want) {
+        if ((long long)want <= room) return;
+        U* grown = new U[want];
+        std::copy(items, items + count, grown);
+        delete[] items;
+        items = grown, room = (int)want;
+    }
+    void resize(int size) {
+        reserve(size);
+        for (int i = count; i < size; i++) items[i] = U{};
+        count = size;
+    }
+    LEETCODE_NO_SANITIZE_INLINE void push_back(const U& value) {
+        if (count == room) reserve(room ? 2LL * room : 16);
+        items[count++] = value;
+    }
+    LEETCODE_NO_SANITIZE_INLINE void pop_back() { count--; }
+    LEETCODE_NO_SANITIZE_INLINE U& back() { return items[count - 1]; }
+    LEETCODE_NO_SANITIZE_INLINE bool empty() const { return !count; }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return count; }
+    void clear() { count = 0; }
+    LEETCODE_NO_SANITIZE_INLINE U& operator[](int i) { return items[i]; }
+    LEETCODE_NO_SANITIZE_INLINE const U& operator[](int i) const { return items[i]; }
+};
+
+"""
+
+FAST_POOL_NOTE = """// FAST MODE drawbacks compared with template.cpp:
+//   - sanitizers are skipped inside this template, so a bad access in it goes unreported
+// Same public operations and answers, same limits; it needs GCC or Clang and C++17.
+"""
+
+
+def fast_pool_cpp(text, name):
+    """A finished node-pool template with sanitizers skipped: FlatPool instead of vector, and every member marked hot."""
+    t = must_replace(text, "template.cpp", "fast.cpp")
+    t = must_replace(t, "template <typename T>\nstruct " + name + " {", FAST_POOL_NOTE + FAST_POOL_PRELUDE + "template <typename T>\nstruct " + name + " {")
+    t = must_replace(t, "vector<Node> pool{Node{}};", "FlatPool<Node> pool{1};")
+    t = t.replace("vector<int> freeList;", "FlatPool<int> freeList;")
+    t = t.replace("vector<int> path;", "FlatPool<int> path;")
+    t = t.replace("v.h = std::max(a.h, b.h) + 1;", "v.h = (a.h > b.h ? a.h : b.h) + 1;")
+    start = t.index("struct " + name + " {")
+    head, tail = t[:start], t[start:]
+    tail, hits = re.subn(r"^    (?!//|using |struct |template |explicit |" + name + r"\b)((?:[\w:]+(?:<[^;(){}]*>)?[&*]* )+[\w]+\([^;{}]*\)(?: const)? \{)",
+                         r"    LEETCODE_NO_SANITIZE \1", tail, flags=re.M)
+    assert hits > 10, name
+    return head + tail
+
+
+FAST_VECTOR_PRELUDE = FAST_PRELUDE.split("// A minimal array:")[0] + """// A vector whose [] and size() always inline, even with sanitizers skipped (libstdc++ only; elsewhere a plain vector)
+template <typename U>
+struct HotVector : vector<U> {
+    using vector<U>::vector;
+#ifdef __GLIBCXX__
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+#endif
+};
+
+"""
+
+
+def fast_vector_cpp(text, name, source="template.cpp", target="fast.cpp"):
+    """A finished template with sanitizers skipped: HotVector instead of vector, and every member marked hot."""
+    t = must_replace(text, source, target)
+    t = must_replace(t, "template <typename T>\nstruct " + name + " {", FAST_POOL_NOTE.replace("template.cpp", source) + FAST_VECTOR_PRELUDE + "template <typename T>\nstruct " + name + " {")
+    start = t.index("struct " + name + " {")
+    head, tail = t[:start], t[start:]
+    tail = must_replace(tail, "vector<", "HotVector<")
+    tail, hits = re.subn(r"^    (?!//|using |struct |template |explicit |" + name + r"\b)((?:[\w:]+(?:<[^;(){}]*>)?[&*]* )+[\w]+\([^;{}]*\)(?: const)? \{)",
+                         r"    LEETCODE_NO_SANITIZE \1", tail, flags=re.M)
+    assert hits > 10, name
+    return head + tail
+
+
+FAST_TREE_HELPERS = """    LEETCODE_NO_SANITIZE_INLINE static int countBelow(const int* node, int k) {  // how many of the node's 16 running totals are < k
+#ifdef __SSE2__
+        __m128i key = _mm_set1_epi32(k);
+        __m128i part0 = _mm_cmplt_epi32(_mm_loadu_si128((const __m128i*)node), key);
+        __m128i part1 = _mm_cmplt_epi32(_mm_loadu_si128((const __m128i*)(node + 4)), key);
+        __m128i part2 = _mm_cmplt_epi32(_mm_loadu_si128((const __m128i*)(node + 8)), key);
+        __m128i part3 = _mm_cmplt_epi32(_mm_loadu_si128((const __m128i*)(node + 12)), key);
+        int below = _mm_movemask_epi8(_mm_packs_epi16(_mm_packs_epi32(part0, part1), _mm_packs_epi32(part2, part3)));
+        return __builtin_ctz(~below);  // the totals never decrease, so the bits are one solid run from the bottom
+#else
+        int c = 0;
+        for (int j = 0; j < 16; j++) c += node[j] < k;
+        return c;
+#endif
+    }
+
+    LEETCODE_NO_SANITIZE_INLINE static void addFrom(int* node, int child, int delta) {  // add delta to running totals child..15
+#ifdef __SSE2__
+        alignas(16) static const int mask[31] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+        const int* childMask = mask + 15 - child;
+        __m128i value = _mm_set1_epi32(delta);
+        for (int j = 0; j < 16; j += 4) {
+            __m128i* at = (__m128i*)(node + j);
+            __m128i masked = _mm_and_si128(value, _mm_loadu_si128((const __m128i*)(childMask + j)));
+            _mm_storeu_si128(at, _mm_add_epi32(_mm_loadu_si128(at), masked));
+        }
+#else
+        for (int j = 0; j < 16; j++) node[j] += delta & -(j >= child);
+#endif
+    }
+
+    LEETCODE_NO_SANITIZE long long countBefore(int i) const {  // copies over positions 0..i-1
+        if (i >= m) return n;
+        const int* t = tree.data();
+        long long s = 0;
+        for (int level = 0; level < levels; level++) {
+            int c = i & 15;
+            i >>= 4;
+            if (c) s += t[levelStart[level] + i * 16 + c - 1];
+        }
+        return s;
+    }
+
+    LEETCODE_NO_SANITIZE int findSlot(long long k, long long& before) const {  // position of the k-th smallest; copies before it
+        const int* t = tree.data();
+        int pos = 0, want = int(k);
+        for (int level = levels - 1; level >= 0; level--) {
+            const int* node = t + levelStart[level] + pos * 16;
+            int c = countBelow(node, want);
+            int skipped = c ? node[c - 1] : 0;
+            want -= skipped;
+            pos = pos * 16 + c;
+        }
+        before = k - want;
+        return pos;
+    }
+
+"""
+
+FAST_NOTE = """// FAST MODE drawbacks compared with template.cpp:
+//   - at most 2147483647 copies in total: going past that throws length_error
+//   - sanitizers are skipped inside this template, so a bad access in it goes unreported
+//   - adding a value not given to the constructor can corrupt memory unreported
+// Same public operations and answers; it needs GCC or Clang and C++17, and uses SSE2 where the CPU has it.
+"""
+
+FAST_HOT = [r"void modeSet\(", r"void gapSet\(", r"void add\(T x\)", r"void addRaw\(", r"long long insert\(", r"long long countOf\(", r"long long count\(T x\)",
+            r"T kthAt\(", r"Info kthInfo\(", r"T kth\(", r"long long remove\(T x\)", r"long long size\(\)", r"S sumFirst\(",
+            r"S sumLargestK\(", r"S sumSmallestK\(", r"unsigned hashOf\(", r"int rankOf\("]
+
+
+FAST_HOT_OPTIONAL = {r"void modeSet\(", r"void gapSet\(", r"S sumFirst\(", r"S sumLargestK\(", r"S sumSmallestK\(", r"long long remove\(T x\)", r"long long count\(T x\)", r"T kth\("}  # (not in every variant)
+
+
+def fenwick_one_lookup_cpp(t):
+    """remove finds x's position once, for both the check and the removal."""
+    t = must_replace(t, "        int i = rankOf(x);\n        if (i == m) i = lowerIdx(x);  // x must be one of the given values\n",
+                     "        int i = rankOf(x);\n        if (i == m) i = lowerIdx(x);  // x must be one of the given values\n        return insertAt(i, x, c);\n    }\n\n"
+                     "    long long insertAt(int i, T x, long long c) {  // i is x's position in vals; returns x's new count\n")
+    t = must_sub(r"    void addRaw\(T x, long long c\) \{(.*)\n", lambda m: "    void addRaw(T x, long long c) {" + m.group(1) + "\n        int i = rankOf(x);\n        addAt(i == m ? lowerIdx(x) : i, x, c);\n    }\n\n    void addAt(int i, T x, long long c) {  // addRaw, with x's position known\n", t, count=1)
+    t = must_sub(r"(void addAt\(.*?)(insert\(x, c\))", lambda m: m.group(1) + "insertAt(i, x, c)", t, count=1, flags=re.S)
+    return must_replace(t, "        if (!count(x)) return 0;\n        addRaw(x, -1);\n        return 1;\n", "        int i = rankOf(x);  // one lookup for both the check and the removal\n        if (i == m || !cnt[i]) return 0;\n        addAt(i, x, -1);\n        return 1;\n")
+
+
+def fenwick_one_lookup_py(t):
+    """remove finds x's position once, for both the check and the removal."""
+    t = must_replace(t, "    def _insert(self, x, c):\n        i = bisect_left(self.vals, x)  # x must be one of the given values\n",
+                     "    def _insert(self, x, c, i=None):  # i: x's position in vals, if known\n        if i is None:\n            i = bisect_left(self.vals, x)  # x must be one of the given values\n")
+    t = must_sub(r"    def _add\(self, x, c\):(.*)\n", lambda m: f"    def _add(self, x, c, i=None):{m.group(1)}\n", t, count=1)
+    t = must_sub(r"(def _add\(.*?self\._insert\(x, c)\)", lambda m: m.group(1) + ", i)", t, count=1, flags=re.S)
+    find = "        i = bisect_left(self.vals, x)  # one lookup for both the check and the removal\n        if i == self.m or self.vals[i] != x or not self.cnt[i]:\n            return 0\n"
+    t, cached = re.subn(r"        if not self\._countOf\(x\):\n            return 0\n        self\._add\(x, -1\)\n        return 1\n", find + "        self._add(x, -1, i)\n        return 1\n", t)
+    if not cached:
+        t = must_sub(r"        if not self\._countOf\(x\):\n            return 0\n((?:        self\.\w+ -= .*\n)+)        self\._insert\(x, -1\)\n        return 1\n",
+                     lambda m: find + m.group(1) + "        self._insert(x, -1, i)\n        return 1\n", t, count=1)
+    return t
+
+
+def fenwick_seg_cpp(t, mode, gaps):
+    """Offline, every value has a fixed position: mode and gaps become flat segment trees over positions instead of
+    node-based map / set / multiset. Same answers (mode is still the smallest of the most frequent values)."""
+    fields, init, hooks, reset_sparse, reset_bulk, helpers = "", "", "", "", "", ""
+    if mode or gaps:
+        fields += "    int segSize = 1;  // positions in the segment trees below (a power of two >= m)\n"
+        init += "        while (segSize < m) segSize <<= 1;\n"
+    if mode:
+        t = must_sub(r"    map<long long, set<T>> bk;.*\n", "    vector<long long> modeCount;  // segment tree over positions: the highest count in each range\n    vector<int> modeSlot;  // ... and the leftmost position holding it\n", t, count=1)
+        init += "        modeCount.assign(2 * segSize, 0), modeSlot.assign(2 * segSize, 0);\n        for (int i = 0; i < segSize; i++) modeSlot[segSize + i] = i;\n"
+        hooks += "        modeSet(i, cnt[i]);\n"
+        reset_sparse += "                modeSet(i, 0);\n"
+        reset_bulk += ", fill(modeCount.begin(), modeCount.end(), 0)"
+        helpers += """    void modeSet(int i, long long c) {  // position i now has c copies
+        int j = i + segSize;
+        modeCount[j] = c;
+        for (j >>= 1; j; j >>= 1) {
+            int side = modeCount[2 * j] >= modeCount[2 * j + 1] ? 2 * j : 2 * j + 1;  // (ties: the smaller value)
+            if (modeCount[j] == modeCount[side] && modeSlot[j] == modeSlot[side]) break;
+            modeCount[j] = modeCount[side], modeSlot[j] = modeSlot[side];
+        }
+    }
+
+"""
+        t = must_sub(r"        \{  // mode: x moves from the bucket of its old count to its new one\n.*?\n        \}\n", "", t, count=1, flags=re.S)
+        t = must_replace(t, "        bk.clear();\n", "")
+        t = must_sub(r"        auto& \[f, vs\] = \*bk\.rbegin\(\);\n        return pair<T, long long>\{\*vs\.begin\(\), f\};", "        return pair<T, long long>{vals[modeSlot[1]], modeCount[1]};", t, count=1)
+    if gaps:
+        t = must_sub(r"    multiset<long long> gaps;.*\n", "    vector<int> gapFirst, gapLast;  // segment tree over positions: the first and last present value in each range, -1 if none\n    vector<long long> gapMin, gapMax;  // ... and the smallest and largest gap between neighbours inside it\n", t, count=1)
+        init += "        gapFirst.assign(2 * segSize, -1), gapLast.assign(2 * segSize, -1);\n        gapMin.assign(2 * segSize, LLONG_MAX), gapMax.assign(2 * segSize, -1);\n"
+        hooks += "        if (!old || !cnt[i]) gapSet(i, cnt[i] > 0);\n"
+        reset_sparse += "                gapSet(i, false);\n"
+        reset_bulk += ", fill(gapFirst.begin(), gapFirst.end(), -1), fill(gapLast.begin(), gapLast.end(), -1), fill(gapMin.begin(), gapMin.end(), LLONG_MAX), fill(gapMax.begin(), gapMax.end(), -1)"
+        helpers += """    void gapSet(int i, bool present) {  // position i's value appeared or disappeared
+        int j = i + segSize;
+        gapFirst[j] = gapLast[j] = present ? i : -1;
+        for (j >>= 1; j; j >>= 1) {
+            int a = 2 * j, b = a + 1;
+            if (gapLast[a] < 0 || gapFirst[b] < 0) {
+                int side = gapLast[a] < 0 ? b : a;
+                gapFirst[j] = gapFirst[side], gapLast[j] = gapLast[side], gapMin[j] = gapMin[side], gapMax[j] = gapMax[side];
+            } else {
+                long long middle = (long long)vals[gapFirst[b]] - (long long)vals[gapLast[a]];
+                gapFirst[j] = gapFirst[a], gapLast[j] = gapLast[b];
+                gapMin[j] = gapMin[a] < gapMin[b] ? gapMin[a] : gapMin[b];
+                if (middle < gapMin[j]) gapMin[j] = middle;
+                gapMax[j] = gapMax[a] > gapMax[b] ? gapMax[a] : gapMax[b];
+                if (middle > gapMax[j]) gapMax[j] = middle;
+            }
+        }
+    }
+
+"""
+        t = must_sub(r"            if \(!g \|\| !f\) \{  // x appeared or disappeared.*?\n            \}\n(        \}\n)", r"\1", t, count=1, flags=re.S)
+        t = must_replace(t, "gaps.clear(), dups = 0;", "dups = 0;")
+        t = must_replace(t, "return *gaps.rbegin();", "return gapMax[1];")
+        t = must_replace(t, "return *gaps.begin();", "return gapMin[1];")
+    if not (mode or gaps):
+        return t
+    t = must_replace(t, "C++ integers also keep a hash table of at most 8*N ints from value to position", "C++ integers also keep a hash table of at most 8*N ints from value to position" + ("; mode keeps a segment tree of 4*N long long / int slots" if mode else "") + ("; gaps keeps one of 8*N" if gaps else ""))
+    t = must_replace(t, "    long long n = 0, d = 0;\n", fields + "    long long n = 0, d = 0;\n")
+    t = must_replace(t, "        cnt.assign(m, 0), fc.assign(m + 1, 0);\n", "        cnt.assign(m, 0), fc.assign(m + 1, 0);\n" + init)
+    t = must_replace(t, "    long long insert(T x, long long c) {  // returns x's new count\n", helpers + "    long long insert(T x, long long c) {  // returns x's new count\n")
+    t = must_sub(r"(        else if \(!cnt\[i\]\) .*d--;\n)", lambda m: m.group(1) + hooks, t, count=1)
+    t = must_replace(t, "                cnt[i] = 0;\n", "                cnt[i] = 0;\n" + reset_sparse)
+    t = must_sub(r"(            fill\(cnt\.begin\(\), cnt\.end\(\), 0\)[^\n]*);\n", lambda m: m.group(1) + reset_bulk + ";\n", t, count=1)
+    return t
+
+
+def fast_fenwick_cpp(text):
+    """The finished Fenwick template with a 16-way count tree, FlatArray and the sanitizer skip."""
+    t = must_replace(text, "template.cpp", "fast.cpp")
+    t = must_replace(t, "template <typename T>\nstruct FenwickMultiset {", FAST_NOTE + FAST_PRELUDE + "template <typename T>\nstruct FenwickMultiset {")
+    t = must_replace(t, "    vector<T> vals;  // the sorted distinct values", "    FlatArray<T> vals;  // the sorted distinct values")
+    t = must_sub(r"    vector<long long> cnt, fc(, fp)?;  // copies per value; Fenwick of copies(.*)\n",
+                 lambda m: "    FlatArray<int> cnt;  // copies per value (fits: total copies are capped)\n" + ("    FlatArray<long long> fp;  // " + m.group(2).lstrip("; ") + "\n" if m.group(1) else "")
+                 + "    FlatArray<int> tree;  // the 16-way count tree: 16 running totals per node, leaf level first\n"
+                 + "    int levels = 0, levelStart[8] = {};  // how many levels; where each level begins in tree\n", t, count=1)
+    if "vector<S> fs;" in t:
+        t = must_replace(t, "    vector<S> fs;", "    FlatArray<S> fs;")
+    t = must_replace(t, "    vector<int> slotOf;", "    FlatArray<int> slotOf;")
+    for field in ("vector<long long> modeCount;", "vector<int> modeSlot;", "vector<int> gapFirst, gapLast;", "vector<long long> gapMin, gapMax;", "vector<T> fx;"):
+        t = t.replace(field, field.replace("vector", "FlatArray"))
+    t = must_sub(r"explicit FenwickMultiset\(vector<T> (\w+)\) : vals\(move\(\w+\)\) \{\n        sort\(vals\.begin\(\), vals\.end\(\)\);\n        vals\.erase\(unique\(vals\.begin\(\), vals\.end\(\)\), vals\.end\(\)\);\n        m = \(int\)vals\.size\(\);\n",
+                 lambda m: f"explicit FenwickMultiset(vector<T> {m.group(1)}) {{\n        vector<T>& sortedValues = {m.group(1)};\n        sort(sortedValues.begin(), sortedValues.end());\n"
+                 "        sortedValues.erase(unique(sortedValues.begin(), sortedValues.end()), sortedValues.end());\n        m = (int)sortedValues.size();\n"
+                 "        vals.assign(m, T());\n        std::copy(sortedValues.begin(), sortedValues.end(), vals.begin());\n", t, count=1)
+    t = must_replace(t, "        cnt.assign(m, 0), fc.assign(m + 1, 0);\n", """        cnt.assign(m, 0);
+        int nodes = m, slots = 0;
+        do {
+            nodes = (nodes + 15) / 16;
+            levelStart[levels++] = slots;
+            slots += nodes * 16;
+        } while (nodes > 1);
+        tree.assign(slots, 0);
+""")
+    t = must_replace(t, "    template <class V>\n    void fen(vector<V>& f, int i, V v) {", "    template <class V>\n    LEETCODE_NO_SANITIZE void fen(FlatArray<V>& f, int i, V v) {")
+    t = must_replace(t, "    template <class V>\n    V pre(const vector<V>& f, int i) const {", "    template <class V>\n    LEETCODE_NO_SANITIZE V pre(const FlatArray<V>& f, int i) const {")
+    t = must_replace(t, "    int lowerIdx(T x) const", FAST_TREE_HELPERS + "    int lowerIdx(T x) const")
+    t = must_replace(t, "        fen(fc, i, c);\n", """        int* t = tree.data();
+        for (int level = 0, idx = i; level < levels; level++) {
+            int child = idx & 15;
+            idx >>= 4;
+            addFrom(t + levelStart[level] + idx * 16, child, int(c));
+        }
+""")
+    t = must_replace(t, "return pre(fc, lowerIdx(x));", "return countBefore(lowerIdx(x));")
+    t = must_replace(t, "return pre(fc, upperIdx(x));", "return countBefore(upperIdx(x));")
+    t = must_sub(r"    T kthAt\(long long k\) \{.*?\n    \}\n", "    T kthAt(long long k) {  // the k-th smallest\n        long long before;\n        return vals[findSlot(k, before)];\n    }\n", t, count=1, flags=re.S)
+    t = must_sub(r"    Info kthInfo\(long long k\) \{(.*?)\n.*?        return \{vals\[pos\], before, cnt\[pos\](, acc)?\};\n    \}\n",
+                 lambda m: "    Info kthInfo(long long k) {" + m.group(1) + "\n        long long before;\n        int pos = findSlot(k, before);\n        return {vals[pos], before, cnt[pos]" + (", pre(fs, pos)" if m.group(2) else "") + "};\n    }\n",
+                 t, count=1, flags=re.S)
+    t = must_sub(r"                int pos = 0;\n                long long before = 0;\n                for \(int step = top; step; step >>= 1\)\n                    if \(pos \+ step <= m && before \+ fc\[pos \+ step\] < k\) pos \+= step, before \+= fc\[pos\];\n",
+                 "                long long before;\n                int pos = findSlot(k, before);\n", t, count=1)
+    t = must_sub(r"for \(int j = i \+ 1; j <= m; j \+= j & -j\) fc\[j\] = 0(, )?(.*);\n",
+                 lambda m: (f"for (int j = i + 1; j <= m; j += j & -j) {m.group(2)};\n" if m.group(2) else "") + "                for (int level = 0, idx = i; level < levels; level++) {\n                    idx >>= 4;\n                    fill_n(tree.begin() + levelStart[level] + idx * 16, 16, 0);\n                }\n", t, count=1)
+    t = must_replace(t, "fill(fc.begin(), fc.end(), 0)", "fill(tree.begin(), tree.end(), 0)")
+    t = re.sub(r"        int pos = 0;\n        long long before = 0;\n        T res = 0;\n        for \(int step = top; step; step >>= 1\)\n            if \(pos \+ step <= m && before \+ fc\[pos \+ step\] < k\) pos \+= step, before \+= fc\[pos\], res \^= fx\[pos\];\n",
+               "        long long before;\n        int pos = findSlot(k, before);\n        T res = xpre(pos);\n", t, count=1)  # (xor variants only)
+    t = must_sub(r"(    void addAt\(int i, T x, long long c\) \{.*\n)", lambda m: m.group(1) + '        if (n + c > 2147483647LL) throw length_error("fast FenwickMultiset: at most 2147483647 copies");\n', t, count=1)
+    # the hand-tuned 3962 solution's shape: a smaller table, raw pointers, one lookup per remove
+    t = must_replace(t, "while ((1LL << bits) < 4LL * m) bits++;", "while ((1LL << bits) < 2LL * m) bits++;")
+    t = must_replace(t, "a hash table of at most 8*N ints", "a hash table of at most 4*N ints")
+    t = must_replace(t, """            for (unsigned h = hashOf(x);; h = (h + 1) & hashMask) {
+                int i = slotOf[h];
+                if (i < 0) return m;
+                if (vals[i] == x) return i;
+""", """            const int* table = slotOf.data();
+            const T* sorted = vals.data();
+            for (unsigned h = hashOf(x);; h = (h + 1) & hashMask) {
+                int i = table[h];
+                if (i < 0) return m;
+                if (sorted[i] == x) return i;
+""")
+    t = must_replace(t, "        return vals[findSlot(k, before)];\n", "        const T* sorted = vals.data();\n        return sorted[findSlot(k, before)];\n")
+    t = must_replace(t, "        long long old = cnt[i];\n        cnt[i] += c;\n", "        int* counts = cnt.data();\n        long long old = counts[i];\n        long long now = counts[i] += int(c);\n")
+    t = must_sub(r"(long long insertAt\(.*?)\n    \}\n", lambda m: m.group(0).replace("cnt[i]", "now"), t, count=1, flags=re.S)
+    t = must_replace(t, "        return i < m ? cnt[i] : 0;\n", "        const int* counts = cnt.data();\n        return i < m ? counts[i] : 0;\n")
+    t = must_replace(t, "        return {vals[pos], before, cnt[pos]", "        const T* sorted = vals.data();\n        const int* counts = cnt.data();\n        return {sorted[pos], before, counts[pos]")
+    t = must_replace(t, "        if (i == m || !cnt[i]) return 0;\n", "        const int* counts = cnt.data();\n        if (i == m || !counts[i]) return 0;\n")
+    t = must_replace(t, 'if (n + c > 2147483647LL) throw length_error("fast FenwickMultiset: at most 2147483647 copies");', "if (__builtin_expect(n + c > 2147483647LL, 0)) tooManyCopies();")
+    t = must_replace(t, "    int lowerIdx(T x) const", """    [[noreturn]] __attribute__((noinline, cold)) static void tooManyCopies() {
+        throw length_error("fast FenwickMultiset: at most 2147483647 copies");
+    }
+
+    int lowerIdx(T x) const""")
+    if "fen(fs, i, S(c) * x);" in t:
+        t = must_replace(t, "        fen(fs, i, S(c) * x);\n", "        S* f = fs.data();\n        S sumDelta = S(c) * x;\n        for (int j = i + 1; j <= m; j += j & -j) f[j] += sumDelta;\n")
+    for sig in FAST_HOT + [r"long long insertAt\(", r"void addAt\("]:
+        edit = re.sub if sig in FAST_HOT_OPTIONAL else must_sub
+        t = edit(r"^    (" + sig + ")", r"    LEETCODE_NO_SANITIZE \1", t, count=1, flags=re.M)
+    t = must_replace(t, "    LEETCODE_NO_SANITIZE unsigned hashOf(", "    LEETCODE_NO_SANITIZE_INLINE unsigned hashOf(")
+    t = must_sub(r"^//   node: cnt\[1\*N\] fc\[1\*N\]", "//   node: cnt[1*N] tree[1*N]", t, count=1, flags=re.M)
+    return t
 
 
 # ------------------------------------------------------------------------------------------------ value tree
@@ -723,56 +1315,76 @@ def value_tree(sums, mex, bits=(False, False, False)):
 
 
 class ValueTreeMultiset:
-    __slots__ = ("lo", "hi", "cap", "c",{' "s",' if s else ""}{' "x",' if X else ""}{' "o",' if O else ""}{' "a",' if A else ""}{' "p",' if M else ""} "n",{' "total",' if s else ""} "d")
+    __slots__ = ("lo", "hi", "B", "L", "R", "c",{' "s",' if s else ""}{' "x",' if X else ""}{' "o",' if O else ""}{' "a",' if A else ""}{' "p",' if M else ""} "n",{' "total",' if s else ""} "d")
 
     # O(1) -- an empty multiset for values in [lo, hi] (any integers, negative is fine)
     def __init__(self, lo, hi):
         self.lo, self.hi = lo, hi
-        self.cap = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of value v is cap + (v - lo)
-        self.c = {{}}  # node -> copies below it
-{"        self.s = {}  # node -> sum of the copies below it" + chr(10) if s else ""}        self.p = {{}}  # node -> distinct values below it  @mex
-        self.x = {{}}  # node -> xor of the values below it with an odd count  @xor
-        self.o = {{}}  # node -> OR of the values below it  @or
-        self.a = {{}}  # node -> AND of the values below it  @and
+        self.B = (hi - lo).bit_length()  # levels below the root: a value's path is the bits of v - lo, highest first
+        self._clearData()
         self.n = {"self.total = " if s else ""}self.d = 0
 
+    def _newNode(self):
+        self.L.append(0)
+        self.R.append(0)
+        self.c.append(0)
+{"        self.s.append(0)" + chr(10) if s else ""}        self.p.append(0)  @mex
+        self.x.append(0)  @xor
+        self.o.append(0)  @or
+        self.a.append(-1)  @and
+        return len(self.L) - 1
+
     def _insert(self, x, c):
-        cc{", ss" if s else ""} = self.c{", self.s" if s else ""}
-        pp = self.p  @mex
-        xx = self.x  @xor
-        oo = self.o  @or
-        aa = self.a  @and
-        i = self.cap + x - self.lo
-        old = cc.get(i, 0)
+        L, R, cc{", ss" if s else ""} = self.L, self.R, self.c{", self.s" if s else ""}
+        off, t, path = x - self.lo, 1, [1]
+        for h in range(self.B - 1, -1, -1):
+            kids = R if off >> h & 1 else L
+            nxt = kids[t]
+            if not nxt:
+                nxt = kids[t] = self._newNode()
+            t = nxt
+            path.append(t)
+        old = cc[t]
         pres = (old + c > 0) - (old > 0)
         self.d += pres
-        ov = x if old + c > 0 else 0  # the OR below the current node  @or
-        av = x if old + c > 0 else -1  # the AND below the current node  @and
-        while i:
-            cc[i] = cc.get(i, 0) + c
-{"            ss[i] = ss.get(i, 0) + c * x" + chr(10) if s else ""}            if c & 1:  # x's parity flips  @xor
-                xx[i] = xx.get(i, 0) ^ x  @xor
-            if pres:  @mex
-                pp[i] = pp.get(i, 0) + pres  @mex
-            if pres:  # x appeared or disappeared: the OR / AND up its path, each node with its sibling's  @or|and
-                oo[i] = ov  @or
-                ov |= oo.get(i ^ 1, 0)  @or
-                aa[i] = av  @and
-                av &= aa.get(i ^ 1, -1)  @and
-            i >>= 1
+{f"""        cx = c * x
+        for i in path:
+            cc[i] += c
+            ss[i] += cx
+""" if s else f"""        for i in path:
+            cc[i] += c
+"""}        if c & 1:  # x's parity flips  @xor
+            xx = self.x  @xor
+            for i in path:  @xor
+                xx[i] ^= x  @xor
+        if pres:  @mex
+            pp = self.p  @mex
+            for i in path:  @mex
+                pp[i] += pres  @mex
+        if pres:  # x appeared or disappeared: the OR / AND up its path, each node from its two children  @or|and
+            oo = self.o  @or
+            aa = self.a  @and
+            oo[t] = x if old + c > 0 else 0  @or
+            aa[t] = x if old + c > 0 else -1  @and
+            for i in reversed(path[:-1]):  @or|and
+                oo[i] = oo[L[i]] | oo[R[i]]  @or
+                aa[i] = aa[L[i]] & aa[R[i]]  @and
         return old + c  # (x's new count)
 
     def _prefix(self, f, x):  # f's total over the values < x
         if x <= self.lo:
             return 0
         if x > self.hi:
-            return f.get(1, 0)
-        i = self.cap + x - self.lo
-        res = 0
-        while i > 1:
-            if i & 1:
-                res += f.get(i - 1, 0)
-            i >>= 1
+            return f[1]
+        L, R, off, t, res = self.L, self.R, x - self.lo, 1, 0
+        for h in range(self.B - 1, -1, -1):
+            if off >> h & 1:
+                res += f[L[t]]
+                t = R[t]
+            else:
+                t = L[t]
+            if not t:
+                break
         return res
 
     def _lt(self, x):
@@ -782,7 +1394,14 @@ class ValueTreeMultiset:
         return self._prefix(self.c, x + 1)
 
     def _countOf(self, x):  # the leaf of x
-        return self.c.get(self.cap + x - self.lo, 0) if self.lo <= x <= self.hi else 0
+        if not self.lo <= x <= self.hi:
+            return 0
+        L, R, off, t = self.L, self.R, x - self.lo, 1
+        for h in range(self.B - 1, -1, -1):
+            t = R[t] if off >> h & 1 else L[t]
+            if not t:
+                return 0
+        return self.c[t]
 {f"""
     def _slt(self, x):
         return self._prefix(self.s, x)
@@ -791,48 +1410,64 @@ class ValueTreeMultiset:
         return self._prefix(self.s, x + 1)
 """ if s else ""}
     def _kth(self, k):
-        c, i, size = self.c, 1, self.cap
-        while i < size:
-            i <<= 1
-            cl = c.get(i, 0)
+        L, R, c, t, v = self.L, self.R, self.c, 1, 0
+        for h in range(self.B - 1, -1, -1):
+            l = L[t]
+            cl = c[l]
             if k > cl:
                 k -= cl
-                i += 1
-        return i - size + self.lo
+                t = R[t]
+                v |= 1 << h
+            else:
+                t = l
+        return v + self.lo
 
     def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies{", sum before it" if s else ""})
-        c,{" s," if s else ""} i, size, before{", acc" if s else ""} = self.c,{" self.s," if s else ""} 1, self.cap, 0{", 0" if s else ""}
-        while i < size:
-            i <<= 1
-            cl = c.get(i, 0)
+        L, R, c,{" s," if s else ""} t, v, before{", acc" if s else ""} = self.L, self.R, self.c,{" self.s," if s else ""} 1, 0, 0{", 0" if s else ""}
+        for h in range(self.B - 1, -1, -1):
+            l = L[t]
+            cl = c[l]
             if before + cl < k:
                 before += cl
-{"                acc += s.get(i, 0)" + chr(10) if s else ""}                i += 1
-        return i - size + self.lo, before, c[i]{", acc" if s else ""}
+{"                acc += s[l]" + chr(10) if s else ""}                t = R[t]
+                v |= 1 << h
+            else:
+                t = l
+        return v + self.lo, before, c[t]{", acc" if s else ""}
 
 @mex{{
     # smallest non-negative integer not in the set (hi + 1 if all of [0, hi] are present)
     def _findMex(self):
         if self.lo > 0:
             return 0
-        p, size = self.p, self.cap
-
-        def full(i):  # every value below node i is present
-            return p.get(i, 0) == size >> (i.bit_length() - 1)
-
-        i = size - self.lo  # the leaf of value 0
-        while True:
-            while i > 1 and not i & 1:  # climb while i is a left child: its parent starts at the same value
-                i >>= 1
-            if not full(i):  # the first missing value is inside i: descend, preferring the left child
-                while i < size:
-                    i <<= 1
-                    if full(i):
-                        i += 1
-                return min(i - size + self.lo, self.hi + 1)
-            i += 1
-            if not i & (i - 1):  # walked off the right edge
-                return self.hi + 1
+        if self.hi < 0:
+            return self.hi + 1
+        L, R, p, off, t = self.L, self.R, self.p, -self.lo, 1
+        later = []  # blocks right of the path to 0, nearest last: (node, its first value, levels below it)
+        for h in range(self.B - 1, -1, -1):
+            if off >> h & 1:
+                t = R[t]
+            else:
+                later.append((R[t], (off >> h | 1) << h, h))
+                t = L[t]
+            if not t:
+                return 0
+        if not p[t]:
+            return 0
+        while later:
+            t, base, h = later.pop()
+            if p[t] == 1 << h:
+                continue
+            while t and h:  # the first missing value is inside: descend, preferring the left child
+                h -= 1
+                l = L[t]
+                if p[l] == 1 << h:
+                    base += 1 << h
+                    t = R[t]
+                else:
+                    t = l
+            return min(base + self.lo, self.hi + 1)
+        return self.hi + 1
 @mex}}
 '''
     sfield = "S s; " if s else ""
@@ -1294,20 +1929,50 @@ class TreapMultiset:
         self._pull(b)
         return b
 
-    def _insert(self, x, c):
-        a, b = self._split(self.root, x)
-        m, b = self._splitLe(b, x)  # m: the node of x, or 0
-        if not m:
+    def _insert(self, x, c):  # walks once: a value already present never needs a split or merge
+        K, L, R, C = self.K, self.L, self.R, self.C
+        path, t = [], self.root
+        while t:
+            path.append(t)
+            key = K[t]
+            if x < key:
+                t = L[t]
+            elif key < x:
+                t = R[t]
+            else:
+                break
+        if t:
+            f = C[t] = C[t] + c
+            path.pop()
+            if f:
+                self._pull(t)
+                cur = t
+            else:
+                self.free.append(t)
+                self.d -= 1
+                cur = self._merge(L[t], R[t])
+        else:
             m = self._new(x)
             self.d += 1
-        f = self.C[m] = self.C[m] + c
-        if f:
+            f = C[m] = c
+            P, prio, i = self.P, self.P[m], 0
+            while i < len(path) and P[path[i]] >= prio:  # the new node goes where its priority belongs
+                i += 1
+            if i < len(path):
+                L[m], R[m] = self._split(path[i], x)
+                del path[i:]
             self._pull(m)
-        else:
-            self.free.append(m)
-            m = 0
-            self.d -= 1
-        self.root = self._merge(self._merge(a, m), b)
+            cur = m
+        pull = self._pull
+        while path:
+            q = path.pop()
+            if x < K[q]:
+                L[q] = cur
+            else:
+                R[q] = cur
+            pull(q)
+            cur = q
+        self.root = cur
         return f  # (x's new count)
 ''' + bst_common_py(s)
     sfield = "S s; " if s else ""
@@ -1396,15 +2061,51 @@ struct TreapMultiset {{
         return b;
     }}
 
-    long long insert(T x, long long c) {{  // returns x's new count
-        int a, b, m;
-        split(root, x, a, b);
-        splitLe(b, x, m, b);  // m: the node of x, or 0
-        if (!m) m = make(x), d++;
-        long long f = pool[m].c += c;
-        if (f) pull(m);
-        else freeList.push_back(m), m = 0, d--;
-        root = merge(merge(a, m), b);
+    vector<int> path;  // scratch for insert: the nodes it walked through
+    long long insert(T x, long long c) {{  // returns x's new count; a value already present never needs a split or merge
+        path.clear();
+        int t = root, cur;
+        while (t) {{
+            path.push_back(t);
+            if (x < pool[t].key) t = pool[t].l;
+            else if (pool[t].key < x) t = pool[t].r;
+            else break;
+        }}
+        long long f;
+        if (t) {{
+            f = pool[t].c += c;
+            path.pop_back();
+            if (f) {{
+                pull(t);
+                cur = t;
+            }} else {{
+                freeList.push_back(t), d--;
+                cur = merge(pool[t].l, pool[t].r);
+            }}
+        }} else {{
+            int m = make(x);
+            d++;
+            f = pool[m].c = c;
+            int i = 0, walked = int(path.size());
+            while (i < walked && pool[path[i]].prio >= pool[m].prio) i++;  // the new node goes where its priority belongs
+            if (i < walked) {{
+                int a, b;
+                split(path[i], x, a, b);
+                pool[m].l = a, pool[m].r = b;
+                path.resize(i);
+            }}
+            pull(m);
+            cur = m;
+        }}
+        while (!path.empty()) {{
+            int q = path.back();
+            path.pop_back();
+            if (x < pool[q].key) pool[q].l = cur;
+            else pool[q].r = cur;
+            pull(q);
+            cur = q;
+        }}
+        root = cur;
         return f;
     }}
 ''' + bst_common_cpp(s)
@@ -1971,8 +2672,7 @@ class SplayMultiset:
                 L[g] = x
             else:
                 R[g] = x
-        self._pull(p)
-        self._pull(x)
+        self._pull(p)  # (x is pulled once, when it reaches the root)
 
     def _splay(self, x):  # x becomes the root of its tree
         P, L = self.P, self.L
@@ -1982,6 +2682,7 @@ class SplayMultiset:
             if g:
                 self._rotate(p if (L[g] == p) == (L[p] == x) else x)
             self._rotate(x)
+        self._pull(x)
         return x
 
     def _touch(self, t):
@@ -2086,7 +2787,7 @@ struct SplayMultiset {{
         if (b) pool[b].p = p;
         pool[p].p = x, pool[x].p = g;
         if (g) (pool[g].l == p ? pool[g].l : pool[g].r) = x;
-        pull(p), pull(x);
+        pull(p);  // (x is pulled once, when it reaches the root)
     }}
 
     int splay(int x) {{  // x becomes the root of its tree
@@ -2094,6 +2795,7 @@ struct SplayMultiset {{
             if (int g = pool[p].p) rotate((pool[g].l == p) == (pool[p].l == x) ? p : x);
             rotate(x);
         }}
+        pull(x);
         return x;
     }}
 
@@ -2221,7 +2923,7 @@ class BlockMultiset:
         return res
 
     def _insert(self, x, c):
-        old = self.cnt.get(x, 0)
+        old = self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
         if old:
             k = bisect_left(self.maxes, x)
             j = bisect_left(self.keys[k], x)
@@ -2229,12 +2931,12 @@ class BlockMultiset:
                 self.bx[k] ^= x  @xor
                 self._fenx(self.fx, k, x)  @xor
             if old + c:
-                self.cnt[x] = old + c
+                self.cnt[x ^ self.salt if x.__class__ is int else x] = old + c
                 self.cnts[k][j] += c
 {"                self.sums[k][j] += c * x" + chr(10) if s else ""}                self.bc[k] += c
                 self._fen(self.fc, k, c)
 {"                self.bs[k] += c * x" + chr(10) + "                self._fen(self.fs, k, c * x)" + chr(10) if s else ""}                return old + c
-            del self.cnt[x]
+            del self.cnt[x ^ self.salt if x.__class__ is int else x]
             self.d -= 1
             del self.keys[k][j], self.cnts[k][j]
 {"            del self.sums[k][j]" + chr(10) if s else ""}            if not self.keys[k]:  # the block is empty: drop it
@@ -2251,7 +2953,7 @@ class BlockMultiset:
             self.bc[k] += c
             self._fen(self.fc, k, c)
 {"            self.bs[k] += c * x" + chr(10) + "            self._fen(self.fs, k, c * x)" + chr(10) if s else ""}            return 0
-        self.cnt[x] = c
+        self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
         if not self.keys:
             self.keys.append([x])
@@ -2306,7 +3008,7 @@ class BlockMultiset:
         return self._count(x, False, 0)
 
     def _countOf(self, x):
-        return self.cnt.get(x, 0)
+        return self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
 {f"""
     def _slt(self, x):
         return self._count(x, True, 1)
@@ -2634,7 +3336,7 @@ class BlockFenwickMultiset:
 {"        self.fss[k] = self._build(self.sums[k])" + chr(10) if s else ""}        self.fxs[k] = self._buildx(self.xvs[k])  @xor
 
     def _insert(self, x, c):
-        old = self.cnt.get(x, 0)
+        old = self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
         if old:
             k = bisect_left(self.maxes, x)
             j = bisect_left(self.keys[k], x)
@@ -2644,14 +3346,14 @@ class BlockFenwickMultiset:
                 self.bx[k] ^= x  @xor
                 self._fenx(self.fx, k, x)  @xor
             if old + c:  # x stays: point updates only
-                self.cnt[x] = old + c
+                self.cnt[x ^ self.salt if x.__class__ is int else x] = old + c
                 self.cnts[k][j] += c
                 self._fen(self.fcs[k], j, c)
 {"                self.sums[k][j] += c * x" + chr(10) + "                self._fen(self.fss[k], j, c * x)" + chr(10) if s else ""}                if c & 1:  @xor
                     self.xvs[k][j] ^= x  @xor
                     self._fenx(self.fxs[k], j, x)  @xor
                 return old + c
-            del self.cnt[x]
+            del self.cnt[x ^ self.salt if x.__class__ is int else x]
             self.d -= 1
             del self.keys[k][j], self.cnts[k][j]
 {"            del self.sums[k][j]" + chr(10) if s else ""}            del self.xvs[k][j]  @xor
@@ -2663,7 +3365,7 @@ class BlockFenwickMultiset:
             self.maxes[k] = self.keys[k][-1]
             self._reinner(k)
             return 0
-        self.cnt[x] = c
+        self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
         if not self.keys:
             self.keys.append([x])
@@ -2732,7 +3434,7 @@ class BlockFenwickMultiset:
         return self._pre(self.fs, k) + self._pre(self.fss[k], bisect_right(self.keys[k], x))
 """ if s else ""}
     def _countOf(self, x):
-        return self.cnt.get(x, 0)
+        return self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
 
     def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies{", sum before it" if s else ""}): lift over blocks, then inside one
         fc{", fs" if s else ""} = self.fc{", self.fs" if s else ""}
@@ -2835,9 +3537,22 @@ struct BlockFenwickMultiset {{
 {"        fs = build(bs);" + chr(10) if s else ""}        fx = buildx(bx);  @xor
     }}
 
-    void reinner(int k) {{
-        fcs[k] = build(cnts[k]);
-{"        fss[k] = build(sums[k]);" + chr(10) if s else ""}        fxs[k] = buildx(xvs[k]);  @xor
+    template <class V>
+    static void rebuildFrom(vector<V>& f, const vector<V>& a, int from) {{  // only positions >= from changed
+        int size = a.size();
+        f.resize(size + 1);
+        for (int i = from + 1; i <= size; i++) f[i] = 0;
+        for (int i = from; i > 0; i &= i - 1)  // finished entries that feed the rebuilt part
+            if (int up = i + (i & -i); up <= size) f[up] += f[i];
+        for (int i = from + 1; i <= size; i++) {{
+            f[i] += a[i - 1];
+            if (int up = i + (i & -i); up <= size) f[up] += f[i];
+        }}
+    }}
+
+    void reinner(int k, int from = 0) {{
+        rebuildFrom(fcs[k], cnts[k], from);
+{"        rebuildFrom(fss[k], sums[k], from);" + chr(10) if s else ""}        fxs[k] = buildx(xvs[k]);  @xor
     }}
 
     int blockOf(T x) const {{ return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin()); }}
@@ -2865,7 +3580,7 @@ struct BlockFenwickMultiset {{
                     return 0;
                 }}
                 maxes[k] = keys[k].back();
-                reinner(k);
+                reinner(k, j);
                 return 0;
             }}
         }}
@@ -2897,7 +3612,7 @@ struct BlockFenwickMultiset {{
 {"            bs[k] = accumulate(sums[k].begin(), sums[k].end(), S(0));" + chr(10) + "            bs.insert(bs.begin() + k + 1, accumulate(sums[k + 1].begin(), sums[k + 1].end(), S(0)));" + chr(10) if s else ""}            bx[k] = accumulate(xvs[k].begin(), xvs[k].end(), T(0), bit_xor<T>());  @xor
             bx.insert(bx.begin() + k + 1, accumulate(xvs[k + 1].begin(), xvs[k + 1].end(), T(0), bit_xor<T>()));  @xor
             reblock();
-        }} else reinner(k);
+        }} else reinner(k, j);
         return c;
     }}
 
@@ -4098,15 +4813,13 @@ class FastSet:
     # O(log64(U)) -- remove and return the smallest value; None if empty
     def popMin(self):
         v = self.min()
-        if v is not None:
-            self.remove(v)
+        self.remove(v)
         return v
 
     # O(log64(U)) -- remove and return the largest value; None if empty
     def popMax(self):
         v = self.max()
-        if v is not None:
-            self.remove(v)
+        self.remove(v)
         return v
 
     # O(log64(U)) -- smallest value >= x; None if there is none
@@ -4276,17 +4989,17 @@ struct FastSet {
         return T(lo + i);
     }
 """) + """
-    // O(log64(U)) -- remove and return the smallest value; nullopt if empty
-    optional<T> popMin() {
-        optional<T> v = min();
-        if (v) remove(*v);
+    // O(log64(U)) -- remove and return the smallest value; throws out_of_range if empty
+    T popMin() {
+        T v = min();
+        remove(v);
         return v;
     }
 
-    // O(log64(U)) -- remove and return the largest value; nullopt if empty
-    optional<T> popMax() {
-        optional<T> v = max();
-        if (v) remove(*v);
+    // O(log64(U)) -- remove and return the largest value; throws out_of_range if empty
+    T popMax() {
+        T v = max();
+        remove(v);
         return v;
     }
 
@@ -4331,7 +5044,7 @@ struct FastSet {
     }
 """ if gaps else "") + """};
 """
-    py = py.replace("@slots", (', "mn", "mx"' if minmax else "") + (', "gc", "gmin", "gmax"' if gaps else ""))
+    py = must_replace(py, "@slots", (', "mn", "mx"' if minmax else "") + (', "gc", "gmin", "gmax"' if gaps else ""))
     if gaps:
         py = "from heapq import heappop, heappush\n" + py
     ops = sorted(["add", "remove", "count", "countDistinct", "size", "min", "max", "popMin", "popMax", "smallestGteX",
@@ -4351,7 +5064,12 @@ struct FastSet {
     path = os.path.join(ROOT, folder)
     for ext, cm, body in (("py", "#", py), ("cpp", "//", cpp)):
         attribution = f"{cm} Template by {GITHUB_USER}\n{cm} {GITHUB_FILES}{folder}/distinct.{ext}\n"
-        open(os.path.join(path, f"distinct.{ext}"), "w").write(attribution + header(cm, ops, spec) + body)
+        body = return_rules_py(body) if ext == "py" else return_rules_cpp(body, "fastset")
+        text = attribution + header(cm, ops, spec) + body
+        open(os.path.join(path, f"distinct.{ext}"), "w").write(check_finished(text, f"{folder}/distinct.{ext}"))
+        if ext == "cpp":
+            fast = fast_vector_cpp(text, "FastSet", "distinct.cpp", "distinct-fast.cpp")
+            open(os.path.join(path, "distinct-fast.cpp"), "w").write(check_finished(fast, f"{folder}/distinct-fast.cpp"))
     print(f"wrote {folder}/distinct")
 
 
@@ -4450,8 +5168,9 @@ def clear_py(dtype, sums, mex, mexc, mode=False, gaps=False, bits=(False, False,
             self.cnt = [0] * m{dense}
 """
     elif dtype == "value-tree":
-        out += "\n    def _clearData(self):\n" + "".join(f"        self.{a} = {{}}\n" for a in ["c"] + (["s"] if sums else []) + (["p"] if mex else []) + [
-            a for a, on in (("x", X), ("o", O), ("a", A)) if on])
+        lists = ["L", "R", "c"] + (["s"] if sums else []) + (["p"] if mex else []) + [a for a, on in (("x", X), ("o", O)) if on]
+        out += ("\n    def _clearData(self):  # just the empty node 0 and the root 1 (the old lists are freed in bulk)\n" +
+                "".join(f"        self.{a} = [0, 0]\n" for a in lists) + ("        self.a = [-1, -1]\n" if A else ""))
     elif dtype in ("avl", "treap", "splay"):
         lists = ["K", "C", "Z"] + (["S"] if sums else []) + (["D"] if mex else []) + [a for a, on in (("X", X), ("O", O)) if on] + {
             "avl": ["H", "L", "R"], "treap": ["L", "R"], "splay": ["L", "R", "P"]}[dtype]
@@ -4654,7 +5373,7 @@ BIT_CPP_OPS = {
 # the OR / AND of everything: where each structure keeps it
 BIT_ALL = {  # dtype -> (Python, C++)
     "avl": ("return self.@F@[self.root]", "return pool[root].@F@;"),
-    "value-tree": ("return self.@F@.get(1, @ID@)", "return pool[root].@F@;"),
+    "value-tree": ("return self.@F@[1]", "return pool[root].@F@;"),
     "trie": ("return self.@F@[1]", "return @F@[1];"),
     "blocks": ("return reduce(@FN@, self.@BF@, @ID@)", "T res = @ID@;\nfor (T v : @BF@) res @OP@= v;\nreturn res;"),
 }
@@ -4907,13 +5626,15 @@ VT_XOR_PY = '''
             return 0
         if x > self.hi:
             return self.xtotal
-        f = self.x
-        i = self.cap + x - self.lo
-        res = 0
-        while i > 1:
-            if i & 1:
-                res ^= f.get(i - 1, 0)
-            i >>= 1
+        L, R, f, off, t, res = self.L, self.R, self.x, x - self.lo, 1, 0
+        for h in range(self.B - 1, -1, -1):
+            if off >> h & 1:
+                res ^= f[L[t]]
+                t = R[t]
+            else:
+                t = L[t]
+            if not t:
+                break
         return res
 
     def _xlt(self, x):
@@ -4925,33 +5646,38 @@ VT_XOR_PY = '''
     def _xorFirst(self, k):  # xor of the k smallest values (copies count)
         if k <= 0:
             return 0
-        c, f, i, size, res = self.c, self.x, 1, self.cap, 0
-        while i < size:
-            i <<= 1
-            cl = c.get(i, 0)
+        L, R, c, f, t, v, res = self.L, self.R, self.c, self.x, 1, 0, 0
+        for h in range(self.B - 1, -1, -1):
+            l = L[t]
+            cl = c[l]
             if k > cl:
                 k -= cl
-                res ^= f.get(i, 0)
-                i += 1
-        return res ^ (i - size + self.lo) if k & 1 else res  # k copies of the leaf's value left
+                res ^= f[l]
+                t = R[t]
+                v |= 1 << h
+            else:
+                t = l
+        return res ^ (v + self.lo) if k & 1 else res  # k copies of the leaf's value left
 '''
 
 VT_BIT_PY = '''
-    def _@N@In(self, lo, hi):  # @W@ of the values in [lo, hi]: bottom-up over the heap-indexed blocks
-        lo, hi = max(lo, self.lo), min(hi, self.hi)
+    def _@N@In(self, lo, hi):  # @W@ of the values in [lo, hi]: the blocks that cover it, from the root down
+        lo, hi = max(lo, self.lo) - self.lo, min(hi, self.hi) - self.lo
         if lo > hi:
             return @ID@
-        f, res = self.@F@, @ID@
-        l, r = self.cap + lo - self.lo, self.cap + hi - self.lo + 1
-        while l < r:
-            if l & 1:
-                res @OP@= f.get(l, @ID@)
-                l += 1
-            if r & 1:
-                r -= 1
-                res @OP@= f.get(r, @ID@)
-            l >>= 1
-            r >>= 1
+        L, R, f, res = self.L, self.R, self.@F@, @ID@
+        stack = [(1, 0, self.B)]
+        while stack:
+            t, base, h = stack.pop()
+            last = base + (1 << h) - 1
+            if not t or last < lo or base > hi:
+                continue
+            if lo <= base and last <= hi:
+                res @OP@= f[t]
+                continue
+            h -= 1
+            stack.append((L[t], base, h))
+            stack.append((R[t], base + (1 << h), h))
         return res
 
     def _@N@Le(self, x):  # @W@ of the values <= x
@@ -5636,8 +6362,8 @@ def shift_body(op, body, py, mexc):
             b = b.replace("@CHECK@", "\n".join(body.split("\n")[:2 if py else 1]))
         return b
     if op == "mode":
-        return (body.replace("return next(iter(self.bk[f])), f", "return next(iter(self.bk[f])) + self.off, f") if py
-                else body.replace("{*vs.begin(), f}", "{T(*vs.begin() + off), f}"))
+        return (must_replace(body, "return (v ^ self.salt if v.__class__ is int else v), f", "return (v ^ self.salt if v.__class__ is int else v) + self.off, f") if py
+                else must_replace(body, "{*vs.begin(), f}", "{T(*vs.begin() + off), f}"))
     if op in ("remove", "removeCount", "removeAll"):  # (count(x) would shift x a second time)
         body = body.replace("self.count(", "self._countOf(") if py else re.sub(r"\bcount\(", "countOf(", body)
     lines = body.split("\n")
@@ -5675,25 +6401,27 @@ def header(cm, ops, spec):
     return "\n".join(lines) + "\n"
 
 
-def with_cached(body, ext, sums, minmax, medians, mexc, mode=False, gaps=False, xor=False, shift=False):
+def with_cached(body, ext, sums, minmax, medians, mexc, mode=False, gaps=False, xor=False, shift=False, salted=False):
     """Adds the fields of the whole-set answers this variant caches (kept current by _add / addRaw)."""
     if ext == "py":
         extra = (' "mn", "mx",' if minmax else "") + (' "lowV", "lowB", "lowC",' + (' "lowS",' if sums else "") + ' "highV", "highB", "highC",'
                                                        if medians else "") + (' "mexV",' if mexc else "") + (' "bk", "maxF",' if mode else "") + (
-            ' "gc", "gmin", "gmax", "dups",' if gaps else "") + (' "xtotal",' if xor else "") + (' "off",' if shift else "")
-        body = body.replace('"n",', '"n",' + extra, 1)
+            ' "gc", "gmin", "gmax", "dups",' if gaps else "") + (' "xtotal",' if xor else "") + (' "off",' if shift else "") + (' "salt",' if salted else "")
+        body = must_replace(body, '"n",', '"n",' + extra, 1) if extra else body
+        if salted:
+            body = "from random import getrandbits\n" + must_sub(r"^( +)(.*self\.n = .*)$", r"\1self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions\n\1\2", body, count=1, flags=re.M)
         if xor:
-            body = re.sub(r"^( +)(.*self\.n = .*)$", r"\1self.xtotal = 0  # xor of all values (copies count)\n\1\2", body, count=1, flags=re.M)
+            body = must_sub(r"^( +)(.*self\.n = .*)$", r"\1self.xtotal = 0  # xor of all values (copies count)\n\1\2", body, count=1, flags=re.M)
         if shift:
-            body = re.sub(r"^( +)(.*self\.n = .*)$", r"\1self.off = 0  # every value v is stored as v - off: shiftAll only moves off\n\1\2", body, count=1, flags=re.M)
+            body = must_sub(r"^( +)(.*self\.n = .*)$", r"\1self.off = 0  # every value v is stored as v - off: shiftAll only moves off\n\1\2", body, count=1, flags=re.M)
         if gaps:
-            body = re.sub(r"^( +)(.*self\.n = .*)$", r"\1self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies\n\1\2",
+            body = must_sub(r"^( +)(.*self\.n = .*)$", r"\1self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies\n\1\2",
                           body, count=1, flags=re.M)
         if mode:
-            body = re.sub(r"^( +)(.*self\.n = .*)$", r"\1self.bk, self.maxF = {}, 0  # mode: count -> the values with that many copies; the highest count\n\1\2",
+            body = must_sub(r"^( +)(.*self\.n = .*)$", r"\1self.bk, self.maxF = {}, 0  # mode: count -> the values with that many copies; the highest count\n\1\2",
                           body, count=1, flags=re.M)
         if mexc:
-            body = re.sub(r"^( +)(.*self\.n = .*)$", r"\1self.mexV = 0  # the mex, kept current (0 for the empty set)\n\1\2", body, count=1, flags=re.M)
+            body = must_sub(r"^( +)(.*self\.n = .*)$", r"\1self.mexV = 0  # the mex, kept current (0 for the empty set)\n\1\2", body, count=1, flags=re.M)
         return body
     fields = ["struct Info { T v; long long before, c; " + ("S sb; " if sums else "") + "};  // a value, copies before it, its copies" +
               (", sum before it" if sums else "")]
@@ -5704,7 +6432,7 @@ def with_cached(body, ext, sums, minmax, medians, mexc, mode=False, gaps=False, 
     fields += ["multiset<long long> gaps;  // differences between neighbouring distinct values", "long long dups = 0;  // values with 2+ copies"] if gaps else []
     fields += ["T xtotal = 0;  // xor of all values (copies count)"] if xor else []
     fields += ["T off = 0;  // every value v is stored as v - off: shiftAll only moves off"] if shift else []
-    return re.sub(r"^( +)(.*n = 0, d = 0;.*)$", lambda m: m.group(0) + "\n" + "\n".join(m.group(1) + f for f in fields),
+    return must_sub(r"^( +)(.*n = 0, d = 0;.*)$", lambda m: m.group(0) + "\n" + "\n".join(m.group(1) + f for f in fields),
                   body, count=1, flags=re.M)
 
 
@@ -5713,7 +6441,7 @@ def with_cached(body, ext, sums, minmax, medians, mexc, mode=False, gaps=False, 
 # keeps it current; without the cache that query walks the structure and updates do nothing for it. No flags: every
 # variant is a separate static template. @tracks lists what a template keeps current on every update, so the picker
 # and the Pareto check know a variant that tracks more is not free.
-MODE_PY = "if not self.n:\n    return None\nf = self.maxF\nreturn next(iter(self.bk[f])), f"
+MODE_PY = "if not self.n:\n    return None\nf = self.maxF\nv = next(iter(self.bk[f]))\nreturn (v ^ self.salt if v.__class__ is int else v), f"
 MODE_CPP = ("optional<pair<T, long long>>", "if (!n) return nullopt;\nauto& [f, vs] = *bk.rbegin();\nreturn pair<T, long long>{*vs.begin(), f};")
 
 
@@ -5793,10 +6521,16 @@ def write(spec, sums, minmax=False, medians=False, mexc=False, mode=False, gaps=
         own.update({op: (spec.get(f"{ext}_own") or {})[op] for op in spec.get("final") or {}})
         agg_py, agg_cpp = agg_ops(spec["dtype"], X, O, A)
         own.update({op: b for op, b in (agg_py if ext == "py" else agg_cpp).items() if op not in (spec.get(f"{ext}_own") or {})})
+        if ext == "py" and not (X or minmax or medians or mexc or mode or gaps):  # nothing cached: skip the call to _add
+            total_add, total_remove = ("self.total += x\n", "self.total -= x\n") if sums else ("", "")
+            if "add" not in own:
+                own["add"] = f"self.n += 1\n{total_add}self._insert(x, 1)"
+            if "remove" not in own:
+                own["remove"] = f"if not self._countOf(x):\n    return 0\nself.n -= 1\n{total_remove}self._insert(x, -1)\nreturn 1"
         bits = (X, O, A)
-        add = (py_add(sums, mexc, minmax, medians, mode, gaps, X, shift) + clear_py(spec["dtype"], sums, mex, mexc, mode, gaps, bits, shift)
+        add = (py_add(sums, mexc, minmax, medians, mode, gaps, X, shift, spec["dtype"] != "fastset") + clear_py(spec["dtype"], sums, mex, mexc, mode, gaps, bits, shift)
                if ext == "py" else
-               cpp_add(sums, mexc, minmax, medians, mode, gaps, X, shift) + clear_cpp(spec["dtype"], sums, mex, mexc, mode, gaps, bits, shift))
+               cpp_add(sums, mexc, minmax, medians, mode, gaps, X, shift, spec["dtype"] != "fastset") + clear_cpp(spec["dtype"], sums, mex, mexc, mode, gaps, bits, shift))
         if distinct:
             add += (DISTINCT_LT_PY if ext == "py" else DISTINCT_LT_CPP).get(spec["dtype"], "")
         if X or O or A:
@@ -5813,12 +6547,30 @@ def write(spec, sums, minmax=False, medians=False, mexc=False, mode=False, gaps=
         body = "\n".join(line.replace("  @newcount", "").replace("  @nonewcount", "") for line in body.split("\n")
                           if not line.endswith("  @newcount" if not nc else "  @nonewcount"))
         if ext == "py" and nc and spec["dtype"] == "avl":
-            body = body.replace('"root", "n",', '"root", "newCount", "n",', 1)
+            body = must_replace(body, '"root", "n",', '"root", "newCount", "n",', 1)
         if ext == "py" and gaps and "heappush" not in body:
             body = "from heapq import heappop, heappush\n" + body
-        text = header(cm, ops, spec) + with_cached(body, ext, sums, minmax, medians, mexc, mode, gaps, X, shift) + add + "\n" + shared + cls_end
+        text = header(cm, ops, spec) + with_cached(body, ext, sums, minmax, medians, mexc, mode, gaps, X, shift, mode or gaps or spec["dtype"] in ("blocks", "blocks-fenwick")) + add + "\n" + shared + cls_end
+        if ext == "py" and spec["dtype"] == "treap":  # the hottest call inlined: a pull at each node on the way back up
+            pull = re.search(r"    def _pull\(self, t\):\n((?:        .*\n)+)", text).group(1)
+            text = must_replace(text, "            pull(q)\n", re.sub(r"(?m)^        ", "            ", re.sub(r"\bt\b", "q", pull)))
+            text = must_replace(text, "        pull = self._pull\n        while path:", "        while path:")
+        if ext == "py" and spec["dtype"] == "splay":  # the hottest call inlined: a pull follows every rotation
+            pull = re.search(r"    def _pull\(self, t\):\n((?:        .*\n)+)", text).group(1)
+            text = must_replace(text, "        self._pull(p)  # (x is pulled once, when it reaches the root)\n", re.sub(r"\bt\b", "p", pull))
+        if ext == "cpp" and spec["dtype"] == "fenwick":
+            text = fenwick_one_lookup_cpp(fenwick_seg_cpp(text, mode, gaps))
+        if ext == "py" and spec["dtype"] == "fenwick":
+            text = fenwick_one_lookup_py(text)
+        text = return_rules_py(text) if ext == "py" else return_rules_cpp(text, spec["dtype"])
         attribution = f"{cm} Template by {GITHUB_USER}\n{cm} {GITHUB_FILES}{folder}/template.{ext}\n"
-        open(os.path.join(path, f"template.{ext}"), "w").write(attribution + text)
+        open(os.path.join(path, f"template.{ext}"), "w").write(check_finished(attribution + text, f"{folder}/template.{ext}"))
+        if ext == "cpp" and spec["dtype"] == "fenwick":
+            open(os.path.join(path, "fast.cpp"), "w").write(check_finished(fast_fenwick_cpp(attribution + text), f"{folder}/fast.cpp"))
+        if ext == "cpp" and spec["dtype"] in ("trie", "blocks", "blocks-fenwick", "fastset"):
+            open(os.path.join(path, "fast.cpp"), "w").write(check_finished(fast_vector_cpp(attribution + text, spec["name"]), f"{folder}/fast.cpp"))
+        if ext == "cpp" and spec["dtype"] in ("avl", "treap", "splay", "value-tree"):
+            open(os.path.join(path, "fast.cpp"), "w").write(check_finished(fast_pool_cpp(attribution + text, spec["name"]), f"{folder}/fast.cpp"))
     return folder
 
 

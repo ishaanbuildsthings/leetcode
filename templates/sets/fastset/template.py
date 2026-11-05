@@ -148,7 +148,8 @@ class FastSetMultiset:
 
     # O(log64(U)) -- add one copy of x
     def add(self, x):
-        self._add(x, 1)
+        self.n += 1
+        self._insert(x, 1)
 
     # O(log64(U)) -- add cnt copies of val (nothing if cnt <= 0)
     def addCount(self, val, cnt):
@@ -179,35 +180,40 @@ class FastSetMultiset:
         i = self._prev(x - self.lo)
         return None if i < 0 else self.lo + i
 
-    # O(log64(U)) -- largest value; None if empty
+    # O(log64(U)) -- largest value; raises IndexError if empty
     def max(self):
-        return self._kth(self.n) if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self._kth(self.n)
 
-    # O(log64(U)) -- smallest value; None if empty
+    # O(log64(U)) -- smallest value; raises IndexError if empty
     def min(self):
-        return self._kth(1) if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self._kth(1)
 
-    # O(log64(U)) -- remove and return the largest value; None if empty
+    # O(log64(U)) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self._kth(self.n)
         self._add(v, -1)
         return v
 
-    # O(log64(U)) -- remove and return the smallest value; None if empty
+    # O(log64(U)) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self._kth(1)
         self._add(v, -1)
         return v
 
     # O(log64(U)) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        if not self._countOf(x):
             return 0
-        self._add(x, -1)
+        self.n -= 1
+        self._insert(x, -1)
         return 1
 
     # O(log64(U)) -- remove every copy of val; returns how many were removed

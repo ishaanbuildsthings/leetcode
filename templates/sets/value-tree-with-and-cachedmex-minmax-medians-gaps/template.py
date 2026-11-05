@@ -56,6 +56,7 @@
 #   tags: none
 #   other: children[2*log(U)]
 #   note: per add of a new value, one node per level of its root path; U = hi - lo + 1. C++: each multiset owns its node pool (node 0 = empty); Python: dicts keyed by heap index
+from random import getrandbits
 from heapq import heappop, heappush
 
 # Ordered multiset of integers in a known range [lo, hi] (values not known ahead): a dynamic tree over the value range,
@@ -65,49 +66,66 @@ from heapq import heappop, heappush
 
 
 class ValueTreeMultiset:
-    __slots__ = ("lo", "hi", "cap", "c", "a", "p", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "gc", "gmin", "gmax", "dups", "d")
+    __slots__ = ("lo", "hi", "B", "L", "R", "c", "a", "p", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "mexV", "gc", "gmin", "gmax", "dups", "salt", "d")
 
     # O(1) -- an empty multiset for values in [lo, hi] (any integers, negative is fine)
     def __init__(self, lo, hi):
         self.lo, self.hi = lo, hi
-        self.cap = 1 << (hi - lo).bit_length()  # a power of two > hi - lo; the leaf of value v is cap + (v - lo)
-        self.c = {}  # node -> copies below it
-        self.p = {}  # node -> distinct values below it
-        self.a = {}  # node -> AND of the values below it
+        self.B = (hi - lo).bit_length()  # levels below the root: a value's path is the bits of v - lo, highest first
+        self._clearData()
+        self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
         self.mexV = 0  # the mex, kept current (0 for the empty set)
         self.n = self.d = 0
 
+    def _newNode(self):
+        self.L.append(0)
+        self.R.append(0)
+        self.c.append(0)
+        self.p.append(0)
+        self.a.append(-1)
+        return len(self.L) - 1
+
     def _insert(self, x, c):
-        cc = self.c
-        pp = self.p
-        aa = self.a
-        i = self.cap + x - self.lo
-        old = cc.get(i, 0)
+        L, R, cc = self.L, self.R, self.c
+        off, t, path = x - self.lo, 1, [1]
+        for h in range(self.B - 1, -1, -1):
+            kids = R if off >> h & 1 else L
+            nxt = kids[t]
+            if not nxt:
+                nxt = kids[t] = self._newNode()
+            t = nxt
+            path.append(t)
+        old = cc[t]
         pres = (old + c > 0) - (old > 0)
         self.d += pres
-        av = x if old + c > 0 else -1  # the AND below the current node
-        while i:
-            cc[i] = cc.get(i, 0) + c
-            if pres:
-                pp[i] = pp.get(i, 0) + pres
-            if pres:  # x appeared or disappeared: the OR / AND up its path, each node with its sibling's
-                aa[i] = av
-                av &= aa.get(i ^ 1, -1)
-            i >>= 1
+        for i in path:
+            cc[i] += c
+        if pres:
+            pp = self.p
+            for i in path:
+                pp[i] += pres
+        if pres:  # x appeared or disappeared: the OR / AND up its path, each node from its two children
+            aa = self.a
+            aa[t] = x if old + c > 0 else -1
+            for i in reversed(path[:-1]):
+                aa[i] = aa[L[i]] & aa[R[i]]
         return old + c  # (x's new count)
 
     def _prefix(self, f, x):  # f's total over the values < x
         if x <= self.lo:
             return 0
         if x > self.hi:
-            return f.get(1, 0)
-        i = self.cap + x - self.lo
-        res = 0
-        while i > 1:
-            if i & 1:
-                res += f.get(i - 1, 0)
-            i >>= 1
+            return f[1]
+        L, R, off, t, res = self.L, self.R, x - self.lo, 1, 0
+        for h in range(self.B - 1, -1, -1):
+            if off >> h & 1:
+                res += f[L[t]]
+                t = R[t]
+            else:
+                t = L[t]
+            if not t:
+                break
         return res
 
     def _lt(self, x):
@@ -117,50 +135,73 @@ class ValueTreeMultiset:
         return self._prefix(self.c, x + 1)
 
     def _countOf(self, x):  # the leaf of x
-        return self.c.get(self.cap + x - self.lo, 0) if self.lo <= x <= self.hi else 0
+        if not self.lo <= x <= self.hi:
+            return 0
+        L, R, off, t = self.L, self.R, x - self.lo, 1
+        for h in range(self.B - 1, -1, -1):
+            t = R[t] if off >> h & 1 else L[t]
+            if not t:
+                return 0
+        return self.c[t]
 
     def _kth(self, k):
-        c, i, size = self.c, 1, self.cap
-        while i < size:
-            i <<= 1
-            cl = c.get(i, 0)
+        L, R, c, t, v = self.L, self.R, self.c, 1, 0
+        for h in range(self.B - 1, -1, -1):
+            l = L[t]
+            cl = c[l]
             if k > cl:
                 k -= cl
-                i += 1
-        return i - size + self.lo
+                t = R[t]
+                v |= 1 << h
+            else:
+                t = l
+        return v + self.lo
 
     def _kthInfo(self, k):  # (k-th smallest, copies before it, its copies)
-        c, i, size, before = self.c, 1, self.cap, 0
-        while i < size:
-            i <<= 1
-            cl = c.get(i, 0)
+        L, R, c, t, v, before = self.L, self.R, self.c, 1, 0, 0
+        for h in range(self.B - 1, -1, -1):
+            l = L[t]
+            cl = c[l]
             if before + cl < k:
                 before += cl
-                i += 1
-        return i - size + self.lo, before, c[i]
+                t = R[t]
+                v |= 1 << h
+            else:
+                t = l
+        return v + self.lo, before, c[t]
 
     # smallest non-negative integer not in the set (hi + 1 if all of [0, hi] are present)
     def _findMex(self):
         if self.lo > 0:
             return 0
-        p, size = self.p, self.cap
-
-        def full(i):  # every value below node i is present
-            return p.get(i, 0) == size >> (i.bit_length() - 1)
-
-        i = size - self.lo  # the leaf of value 0
-        while True:
-            while i > 1 and not i & 1:  # climb while i is a left child: its parent starts at the same value
-                i >>= 1
-            if not full(i):  # the first missing value is inside i: descend, preferring the left child
-                while i < size:
-                    i <<= 1
-                    if full(i):
-                        i += 1
-                return min(i - size + self.lo, self.hi + 1)
-            i += 1
-            if not i & (i - 1):  # walked off the right edge
-                return self.hi + 1
+        if self.hi < 0:
+            return self.hi + 1
+        L, R, p, off, t = self.L, self.R, self.p, -self.lo, 1
+        later = []  # blocks right of the path to 0, nearest last: (node, its first value, levels below it)
+        for h in range(self.B - 1, -1, -1):
+            if off >> h & 1:
+                t = R[t]
+            else:
+                later.append((R[t], (off >> h | 1) << h, h))
+                t = L[t]
+            if not t:
+                return 0
+        if not p[t]:
+            return 0
+        while later:
+            t, base, h = later.pop()
+            if p[t] == 1 << h:
+                continue
+            while t and h:  # the first missing value is inside: descend, preferring the left child
+                h -= 1
+                l = L[t]
+                if p[l] == 1 << h:
+                    base += 1 << h
+                    t = R[t]
+                else:
+                    t = l
+            return min(base + self.lo, self.hi + 1)
+        return self.hi + 1
 
     def _add(self, x, c):  # c copies of x (c < 0 removes); keeps min / max, both medians, the mex current
         self.n += c
@@ -169,7 +210,9 @@ class ValueTreeMultiset:
         if (g >= 2) != (f >= 2):  # values with 2+ copies (then the smallest difference is 0)
             self.dups += 1 if f >= 2 else -1
         if not g or not f:  # x appeared or disappeared: the gap between its neighbours splits or comes back
-            p, q = self.largestLtX(x), self.smallestGtX(x)
+            i = self._lt(x)  # (one walk: the copies of x are known, and stored values skip any shift)
+            j = i + f
+            p, q = self._kth(i) if i else None, self._kth(j + 1) if j < self.n else None
             if f:
                 if p is not None and q is not None:
                     self._gap(q - p, -1)
@@ -226,29 +269,29 @@ class ValueTreeMultiset:
             self.highV, self.highB, self.highC = self._kthInfo(r)
 
     def _gap(self, g, c):  # one more (c = 1) / fewer (c = -1) gap of size g
-        gc = self.gc
-        k = gc.get(g, 0) + c
+        gc, key = self.gc, g ^ self.salt
+        k = gc.get(key, 0) + c
         if k:
-            gc[g] = k
+            gc[key] = k
             if k == 1 and c > 0:  # (a size already present has an entry in both heaps)
                 if len(self.gmin) > 2 * len(gc) + 8:  # mostly sizes no longer present: rebuild from the live ones
-                    self.gmin = sorted(gc)
+                    self.gmin = sorted(v ^ self.salt for v in gc)
                     self.gmax = [-v for v in reversed(self.gmin)]
                 else:
                     heappush(self.gmin, g)
                     heappush(self.gmax, -g)
         else:
-            del gc[g]
+            del gc[key]
 
     def _minGap(self):  # heap tops of sizes no longer present are dropped as they surface
-        h, gc = self.gmin, self.gc
-        while h[0] not in gc:
+        h, gc, salt = self.gmin, self.gc, self.salt
+        while h[0] ^ salt not in gc:
             heappop(h)
         return h[0]
 
     def _maxGap(self):
-        h, gc = self.gmax, self.gc
-        while -h[0] not in gc:
+        h, gc, salt = self.gmax, self.gc, self.salt
+        while -h[0] ^ salt not in gc:
             heappop(h)
         return -h[0]
 
@@ -257,29 +300,33 @@ class ValueTreeMultiset:
         self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0
         self.n = self.d = 0
 
-    def _clearData(self):
-        self.c = {}
-        self.p = {}
-        self.a = {}
+    def _clearData(self):  # just the empty node 0 and the root 1 (the old lists are freed in bulk)
+        self.L = [0, 0]
+        self.R = [0, 0]
+        self.c = [0, 0]
+        self.p = [0, 0]
+        self.a = [-1, -1]
 
     def _distinctLt(self, x):  # distinct values < x
         return self._prefix(self.p, x)
 
-    def _andIn(self, lo, hi):  # AND of the values in [lo, hi]: bottom-up over the heap-indexed blocks
-        lo, hi = max(lo, self.lo), min(hi, self.hi)
+    def _andIn(self, lo, hi):  # AND of the values in [lo, hi]: the blocks that cover it, from the root down
+        lo, hi = max(lo, self.lo) - self.lo, min(hi, self.hi) - self.lo
         if lo > hi:
             return -1
-        f, res = self.a, -1
-        l, r = self.cap + lo - self.lo, self.cap + hi - self.lo + 1
-        while l < r:
-            if l & 1:
-                res &= f.get(l, -1)
-                l += 1
-            if r & 1:
-                r -= 1
-                res &= f.get(r, -1)
-            l >>= 1
-            r >>= 1
+        L, R, f, res = self.L, self.R, self.a, -1
+        stack = [(1, 0, self.B)]
+        while stack:
+            t, base, h = stack.pop()
+            last = base + (1 << h) - 1
+            if not t or last < lo or base > hi:
+                continue
+            if lo <= base and last <= hi:
+                res &= f[t]
+                continue
+            h -= 1
+            stack.append((L[t], base, h))
+            stack.append((R[t], base + (1 << h), h))
         return res
 
     def _andLe(self, x):  # AND of the values <= x
@@ -299,7 +346,7 @@ class ValueTreeMultiset:
 
     # O(1) -- bitwise AND of all values; -1 (every bit set) if empty
     def andOfAll(self):
-        return self.a.get(1, -1)
+        return self.a[1]
 
     # O(logU) -- bitwise AND of the values > x; -1 (every bit set) if there are none
     def andOfGtX(self, x):
@@ -420,30 +467,38 @@ class ValueTreeMultiset:
     def lastIndex(self, x):
         return self._le(x) - 1 if self._countOf(x) else -1
 
-    # O(1) -- largest value; None if empty
+    # O(1) -- largest value; raises IndexError if empty
     def max(self):
-        return self.mx if self.n else None
+        if not self.n:
+            raise IndexError("max: the set is empty")
+        return self.mx
 
     # O(1 amortized) -- largest difference between two neighbouring distinct values; None if fewer than 2 distinct
     # values
     def maxGap(self):
         return self._maxGap() if self.d >= 2 else None
 
-    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; None if empty
+    # O(1) -- upper median: the (floor(size/2) + 1)-th smallest value; raises IndexError if empty
     def medianHigh(self):
-        return self.highV if self.n else None
+        if not self.n:
+            raise IndexError("medianHigh: the set is empty")
+        return self.highV
 
-    # O(1) -- lower median: the ceil(size/2)-th smallest value; None if empty
+    # O(1) -- lower median: the ceil(size/2)-th smallest value; raises IndexError if empty
     def medianLow(self):
-        return self.lowV if self.n else None
+        if not self.n:
+            raise IndexError("medianLow: the set is empty")
+        return self.lowV
 
     # O(1) -- smallest non-negative integer not in the set
     def mex(self):
         return self.mexV
 
-    # O(1) -- smallest value; None if empty
+    # O(1) -- smallest value; raises IndexError if empty
     def min(self):
-        return self.mn if self.n else None
+        if not self.n:
+            raise IndexError("min: the set is empty")
+        return self.mn
 
     # O(1 amortized) -- smallest difference between two values in the set (0 if some value has 2+ copies); None if fewer
     # than 2 values
@@ -461,25 +516,25 @@ class ValueTreeMultiset:
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the largest value; None if empty
+    # O(logU) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
-            return None
+            raise IndexError("popMax: the set is empty")
         v = self.mx
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the smallest value; None if empty
+    # O(logU) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
-            return None
+            raise IndexError("popMin: the set is empty")
         v = self.mn
         self._add(v, -1)
         return v
 
     # O(logU) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
-        if not self.count(x):
+        if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1
