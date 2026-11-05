@@ -154,7 +154,7 @@ export interface PickerCatalog<V extends PickerTemplate> {
     disabledOps: ReadonlySet<string>;
     disabledTitle: string;
     // (optional) while the box is ticked: how operation text reads, and what T is in the usage lines
-    rename?: (text: string) => string;
+    rename?: (text: string, lang?: TemplateLang) => string;
     elem?: string;
   };
   // another file of a template (sets: FastSet without duplicates, built in O(U/64)): the drawer has a checkbox next
@@ -858,7 +858,7 @@ function UsagePanel<V extends PickerTemplate>({
   const cm = cpp ? "//" : "#";
   const notes = typeof catalog.ctorNotes === "function" ? catalog.ctorNotes(template) : catalog.ctorNotes;
   const flagged = flagOn ? catalog.flag : undefined;
-  const reword = (text: string) => flagged?.rename?.(text) ?? text;
+  const reword = (text: string) => flagged?.rename?.(text, lang) ?? text;
   const elem = flagged?.elem ?? ((template as { chars?: boolean }).chars ? "char" : "long long"); // what T is in the usage lines
   const neededClasses = [
     ...new Set(shown.map((op) => usage.methods[op]!.cls)),

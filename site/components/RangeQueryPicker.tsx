@@ -95,6 +95,8 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     view: lettersView,
     disabledOps: new Set(ALL_OPS.filter((op) => !CHAR_SAFE_OPS.has(op))),
     disabledTitle: "Needs number values: not available with characters",
+    // (char is a keyword in C++, so its usage lines say ch)
+    rename: (text, lang) => text.replace(/\b(val|v)\b/g, lang === "cpp" ? "ch" : "char"),
   },
   modes: {
     ariaLabel: "Sparse versions",
