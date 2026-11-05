@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-replace-seq-rev/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet rangeAssign rangeReplace rangeReverse rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size split trisect
 // @data-structure-type: sqrt
 // @letters: same

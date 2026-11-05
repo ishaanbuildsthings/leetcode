@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-pre/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: treap
 // @letters: same

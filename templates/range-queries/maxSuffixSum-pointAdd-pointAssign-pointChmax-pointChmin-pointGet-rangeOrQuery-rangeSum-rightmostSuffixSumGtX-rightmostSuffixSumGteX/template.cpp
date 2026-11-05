@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeOrQuery-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeOrQuery rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
 // @data-structure-type: seg-tree
 // @complexities:

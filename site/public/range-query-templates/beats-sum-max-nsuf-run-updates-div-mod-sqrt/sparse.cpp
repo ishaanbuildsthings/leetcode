@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-max-nsuf-run-updates-div-mod-sqrt/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: leftmostGtX leftmostGteX longestEqualRun minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeSum rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
 // @data-structure-type: beats
 // @complexities:

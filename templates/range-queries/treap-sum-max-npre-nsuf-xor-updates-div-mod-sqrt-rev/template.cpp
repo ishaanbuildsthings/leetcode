@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-npre-nsuf-xor-updates-div-mod-sqrt-rev/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split trisect
 // @data-structure-type: treap
 // @complexities:

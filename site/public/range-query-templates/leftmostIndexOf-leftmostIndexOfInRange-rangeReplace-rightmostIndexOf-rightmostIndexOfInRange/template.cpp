@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostIndexOf-leftmostIndexOfInRange-rangeReplace-rightmostIndexOf-rightmostIndexOfInRange/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll leftmostIndexOf leftmostIndexOfInRange rangeReplace rightmostIndexOf rightmostIndexOfInRange
 // @data-structure-type: position-trees
 // @letters: same

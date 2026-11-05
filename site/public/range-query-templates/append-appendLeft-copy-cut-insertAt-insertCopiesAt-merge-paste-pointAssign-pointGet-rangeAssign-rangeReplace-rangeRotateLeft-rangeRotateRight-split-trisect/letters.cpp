@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/append-appendLeft-copy-cut-insertAt-insertCopiesAt-merge-paste-pointAssign-pointGet-rangeAssign-rangeReplace-rangeRotateLeft-rangeRotateRight-split-trisect/letters.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt merge paste pointAssign pointGet rangeAssign rangeReplace rangeRotateLeft rangeRotateRight size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:

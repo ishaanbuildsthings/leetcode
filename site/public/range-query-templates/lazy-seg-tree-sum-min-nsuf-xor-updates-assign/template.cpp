@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-min-nsuf-xor-updates-assign/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll leftmostLtX leftmostLteX minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSum rangeXorQuery rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX
 // @data-structure-type: lazy-seg-tree
 // @complexities:

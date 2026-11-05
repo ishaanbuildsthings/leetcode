@@ -53,6 +53,7 @@ ARG_KINDS = {
 AGG_KINDS = {"All": "", "LtX": "x", "LteX": "x", "GtX": "x", "GteX": "x", "InValRange": "lohi", "SmallestK": "k", "LargestK": "k",
              "KthSmallestRange": "ij", "KthLargestRange": "ij"}
 ARG_KINDS.update({agg + "Of" + suf: kind for agg in ("xor", "or", "and") for suf, kind in AGG_KINDS.items()})
+ARG_KINDS.update({"maxFreq": "", "minFreq": "", "valuesWithMaxFreq": "", "valuesWithMinFreq": ""})
 NO_RESULT = {"add", "addCount", "clear", "xorAll", "shiftAll"}
 # ops that need the values to be numbers; a template tagged "@keys: any" is also run with tuple / pair keys on the rest
 NUMERIC_OPS = {"sumAll", "sumSmallestK", "sumLargestK", "sumKthSmallestRange", "sumKthLargestRange", "sumLtX", "sumLteX",
@@ -89,6 +90,10 @@ def brute(a, op, args):
         cnt = Counter(a)
         f = max(cnt.values())
         return ("mode", f, frozenset(v for v, k in cnt.items() if k == f))
+    if op in ("maxFreq", "minFreq", "valuesWithMaxFreq", "valuesWithMinFreq"):
+        cnt = Counter(a)
+        f = (max if "Max" in op or op == "maxFreq" else min)(cnt.values()) if cnt else 0
+        return [v for v, k in cnt.items() if k == f] if op.startswith("values") else f
     if op == "xorAll":
         a[:] = sorted(v ^ args[0] for v in a)
         return None
@@ -225,6 +230,8 @@ def brute(a, op, args):
 
 
 def norm(v):
+    if isinstance(v, list):  # (valuesWithMaxFreq, ...: any order)
+        return " ".join(map(str, sorted(v))) or "[]"
     if isinstance(v, tuple) and v and v[0] == "mode":
         return v  # checked by first_mismatch
     if isinstance(v, tuple):  # (value, count) from mode()
@@ -376,6 +383,7 @@ def run_cpp(path, ops, values_kind, trials, cxx, keyed=False):
     name = names[-1]
     lines = ["#include <bits/stdc++.h>", "using namespace std;", f'#include "{path}"', f"template struct {name}<int>;",
              "void out(long long v) { cout << v << '\\n'; }",
+             "template <class V> void out(const vector<V>& got) { auto a = got; sort(a.begin(), a.end()); if (a.empty()) cout << \"[]\"; for (size_t i = 0; i < a.size(); i++) cout << (i ? \" \" : \"\") << a[i]; cout << '\\n'; }",
              "using P = pair<long long, long long>;",
              "P key(long long v) { long long q = v >= 0 ? v / 7 : -((-v + 6) / 7); return {q, v - 7 * q}; }",
              "void out(const P& p) { cout << p.first * 7 + p.second << '\\n'; }",

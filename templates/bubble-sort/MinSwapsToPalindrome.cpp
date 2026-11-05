@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bubble-sort/MinSwapsToPalindrome.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // Minimum adjacent swaps to turn sequence into a palindrome, or -1 if no rearrangement of it is one (more than one
 // value with an odd count)

@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-min-max-hash-or-run-updates-assign-div-mod-sqrt/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangeOrQuery rangeSum rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 // @data-structure-type: beats
 // @complexities:

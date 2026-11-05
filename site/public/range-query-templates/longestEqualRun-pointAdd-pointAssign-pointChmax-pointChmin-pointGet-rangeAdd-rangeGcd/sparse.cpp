@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
 // @data-structure-type: lazy-seg-tree
 // @complexities:

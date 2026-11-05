@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/orGtX-orGteX-orInValRange-orLtX-orLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-xorGtX-xorGteX-xorInValRange-xorLtX-xorLteX/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll orGtX orGteX orInValRange orLtX orLteX pointAdd pointAssign pointChmax pointChmin pointGet xorGtX xorGteX xorInValRange xorLtX xorLteX
 // @data-structure-type: seg-of-trees
 // @complexities:

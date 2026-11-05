@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/fastset-with-minmax-gaps/distinct-fast.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: add clear count countDistinct largestLtX largestLteX max maxGap min minAdjacentDiff popMax popMin remove removeInValRange size smallestGtX smallestGteX
 // @data-structure-type: fastset
 // @values: online-range

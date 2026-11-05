@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-updates-assign-chmax-chmin-rev/letters.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmax rangeChmin rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: treap
 // @complexities:

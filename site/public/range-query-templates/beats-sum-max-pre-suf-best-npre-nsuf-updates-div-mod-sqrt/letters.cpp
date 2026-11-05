@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-max-pre-suf-best-npre-nsuf-updates-div-mod-sqrt/letters.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll leftmostGtX leftmostGteX pointAssign pointChmax pointChmin pointGet rangeMax rightmostGtX rightmostGteX
 // @data-structure-type: beats
 // @complexities:

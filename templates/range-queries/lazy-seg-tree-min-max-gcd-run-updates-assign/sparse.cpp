@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-min-max-gcd-run-updates-assign/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMax rangeMin rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 // @data-structure-type: lazy-seg-tree
 // @complexities:

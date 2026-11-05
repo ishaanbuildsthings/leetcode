@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/isPalindrome-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeHash-rangeHashReversed-rangeSum-rangesEqual/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll isPalindrome pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeHash rangeHashReversed rangeSum rangesEqual
 // @data-structure-type: lazy-seg-tree
 // @complexities:

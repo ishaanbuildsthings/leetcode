@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-max-updates-add-rev/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: treap
 // @letters: same

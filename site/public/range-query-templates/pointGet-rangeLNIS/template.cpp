@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeLNIS/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: pointGet rangeLNIS
 // @data-structure-type: merge-sort-tree
 // @fractional-cascading: yes

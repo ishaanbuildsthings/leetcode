@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-hash-xor-alt-updates-assign/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rangesEqual rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: treap
 // @complexities:

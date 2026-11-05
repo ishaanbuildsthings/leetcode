@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-min-npre-gcd-updates-assign/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMin rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:

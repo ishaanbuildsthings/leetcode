@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: countDistinct getAll pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: BIT
 // @letters: same

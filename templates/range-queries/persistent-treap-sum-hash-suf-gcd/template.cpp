@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-hash-suf-gcd/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt isPalindrome maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostSuffixSumGtX rightmostSuffixSumGteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:

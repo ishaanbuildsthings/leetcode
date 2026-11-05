@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/isRBS-pointAssign-pointGet-rangeAssign-rangeFlip/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll isRBS pointAssign pointGet rangeAssign rangeFlip
 // @data-structure-type: lazy-seg-tree
 // @letters: same

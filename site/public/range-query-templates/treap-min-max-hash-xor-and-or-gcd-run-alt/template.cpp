@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-max-hash-xor-and-or-gcd-run-alt/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeHash rangeHashReversed rangeMax rangeMin rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: treap
 // @complexities:

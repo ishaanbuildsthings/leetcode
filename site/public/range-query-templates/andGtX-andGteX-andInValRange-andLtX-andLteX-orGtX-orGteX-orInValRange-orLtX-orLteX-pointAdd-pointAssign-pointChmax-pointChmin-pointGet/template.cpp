@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/andGtX-andGteX-andInValRange-andLtX-andLteX-orGtX-orGteX-orInValRange-orLtX-orLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: andGtX andGteX andInValRange andLtX andLteX getAll orGtX orGteX orInValRange orLtX orLteX pointAdd pointAssign pointChmax pointChmin pointGet
 // @data-structure-type: seg-of-trees
 // @complexities:

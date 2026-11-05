@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd-rangeMax-rangeSum-rightmostGtX-rightmostGteX/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll leftmostGtX leftmostGteX longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeMax rangeSum rightmostGtX rightmostGteX
 // @data-structure-type: lazy-seg-tree
 // @complexities:

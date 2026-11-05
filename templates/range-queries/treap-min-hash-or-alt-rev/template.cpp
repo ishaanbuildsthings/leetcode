@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-hash-or-alt-rev/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangesEqual rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: treap
 // @complexities:

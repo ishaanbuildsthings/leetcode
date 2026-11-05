@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-hash-or-gcd-rev-find/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangesEqual size split trisect
 // @data-structure-type: pair-treap
 // @complexities:

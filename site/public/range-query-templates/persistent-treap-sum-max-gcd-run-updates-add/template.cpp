@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-max-gcd-run-updates-add/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeMax rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:

@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-min-max-xor-and-or-gcd-run-alt/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeMax rangeMin rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:

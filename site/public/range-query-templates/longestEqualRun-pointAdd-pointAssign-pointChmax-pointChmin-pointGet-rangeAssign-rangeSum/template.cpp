@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum
 // @data-structure-type: lazy-seg-tree
 // @letters: same

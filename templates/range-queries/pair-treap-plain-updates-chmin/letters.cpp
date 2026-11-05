@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-plain-updates-chmin/letters.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAssign pointChmax pointChmin pointGet rangeChmin rangeRotateLeft rangeRotateRight rangeTwinSpin size split trisect
 // @data-structure-type: pair-treap
 // @complexities:

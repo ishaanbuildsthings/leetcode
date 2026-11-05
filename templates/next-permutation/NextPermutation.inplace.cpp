@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/NextPermutation.inplace.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // Rearranges sequence (a vector or a string) into the next larger arrangement in place and returns true, or returns
 // false (sequence unchanged) if it is the largest; consecutive calls cost O(1) amortized, unless almost every value is

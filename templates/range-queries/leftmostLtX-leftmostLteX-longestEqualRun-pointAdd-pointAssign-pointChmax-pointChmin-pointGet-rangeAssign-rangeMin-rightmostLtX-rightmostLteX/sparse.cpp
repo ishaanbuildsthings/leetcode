@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostLtX-leftmostLteX-longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeMin-rightmostLtX-rightmostLteX/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: leftmostLtX leftmostLteX longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rightmostLtX rightmostLteX
 // @data-structure-type: lazy-seg-tree
 // @complexities:

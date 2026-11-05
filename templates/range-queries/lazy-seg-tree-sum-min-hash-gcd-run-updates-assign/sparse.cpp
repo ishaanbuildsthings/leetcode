@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-min-hash-gcd-run-updates-assign/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: isPalindrome leftmostLtX leftmostLteX longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeHash rangeHashReversed rangeMin rangeSum rangesEqual rightmostLtX rightmostLteX
 // @data-structure-type: lazy-seg-tree
 // @complexities:

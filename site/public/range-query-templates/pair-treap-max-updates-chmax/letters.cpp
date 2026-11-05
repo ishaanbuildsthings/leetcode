@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-max-updates-chmax/letters.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAssign pointChmax pointChmin pointGet rangeChmax rangeMax rangeRotateLeft rangeRotateRight rangeTwinSpin rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: pair-treap
 // @complexities:

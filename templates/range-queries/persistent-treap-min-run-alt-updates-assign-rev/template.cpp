@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-min-run-alt-updates-assign-rev/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX longestEqualRun maxAltSubseqSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeReverse rangeRotateLeft rangeRotateRight rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:

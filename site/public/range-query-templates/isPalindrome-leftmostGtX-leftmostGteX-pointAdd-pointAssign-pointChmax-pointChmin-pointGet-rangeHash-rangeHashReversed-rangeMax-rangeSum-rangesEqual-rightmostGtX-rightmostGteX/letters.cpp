@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/isPalindrome-leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeHash-rangeHashReversed-rangeMax-rangeSum-rangesEqual-rightmostGtX-rightmostGteX/letters.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll isPalindrome leftmostGtX leftmostGteX pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangesEqual rightmostGtX rightmostGteX
 // @data-structure-type: seg-tree
 // @complexities:

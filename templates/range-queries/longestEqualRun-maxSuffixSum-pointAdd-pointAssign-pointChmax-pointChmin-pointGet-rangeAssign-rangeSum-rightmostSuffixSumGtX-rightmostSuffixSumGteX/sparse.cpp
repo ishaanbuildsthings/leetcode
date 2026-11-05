@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: longestEqualRun maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
 // @data-structure-type: lazy-seg-tree
 // @complexities:

@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-hash-run-updates-add-rev/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeHash rangeHashReversed rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: treap
 // @complexities:

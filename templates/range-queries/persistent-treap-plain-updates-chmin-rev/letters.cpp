@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-plain-updates-chmin-rev/letters.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt merge paste pointAssign pointChmax pointChmin pointGet rangeChmin rangeReverse rangeRotateLeft rangeRotateRight size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:

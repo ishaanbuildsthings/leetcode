@@ -107,7 +107,11 @@ export type SetOpId =
   | "andOfLargestK"
   | "andOfKthSmallestRange"
   | "andOfKthLargestRange"
-  | "shiftAll";
+  | "shiftAll"
+  | "maxFreq"
+  | "minFreq"
+  | "valuesWithMaxFreq"
+  | "valuesWithMinFreq";
 
 export const SET_OP_GROUPS: PickerOpGroup[] = [
   {
@@ -115,18 +119,45 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
     title: "Add / remove",
     tiers: [
       {
-        kind: "topic",
+        kind: "common",
         ops: [
           { id: "add", signature: "add(x)", description: "Add one copy of x" },
-          {
-            id: "addCount",
-            signature: "addCount(val, cnt)",
-            description: "Add cnt copies of val",
-          },
           {
             id: "remove",
             signature: "remove(x)",
             description: "Remove one copy of x (if present)",
+          },
+          {
+            id: "popMin",
+            signature: "popMin()",
+            description: "Remove and return the smallest value",
+          },
+          {
+            id: "popMax",
+            signature: "popMax()",
+            description: "Remove and return the largest value",
+          },
+          {
+            id: "pop",
+            signature: "pop(i)",
+            description:
+              "Remove and return the value at sorted position i, 0-indexed: pop(0) removes the min",
+          },
+          {
+            id: "clear",
+            signature: "clear()",
+            description:
+              "Empty it, to reuse instead of building a new one (no other op pays for this)",
+          },
+        ],
+      },
+      {
+        kind: "uncommon",
+        ops: [
+          {
+            id: "addCount",
+            signature: "addCount(val, cnt)",
+            description: "Add cnt copies of val",
           },
           {
             id: "removeCount",
@@ -144,16 +175,6 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             description: "Remove every value in [lo, hi]",
           },
           {
-            id: "popMin",
-            signature: "popMin()",
-            description: "Remove and return the smallest value",
-          },
-          {
-            id: "popMax",
-            signature: "popMax()",
-            description: "Remove and return the largest value",
-          },
-          {
             id: "xorAll",
             signature: "xorAll(y)",
             description: "Replace every value v by v ^ y",
@@ -162,12 +183,6 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             id: "shiftAll",
             signature: "shiftAll(d)",
             description: "Add d to every value (d may be negative)",
-          },
-          {
-            id: "pop",
-            signature: "pop(i)",
-            description:
-              "Remove and return the value at sorted position i, 0-indexed: pop(0) removes the min",
           },
         ],
       },
@@ -188,14 +203,14 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
           { id: "min", signature: "min()", description: "Smallest value" },
           { id: "max", signature: "max()", description: "Largest value" },
           {
-            id: "mex",
-            signature: "mex()",
-            description: "Smallest non-negative integer not in the set",
-          },
-          {
             id: "sumAll",
             signature: "sumAll()",
             description: "Sum of all values",
+          },
+          {
+            id: "mode",
+            signature: "mode()",
+            description: "(most frequent value, its count)",
           },
           {
             id: "countDistinct",
@@ -203,27 +218,25 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             description: "How many distinct values",
           },
           {
-            id: "mode",
-            signature: "mode()",
-            description: "(most frequent value, its count)",
+            id: "mex",
+            signature: "mex()",
+            description: "Smallest non-negative integer not in the set",
           },
         ],
       },
     ],
   },
   {
-    id: "hoisting",
-    title: "Hoisting",
+    id: "frequency",
+    title: "Frequency",
     tiers: [
       {
         kind: "topic",
         ops: [
-          {
-            id: "clear",
-            signature: "clear()",
-            description:
-              "Empty it, to reuse instead of building a new one (no other op pays for this)",
-          },
+          { id: "maxFreq", signature: "maxFreq()", description: "How many copies the most frequent value has" },
+          { id: "minFreq", signature: "minFreq()", description: "How many copies the least frequent value has" },
+          { id: "valuesWithMaxFreq", signature: "valuesWithMaxFreq()", description: "Every value tied for the most copies" },
+          { id: "valuesWithMinFreq", signature: "valuesWithMinFreq()", description: "Every value tied for the fewest copies" },
         ],
       },
     ],
@@ -233,7 +246,7 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
     title: "By rank",
     tiers: [
       {
-        kind: "topic",
+        kind: "common",
         ops: [
           {
             id: "kth",
@@ -243,14 +256,8 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
           },
         ],
       },
-    ],
-  },
-  {
-    id: "indices",
-    title: "Indices",
-    tiers: [
       {
-        kind: "topic",
+        kind: "uncommon",
         ops: [
           {
             id: "firstIndex",
@@ -291,6 +298,26 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             description: "How many values ≤ x",
           },
           {
+            id: "largestLtX",
+            signature: "largestLtX(x)",
+            description: "Largest value < x",
+          },
+          {
+            id: "largestLteX",
+            signature: "largestLteX(x)",
+            description: "Largest value ≤ x (floor)",
+          },
+          {
+            id: "smallestGtX",
+            signature: "smallestGtX(x)",
+            description: "Smallest value > x",
+          },
+          {
+            id: "smallestGteX",
+            signature: "smallestGteX(x)",
+            description: "Smallest value ≥ x (ceiling)",
+          },
+          {
             id: "countGtX",
             signature: "countGtX(x)",
             description: "How many values > x",
@@ -299,26 +326,6 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             id: "countGteX",
             signature: "countGteX(x)",
             description: "How many values ≥ x",
-          },
-          {
-            id: "largestLteX",
-            signature: "largestLteX(x)",
-            description: "Largest value ≤ x (floor)",
-          },
-          {
-            id: "smallestGteX",
-            signature: "smallestGteX(x)",
-            description: "Smallest value ≥ x (ceiling)",
-          },
-          {
-            id: "largestLtX",
-            signature: "largestLtX(x)",
-            description: "Largest value < x",
-          },
-          {
-            id: "smallestGtX",
-            signature: "smallestGtX(x)",
-            description: "Smallest value > x",
           },
           {
             id: "countInValRange",
@@ -354,18 +361,6 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
               "Sum of the k largest values; k is a count: k = 0 → none (0), k = 1 → just the largest",
           },
           {
-            id: "sumKthSmallestRange",
-            signature: "sumKthSmallestRange(kFrom, kTo)",
-            description:
-              "Sum of the kFrom-th..kTo-th smallest values; 1-indexed ranks, inclusive: (1, 1) = the smallest, (2, 4) = 2nd..4th smallest",
-          },
-          {
-            id: "sumKthLargestRange",
-            signature: "sumKthLargestRange(kFrom, kTo)",
-            description:
-              "Sum of the kFrom-th..kTo-th largest values; 1-indexed ranks, inclusive: (1, 1) = the largest, (5, 8) = 5th..8th largest",
-          },
-          {
             id: "sumLtX",
             signature: "sumLtX(x)",
             description: "Sum of the values < x",
@@ -390,6 +385,18 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             signature: "sumInValRange(lo, hi)",
             description: "Sum of the values in [lo, hi]",
           },
+          {
+            id: "sumKthSmallestRange",
+            signature: "sumKthSmallestRange(kFrom, kTo)",
+            description:
+              "Sum of the kFrom-th..kTo-th smallest values; 1-indexed ranks, inclusive: (1, 1) = the smallest, (2, 4) = 2nd..4th smallest",
+          },
+          {
+            id: "sumKthLargestRange",
+            signature: "sumKthLargestRange(kFrom, kTo)",
+            description:
+              "Sum of the kFrom-th..kTo-th largest values; 1-indexed ranks, inclusive: (1, 1) = the largest, (5, 8) = 5th..8th largest",
+          },
         ],
       },
     ],
@@ -402,6 +409,16 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
         kind: "topic",
         ops: [
           {
+            id: "medianLow",
+            signature: "medianLow()",
+            description: "Lower median (the ⌈n/2⌉-th smallest)",
+          },
+          {
+            id: "medianHigh",
+            signature: "medianHigh()",
+            description: "Upper median (the (⌊n/2⌋+1)-th smallest)",
+          },
+          {
             id: "sumAbsDiffToMedian",
             signature: "sumAbsDiffToMedian()",
             description:
@@ -412,15 +429,28 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
             signature: "sumAbsDiffToX(x)",
             description: "Σ|v − x|: total moves to bring every value to x",
           },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gaps",
+    title: "Gaps",
+    tiers: [
+      {
+        kind: "topic",
+        ops: [
           {
-            id: "medianLow",
-            signature: "medianLow()",
-            description: "Lower median (the ⌈n/2⌉-th smallest)",
+            id: "minAdjacentDiff",
+            signature: "minAdjacentDiff()",
+            description:
+              "Smallest difference between two values (0 if some value repeats)",
           },
           {
-            id: "medianHigh",
-            signature: "medianHigh()",
-            description: "Upper median (the (⌊n/2⌋+1)-th smallest)",
+            id: "maxGap",
+            signature: "maxGap()",
+            description:
+              "Largest difference between neighbouring distinct values",
           },
         ],
       },
@@ -429,6 +459,7 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "xorOf",
     title: "XOR of values",
+    collapsible: true,
     tiers: [
       {
         kind: "topic",
@@ -494,6 +525,7 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "orOf",
     title: "OR of values",
+    collapsible: true,
     tiers: [
       {
         kind: "topic",
@@ -559,6 +591,7 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "andOf",
     title: "AND of values",
+    collapsible: true,
     tiers: [
       {
         kind: "topic",
@@ -624,6 +657,7 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "xor",
     title: "XOR with x",
+    collapsible: true,
     tiers: [
       {
         kind: "topic",
@@ -711,6 +745,7 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
   {
     id: "xorLimit",
     title: "XOR with x, limit on v",
+    collapsible: true,
     tiers: [
       {
         kind: "topic",
@@ -769,32 +804,8 @@ export const SET_OP_GROUPS: PickerOpGroup[] = [
       },
     ],
   },
-  {
-    id: "gaps",
-    title: "Gaps",
-    tiers: [
-      {
-        kind: "topic",
-        ops: [
-          {
-            id: "minAdjacentDiff",
-            signature: "minAdjacentDiff()",
-            description:
-              "Smallest difference between two values (0 if some value repeats)",
-          },
-          {
-            id: "maxGap",
-            signature: "maxGap()",
-            description:
-              "Largest difference between neighbouring distinct values",
-          },
-        ],
-      },
-    ],
-  },
 ];
 
-// Ops that need the values to be numbers (sums, mex, gaps, bitwise, shifts); with tuple values they are greyed out.
 export const NUMERIC_SET_OPS: ReadonlySet<SetOpId> = new Set<SetOpId>([
   "sumAll",
   "sumSmallestK",
@@ -870,6 +881,7 @@ export const NUMERIC_SET_OPS: ReadonlySet<SetOpId> = new Set<SetOpId>([
 
 // Ordered lightest to heaviest constant factor; used to break ties between templates.
 export const SET_TYPES = [
+  "freq-buckets",
   "fastset",
   "fenwick",
   "value-tree",
@@ -884,6 +896,7 @@ export const SET_TYPES = [
 export type SetType = (typeof SET_TYPES)[number];
 
 export const SET_TYPE_LABELS: Record<SetType, string> = {
+  "freq-buckets": "Frequency buckets",
   fastset: "FastSet on [lo, hi]",
   fenwick: "Fenwick tree on values",
   "value-tree": "Value seg tree on [lo, hi]",

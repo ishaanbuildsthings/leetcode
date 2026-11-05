@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/GenericPersistentTreap.norev.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // e.g. long long, char, pair, struct, ...
 using RawVal = long long;

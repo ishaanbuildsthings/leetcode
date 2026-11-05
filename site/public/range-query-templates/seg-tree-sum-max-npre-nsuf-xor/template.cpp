@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-max-npre-nsuf-xor/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeSum rangeXorQuery rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
 // @data-structure-type: seg-tree
 // @complexities:

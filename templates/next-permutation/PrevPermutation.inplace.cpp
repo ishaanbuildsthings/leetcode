@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/PrevPermutation.inplace.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // Rearranges sequence (a vector or a string) into the next smaller arrangement in place and returns true, or returns
 // false (sequence unchanged) if it is the smallest; consecutive calls cost O(1) amortized, unless almost every value is

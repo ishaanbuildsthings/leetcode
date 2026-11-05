@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countInValRange-kthGtX-kthGteX-kthLtX-kthLteX-pointGet/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: countInValRange kthGtX kthGteX kthLtX kthLteX pointGet
 // @data-structure-type: merge-sort-tree
 // @fractional-cascading: yes

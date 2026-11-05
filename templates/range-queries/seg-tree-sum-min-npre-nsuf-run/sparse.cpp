@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-npre-nsuf-run/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeSum rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX
 // @data-structure-type: seg-tree
 // @complexities:

@@ -52,6 +52,10 @@ OPS = {
     "count": ("x", "int", "how many copies of x"),
     "sumAll": ("", "int", "sum of all values"),
     "countDistinct": ("", "int", "how many distinct values"),
+    "maxFreq": ("", "int", "how many copies the most frequent value has; 0 if empty"),
+    "minFreq": ("", "int", "how many copies the least frequent value in the set has; 0 if empty"),
+    "valuesWithMaxFreq": ("", "list", "every value tied for the most copies, in no particular order; empty if the set is empty"),
+    "valuesWithMinFreq": ("", "list", "every value tied for the fewest copies, in no particular order; empty if the set is empty"),
     "minAdjacentDiff": ("", "opt", "smallest difference between two values in the set (0 if some value has 2+ copies); {none} if fewer than 2 values"),
     "maxGap": ("", "opt", "largest difference between two neighbouring distinct values; {none} if fewer than 2 distinct values"),
     "maxXorAgainstX": ("xv", "opt", "largest v ^ x over the values v in the set; {err} if the set is empty (needs 0 <= x < 2^bits)"),
@@ -142,7 +146,8 @@ OPS = {
 }
 SUM_OPS = {"sumAll", "sumAbsDiffToMedian", "sumSmallestK", "sumLargestK", "sumKthSmallestRange", "sumKthLargestRange",
            "sumLtX", "sumLteX", "sumGtX", "sumGteX", "sumInValRange", "sumAbsDiffToX"}
-COUNT_OPS = [op for op in OPS if op not in SUM_OPS]
+FREQ_OPS = ["maxFreq", "minFreq", "valuesWithMaxFreq", "valuesWithMinFreq"]  # only freq_buckets has these
+COUNT_OPS = [op for op in OPS if op not in SUM_OPS and op not in FREQ_OPS]
 # the bitwise aggregates: xor (a group, so prefix differences work like sums) and OR / AND (no inverse: range walks)
 AGG_SUFFIXES = ["All", "LtX", "LteX", "GtX", "GteX", "InValRange", "SmallestK", "LargestK", "KthSmallestRange", "KthLargestRange"]
 AGG_OPS = {kind: [kind + "Of" + suf for suf in AGG_SUFFIXES] for kind in ("xor", "or", "and")}
@@ -265,6 +270,9 @@ def must_sub(pattern, repl, text, **kwargs):
 
 
 LEFTOVER_MARK = re.compile(r"@[A-Z][A-Z0-9_]*@|  @(?:mex|newcount|nonewcount)$|^\s*@\w+[{}]$", re.M)
+
+
+CPP_PRELUDE = "#include <bits/stdc++.h>\nusing namespace std;\nusing ll = long long;\n\n"  # a pasted template compiles on its own
 
 
 def check_finished(text, where):
@@ -5063,7 +5071,7 @@ struct FastSet {
                 note="U = hi - lo + 1: just the trie's U / 64 + U / 4096 + ... 64-bit words (about U / 63); no duplicates")
     path = os.path.join(ROOT, folder)
     for ext, cm, body in (("py", "#", py), ("cpp", "//", cpp)):
-        attribution = f"{cm} Template by {GITHUB_USER}\n{cm} {GITHUB_FILES}{folder}/distinct.{ext}\n"
+        attribution = f"{cm} Template by {GITHUB_USER}\n{cm} {GITHUB_FILES}{folder}/distinct.{ext}\n" + (CPP_PRELUDE if ext == "cpp" else "")
         body = return_rules_py(body) if ext == "py" else return_rules_cpp(body, "fastset")
         text = attribution + header(cm, ops, spec) + body
         open(os.path.join(path, f"distinct.{ext}"), "w").write(check_finished(text, f"{folder}/distinct.{ext}"))
@@ -6451,8 +6459,358 @@ GAPS_CPP = {"minAdjacentDiff": ("optional<long long>", "if (n < 2) return nullop
             "maxGap": ("optional<long long>", "if (d < 2) return nullopt;\nreturn *gaps.rbegin();")}
 
 
+def freq_buckets():
+    """Add, remove, the highest and the lowest frequency all in O(1): values sit in buckets by count, and the buckets
+    that exist form a sorted linked list. One copy moves a value to the next bucket along, so nothing is ever searched
+    for, and the highest and lowest frequencies are just the two ends."""
+    py = """from random import getrandbits
+
+
+# Multiset of any hashable values (online: nothing known ahead). Add, remove, the highest and the lowest frequency are
+# all O(1): values sit in buckets by how many copies they have, and the buckets that exist form a sorted linked list.
+# Adding or removing one copy only ever moves a value to the neighbouring bucket, and the two frequencies are the ends
+# of the list.
+class FreqBuckets:
+    __slots__ = ("salt", "slotOf", "vals", "cnt", "bucketOf", "prevInBucket", "nextInBucket", "freq", "firstValue",
+                 "prevBucket", "nextBucket", "freeBuckets", "n", "d")
+
+    # O(1)
+    def __init__(self):
+        self.salt = getrandbits(60)  # hash containers key on this, so no fixed input can force collisions
+        self.slotOf = {}  # value -> its slot, 1 and up; each value's fields below are per slot
+        self.vals, self.cnt, self.bucketOf = [None], [0], [0]
+        self.prevInBucket, self.nextInBucket = [0], [0]  # the values of one bucket: a linked list, 0 ends it
+        # bucket 0 joins the list's two ends: nextBucket[0] has the lowest frequency, prevBucket[0] the highest
+        self.freq, self.firstValue, self.prevBucket, self.nextBucket = [0], [0], [0], [0]
+        self.freeBuckets = []
+        self.n = self.d = 0
+
+    def _newBucket(self, f, left):  # a bucket for frequency f, right after bucket left
+        if self.freeBuckets:
+            b = self.freeBuckets.pop()
+        else:
+            b = len(self.freq)
+            for field in (self.freq, self.firstValue, self.prevBucket, self.nextBucket):
+                field.append(0)
+        right = self.nextBucket[left]
+        self.freq[b], self.firstValue[b] = f, 0
+        self.prevBucket[b], self.nextBucket[b] = left, right
+        self.nextBucket[left] = self.prevBucket[right] = b
+        return b
+
+    def _join(self, slot, b):
+        first = self.firstValue[b]
+        self.bucketOf[slot], self.prevInBucket[slot], self.nextInBucket[slot] = b, 0, first
+        if first:
+            self.prevInBucket[first] = slot
+        self.firstValue[b] = slot
+
+    def _leave(self, slot):  # an emptied bucket leaves the list
+        b, before, after = self.bucketOf[slot], self.prevInBucket[slot], self.nextInBucket[slot]
+        if before:
+            self.nextInBucket[before] = after
+        else:
+            self.firstValue[b] = after
+        if after:
+            self.prevInBucket[after] = before
+        if not self.firstValue[b]:
+            left, right = self.prevBucket[b], self.nextBucket[b]
+            self.nextBucket[left], self.prevBucket[right] = right, left
+            self.freeBuckets.append(b)
+        self.bucketOf[slot] = 0
+
+    def _values(self, b):
+        res, slot = [], self.firstValue[b]
+        while slot:
+            res.append(self.vals[slot])
+            slot = self.nextInBucket[slot]
+        return res
+
+    # O(1 expected) -- add one copy of x
+    def add(self, x):
+        key = x ^ self.salt if x.__class__ is int else x
+        slot = self.slotOf.get(key)
+        if slot is None:
+            slot = self.slotOf[key] = len(self.vals)
+            self.vals.append(x)
+            for field in (self.cnt, self.bucketOf, self.prevInBucket, self.nextInBucket):
+                field.append(0)
+        f = self.cnt[slot]
+        b = self.bucketOf[slot]
+        up = self.nextBucket[b]
+        if self.freq[up] != f + 1:
+            up = self._newBucket(f + 1, b)
+        if f:
+            self._leave(slot)
+        else:
+            self.d += 1
+        self._join(slot, up)
+        self.cnt[slot] = f + 1
+        self.n += 1
+
+    # O(1 expected) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    def remove(self, x):
+        slot = self.slotOf.get(x ^ self.salt if x.__class__ is int else x)
+        if slot is None or not self.cnt[slot]:
+            return 0
+        f = self.cnt[slot]
+        down = self.prevBucket[self.bucketOf[slot]]
+        if f > 1 and self.freq[down] != f - 1:
+            down = self._newBucket(f - 1, down)
+        self._leave(slot)
+        if f > 1:
+            self._join(slot, down)
+        else:
+            self.d -= 1
+        self.cnt[slot] = f - 1
+        self.n -= 1
+        return 1
+
+    # O(1 expected) -- how many copies of x
+    def count(self, x):
+        slot = self.slotOf.get(x ^ self.salt if x.__class__ is int else x)
+        return 0 if slot is None else self.cnt[slot]
+
+    # O(1) -- how many values (copies count)
+    def size(self):
+        return self.n
+
+    # O(1) -- so len(ms) works too
+    def __len__(self):
+        return self.n
+
+    # O(1) -- how many distinct values
+    def countDistinct(self):
+        return self.d
+
+    # O(1) -- how many copies the most frequent value has; 0 if empty
+    def maxFreq(self):
+        return self.freq[self.prevBucket[0]]
+
+    # O(1) -- how many copies the least frequent value in the set has; 0 if empty
+    def minFreq(self):
+        return self.freq[self.nextBucket[0]]
+
+    # O(how many are tied) -- every value tied for the most copies, in no particular order; empty if the set is empty
+    def valuesWithMaxFreq(self):
+        return self._values(self.prevBucket[0])
+
+    # O(how many are tied) -- every value tied for the fewest copies, in no particular order; empty if the set is empty
+    def valuesWithMinFreq(self):
+        return self._values(self.nextBucket[0])
+
+    # O(N) -- remove everything: afterwards it is as if newly built, so reuse it
+    def clear(self):
+        for slot in range(1, len(self.vals)):
+            self.cnt[slot] = self.bucketOf[slot] = 0
+        self.freq, self.firstValue, self.prevBucket, self.nextBucket = [0], [0], [0], [0]
+        self.freeBuckets = []
+        self.n = self.d = 0
+"""
+    cpp = """// Multiset of integers (online: nothing known ahead). Add, remove, the highest and the lowest frequency are all O(1):
+// values sit in buckets by how many copies they have, and the buckets that exist form a sorted linked list. Adding or
+// removing one copy only ever moves a value to the neighbouring bucket, and the two frequencies are the ends of the
+// list. T: int, long long, ...
+template <typename T>
+struct FreqBuckets {
+    // each value has a slot, 1 and up
+    vector<T> vals;
+    vector<long long> cnt;  // copies per slot
+    vector<int> bucketOf, prevInBucket, nextInBucket;  // the values of one bucket: a linked list, 0 ends it
+    // bucket 0 joins the list's two ends: nextBucket[0] has the lowest frequency, prevBucket[0] the highest
+    vector<long long> freq;
+    vector<int> firstValue, prevBucket, nextBucket, freeBuckets;
+    vector<int> table;  // open addressing from a value to its slot, 0 for an empty entry
+    unsigned long long hashMultiplier = 1;  // random per instance, so no fixed input can force collisions
+    int hashBits = 0;
+    long long n = 0, d = 0;
+
+    // O(1)
+    FreqBuckets() {
+        vals.assign(1, T());
+        cnt.assign(1, 0), bucketOf.assign(1, 0), prevInBucket.assign(1, 0), nextInBucket.assign(1, 0);
+        resetBuckets();
+        unsigned long long seed = chrono::steady_clock::now().time_since_epoch().count() ^ (unsigned long long)(uintptr_t)this;
+        seed = (seed ^ (seed >> 30)) * 0xBF58476D1CE4E5B9ULL;
+        seed = (seed ^ (seed >> 27)) * 0x94D049BB133111EBULL;
+        hashMultiplier = (seed ^ (seed >> 31)) | 1;
+        resizeTable(4);
+    }
+
+    void resetBuckets() {
+        freq.assign(1, 0), firstValue.assign(1, 0), prevBucket.assign(1, 0), nextBucket.assign(1, 0);
+        freeBuckets.clear();
+    }
+
+    unsigned hashOf(T x) const {
+        return unsigned((unsigned long long)(long long)x * hashMultiplier >> (64 - hashBits));
+    }
+
+    void resizeTable(int bits) {
+        hashBits = bits;
+        table.assign(1u << bits, 0);
+        unsigned mask = (1u << bits) - 1;
+        for (int slot = 1; slot < (int)vals.size(); slot++) {
+            unsigned h = hashOf(vals[slot]);
+            while (table[h]) h = (h + 1) & mask;
+            table[h] = slot;
+        }
+    }
+
+    int findSlot(T x) const {  // x's slot, 0 if it has none
+        unsigned mask = (1u << hashBits) - 1;
+        for (unsigned h = hashOf(x);; h = (h + 1) & mask) {
+            int slot = table[h];
+            if (!slot || vals[slot] == x) return slot;
+        }
+    }
+
+    int makeSlot(T x) {  // for a value with no slot yet
+        int slot = vals.size();
+        vals.push_back(x);
+        cnt.push_back(0), bucketOf.push_back(0), prevInBucket.push_back(0), nextInBucket.push_back(0);
+        if (2 * vals.size() > table.size()) {
+            resizeTable(hashBits + 1);  // (this places the new value too)
+        } else {
+            unsigned mask = (1u << hashBits) - 1, h = hashOf(x);
+            while (table[h]) h = (h + 1) & mask;
+            table[h] = slot;
+        }
+        return slot;
+    }
+
+    int newBucket(long long f, int left) {  // a bucket for frequency f, right after bucket left
+        int b;
+        if (!freeBuckets.empty()) {
+            b = freeBuckets.back();
+            freeBuckets.pop_back();
+        } else {
+            b = freq.size();
+            freq.push_back(0), firstValue.push_back(0), prevBucket.push_back(0), nextBucket.push_back(0);
+        }
+        int right = nextBucket[left];
+        freq[b] = f, firstValue[b] = 0;
+        prevBucket[b] = left, nextBucket[b] = right;
+        nextBucket[left] = prevBucket[right] = b;
+        return b;
+    }
+
+    void join(int slot, int b) {
+        int first = firstValue[b];
+        bucketOf[slot] = b, prevInBucket[slot] = 0, nextInBucket[slot] = first;
+        if (first) prevInBucket[first] = slot;
+        firstValue[b] = slot;
+    }
+
+    void leave(int slot) {  // an emptied bucket leaves the list
+        int b = bucketOf[slot], before = prevInBucket[slot], after = nextInBucket[slot];
+        if (before) nextInBucket[before] = after;
+        else firstValue[b] = after;
+        if (after) prevInBucket[after] = before;
+        if (!firstValue[b]) {
+            int left = prevBucket[b], right = nextBucket[b];
+            nextBucket[left] = right, prevBucket[right] = left;
+            freeBuckets.push_back(b);
+        }
+        bucketOf[slot] = 0;
+    }
+
+    vector<T> valuesIn(int b) const {
+        vector<T> res;
+        for (int slot = firstValue[b]; slot; slot = nextInBucket[slot]) res.push_back(vals[slot]);
+        return res;
+    }
+
+    // O(1 expected) -- add one copy of x
+    void add(T x) {
+        int slot = findSlot(x);
+        if (!slot) slot = makeSlot(x);
+        long long f = cnt[slot];
+        int b = bucketOf[slot], up = nextBucket[b];
+        if (freq[up] != f + 1) up = newBucket(f + 1, b);
+        if (f) leave(slot);
+        else d++;
+        join(slot, up);
+        cnt[slot] = f + 1;
+        n++;
+    }
+
+    // O(1 expected) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    long long remove(T x) {
+        int slot = findSlot(x);
+        if (!slot || !cnt[slot]) return 0;
+        long long f = cnt[slot];
+        int down = prevBucket[bucketOf[slot]];
+        if (f > 1 && freq[down] != f - 1) down = newBucket(f - 1, down);
+        leave(slot);
+        if (f > 1) join(slot, down);
+        else d--;
+        cnt[slot] = f - 1;
+        n--;
+        return 1;
+    }
+
+    // O(1 expected) -- how many copies of x
+    long long count(T x) {
+        int slot = findSlot(x);
+        return slot ? cnt[slot] : 0;
+    }
+
+    // O(1) -- how many values (copies count)
+    long long size() {
+        return n;
+    }
+
+    // O(1) -- how many distinct values
+    long long countDistinct() {
+        return d;
+    }
+
+    // O(1) -- how many copies the most frequent value has; 0 if empty
+    long long maxFreq() {
+        return freq[prevBucket[0]];
+    }
+
+    // O(1) -- how many copies the least frequent value in the set has; 0 if empty
+    long long minFreq() {
+        return freq[nextBucket[0]];
+    }
+
+    // O(how many are tied) -- every value tied for the most copies, in no particular order; empty if the set is empty
+    vector<T> valuesWithMaxFreq() {
+        return valuesIn(prevBucket[0]);
+    }
+
+    // O(how many are tied) -- every value tied for the fewest copies, in no particular order; empty if the set is empty
+    vector<T> valuesWithMinFreq() {
+        return valuesIn(nextBucket[0]);
+    }
+
+    // O(N) -- remove everything: afterwards it is as if newly built, so reuse it
+    void clear() {
+        fill(cnt.begin(), cnt.end(), 0), fill(bucketOf.begin(), bucketOf.end(), 0);
+        resetBuckets();
+        n = d = 0;
+    }
+};
+"""
+    ops = sorted(["add", "remove", "count", "size", "countDistinct", "maxFreq", "minFreq", "valuesWithMaxFreq", "valuesWithMinFreq", "clear"])
+    comps = dict(add="1 expected", remove="1 expected", count="1 expected", size="1", countDistinct="1", maxFreq="1", minFreq="1",
+                 valuesWithMaxFreq="N", valuesWithMinFreq="N", clear="N", build="1")
+    folder = "freq-buckets"
+    spec = dict(dtype="freq-buckets", values="online", keys="numbers", tracks="none", comps=comps,
+                mem=("none", "key[1*N] cnt[1*N] links[3*N]", "none", "hash[4*N] buckets[4*N]"),
+                note="N = distinct values ever added; a hash table of at most 4*N ints and at most N + 1 buckets")
+    path = os.path.join(ROOT, folder)
+    os.makedirs(path, exist_ok=True)
+    for ext, cm, body in (("py", "#", py), ("cpp", "//", cpp)):
+        attribution = f"{cm} Template by {GITHUB_USER}\n{cm} {GITHUB_FILES}{folder}/template.{ext}\n" + (CPP_PRELUDE if ext == "cpp" else "")
+        open(os.path.join(path, f"template.{ext}"), "w").write(check_finished(attribution + header(cm, ops, spec) + "\n" + body, f"{folder}/template.{ext}"))
+    return folder
+
+
 def write(spec, sums, minmax=False, medians=False, mexc=False, mode=False, gaps=False, shift=False):
-    ops = sorted(spec.get("ops") or (op for op in (list(OPS) if sums else COUNT_OPS) if op != "mex" or spec.get("mex", True)))
+    ops = sorted(spec.get("ops") or (op for op in ((list(SUM_OPS) + COUNT_OPS) if sums else COUNT_OPS) if op != "mex" or spec.get("mex", True)))
     X, O, A = spec.get("bits") or (False, False, False)  # the bitwise aggregates this variant maintains
     ops = [op for op in ops if not any(op in AGG_OPS[k] and not on for k, on in (("xor", X), ("or", O), ("and", A)))]
     assert not shift or (spec["dtype"] in SHIFT_DTYPES and not (X or O or A)), "shiftAll: comparison structures, no bitwise aggregates"
@@ -6563,7 +6921,7 @@ def write(spec, sums, minmax=False, medians=False, mexc=False, mode=False, gaps=
         if ext == "py" and spec["dtype"] == "fenwick":
             text = fenwick_one_lookup_py(text)
         text = return_rules_py(text) if ext == "py" else return_rules_cpp(text, spec["dtype"])
-        attribution = f"{cm} Template by {GITHUB_USER}\n{cm} {GITHUB_FILES}{folder}/template.{ext}\n"
+        attribution = f"{cm} Template by {GITHUB_USER}\n{cm} {GITHUB_FILES}{folder}/template.{ext}\n" + (CPP_PRELUDE if ext == "cpp" else "")
         open(os.path.join(path, f"template.{ext}"), "w").write(check_finished(attribution + text, f"{folder}/template.{ext}"))
         if ext == "cpp" and spec["dtype"] == "fenwick":
             open(os.path.join(path, "fast.cpp"), "w").write(check_finished(fast_fenwick_cpp(attribution + text), f"{folder}/fast.cpp"))
@@ -6632,5 +6990,6 @@ if __name__ == "__main__":
     for minmax in BOOL:  # the no-duplicates FastSets (fast O(U/64) build); a mode means nothing without duplicates
         for gaps in BOOL:
             fastset_distinct(minmax, gaps)
+    written.append(freq_buckets())
     assert len(set(written)) == len(written), "two variants share a folder"
     print(f"wrote {len(written)} set templates (+ 4 no-duplicates FastSets)")

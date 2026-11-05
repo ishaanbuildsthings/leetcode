@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-hash-suf-npre/letters.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll isPalindrome pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangesEqual
 // @data-structure-type: seg-tree
 // @complexities:

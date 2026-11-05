@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-max-pre-alt-updates-assign/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxAltSubseqSum maxPrefixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: persistent-treap
 // @complexities:

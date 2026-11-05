@@ -561,7 +561,8 @@ def main():
             text = open(os.path.join(DIR, f"{stem}{dot}.cpp")).read()
             a = text.index(f"struct {marker} {{")
             head = text[:a].replace(f"generic/{stem}{dot}.cpp", f"generic/{stem}{dot}.debug.cpp")
-            top = head.index("using namespace std;\n") + len("using namespace std;\n")
+            last = "using ll = long long;\n"
+            top = head.index(last) + len(last)
             first = head.index("Node leaf(")
             full = head[:top] + "\n" + CPP_HEAD.rstrip("\n") + "\n" + head[top:first] + str_stubs(level, lazy) + head[first:] + cpp_tree(lazy)
             open(os.path.join(DIR, f"{stem}{dot}.debug.cpp"), "w").write(full)

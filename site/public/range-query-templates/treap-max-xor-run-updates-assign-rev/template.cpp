@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-max-xor-run-updates-assign-rev/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: treap
 // @complexities:

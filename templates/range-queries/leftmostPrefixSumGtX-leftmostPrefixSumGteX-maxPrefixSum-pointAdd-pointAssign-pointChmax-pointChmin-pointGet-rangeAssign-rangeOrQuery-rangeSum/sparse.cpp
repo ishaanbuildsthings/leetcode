@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-maxPrefixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeOrQuery-rangeSum/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeSum
 // @data-structure-type: lazy-seg-tree
 // @complexities:

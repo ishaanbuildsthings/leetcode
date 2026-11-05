@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/GenericSeg.complex.debug.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 const bool DEBUG = true;  // print the tree after every operation
 const bool TRACE = false;  // also print every node the recursion visits

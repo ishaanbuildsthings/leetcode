@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmin-rangeMax/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: pointAdd pointAssign pointChmax pointChmin pointGet rangeChmin rangeMax
 // @data-structure-type: lazy-seg-tree
 // @complexities:

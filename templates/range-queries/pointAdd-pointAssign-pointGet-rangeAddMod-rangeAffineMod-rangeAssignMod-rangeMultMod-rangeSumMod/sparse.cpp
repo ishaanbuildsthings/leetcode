@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointGet-rangeAddMod-rangeAffineMod-rangeAssignMod-rangeMultMod-rangeSumMod/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: pointAdd pointAssign pointGet rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeSumMod
 // @data-structure-type: lazy-seg-tree
 // @complexities:

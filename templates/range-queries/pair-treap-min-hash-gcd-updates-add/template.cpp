@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-hash-gcd-updates-add/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeHash rangeHashReversed rangeMin rangeRotateLeft rangeRotateRight rangeTwinSpin rangesEqual rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: pair-treap
 // @complexities:

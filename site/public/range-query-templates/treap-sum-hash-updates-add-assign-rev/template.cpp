@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-hash-updates-add-assign-rev/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangesEqual size split trisect
 // @data-structure-type: treap
 // @complexities:

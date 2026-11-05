@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/isPalindrome-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeHash-rangeHashReversed-rangeOrQuery-rangeSortAsc-rangeSortDesc-rangeSum-rangesEqual/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll isPalindrome pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeOrQuery rangeSortAsc rangeSortDesc rangeSum rangesEqual
 // @data-structure-type: sorted-runs
 // @complexities:

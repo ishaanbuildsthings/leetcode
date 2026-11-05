@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/NextPermutation.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // The next larger arrangement of sequence (a new vector, or a string for a string), or nullopt if it is the largest
 // sequence: a vector or a string of values that compare with each other: int, long long, negatives, chars ok

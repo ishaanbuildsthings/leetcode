@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/NextPermutationSteps.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // The arrangement of sequence steps later (steps = 1: the next one; a new vector, or a string for a string), or nullopt
 // if fewer than steps arrangements come after it

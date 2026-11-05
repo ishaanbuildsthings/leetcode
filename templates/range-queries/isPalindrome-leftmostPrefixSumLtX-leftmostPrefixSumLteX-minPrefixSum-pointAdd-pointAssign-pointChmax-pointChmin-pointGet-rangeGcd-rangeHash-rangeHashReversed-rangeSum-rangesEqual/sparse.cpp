@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/isPalindrome-leftmostPrefixSumLtX-leftmostPrefixSumLteX-minPrefixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd-rangeHash-rangeHashReversed-rangeSum-rangesEqual/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: isPalindrome leftmostPrefixSumLtX leftmostPrefixSumLteX minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeSum rangesEqual
 // @data-structure-type: seg-tree
 // @complexities:

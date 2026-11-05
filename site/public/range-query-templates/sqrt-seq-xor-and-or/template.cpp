@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-seq-xor-and-or/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: andGtX andGteX andInValRange andLtX andLteX append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge orGtX orGteX orInValRange orLtX orLteX paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeMax rangeMin rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split trisect xorGtX xorGteX xorInValRange xorLtX xorLteX
 // @data-structure-type: sqrt
 // @complexities:

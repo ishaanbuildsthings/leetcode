@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bubble-sort/MinSwapsToTarget.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // Minimum adjacent swaps to turn sequence into target, or -1 if target isn't a rearrangement of sequence
 // sequence, target: vectors or strings of values that compare with each other: int, long long, negatives, chars ok

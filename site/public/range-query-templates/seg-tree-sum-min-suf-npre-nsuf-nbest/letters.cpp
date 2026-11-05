@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-suf-npre-nsuf-nbest/letters.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: getAll leftmostLtX leftmostLteX pointAssign pointChmax pointChmin pointGet rangeMin rightmostLtX rightmostLteX
 // @data-structure-type: seg-tree
 // @complexities:

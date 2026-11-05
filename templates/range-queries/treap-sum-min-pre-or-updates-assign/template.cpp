@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-pre-or-updates-assign/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: treap
 // @complexities:

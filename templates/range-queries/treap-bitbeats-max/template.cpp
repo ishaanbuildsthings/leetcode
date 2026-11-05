@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-bitbeats-max/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeAssign rangeMax rangeOrApply rangeOrQuery rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX size split trisect
 // @data-structure-type: treap
 // @complexities:

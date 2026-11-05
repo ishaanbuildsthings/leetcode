@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/GenericTreap.simple.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // e.g. long long, char, ...
 using RawVal = long long;
