@@ -18,7 +18,7 @@ export const FAST_NO_SANITIZE = [
 
 // The generics: you write part of the hot code yourself, so the panel shows where the macro goes in it.
 export const GENERIC_FAST = {
-  how: "Sanitizers are skipped in the tree and in the functions you fill in, and its min and max become plain comparisons. The gain only shows up on LeetCode.",
+  how: "Sanitizers are skipped in the tree and in the functions you fill in. The gain only shows up on LeetCode.",
   drawbacks: FAST_DRAWBACKS,
   noSanitize: [
     FAST_NO_SANITIZE[0],
