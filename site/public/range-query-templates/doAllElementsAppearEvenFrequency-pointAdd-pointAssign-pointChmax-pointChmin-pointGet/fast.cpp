@@ -1,0 +1,153 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/doAllElementsAppearEvenFrequency-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/fast.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// @operations: doAllElementsAppearEvenFrequency getAll pointAdd pointAssign pointChmax pointChmin pointGet
+// @data-structure-type: BIT
+// @letters: same
+// @complexities:
+//   doAllElementsAppearEvenFrequency: log(N)
+//   getAll: N
+//   pointAdd: log(N)
+//   pointAssign: log(N)
+//   pointChmax: log(N)
+//   pointChmin: log(N)
+//   pointGet: 1
+//   build: N
+// @memory:
+//   layout: none
+//   node: bit[1*N]
+//   tags: none
+//   other: vals[1*N] a[1*N]
+//   note: a holds each index's tag; a value's tag is splitmix64(value ^ seed), a keyed hash with a random per-run seed, so there is no value -> tag table
+// @original-file-url: https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/normal/xorHashing_allEven_withUpdates.cpp
+
+// Range "does every value appear an even number of times?" via xor hashing, with point updates.
+// Each distinct value gets a 64-bit tag; xor over a range cancels tags in pairs, so an all-even range hashes to 0.
+// A tag is splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values
+// share a tag, distinct integers never collide, and no table is needed. False positives (unequal tags whose xor
+// cancels) have probability ~q / 2^64. Xor is invertible, so a Fenwick tree suffices.
+// All indices 0-based, ranges inclusive. T: an integer type (or anything std::hash takes).
+// FAST MODE drawbacks compared with template.cpp:
+//   - sanitizers are skipped inside this template, so a bad access in it goes unreported
+// Same public operations and answers, same limits; it needs GCC or Clang and C++17.
+#ifdef __SSE2__
+#include <immintrin.h>
+#endif
+
+// LEETCODE_NO_SANITIZE skips sanitizers in a function. It only changes anything where sanitizers run, like LeetCode: on
+// Codeforces it compiles and does nothing.
+// This template already uses it. To go further, put it on the one function with your hot loop:
+//   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
+// A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
+// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
+// Bad memory accesses in a marked function go unreported.
+#ifndef LEETCODE_NO_SANITIZE
+#define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
+#endif
+#define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
+
+// A vector whose [] and size() always inline, even with sanitizers skipped (libstdc++ only; elsewhere a plain vector)
+template <typename U>
+struct HotVector : vector<U> {
+    using vector<U>::vector;
+    HotVector() = default;
+    HotVector(const vector<U>& other) : vector<U>(other) {}
+    HotVector(vector<U>&& other) : vector<U>(move(other)) {}
+#ifdef __GLIBCXX__
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+#endif
+};
+
+template <typename T>
+struct XorEven {
+    int n;
+    HotVector<T> vals;
+    HotVector<unsigned long long> a;    // a[i] = tag of the value at position i
+    HotVector<unsigned long long> bit;  // 1-indexed Fenwick tree over a
+    unsigned long long seed;
+
+    // O(N). Seeded from the clock: a fixed seed is hackable, since tags could be precomputed to collide.
+    explicit XorEven(const vector<T>& arr)
+        : n((int)arr.size()), vals(arr), a(arr.size()), bit(arr.size() + 1),
+          seed(mt19937_64(chrono::steady_clock::now().time_since_epoch().count())()) {
+        for (int i = 0; i < n; i++) a[i] = bit[i + 1] = tagOf(arr[i]);
+        for (int i = 1; i <= n; i++) {
+            int j = i + (i & -i);
+            if (j <= n) bit[j] ^= bit[i];
+        }
+    }
+
+    // O(1) -- the value's tag: splitmix64(v ^ seed)
+    LEETCODE_NO_SANITIZE unsigned long long tagOf(const T& v) const {
+        unsigned long long z;
+        if constexpr (is_integral_v<T>) z = (unsigned long long)v;
+        else z = hash<T>{}(v);
+        z ^= seed;
+        z += 0x9e3779b97f4a7c15ULL;
+        z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+        z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+        return z ^ (z >> 31);
+    }
+
+    // O(logN) -- xor of tags over a[0..i]; i may be -1
+    LEETCODE_NO_SANITIZE unsigned long long prefix(int i) const {
+        unsigned long long s = 0;
+        for (int p = i + 1; p > 0; p &= p - 1) s ^= bit[p];
+        return s;
+    }
+
+    // O(logN) -- xor of tags over a[l..r]
+    LEETCODE_NO_SANITIZE unsigned long long rangeXor(int l, int r) const { return prefix(r) ^ (l ? prefix(l - 1) : 0ULL); }
+
+    // O(logN) -- true iff every value in a[l..r] appears an even number of times; needs 0 <= l <= r < n, else throws
+    // out_of_range
+    LEETCODE_NO_SANITIZE bool doAllElementsAppearEvenFrequency(int l, int r) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("doAllElementsAppearEvenFrequency: needs 0 <= l <= r < n");
+        return rangeXor(l, r) == 0;
+    }
+
+    // O(logN) -- true iff exactly one value appears an odd number of times in a[l..r], and it is v
+    LEETCODE_NO_SANITIZE bool oneOdd(int l, int r, const T& v) const { return rangeXor(l, r) == tagOf(v); }
+
+    // O(logN) -- a[i] = v; needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE void pointAssign(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        vals[i] = v;
+        unsigned long long t = tagOf(v), d = a[i] ^ t;
+        if (!d) return;
+        a[i] = t;
+        for (int p = i + 1; p <= n; p += p & -p) bit[p] ^= d;
+    }
+
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return vals[i];
+    }
+
+    // O(N) -- the whole array (a copy)
+    LEETCODE_NO_SANITIZE vector<T> getAll() const { return vals; }
+
+    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE void pointChmax(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
+        if (v > vals[i]) pointAssign(i, v);
+    }
+
+    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE void pointChmin(int i, const T& v) {
+        if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
+        if (v < vals[i]) pointAssign(i, v);
+    }
+
+    // O(logN) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE void pointAdd(int i, const T& delta) {
+        if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
+        pointAssign(i, vals[i] + delta);
+    }
+};

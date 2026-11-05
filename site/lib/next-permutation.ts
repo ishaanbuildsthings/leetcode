@@ -12,10 +12,10 @@ export const NEXT_PERMUTATION: FillIn[] = [
     ops: [["nextPermutation(sequence)", "N"]],
     variant: {
       label: "In place",
-      title: "Rearranges your list (C++: vector or string) in place and returns true / false: consecutive calls cost O(1) amortized, unless almost every value is the same. Off: returns a new sequence (O(n) per call)",
+      title: "Rearranges your list (C++: vector or string) in place and returns true / false: consecutive calls cost O(1) amortized only when the values are distinct; with repeats it's about O(n / (k + 1)) amortized, k = how many values differ from the most common one (999 zeros and one 1: O(n) every call). Off: returns a new sequence (O(n) per call)",
       storageKey: "templatePicker.inPlace.NextPermutation",
       on: {
-        label: "Next permutation O(1) amortized",
+        label: "Next permutation O(1) amortized (distinct values)",
         file: "NextPermutation.inplace",
         ops: [["nextPermutation(sequence)", "1 amortized"]],
       },
@@ -30,10 +30,10 @@ export const NEXT_PERMUTATION: FillIn[] = [
     ops: [["prevPermutation(sequence)", "N"]],
     variant: {
       label: "In place",
-      title: "Rearranges your list (C++: vector or string) in place and returns true / false: consecutive calls cost O(1) amortized, unless almost every value is the same. Off: returns a new sequence (O(n) per call)",
+      title: "Rearranges your list (C++: vector or string) in place and returns true / false: consecutive calls cost O(1) amortized only when the values are distinct; with repeats it's about O(n / (k + 1)) amortized, k = how many values differ from the most common one (999 zeros and one 1: O(n) every call). Off: returns a new sequence (O(n) per call)",
       storageKey: "templatePicker.inPlace.PrevPermutation",
       on: {
-        label: "Previous permutation O(1) amortized",
+        label: "Previous permutation O(1) amortized (distinct values)",
         file: "PrevPermutation.inplace",
         ops: [["prevPermutation(sequence)", "1 amortized"]],
       },
