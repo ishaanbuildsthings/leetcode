@@ -9,6 +9,7 @@ soon as its ops are in BRUTE_UPDATES / BRUTE_QUERIES.
     python3 test_templates.py rangeGcd beats  # only folders whose name contains one of these
     python3 test_templates.py --py            # Python only (no compiler needed)
     python3 test_templates.py --cpp           # C++ only
+    python3 test_templates.py --cpp --fast    # the fast.cpp versions, C++ only
     python3 test_templates.py --trials 300    # more random sequences per template (default 120)
 
 A folder's sparse.py / sparse.cpp (dynamic trees over any index range [lo, hi], all positions starting at 0) are
@@ -39,6 +40,7 @@ sys.setrecursionlimit(10000)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DIR = os.path.join(os.path.dirname(HERE), "range-queries")
+FAST = False  # --fast: run each C++ test on the fast version instead
 BUILD = os.path.join(tempfile.gettempdir(), "range-query-template-tests")
 OPS_PER_TRIAL = 60
 
@@ -1200,7 +1202,7 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
     used = sorted(set(owners.values()))
     extra = "".join(f", vector<long long>{{{', '.join(map(str, e))}}}" if isinstance(e, list) else
                     f", (char){ord(e)}" if isinstance(e, str) else f", {e}" for e in ctor_extra)
-    lines = ["#include <bits/stdc++.h>", "using namespace std;", f'#include "{os.path.join(DIR, folder, stem + ".cpp")}"']
+    lines = ["#include <bits/stdc++.h>", "using namespace std;", f'#include "{cpp_path(folder, stem)}"']
     lines += [f"template struct {s}<int>;" for s in used]  # type-check the generic code for int too
     if stem == "letters":  # and for char: the letters version runs with T = char
         lines += [f"template struct {s}<char>;" for s in used]
@@ -1296,8 +1298,14 @@ def code(v):  # a value as the C++ driver reads it: characters go in as their co
     return str(ord(v)) if isinstance(v, str) else str(v)
 
 
+def cpp_path(folder, stem):
+    """The C++ file a test runs: with --fast, its fast version."""
+    name = stem + ".cpp" if not FAST else "fast.cpp" if stem == "template" else f"{stem}-fast.cpp"
+    return os.path.join(DIR, folder, name)
+
+
 def run_cpp(folder, ops, trials, ctor_extra, cxx, stem="template", chars=False):
-    path = os.path.join(DIR, folder, f"{stem}.cpp")
+    path = cpp_path(folder, stem)
     os.makedirs(BUILD, exist_ok=True)
     tag = hashlib.md5(folder.encode()).hexdigest()[:8] if len(folder) > 140 else ""  # (long names cut short stay distinct)
     src = os.path.join(BUILD, (folder[:140] + tag + ("" if stem == "template" else "__" + stem) + ("__chars" if chars else "")) + ".cpp")
@@ -1331,6 +1339,8 @@ def main():
     args = sys.argv[1:]
     want_py = "--cpp" not in args
     want_cpp = "--py" not in args
+    global FAST
+    FAST = "--fast" in args
     trials_n = 120
     if "--trials" in args:
         trials_n = int(args[args.index("--trials") + 1])

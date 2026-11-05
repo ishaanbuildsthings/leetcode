@@ -12,6 +12,7 @@ import {
   decodeSetTemplates,
   type SetTemplate,
 } from "@/lib/set-picker";
+import { FAST_DRAWBACKS, FAST_NO_SANITIZE } from "@/lib/fast-mode";
 import {
   SET_COSTS,
   SET_FAST_FOLDERS,
@@ -65,23 +66,6 @@ const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
 };
 
 const FAST_FOLDERS = new Set<string>(SET_FAST_FOLDERS);
-
-const FAST_DRAWBACKS = [
-  "Harder to debug on LeetCode since sanitizers are skipped",
-  "Needs GCC or Clang, and C++17",
-];
-const FAST_NO_SANITIZE = [
-  { text: "Does nothing on other platforms, so you can ignore it there." },
-  {
-    text: "We can put this on the main function:",
-    code: `public:
-    LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) { // put at the start here`,
-  },
-  {
-    text: "Any inner lambda can use it too:",
-    code: "auto fn = [&](auto&& self, int x) LEETCODE_NO_SANITIZE -> void { ... };",
-  },
-];
 
 function fastExplanation(t: SetView) {
   const type = t.dataStructureType;

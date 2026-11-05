@@ -419,7 +419,7 @@ function CodeDrawer<V extends PickerTemplate>({
     useFast && hasFast
       ? {
           ...chosen,
-          file: useVariant && variant ? `${catalog.variant!.file}-fast` : "fast",
+          file: chosen.file === "template" ? "fast" : `${chosen.file}-fast`,
           langs: ["cpp"] as TemplateLang[],
         }
       : chosen

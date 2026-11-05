@@ -21,8 +21,10 @@ import {
   RANGE_MEMORIES,
   RANGE_OP_LISTS,
   RANGE_OP_NAMES,
+  RANGE_FAST_FOLDERS,
   RANGE_TEMPLATE_ROWS,
 } from "@/lib/generated/range-query-templates";
+import { FAST_DRAWBACKS, FAST_NO_SANITIZE } from "@/lib/fast-mode";
 import { GENERIC_SEG_TREES } from "@/lib/generic-seg-trees";
 
 const RANGE_QUERY_TEMPLATES = decodeRangeTemplates({
@@ -33,6 +35,7 @@ const RANGE_QUERY_TEMPLATES = decodeRangeTemplates({
   memories: RANGE_MEMORIES,
   rows: RANGE_TEMPLATE_ROWS,
 });
+const FAST_FOLDERS = new Set<string>(RANGE_FAST_FOLDERS);
 const ALL_OPS = OP_GROUPS.flatMap((g) => g.tiers.flatMap((t) => t.ops.map((o) => o.id)));
 // The mod p ops (rangeAddMod, ..., rangeSumMod; not rangeMod, which is a[i] %= m). A template with any of them does all
 // its arithmetic mod p, so it is only offered once you pick one of them; otherwise a selection like pointGet + pointAdd
@@ -86,6 +89,17 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   githubBase: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/",
   typeOrder: DATA_STRUCTURE_TYPES,
   perType: 3,
+  fastMode: {
+    label: "Fast mode",
+    explain: () => ({
+      how: "Sanitizers are skipped inside the template, so the gain only shows up on LeetCode.",
+      drawbacks: FAST_DRAWBACKS,
+      noSanitize: FAST_NO_SANITIZE,
+    }),
+    title:
+      "C++ only. Sanitizers are skipped inside the template, so a bad access there goes unreported.",
+    has: (t) => FAST_FOLDERS.has(t.folder),
+  },
   flag: {
     label: "Values are chars",
     title:
