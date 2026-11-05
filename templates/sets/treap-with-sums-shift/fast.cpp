@@ -131,7 +131,7 @@ struct TreapMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { T key; long long c, z; S s; unsigned prio; int l, r; };  // copies; copies, sum below
@@ -425,7 +425,7 @@ struct TreapMultiset {
         return T(kthAt(i + 1) + off);
     }
 
-    // O(logN expected) -- largest value < x; NONE if there is none
+    // O(logN expected) -- largest value < x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T largestLtX(T x) {
         x -= off;
         long long c = lt(x);
@@ -433,7 +433,7 @@ struct TreapMultiset {
         return T(kthAt(c) + off);
     }
 
-    // O(logN expected) -- largest value <= x; NONE if there is none
+    // O(logN expected) -- largest value <= x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T largestLteX(T x) {
         x -= off;
         long long c = le(x);
@@ -548,7 +548,7 @@ struct TreapMultiset {
         return n;
     }
 
-    // O(logN expected) -- smallest value > x; NONE if there is none
+    // O(logN expected) -- smallest value > x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T smallestGtX(T x) {
         x -= off;
         long long c = le(x);
@@ -556,7 +556,7 @@ struct TreapMultiset {
         return T(kthAt(c + 1) + off);
     }
 
-    // O(logN expected) -- smallest value >= x; NONE if there is none
+    // O(logN expected) -- smallest value >= x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T smallestGteX(T x) {
         x -= off;
         long long c = lt(x);

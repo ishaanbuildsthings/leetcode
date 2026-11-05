@@ -74,7 +74,7 @@ struct HotVector : vector<U> {
 template <typename T>
 struct FastSetMultiset {
     long long lo, hi;
-    // largestLtX and friends when nothing qualifies: outside [lo, hi], so never a real value
+    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (outside [lo, hi], so never a real value)
     T NONE = T(lo >= 0 ? -1 : lo > numeric_limits<T>::min() ? lo - 1 : hi + 1);
     int u;
     HotVector<HotVector<unsigned long long>> seg;  // seg[h][w] = 64 bits, one per word of level h - 1 (level 0: one per value)
@@ -229,14 +229,14 @@ struct FastSetMultiset {
         return d;
     }
 
-    // O(log64(U)) -- largest value < x; NONE if there is none
+    // O(log64(U)) -- largest value < x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T largestLtX(T x) {
         long long i = prev((long long)x - lo - 1);
         if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- largest value <= x; NONE if there is none
+    // O(log64(U)) -- largest value <= x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T largestLteX(T x) {
         long long i = prev((long long)x - lo);
         if (i < 0) return NONE;
@@ -318,14 +318,14 @@ struct FastSetMultiset {
         return n;
     }
 
-    // O(log64(U)) -- smallest value > x; NONE if there is none
+    // O(log64(U)) -- smallest value > x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T smallestGtX(T x) {
         long long i = next((long long)x - lo + 1);
         if (i < 0) return NONE;
         return T(lo + i);
     }
 
-    // O(log64(U)) -- smallest value >= x; NONE if there is none
+    // O(log64(U)) -- smallest value >= x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T smallestGteX(T x) {
         long long i = next((long long)x - lo);
         if (i < 0) return NONE;

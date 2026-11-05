@@ -297,7 +297,7 @@ NONE_GENERIC = """    template <class K>
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
 
 """
 
@@ -311,7 +311,7 @@ def return_rules_cpp(text, dtype):
         if m and m.group(2) in EMPTY_ERROR_OPS | NEIGHBOUR_OPS | MINUS_ONE_OPS:
             inner, op = m.group(1), m.group(2)
             none = f'throw out_of_range("{op}: the set is empty")' if op in EMPTY_ERROR_OPS else "return NONE" if op in NEIGHBOUR_OPS else "return -1"
-            word = "throws out_of_range" if op in EMPTY_ERROR_OPS else "NONE" if op in NEIGHBOUR_OPS else "-1"
+            word = "throws out_of_range" if op in EMPTY_ERROR_OPS else "ms.NONE" if op in NEIGHBOUR_OPS else "-1"
             lines[i] = f"    {inner} {op}({m.group(3)}"
             k = i - 1
             while lines[k].lstrip().startswith("//"):
@@ -329,10 +329,10 @@ def return_rules_cpp(text, dtype):
     assert not left, f"public ops still returning optional: {sorted(left)}"
     if "NONE" in text.split("struct ", 1)[-1]:
         if dtype == "trie":
-            decl = "    static constexpr T NONE = -1;  // largestLtX and friends when nothing qualifies (values are never negative)\n"
+            decl = "    static constexpr T NONE = -1;  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)\n"
         elif dtype == "fastset":
             decl = None
-            text = must_replace(text, "    long long lo, hi;\n", "    long long lo, hi;\n    // largestLtX and friends when nothing qualifies: outside [lo, hi], so never a real value\n"
+            text = must_replace(text, "    long long lo, hi;\n", "    long long lo, hi;\n    // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (outside [lo, hi], so never a real value)\n"
                                 "    T NONE = T(lo >= 0 ? -1 : lo > numeric_limits<T>::min() ? lo - 1 : hi + 1);\n")
         else:
             decl = NONE_GENERIC
@@ -424,7 +424,7 @@ def cpp_ops(ops, comps, own=None):
     out = []
     for op in ops:
         ret, body = (own or {}).get(op) or CPP_OPS[op]
-        doc = OPS[op][2].format(none="NONE" if op in NEIGHBOUR_OPS else "-1", err="throws out_of_range")
+        doc = OPS[op][2].format(none="ms.NONE" if op in NEIGHBOUR_OPS else "-1", err="throws out_of_range")
         body = "\n".join("        " + line for line in body.split("\n"))
         out.append(doc_comment(f"O({cost_text(comps[op])}) -- {doc}", "//") + f"    {ret} {op}({CPP_PARAMS[OPS[op][0]]}) {{\n{body}\n    }}\n")
     return "\n".join(out)

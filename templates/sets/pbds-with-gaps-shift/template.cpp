@@ -59,7 +59,7 @@ struct PbdsMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
 
     using Tree = __gnu_pbds::tree<pair<T, int>, __gnu_pbds::null_type, less<pair<T, int>>, __gnu_pbds::rb_tree_tag,
                                   __gnu_pbds::tree_order_statistics_node_update>;
@@ -202,7 +202,7 @@ struct PbdsMultiset {
         return T(kthAt(i + 1) + off);
     }
 
-    // O(logN) -- largest value < x; NONE if there is none
+    // O(logN) -- largest value < x; ms.NONE if there is none
     T largestLtX(T x) {
         x -= off;
         long long c = lt(x);
@@ -210,7 +210,7 @@ struct PbdsMultiset {
         return T(kthAt(c) + off);
     }
 
-    // O(logN) -- largest value <= x; NONE if there is none
+    // O(logN) -- largest value <= x; ms.NONE if there is none
     T largestLteX(T x) {
         x -= off;
         long long c = le(x);
@@ -319,7 +319,7 @@ struct PbdsMultiset {
         return n;
     }
 
-    // O(logN) -- smallest value > x; NONE if there is none
+    // O(logN) -- smallest value > x; ms.NONE if there is none
     T smallestGtX(T x) {
         x -= off;
         long long c = le(x);
@@ -327,7 +327,7 @@ struct PbdsMultiset {
         return T(kthAt(c + 1) + off);
     }
 
-    // O(logN) -- smallest value >= x; NONE if there is none
+    // O(logN) -- smallest value >= x; ms.NONE if there is none
     T smallestGteX(T x) {
         x -= off;
         long long c = lt(x);

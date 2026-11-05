@@ -138,7 +138,7 @@ struct HotVector : vector<U> {
 
 template <typename T>
 struct TrieMultiset {
-    static constexpr T NONE = -1;  // largestLtX and friends when nothing qualifies (values are never negative)
+    static constexpr T NONE = -1;  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE (values are never negative)
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int B;
     long long top;  // the largest value it can hold
@@ -501,14 +501,14 @@ struct TrieMultiset {
         return T(kthX(i + 1, (long long)x));
     }
 
-    // O(logU) -- largest value < x; NONE if there is none
+    // O(logU) -- largest value < x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T largestLtX(T x) {
         long long c = lt(x);
         if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logU) -- largest value <= x; NONE if there is none
+    // O(logU) -- largest value <= x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T largestLteX(T x) {
         long long c = le(x);
         if (!c) return NONE;
@@ -756,14 +756,14 @@ struct TrieMultiset {
         return n;
     }
 
-    // O(logU) -- smallest value > x; NONE if there is none
+    // O(logU) -- smallest value > x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T smallestGtX(T x) {
         long long c = le(x);
         if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logU) -- smallest value >= x; NONE if there is none
+    // O(logU) -- smallest value >= x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T smallestGteX(T x) {
         long long c = lt(x);
         if (c == n) return NONE;

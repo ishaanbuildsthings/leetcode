@@ -162,7 +162,7 @@ struct ValueTreeMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     struct Node { long long c; S s; T xr; T orv; T andv = ~T(0); int l, r; };  // copies, sum, xor, OR, AND below
@@ -519,14 +519,14 @@ struct ValueTreeMultiset {
         return kthAt(i + 1);
     }
 
-    // O(logU) -- largest value < x; NONE if there is none
+    // O(logU) -- largest value < x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T largestLtX(T x) {
         long long c = lt(x);
         if (!c) return NONE;
         return kthAt(c);
     }
 
-    // O(logU) -- largest value <= x; NONE if there is none
+    // O(logU) -- largest value <= x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T largestLteX(T x) {
         long long c = le(x);
         if (!c) return NONE;
@@ -704,14 +704,14 @@ struct ValueTreeMultiset {
         return n;
     }
 
-    // O(logU) -- smallest value > x; NONE if there is none
+    // O(logU) -- smallest value > x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T smallestGtX(T x) {
         long long c = le(x);
         if (c == n) return NONE;
         return kthAt(c + 1);
     }
 
-    // O(logU) -- smallest value >= x; NONE if there is none
+    // O(logU) -- smallest value >= x; ms.NONE if there is none
     LEETCODE_NO_SANITIZE T smallestGteX(T x) {
         long long c = lt(x);
         if (c == n) return NONE;

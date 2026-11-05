@@ -73,7 +73,7 @@ struct BlockMultiset {
         if constexpr (is_arithmetic_v<K>) return numeric_limits<K>::lowest();
         else return apply([](auto... parts) { return K{noneOf<decltype(parts)>()...}; }, K{});
     }
-    static inline const T NONE = noneOf<T>();  // largestLtX and friends when nothing qualifies: compare with it
+    static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     static constexpr int LOAD = 512;
@@ -391,7 +391,7 @@ struct BlockMultiset {
         return T(kthAt(i + 1) + off);
     }
 
-    // O(sqrtN) -- largest value < x; NONE if there is none
+    // O(sqrtN) -- largest value < x; ms.NONE if there is none
     T largestLtX(T x) {
         x -= off;
         long long c = lt(x);
@@ -399,7 +399,7 @@ struct BlockMultiset {
         return T(kthAt(c) + off);
     }
 
-    // O(sqrtN) -- largest value <= x; NONE if there is none
+    // O(sqrtN) -- largest value <= x; ms.NONE if there is none
     T largestLteX(T x) {
         x -= off;
         long long c = le(x);
@@ -520,7 +520,7 @@ struct BlockMultiset {
         return n;
     }
 
-    // O(sqrtN) -- smallest value > x; NONE if there is none
+    // O(sqrtN) -- smallest value > x; ms.NONE if there is none
     T smallestGtX(T x) {
         x -= off;
         long long c = le(x);
@@ -528,7 +528,7 @@ struct BlockMultiset {
         return T(kthAt(c + 1) + off);
     }
 
-    // O(sqrtN) -- smallest value >= x; NONE if there is none
+    // O(sqrtN) -- smallest value >= x; ms.NONE if there is none
     T smallestGteX(T x) {
         x -= off;
         long long c = lt(x);
