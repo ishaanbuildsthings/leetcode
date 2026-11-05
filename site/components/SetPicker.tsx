@@ -52,7 +52,7 @@ const OPTIONAL_MEX = new Set([
 const CTOR_ARG_NOTES: Record<string, { py: string; cpp: string }> = {
   allValuesThatWillEverBeInsertedForOfflineCompression: {
     py: "allValuesThatWillEverBeInsertedForOfflineCompression: every value you will ever add (a list; any order, duplicates fine). Only used to compress values: this does NOT add them, the multiset starts empty. N = how many distinct",
-    cpp: "allValuesThatWillEverBeInsertedForOfflineCompression: every value you will ever add (vector<long long>; any order, duplicates fine). Only used to compress values: this does NOT add them, the multiset starts empty. N = how many distinct",
+    cpp: "allValuesThatWillEverBeInsertedForOfflineCompression: every value you will ever add (a vector of your value type; any order, duplicates fine). Only used to compress values: this does NOT add them, the multiset starts empty. N = how many distinct",
   },
   lo: {
     py: "lo: every value added is >= lo (any integer, negative is fine)",
