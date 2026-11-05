@@ -4,32 +4,35 @@
 using namespace std;
 using ll = long long;
 
-// The arrangement of sequence steps later (steps = 1: the next one; a new vector, or a string for a string), or nullopt
-// if fewer than steps arrangements come after it
-// sequence: a vector or a string of values that compare with each other: int, long long, negatives, chars ok
+// Can pass in a vector of any comparable values (ints, longs, negatives, chars) or a string, and a # of steps which can be very large
+// Returns a new permutation in the same format, that many steps forward, with looping behavior
 template <typename Seq>
-optional<Seq> nextPermutation(Seq sequence, long long steps) {
+Seq nextPermutation(Seq arr, long long steps) {
     using i128 = __int128;
-    int n = sequence.size();
-    if (steps == 0) return sequence;
+    int n = arr.size();
+    if (steps == 0) return arr;
 
     vector<int> order(n), rk(n);
     iota(order.begin(), order.end(), 0);
-    stable_sort(order.begin(), order.end(), [&](int i, int j) { return sequence[i] < sequence[j]; });
+    stable_sort(order.begin(), order.end(), [&](int i, int j) { return arr[i] < arr[j]; });
     vector<typename Seq::value_type> vals;
     for (int k = 0; k < n; k++) {
         int i = order[k];
-        if (vals.empty() || vals.back() < sequence[i]) vals.push_back(sequence[i]);
+        if (vals.empty() || vals.back() < arr[i]) vals.push_back(arr[i]);
         rk[i] = vals.size() - 1;
     }
     int d = vals.size();
 
-    i128 cap = (i128)(steps + 1) * (n + 1);
+    i128 cap = ((i128)steps + 1) * (n + 1);
     vector<int> cnt(d, 0), fen(d + 1, 0);
     i128 arrangements = 1, after = 0, afterNext = 0;
     int s = n;
     while (after < steps) {
-        if (s == 0) return nullopt;
+        if (s == 0) {  // fewer than steps arrangements come after arr: loop around to the smallest and count on from there
+            long long r = (long long)((steps - after - 1) % arrangements);  // arrangements: how many in all (or more than steps)
+            sort(arr.begin(), arr.end());
+            return nextPermutation(arr, r);
+        }
         s--;
         int v = rk[s], len = n - s;
         cnt[v]++;
@@ -74,7 +77,7 @@ optional<Seq> nextPermutation(Seq sequence, long long steps) {
         }
     }
 
-    sequence[s] = vals[w];
-    for (int k = 0; k < m; k++) sequence[s + 1 + k] = vals[rest[k]];
-    return sequence;
+    arr[s] = vals[w];
+    for (int k = 0; k < m; k++) arr[s + 1 + k] = vals[rest[k]];
+    return arr;
 }

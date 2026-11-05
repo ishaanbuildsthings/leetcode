@@ -1,18 +1,16 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/NextPermutation.inplace.py
 
-# Rearranges sequence into the next larger arrangement in place and returns True, or returns False (sequence
-# unchanged) if it is the largest; consecutive calls cost O(1) amortized, unless almost every value is the same
-# sequence: a list of values that compare with each other: negatives, floats, chars, tuples ok
-def nextPermutation(sequence):
-    i = len(sequence) - 2
-    while i >= 0 and not sequence[i] < sequence[i + 1]:
+# Moves arr in place to be the next permutation, if it was already the lexicographical largest it loops around.
+# Works with a list of any comparable item (int, float, negatives, char, tuple, etc)
+def nextPermutation(arr):
+    i = len(arr) - 2
+    while i >= 0 and not arr[i] < arr[i + 1]:
         i -= 1
-    if i < 0:
-        return False
-    j = len(sequence) - 1
-    while not sequence[i] < sequence[j]:
-        j -= 1
-    sequence[i], sequence[j] = sequence[j], sequence[i]
-    sequence[i + 1:] = reversed(sequence[i + 1:])
-    return True
+    if i >= 0:  # i < 0: it was the largest, so reversing all of it loops around
+        j = len(arr) - 1
+        while not arr[i] < arr[j]:
+            j -= 1
+        arr[i], arr[j] = arr[j], arr[i]
+    arr[i + 1:] = reversed(arr[i + 1:])
+    return i >= 0  # False when it looped around

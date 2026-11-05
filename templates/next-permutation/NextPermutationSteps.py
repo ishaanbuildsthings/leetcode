@@ -1,18 +1,17 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/NextPermutationSteps.py
 
-# The arrangement of sequence steps later (steps = 1: the next one; a new list, or a string for a string), or None if
-# fewer than steps arrangements come after it
-# sequence: a list or a string of values that compare with each other: negatives, floats, chars, tuples ok
-def nextPermutation(sequence, steps):
-    n = len(sequence)
+# Can pass in a list of any comparable values (ints, longs, negatives, chars) or a string, and a # of steps which can be very large
+# Returns a new permutation in the same format, that many steps forward, with looping behavior
+def nextPermutation(arr, steps):
+    n = len(arr)
     if steps == 0:
-        return "".join(sequence) if isinstance(sequence, str) else list(sequence)
+        return arr[:]  # (a string is returned as is)
 
     vals, rk = [], [0] * n
-    for i in sorted(range(n), key=lambda i: sequence[i]):
-        if not vals or vals[-1] < sequence[i]:
-            vals.append(sequence[i])
+    for i in sorted(range(n), key=lambda i: arr[i]):
+        if not vals or vals[-1] < arr[i]:
+            vals.append(arr[i])
         rk[i] = len(vals) - 1
     d = len(vals)
 
@@ -22,8 +21,10 @@ def nextPermutation(sequence, steps):
     arrangements, after, afterNext = 1, 0, 0
     s = n
     while after < steps:
-        if s == 0:
-            return None
+        if s == 0:  # fewer than steps arrangements come after arr: loop around to the smallest and count on from there
+            r = (steps - after - 1) % arrangements  # arrangements: how many there are in all (or more than steps)
+            first = sorted(arr)
+            return nextPermutation("".join(first) if isinstance(arr, str) else first, r)
         s -= 1
         v, length = rk[s], n - s
         cnt[v] += 1
@@ -73,5 +74,5 @@ def nextPermutation(sequence, steps):
                 r -= c
             x += 1
 
-    out = list(sequence[:s]) + [vals[w]] + [vals[k] for k in rest]
-    return "".join(out) if isinstance(sequence, str) else out
+    out = list(arr[:s]) + [vals[w]] + [vals[k] for k in rest]
+    return "".join(out) if isinstance(arr, str) else out

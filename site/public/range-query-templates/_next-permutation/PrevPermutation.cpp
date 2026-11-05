@@ -4,17 +4,19 @@
 using namespace std;
 using ll = long long;
 
-// The next smaller arrangement of sequence (a new vector, or a string for a string), or nullopt if it is the smallest
-// sequence: a vector or a string of values that compare with each other: int, long long, negatives, chars ok
+// Returns a new vector / string with the next smaller permutation, or loops around to the maximum if it was already the smallest
+// works with a vector of comparable values (ints, longs, negatives, chars) or a string of chars
 template <typename Seq>
-optional<Seq> prevPermutation(Seq sequence) {
-    int n = sequence.size();
+Seq prevPermutation(Seq arr) {
+    int n = arr.size();
+    if (n == 0) return arr;
     int i = n - 2;
-    while (i >= 0 && !(sequence[i + 1] < sequence[i])) i--;
-    if (i < 0) return nullopt;
-    int j = n - 1;
-    while (!(sequence[j] < sequence[i])) j--;
-    swap(sequence[i], sequence[j]);
-    reverse(sequence.begin() + i + 1, sequence.end());
-    return sequence;
+    while (i >= 0 && !(arr[i + 1] < arr[i])) i--;
+    if (i >= 0) {  // i < 0: it was the smallest, so reversing all of it loops around to the maximum
+        int j = n - 1;
+        while (!(arr[j] < arr[i])) j--;
+        swap(arr[i], arr[j]);
+    }
+    reverse(arr.begin() + i + 1, arr.end());
+    return arr;
 }

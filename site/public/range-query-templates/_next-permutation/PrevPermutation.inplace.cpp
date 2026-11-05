@@ -4,19 +4,19 @@
 using namespace std;
 using ll = long long;
 
-// Rearranges sequence (a vector or a string) into the next smaller arrangement in place and returns true, or returns
-// false (sequence unchanged) if it is the smallest; consecutive calls cost O(1) amortized, unless almost every value is
-// the same
-// sequence: a vector or a string of values that compare with each other: int, long long, negatives, chars ok
-template <typename Seq>
-bool prevPermutation(Seq& sequence) {
-    int n = sequence.size();
+// Moves arr in place to be the previous permutation, if it was already the lexicographical smallest it loops around.
+// Works with a vector of any comparable item (int, long, negatives, char, etc)
+template <typename T>
+bool prevPermutation(vector<T>& arr) {
+    int n = arr.size();
+    if (n == 0) return false;
     int i = n - 2;
-    while (i >= 0 && !(sequence[i + 1] < sequence[i])) i--;
-    if (i < 0) return false;
-    int j = n - 1;
-    while (!(sequence[j] < sequence[i])) j--;
-    swap(sequence[i], sequence[j]);
-    reverse(sequence.begin() + i + 1, sequence.end());
-    return true;
+    while (i >= 0 && !(arr[i + 1] < arr[i])) i--;
+    if (i >= 0) {  // i < 0: it was the smallest, so reversing all of it loops around
+        int j = n - 1;
+        while (!(arr[j] < arr[i])) j--;
+        swap(arr[i], arr[j]);
+    }
+    reverse(arr.begin() + i + 1, arr.end());
+    return i >= 0;  // false when it looped around
 }
