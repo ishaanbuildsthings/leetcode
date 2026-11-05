@@ -65,6 +65,9 @@ function PickerTabs({ children }: { children?: React.ReactNode }) {
   );
 }
 
+// What the Fast mode panel says.
+export type FastInfo = { how: string; drawbacks: string[]; noSanitize: { text: string; code?: string }[] };
+
 // A template you fill in yourself (the generic seg trees): the file is at publicBase/<folder>/<file>.<lang>, and on
 // GitHub at githubUrl + <file>.<lang>. ops: every op with its cost, in the catalog's cost format ("log(N) expected");
 // note: a line under them. title: the description on its Misc tab card.
@@ -80,8 +83,10 @@ export type FillIn = {
   cppLevels?: boolean;
   // there's a version without rangeReverse (file[.level].norev.*): a checkbox, off by default, adds it back
   reverseToggle?: boolean;
-  // there's a recursive version that prints the tree after every operation (file[.level].debug.*): a checkbox
+  // there's a recursive version that prints the tree after every operation (file[.level].debug.*): a version option
   debugToggle?: boolean;
+  // there's a C++ fast version (file[.level][.norev].fast.cpp): a version option, and what its panel says
+  fast?: FastInfo;
   // another version behind a checkbox, on the card and by the ops in its drawer (off by default, remembered): its
   // label, hover text, where it's remembered, and what changes while it's ticked (e.g. the in-place next permutation)
   variant?: { label: string; title: string; storageKey: string; on: Partial<Pick<FillIn, "label" | "file" | "ops">> };
@@ -111,6 +116,19 @@ const CPP_LEVEL_STORAGE_KEY = "templatePicker.cppLevel";
 const readCppLevel = (): CppLevel => {
   const v = readStored(CPP_LEVEL_STORAGE_KEY);
   return CPP_LEVELS.some((l) => l.id === v) ? (v as CppLevel) : "basic";
+};
+
+// which version of a fill-in template to show; a template offers the ones it has (Python has no fast version)
+const GENERIC_VERSIONS = [
+  { id: "default", label: "Default", title: "The normal version" },
+  { id: "debug", label: "Debug (recursive)", title: "A recursive version you can read and change, which prints the tree after every operation" },
+  { id: "fast", label: "Fast", title: "C++ only. Sanitizers are skipped here and in what you fill in, so a bad access there goes unreported" },
+] as const;
+type GenericVersion = (typeof GENERIC_VERSIONS)[number]["id"];
+const GENERIC_VERSION_STORAGE_KEY = "templatePicker.genericVersion";
+const readGenericVersion = (): GenericVersion => {
+  const v = readStored(GENERIC_VERSION_STORAGE_KEY);
+  return GENERIC_VERSIONS.some((g) => g.id === v) ? (v as GenericVersion) : "default";
 };
 
 // Everything a picker page decides for itself; the rest (op grid, matching, ranking, cards, code drawer with usage
@@ -169,7 +187,7 @@ export interface PickerCatalog<V extends PickerTemplate> {
   // explain fills the panel shown while it's on
   fastMode?: {
     label: string;
-    explain: (t: V) => { how: string; drawbacks: string[]; noSanitize: { text: string; code?: string }[] };
+    explain: (t: V) => FastInfo;
     title: string;
     has: (t: V) => boolean;
   };
@@ -573,32 +591,7 @@ function CodeDrawer<V extends PickerTemplate>({
         </div>
         {/* everything under the header scrolls together: a template with many ops can fill the drawer before the code */}
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {fastInfo && (
-            <div className="grid gap-2 border-b border-border bg-muted/40 px-4 py-3 text-xs leading-5 text-muted-foreground">
-              <p className="text-sm font-semibold text-foreground">Fast mode</p>
-              <div>
-                <p className="font-medium text-foreground">Why it's faster</p>
-                <p>{fastInfo.how}</p>
-              </div>
-              <div>
-                <p className="font-medium text-foreground">Drawbacks</p>
-                <ul className="list-disc pl-4">
-                  {fastInfo.drawbacks.map((drawback) => (
-                    <li key={drawback}>{drawback}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="font-medium text-foreground">LEETCODE_NO_SANITIZE</p>
-                {fastInfo.noSanitize.map(({ text, code }) => (
-                  <div key={text}>
-                    <p>{text}</p>
-                    {code && <pre className="overflow-x-auto font-mono">{code}</pre>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {fastInfo && <FastPanel info={fastInfo} />}
           <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 border-b border-border px-4 py-3 text-xs">
             {/* the selected ops, then build (always paid, so always highlighted), then the rest */}
             {[
@@ -656,6 +649,72 @@ function CodeDrawer<V extends PickerTemplate>({
   );
 }
 
+// Shown at the top of a drawer while fast mode is on.
+function FastPanel({ info }: { info: FastInfo }) {
+  return (
+    <div className="grid gap-2 border-b border-border bg-muted/40 px-4 py-3 text-xs leading-5 text-muted-foreground">
+      <p className="text-sm font-semibold text-foreground">Fast mode</p>
+      <div>
+        <p className="font-medium text-foreground">Why it's faster</p>
+        <p>{info.how}</p>
+      </div>
+      <div>
+        <p className="font-medium text-foreground">Drawbacks</p>
+        <ul className="list-disc pl-4">
+          {info.drawbacks.map((drawback) => (
+            <li key={drawback}>{drawback}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <p className="font-medium text-foreground">LEETCODE_NO_SANITIZE</p>
+        {info.noSanitize.map(({ text, code }) => (
+          <div key={text}>
+            <p>{text}</p>
+            {code && <pre className="overflow-x-auto font-mono">{code}</pre>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// One choice out of a few, as joined buttons with a label before them.
+function ChoiceRow<T extends string>({
+  label,
+  options,
+  value,
+  onChoose,
+}: {
+  label: string;
+  options: readonly { id: T; label: string; title: string }[];
+  value: T;
+  onChoose: (id: T) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-muted-foreground">{label}</span>
+      <div className="flex overflow-hidden rounded-md border border-border" role="radiogroup" aria-label={label}>
+        {options.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            role="radio"
+            aria-checked={value === option.id}
+            title={option.title}
+            onClick={() => onChoose(option.id)}
+            className={`px-2.5 py-1 ${
+              value === option.id ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // A fill-in template (catalog.fillIns): just the file, in either language, with Copy and GitHub.
 function FillInDrawer({
   catalog,
@@ -669,14 +728,21 @@ function FillInDrawer({
   const [lang, setLang] = useState<TemplateLang>(readPreferredLang);
   const [level, setLevel] = useState<CppLevel>(readCppLevel);
   const [withReverse, chooseReverse] = useStoredFlag(REVERSE_STORAGE_KEY);
-  const [debugOn, chooseDebug] = useStoredFlag("templatePicker.genericDebug");
+  const [version, setVersion] = useState<GenericVersion>(readGenericVersion);
   const [variantOn, chooseVariant] = useStoredFlag(base.variant?.storageKey ?? "");
   const fillIn = withVariant(base, variantOn);
   const levels = lang === "cpp" && fillIn.cppLevels;
   const suffix = levels ? CPP_LEVELS.find((l) => l.id === level)!.suffix : "";
   const noRev = fillIn.reverseToggle && !withReverse ? ".norev" : "";
-  const debug = fillIn.debugToggle && debugOn ? ".debug" : "";
-  const fileName = `${fillIn.file}${suffix}${noRev}${debug}.${lang}`;
+  const versions = GENERIC_VERSIONS.filter(
+    (v) =>
+      v.id === "default" ||
+      (v.id === "debug" && fillIn.debugToggle) ||
+      (v.id === "fast" && fillIn.fast && lang === "cpp"),
+  );
+  const activeVersion = versions.some((v) => v.id === version) ? version : "default";
+  const versionSuffix = activeVersion === "default" ? "" : `.${activeVersion}`;
+  const fileName = `${fillIn.file}${suffix}${noRev}${versionSuffix}.${lang}`;
   const ops = noRev ? fillIn.ops.filter(([op]) => !op.startsWith("rangeReverse")) : fillIn.ops;
   const url = codeUrl(catalog, fillIn.folder, fileName);
   const [loaded, setLoaded] = useState<{ url: string; code: string | null } | null>(null);
@@ -706,6 +772,10 @@ function FillInDrawer({
   const chooseLevel = (l: CppLevel) => {
     setLevel(l);
     writeStored(CPP_LEVEL_STORAGE_KEY, l);
+  };
+  const chooseVersion = (v: GenericVersion) => {
+    setVersion(v);
+    writeStored(GENERIC_VERSION_STORAGE_KEY, v);
   };
   const copy = async () => {
     if (!code) return;
@@ -763,29 +833,16 @@ function FillInDrawer({
             </button>
           </div>
         </div>
-        {levels && (
+        {(levels || versions.length > 1) && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-2 text-xs">
-            <span className="text-muted-foreground">Examples:</span>
-            <div className="flex overflow-hidden rounded-md border border-border" role="radiogroup" aria-label="Example level">
-              {CPP_LEVELS.map((l) => (
-                <button
-                  key={l.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={level === l.id}
-                  title={l.title}
-                  onClick={() => chooseLevel(l.id)}
-                  className={`px-2.5 py-1 ${
-                    level === l.id ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
+            {levels && <ChoiceRow label="Examples:" options={CPP_LEVELS} value={level} onChoose={chooseLevel} />}
+            {versions.length > 1 && (
+              <ChoiceRow label="Version:" options={versions} value={activeVersion} onChoose={chooseVersion} />
+            )}
           </div>
         )}
         <div className="min-h-0 flex-1 overflow-y-auto">
+          {activeVersion === "fast" && <FastPanel info={fillIn.fast!} />}
           {/* every op is there whatever you need, so all of them are highlighted */}
           <div className="border-b border-border px-4 py-3 text-xs">
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
@@ -796,17 +853,8 @@ function FillInDrawer({
                 </div>
               ))}
             </div>
-            {(fillIn.reverseToggle || fillIn.variant || fillIn.debugToggle) && (
+            {(fillIn.reverseToggle || fillIn.variant) && (
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                {fillIn.debugToggle && (
-                  <label
-                    title="A recursive version you can read and change, which prints the tree after every operation"
-                    className="flex w-fit cursor-pointer items-center gap-1.5 text-foreground"
-                  >
-                    <input type="checkbox" checked={debugOn} onChange={(e) => chooseDebug(e.target.checked)} className="accent-primary" />
-                    Debug (recursive, prints the tree)
-                  </label>
-                )}
                 {fillIn.reverseToggle && (
                   <label
                     title="With rangeReverse the template also needs reverse(node), the node of a segment read backwards"

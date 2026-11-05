@@ -1,4 +1,5 @@
 import type { FillIn } from "@/components/TemplatePicker";
+import { GENERIC_FAST } from "@/lib/fast-mode";
 
 // The generic seg trees you fill in yourself (templates/segment-trees/generic/): the range query picker's
 // "Generic seg trees" menu lists them.
@@ -7,6 +8,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     label: "Generic seg tree",
     title: "Fill in Node, leaf(v, i) and combine: pointGet, pointAssign, rangeQuery",
     folder: "_generic",
+    fast: GENERIC_FAST,
     cppLevels: true,
     file: "GenericSeg",
     debugToggle: true,
@@ -17,6 +19,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     label: "Generic lazy seg tree",
     title: "Also a Tag, apply and compose: rangeUpdate too",
     folder: "_generic",
+    fast: GENERIC_FAST,
     cppLevels: true,
     file: "GenericLazySeg",
     debugToggle: true,
@@ -27,6 +30,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     label: "Generic dynamic seg tree",
     title: "Indices lo..hi up to ±1e18, nodes made only where touched; also blank(lo, hi), the node of an untouched range",
     folder: "_generic",
+    fast: GENERIC_FAST,
     cppLevels: true,
     file: "GenericDynamicSeg",
     ops: [["pointGet(i)", "log(U)"], ["pointAssign(i, val)", "log(U)"], ["rangeQuery(l, r)", "log(U)"], ["rangeQueryAll()", "1"], ["build", "1"]],
@@ -37,6 +41,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     label: "Generic lazy dynamic seg tree",
     title: "The dynamic seg tree plus a Tag, apply and compose: rangeUpdate too",
     folder: "_generic",
+    fast: GENERIC_FAST,
     cppLevels: true,
     file: "GenericLazyDynamicSeg",
     ops: [["pointGet(i)", "log(U)"], ["pointAssign(i, val)", "log(U)"], ["rangeQuery(l, r)", "log(U)"], ["rangeUpdate(l, r, tag)", "log(U)"], ["rangeQueryAll()", "1"], ["build", "1"]],
@@ -47,6 +52,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     label: "Generic treap",
     title: "An array you insert into and erase from anywhere: insertAt, eraseAt, cut / paste, split / trisect / merge, rangeReverse (fill in reverse), rangeRotateLeft / Right, rangeQuery",
     folder: "_generic",
+    fast: GENERIC_FAST,
     cppLevels: true,
     file: "GenericTreap",
     reverseToggle: true,
@@ -57,6 +63,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     label: "Generic lazy treap",
     title: "The treap plus a Tag, apply and compose: rangeUpdate too",
     folder: "_generic",
+    fast: GENERIC_FAST,
     cppLevels: true,
     file: "GenericLazyTreap",
     reverseToggle: true,
@@ -67,6 +74,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     label: "Generic persistent treap",
     title: "The treap with copy(l, r) in O(log N) however long: every op copies the nodes it changes, so copies never affect each other",
     folder: "_generic",
+    fast: GENERIC_FAST,
     cppLevels: true,
     file: "GenericPersistentTreap",
     reverseToggle: true,
@@ -78,6 +86,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     label: "Generic persistent lazy treap",
     title: "The persistent treap plus a Tag, apply and compose: rangeUpdate too",
     folder: "_generic",
+    fast: GENERIC_FAST,
     cppLevels: true,
     file: "GenericPersistentLazyTreap",
     reverseToggle: true,

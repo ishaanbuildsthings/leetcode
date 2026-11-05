@@ -15,3 +15,32 @@ export const FAST_NO_SANITIZE = [
     code: "auto fn = [&](auto&& self, int x) LEETCODE_NO_SANITIZE -> void { ... };",
   },
 ];
+
+// The generics: you write part of the hot code yourself, so the panel shows where the macro goes in it.
+export const GENERIC_FAST = {
+  how: "Sanitizers are skipped in the tree and in the functions you fill in, and its min and max become plain comparisons. The gain only shows up on LeetCode.",
+  drawbacks: FAST_DRAWBACKS,
+  noSanitize: [
+    FAST_NO_SANITIZE[0],
+    {
+      text: "It's already on every function you fill in, so keep it there:",
+      code: "LEETCODE_NO_SANITIZE Node combine(const Node& left, const Node& right) {",
+    },
+    {
+      text: "It doesn't carry into what a function calls, so put it on any helper you add:",
+      code: "LEETCODE_NO_SANITIZE long long addMod(long long a, long long b) {",
+    },
+    {
+      text: "And on a Node or Tag constructor:",
+      code: `struct Node {
+    int cnt[26];
+    LEETCODE_NO_SANITIZE Node() { ... }
+};`,
+    },
+    {
+      text: "Inside these, use plain comparisons and arrays, because min, max and vector [] don't inline there:",
+      code: "res.mn = left.mn < right.mn ? left.mn : right.mn;  // not min(left.mn, right.mn)",
+    },
+    ...FAST_NO_SANITIZE.slice(1),
+  ],
+};
