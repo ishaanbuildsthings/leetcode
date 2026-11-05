@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// Returns a new vector / string with the next larger permutation, or loops around to the minimum if it was already the largest
+// Returns a new vector / string with the next larger permutation, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max
 // works with a vector of comparable values (ints, longs, negatives, chars) or a string of chars
 template <typename Seq>
 Seq nextPermutation(Seq arr) {

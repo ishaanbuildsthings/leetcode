@@ -1,7 +1,7 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/PrevPermutation.py
 
-# Returns a new list / string with the next smaller permutation, or loops around to the maximum if it was already the smallest
+# Returns a new list / string with the previous (next smaller) permutation, with looping behavior around to the lexicographical largest permutation if we step past the lexicographical min
 # works with a list of comparable values (ints, floats, negatives, chars, tuples) or a string
 def prevPermutation(arr):
     a = list(arr)

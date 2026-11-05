@@ -12,7 +12,7 @@ export const NEXT_PERMUTATION: FillIn[] = [
     ops: [["nextPermutation(arr)", "N"]],
     variant: {
       label: "In place: O(1) amortized if values are distinct enough",
-      title: "Moves your list (C++: vector) to the next permutation in place, looping around after the last one: consecutive calls cost O(1) amortized only when the values are distinct; with repeats it's about O(n / (k + 1)) amortized, k = how many values differ from the most common one (999 zeros and one 1: O(n) every call). Off: returns a new vector / string (Python: list / string) with the next larger permutation, looping around to the smallest after the largest (O(n) per call)",
+      title: "Moves your list (C++: vector) to the next permutation in place, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max: consecutive calls cost O(1) amortized only when the values are distinct; with repeats it's about O(n / (k + 1)) amortized, k = how many values differ from the most common one (999 zeros and one 1: O(n) every call). Off: returns a new vector / string (Python: list / string) with the next larger permutation, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max (O(n) per call)",
       storageKey: "templatePicker.inPlace.NextPermutation",
       on: {
         file: "NextPermutation.inplace",
@@ -29,7 +29,7 @@ export const NEXT_PERMUTATION: FillIn[] = [
     ops: [["prevPermutation(arr)", "N"]],
     variant: {
       label: "In place: O(1) amortized if values are distinct enough",
-      title: "Moves your list (C++: vector) to the previous permutation in place, looping around after the first one: consecutive calls cost O(1) amortized only when the values are distinct; with repeats it's about O(n / (k + 1)) amortized, k = how many values differ from the most common one (999 zeros and one 1: O(n) every call). Off: returns a new vector / string (Python: list / string) with the next smaller permutation, looping around to the largest after the smallest (O(n) per call)",
+      title: "Moves your list (C++: vector) to the previous permutation in place, with looping behavior around to the lexicographical largest permutation if we step past the lexicographical min: consecutive calls cost O(1) amortized only when the values are distinct; with repeats it's about O(n / (k + 1)) amortized, k = how many values differ from the most common one (999 zeros and one 1: O(n) every call). Off: returns a new vector / string (Python: list / string) with the previous permutation, with looping behavior around to the lexicographical largest permutation if we step past the lexicographical min (O(n) per call)",
       storageKey: "templatePicker.inPlace.PrevPermutation",
       on: {
         file: "PrevPermutation.inplace",

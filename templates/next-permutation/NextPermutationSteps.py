@@ -2,7 +2,7 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/NextPermutationSteps.py
 
 # Can pass in a list of any comparable values (ints, longs, negatives, chars) or a string, and a # of steps which can be very large
-# Returns a new permutation in the same format, that many steps forward, with looping behavior
+# Returns a new permutation in the same format, that many steps forward, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max
 def nextPermutation(arr, steps):
     n = len(arr)
     if steps == 0:

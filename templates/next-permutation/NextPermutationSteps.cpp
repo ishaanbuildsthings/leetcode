@@ -5,7 +5,7 @@ using namespace std;
 using ll = long long;
 
 // Can pass in a vector of any comparable values (ints, longs, negatives, chars) or a string, and a # of steps which can be very large
-// Returns a new permutation in the same format, that many steps forward, with looping behavior
+// Returns a new permutation in the same format, that many steps forward, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max
 template <typename Seq>
 Seq nextPermutation(Seq arr, long long steps) {
     using i128 = __int128;

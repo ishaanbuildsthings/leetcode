@@ -1,7 +1,7 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/NextPermutation.inplace.py
 
-# Moves arr in place to be the next permutation, if it was already the lexicographical largest it loops around.
+# Moves arr in place to be the next permutation, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max
 # Works with a list of any comparable item (int, float, negatives, char, tuple, etc)
 def nextPermutation(arr):
     i = len(arr) - 2

@@ -1,7 +1,7 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/NextPermutation.py
 
-# Returns a new list / string with the next larger permutation, or loops around to the minimum if it was already the largest
+# Returns a new list / string with the next larger permutation, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max
 # works with a list of comparable values (ints, floats, negatives, chars, tuples) or a string
 def nextPermutation(arr):
     a = list(arr)
