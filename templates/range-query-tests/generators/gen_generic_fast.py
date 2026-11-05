@@ -26,11 +26,7 @@ HOT = must_replace("// A vector whose" + HOT, "    using vector<U>::vector;\n", 
     HotVector(const vector<U>& other) : vector<U>(other) {}
     HotVector(vector<U>&& other) : vector<U>(move(other)) {}
 """)
-FILL_IN_NOTE = """// LEETCODE_NO_SANITIZE stays on every function you fill in below. It does not carry into what a function calls, so
-// anything they call needs it too:
-//   LEETCODE_NO_SANITIZE long long addMod(long long a, long long b) { ... }  // a helper of yours
-//   LEETCODE_NO_SANITIZE Node() { ... }                                      // a Node or Tag constructor
-"""
+FILL_IN_NOTE = "// Any helper these functions call needs LEETCODE_NO_SANITIZE too, and so does a Node or Tag constructor.\n"
 FIELD = re.compile(r"^    (static inline |mutable )?vector<([^()\n]*)> ([\w, ]+)(;|\{)", re.M)
 METHOD = re.compile(r"^    ((?:(?!//|using |struct |template )(?:[\w:]+(?:<[^;(){}]*>)?[&*]* )+)\w+\([^;{}]*\)(?: const)? \{)", re.M)
 FILL_IN = re.compile(r"^((?:Node|Tag) (?:leaf|combine|reverse|apply|compose|blank)\()", re.M)

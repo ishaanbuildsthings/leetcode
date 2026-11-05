@@ -19,10 +19,7 @@ using ll = long long;
 #endif
 #define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
 
-// LEETCODE_NO_SANITIZE stays on every function you fill in below. It does not carry into what a function calls, so
-// anything they call needs it too:
-//   LEETCODE_NO_SANITIZE long long addMod(long long a, long long b) { ... }  // a helper of yours
-//   LEETCODE_NO_SANITIZE Node() { ... }                                      // a Node or Tag constructor
+// Any helper these functions call needs LEETCODE_NO_SANITIZE too, and so does a Node or Tag constructor.
 
 // e.g. long long, char, pair, struct, ...
 using RawVal = long long;
