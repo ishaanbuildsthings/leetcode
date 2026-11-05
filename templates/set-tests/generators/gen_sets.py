@@ -6921,6 +6921,8 @@ def write(spec, sums, minmax=False, medians=False, mexc=False, mode=False, gaps=
         if ext == "py" and spec["dtype"] == "fenwick":
             text = fenwick_one_lookup_py(text)
         text = return_rules_py(text) if ext == "py" else return_rules_cpp(text, spec["dtype"])
+        if ext == "cpp" and spec["keys"] == "any":  # (only compares values: pairs and tuples work)
+            text = re.sub(r"T: (an integer type|int, long long, \.\.\.)", "T: a number, or anything that compares (pair, tuple, ...)", text)
         attribution = f"{cm} Template by {GITHUB_USER}\n{cm} {GITHUB_FILES}{folder}/template.{ext}\n" + (CPP_PRELUDE if ext == "cpp" else "")
         open(os.path.join(path, f"template.{ext}"), "w").write(check_finished(attribution + text, f"{folder}/template.{ext}"))
         if ext == "cpp" and spec["dtype"] == "fenwick":

@@ -52,7 +52,7 @@ using ll = long long;
 // to the constructor, one counting copies.
 // k-th / sum of the k smallest walk down by binary lifting. The constructor only learns which values can appear (it
 // compresses them); the multiset starts EMPTY. Every value you add must be one of them; query arguments (x, lo, hi)
-// can be anything. T: int, long long, ...; sums in S (long long for small T).
+// can be anything. T: a number, or anything that compares (pair, tuple, ...); sums in S (long long for small T).
 // FAST MODE drawbacks compared with template.cpp:
 //   - at most 2147483647 copies in total: going past that throws length_error
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported

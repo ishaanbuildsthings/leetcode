@@ -152,6 +152,8 @@ const SET_CATALOG: PickerCatalog<SetView> = {
     storageKey: "setPicker.tuples",
     keep: (t) => t.keys === "any",
     disabledOps: NUMERIC_SET_OPS,
+    rename: (text) => text.replace(/\b(val|v)\b/g, "tup").replace("(a list;", "(a list of tuples;"),
+    elem: "pair<long long, long long>",
     disabledTitle: "Needs number values: not available with tuples",
   },
   // "AVL tree — counts + sums + xor, mex": what it keeps (counts, and sums / xor / OR / AND), mex where it's optional,

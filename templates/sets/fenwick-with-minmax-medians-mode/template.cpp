@@ -52,7 +52,7 @@ using ll = long long;
 // to the constructor, one counting copies.
 // k-th / sum of the k smallest walk down by binary lifting. The constructor only learns which values can appear (it
 // compresses them); the multiset starts EMPTY. Every value you add must be one of them; query arguments (x, lo, hi)
-// can be anything. T: int, long long, ...; sums in S (long long for small T).
+// can be anything. T: a number, or anything that compares (pair, tuple, ...); sums in S (long long for small T).
 template <typename T>
 struct FenwickMultiset {
     template <class K>

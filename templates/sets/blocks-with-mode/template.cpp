@@ -53,7 +53,7 @@ using ll = long long;
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
 // LOAD..2*LOAD, each block keeping its values' copies plus block totals, and a Fenwick tree over the
 // block totals (rebuilt only after a block splits or empties). A query finds its block by binary search (or by
-// lifting over the block Fenwick for k-th) and then works inside one block. T: an integer type; sums in S.
+// lifting over the block Fenwick for k-th) and then works inside one block. T: a number, or anything that compares (pair, tuple, ...); sums in S.
 template <typename T>
 struct BlockMultiset {
     template <class K>

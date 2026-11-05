@@ -153,6 +153,9 @@ export interface PickerCatalog<V extends PickerTemplate> {
     view?: (t: V) => V | null;
     disabledOps: ReadonlySet<string>;
     disabledTitle: string;
+    // (optional) while the box is ticked: how operation text reads, and what T is in the usage lines
+    rename?: (text: string) => string;
+    elem?: string;
   };
   // another file of a template (sets: FastSet without duplicates, built in O(U/64)): the drawer has a checkbox next
   // to build that switches to it, and a card whose selected ops it covers shows both builds
@@ -393,11 +396,13 @@ function CodeDrawer<V extends PickerTemplate>({
   catalog,
   template: base,
   selected,
+  flagOn,
   onClose,
 }: {
   catalog: PickerCatalog<V>;
   template: V;
   selected: Set<string>;
+  flagOn: boolean;
   onClose: () => void;
 }) {
   const variant = catalog.variant?.of(base);
@@ -638,6 +643,7 @@ function CodeDrawer<V extends PickerTemplate>({
             template={template}
             usage={usage}
             selected={selected}
+            flagOn={flagOn}
             lang={lang}
           />
           <MemoryPanel catalog={catalog} template={template} lang={lang} />
@@ -835,12 +841,14 @@ function UsagePanel<V extends PickerTemplate>({
   template,
   usage,
   selected,
+  flagOn,
   lang,
 }: {
   catalog: PickerCatalog<V>;
   template: V;
   usage: Usage | undefined;
   selected: Set<string>;
+  flagOn: boolean;
   lang: TemplateLang;
 }) {
   if (!usage) return null;
@@ -849,7 +857,9 @@ function UsagePanel<V extends PickerTemplate>({
   const cpp = lang === "cpp";
   const cm = cpp ? "//" : "#";
   const notes = typeof catalog.ctorNotes === "function" ? catalog.ctorNotes(template) : catalog.ctorNotes;
-  const elem = (template as { chars?: boolean }).chars ? "char" : "long long"; // what T is in the usage lines
+  const flagged = flagOn ? catalog.flag : undefined;
+  const reword = (text: string) => flagged?.rename?.(text) ?? text;
+  const elem = flagged?.elem ?? ((template as { chars?: boolean }).chars ? "char" : "long long"); // what T is in the usage lines
   const neededClasses = [
     ...new Set(shown.map((op) => usage.methods[op]!.cls)),
   ].sort((a, b) => a - b);
@@ -876,9 +886,9 @@ function UsagePanel<V extends PickerTemplate>({
     if (cpp && cls.pool)
       blocks.push({
         comments: [
-          `Between test cases: frees every ${cls.className}<long long> (they all share one node pool).`,
+          `Between test cases: frees every ${cls.className}<${elem}> (they all share one node pool).`,
         ],
-        code: `${cls.className}<long long>::resetPool();`,
+        code: `${cls.className}<${elem}>::resetPool();`,
       });
     const comments = [
       ...(catalog.ctorComments?.(template, lang) ?? []),
@@ -894,14 +904,14 @@ function UsagePanel<V extends PickerTemplate>({
       ...(cpp
         ? [
             deducible
-              ? "T is deduced from the vector (vector<long long> gives T = long long)."
-              : "T = long long (int works too).",
+              ? `T is deduced from the vector (vector<${elem}> gives T = ${elem}).`
+              : `T = ${elem}${elem === "long long" ? " (int works too)" : ""}.`,
           ]
         : []),
     ];
-    const type = `${cls.className}${deducible ? "" : "<long long>"}`;
+    const type = `${cls.className}${deducible ? "" : `<${elem}>`}`;
     blocks.push({
-      comments,
+      comments: comments.map(reword),
       // (no arguments: "Name<long long> x;", since "x()" would declare a function)
       code: cpp
         ? `${type} ${varOf(k)}${required.length ? `(${required.join(", ")})` : ""};`
@@ -910,7 +920,7 @@ function UsagePanel<V extends PickerTemplate>({
   }
   for (const op of shown) {
     const m = usage.methods[op]!;
-    const call = `${varOf(m.cls)}.${op}(${m.params.join(", ")})`;
+    const call = `${varOf(m.cls)}.${op}(${m.params.map(reword).join(", ")})`;
     const pair = catalog.pairResults?.[op];
     let code: string;
     if (pair?.length === 1) code = cpp ? `auto ${pair[0]} = ${call};` : `${pair[0]} = ${call}`;
@@ -931,7 +941,7 @@ function UsagePanel<V extends PickerTemplate>({
     ]
       .filter(Boolean)
       .join("; ");
-    blocks.push({ comments: doc ? [doc] : [], code });
+    blocks.push({ comments: doc ? [reword(doc)] : [], code });
   }
 
   return (
@@ -1031,6 +1041,7 @@ export function TemplatePicker<V extends PickerTemplate>({
     () => false,
   );
   const isDisabled = (id: string) => flagOn && !!flag?.disabledOps.has(id);
+  const reword = (text: string) => (flagOn && flag?.rename ? flag.rename(text) : text);
 
   const toggle = (id: string) => {
     if (isDisabled(id)) return;
@@ -1323,11 +1334,11 @@ export function TemplatePicker<V extends PickerTemplate>({
                           >
                             {opName(op)}
                             <span className="font-normal text-muted-foreground">
-                              {opArgs(op)}
+                              {reword(opArgs(op))}
                             </span>
                           </span>
                           <span className="min-w-0 text-[11px] leading-snug text-muted-foreground">
-                            {op.description}
+                            {reword(op.description)}
                           </span>
                         </button>
                       );
@@ -1392,7 +1403,7 @@ export function TemplatePicker<V extends PickerTemplate>({
                       className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-2 py-1"
                     >
                       <code className="font-mono text-xs text-foreground">
-                        {op.signature}
+                        {reword(op.signature)}
                       </code>
                       {(choices.length > 1 || op.id in activeCaps) && (
                         <select
@@ -1607,6 +1618,7 @@ export function TemplatePicker<V extends PickerTemplate>({
           catalog={catalog}
           template={openTemplate}
           selected={selected}
+          flagOn={flagOn}
           onClose={() => setOpenTemplate(null)}
         />
       )}

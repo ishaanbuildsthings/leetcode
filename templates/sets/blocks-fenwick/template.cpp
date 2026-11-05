@@ -53,7 +53,7 @@ using ll = long long;
 // distinct values in sorted blocks of LOAD..2*LOAD, each block keeping its values' copies plus a Fenwick
 // tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
 // one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N)).
-// T: an integer type; sums in S.
+// T: a number, or anything that compares (pair, tuple, ...); sums in S.
 template <typename T>
 struct BlockFenwickMultiset {
     template <class K>
