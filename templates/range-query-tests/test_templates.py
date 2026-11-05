@@ -1400,7 +1400,7 @@ def main():
             total_queries += len(exp)
             results = []
             for lang, ok_lang, path in (("py", want_py, os.path.join(DIR, folder, f"{stem}.py")),
-                                        ("cpp", want_cpp, os.path.join(DIR, folder, f"{stem}.cpp"))):
+                                        ("cpp", want_cpp, cpp_path(folder, stem))):
                 if not ok_lang or not os.path.exists(path):
                     continue
                 try:
@@ -1423,6 +1423,8 @@ def main():
                     results.append((lang, first_mismatch(got, exp, trials, lang == "cpp" and stem == "sparse"), warn))
                 except Exception as e:  # noqa: BLE001 -- report and keep going
                     results.append((lang, f"{type(e).__name__}: {e}", ""))
+            if not results:
+                continue  # nothing to run: a --fast test of a folder with no fast version
             bad = [(lang, msg) for lang, msg, _ in results if msg]
             warns = [(lang, w) for lang, _, w in results if w]
             label = folder + ("  [sparse]" if stem == "sparse" else "  [letters]" if stem == "letters" else "")
