@@ -173,7 +173,6 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "merge sort tree with updates",
     "persistent binary trie",
     "tuple values with a custom comparator",
-    "max frequency counter",
     "interval tree",
     "allDistinct with rangeAssign",
   ],
