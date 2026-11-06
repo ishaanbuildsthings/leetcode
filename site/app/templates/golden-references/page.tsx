@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
+import { GOLDEN_REFERENCES } from "@/lib/golden-references";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -29,7 +30,7 @@ export default async function GoldenReferencesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <MiscTemplates title="Golden References" sections={[]} publicBase="/range-query-templates" planned={["Seg tree beats"]} />
+        <MiscTemplates title="Golden References" sections={[{ title: "Persistent Segment Tree", items: GOLDEN_REFERENCES }]} publicBase="/range-query-templates" planned={["Seg tree beats"]} />
       </div>
     </AuthProvider>
   );

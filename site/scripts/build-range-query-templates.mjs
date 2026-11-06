@@ -181,6 +181,10 @@ const nextPermDir = path.resolve(siteDir, "../templates/next-permutation");
 fs.mkdirSync(path.join(publicDir, "_next-permutation"));
 for (const name of fs.readdirSync(nextPermDir)) fs.copyFileSync(path.join(nextPermDir, name), path.join(publicDir, "_next-permutation", name));
 
+const goldenDir = path.resolve(siteDir, "../templates/golden-references");
+fs.mkdirSync(path.join(publicDir, "_golden-references"));
+for (const name of fs.readdirSync(goldenDir)) fs.copyFileSync(path.join(goldenDir, name), path.join(publicDir, "_golden-references", name));
+
 // Thousands of templates share a few op lists, cost lists and memory layouts: the manifest is those tables plus one
 // short row per template, expanded in the browser by decodeRangeTemplates (lib/range-query-picker.ts). The usage panel
 // isn't in it either: the drawer reads it from the code it fetches (this script only checks that it can).

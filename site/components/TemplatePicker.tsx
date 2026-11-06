@@ -79,6 +79,8 @@ export type FillIn = {
   githubUrl: string;
   ops: [string, string][];
   note?: string;
+  // the languages it comes in (both if left out): the drawer offers only these
+  langs?: TemplateLang[];
   // the C++ file comes in three example levels (file.simple.cpp, file.cpp, file.complex.cpp): a selector picks one
   cppLevels?: boolean;
   // there's a version without rangeReverse (file[.level].norev.*): a checkbox, off by default, adds it back
@@ -270,9 +272,9 @@ function capChoices(matches: { template: PickerTemplate }[], op: string) {
 const tracked = (t: PickerTemplate) =>
   (t as { tracks?: string[] }).tracks?.length ?? 0;
 
-// Templates covering every selected op, ranked by: slowest selected op, data structure type, total cost of selected
-// ops, memory, then fewest extra ops. Type outranks total because amortized bounds on heavy structures (beats) hide
-// large constants. Ops you didn't select don't count against a template.
+// Templates covering every selected op, ranked by: slowest selected op, total cost of selected ops, fewest amortized /
+// expected bounds, fewest cached extras, data structure type, memory, then fewest extra ops. Ops you didn't select
+// don't count against a template.
 function matchTemplates<V extends PickerTemplate>(
   catalog: PickerCatalog<V>,
   selected: Set<string>,
@@ -305,6 +307,7 @@ function matchTemplates<V extends PickerTemplate>(
         costs,
         bottleneck,
         total: costs.reduce((sum, c) => sum + c.value, 0),
+        weak: costs.filter((c) => !guarantee(c.cost).startsWith("worst")).length,
       };
     })
     .sort(
@@ -312,6 +315,8 @@ function matchTemplates<V extends PickerTemplate>(
       (a, b) =>
         a.bottleneck.value - b.bottleneck.value ||
         a.total - b.total ||
+        // then fewer amortized / expected bounds among the selected ops (worst case first on a tie)
+        a.weak - b.weak ||
         // then the variant that keeps less current on every update (sets: cached min / max, medians, mex)
         tracked(a.template) - tracked(b.template) ||
         catalog.typeOrder.indexOf(a.template.dataStructureType) -
@@ -735,7 +740,9 @@ function FillInDrawer({
   fillIn: FillIn;
   onClose: () => void;
 }) {
-  const [lang, setLang] = useState<TemplateLang>(readPreferredLang);
+  const [preferred, setLang] = useState<TemplateLang>(readPreferredLang);
+  const langs = base.langs ?? (["py", "cpp"] as TemplateLang[]);
+  const lang = langs.includes(preferred) ? preferred : langs[0];
   const [level, setLevel] = useState<CppLevel>(readCppLevel);
   const [withReverse, chooseReverse] = useStoredFlag(REVERSE_STORAGE_KEY);
   const [version, setVersion] = useState<GenericVersion>(readGenericVersion);
@@ -803,7 +810,7 @@ function FillInDrawer({
           </div>
           <div className="flex flex-shrink-0 items-center gap-2">
             <div className="flex overflow-hidden rounded-md border border-border text-xs" role="group" aria-label="Language">
-              {(["py", "cpp"] as const).map((l) => (
+              {langs.map((l) => (
                 <button
                   key={l}
                   type="button"
@@ -1073,6 +1080,7 @@ export function TemplatePicker<V extends PickerTemplate>({
   const [openFillIn, setOpenFillIn] = useState<FillIn | null>(null);
   const [fillInMenu, setFillInMenu] = useState(false); // the "Generic seg trees" menu is open
   const [expanded, setExpanded] = useState<Set<string>>(new Set()); // collapsible groups clicked open
+  const [openTypes, setOpenTypes] = useState<Map<string, number>>(new Map()); // result type -> left-out variants shown
   const [query, setQuery] = useState(""); // the search box: only ops whose name or description contains it
   // the bottom sheet (selection + templates) and its current height
   const sheetRef = useRef<HTMLElement>(null);
@@ -1127,7 +1135,7 @@ export function TemplatePicker<V extends PickerTemplate>({
   const hidden = new Map<string, number>();
   const overflow = new Map<string, number>();
   const shownOf = new Map<string, typeof capped>();
-  const matches = catalog.perType
+  const kept = catalog.perType
     ? capped.filter((m) => {
         const type = m.template.dataStructureType;
         const shown = shownOf.get(type) ?? [];
@@ -1149,6 +1157,49 @@ export function TemplatePicker<V extends PickerTemplate>({
         return true;
       })
     : capped;
+  // a type clicked open shows the variants it left out, MORE_STEP more per click, right after its last shown card
+  // (best first)
+  const MORE_STEP = 10;
+  const keptSet = new Set(kept);
+  const lastShown = new Map([...shownOf].map(([type, shown]) => [type, shown[shown.length - 1]]));
+  const leftOut = (type: string) => capped.filter((x) => x.template.dataStructureType === type && !keptSet.has(x));
+  const matches = kept.flatMap((m) => {
+    const type = m.template.dataStructureType;
+    if (!openTypes.has(type) || lastShown.get(type) !== m) return [m];
+    return [m, ...leftOut(type).slice(0, openTypes.get(type))];
+  });
+  const fullView = openTypes.size > 0;
+  const showMore = (type: string) =>
+    setOpenTypes((prev) => new Map(prev).set(type, (prev.get(type) ?? 0) + MORE_STEP));
+  const showFewer = (type: string) =>
+    setOpenTypes((prev) => {
+      const next = new Map(prev);
+      next.delete(type);
+      return next;
+    });
+  // the "+N more" / "Show fewer" links of a type: under its first card, or at the bottom of its column in the full view
+  const moreLinks = (type: string) => {
+    const total = (hidden.get(type) ?? 0) + (overflow.get(type) ?? 0);
+    const left = total - Math.min(openTypes.get(type) ?? 0, total);
+    if (total === 0) return null;
+    const step = Math.min(MORE_STEP, left);
+    const link = "block text-left text-[11px] leading-snug text-primary hover:underline";
+    return (
+      <span className="mt-1 flex flex-wrap gap-x-3">
+        {left > 0 && (
+          <button type="button" onClick={() => showMore(type)} className={link}>
+            +{step} more {step === 1 ? "variant" : "variants"}
+            {left > step && ` (${left} left)`}
+          </button>
+        )}
+        {openTypes.has(type) && (
+          <button type="button" onClick={() => showFewer(type)} className={link}>
+            Show fewer
+          </button>
+        )}
+      </span>
+    );
+  };
   const firstOfType = (t: V) =>
     shownOf.get(t.dataStructureType)?.[0]?.template === t;
   // an op's choices come from the templates the other ops' caps allow, so every choice changes the result
@@ -1171,6 +1222,113 @@ export function TemplatePicker<V extends PickerTemplate>({
       else next[op] = cap;
       return next;
     });
+
+  // one result card (i: its rank among all matches, 0 = best)
+  const renderCard = ({ template, extra, costs }: (typeof matches)[number], i: number) => {
+    const layout = catalog.layoutLabel(template.memory);
+    return (
+      <li
+        key={`${template.folder}/${template.file}`}
+        className="flex w-[26rem] flex-shrink-0 flex-col"
+      >
+        <button
+          type="button"
+          onClick={() => setOpenTemplate(template)}
+          // start fetching its code (in the language the drawer will show) before the click
+          onMouseEnter={() => {
+            const pref = readPreferredLang();
+            const l = template.langs.includes(pref)
+              ? pref
+              : template.langs[0];
+            loadText(
+              codeUrl(
+                catalog,
+                template.folder,
+                `${template.file}.${l}`,
+              ),
+            ).catch(() => {});
+          }}
+          className="flex w-full flex-1 flex-col justify-start rounded-lg border border-border bg-background px-2.5 py-1.5 text-left transition-colors hover:border-primary/50"
+        >
+          <span className="flex items-start justify-between gap-2">
+            <span className="text-xs font-medium text-foreground">
+              {catalog.kindLabel(template)}
+            </span>
+            {i === 0 && (
+              <span className="shrink-0 whitespace-nowrap rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                Best match
+              </span>
+            )}
+          </span>
+          {/* costs as one wrapped line of "op cost" pairs */}
+          <span className="mt-1 flex flex-wrap gap-x-3 text-[11px] leading-snug">
+            {costs.map((c) => (
+              <span key={c.op}>
+                <span className="font-mono text-muted-foreground">
+                  {c.op}
+                </span>{" "}
+                <span className="text-foreground">
+                  {formatCost(c.cost)}
+                </span>
+              </span>
+            ))}
+            <span>
+              <span className="font-mono text-muted-foreground">
+                build
+              </span>{" "}
+              <span className="text-foreground">
+                {formatCost(template.build)}
+                {(() => {
+                  const alt = catalog.variant?.of(template);
+                  return alt?.build &&
+                    [...active].every((op) =>
+                      alt.operations?.includes(op),
+                    )
+                    ? ` / ${formatCost(alt.build)}`
+                    : "";
+                })()}
+              </span>
+            </span>
+          </span>
+          {/* memory on one line: the total, then each group's arrays */}
+          <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">
+            Memory{" "}
+            <span className="text-foreground">
+              {formatMemoryOf(
+                template.memory,
+                template.memory.total,
+              )}
+            </span>
+            {layout && ` (${layout})`}
+            {catalog
+              .memoryGroups(template)
+              .map(
+                ({ id, label }) =>
+                  ` · ${label}: ${
+                    template.memory[id].arrays
+                      .map((a) => a.name)
+                      .join(", ") || "none"
+                  }`,
+              )
+              .join("")}
+          </span>
+          {extra.length > 0 && (
+            <span
+              title={extra.join(", ")}
+              className="mt-1 line-clamp-2 text-[11px] leading-snug text-muted-foreground"
+            >
+              Also: {extra.join(", ")}
+            </span>
+          )}
+        </button>
+        {!fullView && firstOfType(template) && moreLinks(template.dataStructureType)}
+      </li>
+    );
+  };
+  // once a type is clicked open the sheet fills the screen: one column per type (in rank order), each scrolling down
+  const columns = [...new Set(matches.map((m) => m.template.dataStructureType))].map((type) =>
+    matches.filter((m) => m.template.dataStructureType === type),
+  );
 
   return (
     <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-16 font-[family-name:var(--font-dm-sans)]">
@@ -1434,7 +1592,9 @@ export function TemplatePicker<V extends PickerTemplate>({
       {sheetOpen && (
         <section
           ref={sheetRef}
-          className="fixed inset-x-3 bottom-0 z-40 mx-auto max-h-[45vh] max-w-[1760px] overflow-y-auto rounded-t-xl border border-b-0 border-border bg-card px-4 pb-3 pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
+          className={`fixed inset-x-3 bottom-0 z-40 mx-auto max-w-[1760px] rounded-t-xl border border-b-0 border-border bg-card px-4 pb-3 pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] ${
+            fullView ? "top-20 flex flex-col overflow-hidden" : "max-h-[45vh] overflow-y-auto"
+          }`}
         >
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <h2 className="text-sm font-semibold text-foreground">
@@ -1518,18 +1678,28 @@ export function TemplatePicker<V extends PickerTemplate>({
                 Clear
               </button>
             )}
+            {fullView && (
+              <button
+                type="button"
+                onClick={() => setOpenTypes(new Map())}
+                title="Back to the short row of best variants"
+                className="ml-auto rounded-md border border-border px-2.5 py-1 text-xs text-foreground hover:bg-muted"
+              >
+                Collapse all
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setSheetHidden(true)}
               aria-label="Close the templates panel"
               title="Close (pick an op to open it again)"
-              className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-2xl leading-none text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className={`${fullView ? "" : "ml-auto "}flex h-8 w-8 items-center justify-center rounded-md text-2xl leading-none text-muted-foreground transition-colors hover:bg-muted hover:text-foreground`}
             >
               ×
             </button>
           </div>
 
-          <div className="mt-2 border-t border-border pt-2">
+          <div className={`mt-2 border-t border-border pt-2 ${fullView ? "flex min-h-0 flex-1 flex-col" : ""}`}>
             <h2 className="text-sm font-semibold text-foreground">
               Templates
               {matches.length > 0 && (
@@ -1549,126 +1719,18 @@ export function TemplatePicker<V extends PickerTemplate>({
                 No template covers this selection yet.
               </p>
             ) : (
-              <ul className="mt-2 flex gap-3 overflow-x-auto pb-2">
-                {matches.map(({ template, extra, costs }, i) => {
-                  const layout = catalog.layoutLabel(template.memory);
-                  return (
-                    <li
-                      key={`${template.folder}/${template.file}`}
-                      className="w-[26rem] flex-shrink-0"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setOpenTemplate(template)}
-                        // start fetching its code (in the language the drawer will show) before the click
-                        onMouseEnter={() => {
-                          const pref = readPreferredLang();
-                          const l = template.langs.includes(pref)
-                            ? pref
-                            : template.langs[0];
-                          loadText(
-                            codeUrl(
-                              catalog,
-                              template.folder,
-                              `${template.file}.${l}`,
-                            ),
-                          ).catch(() => {});
-                        }}
-                        className="flex h-full w-full flex-col justify-start rounded-lg border border-border bg-background px-2.5 py-1.5 text-left transition-colors hover:border-primary/50"
-                      >
-                        <span className="flex items-start justify-between gap-2">
-                          <span className="text-xs font-medium text-foreground">
-                            {catalog.kindLabel(template)}
-                          </span>
-                          {i === 0 && (
-                            <span className="shrink-0 whitespace-nowrap rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                              Best match
-                            </span>
-                          )}
-                        </span>
-                        {/* costs as one wrapped line of "op cost" pairs */}
-                        <span className="mt-1 flex flex-wrap gap-x-3 text-[11px] leading-snug">
-                          {costs.map((c) => (
-                            <span key={c.op}>
-                              <span className="font-mono text-muted-foreground">
-                                {c.op}
-                              </span>{" "}
-                              <span className="text-foreground">
-                                {formatCost(c.cost)}
-                              </span>
-                            </span>
-                          ))}
-                          <span>
-                            <span className="font-mono text-muted-foreground">
-                              build
-                            </span>{" "}
-                            <span className="text-foreground">
-                              {formatCost(template.build)}
-                              {(() => {
-                                const alt = catalog.variant?.of(template);
-                                return alt?.build &&
-                                  [...active].every((op) =>
-                                    alt.operations?.includes(op),
-                                  )
-                                  ? ` / ${formatCost(alt.build)}`
-                                  : "";
-                              })()}
-                            </span>
-                          </span>
-                        </span>
-                        {/* memory on one line: the total, then each group's arrays */}
-                        <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">
-                          Memory{" "}
-                          <span className="text-foreground">
-                            {formatMemoryOf(
-                              template.memory,
-                              template.memory.total,
-                            )}
-                          </span>
-                          {layout && ` (${layout})`}
-                          {catalog
-                            .memoryGroups(template)
-                            .map(
-                              ({ id, label }) =>
-                                ` · ${label}: ${
-                                  template.memory[id].arrays
-                                    .map((a) => a.name)
-                                    .join(", ") || "none"
-                                }`,
-                            )
-                            .join("")}
-                        </span>
-                        {extra.length > 0 && (
-                          <span
-                            title={extra.join(", ")}
-                            className="mt-1 line-clamp-2 text-[11px] leading-snug text-muted-foreground"
-                          >
-                            Also: {extra.join(", ")}
-                          </span>
-                        )}
-                        {firstOfType(template) &&
-                          (() => {
-                            const type = template.dataStructureType;
-                            const beaten = hidden.get(type) ?? 0;
-                            const more = overflow.get(type) ?? 0;
-                            const plural = (k: number) =>
-                              k === 1 ? "variant" : "variants";
-                            return (
-                              (beaten > 0 || more > 0) && (
-                                <span className="mt-1 block text-[11px] leading-snug text-muted-foreground/80">
-                                  {beaten > 0 &&
-                                    `+${beaten} more ${plural(beaten)}, none faster or lighter. `}
-                                  {more > 0 &&
-                                    `${more} more trade-offs past these: cap a cost to see them.`}
-                                </span>
-                              )
-                            );
-                          })()}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+              fullView ? (
+                <div className="mt-2 flex min-h-0 flex-1 items-start gap-3 overflow-auto pb-2">
+                  {columns.map((col) => (
+                    <div key={col[0].template.dataStructureType} className="flex flex-shrink-0 flex-col">
+                      <ul className="flex flex-col gap-3">{col.map((m) => renderCard(m, matches.indexOf(m)))}</ul>
+                      {moreLinks(col[0].template.dataStructureType)}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ul className="mt-2 flex gap-3 overflow-x-auto pb-2">{matches.map(renderCard)}</ul>
+              )
             )}
           </div>
         </section>
