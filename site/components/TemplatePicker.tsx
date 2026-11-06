@@ -114,11 +114,6 @@ const CPP_LEVELS = [
   { id: "complex", label: "Complex struct", title: "A struct holding an array (letter counts), = {} so it starts at 0, loops in combine", suffix: ".complex" },
 ] as const;
 type CppLevel = (typeof CPP_LEVELS)[number]["id"];
-const CPP_LEVEL_STORAGE_KEY = "templatePicker.cppLevel";
-const readCppLevel = (): CppLevel => {
-  const v = readStored(CPP_LEVEL_STORAGE_KEY);
-  return CPP_LEVELS.some((l) => l.id === v) ? (v as CppLevel) : "basic";
-};
 
 // which version of a fill-in template to show; a template offers the ones it has (Python has no fast version)
 const GENERIC_VERSIONS = [
@@ -127,11 +122,6 @@ const GENERIC_VERSIONS = [
   { id: "fast", label: "Fast", title: "C++ only. Sanitizers are skipped here and in what you fill in, so a bad access there goes unreported" },
 ] as const;
 type GenericVersion = (typeof GENERIC_VERSIONS)[number]["id"];
-const GENERIC_VERSION_STORAGE_KEY = "templatePicker.genericVersion";
-const readGenericVersion = (): GenericVersion => {
-  const v = readStored(GENERIC_VERSION_STORAGE_KEY);
-  return GENERIC_VERSIONS.some((g) => g.id === v) ? (v as GenericVersion) : "default";
-};
 
 // Everything a picker page decides for itself; the rest (op grid, matching, ranking, cards, code drawer with usage
 // and memory) is shared.
@@ -396,7 +386,6 @@ function MemoryPanel<V extends PickerTemplate>({
   );
 }
 
-const LANG_STORAGE_KEY = "rangeQueryPicker.lang"; // shared by every picker: one preferred language
 
 // Each picker's mode lives in localStorage so it survives reloads; useSyncExternalStore reads it without a server /
 // client mismatch (the server renders the mode for "nothing stored").
@@ -419,10 +408,6 @@ function writeStored(key: string, value: string) {
     window.localStorage.setItem(key, value);
   } catch {}
   modeListeners.forEach((notify) => notify());
-}
-
-function readPreferredLang(): TemplateLang {
-  return readStored(LANG_STORAGE_KEY) === "cpp" ? "cpp" : "py";
 }
 
 function CodeDrawer<V extends PickerTemplate>({
@@ -457,7 +442,8 @@ function CodeDrawer<V extends PickerTemplate>({
         }
       : chosen
   ) as V;
-  const [preferred, setPreferred] = useState<TemplateLang>(readPreferredLang);
+  // every open starts in Python (when the template has it), nothing remembered
+  const [preferred, chooseLang] = useState<TemplateLang>("py");
   const lang = template.langs.includes(preferred)
     ? preferred
     : template.langs[0];
@@ -497,11 +483,6 @@ function CodeDrawer<V extends PickerTemplate>({
       cancelled = true;
     };
   }, [url, path]);
-
-  const chooseLang = (l: TemplateLang) => {
-    setPreferred(l);
-    writeStored(LANG_STORAGE_KEY, l);
-  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -740,12 +721,13 @@ function FillInDrawer({
   fillIn: FillIn;
   onClose: () => void;
 }) {
-  const [preferred, setLang] = useState<TemplateLang>(readPreferredLang);
+  // every open starts the same, nothing remembered: Python (if it has one), the basic struct, the default version
+  const [preferred, setLang] = useState<TemplateLang>("py");
   const langs = base.langs ?? (["py", "cpp"] as TemplateLang[]);
   const lang = langs.includes(preferred) ? preferred : langs[0];
-  const [level, setLevel] = useState<CppLevel>(readCppLevel);
+  const [level, setLevel] = useState<CppLevel>("basic");
   const [withReverse, chooseReverse] = useStoredFlag(REVERSE_STORAGE_KEY);
-  const [version, setVersion] = useState<GenericVersion>(readGenericVersion);
+  const [version, setVersion] = useState<GenericVersion>("default");
   const [variantOn, chooseVariant] = useStoredFlag(base.variant?.storageKey ?? "");
   const fillIn = withVariant(base, variantOn);
   const levels = lang === "cpp" && fillIn.cppLevels;
@@ -782,18 +764,9 @@ function FillInDrawer({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const chooseLang = (l: TemplateLang) => {
-    setLang(l);
-    writeStored(LANG_STORAGE_KEY, l);
-  };
-  const chooseLevel = (l: CppLevel) => {
-    setLevel(l);
-    writeStored(CPP_LEVEL_STORAGE_KEY, l);
-  };
-  const chooseVersion = (v: GenericVersion) => {
-    setVersion(v);
-    writeStored(GENERIC_VERSION_STORAGE_KEY, v);
-  };
+  const chooseLang = setLang;
+  const chooseLevel = setLevel;
+  const chooseVersion = setVersion;
   const copy = async () => {
     if (!code) return;
     await navigator.clipboard.writeText(code);
@@ -1236,7 +1209,7 @@ export function TemplatePicker<V extends PickerTemplate>({
           onClick={() => setOpenTemplate(template)}
           // start fetching its code (in the language the drawer will show) before the click
           onMouseEnter={() => {
-            const pref = readPreferredLang();
+            const pref: TemplateLang = "py";
             const l = template.langs.includes(pref)
               ? pref
               : template.langs[0];
