@@ -446,6 +446,10 @@ def domain(folder, ops):
     ctx = {"mod": None, "full": None}
     small = lambda r: r.randint(-10, 10)  # noqa: E731
     nonneg_small = lambda r: r.randint(0, 10)  # noqa: E731
+    if folder.startswith("merge-sort-tree-updates-offline"):  # every pointAssign listed up front (per trial: see trial_extra)
+        return (lambda r: r.randint(-50, 50)), small, ["UPDATES"], ctx
+    if folder.startswith("merge-sort-tree-updates-hashfenwick"):  # a value range
+        return (lambda r: r.randint(-50, 50)), small, [-10**9, 10**9], ctx
     if {"stridedXorQuery", "stridedAndQuery", "stridedOrQuery", "stridedGcd"} & set(ops):  # bit ops and gcd: values >= 0
         return (lambda r: r.randint(0, 63)), nonneg_small, [], ctx
     if "find" in ops:  # find needs distinct values: each new one 1000 above the last (point adds move them by at most 3)
@@ -1115,6 +1119,13 @@ def owner(op, table):
     return max(cands, key=lambda n: (len(table[n]), order[n])) if cands else None
 
 
+def trial_extra(ctor_extra, seq):
+    """["UPDATES"] (the offline merge sort trees): the list of every (i, v) this trial's pointAssigns use."""
+    if ctor_extra == ["UPDATES"]:
+        return [[tuple(args) for op, args in seq if op == "pointAssign"]]
+    return ctor_extra
+
+
 def run_python(folder, ops, trials, ctor_extra, stem="template"):
     path = os.path.join(DIR, folder, f"{stem}.py")
     spec = importlib.util.spec_from_file_location("t_" + re.sub(r"\W", "_", folder), path)
@@ -1130,11 +1141,12 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
     out = []
     for a0, seq in trials:
         objs, pieces = {}, []
+        extra = trial_extra(ctor_extra, seq)
         for op, args in seq:
             if op.startswith("!"):  # (must raise IndexError)
                 name = owner(op[1:], table)
                 if name not in objs:
-                    objs[name] = classes[name](*a0, *ctor_extra) if stem == "sparse" else classes[name](list(a0), *ctor_extra)
+                    objs[name] = classes[name](*a0, *extra) if stem == "sparse" else classes[name](list(a0), *extra)
                 try:
                     res = getattr(objs[name], op[1:])(*args)
                     out.append(f"no error, returned {norm(res)}")
@@ -1144,7 +1156,7 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
             name = owner(op, table)
             if op in PIECE_OPS:
                 if name not in objs:  # (built once: a throwaway build would still share the class's node pool)
-                    objs[name] = classes[name](list(a0), *ctor_extra)
+                    objs[name] = classes[name](list(a0), *extra)
                 obj = objs[name]
                 if op == "cut":
                     pieces.append(obj.cut(*args))
@@ -1166,7 +1178,7 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
                         obj.merge(piece)
                 continue
             if name not in objs:
-                objs[name] = classes[name](*a0, *ctor_extra) if stem == "sparse" else classes[name](list(a0), *ctor_extra)
+                objs[name] = classes[name](*a0, *extra) if stem == "sparse" else classes[name](list(a0), *extra)
             if op in ("rangeHash", "rangeHashReversed"):
                 res = getattr(objs[name], op)(*args[:2]) == objs[name].rangeHash(*args[2:])
             else:
@@ -1221,7 +1233,8 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
     if missing:
         raise RuntimeError(f"{stem}.cpp has no method for {missing}")
     used = sorted(set(owners.values()))
-    extra = "".join(f", vector<long long>{{{', '.join(map(str, e))}}}" if isinstance(e, list) else
+    updates = ctor_extra == ["UPDATES"]  # (read per trial: m, then m pairs (i, v), after the array)
+    extra = ", ups" if updates else "".join(f", vector<long long>{{{', '.join(map(str, e))}}}" if isinstance(e, list) else
                     f", (char){ord(e)}" if isinstance(e, str) else f", {e}" for e in ctor_extra)
     lines = ["#include <bits/stdc++.h>", "using namespace std;", f'#include "{cpp_path(folder, stem)}"']
     lines += [f"template struct {s}<int>;" for s in used]  # type-check the generic code for int too
@@ -1247,7 +1260,10 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
         lines += [f"    {s}<long long> s_{s}(lo, hi{extra});" for s in used]
     else:
         elem = "char" if chars else "long long"  # chars: values come in as their codes, the structure holds char
-        lines += [f"    int n; cin >> n; vector<{elem}> a(n); for (auto& x : a) {{ long long v; cin >> v; x = ({elem})v; }}", "    int q; cin >> q;"]
+        lines += [f"    int n; cin >> n; vector<{elem}> a(n); for (auto& x : a) {{ long long v; cin >> v; x = ({elem})v; }}"]
+        if updates:
+            lines += [f"    int m; cin >> m; vector<pair<int, {elem}>> ups(m); for (auto& [i, v] : ups) cin >> i >> v;"]
+        lines += ["    int q; cin >> q;"]
         lines += [f"    {s}<{elem}> s_{s}(a{extra});" for s in used]
     if any(o in ops for o in PIECE_OPS):
         lines += [f"    vector<{owners[next(o for o in PIECE_OPS if o in ops)]}<{'char' if chars else 'long long'}>> pieces;"]
@@ -1343,6 +1359,9 @@ def run_cpp(folder, ops, trials, ctor_extra, cxx, stem="template", chars=False):
             inp += [f"{a0[0]} {a0[1]}"] + ([f"{len(a0[2])} " + " ".join(f"{i} {v}" for i, v in a0[2])] if len(a0) > 2 else [])
         else:
             inp += [str(len(a0)), " ".join(map(code, a0))]
+            if ctor_extra == ["UPDATES"]:
+                ups = trial_extra(ctor_extra, seq)[0]
+                inp += [f"{len(ups)} " + " ".join(f"{i} {v}" for i, v in ups)]
         inp += [str(len(seq))]
         inp += [f"{op} {' '.join(map(code, args))}" for op, args in seq]
     run = subprocess.run([exe], input="\n".join(inp) + "\n", capture_output=True, text=True, timeout=300)

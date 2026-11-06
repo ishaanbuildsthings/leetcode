@@ -1,0 +1,329 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/merge-sort-tree-updates-offline/fast.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// @operations: countGtX countGteX countInValRange countLtX countLteX getAll largestLtX largestLteX pointAssign pointGet smallestGtX smallestGteX
+// @data-structure-type: merge-sort-tree
+// @fractional-cascading: no
+// @values: offline
+// @complexities:
+//   countGtX: log^2(N)
+//   countGteX: log^2(N)
+//   countInValRange: log^2(N)
+//   countLtX: log^2(N)
+//   countLteX: log^2(N)
+//   getAll: N
+//   largestLtX: log^2(N)
+//   largestLteX: log^2(N)
+//   pointAssign: log^2(N)
+//   pointGet: 1
+//   smallestGtX: log^2(N)
+//   smallestGteX: log^2(N)
+//   build: N*log(N)
+// @memory:
+//   layout: none
+//   node: vals[1*N*log(N)] counts[1*N*log(N)]
+//   tags: none
+//   other: A[1*N] start[1*N] nodeSize[2*N]
+//   note: the constructor takes every (i, v) a pointAssign will ever use, so N is the array length plus that list's length; worst-case bounds and flat arrays, the fastest of these
+
+// Merge sort tree with point updates: a segment tree over positions (bottom-up: node p >= n is a[p - n]), each
+// inner node keeping its positions' values in a searchable structure (the sorted values its positions can ever hold, with Fenwick trees over them). a[l..r] is O(log n) nodes, and a
+// point update changes one value in each of the O(log n) nodes above it. All indices 0-based, ranges inclusive.
+// Offline: the constructor takes every (i, v) that a pointAssign will ever use (read every query first). For adds
+// or chmax / chmin, work out the new value yourself and list that.
+// T: int, long long, ...; sums are kept in S (long long for small T).
+// FAST MODE drawbacks compared with template.cpp:
+//   - sanitizers are skipped inside this template, so a bad access in it goes unreported
+// Same public operations and answers, same limits; it needs GCC or Clang and C++17.
+#ifdef __SSE2__
+#include <immintrin.h>
+#endif
+
+// LEETCODE_NO_SANITIZE skips sanitizers in a function. It only changes anything where sanitizers run, like LeetCode: on
+// Codeforces it compiles and does nothing.
+// This template already uses it. To go further, put it on the one function with your hot loop:
+//   LEETCODE_NO_SANITIZE long long maxSum(vector<int>& nums, int k) {
+// A lambda needs its own: [&](int x) LEETCODE_NO_SANITIZE { ... }. It does not carry into anything that function calls.
+// Inside a marked function use raw pointers and plain comparisons, not vector[] and min / max, or it can get slower.
+// Bad memory accesses in a marked function go unreported.
+#ifndef LEETCODE_NO_SANITIZE
+#define LEETCODE_NO_SANITIZE __attribute__((no_sanitize("address"), no_sanitize("undefined")))
+#endif
+#define LEETCODE_NO_SANITIZE_INLINE LEETCODE_NO_SANITIZE __attribute__((always_inline)) inline
+
+// A vector whose [] and size() always inline, even with sanitizers skipped (libstdc++ only; elsewhere a plain vector)
+template <typename U>
+struct HotVector : vector<U> {
+    using vector<U>::vector;
+    HotVector() = default;
+    HotVector(const vector<U>& other) : vector<U>(other) {}
+    HotVector(vector<U>&& other) : vector<U>(move(other)) {}
+#ifdef __GLIBCXX__
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::reference operator[](size_t i) { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE typename vector<U>::const_reference operator[](size_t i) const { return this->_M_impl._M_start[i]; }
+    LEETCODE_NO_SANITIZE_INLINE size_t size() const { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+#endif
+};
+
+template <typename T>
+struct MergeSortTreeOffline {
+    using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
+    int n;
+    HotVector<T> A;
+    HotVector<int> start;  // node p's possible values are vals[start[p] .. start[p + 1]); its Fenwick slots 1 .. size sit at
+                        // fenStart(p) + 1 .. fenStart(p) + size
+    HotVector<T> vals;
+    HotVector<int> counts;  // Fenwick trees of copies, one per node
+    HotVector<int> nodeSize;  // nodeSize[p]: how many positions node p covers
+
+    // O(build) -- arr: the initial array. updates: every (i, v) that pointAssign will ever be called with (any order,
+    // repeats fine); a pointAssign with a pair not listed throws invalid_argument
+    MergeSortTreeOffline(const vector<T>& arr, const vector<pair<int, T>>& updates) {
+        n = (int)arr.size();
+        A = arr;
+        vector<vector<T>> possible(2 * n);  // node p's possible values, sorted, distinct
+        vector<vector<int>> copiesNow(2 * n);  // and how many positions under p hold each right now
+        for (int i = 0; i < n; i++) possible[n + i] = {A[i]};
+        for (const auto& [i, v] : updates) {
+            if (i < 0 || i >= n) throw out_of_range("MergeSortTreeOffline: every listed update needs 0 <= i < n");
+            possible[n + i].push_back(v);
+        }
+        for (int i = 0; i < n; i++) {
+            vector<T>& here = possible[n + i];
+            sort(here.begin(), here.end());
+            here.erase(unique(here.begin(), here.end()), here.end());
+            copiesNow[n + i].assign(here.size(), 0);
+            copiesNow[n + i][lower_bound(here.begin(), here.end(), A[i]) - here.begin()] = 1;
+        }
+        nodeSize.assign(2 * n, 1);
+        for (int p = n - 1; p >= 1; p--) {  // merge the children's lists, adding up the copies
+            nodeSize[p] = nodeSize[2 * p] + nodeSize[2 * p + 1];
+            const vector<T>& a = possible[2 * p];
+            const vector<T>& b = possible[2 * p + 1];
+            const vector<int>& ca = copiesNow[2 * p];
+            const vector<int>& cb = copiesNow[2 * p + 1];
+            size_t x = 0, y = 0;
+            while (x < a.size() || y < b.size()) {
+                if (y == b.size() || (x < a.size() && a[x] < b[y])) {
+                    possible[p].push_back(a[x]), copiesNow[p].push_back(ca[x++]);
+                } else if (x == a.size() || b[y] < a[x]) {
+                    possible[p].push_back(b[y]), copiesNow[p].push_back(cb[y++]);
+                } else {
+                    possible[p].push_back(a[x]), copiesNow[p].push_back(ca[x++] + cb[y++]);
+                }
+            }
+            if (2 * p >= n) vector<T>().swap(possible[2 * p]), vector<int>().swap(copiesNow[2 * p]);
+            if (2 * p + 1 >= n) vector<T>().swap(possible[2 * p + 1]), vector<int>().swap(copiesNow[2 * p + 1]);
+        }
+        start.assign(n + 1, 0);
+        for (int p = 1; p < n; p++) start[p + 1] = start[p] + (int)possible[p].size();
+        vals.resize(start[n]);
+        size_t slots = (size_t)start[n] + n;
+        counts.assign(slots, 0);
+        for (int p = 1; p < n; p++) {
+            int size = (int)possible[p].size(), f = fenStart(p);
+            for (int j = 0; j < size; j++) {
+                T v = possible[p][j];
+                int c = copiesNow[p][j];
+                vals[start[p] + j] = v;
+                counts[f + j + 1] = c;
+            }
+            for (int j = 1; j <= size; j++) {  // (each slot into the Fenwick tree in O(1))
+                int up = j + (j & -j);
+                if (up <= size) {
+                    counts[f + up] += counts[f + j];
+                }
+            }
+            vector<T>().swap(possible[p]);
+            vector<int>().swap(copiesNow[p]);
+        }
+    }
+
+    // O(n) -- the whole array
+    LEETCODE_NO_SANITIZE vector<T> getAll() const { return vector<T>(A.begin(), A.end()); }
+
+    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE T pointGet(int i) const {
+        if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
+        return A[i];
+    }
+
+    // O(log^2(N)) -- a[i] = v (overwrite); needs 0 <= i < n, else throws out_of_range, and (i, v) listed in the
+    // constructor's updates (or v == a[i]), else throws invalid_argument
+    LEETCODE_NO_SANITIZE void pointAssign(int i, T v) {
+        if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
+        T old = A[i];
+        if (old == v) return;
+        if (n > 1 && !listed((i + n) >> 1, v)) throw invalid_argument("pointAssign: (i, v) was not in the constructor's updates");
+        for (int p = (i + n) >> 1; p >= 1; p >>= 1) {
+            add(p, old, -1);
+            add(p, v, 1);
+        }
+        A[i] = v;
+    }
+
+    // O(log^2(N)) -- # of i in [l, r] with a[i] < x; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE long long countLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countLtX: needs 0 <= l <= r < n");
+        return countLess(l, r, x, true);
+    }
+
+    // O(log^2(N)) -- # of i in [l, r] with a[i] <= x; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE long long countLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countLteX: needs 0 <= l <= r < n");
+        return countLess(l, r, x, false);
+    }
+
+    // O(log^2(N)) -- # of i in [l, r] with a[i] > x; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE long long countGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countGtX: needs 0 <= l <= r < n");
+        return (r - l + 1) - countLess(l, r, x, false);
+    }
+
+    // O(log^2(N)) -- # of i in [l, r] with a[i] >= x; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE long long countGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countGteX: needs 0 <= l <= r < n");
+        return (r - l + 1) - countLess(l, r, x, true);
+    }
+
+    // O(log^2(N)) -- # of i in [l, r] with lowVal <= a[i] <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE long long countInValRange(int l, int r, T lowVal, T highVal) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("countInValRange: needs 0 <= l <= r < n");
+        if (lowVal > highVal) return 0;
+        return countLess(l, r, highVal, false) - countLess(l, r, lowVal, true);
+    }
+
+    // O(log^2(N)) -- smallest a[i] >= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE optional<T> smallestGteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("smallestGteX: needs 0 <= l <= r < n");
+        return firstAtLeast(l, r, x, false);
+    }
+
+    // O(log^2(N)) -- smallest a[i] > x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE optional<T> smallestGtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("smallestGtX: needs 0 <= l <= r < n");
+        return firstAtLeast(l, r, x, true);
+    }
+
+    // O(log^2(N)) -- largest a[i] <= x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE optional<T> largestLteX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("largestLteX: needs 0 <= l <= r < n");
+        return lastBelow(l, r, x, false);
+    }
+
+    // O(log^2(N)) -- largest a[i] < x in [l, r]; nullopt if there is none; needs 0 <= l <= r < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE optional<T> largestLtX(int l, int r, T x) const {
+        if (l < 0 || l > r || r >= n) throw out_of_range("largestLtX: needs 0 <= l <= r < n");
+        return lastBelow(l, r, x, true);
+    }
+
+    // ---- internals ----
+
+    template <class F>
+    LEETCODE_NO_SANITIZE void forNodes(int l, int r, F f) const {  // the O(log n) nodes that cover a[l..r]
+        for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
+            if (l & 1) f(l++);
+            if (r & 1) f(--r);
+        }
+    }
+
+    LEETCODE_NO_SANITIZE long long countLess(int l, int r, T x, bool strict) const {  // # of values < x (strict) or <= x in a[l..r]
+        long long res = 0;
+        forNodes(l, r, [&](int p) {
+            if (p >= n) res += strict ? A[p - n] < x : !(x < A[p - n]);
+            else res += countBelow(p, x, strict);
+        });
+        return res;
+    }
+
+    LEETCODE_NO_SANITIZE optional<T> firstAtLeast(int l, int r, T x, bool strict) const {  // smallest value > x (strict) or >= x
+        optional<T> best;
+        forNodes(l, r, [&](int p) {
+            optional<T> got;
+            if (p >= n) {
+                if (strict ? x < A[p - n] : !(A[p - n] < x)) got = A[p - n];
+            } else {
+                got = firstIn(p, x, strict);
+            }
+            if (got && (!best || *got < *best)) best = got;
+        });
+        return best;
+    }
+
+    LEETCODE_NO_SANITIZE optional<T> lastBelow(int l, int r, T x, bool strict) const {  // largest value < x (strict) or <= x
+        optional<T> best;
+        forNodes(l, r, [&](int p) {
+            optional<T> got;
+            if (p >= n) {
+                if (strict ? A[p - n] < x : !(x < A[p - n])) got = A[p - n];
+            } else {
+                got = lastIn(p, x, strict);
+            }
+            if (got && (!best || *best < *got)) best = got;
+        });
+        return best;
+    }
+
+    LEETCODE_NO_SANITIZE int fenStart(int p) const { return start[p] + p - 1; }
+
+    LEETCODE_NO_SANITIZE int slotOf(int p, T x, bool strict) const {  // # of node p's possible values < x (strict) or <= x
+        auto first = vals.begin() + start[p], last = vals.begin() + start[p + 1];
+        return int((strict ? lower_bound(first, last, x) : upper_bound(first, last, x)) - first);
+    }
+
+    LEETCODE_NO_SANITIZE bool listed(int p, T v) const {
+        auto first = vals.begin() + start[p], last = vals.begin() + start[p + 1];
+        auto it = lower_bound(first, last, v);
+        return it != last && !(v < *it);
+    }
+
+    LEETCODE_NO_SANITIZE void add(int p, T v, int delta) {
+        int f = fenStart(p), size = start[p + 1] - start[p];
+        for (int j = slotOf(p, v, true) + 1; j <= size; j += j & -j) addAt(f, j, v, delta);
+    }
+
+    LEETCODE_NO_SANITIZE void addAt(int f, int j, [[maybe_unused]] T v, int delta) {
+        counts[f + j] += delta;
+    }
+
+    LEETCODE_NO_SANITIZE long long countBelow(int p, T x, bool strict) const {  // over node p's values < x (strict) or <= x
+        long long res = 0;
+        int f = fenStart(p);
+        for (int j = slotOf(p, x, strict); j > 0; j &= j - 1) res += counts[f + j];
+        return res;
+    }
+
+    LEETCODE_NO_SANITIZE T kth(int p, long long k) const {  // node p's k-th smallest value (1-indexed; 1 <= k <= nodeSize[p])
+        int f = fenStart(p), size = start[p + 1] - start[p], pos = 0, step = 1;
+        while (step * 2 <= size) step *= 2;
+        for (; step; step >>= 1) {
+            if (pos + step <= size && counts[f + pos + step] < k) {
+                pos += step;
+                k -= counts[f + pos];
+            }
+        }
+        return vals[start[p] + pos];
+    }
+
+    LEETCODE_NO_SANITIZE optional<T> firstIn(int p, T x, bool strict) const {  // smallest value > x (strict) or >= x in node p
+        long long below = countBelow(p, x, !strict);
+        if (below >= nodeSize[p]) return nullopt;
+        return kth(p, below + 1);
+    }
+
+    LEETCODE_NO_SANITIZE optional<T> lastIn(int p, T x, bool strict) const {  // largest value < x (strict) or <= x in node p
+        long long below = countBelow(p, x, strict);
+        if (below == 0) return nullopt;
+        return kth(p, below);
+    }
+};
+
+// Example:
+//     vector<long long> a = {5, 1, 4};
+//     MergeSortTreeOffline<long long> t(a, {{1, 7}, {0, 2}});  // later: pointAssign(1, 7) and pointAssign(0, 2)
+//     t.countLtX(0, 2, 5);  // 2 (1 and 4)
+//     t.pointAssign(1, 7);
+//     t.countLtX(0, 2, 5);  // 1 (4)
