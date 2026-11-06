@@ -3,15 +3,15 @@
 
 # Can pass in a list of any comparable values (ints, longs, negatives, chars) or a string, and a # of steps which can be very large
 # Returns a new permutation in the same format, that many steps forward, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max
-def nextPermutation(arr, steps):
-    n = len(arr)
+def nextPermutation(arrOrString, steps):
+    n = len(arrOrString)
     if steps == 0:
-        return arr[:]  # (a string is returned as is)
+        return arrOrString[:]  # (a string is returned as is)
 
     vals, rk = [], [0] * n
-    for i in sorted(range(n), key=lambda i: arr[i]):
-        if not vals or vals[-1] < arr[i]:
-            vals.append(arr[i])
+    for i in sorted(range(n), key=lambda i: arrOrString[i]):
+        if not vals or vals[-1] < arrOrString[i]:
+            vals.append(arrOrString[i])
         rk[i] = len(vals) - 1
     d = len(vals)
 
@@ -21,10 +21,10 @@ def nextPermutation(arr, steps):
     arrangements, after, afterNext = 1, 0, 0
     s = n
     while after < steps:
-        if s == 0:  # fewer than steps arrangements come after arr: loop around to the smallest and count on from there
+        if s == 0:  # fewer than steps arrangements come after arrOrString: loop around to the smallest and count on from there
             r = (steps - after - 1) % arrangements  # arrangements: how many there are in all (or more than steps)
-            first = sorted(arr)
-            return nextPermutation("".join(first) if isinstance(arr, str) else first, r)
+            first = sorted(arrOrString)
+            return nextPermutation("".join(first) if isinstance(arrOrString, str) else first, r)
         s -= 1
         v, length = rk[s], n - s
         cnt[v] += 1
@@ -74,5 +74,5 @@ def nextPermutation(arr, steps):
                 r -= c
             x += 1
 
-    out = list(arr[:s]) + [vals[w]] + [vals[k] for k in rest]
-    return "".join(out) if isinstance(arr, str) else out
+    out = list(arrOrString[:s]) + [vals[w]] + [vals[k] for k in rest]
+    return "".join(out) if isinstance(arrOrString, str) else out

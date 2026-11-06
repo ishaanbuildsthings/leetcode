@@ -3,8 +3,8 @@
 
 # Returns a new list / string with the next larger permutation, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max
 # works with a list of comparable values (ints, floats, negatives, chars, tuples) or a string
-def nextPermutation(arr):
-    a = list(arr)
+def nextPermutation(arrOrString):
+    a = list(arrOrString)
     i = len(a) - 2
     while i >= 0 and not a[i] < a[i + 1]:
         i -= 1
@@ -14,4 +14,4 @@ def nextPermutation(arr):
             j -= 1
         a[i], a[j] = a[j], a[i]
     a[i + 1:] = reversed(a[i + 1:])
-    return "".join(a) if isinstance(arr, str) else a
+    return "".join(a) if isinstance(arrOrString, str) else a

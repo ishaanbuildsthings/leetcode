@@ -745,6 +745,10 @@ export function viewOf(t: RangeQueryTemplate, sparse: boolean): TemplateView | n
 
 // What a card calls the structure: "Lazy seg tree", "Sparse lazy seg tree", "Sparse seg tree beats", for a static
 // structure's sparse version "Sparse merge sort tree built from values", and merge sort trees add "(FC)" / "(no FC)".
+const BEATS_UPDATES: ReadonlySet<string> = new Set([
+  "rangeFloorDiv", "rangeMod", "rangeFloorSqrt", "rangeAndApply", "rangeOrApply", "rangeChmax", "rangeChmin",
+]);
+
 export function templateKindLabel(t: TemplateView): string {
   // a wavelet with rangeMex also carries a persistent seg tree for it; its sums / by-value xor / OR / AND are named,
   // OR and AND with how they are kept (a sparse table per level is faster, a seg tree per level lighter)
@@ -772,9 +776,24 @@ export function templateKindLabel(t: TemplateView): string {
   const lazyTreap =
     (t.dataStructureType === "treap" || t.dataStructureType === "persistent-treap") &&
     t.memory.tags.arrays.some((a) => a.name !== "rev");
-  const kind = lazyTreap
+  const plainKind = lazyTreap
     ? DATA_STRUCTURE_TYPE_LABELS[t.dataStructureType].replace(/ treap$/, " lazy treap")
     : DATA_STRUCTURE_TYPE_LABELS[t.dataStructureType];
+  // a treap or seg tree whose div / mod / sqrt / AND / OR / chmax / chmin updates use the beats technique (descend only
+  // where values still change, so the cost is amortized) says "beats", like the seg tree beats do
+  const beats =
+    t.dataStructureType !== "beats" &&
+    t.operations.some((op) => BEATS_UPDATES.has(op) && (t.complexities[op] ?? "").includes("amortized"));
+  const kind = !beats
+    ? plainKind
+    : plainKind.includes(" (")
+      ? plainKind.replace(" (", " beats (")
+      : `${plainKind} beats`;
+  // the merge sort trees with point updates are named by what each node keeps (fractional cascading never applies)
+  const inner = (
+    [["sortedlist", "sorted lists"], ["treap", "treaps"], ["hashfenwick", "hashed Fenwick trees"], ["offline", "Fenwick trees, every update listed up front"]] as const
+  ).find(([key]) => t.folder.startsWith(`merge-sort-tree-updates-${key}`));
+  if (inner) return `Merge sort tree with updates (${inner[1]})`;
   const base = kind + extras + mex + appendable;
   const fc = t.fractionalCascading === undefined ? "" : t.fractionalCascading ? " (FC)" : " (no FC)";
   if (t.file !== "sparse") return base + fc;

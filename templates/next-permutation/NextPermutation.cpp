@@ -7,16 +7,16 @@ using ll = long long;
 // Returns a new vector / string with the next larger permutation, with looping behavior around to the lexicographical smallest permutation if we step past the lexicographical max
 // works with a vector of comparable values (ints, longs, negatives, chars) or a string of chars
 template <typename Seq>
-Seq nextPermutation(Seq arr) {
-    int n = arr.size();
-    if (n == 0) return arr;
+Seq nextPermutation(Seq arrOrString) {
+    int n = arrOrString.size();
+    if (n == 0) return arrOrString;
     int i = n - 2;
-    while (i >= 0 && !(arr[i] < arr[i + 1])) i--;
+    while (i >= 0 && !(arrOrString[i] < arrOrString[i + 1])) i--;
     if (i >= 0) {  // i < 0: it was the largest, so reversing all of it loops around to the minimum
         int j = n - 1;
-        while (!(arr[i] < arr[j])) j--;
-        swap(arr[i], arr[j]);
+        while (!(arrOrString[i] < arrOrString[j])) j--;
+        swap(arrOrString[i], arrOrString[j]);
     }
-    reverse(arr.begin() + i + 1, arr.end());
-    return arr;
+    reverse(arrOrString.begin() + i + 1, arrOrString.end());
+    return arrOrString;
 }
