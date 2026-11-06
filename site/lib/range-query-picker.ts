@@ -26,6 +26,14 @@ export type OpId =
   | "rangeAndApply"
   | "rangeOrApply"
   | "rangeXorApply"
+  | "stridedSum"
+  | "stridedMin"
+  | "stridedMax"
+  | "stridedGcd"
+  | "stridedXorQuery"
+  | "stridedAndQuery"
+  | "stridedOrQuery"
+  | "stridedAdd"
   | "rangeSum"
   | "rangeSumMod"
   | "rangeMin"
@@ -540,6 +548,31 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "andGtX", signature: "andGtX(l, r, x)", description: "AND of the values > x in l..r" },
           { id: "andGteX", signature: "andGteX(l, r, x)", description: "AND of the values ≥ x in l..r" },
           { id: "andInValRange", signature: "andInValRange(l, r, lowVal, highVal)", description: "AND of the values in [lowVal, highVal] in l..r" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "strided",
+    title: "Strided queries (every step-th element)",
+    collapsible: true,
+    tiers: [
+      {
+        kind: "common",
+        ops: [
+          { id: "stridedSum", signature: "stridedSum(l, r, step)", description: "a[l] + a[l+step] + a[l+2·step] + … up to r" },
+          { id: "stridedMin", signature: "stridedMin(l, r, step)", description: "min of a[l], a[l+step], … up to r" },
+          { id: "stridedMax", signature: "stridedMax(l, r, step)", description: "max of a[l], a[l+step], … up to r" },
+          { id: "stridedAdd", signature: "stridedAdd(l, r, step, v)", description: "a[l] += v, a[l+step] += v, … up to r" },
+        ],
+      },
+      {
+        kind: "uncommon",
+        ops: [
+          { id: "stridedGcd", signature: "stridedGcd(l, r, step)", description: "gcd of a[l], a[l+step], … up to r" },
+          { id: "stridedXorQuery", signature: "stridedXorQuery(l, r, step)", description: "xor of a[l], a[l+step], … up to r" },
+          { id: "stridedAndQuery", signature: "stridedAndQuery(l, r, step)", description: "AND of a[l], a[l+step], … up to r" },
+          { id: "stridedOrQuery", signature: "stridedOrQuery(l, r, step)", description: "OR of a[l], a[l+step], … up to r" },
         ],
       },
     ],

@@ -49,7 +49,7 @@ OPS_PER_TRIAL = 60
 POINT_UPDATES = ("pointAssign", "pointAdd", "pointChmax", "pointChmin")
 RANGE_UPDATES = {  # op -> number of args after (l, r)
     "rangeAdd": 1, "rangeAssign": 1, "rangeAddMod": 1, "rangeAssignMod": 1, "rangeChmax": 1, "rangeChmin": 1, "rangeMultMod": 1, "rangeAffineMod": 2,
-    "rangeAddArithSeq": 2, "rangeAddArithSeqMod": 2, "rangeMod": 1, "rangeFloorDiv": 1, "rangeFloorSqrt": 0,
+    "stridedAdd": 2, "rangeAddArithSeq": 2, "rangeAddArithSeqMod": 2, "rangeMod": 1, "rangeFloorDiv": 1, "rangeFloorSqrt": 0,
     "rangeAndApply": 1, "rangeOrApply": 1, "rangeXorApply": 1, "rangeFlip": 0, "rangeReplace": 2,
 }
 # sequence edits (implicit treap): op -> arg kind; they change the array's length
@@ -253,6 +253,13 @@ def order_stat(op, tot, n, xs):
 # query op -> (arg kind, brute(a, l, r, *args, ctx)); arg kinds: "lr", "lrx", "lrk", "lrkx", "lrlohi", plus "lrkv" (a k
 # in [1, r - l + 1]), "lrk0" (a k in [0, r - l + 1]) and "lrij" (1 <= i <= j <= r - l + 1): those ops error outside them
 BRUTE_QUERIES = {
+    "stridedSum": ("lrs", lambda a, l, r, s, c: sum(a[l:r + 1:s])),
+    "stridedMin": ("lrs", lambda a, l, r, s, c: min(a[l:r + 1:s])),
+    "stridedMax": ("lrs", lambda a, l, r, s, c: max(a[l:r + 1:s])),
+    "stridedGcd": ("lrs", lambda a, l, r, s, c: reduce(math.gcd, a[l:r + 1:s], 0)),
+    "stridedXorQuery": ("lrs", lambda a, l, r, s, c: reduce(lambda x, y: x ^ y, a[l:r + 1:s])),
+    "stridedAndQuery": ("lrs", lambda a, l, r, s, c: reduce(lambda x, y: x & y, a[l:r + 1:s])),
+    "stridedOrQuery": ("lrs", lambda a, l, r, s, c: reduce(lambda x, y: x | y, a[l:r + 1:s])),
     "rangeSum": ("lr", lambda a, l, r, c: sum(a[l:r + 1])),
     "rangeSumMod": ("lr", lambda a, l, r, c: sum(a[l:r + 1]) % c["mod"]),
     "rangeMin": ("lr", lambda a, l, r, c: min(a[l:r + 1])),
@@ -326,6 +333,10 @@ def _check_mode(a, l, r, got):
 
 def brute_update(a, op, args, ctx):
     mod, full = ctx["mod"], ctx["full"]
+    if op == "stridedAdd":
+        for i in range(args[0], args[1] + 1, args[2]):
+            a[i] += args[3]
+        return
     if op in SEQ_OPS:
         if op == "cut":
             ctx["pieces"].append(a[args[0]:args[1] + 1])
@@ -435,6 +446,8 @@ def domain(folder, ops):
     ctx = {"mod": None, "full": None}
     small = lambda r: r.randint(-10, 10)  # noqa: E731
     nonneg_small = lambda r: r.randint(0, 10)  # noqa: E731
+    if {"stridedXorQuery", "stridedAndQuery", "stridedOrQuery", "stridedGcd"} & set(ops):  # bit ops and gcd: values >= 0
+        return (lambda r: r.randint(0, 63)), nonneg_small, [], ctx
     if "find" in ops:  # find needs distinct values: each new one 1000 above the last (point adds move them by at most 3)
         fresh = itertools.count()
         return (lambda r: 1000 * next(fresh) + r.randint(0, 9)), (lambda r: r.randint(-3, 3)), [], ctx
@@ -487,7 +500,13 @@ def domain(folder, ops):
     return (lambda r: r.randint(-50, 50)), small, [], ctx
 
 
+def random_step(rng, n):  # mostly small steps, but some past any cutoff (and past the end of the array)
+    return rng.choice((1, 1, 2, 2, 3, 4, 5, rng.randint(1, n + 3)))
+
+
 def update_args(op, rng, gen, mod):
+    if op == "stridedAdd":
+        return [rng.choice((1, 2, 3, 4, 5, 7, 11, 40)), gen(rng)]
     if op in ("rangeAddArithSeq", "rangeAddArithSeqMod"):
         return [gen(rng), rng.randint(0, mod - 1) if mod else rng.randint(-20, 20)]
     if op == "rangeAffineMod":
@@ -641,6 +660,8 @@ def make_trials(folder, ops, trials, letters=False):
                     args = [l, r] + update_args(op, rng, gen, ctx["mod"])
                 elif kind == "lrx":
                     args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op or "SuffixSum" in op else gen(rng)]
+                elif kind == "lrs":
+                    args = [l, r, random_step(rng, n)]
                 elif kind == "lrkx":
                     args = [l, r, rng.randint(1, 5), gen(rng)]
                 elif kind == "lrk":
@@ -1277,6 +1298,8 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
                 body = f"long long l, r, l2, r2; cin >> l >> r >> l2 >> r2; out({s}.{op}(l, r, l2, r2));"
             elif kind == "lr":
                 body = f"long long l, r; cin >> l >> r; out({s}.{op}(l, r));"
+            elif kind == "lrs":
+                body = f"long long l, r, step; cin >> l >> r >> step; out({s}.{op}(l, r, step));"
             elif kind == "lrx":
                 body = f"long long l, r, x; cin >> l >> r >> x; out({s}.{op}(l, r, x));"
             elif kind == "lrkx":

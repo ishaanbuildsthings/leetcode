@@ -11,7 +11,7 @@ const ENTRY_RE = /^\s*(?:#|\/\/)\s+([A-Za-z]\w*):\s*(.+?)\s*$/;
 // size of the index range instead (and in set templates, the size of the value range [lo, hi]).
 // log64(U) = log base 64 of U (a 64-ary bit trie's depth).
 // U/64 = U 64-bit words (a bitset over U values).
-const FACTORS = new Set(["1", "N", "log(N)", "log^2(N)", "sqrt(N)", "U", "U/64", "log(U)", "log64(U)", "log(log(U))"]);
+const FACTORS = new Set(["1", "N", "log(N)", "log^2(N)", "sqrt(N)", "sqrt(NlogN)", "sqrt(N/logN)", "U", "U/64", "log(U)", "log64(U)", "log(log(U))"]);
 
 // A cost is terms joined by "+", each term factors joined by "*" (a factor may be a positive integer
 // constant, e.g. 36*N), optionally followed by " amortized" or " expected", then optionally " ?" (a bound we are
@@ -62,7 +62,7 @@ export function parseArrays(value) {
 }
 
 // Sums sizes like 4*N + 4*N + 1*N*log(N) into "8*N+1*N*log(N)", largest terms first.
-const TERM_ORDER = ["N*log(N)", "N", "sqrt(N)", ""];
+const TERM_ORDER = ["N*sqrt(N)", "N*sqrt(N/logN)", "N*log(N)", "N", "sqrt(N)", ""];
 export function sumSizes(sizes) {
   const byShape = new Map();
   for (const size of sizes) {

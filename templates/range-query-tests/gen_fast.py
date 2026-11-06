@@ -26,7 +26,7 @@ FIELD = re.compile(r"^    (static inline |mutable )?vector<([^()\n]*)> ([\w, ]+)
 METHOD = r"^    (?!//|using |struct |template |explicit |{name}\b)((?:[\w:]+(?:<[^;(){{}}]*>)?[&*]* )+[\w]+\([^;{{}}]*\)(?: const)? \{{)"
 
 
-def fast_cpp(text, source, target):
+def fast_cpp(text, source, target, min_methods=3):
     names = re.findall(r"^template <typename T>\nstruct (\w+) \{", text, re.M)
     assert names, f"{target}: no template struct"
     name = names[-1]
@@ -36,7 +36,7 @@ def fast_cpp(text, source, target):
     head, tail = t[:start] + note + PRELUDE, t[start:]
     tail, fields = FIELD.subn(r"    \1HotVector<\2> \3\4", tail)  # members only: signatures keep plain vector
     tail, methods = re.subn(METHOD.format(name=name), r"    LEETCODE_NO_SANITIZE \1", tail, flags=re.M)
-    assert fields and methods >= 3, f"{target}: {fields} fields, {methods} methods"
+    assert fields and methods >= min_methods, f"{target}: {fields} fields, {methods} methods"
     return head + tail
 
 
@@ -51,7 +51,9 @@ def main():
             for stem, target in STEMS:
                 source = os.path.join(path, stem + ".cpp")
                 if os.path.exists(source):
-                    out = fast_cpp(open(source).read(), stem + ".cpp", target + ".cpp")
+                    # (a strided template with one op has one method, and it is still worth having)
+                    least = 1 if folder.startswith("sqrt-strided") else 3
+                    out = fast_cpp(open(source).read(), stem + ".cpp", target + ".cpp", least)
                     made[target] = check_finished(out, f"{folder}/{target}.cpp")
         except AssertionError as e:
             skipped.append(f"{folder}: {e}")

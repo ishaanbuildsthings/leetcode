@@ -20,8 +20,11 @@ PICKER = os.path.join(ROOT, "site", "lib", "range-query-picker.ts")
 
 N, U = 2e5, 1e9
 # dominated, but the user wants them on the page anyway (2026-10-22: "lets keep the plain persistent ones too")
-KEPT = {"persistent-order-stats", "persistent-order-stats-sums"}
+# the strided prefix ones: O(1) on a kept step, which a worst-case cost can't show (2026-11-05: "lets do all of them")
+KEPT = {"persistent-order-stats", "persistent-order-stats-sums", "sqrt-strided-prefix-sum", "sqrt-strided-prefix-xor",
+        "sqrt-strided-prefix-sum-xor"}
 FACTORS = {"1": 1, "N": N, "log(N)": math.log2(N), "log^2(N)": math.log2(N) ** 2, "sqrt(N)": math.sqrt(N),
+           "sqrt(NlogN)": math.sqrt(N * math.log2(N)), "sqrt(N/logN)": math.sqrt(N / math.log2(N)),
            "log(U)": math.log2(U), "log(log(U))": math.log2(math.log2(U)), "U": U, "U/64": U / 64,
            "log64(U)": math.log2(U) / 6}
 

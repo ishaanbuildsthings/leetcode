@@ -1,0 +1,47 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-strided-prefix-xor/template.py
+# @operations: stridedXorQuery
+# @data-structure-type: sqrt
+# @complexities:
+#   stridedXorQuery: sqrt(N)
+#   build: 1*N*sqrt(N)
+# @memory:
+#   layout: none
+#   node: xorPre[1*N*sqrt(N)]
+#   tags: none
+#   other: A[1*N]
+#   note: O(1) for a step up to the cutoff, sqrt(N) only for a bigger one. The default cutoff is about 90 million values at N = 2e5, so pass a lower one when memory is tight
+
+# Static strided queries, every small stride's prefix array built up front: each query covers a[l], a[l + step],
+# a[l + 2 * step], ... up to at most r (the last position used may be below r). All indices 0-based, ranges inclusive.
+from itertools import accumulate
+from functools import reduce
+from math import sqrt
+from operator import xor
+
+
+class StridedQueries:
+    # O(build) -- arr: the initial array. cutoff: prefix arrays are kept for steps up to it; leave it out for sqrt(n), and
+    # lower it when memory is tight (each kept step costs n values)
+    def __init__(self, arr, cutoff=None):
+        self.A = A = list(arr)
+        self.n = n = len(A)
+        self.strides = cutoff if cutoff is not None else max(1, min(n, int(sqrt(n))))
+        if not 0 <= self.strides <= n:
+            raise IndexError(f"StridedQueries: needs 0 <= cutoff <= n, got cutoff={cutoff}, n={n}")
+        self.xorPre = [None] * (self.strides + 1)
+        for step in range(1, self.strides + 1):
+            pre = list(A)
+            for residue in range(step):
+                pre[residue::step] = list(accumulate(pre[residue::step], xor))
+            self.xorPre[step] = pre
+
+    # a[l] ^ a[l + step] ^ ..., up to at most r. O(1) for a kept step; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    def stridedXorQuery(self, l, r, step):
+        if l < 0 or l > r or r >= self.n or step < 1:
+            raise IndexError(f"stridedXorQuery: needs 0 <= l <= r < n and step >= 1, got l={l}, r={r}, step={step}, n={self.n}")
+        last = l + (r - l) // step * step
+        if step > self.strides:
+            return reduce(xor, self.A[l:last + 1:step])
+        pre = self.xorPre[step]
+        return pre[last] ^ pre[l - step] if l >= step else pre[last]
