@@ -92,6 +92,12 @@ const SET_CATALOG: PickerCatalog<SetView> = {
     "https://raw.githubusercontent.com/ishaanbuildsthings/leetcode/main/templates/sets",
   typeOrder: SET_TYPES,
   perType: 3,
+  // one never stands in for another that needs less known about the values, takes more kinds of keys, or keeps less
+  // current on every update
+  noWorse: (s, m) =>
+    (s.values === m.values || s.values === "online" || m.values === "offline") &&
+    (s.keys === "any" || m.keys === "numbers") &&
+    s.tracks.every((x) => m.tracks.includes(x)),
   modes: {
     ariaLabel: "What you know about the values ahead of time",
     storageKey: "setPicker.values",

@@ -194,9 +194,12 @@ export interface PickerCatalog<V extends PickerTemplate> {
   // a template may need a selected op before it is offered (range queries: mod-p templates)
   allowed?: (t: V, picked: string[]) => boolean;
   // per data structure type, show only variants that are a real trade-off, at most this many (sets: thousands of
-  // variants would bury the other structures): one is left out when a shown one of its type costs no more on every
-  // selected op and uses no more memory
+  // variants would bury the other structures): one is left out only when a shown one of its type is no worse in every
+  // way (see beats), the same rule the catalog checks use to call a template dominated
   perType?: number;
+  // what else a shown template s must match to make template m pointless, beyond the selected ops' costs, memory and
+  // build (range queries: needing every value up front, sparse indices; sets: values, key types, cached extras)
+  noWorse?: (s: V, m: V) => boolean;
   kindLabel: (t: V) => string;
   memoryGroups: (t: V) => { id: "node" | "tags" | "other"; label: string }[];
   layoutLabel: (m: MemoryBreakdown) => string | null;
@@ -244,6 +247,13 @@ function loadText(url: string): Promise<string> {
 // a cost without its amortized / expected / ? qualifiers: what a complexity cap compares
 const baseCost = (cost: string) =>
   cost.replace(/ \?$/, "").replace(/ (amortized|expected)$/, "");
+// how sure a bound is: worst case beats amortized and expected, which don't compare (and "?" is weaker still)
+const guarantee = (cost: string) =>
+  `${/ amortized/.test(cost) ? "amortized" : / expected/.test(cost) ? "expected" : "worst"}${cost.endsWith(" ?") ? "?" : ""}`;
+const noWeaker = (s: string, m: string) => {
+  const a = guarantee(s), b = guarantee(m);
+  return a === b || a === "worst" || (a.startsWith("worst") && b.endsWith("?"));
+};
 const withinCaps = (t: PickerTemplate, caps: Record<string, number>) =>
   Object.entries(caps).every(([op, cap]) => costValue(opCost(t, op)) <= cap);
 
@@ -1121,10 +1131,14 @@ export function TemplatePicker<V extends PickerTemplate>({
     ? capped.filter((m) => {
         const type = m.template.dataStructureType;
         const shown = shownOf.get(type) ?? [];
+        // s beats m: no slower on a selected op (with as sure a bound), no more memory or build, and nothing else m
+        // is better at
         const covered = shown.some(
           (s) =>
-            s.costs.every((c, k) => c.value <= m.costs[k].value) &&
-            memoryValue(s.template.memory) <= memoryValue(m.template.memory),
+            s.costs.every((c, k) => c.value <= m.costs[k].value && noWeaker(c.cost, m.costs[k].cost)) &&
+            memoryValue(s.template.memory) <= memoryValue(m.template.memory) &&
+            costValue(s.template.build) <= costValue(m.template.build) &&
+            (catalog.noWorse?.(s.template, m.template) ?? true),
         );
         if (covered || shown.length >= catalog.perType!) {
           const into = covered ? hidden : overflow;
@@ -1645,7 +1659,7 @@ export function TemplatePicker<V extends PickerTemplate>({
                                   {beaten > 0 &&
                                     `+${beaten} more ${plural(beaten)}, none faster or lighter. `}
                                   {more > 0 &&
-                                    `${more} trade speed for memory: cap a cost to see them.`}
+                                    `${more} more trade-offs past these: cap a cost to see them.`}
                                 </span>
                               )
                             );
