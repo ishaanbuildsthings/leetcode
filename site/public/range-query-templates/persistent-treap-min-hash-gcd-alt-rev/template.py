@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-min-hash-gcd-alt-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-min-hash-gcd-alt-rev/template.py
 # @operations: append appendLeft copy cut gcdAll getAll hashAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAltSubseqSum merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeHash rangeHashReversed rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangesEqual rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: persistent-treap
 # @complexities:

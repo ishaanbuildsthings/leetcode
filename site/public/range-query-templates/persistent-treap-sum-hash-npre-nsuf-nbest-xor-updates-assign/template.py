@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-hash-npre-nsuf-nbest-xor-updates-assign/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-sum-hash-npre-nsuf-nbest-xor-updates-assign/template.py
 # @operations: append appendLeft copy cut getAll hashAll insertAt insertCopiesAt isPalindrome leftmostPrefixSumLtX leftmostPrefixSumLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeHash rangeHashReversed rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rangesEqual rightmostSuffixSumLtX rightmostSuffixSumLteX size split sumAll trisect xorAll
 # @data-structure-type: persistent-treap
 # @complexities:

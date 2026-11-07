@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeOrQuery-rangeSum/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeOrQuery-rangeSum/template.py
 # @operations: getAll maxAltSubseqSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeSum sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:

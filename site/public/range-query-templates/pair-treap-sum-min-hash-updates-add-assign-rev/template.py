@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-min-hash-updates-add-assign-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-sum-min-hash-updates-add-assign-rev/template.py
 # @operations: append appendLeft cut getAll hashAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAdd rangeAssign rangeHash rangeHashReversed rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangesEqual rightmostLtX rightmostLteX size split sumAll trisect
 # @data-structure-type: pair-treap
 # @complexities:

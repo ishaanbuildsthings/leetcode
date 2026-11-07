@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-max-npre-nsuf-gcd/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-max-npre-nsuf-gcd/template.py
 # @operations: gcdAll getAll leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAll minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMax rangeSum rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:

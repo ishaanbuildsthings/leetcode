@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-npre-nsuf-nbest-alt-updates-assign/sparse.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-npre-nsuf-nbest-alt-updates-assign/sparse.py
 # @operations: leftmostPrefixSumLtX leftmostPrefixSumLteX maxAltSubseqSum minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum rightmostSuffixSumLtX rightmostSuffixSumLteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:

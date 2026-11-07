@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-hash-pre-or/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-hash-pre-or/template.py
 # @operations: getAll hashAll isPalindrome leftmostPrefixSumGtX leftmostPrefixSumGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxPrefixSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeOrQuery rangeSum rangesEqual sumAll
 # @data-structure-type: seg-tree
 # @complexities:

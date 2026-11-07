@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/isPalindrome-longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeHash-rangeHashReversed-rangeOrQuery-rangesEqual/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/isPalindrome-longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeHash-rangeHashReversed-rangeOrQuery-rangesEqual/template.py
 # @operations: getAll hashAll isPalindrome longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeOrQuery rangesEqual
 # @data-structure-type: seg-tree
 # @complexities:

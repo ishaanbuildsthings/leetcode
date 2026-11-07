@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-max-hash-suf-npre-nsuf-nbest/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-max-hash-suf-npre-nsuf-nbest/letters.py
 # @operations: getAll hashAll isPalindrome leftmostGtX leftmostGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangesEqual rightmostGtX rightmostGteX
 # @data-structure-type: seg-tree
 # @complexities:

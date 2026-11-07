@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-max-hash-nsuf-xor/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-min-max-hash-nsuf-xor/template.py
 # @operations: getAll hashAll isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll minAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangeMin rangeSum rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll xorAll
 # @data-structure-type: seg-tree
 # @complexities:

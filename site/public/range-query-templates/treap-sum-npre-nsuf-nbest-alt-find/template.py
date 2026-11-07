@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-npre-nsuf-nbest-alt-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-npre-nsuf-nbest-alt-find/template.py
 # @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostPrefixSumLtX leftmostPrefixSumLteX maxAltSubseqSum merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeRotateLeft rangeRotateRight rangeSum rightmostSuffixSumLtX rightmostSuffixSumLteX size split sumAll trisect
 # @data-structure-type: treap
 # @complexities:

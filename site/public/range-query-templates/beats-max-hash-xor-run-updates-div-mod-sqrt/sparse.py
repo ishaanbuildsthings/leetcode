@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-max-hash-xor-run-updates-div-mod-sqrt/sparse.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/beats-max-hash-xor-run-updates-div-mod-sqrt/sparse.py
 # @operations: isPalindrome leftmostGtX leftmostGteX longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeXorQuery rangesEqual rightmostGtX rightmostGteX
 # @data-structure-type: beats
 # @complexities:

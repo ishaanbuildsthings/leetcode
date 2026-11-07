@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-xor-or-updates-assign/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-xor-or-updates-assign/template.py
 # @operations: append appendLeft copy cut getAll insertAt insertCopiesAt merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery size split trisect xorAll
 # @data-structure-type: persistent-treap
 # @complexities:

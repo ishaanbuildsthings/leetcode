@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-bitbeats-min/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-bitbeats-min/template.py
 # @operations: andAll append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndApply rangeAndQuery rangeAssign rangeMin rangeOrApply rangeOrQuery rangeRotateLeft rangeRotateRight rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: treap
 # @complexities:

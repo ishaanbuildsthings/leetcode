@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostIndexOf-leftmostIndexOfInRange-pointAssign-pointGet-rangeReplace-rightmostIndexOf-rightmostIndexOfInRange/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostIndexOf-leftmostIndexOfInRange-pointAssign-pointGet-rangeReplace-rightmostIndexOf-rightmostIndexOfInRange/template.py
 # @operations: getAll leftmostIndexOf leftmostIndexOfInRange pointAssign pointGet rangeReplace rightmostIndexOf rightmostIndexOfInRange
 # @data-structure-type: position-trees
 # @letters: same

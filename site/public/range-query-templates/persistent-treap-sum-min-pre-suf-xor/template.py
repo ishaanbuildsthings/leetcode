@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-min-pre-suf-xor/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-sum-min-pre-suf-xor/template.py
 # @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMin rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split sumAll trisect xorAll
 # @data-structure-type: persistent-treap
 # @complexities:

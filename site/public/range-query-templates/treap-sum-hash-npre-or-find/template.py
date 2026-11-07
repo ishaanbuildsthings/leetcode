@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-hash-npre-or-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-hash-npre-or-find/template.py
 # @operations: append appendLeft cut find getAll hashAll insertAt insertCopiesAt isPalindrome leftmostPrefixSumLtX leftmostPrefixSumLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minPrefixSum orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeHash rangeHashReversed rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangesEqual size split sumAll trisect
 # @data-structure-type: treap
 # @complexities:

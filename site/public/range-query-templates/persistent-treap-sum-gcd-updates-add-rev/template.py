@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-gcd-updates-add-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-sum-gcd-updates-add-rev/template.py
 # @operations: append appendLeft copy cut gcdAll getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAdd rangeGcd rangeReverse rangeRotateLeft rangeRotateRight rangeSum size split sumAll trisect
 # @data-structure-type: persistent-treap
 # @complexities:

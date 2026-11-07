@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeAndQuery/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointGet-rangeAndQuery/template.py
 # @operations: andAll pointGet rangeAndQuery
 # @data-structure-type: sparse-table
 # @complexities:

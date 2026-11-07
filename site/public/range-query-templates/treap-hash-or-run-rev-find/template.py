@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-hash-or-run-rev-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-hash-or-run-rev-find/template.py
 # @operations: append appendLeft cut find getAll hashAll insertAt insertCopiesAt isPalindrome longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangesEqual size split trisect
 # @data-structure-type: treap
 # @complexities:

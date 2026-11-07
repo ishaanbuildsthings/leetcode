@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-min-max-hash-xor-or-updates-assign-div-mod-sqrt/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/beats-min-max-hash-xor-or-updates-assign-div-mod-sqrt/template.py
 # @operations: getAll hashAll isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangeOrQuery rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX xorAll
 # @data-structure-type: beats
 # @complexities:

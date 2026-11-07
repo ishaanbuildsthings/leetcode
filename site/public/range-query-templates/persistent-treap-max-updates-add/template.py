@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-max-updates-add/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-max-updates-add/template.py
 # @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAdd rangeMax rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX size split trisect
 # @data-structure-type: persistent-treap
 # @letters: same

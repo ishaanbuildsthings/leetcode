@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-maxPrefixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rangeXorQuery/sparse-fast.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-maxPrefixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rangeXorQuery/sparse-fast.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

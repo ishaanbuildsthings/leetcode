@@ -1,0 +1,217 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeSum/template.py
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeSum sumAll
+# @data-structure-type: lazy-seg-tree
+# @complexities:
+#   getAll: N
+#   pointAdd: log(N)
+#   pointAssign: log(N)
+#   pointChmax: log(N)
+#   pointChmin: log(N)
+#   pointGet: log(N)
+#   rangeAdd: log(N)
+#   rangeAssign: log(N)
+#   rangeSum: log(N)
+#   sumAll: log(N)
+#   build: N
+# @memory:
+#   layout: 2n-iterative
+#   node: sm[2*N]
+#   tags: add[1*N] asg[1*N] hasAsg[1*N]
+#   other: none
+#   note: tags live on the N internal nodes only; each holds a pending assign or add (an add on an assigned node shifts the assigned value)
+
+# Range add / assign with range sum queries, plus point ops. All indices 0-based, ranges inclusive [l, r].
+# Iterative 2N lazy tree: values on the leaves, and on each internal node a pending assign or add, meaning "applied here, not
+# yet pushed to my children". An update pushes the tags on its two boundary paths, tags the covering nodes, then
+# rebuilds the two paths. A covering node at level s is a perfect subtree of 2^s leaves, so its length is 1 << s.
+
+
+class AddAssignSumTree:
+    __slots__ = ("n", "h", "sm", "add", "asg", "hasAsg")
+
+    # O(N)
+    def __init__(self, arr):
+        n = self.n = len(arr)
+        self.h = n.bit_length()
+        self.sm = [0] * n + list(arr)
+        for x in range(n - 1, 0, -1):
+            self.sm[x] = self.sm[2 * x] + self.sm[2 * x + 1]
+        self.add = [0] * n
+        self.asg = [0] * n
+        self.hasAsg = [False] * n
+
+    # add c to every slot of node x, which covers k slots
+    def _applyAdd(self, x, k, c):
+        self.sm[x] += c * k
+        if x < self.n:
+            if self.hasAsg[x]:
+                self.asg[x] += c  # still an assign, of a shifted value
+            else:
+                self.add[x] += c
+
+    # set every slot of node x (k slots) to v
+    def _applyAssign(self, x, k, v):
+        self.sm[x] = v * k
+        if x < self.n:
+            self.hasAsg[x] = True
+            self.asg[x] = v
+            self.add[x] = 0
+
+    # push every tag on the root-to-leaf path of leaf p down one level
+    def _push(self, p):
+        for s in range(self.h, 0, -1):
+            x = p >> s
+            k = 1 << (s - 1)
+            if self.hasAsg[x]:
+                self._applyAssign(2 * x, k, self.asg[x])
+                self._applyAssign(2 * x + 1, k, self.asg[x])
+                self.hasAsg[x] = False
+            elif self.add[x]:
+                self._applyAdd(2 * x, k, self.add[x])
+                self._applyAdd(2 * x + 1, k, self.add[x])
+                self.add[x] = 0
+
+    # recompute the ancestors of leaf p; each keeps the effect of its own pending tag
+    def _rebuild(self, p):
+        k = 1
+        while p > 1:
+            p >>= 1
+            k <<= 1
+            if self.hasAsg[p]:
+                v = self.asg[p]
+                self.sm[p] = v * k
+                continue
+            self.sm[p] = self.sm[2 * p] + self.sm[2 * p + 1] + self.add[p] * k
+
+    # O(logN) -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
+    def rangeAdd(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        if l > r:
+            return
+        l0, r0 = l + self.n, r + self.n
+        self._push(l0)
+        self._push(r0)
+        lo, hi, k = l0, r0 + 1, 1
+        while lo < hi:
+            if lo & 1:
+                self._applyAdd(lo, k, v)
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                self._applyAdd(hi, k, v)
+            lo >>= 1
+            hi >>= 1
+            k <<= 1
+        self._rebuild(l0)
+        self._rebuild(r0)
+
+    # O(logN) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
+    def rangeAssign(self, l, r, v):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        if l > r:
+            return
+        l0, r0 = l + self.n, r + self.n
+        self._push(l0)
+        self._push(r0)
+        lo, hi, k = l0, r0 + 1, 1
+        while lo < hi:
+            if lo & 1:
+                self._applyAssign(lo, k, v)
+                lo += 1
+            if hi & 1:
+                hi -= 1
+                self._applyAssign(hi, k, v)
+            lo >>= 1
+            hi >>= 1
+            k <<= 1
+        self._rebuild(l0)
+        self._rebuild(r0)
+
+    # O(logN) -- a[l] + ... + a[r]; needs 0 <= l <= r < n, else IndexError
+    def rangeSum(self, l, r):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        if l > r:
+            return 0
+        l += self.n
+        r += self.n
+        self._push(l)
+        self._push(r)
+        arr = self.sm
+        res = 0
+        r += 1
+        while l < r:
+            if l & 1:
+                res += arr[l]
+                l += 1
+            if r & 1:
+                r -= 1
+                res += arr[r]
+            l >>= 1
+            r >>= 1
+        return res
+
+    # O(N) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
+    # the leaves are (n >> s) .. ((2n - 1) >> s); their children cover k = 1 << (s - 1) leaves), then read the leaves
+    def getAll(self):
+        n = self.n
+        for s in range(self.h, 0, -1):
+            k = 1 << (s - 1)
+            for x in range(max(1, n >> s), ((2 * n - 1) >> s) + 1):
+                if self.hasAsg[x]:
+                    self._applyAssign(2 * x, k, self.asg[x])
+                    self._applyAssign(2 * x + 1, k, self.asg[x])
+                    self.hasAsg[x] = False
+                elif self.add[x]:
+                    self._applyAdd(2 * x, k, self.add[x])
+                    self._applyAdd(2 * x + 1, k, self.add[x])
+                    self.add[x] = 0
+        return self.sm[n:]
+
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
+    def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
+        p = i + self.n
+        self._push(p)
+        return self.sm[p]
+
+    # O(logN) -- a[i] = val; needs 0 <= i < n, else IndexError
+    def pointAssign(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
+        p = i + self.n
+        self._push(p)
+        self.sm[p] = val
+        self._rebuild(p)
+
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
+    def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
+        self.pointAssign(i, self.pointGet(i) + delta)
+
+    # O(logN) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
+    def pointChmax(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
+        if val > self.pointGet(i):
+            self.pointAssign(i, val)
+
+    # O(logN) -- a[i] = min(a[i], val); needs needs 0 <= i < n, else IndexError, else IndexError
+    def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
+        if val < self.pointGet(i):
+            self.pointAssign(i, val)

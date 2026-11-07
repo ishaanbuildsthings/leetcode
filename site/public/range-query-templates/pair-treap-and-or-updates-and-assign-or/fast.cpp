@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-and-or-updates-and-assign-or/fast.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-and-or-updates-and-assign-or/fast.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

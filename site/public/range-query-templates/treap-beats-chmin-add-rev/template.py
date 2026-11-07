@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-beats-chmin-add-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-beats-chmin-add-rev/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAdd rangeAssign rangeChmin rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX size split sumAll trisect
 # @data-structure-type: treap
 # @complexities:

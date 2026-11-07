@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-hash-and-gcd-updates-assign/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-hash-and-gcd-updates-assign/template.py
 # @operations: andAll append appendLeft cut gcdAll getAll hashAll insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeGcd rangeHash rangeHashReversed rangeRotateLeft rangeRotateRight rangeTwinSpin rangesEqual size split trisect
 # @data-structure-type: pair-treap
 # @complexities:

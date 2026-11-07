@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-max-xor-and-updates-div-mod-sqrt/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/beats-sum-max-xor-and-updates-div-mod-sqrt/template.py
 # @operations: andAll getAll leftmostGtX leftmostGteX maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeSum rangeXorQuery rightmostGtX rightmostGteX sumAll xorAll
 # @data-structure-type: beats
 # @complexities:

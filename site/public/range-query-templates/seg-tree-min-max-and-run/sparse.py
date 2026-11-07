@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-min-max-and-run/sparse.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-min-max-and-run/sparse.py
 # @operations: leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeMax rangeMin rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 # @data-structure-type: seg-tree
 # @complexities:

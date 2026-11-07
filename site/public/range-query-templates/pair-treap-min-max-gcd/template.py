@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-max-gcd/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-min-max-gcd/template.py
 # @operations: append appendLeft cut gcdAll getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAll merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeTwinSpin rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: pair-treap
 # @complexities:

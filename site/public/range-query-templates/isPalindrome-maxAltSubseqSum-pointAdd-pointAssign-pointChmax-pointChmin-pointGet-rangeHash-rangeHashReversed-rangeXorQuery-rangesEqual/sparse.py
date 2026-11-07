@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/isPalindrome-maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeHash-rangeHashReversed-rangeXorQuery-rangesEqual/sparse.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/isPalindrome-maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeHash-rangeHashReversed-rangeXorQuery-rangesEqual/sparse.py
 # @operations: isPalindrome maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeXorQuery rangesEqual
 # @data-structure-type: seg-tree
 # @complexities:

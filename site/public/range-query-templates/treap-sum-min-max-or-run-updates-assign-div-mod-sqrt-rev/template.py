@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-max-or-run-updates-assign-div-mod-sqrt-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-min-max-or-run-updates-assign-div-mod-sqrt-rev/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun maxAll merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split sumAll trisect
 # @data-structure-type: treap
 # @complexities:

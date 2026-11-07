@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-min-max-run-updates-assign/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-min-max-run-updates-assign/letters.py
 # @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun maxAll minAll pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:

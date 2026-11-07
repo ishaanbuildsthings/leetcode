@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX/sparse-fast.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/longestEqualRun-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX/sparse-fast.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

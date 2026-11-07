@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-xor-gcd-updates-assign-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-min-xor-gcd-updates-assign-rev/template.py
 # @operations: append appendLeft cut gcdAll getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeGcd rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorQuery rightmostLtX rightmostLteX size split trisect xorAll
 # @data-structure-type: pair-treap
 # @complexities:

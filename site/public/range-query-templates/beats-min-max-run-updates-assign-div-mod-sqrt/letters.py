@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-min-max-run-updates-assign-div-mod-sqrt/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/beats-min-max-run-updates-assign-div-mod-sqrt/letters.py
 # @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun maxAll minAll pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 # @data-structure-type: beats
 # @complexities:

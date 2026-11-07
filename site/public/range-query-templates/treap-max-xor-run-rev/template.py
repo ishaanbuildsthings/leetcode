@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-max-xor-run-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-max-xor-run-rev/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rightmostGtX rightmostGteX size split trisect xorAll
 # @data-structure-type: treap
 # @complexities:

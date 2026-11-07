@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-max-and-gcd-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-sum-max-and-gcd-find/template.py
 # @operations: andAll append appendLeft cut find gcdAll getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeGcd rangeMax rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rightmostGtX rightmostGteX size split sumAll trisect
 # @data-structure-type: pair-treap
 # @complexities:

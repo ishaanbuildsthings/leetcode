@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/isPalindrome-minSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeHash-rangeHashReversed-rangeSum-rangesEqual-rightmostSuffixSumLtX-rightmostSuffixSumLteX/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/isPalindrome-minSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeHash-rangeHashReversed-rangeSum-rangesEqual-rightmostSuffixSumLtX-rightmostSuffixSumLteX/letters.py
 # @operations: getAll hashAll isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangesEqual
 # @data-structure-type: seg-tree
 # @complexities:

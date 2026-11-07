@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-hash-xor-and-or-gcd-run-alt/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-hash-xor-and-or-gcd-run-alt/template.py
 # @operations: andAll gcdAll getAll hashAll isPalindrome longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAltSubseqSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeHash rangeHashReversed rangeOrQuery rangeXorQuery rangesEqual xorAll
 # @data-structure-type: seg-tree
 # @complexities:

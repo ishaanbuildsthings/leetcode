@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeMin-rangeOrQuery-rangeSortAsc-rangeSortDesc-rangeXorQuery/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeMin-rangeOrQuery-rangeSortAsc-rangeSortDesc-rangeXorQuery/template.py
 # @operations: andAll getAll minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMin rangeOrQuery rangeSortAsc rangeSortDesc rangeXorQuery xorAll
 # @data-structure-type: sorted-runs
 # @complexities:

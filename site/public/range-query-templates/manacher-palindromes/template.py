@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/manacher-palindromes/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/manacher-palindromes/template.py
 # @operations: getAll isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne pointGet
 # @data-structure-type: manacher
 # @letters: same

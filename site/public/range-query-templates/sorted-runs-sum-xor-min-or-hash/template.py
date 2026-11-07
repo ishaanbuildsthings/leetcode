@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-sum-xor-min-or-hash/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/sorted-runs-sum-xor-min-or-hash/template.py
 # @operations: getAll hashAll isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeHash rangeHashReversed rangeMin rangeOrQuery rangeSortAsc rangeSortDesc rangeSum rangeXorQuery rangesEqual sumAll xorAll
 # @data-structure-type: sorted-runs
 # @complexities:

@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/PrevPermutation.inplace.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/next-permutation/PrevPermutation.inplace.py
 
 # Moves arr in place to be the previous permutation, with looping behavior around to the lexicographical largest permutation if we step past the lexicographical min
 # Works with a list of any comparable item (int, float, negatives, char, tuple, etc)

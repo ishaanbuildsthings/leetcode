@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-min-max-hash-alt-updates-div-mod-sqrt/sparse.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/beats-min-max-hash-alt-updates-div-mod-sqrt/sparse.py
 # @operations: isPalindrome leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMin rangeMod rangesEqual rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 # @data-structure-type: beats
 # @complexities:

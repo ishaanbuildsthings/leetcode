@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-and-or-updates-and/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-and-or-updates-and/template.py
 # @operations: andAll append appendLeft cut getAll insertAt insertCopiesAt merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndApply rangeAndQuery rangeOrQuery rangeRotateLeft rangeRotateRight rangeTwinSpin size split trisect
 # @data-structure-type: pair-treap
 # @complexities:

@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-leftmostPrefixSumLtX-leftmostPrefixSumLteX-minPrefixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rangeSum-rightmostGtX-rightmostGteX/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostGtX-leftmostGteX-leftmostPrefixSumLtX-leftmostPrefixSumLteX-minPrefixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMax-rangeSum-rightmostGtX-rightmostGteX/template.py
 # @operations: getAll leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAll minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeSum rightmostGtX rightmostGteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:

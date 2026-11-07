@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-hash-or-gcd/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-min-hash-or-gcd/template.py
 # @operations: append appendLeft cut gcdAll getAll hashAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeHash rangeHashReversed rangeMin rangeOrQuery rangeRotateLeft rangeRotateRight rangeTwinSpin rangesEqual rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: pair-treap
 # @complexities:

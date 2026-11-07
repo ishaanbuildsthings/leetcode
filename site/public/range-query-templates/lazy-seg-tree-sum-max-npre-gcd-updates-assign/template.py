@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-max-npre-gcd-updates-assign/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-max-npre-gcd-updates-assign/template.py
 # @operations: gcdAll getAll leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAll minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeMax rangeSum rightmostGtX rightmostGteX sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:

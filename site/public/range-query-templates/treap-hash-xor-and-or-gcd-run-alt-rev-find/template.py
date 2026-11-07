@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-hash-xor-and-or-gcd-run-alt-rev-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-hash-xor-and-or-gcd-run-alt-rev-find/template.py
 # @operations: andAll append appendLeft cut find gcdAll getAll hashAll insertAt insertCopiesAt isPalindrome longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAltSubseqSum merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeGcd rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual size split trisect xorAll
 # @data-structure-type: treap
 # @complexities:

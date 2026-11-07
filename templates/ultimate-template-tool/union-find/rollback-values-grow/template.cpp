@@ -1,0 +1,150 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/rollback-values-grow/template.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// RollbackDSU<int> dsu(vals);
+// vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
+template <typename T>
+struct RollbackDSU {
+    vector<T> vals;
+    vector<int> par, sz;
+    int comps, mx;
+    vector<long long> csum;  // at each root: the sum, min and max of its component's values
+    vector<T> cmin, cmax;
+    struct Frame { int i, j, mx; T lo, hi; };  // i < 0: a unite that found them already together
+    vector<Frame> stk;  // one frame per unite, so rollback can undo it
+
+    // O(n), every element starts in its own component
+    RollbackDSU(const vector<T>& vals = {}) : vals(vals) {
+        int n = vals.size();
+        par.resize(n);
+        iota(par.begin(), par.end(), 0);
+        sz.assign(n, 1);
+        comps = n;
+        mx = n ? 1 : 0;
+        csum.assign(vals.begin(), vals.end());
+        cmin = cmax = vals;
+    }
+
+    // O(log n), index of the representative of i's component; parents are never rewritten, so any unite can be undone
+    int find(int i) {
+        while (par[i] != i) i = par[i];
+        return i;
+    }
+
+    // O(log n), merges the two components, false if i and j were already together
+    // either way it records a frame, so it always takes exactly one rollback to undo
+    bool unite(int i, int j) {
+        i = find(i), j = find(j);
+        if (i == j) {
+            stk.push_back({-1, -1, mx});
+            return false;
+        }
+        if (sz[i] < sz[j]) swap(i, j);
+        stk.push_back({i, j, mx, cmin[i], cmax[i]});
+        par[j] = i;
+        sz[i] += sz[j];
+        comps--;
+        mx = max(mx, sz[i]);
+        csum[i] += csum[j];
+        cmin[i] = min(cmin[i], cmin[j]);
+        cmax[i] = max(cmax[i], cmax[j]);
+        return true;
+    }
+
+    // O(1), undoes the most recent unite, whether or not it merged anything: k rollbacks always undo the last
+    // k unites (an add is never undone); out_of_range if you roll back more unites than you made
+    void rollback() {
+        if (stk.empty()) throw out_of_range("rollback: no unite left to undo");
+        Frame f = stk.back();
+        stk.pop_back();
+        if (f.i < 0) return;
+        int i = f.i, j = f.j;
+        par[j] = j;
+        sz[i] -= sz[j];
+        comps++;
+        mx = f.mx;
+        csum[i] -= csum[j];
+        cmin[i] = f.lo;
+        cmax[i] = f.hi;
+    }
+
+    // O(1), a point to roll back to later: how many unites can be undone right now
+    int checkpoint() { return stk.size(); }
+
+    // O(1) per unite undone, undoes every unite made since checkpoint() returned k
+    void rollbackTo(int k) {
+        while ((int)stk.size() > k) rollback();
+    }
+
+    // O(log n), true if i and j are in the same component
+    bool areUnioned(int i, int j) { return find(i) == find(j); }
+
+    // O(log n), how many elements are in i's component
+    int size(int i) { return sz[find(i)]; }
+
+    // O(1), how many components exist right now
+    int numComponents() { return comps; }
+
+    // O(1), size of the biggest component, restored by rollback
+    int largestSize() { return mx; }
+
+    // O(n), one index per component: the representative each member's find returns
+    vector<int> roots() {
+        vector<int> res;
+        for (int i = 0; i < (int)par.size(); i++)
+            if (par[i] == i) res.push_back(i);
+        return res;
+    }
+
+    // O(n log n), the sizes of all components, biggest first, e.g. [4, 2, 1]
+    vector<int> sizes() {
+        vector<int> res;
+        for (int i = 0; i < (int)par.size(); i++)
+            if (par[i] == i) res.push_back(sz[i]);
+        sort(res.rbegin(), res.rend());
+        return res;
+    }
+
+    // O(n log n), groupsArr[rt] = values whose root is rt, empty if rt is not a root
+    vector<vector<T>> groups() {
+        int n = par.size();
+        vector<vector<T>> groupsArr(n);
+        for (int i = 0; i < n; i++) groupsArr[find(i)].push_back(vals[i]);
+        return groupsArr;
+    }
+
+    // O(n log n), the values of every element sitting in the same group as index i
+    vector<T> elementsInGroup(int i) {
+        int rt = find(i);
+        vector<T> res;
+        for (int j = 0; j < (int)par.size(); j++)
+            if (find(j) == rt) res.push_back(vals[j]);
+        return res;
+    }
+
+    // O(log n), the sum of the values in i's component
+    long long componentSum(int i) { return csum[find(i)]; }
+
+    // O(log n), the smallest value in i's component
+    T componentMin(int i) { return cmin[find(i)]; }
+
+    // O(log n), the largest value in i's component
+    T componentMax(int i) { return cmax[find(i)]; }
+
+    // O(1), adds a new element in its own component and returns its index
+    int add(const T& val) {
+        int i = par.size();
+        vals.push_back(val);
+        par.push_back(i);
+        sz.push_back(1);
+        comps++;
+        mx = max(mx, 1);
+        csum.push_back(val);
+        cmin.push_back(val);
+        cmax.push_back(val);
+        return i;
+    }
+};

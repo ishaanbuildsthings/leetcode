@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeLNDS/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointGet-rangeLNDS/template.py
 # @operations: pointGet rangeLNDS
 # @data-structure-type: merge-sort-tree
 # @fractional-cascading: yes

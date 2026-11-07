@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-max-xor-and-or-gcd-run-alt-updates-assign-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-max-xor-and-or-gcd-run-alt-updates-assign-rev/template.py
 # @operations: andAll append appendLeft copy cut gcdAll getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun maxAll maxAltSubseqSum merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeGcd rangeMax rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rightmostGtX rightmostGteX size split trisect xorAll
 # @data-structure-type: persistent-treap
 # @complexities:

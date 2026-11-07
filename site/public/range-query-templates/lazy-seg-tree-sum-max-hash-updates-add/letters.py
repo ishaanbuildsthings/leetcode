@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-max-hash-updates-add/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-max-hash-updates-add/letters.py
 # @operations: getAll hashAll isPalindrome leftmostGtX leftmostGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeMax rangesEqual rightmostGtX rightmostGteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:

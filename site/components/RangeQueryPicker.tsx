@@ -89,7 +89,7 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   title: "Range Query Picker",
   opGroups: OP_GROUPS,
   publicBase: "/range-query-templates",
-  githubBase: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/",
+  githubBase: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/",
   typeOrder: DATA_STRUCTURE_TYPES,
   perType: 3,
   // one that needs every value up front never stands in for one that doesn't, nor a dense one for a sparse one

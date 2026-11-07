@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-hash-xor-and-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-min-hash-xor-and-find/template.py
 # @operations: andAll append appendLeft cut find getAll hashAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeHash rangeHashReversed rangeMin rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual rightmostLtX rightmostLteX size split trisect xorAll
 # @data-structure-type: treap
 # @complexities:

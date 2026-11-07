@@ -94,4 +94,15 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     note: "Every op that changes the array makes O(log N) new nodes (never freed); queries make none. N can be huge (long long)",
     githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
   },
+  {
+    label: "Generic sparse table",
+    title: "Static array, fill in Node, baseFn(v, i) and an idempotent combine (min, max, gcd, AND, OR, ...): O(1) rangeQuery",
+    folder: "_generic",
+    fast: GENERIC_FAST,
+    cppLevels: true,
+    file: "GenericSparseTable",
+    ops: [["pointGet(i)", "1"], ["rangeQuery(l, r)", "1"], ["rangeQueryAll()", "1"], ["size()", "1"], ["build", "N*log(N)"]],
+    note: "No updates. combine must give the same answer when a range is counted twice (combine(x, x) == x), so no sums or counts. baseFn runs once per element; a query is one combine call. Memory: N log N Nodes",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+  },
 ];

@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-suf-run-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-max-suf-run-find/template.py
 # @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostGtX leftmostGteX longestEqualRun maxAll maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMax rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split sumAll trisect
 # @data-structure-type: treap
 # @letters: same

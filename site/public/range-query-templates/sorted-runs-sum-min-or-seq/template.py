@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-sum-min-or-seq/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/sorted-runs-sum-min-or-seq/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum size split sumAll trisect
 # @data-structure-type: sorted-runs
 # @complexities:

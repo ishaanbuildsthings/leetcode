@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-hash-gcd-alt-updates-assign-rev/fast.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-min-hash-gcd-alt-updates-assign-rev/fast.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

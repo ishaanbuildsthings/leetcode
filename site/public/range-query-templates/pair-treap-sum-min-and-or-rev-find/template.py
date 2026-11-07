@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-min-and-or-rev-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-sum-min-and-or-rev-find/template.py
 # @operations: andAll append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rightmostLtX rightmostLteX size split sumAll trisect
 # @data-structure-type: pair-treap
 # @complexities:

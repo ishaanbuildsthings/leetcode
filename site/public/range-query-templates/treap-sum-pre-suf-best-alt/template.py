@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-pre-suf-best-alt/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-pre-suf-best-alt/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostPrefixSumGtX leftmostPrefixSumGteX maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeRotateLeft rangeRotateRight rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX size split sumAll trisect
 # @data-structure-type: treap
 # @complexities:

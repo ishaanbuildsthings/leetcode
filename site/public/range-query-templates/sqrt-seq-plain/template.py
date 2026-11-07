@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-seq-plain/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/sqrt-seq-plain/template.py
 # @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange maxAll merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMax rangeMin rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split trisect
 # @data-structure-type: sqrt
 # @complexities:

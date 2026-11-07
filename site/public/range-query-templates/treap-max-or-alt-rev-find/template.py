@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-max-or-alt-rev-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-max-or-alt-rev-find/template.py
 # @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAll maxAltSubseqSum merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMax rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX size split trisect
 # @data-structure-type: treap
 # @complexities:

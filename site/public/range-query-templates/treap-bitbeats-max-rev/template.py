@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-bitbeats-max-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-bitbeats-max-rev/template.py
 # @operations: andAll append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAll merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndApply rangeAndQuery rangeAssign rangeMax rangeOrApply rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX size split trisect
 # @data-structure-type: treap
 # @complexities:

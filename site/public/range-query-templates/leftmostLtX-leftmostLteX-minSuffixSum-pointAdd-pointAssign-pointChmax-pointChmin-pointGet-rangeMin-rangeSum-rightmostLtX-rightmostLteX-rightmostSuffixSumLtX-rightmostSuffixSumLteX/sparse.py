@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostLtX-leftmostLteX-minSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMin-rangeSum-rightmostLtX-rightmostLteX-rightmostSuffixSumLtX-rightmostSuffixSumLteX/sparse.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostLtX-leftmostLteX-minSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMin-rangeSum-rightmostLtX-rightmostLteX-rightmostSuffixSumLtX-rightmostSuffixSumLteX/sparse.py
 # @operations: leftmostLtX leftmostLteX minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeSum rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX
 # @data-structure-type: seg-tree
 # @complexities:

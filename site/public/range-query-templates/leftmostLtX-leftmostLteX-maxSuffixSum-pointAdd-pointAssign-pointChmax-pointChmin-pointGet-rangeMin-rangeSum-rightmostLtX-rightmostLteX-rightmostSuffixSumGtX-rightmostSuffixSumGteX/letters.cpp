@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostLtX-leftmostLteX-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMin-rangeSum-rightmostLtX-rightmostLteX-rightmostSuffixSumGtX-rightmostSuffixSumGteX/letters.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostLtX-leftmostLteX-maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeMin-rangeSum-rightmostLtX-rightmostLteX-rightmostSuffixSumGtX-rightmostSuffixSumGteX/letters.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

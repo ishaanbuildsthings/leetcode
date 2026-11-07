@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-npre/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-max-npre/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAll merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMax rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX size split sumAll trisect
 # @data-structure-type: treap
 # @letters: same

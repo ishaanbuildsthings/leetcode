@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-npre-xor-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-min-npre-xor-find/template.py
 # @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX merge minAll minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMin rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostLtX rightmostLteX size split sumAll trisect xorAll
 # @data-structure-type: treap
 # @complexities:

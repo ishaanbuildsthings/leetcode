@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-xor-and-or-gcd-run-alt-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-xor-and-or-gcd-run-alt-rev/template.py
 # @operations: andAll append appendLeft cut gcdAll getAll insertAt insertCopiesAt longestEqualRun maxAltSubseqSum merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeGcd rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery size split trisect xorAll
 # @data-structure-type: treap
 # @complexities:

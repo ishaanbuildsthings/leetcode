@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmax-rangeMax/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeChmax-rangeMax/letters.py
 # @operations: getAll maxAll pointAssign pointChmax pointChmin pointGet rangeChmax rangeMax
 # @data-structure-type: lazy-seg-tree
 # @complexities:

@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-min-max-xor-or/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-min-max-xor-or/template.py
 # @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAll merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMax rangeMin rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect xorAll
 # @data-structure-type: persistent-treap
 # @complexities:

@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/orGtX-orGteX-orInValRange-orLtX-orLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-xorGtX-xorGteX-xorInValRange-xorLtX-xorLteX/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/orGtX-orGteX-orInValRange-orLtX-orLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-xorGtX-xorGteX-xorInValRange-xorLtX-xorLteX/template.py
 # @operations: getAll orGtX orGteX orInValRange orLtX orLteX pointAdd pointAssign pointChmax pointChmin pointGet xorGtX xorGteX xorInValRange xorLtX xorLteX
 # @data-structure-type: seg-of-trees
 # @complexities:

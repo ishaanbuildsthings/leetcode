@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-hash-xor-run-updates-assign-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-hash-xor-run-updates-assign-rev/template.py
 # @operations: append appendLeft cut getAll hashAll insertAt insertCopiesAt isPalindrome longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeHash rangeHashReversed rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rangesEqual size split trisect xorAll
 # @data-structure-type: treap
 # @complexities:

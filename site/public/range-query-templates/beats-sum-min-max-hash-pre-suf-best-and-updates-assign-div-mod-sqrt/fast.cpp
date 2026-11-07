@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-min-max-hash-pre-suf-best-and-updates-assign-div-mod-sqrt/fast.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/beats-sum-min-max-hash-pre-suf-best-and-updates-assign-div-mod-sqrt/fast.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

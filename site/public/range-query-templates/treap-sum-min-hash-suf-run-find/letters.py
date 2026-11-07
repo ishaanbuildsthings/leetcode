@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-hash-suf-run-find/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-min-hash-suf-run-find/letters.py
 # @operations: append appendLeft cut getAll hashAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestEqualRun longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minAll paste pointAssign pointChmax pointChmin pointGet pop popLeft rangeHash rangeHashReversed rangeMin rangeRotateLeft rangeRotateRight rangesEqual rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: treap
 # @complexities:

@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-strided-static-sum-min-gcd-and/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/sqrt-strided-static-sum-min-gcd-and/template.py
 # @operations: stridedAndQuery stridedGcd stridedMin stridedSum
 # @data-structure-type: sqrt
 # @complexities:

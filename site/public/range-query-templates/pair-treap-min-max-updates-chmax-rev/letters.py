@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-max-updates-chmax-rev/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-min-max-updates-chmax-rev/letters.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAll merge minAll paste pointAssign pointChmax pointChmin pointGet pop popLeft rangeChmax rangeMax rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: pair-treap
 # @complexities:

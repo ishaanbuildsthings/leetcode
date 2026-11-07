@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-nsuf-xor/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-min-nsuf-xor/template.py
 # @operations: getAll leftmostLtX leftmostLteX minAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeSum rangeXorQuery rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll xorAll
 # @data-structure-type: seg-tree
 # @complexities:

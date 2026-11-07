@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-and-or-rev-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-and-or-rev-find/template.py
 # @operations: andAll append appendLeft cut find getAll insertAt insertCopiesAt merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight size split trisect
 # @data-structure-type: treap
 # @complexities:

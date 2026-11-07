@@ -29,12 +29,13 @@ import { readUsage } from "@/lib/template-usage";
 const PICKER_PAGES = [
   { href: "/templates/range-queries", label: "Range queries" },
   { href: "/templates/sets", label: "Sets" },
+  { href: "/templates/union-find", label: "Union find" },
   { href: "/templates/misc", label: "Misc." },
   { href: "/templates/golden-references", label: "Golden References" },
 ];
 
 // the picker tabs, with the page's controls (children) at the right end of the same row
-function PickerTabs({ children }: { children?: React.ReactNode }) {
+export function PickerTabs({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
   return (
     <nav
@@ -730,7 +731,7 @@ function ChoiceRow<T extends string>({
 }
 
 // A fill-in template (catalog.fillIns): just the file, in either language, with Copy and GitHub.
-function FillInDrawer({
+export function FillInDrawer({
   catalog,
   fillIn: base,
   onClose,
@@ -1793,7 +1794,7 @@ export function MiscTemplates({
 }
 
 // a Misc card: its label (the variant's while ticked), opening the drawer; a card with a variant shows its checkbox
-function MiscCard({ item, onOpen }: { item: FillIn; onOpen: () => void }) {
+export function MiscCard({ item, onOpen }: { item: FillIn; onOpen: () => void }) {
   const [on, choose] = usePageFlag(item.variant?.storageKey ?? "");
   const f = withVariant(item, on);
   return (

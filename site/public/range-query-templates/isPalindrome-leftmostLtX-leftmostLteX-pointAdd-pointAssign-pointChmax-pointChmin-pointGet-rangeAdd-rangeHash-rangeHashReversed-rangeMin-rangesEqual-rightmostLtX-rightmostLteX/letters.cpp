@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/isPalindrome-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeHash-rangeHashReversed-rangeMin-rangesEqual-rightmostLtX-rightmostLteX/letters.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/isPalindrome-leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeHash-rangeHashReversed-rangeMin-rangesEqual-rightmostLtX-rightmostLteX/letters.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

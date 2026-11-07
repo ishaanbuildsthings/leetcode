@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-or-updates-and-assign-or/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-or-updates-and-assign-or/template.py
 # @operations: append appendLeft copy cut getAll insertAt insertCopiesAt merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndApply rangeAssign rangeOrApply rangeOrQuery rangeRotateLeft rangeRotateRight size split trisect
 # @data-structure-type: persistent-treap
 # @complexities:

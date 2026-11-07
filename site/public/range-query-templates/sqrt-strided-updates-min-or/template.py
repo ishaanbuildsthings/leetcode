@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-strided-updates-min-or/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/sqrt-strided-updates-min-or/template.py
 # @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet stridedMin stridedOrQuery
 # @data-structure-type: sqrt
 # @complexities:

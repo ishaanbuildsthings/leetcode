@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-min-xor-gcd-updates-assign/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-min-xor-gcd-updates-assign/template.py
 # @operations: append appendLeft cut gcdAll getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeGcd rangeMin rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostLtX rightmostLteX size split sumAll trisect xorAll
 # @data-structure-type: treap
 # @complexities:

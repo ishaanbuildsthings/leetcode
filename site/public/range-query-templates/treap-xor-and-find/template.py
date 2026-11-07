@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-xor-and-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-xor-and-find/template.py
 # @operations: andAll append appendLeft cut find getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeRotateLeft rangeRotateRight rangeXorQuery size split trisect xorAll
 # @data-structure-type: treap
 # @complexities:

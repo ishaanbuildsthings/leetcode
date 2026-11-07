@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-min-max-xor-and-or-run-alt-updates-div-mod-sqrt/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/beats-min-max-xor-and-or-run-alt-updates-div-mod-sqrt/template.py
 # @operations: andAll getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun maxAll maxAltSubseqSum minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeOrQuery rangeXorQuery rightmostGtX rightmostGteX rightmostLtX rightmostLteX xorAll
 # @data-structure-type: beats
 # @complexities:

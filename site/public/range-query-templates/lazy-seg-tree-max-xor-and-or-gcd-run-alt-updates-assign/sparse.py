@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-max-xor-and-or-gcd-run-alt-updates-assign/sparse.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-max-xor-and-or-gcd-run-alt-updates-assign/sparse.py
 # @operations: leftmostGtX leftmostGteX longestEqualRun maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeMax rangeOrQuery rangeXorQuery rightmostGtX rightmostGteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:

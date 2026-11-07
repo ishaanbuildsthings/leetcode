@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-min-max-gcd-run-updates-add/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-min-max-gcd-run-updates-add/template.py
 # @operations: gcdAll getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX longestEqualRun maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeMax rangeMin rightmostGtX rightmostGteX rightmostLtX rightmostLteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:

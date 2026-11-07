@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/PrevPermutation.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/next-permutation/PrevPermutation.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

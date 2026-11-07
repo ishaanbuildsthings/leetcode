@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeSum-rightmostGtX-rightmostGteX/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostGtX-leftmostGteX-longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeMax-rangeSum-rightmostGtX-rightmostGteX/letters.py
 # @operations: getAll leftmostGtX leftmostGteX longestEqualRun maxAll pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rightmostGtX rightmostGteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:

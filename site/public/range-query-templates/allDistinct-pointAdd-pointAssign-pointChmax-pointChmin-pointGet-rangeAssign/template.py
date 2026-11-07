@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/allDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/allDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign/template.py
 # @operations: allDistinct getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign
 # @data-structure-type: seg-tree
 # @letters: same

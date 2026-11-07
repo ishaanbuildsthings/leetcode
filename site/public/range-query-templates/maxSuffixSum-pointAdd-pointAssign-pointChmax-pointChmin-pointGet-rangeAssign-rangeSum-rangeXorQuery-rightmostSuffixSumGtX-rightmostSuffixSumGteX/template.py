@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum-rangeXorQuery-rightmostSuffixSumGtX-rightmostSuffixSumGteX/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/maxSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum-rangeXorQuery-rightmostSuffixSumGtX-rightmostSuffixSumGteX/template.py
 # @operations: getAll maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum rangeXorQuery rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll xorAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:

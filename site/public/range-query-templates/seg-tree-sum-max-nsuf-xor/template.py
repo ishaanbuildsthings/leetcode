@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-max-nsuf-xor/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-max-nsuf-xor/template.py
 # @operations: getAll leftmostGtX leftmostGteX maxAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeSum rangeXorQuery rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll xorAll
 # @data-structure-type: seg-tree
 # @complexities:

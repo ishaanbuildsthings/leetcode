@@ -87,9 +87,9 @@ const SET_CATALOG: PickerCatalog<SetView> = {
   opGroups: SET_OP_GROUPS,
   publicBase: "/set-templates",
   githubBase:
-    "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/sets/",
+    "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/sets/",
   remoteBase:
-    "https://raw.githubusercontent.com/ishaanbuildsthings/leetcode/main/templates/sets",
+    "https://raw.githubusercontent.com/ishaanbuildsthings/leetcode/main/templates/ultimate-template-tool/sets",
   typeOrder: SET_TYPES,
   perType: 3,
   // one never stands in for another that needs less known about the values, takes more kinds of keys, or keeps less

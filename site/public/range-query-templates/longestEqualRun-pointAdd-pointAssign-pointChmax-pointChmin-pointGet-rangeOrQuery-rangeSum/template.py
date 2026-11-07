@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeOrQuery-rangeSum/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeOrQuery-rangeSum/template.py
 # @operations: getAll longestEqualRun orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeOrQuery rangeSum sumAll
 # @data-structure-type: seg-tree
 # @complexities:

@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostIndexOf-leftmostIndexOfInRange-pointAssign-pointGet-rangeReplace-rightmostIndexOf-rightmostIndexOfInRange/fast.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostIndexOf-leftmostIndexOfInRange-pointAssign-pointGet-rangeReplace-rightmostIndexOf-rightmostIndexOfInRange/fast.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

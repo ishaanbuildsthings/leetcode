@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/append-appendLeft-cut-insertAt-insertCopiesAt-merge-paste-pointAssign-pointGet-rangeAssign-rangeReplace-rangeRotateLeft-rangeRotateRight-split-trisect/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/append-appendLeft-cut-insertAt-insertCopiesAt-merge-paste-pointAssign-pointGet-rangeAssign-rangeReplace-rangeRotateLeft-rangeRotateRight-split-trisect/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAssign pointGet pop popLeft rangeAssign rangeReplace rangeRotateLeft rangeRotateRight size split trisect
 # @data-structure-type: treap
 # @complexities:

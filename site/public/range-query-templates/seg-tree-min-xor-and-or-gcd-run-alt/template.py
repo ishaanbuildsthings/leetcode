@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-min-xor-and-or-gcd-run-alt/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-min-xor-and-or-gcd-run-alt/template.py
 # @operations: andAll gcdAll getAll leftmostLtX leftmostLteX longestEqualRun maxAltSubseqSum minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeMin rangeOrQuery rangeXorQuery rightmostLtX rightmostLteX xorAll
 # @data-structure-type: seg-tree
 # @complexities:

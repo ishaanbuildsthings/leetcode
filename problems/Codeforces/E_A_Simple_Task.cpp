@@ -155,7 +155,7 @@ int main() {
 using namespace std;
 
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAssign-pointGet-rangeSortAsc-rangeSortDesc-rangeSum/template.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAssign-pointGet-rangeSortAsc-rangeSortDesc-rangeSum/template.cpp
 // @operations: getAll pointAssign pointGet rangeSortAsc rangeSortDesc rangeSum
 // @data-structure-type: sorted-runs
 // @complexities:

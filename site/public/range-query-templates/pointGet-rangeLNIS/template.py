@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeLNIS/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointGet-rangeLNIS/template.py
 # @operations: pointGet rangeLNIS
 # @data-structure-type: merge-sort-tree
 # @fractional-cascading: yes

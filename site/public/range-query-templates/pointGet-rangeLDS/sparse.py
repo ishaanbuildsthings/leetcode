@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointGet-rangeLDS/sparse.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointGet-rangeLDS/sparse.py
 # @operations: pointGet rangeLDS
 # @data-structure-type: merge-sort-tree
 # @fractional-cascading: yes

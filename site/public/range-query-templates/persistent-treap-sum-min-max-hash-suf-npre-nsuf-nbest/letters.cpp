@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-min-max-hash-suf-npre-nsuf-nbest/letters.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-sum-min-max-hash-suf-npre-nsuf-nbest/letters.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

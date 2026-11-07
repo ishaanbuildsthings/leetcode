@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/merge-sort-tree-updates-offline/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/merge-sort-tree-updates-offline/template.py
 # @operations: countGtX countGteX countInValRange countLtX countLteX getAll largestLtX largestLteX pointAssign pointGet smallestGtX smallestGteX
 # @data-structure-type: merge-sort-tree
 # @fractional-cascading: no

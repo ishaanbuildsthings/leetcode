@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostPrefixSumLtX-leftmostPrefixSumLteX-maxAltSubseqSum-minPrefixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum/sparse.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostPrefixSumLtX-leftmostPrefixSumLteX-maxAltSubseqSum-minPrefixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum/sparse.py
 # @operations: leftmostPrefixSumLtX leftmostPrefixSumLteX maxAltSubseqSum minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
 # @data-structure-type: seg-tree
 # @complexities:

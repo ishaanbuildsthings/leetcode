@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-or-gcd-updates-assign-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-or-gcd-updates-assign-rev/template.py
 # @operations: append appendLeft cut gcdAll getAll insertAt insertCopiesAt merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeGcd rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight size split trisect
 # @data-structure-type: treap
 # @complexities:

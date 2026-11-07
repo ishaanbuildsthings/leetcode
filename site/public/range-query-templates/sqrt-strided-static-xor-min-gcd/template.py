@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-strided-static-xor-min-gcd/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/sqrt-strided-static-xor-min-gcd/template.py
 # @operations: stridedGcd stridedMin stridedXorQuery
 # @data-structure-type: sqrt
 # @complexities:

@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-npre-gcd/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-min-npre-gcd/template.py
 # @operations: gcdAll getAll leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX minAll minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeSum rightmostLtX rightmostLteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:

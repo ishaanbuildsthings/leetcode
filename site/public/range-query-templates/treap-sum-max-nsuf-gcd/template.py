@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-nsuf-gcd/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-max-nsuf-gcd/template.py
 # @operations: append appendLeft cut gcdAll getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAll merge minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeMax rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split sumAll trisect
 # @data-structure-type: treap
 # @complexities:

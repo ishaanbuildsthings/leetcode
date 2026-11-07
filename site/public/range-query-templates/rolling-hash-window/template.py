@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/rolling-hash-window/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/rolling-hash-window/template.py
 # @operations: append appendLeft getAll hashAll pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft size
 # @data-structure-type: rolling-hash
 # @letters: same

@@ -660,7 +660,7 @@ export const DATA_STRUCTURE_TYPE_LABELS: Record<DataStructureType, string> = {
 };
 
 export interface RangeQueryTemplate {
-  // Folder under templates/range-queries holding template.py and/or template.cpp.
+  // Folder under templates/ultimate-template-tool/range-queries holding template.py and/or template.cpp.
   folder: string;
   langs: TemplateLang[];
   operations: OpId[];

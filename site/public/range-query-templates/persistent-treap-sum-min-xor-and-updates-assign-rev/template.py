@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-min-xor-and-updates-assign-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-sum-min-xor-and-updates-assign-rev/template.py
 # @operations: andAll append appendLeft copy cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostLtX rightmostLteX size split sumAll trisect xorAll
 # @data-structure-type: persistent-treap
 # @complexities:

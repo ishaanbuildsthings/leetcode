@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-xor-or-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-xor-or-find/template.py
 # @operations: append appendLeft cut find getAll insertAt insertCopiesAt merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery size split sumAll trisect xorAll
 # @data-structure-type: treap
 # @complexities:

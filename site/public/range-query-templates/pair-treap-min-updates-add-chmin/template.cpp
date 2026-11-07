@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-updates-add-chmin/template.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-min-updates-add-chmin/template.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

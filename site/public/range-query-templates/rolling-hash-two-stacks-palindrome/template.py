@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/rolling-hash-two-stacks-palindrome/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/rolling-hash-two-stacks-palindrome/template.py
 # @operations: append appendLeft getAll hashAll isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne pointGet pop popLeft rangeHash rangeHashReversed rangesEqual size
 # @data-structure-type: rolling-hash
 # @letters: same

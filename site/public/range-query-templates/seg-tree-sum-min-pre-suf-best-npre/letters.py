@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-pre-suf-best-npre/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/seg-tree-sum-min-pre-suf-best-npre/letters.py
 # @operations: getAll leftmostLtX leftmostLteX minAll pointAssign pointChmax pointChmin pointGet rangeMin rightmostLtX rightmostLteX
 # @data-structure-type: seg-tree
 # @complexities:

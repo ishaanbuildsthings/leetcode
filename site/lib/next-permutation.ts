@@ -1,7 +1,7 @@
 import type { FillIn } from "@/components/TemplatePicker";
 
-// The next permutation templates (templates/next-permutation/): one function each, on the Misc tab.
-const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/next-permutation/";
+// The next permutation templates (templates/ultimate-template-tool/next-permutation/): one function each, on the Misc tab.
+const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/next-permutation/";
 
 export const NEXT_PERMUTATION: FillIn[] = [
   {

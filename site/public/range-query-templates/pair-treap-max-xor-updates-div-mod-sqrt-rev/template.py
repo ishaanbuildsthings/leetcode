@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-max-xor-updates-div-mod-sqrt-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-max-xor-updates-div-mod-sqrt-rev/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorQuery rightmostGtX rightmostGteX size split trisect xorAll
 # @data-structure-type: pair-treap
 # @complexities:

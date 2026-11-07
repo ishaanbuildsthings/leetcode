@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAssign-pointGet-rangeAssign-rangeReplace/letters.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAssign-pointGet-rangeAssign-rangeReplace/letters.py
 # @operations: getAll pointAssign pointGet rangeAssign rangeReplace
 # @data-structure-type: lazy-seg-tree
 # @complexities:

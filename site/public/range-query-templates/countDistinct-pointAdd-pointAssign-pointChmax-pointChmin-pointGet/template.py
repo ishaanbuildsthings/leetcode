@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/countDistinct-pointAdd-pointAssign-pointChmax-pointChmin-pointGet/template.py
 # @operations: countDistinct getAll pointAdd pointAssign pointChmax pointChmin pointGet
 # @data-structure-type: BIT
 # @letters: same

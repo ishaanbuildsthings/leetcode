@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-and-or-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-min-and-or-rev/template.py
 # @operations: andAll append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: pair-treap
 # @complexities:

@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-xor-gcd/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-treap-sum-xor-gcd/template.py
 # @operations: append appendLeft copy cut gcdAll getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery size split sumAll trisect xorAll
 # @data-structure-type: persistent-treap
 # @complexities:

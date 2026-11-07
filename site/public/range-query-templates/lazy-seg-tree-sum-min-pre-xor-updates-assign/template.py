@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-min-pre-xor-updates-assign/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/lazy-seg-tree-sum-min-pre-xor-updates-assign/template.py
 # @operations: getAll leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSum rangeXorQuery rightmostLtX rightmostLteX sumAll xorAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:

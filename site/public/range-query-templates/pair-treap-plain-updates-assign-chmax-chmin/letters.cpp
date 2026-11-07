@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-plain-updates-assign-chmax-chmin/letters.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pair-treap-plain-updates-assign-chmax-chmin/letters.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

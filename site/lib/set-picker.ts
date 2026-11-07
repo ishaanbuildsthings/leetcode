@@ -978,7 +978,7 @@ export function decodeSetTemplates(data: {
 }
 
 export interface SetTemplate {
-  // Folder under templates/sets holding template.py and/or template.cpp, named by its structure.
+  // Folder under templates/ultimate-template-tool/sets holding template.py and/or template.cpp, named by its structure.
   folder: string;
   langs: TemplateLang[];
   operations: SetOpId[];

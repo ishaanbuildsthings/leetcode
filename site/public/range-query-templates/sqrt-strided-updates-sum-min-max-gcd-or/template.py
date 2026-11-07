@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-strided-updates-sum-min-max-gcd-or/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/sqrt-strided-updates-sum-min-max-gcd-or/template.py
 # @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet stridedGcd stridedMax stridedMin stridedOrQuery stridedSum
 # @data-structure-type: sqrt
 # @complexities:

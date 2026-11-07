@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/isRBS-pointGet/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/isRBS-pointGet/template.py
 # @operations: isRBS pointGet
 # @data-structure-type: sparse-table
 # @letters: same

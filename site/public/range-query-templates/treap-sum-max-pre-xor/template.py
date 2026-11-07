@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-pre-xor/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-max-pre-xor/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxAll maxPrefixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMax rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostGtX rightmostGteX size split sumAll trisect xorAll
 # @data-structure-type: treap
 # @complexities:

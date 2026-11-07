@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-affine-full-rev/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-affine-full-rev/template.py
 # @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointGet pop popLeft rangeAddMod rangeAffineMod rangeAssignMod rangeMultMod rangeReverse rangeRotateLeft rangeRotateRight rangeSumMod size split trisect
 # @data-structure-type: treap
 # @complexities:

@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-sum-max-xor-and-rev-find/template.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/treap-sum-max-xor-and-rev-find/template.py
 # @operations: andAll append appendLeft cut find getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostGtX rightmostGteX size split sumAll trisect xorAll
 # @data-structure-type: treap
 # @complexities:
