@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-max-npre-and-updates-assign/template.py
-# @operations: getAll leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeSum rightmostGtX rightmostGteX
+# @operations: andAll getAll leftmostGtX leftmostGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAll minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeSum rightmostGtX rightmostGteX sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -20,6 +20,9 @@
 #   rangeSum: log(N)
 #   rightmostGtX: log(N)
 #   rightmostGteX: log(N)
+#   sumAll: log(N)
+#   maxAll: log(N)
+#   andAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -309,6 +312,24 @@ class LazySegTree:
                     t = 2 * t + 1 if F[2 * t + 1] >= x else 2 * t
                 return t - n
         return -1
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
+
+    # O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
 
     # ---- internals ----
 

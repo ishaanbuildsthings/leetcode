@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery size split trisect
+// @operations: andAll append appendLeft cut getAll insertAt insertCopiesAt merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeXorQuery size split trisect xorAll
 // @data-structure-type: sorted-runs
 // @complexities:
 //   append: log(N)+log(U) amortized
@@ -32,6 +32,11 @@ using ll = long long;
 //   split: log(N)+log(U) amortized
 //   trisect: log(N)+log(U) amortized
 //   size: 1
+//   pop: log(N)+log(U) amortized
+//   popLeft: log(N)+log(U) amortized
+//   minAll: log(N)+log(U) amortized
+//   xorAll: log(N)+log(U) amortized
+//   andAll: log(N)+log(U) amortized
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -308,6 +313,41 @@ struct SortedRunsXorMinAndSeq {
             x = rn[x].TR;
         }
         return out;
+    }
+
+    // O(log(N)+log(U) amortized) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, size() - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto xorAll() {
+        if (size() < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, size() - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto andAll() {
+        if (size() < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, size() - 1);
     }
 
     // ---- internals: the treap of runs ----

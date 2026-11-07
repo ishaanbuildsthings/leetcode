@@ -1,12 +1,7 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-order-stats/fast.cpp
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
-// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin smallestGtX smallestGteX
+// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll pointGet rangeMax rangeMin smallestGtX smallestGteX
 // @data-structure-type: persistent
-// @letters: same
 // @complexities:
 //   countGtX: log(N)
 //   countGteX: log(N)
@@ -22,6 +17,8 @@ using ll = long long;
 //   rangeMin: log(N)
 //   smallestGtX: log(N)
 //   smallestGteX: log(N)
+//   minAll: log(N)
+//   maxAll: log(N)
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -186,6 +183,18 @@ struct PersistentOrderStats {
 
     LEETCODE_NO_SANITIZE int lb(const T& v) const { return int(lower_bound(srt.begin(), srt.end(), v) - srt.begin()); }
     LEETCODE_NO_SANITIZE int ub(const T& v) const { return int(upper_bound(srt.begin(), srt.end(), v) - srt.begin()); }
+
+    // O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
 
     // ---- internals ----
 

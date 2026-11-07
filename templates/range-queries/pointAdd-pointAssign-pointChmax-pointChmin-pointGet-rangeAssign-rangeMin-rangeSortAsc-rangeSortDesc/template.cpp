@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSortAsc rangeSortDesc
+// @operations: getAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSortAsc rangeSortDesc
 // @data-structure-type: sorted-runs
 // @complexities:
 //   getAll: N*log(U)
@@ -17,6 +17,7 @@ using ll = long long;
 //   rangeMin: log(N)+log(U) amortized
 //   rangeSortAsc: log(N)+log(U) amortized
 //   rangeSortDesc: log(N)+log(U) amortized
+//   minAll: log(N)+log(U) amortized
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -136,6 +137,12 @@ struct SortedRunsMin {
         out.reserve(n);
         for (int s = 0; s < n; s += len[s]) values(root[s], desc[s], out);
         return out;
+    }
+
+    // O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
     }
 
     // ---- internals: runs ----

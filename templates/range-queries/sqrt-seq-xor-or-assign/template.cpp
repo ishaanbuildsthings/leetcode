@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge orGtX orGteX orInValRange orLtX orLteX paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split trisect xorGtX xorGteX xorInValRange xorLtX xorLteX
+// @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange maxAll merge minAll orAll orGtX orGteX orInValRange orLtX orLteX paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeMax rangeMin rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split trisect xorAll xorGtX xorGteX xorInValRange xorLtX xorLteX
 // @data-structure-type: sqrt
 // @complexities:
 //   append: sqrt(N)*log(N) amortized
@@ -59,6 +59,12 @@ using ll = long long;
 //   xorLtX: sqrt(N)*log(N)
 //   xorLteX: sqrt(N)*log(N)
 //   size: 1
+//   pop: sqrt(N)*log(N) amortized
+//   popLeft: sqrt(N)*log(N) amortized
+//   minAll: sqrt(N)*log(N)
+//   maxAll: sqrt(N)*log(N)
+//   xorAll: sqrt(N)*log(N)
+//   orAll: sqrt(N)*log(N)
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -658,6 +664,47 @@ struct SqrtSequence {
         T res = T(0);
         select(l, r, lo, hi, loStrict, hiStrict, [&](const Block& b, int i, int j) { res |= b.orRange(i, j); }, [&](T v) { res |= v; });
         return res;
+    }
+
+    // O(sqrt(N)*log(N) amortized) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(sqrt(N)*log(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(sqrt(N)*log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, size() - 1);
+    }
+
+    // O(sqrt(N)*log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, size() - 1);
+    }
+
+    // O(sqrt(N)*log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto xorAll() {
+        if (size() < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, size() - 1);
+    }
+
+    // O(sqrt(N)*log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto orAll() {
+        if (size() < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, size() - 1);
     }
 
     // ---- internals ----

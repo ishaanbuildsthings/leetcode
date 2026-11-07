@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/append-appendLeft-cut-find-insertAt-insertCopiesAt-longestEqualRun-merge-paste-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeRotateLeft-rangeRotateRight-split-trisect/template.py
-# @operations: append appendLeft cut find getAll insertAt insertCopiesAt longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeRotateLeft rangeRotateRight size split trisect
+# @operations: append appendLeft cut find getAll insertAt insertCopiesAt longestEqualRun merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeRotateLeft rangeRotateRight size split trisect
 # @data-structure-type: treap
 # @letters: same
 # @complexities:
@@ -24,6 +24,8 @@
 #   split: log(N) expected
 #   trisect: log(N) expected
 #   size: 1
+#   pop: log(N) expected
+#   popLeft: log(N) expected
 #   build: N
 # @memory:
 #   layout: none
@@ -253,6 +255,23 @@ class ImplicitTreap:
         left.root, mid.root, right.root = self._cut(l, r)
         self.root = 0
         return left, mid, right
+
+    # O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
 
     # ---- internals ----
 

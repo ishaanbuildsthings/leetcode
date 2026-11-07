@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet rangeAssign rangeReplace rangeReverse rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size split trisect
+// @operations: append appendLeft countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet pop popLeft rangeAssign rangeReplace rangeReverse rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size split trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: U*log(N) expected
@@ -30,6 +30,8 @@ using ll = long long;
 //   split: U*log(N) expected
 //   trisect: U*log(N) expected
 //   size: 1
+//   pop: U*log(N) expected
+//   popLeft: U*log(N) expected
 //   build: N*U
 // @memory:
 //   layout: none
@@ -304,6 +306,23 @@ struct ValueMapTreap {
     Z rightmostIndexOfInRange(Z l, Z r, const T& x) const {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostIndexOfInRange: needs 0 <= l <= r < size()");
         return findIn(l, r, x, false);
+    }
+
+    // O(U*log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
     }
 
     // ---- internals ----

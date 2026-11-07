@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: countOccurrences getAll leftmostIndexOf leftmostIndexOfInRange pointAssign pointGet rangeAssign rangeReplace rangeSum rightmostIndexOf rightmostIndexOfInRange
+// @operations: countOccurrences getAll leftmostIndexOf leftmostIndexOfInRange pointAssign pointGet rangeAssign rangeReplace rangeSum rightmostIndexOf rightmostIndexOfInRange sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   countOccurrences: U*log(N)
@@ -18,6 +18,7 @@ using ll = long long;
 //   rangeSum: U*log(N)
 //   rightmostIndexOf: U*log(N)
 //   rightmostIndexOfInRange: U*log(N)
+//   sumAll: U*log(N)
 //   build: N*U
 // @memory:
 //   layout: pow2-iterative
@@ -174,6 +175,12 @@ struct ValueMapSeg {
         S res = 0;
         cover(l, r, [&](int k) { res += sm[k]; });
         return res;
+    }
+
+    // O(U*log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, size() - 1);
     }
 
     // ---- internals ----

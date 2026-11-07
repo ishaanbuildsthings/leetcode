@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-min-xor-updates-assign-rev/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorQuery rightmostLtX rightmostLteX size split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorQuery rightmostLtX rightmostLteX size split trisect xorAll
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N) expected
@@ -30,6 +30,10 @@
 #   split: log(N) expected
 #   trisect: log(N) expected
 #   size: 1
+#   pop: log(N) expected
+#   popLeft: log(N) expected
+#   minAll: log(N) expected
+#   xorAll: 1
 #   build: N
 # @memory:
 #   layout: none
@@ -316,6 +320,35 @@ class PairSwapTreap:
         left.rE, left.rO, mid.rE, mid.rO, right.rE, right.rO = self._cut(l, r)
         self.rE = self.rO = 0
         return left, mid, right
+
+    # O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
+
+    # O(log(N) expected) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.size() < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.size() - 1)
+
+    # O(1) -- xor of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.size() < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.xr[self.rE] ^ self.xr[self.rO]
 
     # ---- internals ----
 

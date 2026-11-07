@@ -63,12 +63,14 @@ def write(folder, py_body, cpp_body, ops, costs, memory, notes, about):
             f.write(text)
 
 
-def check_cpp(op):
-    return f'if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("{op}: {RANGE_RULE}");'
+def check_cpp(op):  # (the range check in the catalog's standard form, so the bounds pass recognizes it)
+    return (f'if (l < 0 || l > r || r >= n) throw out_of_range("{op}: needs 0 <= l <= r < n");\n'
+            f'        if (step < 1) throw out_of_range("{op}: needs step >= 1");')
 
 
 def check_py(op):
-    return f'if l < 0 or l > r or r >= self.n or step < 1:\n            raise IndexError(f"{op}: {RANGE_RULE}, got l={{l}}, r={{r}}, step={{step}}, n={{self.n}}")'
+    return (f'if not 0 <= l <= r < self.n:\n            raise IndexError(f"{op}: needs 0 <= l <= r < n, got l = {{l}}, r = {{r}}, n = {{self.n}}")\n'
+            f'        if step < 1:\n            raise IndexError(f"{op}: needs step >= 1, got step = {{step}}")')
 
 
 def cpp_walk(f):

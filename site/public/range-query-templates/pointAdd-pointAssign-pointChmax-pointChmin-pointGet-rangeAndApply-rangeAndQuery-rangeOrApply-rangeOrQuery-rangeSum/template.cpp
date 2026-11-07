@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum
+// @operations: andAll getAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum sumAll
 // @data-structure-type: beats
 // @complexities:
 //   getAll: N
@@ -18,6 +18,9 @@ using ll = long long;
 //   rangeOrApply: log(N)*log(U) amortized
 //   rangeOrQuery: log(N)
 //   rangeSum: log(N)
+//   sumAll: log(N)
+//   andAll: log(N)
+//   orAll: log(N)
 //   build: N
 // @memory:
 //   layout: 4n-recursive
@@ -213,4 +216,23 @@ struct BitBeats {
         if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         pointAssign(i, pointGet(i) + delta);
     }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto andAll() {
+        if (n < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, n - 1);
+    }
+
+    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
+    }
+
 };

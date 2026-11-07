@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-seq-sum-xor-or-assign-rev/template.py
-# @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge orGtX orGteX orInValRange orLtX orLteX paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK trisect xorGtX xorGteX xorInValRange xorLtX xorLteX
+# @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange maxAll merge minAll orAll orGtX orGteX orInValRange orLtX orLteX paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK trisect xorAll xorGtX xorGteX xorInValRange xorLtX xorLteX
 # @data-structure-type: sqrt
 # @complexities:
 #   append: sqrt(N)*log(N) amortized
@@ -67,6 +67,13 @@
 #   xorLtX: sqrt(N)*log(N)
 #   xorLteX: sqrt(N)*log(N)
 #   size: 1
+#   pop: sqrt(N)*log(N) amortized
+#   popLeft: sqrt(N)*log(N) amortized
+#   sumAll: sqrt(N)*log(N)
+#   minAll: sqrt(N)*log(N)
+#   maxAll: sqrt(N)*log(N)
+#   xorAll: sqrt(N)*log(N)
+#   orAll: sqrt(N)*log(N)
 #   build: N*log(N)
 # @memory:
 #   layout: none
@@ -720,6 +727,53 @@ class SqrtSequence:
                 for v in i:
                     res |= v
         return res
+
+    # O(sqrt(N)*log(N) amortized) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(sqrt(N)*log(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
+
+    # O(sqrt(N)*log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.size() < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.size() - 1)
+
+    # O(sqrt(N)*log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.size() < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.size() - 1)
+
+    # O(sqrt(N)*log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.size() < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.size() - 1)
+
+    # O(sqrt(N)*log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.size() < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.size() - 1)
+
+    # O(sqrt(N)*log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.size() < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.size() - 1)
 
     # ---- internals ----
 

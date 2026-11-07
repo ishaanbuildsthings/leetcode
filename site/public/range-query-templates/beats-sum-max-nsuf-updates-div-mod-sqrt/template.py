@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-max-nsuf-updates-div-mod-sqrt/template.py
-# @operations: getAll leftmostGtX leftmostGteX minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeSum rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: getAll leftmostGtX leftmostGteX maxAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeSum rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
@@ -21,6 +21,8 @@
 #   rightmostGteX: log(N)
 #   rightmostSuffixSumLtX: log(N)
 #   rightmostSuffixSumLteX: log(N)
+#   sumAll: log(N)
+#   maxAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -260,6 +262,18 @@ class ShrinkSegTree:
                 return t - n
             acc += sm[t]
         return -1
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
 
     # ---- internals ----
 

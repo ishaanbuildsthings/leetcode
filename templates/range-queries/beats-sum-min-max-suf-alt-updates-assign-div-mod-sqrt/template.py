@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-min-max-suf-alt-updates-assign-div-mod-sqrt/template.py
-# @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAltSubseqSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX
+# @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAll maxAltSubseqSum maxSuffixSum minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
@@ -28,6 +28,9 @@
 #   rightmostLteX: log(N)
 #   rightmostSuffixSumGtX: log(N)
 #   rightmostSuffixSumGteX: log(N)
+#   sumAll: log(N)
+#   minAll: log(N)
+#   maxAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -430,6 +433,24 @@ class ShrinkSegTree:
                 return t - n
             acc += sm[t]
         return -1
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
 
     # ---- internals ----
 

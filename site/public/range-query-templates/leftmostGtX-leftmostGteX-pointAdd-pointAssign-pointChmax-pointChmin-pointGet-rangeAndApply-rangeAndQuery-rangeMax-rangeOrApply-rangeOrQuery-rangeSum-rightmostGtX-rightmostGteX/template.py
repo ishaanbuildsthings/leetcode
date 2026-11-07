@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeOrApply-rangeOrQuery-rangeSum-rightmostGtX-rightmostGteX/template.py
-# @operations: getAll leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMax rangeOrApply rangeOrQuery rangeSum rightmostGtX rightmostGteX
+# @operations: andAll getAll leftmostGtX leftmostGteX maxAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMax rangeOrApply rangeOrQuery rangeSum rightmostGtX rightmostGteX sumAll
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
@@ -19,6 +19,10 @@
 #   rangeSum: log(N)
 #   rightmostGtX: log(N)
 #   rightmostGteX: log(N)
+#   sumAll: log(N)
+#   maxAll: log(N)
+#   andAll: log(N)
+#   orAll: log(N)
 #   build: N
 # @memory:
 #   layout: 4n-recursive
@@ -355,6 +359,30 @@ class BitBeats_PERFORMANT:
     # the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
     # node fully inside [l, r] that passes is ever walked down (it always holds an answer)
     def _lastPass(self, i, tl, tr, l, r, ok):
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+
+    # O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+
+    # O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
         if r < tl or tr < l or not ok(i):
             return -1
         if tl == tr:

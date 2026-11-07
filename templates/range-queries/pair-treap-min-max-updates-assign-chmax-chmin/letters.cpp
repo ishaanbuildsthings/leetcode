@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX merge paste pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmax rangeChmin rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeTwinSpin rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAll merge minAll paste pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeChmax rangeChmin rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeTwinSpin rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N) expected
@@ -38,6 +38,10 @@ using ll = long long;
 //   split: log(N) expected
 //   trisect: log(N) expected
 //   size: 1
+//   pop: log(N) expected
+//   popLeft: log(N) expected
+//   minAll: log(N) expected
+//   maxAll: log(N) expected
 //   build: N
 // @memory:
 //   layout: none
@@ -403,6 +407,35 @@ struct PairSwapTreap {
         left.rE = ae, left.rO = ao, mid.rE = be, mid.rO = bo, right.rE = ce, right.rO = co;
         rE = rO = 0;
         return {left, mid, right};
+    }
+
+    // O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(log(N) expected) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, size() - 1);
+    }
+
+    // O(log(N) expected) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, size() - 1);
     }
 
     // ---- internals ----

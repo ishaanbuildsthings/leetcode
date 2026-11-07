@@ -1,9 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-order-stats-sums/sparse-fast.cpp
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
 // @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 // @data-structure-type: persistent
 // @complexities:

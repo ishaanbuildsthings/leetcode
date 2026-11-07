@@ -132,8 +132,10 @@ class StridedQueries:
 
     # min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedMin(self, l, r, step):
-        if l < 0 or l > r or r >= self.n or step < 1:
-            raise IndexError(f"stridedMin: needs 0 <= l <= r < n and step >= 1, got l={l}, r={r}, step={step}, n={self.n}")
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"stridedMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        if step < 1:
+            raise IndexError(f"stridedMin: needs step >= 1, got step = {step}")
         last = l + (r - l) // step * step
         if step > self.treeStrides:
             return min(self.A[l:last + 1:step])
@@ -157,8 +159,10 @@ class StridedQueries:
 
     # max of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedMax(self, l, r, step):
-        if l < 0 or l > r or r >= self.n or step < 1:
-            raise IndexError(f"stridedMax: needs 0 <= l <= r < n and step >= 1, got l={l}, r={r}, step={step}, n={self.n}")
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"stridedMax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        if step < 1:
+            raise IndexError(f"stridedMax: needs step >= 1, got step = {step}")
         last = l + (r - l) // step * step
         if step > self.treeStrides:
             return max(self.A[l:last + 1:step])
@@ -182,8 +186,10 @@ class StridedQueries:
 
     # gcd of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedGcd(self, l, r, step):
-        if l < 0 or l > r or r >= self.n or step < 1:
-            raise IndexError(f"stridedGcd: needs 0 <= l <= r < n and step >= 1, got l={l}, r={r}, step={step}, n={self.n}")
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"stridedGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        if step < 1:
+            raise IndexError(f"stridedGcd: needs step >= 1, got step = {step}")
         last = l + (r - l) // step * step
         if step > self.treeStrides:
             return gcd(*self.A[l:last + 1:step])
@@ -207,8 +213,10 @@ class StridedQueries:
 
     # a[l] | a[l + step] | ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedOrQuery(self, l, r, step):
-        if l < 0 or l > r or r >= self.n or step < 1:
-            raise IndexError(f"stridedOrQuery: needs 0 <= l <= r < n and step >= 1, got l={l}, r={r}, step={step}, n={self.n}")
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"stridedOrQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        if step < 1:
+            raise IndexError(f"stridedOrQuery: needs step >= 1, got step = {step}")
         last = l + (r - l) // step * step
         if step > self.treeStrides:
             return reduce(or_, self.A[l:last + 1:step])

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign
+// @operations: andAll getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -16,6 +16,7 @@ using ll = long long;
 //   pointGet: log(N)
 //   rangeAndQuery: log(N)
 //   rangeAssign: log(N)
+//   andAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -152,6 +153,12 @@ struct LazySegTree {
             if (hi & 1) hi--, applyAssign(hi, s, v);
         }
         rebuild(l + n), rebuild(r + n);
+    }
+
+    // O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto andAll() {
+        if (n < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, n - 1);
     }
 
     // ---- internals ----

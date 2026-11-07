@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc size split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc size split trisect
 // @data-structure-type: sorted-runs
 // @complexities:
 //   append: log(N)+log(U) amortized
@@ -30,6 +30,9 @@ using ll = long long;
 //   split: log(N)+log(U) amortized
 //   trisect: log(N)+log(U) amortized
 //   size: 1
+//   pop: log(N)+log(U) amortized
+//   popLeft: log(N)+log(U) amortized
+//   orAll: log(N)+log(U) amortized
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -315,6 +318,29 @@ struct SortedRunsOrSeq {
             x = rn[x].TR;
         }
         return out;
+    }
+
+    // O(log(N)+log(U) amortized) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (size() < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, size() - 1);
     }
 
     // ---- internals: the treap of runs ----

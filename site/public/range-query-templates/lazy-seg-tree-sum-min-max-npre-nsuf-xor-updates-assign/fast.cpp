@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeSum rangeXorQuery rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+// @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxAll minAll minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeSum rangeXorQuery rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -32,6 +32,10 @@ using ll = long long;
 //   rightmostLteX: log(N)
 //   rightmostSuffixSumLtX: log(N)
 //   rightmostSuffixSumLteX: log(N)
+//   sumAll: log(N)
+//   minAll: log(N)
+//   maxAll: log(N)
+//   xorAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -434,6 +438,30 @@ struct LazySegTree {
             acc += sm[t];
         }
         return -1;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
+    // O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto xorAll() {
+        if (n < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, n - 1);
     }
 
     // ---- internals ----

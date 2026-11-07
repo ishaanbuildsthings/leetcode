@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostGtX leftmostGteX maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rightmostGtX rightmostGteX
+// @operations: getAll leftmostGtX leftmostGteX maxAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rightmostGtX rightmostGteX
 // @data-structure-type: beats
 // @complexities:
 //   getAll: N
@@ -22,6 +22,7 @@ using ll = long long;
 //   rangeMod: log(N)*log(U) amortized
 //   rightmostGtX: log(N)
 //   rightmostGteX: log(N)
+//   maxAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -197,6 +198,12 @@ struct ShrinkSegTree {
             return t - n;
         }
         return -1;
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
     }
 
     // ---- internals ----

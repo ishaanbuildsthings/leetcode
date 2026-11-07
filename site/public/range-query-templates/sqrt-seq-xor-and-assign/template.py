@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-seq-xor-and-assign/template.py
-# @operations: andGtX andGteX andInValRange andLtX andLteX append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeXorQuery rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split trisect xorGtX xorGteX xorInValRange xorLtX xorLteX
+# @operations: andAll andGtX andGteX andInValRange andLtX andLteX append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange maxAll merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeMax rangeMin rangeRotateLeft rangeRotateRight rangeXorQuery rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split trisect xorAll xorGtX xorGteX xorInValRange xorLtX xorLteX
 # @data-structure-type: sqrt
 # @complexities:
 #   andGtX: sqrt(N)*log(N)
@@ -55,6 +55,12 @@
 #   xorLtX: sqrt(N)*log(N)
 #   xorLteX: sqrt(N)*log(N)
 #   size: 1
+#   pop: sqrt(N)*log(N) amortized
+#   popLeft: sqrt(N)*log(N) amortized
+#   minAll: sqrt(N)*log(N)
+#   maxAll: sqrt(N)*log(N)
+#   xorAll: sqrt(N)*log(N)
+#   andAll: sqrt(N)*log(N)
 #   build: N*log(N)
 # @memory:
 #   layout: none
@@ -585,6 +591,47 @@ class SqrtSequence:
                 for v in i:
                     res &= v
         return res
+
+    # O(sqrt(N)*log(N) amortized) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(sqrt(N)*log(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
+
+    # O(sqrt(N)*log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.size() < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.size() - 1)
+
+    # O(sqrt(N)*log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.size() < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.size() - 1)
+
+    # O(sqrt(N)*log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.size() < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.size() - 1)
+
+    # O(sqrt(N)*log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+        if self.size() < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.size() - 1)
 
     # ---- internals ----
 

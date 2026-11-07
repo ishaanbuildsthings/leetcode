@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-min-max-suf-nsuf/template.py
-# @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxSuffixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAll maxSuffixSum minAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -26,6 +26,9 @@
 #   rightmostSuffixSumGteX: log(N)
 #   rightmostSuffixSumLtX: log(N)
 #   rightmostSuffixSumLteX: log(N)
+#   sumAll: log(N)
+#   minAll: log(N)
+#   maxAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -363,6 +366,24 @@ class SegTree:
                 return t - n
             acc += sm[t]
         return -1
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
 
     # ---- internals ----
 

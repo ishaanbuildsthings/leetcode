@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostPrefixSumGtX-leftmostPrefixSumGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rightmostSuffixSumGtX-rightmostSuffixSumGteX/template.py
-# @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
+# @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 # @data-structure-type: BIT
 # @complexities:
 #   getAll: N
@@ -14,6 +14,7 @@
 #   rangeSum: log(N)
 #   rightmostSuffixSumGtX: log(N)
 #   rightmostSuffixSumGteX: log(N)
+#   sumAll: log(N)
 #   build: N
 # @memory:
 #   layout: none
@@ -156,9 +157,17 @@ class BIT:
         i = min(r, self._prefixLowerBound(t, True))
         return i if i >= l else -1
 
-    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1. Needs every a[i] >= 0.; needs 0 <= l <= r < n,
-    # else IndexError
+    # O(logN) -- last i in [l, r] with a[i] + ... + a[r] > x, or -1. Needs every a[i] >= 0.; needs needs
+    # 0 <= l <= r < n, else IndexError, else IndexError
     def rightmostSuffixSumGtX(self, l, r, x):
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"rightmostSuffixSumGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rightmostSuffixSumGtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         t = self.queryPf(r) - x

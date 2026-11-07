@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeMin rangeOrQuery rangeSortAsc rangeSortDesc rangeSum
+// @operations: andAll getAll maxAll minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeMin rangeOrQuery rangeSortAsc rangeSortDesc rangeSum sumAll
 // @data-structure-type: sorted-runs
 // @complexities:
 //   getAll: N*log(U)
@@ -21,6 +21,11 @@ using ll = long long;
 //   rangeSortAsc: log(N)+log(U) amortized
 //   rangeSortDesc: log(N)+log(U) amortized
 //   rangeSum: log(N)+log(U) amortized
+//   sumAll: log(N)+log(U) amortized
+//   minAll: log(N)+log(U) amortized
+//   maxAll: log(N)+log(U) amortized
+//   andAll: log(N)+log(U) amortized
+//   orAll: log(N)+log(U) amortized
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -212,6 +217,36 @@ struct SortedRunsSumMinMaxOrAnd {
         out.reserve(n);
         for (int s = 0; s < n; s += len[s]) values(root[s], desc[s], out);
         return out;
+    }
+
+    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto andAll() {
+        if (n < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, n - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // ---- internals: runs ----

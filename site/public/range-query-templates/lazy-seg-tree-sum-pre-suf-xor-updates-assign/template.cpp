@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum rangeXorQuery rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum rangeXorQuery rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -22,6 +22,8 @@ using ll = long long;
 //   rangeXorQuery: log(N)
 //   rightmostSuffixSumGtX: log(N)
 //   rightmostSuffixSumGteX: log(N)
+//   sumAll: log(N)
+//   xorAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -251,6 +253,18 @@ struct LazySegTree {
             acc += sm[t];
         }
         return -1;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto xorAll() {
+        if (n < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, n - 1);
     }
 
     // ---- internals ----

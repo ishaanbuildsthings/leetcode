@@ -1,10 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-online-order-stats/template.cpp
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
-// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin size smallestGtX smallestGteX
+// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX maxAll minAll pointGet pop rangeMax rangeMin size smallestGtX smallestGteX
 // @data-structure-type: persistent
 // @complexities:
 //   append: log(U)
@@ -19,11 +15,14 @@ using ll = long long;
 //   largestLtX: log(U)
 //   largestLteX: log(U)
 //   pointGet: 1
+//   pop: 1
 //   rangeMax: log(U)
 //   rangeMin: log(U)
 //   smallestGtX: log(U)
 //   smallestGteX: log(U)
 //   size: 1
+//   minAll: log(U)
+//   maxAll: log(U)
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -61,6 +60,16 @@ struct PersistentOnlineOrderStats {
     void append(T v) {
         root.push_back(ins(root.back(), (long long)v, v));
         arr.push_back(v), n++;
+    }
+
+    // O(1) -- remove a[n-1] and return it: the newest version is dropped (its nodes stay allocated); needs n >= 1,
+    // else throws out_of_range
+    T pop() {
+        if (n < 1) throw out_of_range("pop: needs n >= 1");
+        root.pop_back();
+        T v = arr.back();
+        arr.pop_back(), n--;
+        return v;
     }
 
     // O(1) -- a[i]; needs 0 <= i < size(), else throws out_of_range
@@ -167,6 +176,18 @@ struct PersistentOnlineOrderStats {
 
     static long long lb(T x) { return (long long)x; }       // "values < this" for < x
     static long long ub(T x) { return (long long)x + 1; }   // "values < this" for <= x (integers)
+
+    // O(log(U)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, size() - 1);
+    }
+
+    // O(log(U)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, size() - 1);
+    }
 
     // ---- internals ----
 

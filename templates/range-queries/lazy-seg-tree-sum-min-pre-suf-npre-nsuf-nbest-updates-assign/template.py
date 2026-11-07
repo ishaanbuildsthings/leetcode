@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-min-pre-suf-npre-nsuf-nbest-updates-assign/template.py
-# @operations: getAll leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum maxSuffixSum minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSum rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: getAll leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum maxSuffixSum minAll minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeSum rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -29,6 +29,8 @@
 #   rightmostSuffixSumGteX: log(N)
 #   rightmostSuffixSumLtX: log(N)
 #   rightmostSuffixSumLteX: log(N)
+#   sumAll: log(N)
+#   minAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -484,6 +486,18 @@ class LazySegTree:
                 return t - n
             acc += sm[t]
         return -1
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
 
     # ---- internals ----
 

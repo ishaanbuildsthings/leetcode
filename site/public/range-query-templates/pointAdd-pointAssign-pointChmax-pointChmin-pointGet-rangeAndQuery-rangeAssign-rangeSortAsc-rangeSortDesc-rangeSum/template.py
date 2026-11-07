@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeSortAsc-rangeSortDesc-rangeSum/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeSortAsc rangeSortDesc rangeSum
+# @operations: andAll getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeSortAsc rangeSortDesc rangeSum sumAll
 # @data-structure-type: sorted-runs
 # @complexities:
 #   getAll: N*log(U)
@@ -14,6 +14,8 @@
 #   rangeSortAsc: log(N)+log(U) amortized
 #   rangeSortDesc: log(N)+log(U) amortized
 #   rangeSum: log(N)+log(U) amortized
+#   sumAll: log(N)+log(U) amortized
+#   andAll: log(N)+log(U) amortized
 #   build: N*log(U)
 # @memory:
 #   layout: none
@@ -140,6 +142,18 @@ class SortedRunsSumAnd:
             out += self._values(self.root[s], self.desc[s])
             s += self.len[s]
         return out
+
+    # O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
 
     # ---- internals: runs ----
 

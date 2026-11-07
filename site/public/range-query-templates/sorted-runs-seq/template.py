@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-seq/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc size split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc size split trisect
 # @data-structure-type: sorted-runs
 # @complexities:
 #   append: log(N)+log(U) amortized
@@ -25,6 +25,8 @@
 #   split: log(N)+log(U) amortized
 #   trisect: log(N)+log(U) amortized
 #   size: 1
+#   pop: log(N)+log(U) amortized
+#   popLeft: log(N)+log(U) amortized
 #   build: N*log(U)
 # @memory:
 #   layout: none
@@ -265,6 +267,23 @@ class SortedRunsSeq:
             out += self._values(self.TV[x], self.TD[x])
             x = self.TR[x]
         return out
+
+    # O(log(N)+log(U) amortized) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
 
     # ---- internals: the treap of runs ----
 

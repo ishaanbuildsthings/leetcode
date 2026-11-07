@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: costMonoDecreasing costMonoIncreasing costStrictDecreasing costStrictIncreasing pointGet rangeSum
+// @operations: costMonoDecreasing costMonoIncreasing costStrictDecreasing costStrictIncreasing pointGet rangeSum sumAll
 // @data-structure-type: sparse-table
 // @complexities:
 //   costMonoDecreasing: 1
@@ -13,6 +13,7 @@ using ll = long long;
 //   costStrictIncreasing: 1
 //   pointGet: 1
 //   rangeSum: 1
+//   sumAll: 1
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -82,6 +83,13 @@ struct MonoIncreaseCost {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return arr[i];
     }
+
+    // O(1) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
 };
 
 // Min +1 increments to make a[l..r] non-decreasing / non-increasing / strictly increasing / strictly decreasing.
@@ -185,4 +193,11 @@ struct MonoCosts {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return arr[i];
     }
+
+    // O(1) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
 };

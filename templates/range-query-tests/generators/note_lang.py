@@ -14,6 +14,7 @@ import re
 import textwrap
 
 from bounds import add_bounds
+from derived_ops import add_derived_ops
 
 DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "range-queries")
 LABELS = {"cpp": "C++: ", "py": "Python: "}
@@ -187,9 +188,11 @@ def folder_name(ops):
     """A template's folder: its operations, "-" joined. getAll and size are left out (nearly every structure with
     updates has getAll, and its sparse version, which can't, shares the folder; size came later, and every structure
     whose length changes has it)."""
-    return "-".join(o for o in ops if o not in ("getAll", "size"))
+    return "-".join(o for o in ops if o not in FREE_OPS)
 
 
+# ops a template gets for free from ones it has (add_derived_ops): also left out of folder names
+FREE_OPS = {"getAll", "size", "pop", "popLeft", "hashAll", "sumAll", "minAll", "maxAll", "gcdAll", "xorAll", "andAll", "orAll", "longestPalCenteredAtI", "longestPalCenteredAtIPlusOne"}
 LENGTH_OPS = {"append", "appendLeft", "insertAt", "insertCopiesAt", "cut", "paste", "merge", "split", "trisect"}
 
 
@@ -243,7 +246,7 @@ def add_get_all(code, lang):
 
 def write_template(path, text):
     lang = "py" if path.endswith(".py") else "cpp"
-    open(path, "w").write(attribute(fix_text(add_bounds(add_size(text, lang), lang), lang), path))
+    open(path, "w").write(attribute(fix_text(add_bounds(add_derived_ops(add_size(text, lang), lang), lang), lang), path))
 
 
 if __name__ == "__main__":
@@ -254,7 +257,7 @@ if __name__ == "__main__":
                 path = os.path.join(DIR, folder, stem + ext)
                 if os.path.exists(path):
                     text = open(path).read()
-                    new = attribute(fix_text(add_bounds(add_size(text, lang), lang), lang), path)
+                    new = attribute(fix_text(add_bounds(add_derived_ops(add_size(text, lang), lang), lang), lang), path)
                     if new != text:
                         open(path, "w").write(new)
                         changed += 1

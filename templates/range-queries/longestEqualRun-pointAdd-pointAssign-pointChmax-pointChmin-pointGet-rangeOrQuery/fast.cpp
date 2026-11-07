@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeOrQuery
+// @operations: getAll longestEqualRun orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeOrQuery
 // @data-structure-type: seg-tree
 // @complexities:
 //   getAll: N
@@ -15,6 +15,7 @@ using ll = long long;
 //   pointChmin: log(N)
 //   pointGet: log(N)
 //   rangeOrQuery: log(N)
+//   orAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -156,6 +157,12 @@ struct SegTree {
             if (hi & 1) res |= orr[--hi];
         }
         return res;
+    }
+
+    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // ---- internals ----

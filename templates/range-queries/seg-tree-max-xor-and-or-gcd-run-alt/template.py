@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-max-xor-and-or-gcd-run-alt/template.py
-# @operations: getAll leftmostGtX leftmostGteX longestEqualRun maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeMax rangeOrQuery rangeXorQuery rightmostGtX rightmostGteX
+# @operations: andAll gcdAll getAll leftmostGtX leftmostGteX longestEqualRun maxAll maxAltSubseqSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeGcd rangeMax rangeOrQuery rangeXorQuery rightmostGtX rightmostGteX xorAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -20,6 +20,11 @@
 #   rangeXorQuery: log(N)
 #   rightmostGtX: log(N)
 #   rightmostGteX: log(N)
+#   maxAll: log(N)
+#   gcdAll: log(N)+log(U) ?
+#   xorAll: log(N)
+#   andAll: log(N)
+#   orAll: log(N)
 #   build: N*log(U) ?
 # @memory:
 #   layout: 2n-iterative
@@ -290,6 +295,36 @@ class SegTree:
                     t = 2 * t + 1 if F[2 * t + 1] >= x else 2 * t
                 return t - n
         return -1
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
+
+    # O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
+    def gcdAll(self):
+        if self.n < 1:
+            raise IndexError("gcdAll: needs n >= 1")
+        return self.rangeGcd(0, self.n - 1)
+
+    # O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.n < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.n - 1)
+
+    # O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
+
+    # O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
 
     # ---- internals ----
 

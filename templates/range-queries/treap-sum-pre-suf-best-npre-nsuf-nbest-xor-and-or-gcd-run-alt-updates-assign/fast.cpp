@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum merge minPrefixSum minSubarraySum minSuffixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split trisect
+// @operations: andAll append appendLeft cut gcdAll getAll insertAt insertCopiesAt leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum merge minPrefixSum minSubarraySum minSuffixSum orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeGcd rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeXorQuery rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX size split sumAll trisect xorAll
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -47,6 +47,13 @@ using ll = long long;
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
 //   size: 1
+//   pop: log(N)*log(U) expected ?
+//   popLeft: log(N)*log(U) expected ?
+//   sumAll: 1
+//   gcdAll: 1
+//   xorAll: 1
+//   andAll: 1
+//   orAll: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none
@@ -720,6 +727,53 @@ struct ImplicitTreap {
         cut(l, r, left.root, mid.root, right.root);
         root = 0;
         return {left, mid, right};
+    }
+
+    // O(log(N)*log(U) expected ?) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(1) -- sum of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
+        return nd[root].sm;
+    }
+
+    // O(1) -- gcd of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto gcdAll() {
+        if (size() < 1) throw out_of_range("gcdAll: needs n >= 1");
+        return nd[root].g;
+    }
+
+    // O(1) -- xor of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto xorAll() {
+        if (size() < 1) throw out_of_range("xorAll: needs n >= 1");
+        return nd[root].xr;
+    }
+
+    // O(1) -- AND of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto andAll() {
+        if (size() < 1) throw out_of_range("andAll: needs n >= 1");
+        return nd[root].an;
+    }
+
+    // O(1) -- OR of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (size() < 1) throw out_of_range("orAll: needs n >= 1");
+        return nd[root].orr;
     }
 
     // ---- internals ----

@@ -53,7 +53,8 @@ struct StridedQueries {
 
     // a[l] += v, a[l + step] += v, ... up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     void stridedAdd(int l, int r, int step, T v) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedAdd: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedAdd: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedAdd: needs step >= 1");
         int last = l + (r - l) / step * step;
         if (step > strides) {
             for (int i = l; i <= last; i += step) A[i] += v;

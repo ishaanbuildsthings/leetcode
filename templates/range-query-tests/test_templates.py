@@ -53,7 +53,7 @@ RANGE_UPDATES = {  # op -> number of args after (l, r)
     "rangeAndApply": 1, "rangeOrApply": 1, "rangeXorApply": 1, "rangeFlip": 0, "rangeReplace": 2,
 }
 # sequence edits (implicit treap): op -> arg kind; they change the array's length
-SEQ_OPS = {"append": "v", "appendLeft": "v", "insertAt": "iv", "pop": "i", "popLeft": "none", "eraseRange": "lr", "rangeReverse": "lr", "rangeRotateLeft": "lrk", "rangeRotateRight": "lrk", "moveRange": "lri",
+SEQ_OPS = {"append": "v", "appendLeft": "v", "insertAt": "iv", "pop": "none", "popLeft": "none", "eraseRange": "lr", "rangeReverse": "lr", "rangeRotateLeft": "lrk", "rangeRotateRight": "lrk", "moveRange": "lri",
            "cut": "lr", "paste": "ib", "split": "k", "trisect": "lr", "merge": "b", "insertCopiesAt": "ivk",
            "rangeTwinSpin": "lr", "rangeSortAsc": "lr", "rangeSortDesc": "lr", "copyRange": "lrc", "copy": "lr"}
 # cut(l, r) hands a[l..r] back as a new structure, which the test keeps on a stack; split(k) / trisect(l, r) hand back
@@ -71,9 +71,9 @@ CHAR_SAFE = {
     "pointGet", "pointAssign", "pointChmax", "pointChmin", "rangeAssign", "rangeChmax", "rangeChmin", "rangeSortAsc",
     "rangeSortDesc", "getAll", "size", "append", "appendLeft", "insertAt", "insertCopiesAt", "pop", "popLeft", "eraseRange",
     "rangeReverse", "rangeRotateLeft", "rangeRotateRight", "moveRange", "cut", "paste", "split", "trisect", "merge",
-    "copyRange", "copy", "rangeTwinSpin", "rangeMin", "rangeMax", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
+    "copyRange", "copy", "rangeTwinSpin", "rangeMin", "rangeMax", "minAll", "maxAll", "countDistinct", "allDistinct", "rangeMode", "countOccurrences",
     "leftmostIndexOf", "rightmostIndexOf", "leftmostIndexOfInRange", "rightmostIndexOfInRange", "longestEqualRun", "rangeLIS", "rangeLNDS", "rangeLDS", "rangeLNIS", "isRBS", "rangeFlip", "isPalindrome", "rangeHash",
-    "rangeHashReversed", "rangesEqual", "doAllElementsAppearEvenFrequency", "kthSmallest", "kthLargest", "medianLow",
+    "rangeHashReversed", "rangesEqual", "hashAll", "longestPalCenteredAtI", "longestPalCenteredAtIPlusOne", "doAllElementsAppearEvenFrequency", "kthSmallest", "kthLargest", "medianLow",
     "medianHigh", "countLtX", "countLteX", "countGtX", "countGteX", "countInValRange", "smallestGtX", "smallestGteX",
     "largestLtX", "largestLteX", "kthLtX", "kthLteX", "kthGtX", "kthGteX", "rangeReplace",
 } | {f"{side}{c}X" for side in ("leftmost", "rightmost") for c in ("Gt", "Gte", "Lt", "Lte")}
@@ -91,6 +91,14 @@ def letter(v):
 
 def is_update(op):
     return op in POINT_UPDATES or op in RANGE_UPDATES or op in SEQ_OPS
+
+
+def _pal_around(a, l, r):  # (l', r') of the longest palindrome a[l-k..r+k]; (l, l - 1) when a[l..r] itself isn't one (or r is past the end)
+    best = (r, r - 1) if l == r - 1 else (l, r)  # (even case, nothing: the empty range (i + 1, i))
+    while l >= 0 and r < len(a) and a[l] == a[r]:
+        best = (l, r)
+        l, r = l - 1, r + 1
+    return best
 
 
 def _first(a, idxs, pred):
@@ -253,6 +261,17 @@ def order_stat(op, tot, n, xs):
 # query op -> (arg kind, brute(a, l, r, *args, ctx)); arg kinds: "lr", "lrx", "lrk", "lrkx", "lrlohi", plus "lrkv" (a k
 # in [1, r - l + 1]), "lrk0" (a k in [0, r - l + 1]) and "lrij" (1 <= i <= j <= r - l + 1): those ops error outside them
 BRUTE_QUERIES = {
+    # hashAll(): compared with a fresh structure built from the current a[l..r] (equal only when that is the whole array)
+    "hashAll": ("hall", lambda a, l, r, c: a == a[l:r + 1]),
+    "sumAll": ("all", lambda a, c: sum(a)),
+    "minAll": ("all", lambda a, c: min(a)),
+    "maxAll": ("all", lambda a, c: max(a)),
+    "gcdAll": ("all", lambda a, c: reduce(math.gcd, (abs(v) for v in a), 0)),
+    "xorAll": ("all", lambda a, c: reduce(lambda x, y: x ^ y, a)),
+    "andAll": ("all", lambda a, c: reduce(lambda x, y: x & y, a)),
+    "orAll": ("all", lambda a, c: reduce(lambda x, y: x | y, a)),
+    "longestPalCenteredAtI": ("i", lambda a, i, c: _pal_around(a, i, i)),
+    "longestPalCenteredAtIPlusOne": ("i", lambda a, i, c: _pal_around(a, i, i + 1)),
     "stridedSum": ("lrs", lambda a, l, r, s, c: sum(a[l:r + 1:s])),
     "stridedMin": ("lrs", lambda a, l, r, s, c: min(a[l:r + 1:s])),
     "stridedMax": ("lrs", lambda a, l, r, s, c: max(a[l:r + 1:s])),
@@ -374,7 +393,7 @@ def brute_update(a, op, args, ctx):
         elif op == "insertAt":
             a.insert(args[0], args[1])
         elif op == "pop":
-            return a.pop(args[0])
+            return a.pop()
         elif op == "popLeft":
             return a.pop(0)
         else:
@@ -533,12 +552,12 @@ def bad_calls(seq, lo, hi, rng, k=4):
         if op in PIECE_OPS or op in ("rangeHash", "rangeHashReversed", "find", "append", "appendLeft") or not args:
             continue
         kind = SEQ_OPS.get(op) or (BRUTE_QUERIES[op][0] if op in BRUTE_QUERIES else "lr")
-        if op == "pointGet" or op in POINT_UPDATES or kind in ("iv", "ivk") or kind.startswith("lr"):
+        if op == "pointGet" or op in POINT_UPDATES or kind in ("iv", "ivk", "i") or kind.startswith("lr"):
             last[op] = (kind, list(args))
     out = []
     for op in rng.sample(sorted(last), min(k, len(last))):
         kind, args = last[op]
-        if op == "pointGet" or op in POINT_UPDATES:
+        if op == "pointGet" or op in POINT_UPDATES or kind == "i":
             args[0] = rng.choice([lo - 1, hi + 1])
         elif kind in ("iv", "ivk"):  # (an insert position may be one past the end)
             args[0] = rng.choice([lo - 1, hi + 2])
@@ -613,7 +632,8 @@ def make_trials(folder, ops, trials, letters=False):
                 n += pieces.pop()
                 continue
             if op in ("pop", "popLeft", "eraseRange") and n == 1 or op in ("insertAt", "append", "appendLeft", "insertCopiesAt", "copyRange") and n >= 40:  # keep 1 <= n <= 40
-                op = "insertAt" if n == 1 else "pop" if "pop" in ops else "pointGet"
+                grow = next((o for o in ("insertAt", "append", "appendLeft") if o in ops), "pointGet")
+                op = grow if n == 1 else "pop" if "pop" in ops else "pointGet"
             if op in SEQ_OPS:
                 l, r = sorted((rng.randrange(n), rng.randrange(n)))
                 kind = SEQ_OPS[op]
@@ -666,6 +686,10 @@ def make_trials(folder, ops, trials, letters=False):
                     args = [l, r, rng.randint(-2, 25) if "PrefixSum" in op or "SuffixSum" in op else gen(rng)]
                 elif kind == "lrs":
                     args = [l, r, random_step(rng, n)]
+                elif kind == "hall":  # (half the time the whole array, so the hashes must agree)
+                    args = [0, n - 1] if rng.random() < 0.5 else [l, r]
+                elif kind == "i":
+                    args = [rng.randrange(n)]
                 elif kind == "lrkx":
                     args = [l, r, rng.randint(1, 5), gen(rng)]
                 elif kind == "lrk":
@@ -1181,6 +1205,12 @@ def run_python(folder, ops, trials, ctor_extra, stem="template"):
                 objs[name] = classes[name](*a0, *extra) if stem == "sparse" else classes[name](list(a0), *extra)
             if op in ("rangeHash", "rangeHashReversed"):
                 res = getattr(objs[name], op)(*args[:2]) == objs[name].rangeHash(*args[2:])
+            elif op == "hashAll":  # (against the hash of a[l..r]: equal only when that is the whole array)
+                if "rangeHash" in ops:
+                    res = objs[name].hashAll() == objs[name].rangeHash(*args)
+                else:  # (a second structure over a[l..r]: the same base and mod per run, so equal content hashes equal)
+                    piece = objs[name].getAll()[args[0]:args[1] + 1]
+                    res = objs[name].hashAll() == classes[name](piece, *extra).hashAll()
             else:
                 res = getattr(objs[name], op)(*args)
             if not is_update(op) or op in SEQ_OUT:
@@ -1316,6 +1346,12 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
                 body = f"long long l, r; cin >> l >> r; out({s}.{op}(l, r));"
             elif kind == "lrs":
                 body = f"long long l, r, step; cin >> l >> r >> step; out({s}.{op}(l, r, step));"
+            elif kind == "hall":
+                body = (f"long long l, r; cin >> l >> r; out({s}.{op}() == {s}.rangeHash(l, r));" if "rangeHash" in ops else
+                        f"long long l, r; cin >> l >> r; auto w = {s}.getAll(); "
+                        f"{owners[op]}<{elem}> tmp(vector<{elem}>(w.begin() + l, w.begin() + r + 1){extra}); out({s}.{op}() == tmp.{op}());")
+            elif kind == "i":
+                body = f"long long i; cin >> i; out({s}.{op}(i));"
             elif kind == "lrx":
                 body = f"long long l, r, x; cin >> l >> r >> x; out({s}.{op}(l, r, x));"
             elif kind == "lrkx":

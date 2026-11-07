@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-sum-max-hash-nsuf-xor-updates-div-mod-sqrt/template.py
-# @operations: getAll isPalindrome leftmostGtX leftmostGteX minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeSum rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: getAll hashAll isPalindrome leftmostGtX leftmostGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeHash rangeHashReversed rangeMax rangeMod rangeSum rangeXorQuery rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll xorAll
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
@@ -26,6 +26,12 @@
 #   rightmostGteX: log(N)
 #   rightmostSuffixSumLtX: log(N)
 #   rightmostSuffixSumLteX: log(N)
+#   longestPalCenteredAtI: log^2(N)
+#   longestPalCenteredAtIPlusOne: log^2(N)
+#   hashAll: log(N)
+#   sumAll: log(N)
+#   maxAll: log(N)
+#   xorAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -338,6 +344,62 @@ class ShrinkSegTree:
                 return t - n
             acc += sm[t]
         return -1
+
+    # O(log^2(N)) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
+    def longestPalCenteredAtI(self, i):
+        n = self.n
+        if not 0 <= i < n:
+            raise IndexError(f"longestPalCenteredAtI: needs 0 <= i < n, got i = {i}, n = {n}")
+        lo, hi = 0, min(i, n - 1 - i)
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if self.isPalindrome(i - mid, i + mid):
+                lo = mid
+            else:
+                hi = mid - 1
+        return i - lo, i + lo
+
+    # O(log^2(N)) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    # range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
+    # needs 0 <= i < n, else raises IndexError
+    def longestPalCenteredAtIPlusOne(self, i):
+        n = self.n
+        if not 0 <= i < n:
+            raise IndexError(f"longestPalCenteredAtIPlusOne: needs 0 <= i < n, got i = {i}, n = {n}")
+        lo, hi = 0, min(i + 1, n - 1 - i)
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if self.isPalindrome(i - mid + 1, i + mid):
+                lo = mid
+            else:
+                hi = mid - 1
+        return i - lo + 1, i + lo
+
+    # O(log(N)) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    # this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
+    def hashAll(self):
+        if self.n < 1:
+            raise IndexError("hashAll: needs n >= 1")
+        return self.rangeHash(0, self.n - 1)
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
+
+    # O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.n < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.n - 1)
 
     # ---- internals ----
 

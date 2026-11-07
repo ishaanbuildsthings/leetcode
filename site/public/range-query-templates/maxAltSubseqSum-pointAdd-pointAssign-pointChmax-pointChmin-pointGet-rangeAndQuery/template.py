@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery/template.py
-# @operations: getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery
+# @operations: andAll getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -11,6 +11,7 @@
 #   pointChmin: log(N)
 #   pointGet: log(N)
 #   rangeAndQuery: log(N)
+#   andAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -122,6 +123,12 @@ class SegTree:
             lo >>= 1
             hi >>= 1
         return res
+
+    # O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
 
     # ---- internals ----
 

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSum/template.py
-# @operations: getAll longestEqualRun maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum
+# @operations: getAll longestEqualRun maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -13,6 +13,7 @@
 #   pointGet: log(N)
 #   rangeAssign: log(N)
 #   rangeSum: log(N)
+#   sumAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -194,6 +195,12 @@ class LazySegTree:
             lo >>= 1
             hi >>= 1
         return res
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
 
     # ---- internals ----
 

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeMax-rangeOrQuery-rangeSortAsc-rangeSortDesc-rangeXorQuery/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeOrQuery rangeSortAsc rangeSortDesc rangeXorQuery
+# @operations: andAll getAll maxAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeOrQuery rangeSortAsc rangeSortDesc rangeXorQuery xorAll
 # @data-structure-type: sorted-runs
 # @complexities:
 #   getAll: N*log(U)
@@ -16,6 +16,10 @@
 #   rangeSortAsc: log(N)+log(U) amortized
 #   rangeSortDesc: log(N)+log(U) amortized
 #   rangeXorQuery: log(N)+log(U) amortized
+#   maxAll: log(N)+log(U) amortized
+#   xorAll: log(N)+log(U) amortized
+#   andAll: log(N)+log(U) amortized
+#   orAll: log(N)+log(U) amortized
 #   build: N*log(U)
 # @memory:
 #   layout: none
@@ -162,6 +166,30 @@ class SortedRunsXorMaxOrAnd:
             out += self._values(self.root[s], self.desc[s])
             s += self.len[s]
         return out
+
+    # O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
+
+    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.n < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.n - 1)
+
+    # O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
+
+    # O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
 
     # ---- internals: runs ----
 

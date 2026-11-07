@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeOrQuery-rangeSum/template.py
-# @operations: getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeOrQuery rangeSum
+# @operations: getAll longestEqualRun orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeOrQuery rangeSum sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -12,6 +12,8 @@
 #   pointGet: log(N)
 #   rangeOrQuery: log(N)
 #   rangeSum: log(N)
+#   sumAll: log(N)
+#   orAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -144,6 +146,18 @@ class SegTree:
             lo >>= 1
             hi >>= 1
         return res
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
 
     # ---- internals ----
 

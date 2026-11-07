@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-offline-order-stats-sums/template.py
-# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin rangeSum size smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX maxAll minAll pointGet pop rangeMax rangeMin rangeSum size smallestGtX smallestGteX sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 # @data-structure-type: persistent
 # @values: offline
 # @complexities:
@@ -16,6 +16,7 @@
 #   largestLtX: log(N)
 #   largestLteX: log(N)
 #   pointGet: 1
+#   pop: 1
 #   rangeMax: log(N)
 #   rangeMin: log(N)
 #   rangeSum: log(N)
@@ -32,6 +33,9 @@
 #   sumLteX: log(N)
 #   sumSmallestK: log(N)
 #   size: 1
+#   sumAll: log(N)
+#   minAll: log(N)
+#   maxAll: log(N)
 #   build: N*log(N)
 # @memory:
 #   layout: none
@@ -72,6 +76,15 @@ class PersistentOfflineOrderStats:
         self.root.append(self._ins(self.root[-1], k, v))
         self.arr.append(v)
         self.n += 1
+
+    # O(1) -- remove a[n-1] and return it: the newest version is dropped (its nodes stay allocated); needs n >= 1,
+    # else raises IndexError
+    def pop(self):
+        if self.n < 1:
+            raise IndexError("pop: needs n >= 1")
+        self.root.pop()
+        self.n -= 1
+        return self.arr.pop()
 
     # O(1) -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
@@ -260,6 +273,24 @@ class PersistentOfflineOrderStats:
         rk = bisect_left(self.srt, x)
         c, s = self._countBelow(l, r, rk), self._sumBelow(l, r, rk)
         return x * c - s + (self._sumFirst(l, r, r - l + 1) - s) - x * (r - l + 1 - c)
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.size() < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.size() - 1)
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.size() < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.size() - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.size() < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.size() - 1)
 
     # ---- internals ----
 

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd/template.py
-# @operations: getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
+# @operations: gcdAll getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -12,6 +12,7 @@
 #   pointGet: log(N)
 #   rangeAdd: log(N)*log(U) ?
 #   rangeGcd: log(N)+log(U) ?
+#   gcdAll: log(N)+log(U) ?
 #   build: N*log(U) ?
 # @memory:
 #   layout: 2n-iterative
@@ -155,6 +156,12 @@ class LazySegTree:
             res = gcd(gcd(res, fv[t] - last), g[t])
             last = lv[t]
         return res
+
+    # O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
+    def gcdAll(self):
+        if self.n < 1:
+            raise IndexError("gcdAll: needs n >= 1")
+        return self.rangeGcd(0, self.n - 1)
 
     # ---- internals ----
 

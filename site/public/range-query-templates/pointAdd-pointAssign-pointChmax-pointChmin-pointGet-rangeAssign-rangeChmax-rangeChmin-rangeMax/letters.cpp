@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmax rangeChmin rangeMax
+// @operations: getAll maxAll pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmax rangeChmin rangeMax
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -16,6 +16,7 @@ using ll = long long;
 //   rangeChmax: log(N)
 //   rangeChmin: log(N)
 //   rangeMax: log(N)
+//   maxAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -170,4 +171,11 @@ struct ChminChmaxAssignMaxTree {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         if (v < pointGet(i)) pointAssign(i, v);
     }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
 };

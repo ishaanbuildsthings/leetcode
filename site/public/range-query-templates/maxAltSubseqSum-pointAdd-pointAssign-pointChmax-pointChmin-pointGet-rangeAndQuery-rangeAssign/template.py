@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign/template.py
-# @operations: getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign
+# @operations: andAll getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -12,6 +12,7 @@
 #   pointGet: log(N)
 #   rangeAndQuery: log(N)
 #   rangeAssign: log(N)
+#   andAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -166,6 +167,12 @@ class LazySegTree:
             s += 1
         self._rebuild(l + n)
         self._rebuild(r + n)
+
+    # O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
 
     # ---- internals ----
 

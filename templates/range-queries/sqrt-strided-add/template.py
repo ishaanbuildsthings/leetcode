@@ -46,8 +46,10 @@ class StridedQueries:
 
     # a[l] += v, a[l + step] += v, ... up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedAdd(self, l, r, step, v):
-        if l < 0 or l > r or r >= self.n or step < 1:
-            raise IndexError(f"stridedAdd: needs 0 <= l <= r < n and step >= 1, got l={l}, r={r}, step={step}, n={self.n}")
+        if not 0 <= l <= r < self.n:
+            raise IndexError(f"stridedAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
+        if step < 1:
+            raise IndexError(f"stridedAdd: needs step >= 1, got step = {step}")
         last = l + (r - l) // step * step
         if step > self.strides:
             A = self.A

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/wavelet-order-stats-xor-and-table-mex/template.py
-# @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMex rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
+# @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll pointGet rangeMax rangeMex rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
 # @data-structure-type: wavelet
 # @complexities:
 #   andGtX: log(N)
@@ -28,6 +28,8 @@
 #   xorInValRange: log(N)
 #   xorLtX: log(N)
 #   xorLteX: log(N)
+#   minAll: log(N)
+#   maxAll: log(N)
 #   build: N*log^2(N)
 # @memory:
 #   layout: none
@@ -244,6 +246,18 @@ class WaveletMatrix:
         if lowVal > highVal:
             return -1
         return self._andRanks(l, r, bisect_left(self.srt, lowVal), bisect_right(self.srt, highVal))
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
 
     # ---- internals ----
 

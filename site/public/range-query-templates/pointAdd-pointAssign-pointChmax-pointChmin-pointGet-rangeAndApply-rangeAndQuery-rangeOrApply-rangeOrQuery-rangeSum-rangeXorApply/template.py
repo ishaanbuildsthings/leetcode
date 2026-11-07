@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum-rangeXorApply/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply
+# @operations: andAll getAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum rangeXorApply sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N*log(U)
@@ -15,6 +15,9 @@
 #   rangeOrQuery: log(N)*log(U)
 #   rangeSum: log(N)*log(U)
 #   rangeXorApply: log(N)*log(U)
+#   sumAll: log(N)*log(U)
+#   andAll: log(N)*log(U)
+#   orAll: log(N)*log(U)
 #   build: N*log(U)
 # @memory:
 #   layout: 2n-iterative
@@ -218,8 +221,28 @@ class BitCountTree:
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logN * bits) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN * bits) -- a[i] = min(a[i], val); needs needs 0 <= i < n, else IndexError, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
+
+    # O(log(N)*log(U)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+
+    # O(log(N)*log(U)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+
+    # O(log(N)*log(U)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):

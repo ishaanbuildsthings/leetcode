@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum
+// @operations: getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -16,6 +16,7 @@ using ll = long long;
 //   pointGet: log(N)
 //   rangeAssign: log(N)
 //   rangeSum: log(N)
+//   sumAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -144,6 +145,12 @@ struct LazySegTree {
             if (hi & 1) res += sm[--hi];
         }
         return res;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
     }
 
     // ---- internals ----

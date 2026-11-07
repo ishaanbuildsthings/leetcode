@@ -1,10 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-offline-order-stats-sums/fast.cpp
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
-// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin rangeSum size smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX maxAll minAll pointGet pop rangeMax rangeMin rangeSum size smallestGtX smallestGteX sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 // @data-structure-type: persistent
 // @values: offline
 // @complexities:
@@ -20,6 +16,7 @@ using ll = long long;
 //   largestLtX: log(N)
 //   largestLteX: log(N)
 //   pointGet: 1
+//   pop: 1
 //   rangeMax: log(N)
 //   rangeMin: log(N)
 //   rangeSum: log(N)
@@ -36,6 +33,9 @@ using ll = long long;
 //   sumLteX: log(N)
 //   sumSmallestK: log(N)
 //   size: 1
+//   sumAll: log(N)
+//   minAll: log(N)
+//   maxAll: log(N)
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -116,6 +116,16 @@ struct PersistentOfflineOrderStats {
         if (k == m || srt[k] != v) throw invalid_argument("append: v was not in the values given to the constructor");
         root.push_back(ins(root.back(), k, v));
         arr.push_back(v), n++;
+    }
+
+    // O(1) -- remove a[n-1] and return it: the newest version is dropped (its nodes stay allocated); needs n >= 1,
+    // else throws out_of_range
+    LEETCODE_NO_SANITIZE T pop() {
+        if (n < 1) throw out_of_range("pop: needs n >= 1");
+        root.pop_back();
+        T v = arr.back();
+        arr.pop_back(), n--;
+        return v;
     }
 
     // O(1) -- a[i]; needs 0 <= i < size(), else throws out_of_range
@@ -304,6 +314,24 @@ struct PersistentOfflineOrderStats {
 
     LEETCODE_NO_SANITIZE int lb(const T& v) const { return int(lower_bound(srt.begin(), srt.end(), v) - srt.begin()); }
     LEETCODE_NO_SANITIZE int ub(const T& v) const { return int(upper_bound(srt.begin(), srt.end(), v) - srt.begin()); }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, size() - 1);
+    }
+
+    // O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, size() - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto maxAll() {
+        if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, size() - 1);
+    }
 
     // ---- internals ----
 

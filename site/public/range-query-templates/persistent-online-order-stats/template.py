@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-online-order-stats/template.py
-# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin size smallestGtX smallestGteX
+# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX maxAll minAll pointGet pop rangeMax rangeMin size smallestGtX smallestGteX
 # @data-structure-type: persistent
 # @complexities:
 #   append: log(U)
@@ -15,11 +15,14 @@
 #   largestLtX: log(U)
 #   largestLteX: log(U)
 #   pointGet: 1
+#   pop: 1
 #   rangeMax: log(U)
 #   rangeMin: log(U)
 #   smallestGtX: log(U)
 #   smallestGteX: log(U)
 #   size: 1
+#   minAll: log(U)
+#   maxAll: log(U)
 #   build: N*log(U)
 # @memory:
 #   layout: none
@@ -52,6 +55,15 @@ class PersistentOnlineOrderStats:
         self.root.append(self._ins(self.root[-1], v, v))
         self.arr.append(v)
         self.n += 1
+
+    # O(1) -- remove a[n-1] and return it: the newest version is dropped (its nodes stay allocated); needs n >= 1,
+    # else raises IndexError
+    def pop(self):
+        if self.n < 1:
+            raise IndexError("pop: needs n >= 1")
+        self.root.pop()
+        self.n -= 1
+        return self.arr.pop()
 
     # O(1) -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
@@ -153,6 +165,18 @@ class PersistentOnlineOrderStats:
             raise IndexError(f"largestLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         c = self._countBelow(l, r, x)
         return None if c == 0 else self._kth(l, r, c)
+
+    # O(log(U)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.size() < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.size() - 1)
+
+    # O(log(U)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.size() < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.size() - 1)
 
     # ---- internals ----
 

@@ -4,11 +4,12 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointGet rangeGcd
+// @operations: gcdAll pointGet rangeGcd
 // @data-structure-type: sparse-table
 // @complexities:
 //   pointGet: 1
 //   rangeGcd: log(U) ?
+//   gcdAll: log(U) ?
 //   build: N*log(N)*log(U) ?
 // @memory:
 //   layout: none
@@ -84,4 +85,11 @@ struct SparseGcd {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return sp[0][i];
     }
+
+    // O(log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto gcdAll() {
+        if (n < 1) throw out_of_range("gcdAll: needs n >= 1");
+        return rangeGcd(0, n - 1);
+    }
+
 };

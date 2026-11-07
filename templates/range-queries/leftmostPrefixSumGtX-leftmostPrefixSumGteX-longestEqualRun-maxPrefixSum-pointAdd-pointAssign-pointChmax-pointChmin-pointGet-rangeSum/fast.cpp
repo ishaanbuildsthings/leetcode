@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
+// @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum sumAll
 // @data-structure-type: seg-tree
 // @letters: same
 // @complexities:
@@ -19,6 +19,7 @@ using ll = long long;
 //   pointChmin: log(N)
 //   pointGet: log(N)
 //   rangeSum: log(N)
+//   sumAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -213,6 +214,12 @@ struct SegTree {
             if (hi & 1) res += sm[--hi];
         }
         return res;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
     }
 
     // ---- internals ----

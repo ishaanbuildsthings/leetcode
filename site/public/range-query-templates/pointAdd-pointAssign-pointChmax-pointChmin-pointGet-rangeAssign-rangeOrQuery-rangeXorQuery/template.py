@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeOrQuery-rangeXorQuery/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeXorQuery
+# @operations: getAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeXorQuery xorAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -12,6 +12,8 @@
 #   rangeAssign: log(N)
 #   rangeOrQuery: log(N)
 #   rangeXorQuery: log(N)
+#   xorAll: log(N)
+#   orAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -159,6 +161,18 @@ class LazySegTree:
             lo >>= 1
             hi >>= 1
         return res
+
+    # O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.n < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.n - 1)
+
+    # O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
 
     # ---- internals ----
 

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-sum-pre-npre-updates-assign/template.py
-# @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeRotateLeft rangeRotateRight rangeSum size split trisect
+# @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum merge minPrefixSum paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeRotateLeft rangeRotateRight rangeSum size split sumAll trisect
 # @data-structure-type: persistent-treap
 # @complexities:
 #   append: log(N) expected
@@ -30,6 +30,9 @@
 #   split: log(N) expected
 #   trisect: log(N) expected
 #   size: 1
+#   pop: log(N) expected
+#   popLeft: log(N) expected
+#   sumAll: 1
 #   build: N
 # @memory:
 #   layout: none
@@ -394,6 +397,29 @@ class PersistentTreap:
         left.root, mid.root, right.root = self._cut(l, r)
         self.root = 0
         return left, mid, right
+
+    # O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
+
+    # O(1) -- sum of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.size() < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.sm[self.root]
 
     # ---- internals ----
 

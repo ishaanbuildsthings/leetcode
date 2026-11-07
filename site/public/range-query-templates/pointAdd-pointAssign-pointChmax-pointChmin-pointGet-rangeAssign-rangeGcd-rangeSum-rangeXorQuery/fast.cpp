@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeSum rangeXorQuery
+// @operations: gcdAll getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeGcd rangeSum rangeXorQuery sumAll xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -17,6 +17,9 @@ using ll = long long;
 //   rangeGcd: log(N)+log(U) ?
 //   rangeSum: log(N)
 //   rangeXorQuery: log(N)
+//   sumAll: log(N)
+//   gcdAll: log(N)+log(U) ?
+//   xorAll: log(N)
 //   build: N*log(U) ?
 // @memory:
 //   layout: 2n-iterative
@@ -187,6 +190,24 @@ struct LazySegTree {
             if (hi & 1) res ^= xr[--hi];
         }
         return res;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto gcdAll() {
+        if (n < 1) throw out_of_range("gcdAll: needs n >= 1");
+        return rangeGcd(0, n - 1);
+    }
+
+    // O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto xorAll() {
+        if (n < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, n - 1);
     }
 
     // ---- internals ----

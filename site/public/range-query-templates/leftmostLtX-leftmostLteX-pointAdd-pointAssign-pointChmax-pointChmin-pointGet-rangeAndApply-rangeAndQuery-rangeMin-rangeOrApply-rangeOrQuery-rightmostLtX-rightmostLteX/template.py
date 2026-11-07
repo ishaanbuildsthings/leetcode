@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMin-rangeOrApply-rangeOrQuery-rightmostLtX-rightmostLteX/template.py
-# @operations: getAll leftmostLtX leftmostLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMin rangeOrApply rangeOrQuery rightmostLtX rightmostLteX
+# @operations: andAll getAll leftmostLtX leftmostLteX minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMin rangeOrApply rangeOrQuery rightmostLtX rightmostLteX
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
@@ -18,6 +18,9 @@
 #   rangeOrQuery: log(N)
 #   rightmostLtX: log(N)
 #   rightmostLteX: log(N)
+#   minAll: log(N)
+#   andAll: log(N)
+#   orAll: log(N)
 #   build: N
 # @memory:
 #   layout: 4n-recursive
@@ -343,6 +346,24 @@ class BitBeats_PERFORMANT:
     # the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
     # node fully inside [l, r] that passes is ever walked down (it always holds an answer)
     def _lastPass(self, i, tl, tr, l, r, ok):
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+
+    # O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+
+    # O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
         if r < tl or tr < l or not ok(i):
             return -1
         if tl == tr:

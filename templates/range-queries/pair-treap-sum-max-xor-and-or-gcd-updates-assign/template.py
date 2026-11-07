@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-max-xor-and-or-gcd-updates-assign/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeMax rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangeXorQuery rightmostGtX rightmostGteX size split trisect
+# @operations: andAll append appendLeft cut gcdAll getAll insertAt insertCopiesAt leftmostGtX leftmostGteX maxAll merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeAssign rangeGcd rangeMax rangeOrQuery rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangeXorQuery rightmostGtX rightmostGteX size split sumAll trisect xorAll
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N)*log(U) expected ?
@@ -33,6 +33,14 @@
 #   split: log(N)*log(U) expected ?
 #   trisect: log(N)*log(U) expected ?
 #   size: 1
+#   pop: log(N)*log(U) expected ?
+#   popLeft: log(N)*log(U) expected ?
+#   sumAll: 1
+#   maxAll: log(N)*log(U) expected ?
+#   gcdAll: log(N)*log(U) expected ?
+#   xorAll: 1
+#   andAll: 1
+#   orAll: 1
 #   build: N*log(U) ?
 # @memory:
 #   layout: none
@@ -348,6 +356,59 @@ class PairSwapTreap:
         left.rE, left.rO, mid.rE, mid.rO, right.rE, right.rO = self._cut(l, r)
         self.rE = self.rO = 0
         return left, mid, right
+
+    # O(log(N)*log(U) expected ?) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
+
+    # O(1) -- sum of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.size() < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.sm[self.rE] + self.sm[self.rO]
+
+    # O(log(N)*log(U) expected ?) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.size() < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.size() - 1)
+
+    # O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
+    def gcdAll(self):
+        if self.size() < 1:
+            raise IndexError("gcdAll: needs n >= 1")
+        return self.rangeGcd(0, self.size() - 1)
+
+    # O(1) -- xor of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.size() < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.xr[self.rE] ^ self.xr[self.rO]
+
+    # O(1) -- AND of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def andAll(self):
+        if self.size() < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.an[self.rE] & self.an[self.rO]
+
+    # O(1) -- OR of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.size() < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.orr[self.rE] | self.orr[self.rO]
 
     # ---- internals ----
 

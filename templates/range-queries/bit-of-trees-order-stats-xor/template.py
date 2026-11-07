@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/bit-of-trees-order-stats-xor/template.py
-# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
+# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
 # @data-structure-type: bit-of-trees
 # @complexities:
 #   countGtX: log(N)*log(U)
@@ -27,6 +27,8 @@
 #   xorInValRange: log(N)*log(U)
 #   xorLtX: log(N)*log(U)
 #   xorLteX: log(N)*log(U)
+#   minAll: log(N)*log(U)
+#   maxAll: log(N)*log(U)
 #   build: N*log(N)*log(U)
 # @memory:
 #   layout: none
@@ -180,6 +182,18 @@ class DynamicOrderStats:
             raise IndexError(f"largestLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         c = self._countBelow(l, r, x)
         return None if c == 0 else self._kth(l, r, c)
+
+    # O(log(N)*log(U)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
+
+    # O(log(N)*log(U)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
 
     # ---- internals ----
 

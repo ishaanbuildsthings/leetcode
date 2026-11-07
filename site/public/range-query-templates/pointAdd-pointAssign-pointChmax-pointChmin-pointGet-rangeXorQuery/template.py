@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeXorQuery/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeXorQuery
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeXorQuery xorAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -10,6 +10,7 @@
 #   pointChmin: log(N)
 #   pointGet: log(N)
 #   rangeXorQuery: log(N)
+#   xorAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -94,6 +95,12 @@ class SegTree:
             lo >>= 1
             hi >>= 1
         return res
+
+    # O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.n < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.n - 1)
 
     # ---- internals ----
 

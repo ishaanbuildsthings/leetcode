@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/beats-max-run-alt-updates-div-mod-sqrt/template.py
-# @operations: getAll leftmostGtX leftmostGteX longestEqualRun maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rightmostGtX rightmostGteX
+# @operations: getAll leftmostGtX leftmostGteX longestEqualRun maxAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rightmostGtX rightmostGteX
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
@@ -19,6 +19,7 @@
 #   rangeMod: log(N)*log(U) amortized
 #   rightmostGtX: log(N)
 #   rightmostGteX: log(N)
+#   maxAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -242,6 +243,12 @@ class ShrinkSegTree:
                     t = 2 * t + 1 if F[2 * t + 1] >= x else 2 * t
                 return t - n
         return -1
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
 
     # ---- internals ----
 

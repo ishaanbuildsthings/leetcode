@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum minPrefixSum minSubarraySum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeMax rangeOrQuery rangeSum rangeXorQuery rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX
+// @operations: andAll gcdAll getAll leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX longestEqualRun maxAll maxAltSubseqSum maxPrefixSum maxSubarraySum maxSuffixSum minPrefixSum minSubarraySum minSuffixSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeMax rangeOrQuery rangeSum rangeXorQuery rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -40,6 +40,12 @@ using ll = long long;
 //   rightmostSuffixSumGteX: log(N)
 //   rightmostSuffixSumLtX: log(N)
 //   rightmostSuffixSumLteX: log(N)
+//   sumAll: log(N)
+//   maxAll: log(N)
+//   gcdAll: log(N)+log(U) ?
+//   xorAll: log(N)
+//   andAll: log(N)
+//   orAll: log(N)
 //   build: N*log(U) ?
 // @memory:
 //   layout: 2n-iterative
@@ -566,6 +572,42 @@ struct LazySegTree {
             acc += sm[t];
         }
         return -1;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
+    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto gcdAll() {
+        if (n < 1) throw out_of_range("gcdAll: needs n >= 1");
+        return rangeGcd(0, n - 1);
+    }
+
+    // O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto xorAll() {
+        if (n < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, n - 1);
+    }
+
+    // O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto andAll() {
+        if (n < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, n - 1);
+    }
+
+    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // ---- internals ----

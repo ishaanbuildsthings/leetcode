@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet rangeAssign rangeReplace rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size split trisect
+// @operations: append appendLeft countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet pop popLeft rangeAssign rangeReplace rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size split trisect
 // @data-structure-type: sqrt
 // @letters: same
 // @complexities:
@@ -30,6 +30,8 @@ using ll = long long;
 //   split: sqrt(N) amortized
 //   trisect: sqrt(N) amortized
 //   size: 1
+//   pop: sqrt(N) amortized
+//   popLeft: sqrt(N) amortized
 //   build: N
 // @memory:
 //   layout: none
@@ -378,6 +380,23 @@ struct SqrtReplace {
         auto [left, right] = split(r + 1);
         auto [first, mid] = left.split(l);
         return {std::move(first), std::move(mid), std::move(right)};
+    }
+
+    // O(sqrt(N) amortized) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(sqrt(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
     }
 
     // ---- internals ----

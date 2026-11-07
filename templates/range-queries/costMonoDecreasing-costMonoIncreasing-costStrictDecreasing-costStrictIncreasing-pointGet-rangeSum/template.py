@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/costMonoDecreasing-costMonoIncreasing-costStrictDecreasing-costStrictIncreasing-pointGet-rangeSum/template.py
-# @operations: costMonoDecreasing costMonoIncreasing costStrictDecreasing costStrictIncreasing pointGet rangeSum
+# @operations: costMonoDecreasing costMonoIncreasing costStrictDecreasing costStrictIncreasing pointGet rangeSum sumAll
 # @data-structure-type: sparse-table
 # @complexities:
 #   costMonoDecreasing: 1
@@ -9,6 +9,7 @@
 #   costStrictIncreasing: 1
 #   pointGet: 1
 #   rangeSum: 1
+#   sumAll: 1
 #   build: N*log(N)
 # @memory:
 #   layout: none
@@ -82,8 +83,16 @@ class MonoIncreaseCost:
         endsAt = (self.suff[l] - self.suff[m]) + self.arr[m] * (r - m + 1)
         return endsAt - self.rangeSum(l, r)
 
-    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(1) -- a[i]; needs needs 0 <= i < n, else IndexError, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
+
+    # O(1) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]
@@ -140,8 +149,16 @@ class MonoCosts:
             raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self.pf[r + 1] - self.pf[l] if r >= l else 0
 
-    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(1) -- a[i]; needs needs 0 <= i < n, else IndexError, else IndexError
     def pointGet(self, i):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
+
+    # O(1) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
         return self.arr[i]

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax
+// @operations: getAll maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax
 // @data-structure-type: seg-tree
 // @complexities:
 //   getAll: N
@@ -14,6 +14,7 @@ using ll = long long;
 //   pointChmin: log(N)
 //   pointGet: 1
 //   rangeMax: log(N)
+//   maxAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -92,4 +93,11 @@ struct MaxSegTree {
         if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         pointAssign(i, tree[size + i] + delta);
     }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
 };

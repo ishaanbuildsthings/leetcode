@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd/template.py
-# @operations: getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
+# @operations: gcdAll getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -11,6 +11,7 @@
 #   pointChmin: log(N)*log(U) ?
 #   pointGet: log(N)
 #   rangeGcd: log(N)+log(U) ?
+#   gcdAll: log(N)+log(U) ?
 #   build: N*log(U) ?
 # @memory:
 #   layout: 2n-iterative
@@ -124,6 +125,12 @@ class SegTree:
             lo >>= 1
             hi >>= 1
         return res
+
+    # O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
+    def gcdAll(self):
+        if self.n < 1:
+            raise IndexError("gcdAll: needs n >= 1")
+        return self.rangeGcd(0, self.n - 1)
 
     # ---- internals ----
 

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: countInValRange getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeSum
+// @operations: countInValRange getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeSum sumAll
 // @data-structure-type: sqrt
 // @complexities:
 //   countInValRange: sqrt(N)*log(N)
@@ -19,6 +19,7 @@ using ll = long long;
 //   rangeChmax: sqrt(N)*log(N)
 //   rangeChmin: sqrt(N)*log(N)
 //   rangeSum: sqrt(N)*log(N)
+//   sumAll: sqrt(N)*log(N)
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -247,4 +248,11 @@ struct SqrtBlocks {
         if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         pointAssign(i, pointGet(i) + delta);
     }
+
+    // O(sqrt(N)*log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
 };

@@ -4,11 +4,12 @@
 using namespace std;
 using ll = long long;
 
-// @operations: pointGet rangeOrQuery
+// @operations: orAll pointGet rangeOrQuery
 // @data-structure-type: sparse-table
 // @complexities:
 //   pointGet: 1
 //   rangeOrQuery: 1
+//   orAll: 1
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -84,4 +85,11 @@ struct SparseOr {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return sp[0][i];
     }
+
+    // O(1) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
+    }
+
 };

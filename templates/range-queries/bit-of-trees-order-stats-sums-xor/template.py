@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/bit-of-trees-order-stats-sums-xor/template.py
-# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK xorGtX xorGteX xorInValRange xorLtX xorLteX
+# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK xorGtX xorGteX xorInValRange xorLtX xorLteX
 # @data-structure-type: bit-of-trees
 # @complexities:
 #   countGtX: log(N)*log(U)
@@ -38,6 +38,9 @@
 #   xorInValRange: log(N)*log(U)
 #   xorLtX: log(N)*log(U)
 #   xorLteX: log(N)*log(U)
+#   sumAll: log(N)*log(U)
+#   minAll: log(N)*log(U)
+#   maxAll: log(N)*log(U)
 #   build: N*log(N)*log(U)
 # @memory:
 #   layout: none
@@ -278,6 +281,24 @@ class DynamicOrderStats:
         rk = x
         c, s = self._countBelow(l, r, rk), self._sumBelow(l, r, rk)
         return x * c - s + (self._sumFirst(l, r, r - l + 1) - s) - x * (r - l + 1 - c)
+
+    # O(log(N)*log(U)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)*log(U)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
+
+    # O(log(N)*log(U)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
 
     # ---- internals ----
 

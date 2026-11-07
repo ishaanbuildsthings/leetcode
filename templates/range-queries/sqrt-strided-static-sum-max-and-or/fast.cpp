@@ -87,7 +87,8 @@ struct StridedQueries {
     // a[l] + a[l + step] + ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE S stridedSum(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedSum: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedSum: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedSum: needs step >= 1");
         int last = l + (r - l) / step * step, count = (r - l) / step + 1;
         if (step != sumStep && (count <= 32 || (long long)step * step > n)) {
             S res = 0;
@@ -101,7 +102,8 @@ struct StridedQueries {
     // max of a[l], a[l + step], ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T stridedMax(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedMax: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedMax: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedMax: needs step >= 1");
         int last = l + (r - l) / step * step, count = (r - l) / step + 1;
         if (step != maxStep && (count <= 32 || (long long)step * step > n)) {
             T res = A[l];
@@ -117,7 +119,8 @@ struct StridedQueries {
     // a[l] & a[l + step] & ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T stridedAndQuery(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedAndQuery: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedAndQuery: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedAndQuery: needs step >= 1");
         int last = l + (r - l) / step * step, count = (r - l) / step + 1;
         if (step != andStep && (count <= 32 || (long long)step * step > n)) {
             T res = A[l];
@@ -133,7 +136,8 @@ struct StridedQueries {
     // a[l] | a[l + step] | ..., up to at most r. O(1) when step is the last step this op built for, so ask queries grouped by
     // step; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     LEETCODE_NO_SANITIZE T stridedOrQuery(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedOrQuery: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedOrQuery: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedOrQuery: needs step >= 1");
         int last = l + (r - l) / step * step, count = (r - l) / step + 1;
         if (step != orStep && (count <= 32 || (long long)step * step > n)) {
             T res = A[l];

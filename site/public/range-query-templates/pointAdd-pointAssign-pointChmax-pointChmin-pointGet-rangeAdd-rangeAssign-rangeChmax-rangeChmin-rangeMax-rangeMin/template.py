@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeAssign-rangeChmax-rangeChmin-rangeMax-rangeMin/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeMax rangeMin
+# @operations: getAll maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmax rangeChmin rangeMax rangeMin
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -15,6 +15,8 @@
 #   rangeChmin: log(N)
 #   rangeMax: log(N)
 #   rangeMin: log(N)
+#   minAll: log(N)
+#   maxAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -248,8 +250,22 @@ class ClampMinMaxTree:
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i] = min(a[i], val); needs needs 0 <= i < n, else IndexError, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):

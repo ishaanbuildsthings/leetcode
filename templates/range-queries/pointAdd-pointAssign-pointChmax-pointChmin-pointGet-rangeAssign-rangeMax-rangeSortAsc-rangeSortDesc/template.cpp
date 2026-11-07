@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeSortAsc rangeSortDesc
+// @operations: getAll maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeSortAsc rangeSortDesc
 // @data-structure-type: sorted-runs
 // @complexities:
 //   getAll: N*log(U)
@@ -17,6 +17,7 @@ using ll = long long;
 //   rangeMax: log(N)+log(U) amortized
 //   rangeSortAsc: log(N)+log(U) amortized
 //   rangeSortDesc: log(N)+log(U) amortized
+//   maxAll: log(N)+log(U) amortized
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -136,6 +137,12 @@ struct SortedRunsMax {
         out.reserve(n);
         for (int s = 0; s < n; s += len[s]) values(root[s], desc[s], out);
         return out;
+    }
+
+    // O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
     }
 
     // ---- internals: runs ----

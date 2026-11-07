@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeSum rangeXorQuery
+// @operations: getAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeSum rangeXorQuery sumAll xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -17,6 +17,9 @@ using ll = long long;
 //   rangeOrQuery: log(N)
 //   rangeSum: log(N)
 //   rangeXorQuery: log(N)
+//   sumAll: log(N)
+//   xorAll: log(N)
+//   orAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -187,6 +190,24 @@ struct LazySegTree {
             if (hi & 1) res ^= xr[--hi];
         }
         return res;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto xorAll() {
+        if (n < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, n - 1);
+    }
+
+    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // ---- internals ----

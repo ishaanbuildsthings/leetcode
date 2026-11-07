@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAddArithSeq rangeSum
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAddArithSeq rangeSum sumAll
 // @data-structure-type: BIT
 // @complexities:
 //   getAll: N
@@ -16,6 +16,7 @@ using ll = long long;
 //   rangeAdd: log(N)
 //   rangeAddArithSeq: log(N)
 //   rangeSum: log(N)
+//   sumAll: log(N)
 //   build: N
 // @memory:
 //   layout: none
@@ -134,4 +135,11 @@ struct ArithSeqSumBIT {
         T cur = pointGet(i);
         if (v < cur) rangeAdd(i, i, v - cur);
     }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
 };

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
+// @operations: gcdAll getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd
 // @data-structure-type: seg-tree
 // @complexities:
 //   getAll: N
@@ -15,6 +15,7 @@ using ll = long long;
 //   pointGet: log(N)
 //   rangeAdd: log(N)*log(U) ?
 //   rangeGcd: log(N)+log(U) ?
+//   gcdAll: log(N)+log(U) ?
 //   build: N*log(U) ?
 // @memory:
 //   layout: 2n-iterative
@@ -159,4 +160,11 @@ struct RangeAddRangeGcd {
         T cur = pointGet(i);
         if (v < cur) rangeAdd(i, i, v - cur);
     }
+
+    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto gcdAll() {
+        if (n < 1) throw out_of_range("gcdAll: needs n >= 1");
+        return rangeGcd(0, n - 1);
+    }
+
 };

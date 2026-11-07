@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeOrQuery rangeSum rangeXorApply
+// @operations: andAll getAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeOrQuery rangeSum rangeXorApply sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N*log(U)
@@ -17,6 +17,9 @@ using ll = long long;
 //   rangeOrQuery: log(N)*log(U)
 //   rangeSum: log(N)*log(U)
 //   rangeXorApply: log(N)*log(U)
+//   sumAll: log(N)*log(U)
+//   andAll: log(N)*log(U)
+//   orAll: log(N)*log(U)
 //   build: N*log(U)
 // @memory:
 //   layout: 2n-iterative
@@ -195,4 +198,23 @@ struct BitCountTree {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         if (v < pointGet(i)) pointAssign(i, v);
     }
+
+    // O(log(N)*log(U)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)*log(U)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto andAll() {
+        if (n < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, n - 1);
+    }
+
+    // O(log(N)*log(U)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
+    }
+
 };

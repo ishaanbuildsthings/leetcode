@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeGcd
+// @operations: gcdAll getAll longestEqualRun pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeGcd
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -17,6 +17,7 @@ using ll = long long;
 //   rangeAdd: log(N)*log(U) ?
 //   rangeAssign: log(N)*log(U) ?
 //   rangeGcd: log(N)+log(U) ?
+//   gcdAll: log(N)+log(U) ?
 //   build: N*log(U) ?
 // @memory:
 //   layout: 2n-iterative
@@ -164,6 +165,12 @@ struct LazySegTree {
         T res = gcd(fv[ns[0]], g[ns[0]]), last = lv[ns[0]];  // the first value, then every adjacent difference
         for (int i = 1; i < c; i++) res = gcd(gcd(res, T(fv[ns[i]] - last)), g[ns[i]]), last = lv[ns[i]];
         return res;
+    }
+
+    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto gcdAll() {
+        if (n < 1) throw out_of_range("gcdAll: needs n >= 1");
+        return rangeGcd(0, n - 1);
     }
 
     // ---- internals ----

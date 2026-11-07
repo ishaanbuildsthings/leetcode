@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeOrQuery rangeSum rightmostGtX rightmostGteX
+// @operations: getAll leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxAll maxPrefixSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeOrQuery rangeSum rightmostGtX rightmostGteX sumAll
 // @data-structure-type: beats
 // @complexities:
 //   getAll: N
@@ -26,6 +26,9 @@ using ll = long long;
 //   rangeSum: log(N)
 //   rightmostGtX: log(N)
 //   rightmostGteX: log(N)
+//   sumAll: log(N)
+//   maxAll: log(N)
+//   orAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -259,6 +262,24 @@ struct ShrinkSegTree {
             return t - n;
         }
         return -1;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
+    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // ---- internals ----

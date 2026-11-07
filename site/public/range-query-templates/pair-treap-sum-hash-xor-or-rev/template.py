@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pair-treap-sum-hash-xor-or-rev/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangeXorQuery rangesEqual size split trisect
+# @operations: append appendLeft cut getAll hashAll insertAt insertCopiesAt isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeHash rangeHashReversed rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rangeXorQuery rangesEqual size split sumAll trisect xorAll
 # @data-structure-type: pair-treap
 # @complexities:
 #   append: log(N) expected
@@ -30,6 +30,14 @@
 #   split: log(N) expected
 #   trisect: log(N) expected
 #   size: 1
+#   pop: log(N) expected
+#   popLeft: log(N) expected
+#   longestPalCenteredAtI: log^2(N) expected
+#   longestPalCenteredAtIPlusOne: log^2(N) expected
+#   hashAll: log(N) expected
+#   sumAll: 1
+#   xorAll: 1
+#   orAll: 1
 #   build: N
 # @memory:
 #   layout: none
@@ -306,6 +314,79 @@ class PairSwapTreap:
         left.rE, left.rO, mid.rE, mid.rO, right.rE, right.rO = self._cut(l, r)
         self.rE = self.rO = 0
         return left, mid, right
+
+    # O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
+
+    # O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    # its radius, log N calls of isPalindrome; needs 0 <= i < n, else raises IndexError
+    def longestPalCenteredAtI(self, i):
+        n = self.size()
+        if not 0 <= i < n:
+            raise IndexError(f"longestPalCenteredAtI: needs 0 <= i < n, got i = {i}, n = {n}")
+        lo, hi = 0, min(i, n - 1 - i)
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if self.isPalindrome(i - mid, i + mid):
+                lo = mid
+            else:
+                hi = mid - 1
+        return i - lo, i + lo
+
+    # O(log^2(N) expected) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    # range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
+    # needs 0 <= i < n, else raises IndexError
+    def longestPalCenteredAtIPlusOne(self, i):
+        n = self.size()
+        if not 0 <= i < n:
+            raise IndexError(f"longestPalCenteredAtIPlusOne: needs 0 <= i < n, got i = {i}, n = {n}")
+        lo, hi = 0, min(i + 1, n - 1 - i)
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if self.isPalindrome(i - mid + 1, i + mid):
+                lo = mid
+            else:
+                hi = mid - 1
+        return i - lo + 1, i + lo
+
+    # O(log(N) expected) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    # this run, so it compares with another one's hashes); needs n >= 1, else raises IndexError
+    def hashAll(self):
+        if self.size() < 1:
+            raise IndexError("hashAll: needs n >= 1")
+        return self.rangeHash(0, self.size() - 1)
+
+    # O(1) -- sum of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.size() < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.sm[self.rE] + self.sm[self.rO]
+
+    # O(1) -- xor of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.size() < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.xr[self.rE] ^ self.xr[self.rO]
+
+    # O(1) -- OR of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.size() < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.orr[self.rE] | self.orr[self.rO]
 
     # ---- internals ----
 

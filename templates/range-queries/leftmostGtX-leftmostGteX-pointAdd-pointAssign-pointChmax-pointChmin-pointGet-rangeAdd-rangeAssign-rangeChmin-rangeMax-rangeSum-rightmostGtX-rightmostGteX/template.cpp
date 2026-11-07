@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmin rangeMax rangeSum rightmostGtX rightmostGteX
+// @operations: getAll leftmostGtX leftmostGteX maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeAssign rangeChmin rangeMax rangeSum rightmostGtX rightmostGteX sumAll
 // @data-structure-type: beats
 // @complexities:
 //   getAll: N
@@ -22,6 +22,8 @@ using ll = long long;
 //   rangeSum: log(N)
 //   rightmostGtX: log(N)
 //   rightmostGteX: log(N)
+//   sumAll: log(N)
+//   maxAll: log(N)
 //   build: N
 // @memory:
 //   layout: 4n-recursive
@@ -266,4 +268,17 @@ struct ChminChmaxBeats {
         int tm = (tl + tr) / 2, res = lastPass(2 * i + 1, tm + 1, tr, l, r, ok);
         return res != -1 ? res : lastPass(2 * i, tl, tm, l, r, ok);
     }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
 };

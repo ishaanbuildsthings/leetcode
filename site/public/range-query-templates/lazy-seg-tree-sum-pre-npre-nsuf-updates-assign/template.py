@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/lazy-seg-tree-sum-pre-npre-nsuf-updates-assign/template.py
-# @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX leftmostPrefixSumLtX leftmostPrefixSumLteX maxPrefixSum minPrefixSum minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSum rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -20,6 +20,7 @@
 #   rangeSum: log(N)
 #   rightmostSuffixSumLtX: log(N)
 #   rightmostSuffixSumLteX: log(N)
+#   sumAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -318,6 +319,12 @@ class LazySegTree:
                 return t - n
             acc += sm[t]
         return -1
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
 
     # ---- internals ----
 

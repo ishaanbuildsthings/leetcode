@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-value-map-counts-sums/template.py
-# @operations: append appendLeft countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet rangeAssign rangeReplace rangeRotateLeft rangeRotateRight rangeSum rightmostIndexOf rightmostIndexOfInRange size split trisect
+# @operations: append appendLeft countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet pop popLeft rangeAssign rangeReplace rangeRotateLeft rangeRotateRight rangeSum rightmostIndexOf rightmostIndexOfInRange size split sumAll trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: U*log(N) expected
@@ -26,6 +26,9 @@
 #   split: U*log(N) expected
 #   trisect: U*log(N) expected
 #   size: 1
+#   pop: U*log(N) expected
+#   popLeft: U*log(N) expected
+#   sumAll: U*log(N) expected
 #   build: N*U
 # @memory:
 #   layout: none
@@ -276,6 +279,29 @@ class ValueMapTreap:
             raise IndexError(f"rangeSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         lo = self.valLo
         return self._fold(self.root, l, r, None, 0, self._sumWhole, lambda v: v + lo)
+
+    # O(U*log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
+
+    # O(U*log(N) expected) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.size() < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.size() - 1)
 
     # ---- internals ----
 

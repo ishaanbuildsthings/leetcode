@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeMin-rangeOrQuery-rangeSortAsc-rangeSortDesc/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeOrQuery rangeSortAsc rangeSortDesc
+# @operations: getAll minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMin rangeOrQuery rangeSortAsc rangeSortDesc
 # @data-structure-type: sorted-runs
 # @complexities:
 #   getAll: N*log(U)
@@ -14,6 +14,8 @@
 #   rangeOrQuery: log(N)+log(U) amortized
 #   rangeSortAsc: log(N)+log(U) amortized
 #   rangeSortDesc: log(N)+log(U) amortized
+#   minAll: log(N)+log(U) amortized
+#   orAll: log(N)+log(U) amortized
 #   build: N*log(U)
 # @memory:
 #   layout: none
@@ -140,6 +142,18 @@ class SortedRunsMinOr:
             out += self._values(self.root[s], self.desc[s])
             s += self.len[s]
         return out
+
+    # O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
+
+    # O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
 
     # ---- internals: runs ----
 

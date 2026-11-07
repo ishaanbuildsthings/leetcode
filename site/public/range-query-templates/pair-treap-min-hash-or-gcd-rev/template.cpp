@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeHash rangeHashReversed rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangesEqual rightmostLtX rightmostLteX size split trisect
+// @operations: append appendLeft cut gcdAll getAll hashAll insertAt insertCopiesAt isPalindrome leftmostLtX leftmostLteX longestPalCenteredAtI longestPalCenteredAtIPlusOne merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeHash rangeHashReversed rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeTwinSpin rangesEqual rightmostLtX rightmostLteX size split trisect
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -38,6 +38,14 @@ using ll = long long;
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
 //   size: 1
+//   pop: log(N)*log(U) expected ?
+//   popLeft: log(N)*log(U) expected ?
+//   longestPalCenteredAtI: log^2(N)*log(U) expected ?
+//   longestPalCenteredAtIPlusOne: log^2(N)*log(U) expected ?
+//   hashAll: log(N)*log(U) expected ?
+//   minAll: log(N)*log(U) expected ?
+//   gcdAll: log(N)*log(U) expected ?
+//   orAll: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none
@@ -401,6 +409,77 @@ struct PairSwapTreap {
         left.rE = ae, left.rO = ao, mid.rE = be, mid.rO = bo, right.rE = ce, right.rO = co;
         rE = rO = 0;
         return {left, mid, right};
+    }
+
+    // O(log(N)*log(U) expected ?) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    pair<long long, long long> longestPalCenteredAtI(long long i) {
+        long long len = size();
+        if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");
+        long long lo = 0, hi = min(i, len - 1 - i);
+        while (lo < hi) {
+            long long mid = (lo + hi + 1) / 2;
+            if (isPalindrome(i - mid, i + mid)) lo = mid;
+            else hi = mid - 1;
+        }
+        return {i - lo, i + lo};
+    }
+
+    // O(log^2(N)*log(U) expected ?) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
+    // needs 0 <= i < n, else throws out_of_range
+    pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
+        long long len = size();
+        if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtIPlusOne: needs 0 <= i < n");
+        long long lo = 0, hi = min(i + 1, len - 1 - i);
+        while (lo < hi) {
+            long long mid = (lo + hi + 1) / 2;
+            if (isPalindrome(i - mid + 1, i + mid)) lo = mid;
+            else hi = mid - 1;
+        }
+        return {i - lo + 1, i + lo};
+    }
+
+    // O(log(N)*log(U) expected ?) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    // this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
+    auto hashAll() {
+        if (size() < 1) throw out_of_range("hashAll: needs n >= 1");
+        return rangeHash(0, size() - 1);
+    }
+
+    // O(log(N)*log(U) expected ?) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, size() - 1);
+    }
+
+    // O(log(N)*log(U) expected ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto gcdAll() {
+        if (size() < 1) throw out_of_range("gcdAll: needs n >= 1");
+        return rangeGcd(0, size() - 1);
+    }
+
+    // O(1) -- OR of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto orAll() {
+        if (size() < 1) throw out_of_range("orAll: needs n >= 1");
+        return nd[rE].orr | nd[rO].orr;
     }
 
     // ---- internals ----

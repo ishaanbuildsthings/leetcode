@@ -8,6 +8,7 @@ import {
   type OpId,
   type RangeQueryTemplate,
   type TemplateView,
+  type TemplateLang,
   CHAR_SAFE_OPS,
   lettersView,
   viewOf,
@@ -52,6 +53,8 @@ const UPDATE_OPS = new Set<string>(
 
 // What each constructor argument is, by its name in the source ("lo" / "hi" are covered by the sparse sentences).
 const CTOR_ARG_NOTES: Record<string, CtorNote> = {
+  hashBase: { py: "", cpp: "", shown: false },  // (the rolling-hash templates: explained by the example lines, see ctorComments)
+  hashMod: { py: "", cpp: "", shown: false },
   arr: { py: "arr: the initial array (a list), 0-indexed", cpp: "arr: the initial array (vector<long long>), 0-indexed", inCall: true },
   a: { py: "a: the initial array (a list), 0-indexed", cpp: "a: the initial array (vector<long long>), 0-indexed" },
   values: {
@@ -154,15 +157,27 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   varName: "seg",
   // offered for characters (the box is ticked): the array is a list of characters
   ctorNotes: (t) =>
-    t.chars
+    t.dataStructureType === "rolling-hash"
+      ? {
+          ...CTOR_ARG_NOTES,
+          arr: {
+            py: "arr: the initial array (a list of ints, negatives included, or a string / list of single characters), or leave it out to start empty",
+            cpp: "arr: the initial array (a vector of ints, long longs or chars; negatives are fine), or leave it out to start empty",
+            inCall: true,
+          },
+        }
+      : t.chars
       ? {
           ...CTOR_ARG_NOTES,
           arr: { py: 'arr: the initial array, a list of characters, e.g. list(s) for a string s, 0-indexed', cpp: "arr: the initial array as vector<char>, e.g. vector<char>(s.begin(), s.end()), 0-indexed", inCall: true },
           a: { py: 'a: the initial array, a list of characters, e.g. list(s) for a string s, 0-indexed', cpp: "a: the initial array as vector<char>, e.g. vector<char>(s.begin(), s.end()), 0-indexed" },
         }
       : CTOR_ARG_NOTES,
-  ctorComments: (t) =>
-    t.file !== "sparse"
+  ctorCommentsAfterArgs: (t) => t.dataStructureType === "rolling-hash",
+  ctorComments: (t, lang) =>
+    t.dataStructureType === "rolling-hash"
+      ? rollingHashExamples(t, lang)
+      : t.file !== "sparse"
       ? []
       : isBuiltFromPoints(t.memory)
         ? [
@@ -179,6 +194,8 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     t.file !== "sparse" ? "" : isBuiltFromPoints(t.memory) ? "indices not given in values count as 0" : "never-updated indices count as 0",
   pairResults: {
     rangeMode: ["value", "freq"],
+    longestPalCenteredAtI: ["l", "r"],
+    longestPalCenteredAtIPlusOne: ["l", "r"],
     cut: ["piece"],
     copy: ["piece"],
     split: ["left", "right"],
@@ -191,8 +208,35 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "persistent binary trie",
     "tuple values with a custom comparator",
     "interval tree",
+    "generic sparse table",
+    "2D sparse table",
   ],
 };
+
+// The rolling-hash constructors take an optional base and mod: shown as the constructions, not as "optional" notes.
+// Left out, every structure of the run shares one random base (so their hashes compare) and the mod 2^61 - 1.
+function rollingHashExamples(t: TemplateView, lang: TemplateLang): string[] {
+  const name = t.folder === "rolling-hash-window" ? "RollingHashWindow" : t.folder === "rolling-hash-two-stacks" ? "RollingHashDeque"
+    : t.folder === "rolling-hash-palindrome" ? "RollingHashPalindrome" : "RollingHashPalindromeDeque";
+  const elem = t.chars ? "char" : "long long";
+  return lang === "py"
+    ? [
+        "Hashing just works for arrays of negatives, large numbers, chars, using the default random base value",
+        "If we don't set the base or mod ourselves, they are shared between structures so we can compare hashes",
+        "Set hashBase / hashMod only to match something else:",
+        `  seg = ${name}(arr, hashBase=911)                       # your base, mod 2^61 - 1`,
+        `  seg = ${name}(arr, hashMod=10**9 + 7)                  # the run's base, your prime mod`,
+        `  seg = ${name}(arr, hashBase=911, hashMod=10**9 + 7)    # both`,
+      ]
+    : [
+        "Hashing just works for arrays of negatives, large numbers, chars, using the default random base value",
+        "If we don't set the base or mod ourselves, they are shared between structures so we can compare hashes",
+        "Set hashBase / hashMod only to match something else:",
+        `  ${name}<${elem}> seg(arr, 911);                    // your base, mod 2^61 - 1`,
+        `  ${name}<${elem}> seg(arr, nullopt, 1000000007);    // the run's base, your prime mod`,
+        `  ${name}<${elem}> seg(arr, 911, 1000000007);        // both`,
+      ];
+}
 
 export function RangeQueryPicker() {
   return <TemplatePicker catalog={RANGE_CATALOG} />;

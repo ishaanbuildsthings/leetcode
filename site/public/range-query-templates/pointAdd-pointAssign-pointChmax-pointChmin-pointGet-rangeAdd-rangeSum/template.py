@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeSum/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeSum sumAll
 # @data-structure-type: BIT
 # @complexities:
 #   getAll: N
@@ -11,6 +11,7 @@
 #   pointGet: log(N)
 #   rangeAdd: log(N)
 #   rangeSum: log(N)
+#   sumAll: log(N)
 #   build: N
 # @memory:
 #   layout: none
@@ -126,8 +127,16 @@ class RangeAddSumBIT:
         if val > cur:
             self.rangeAdd(i, i, val - cur)
 
-    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i] = min(a[i], val); needs needs 0 <= i < n, else IndexError, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         cur = self.pointGet(i)

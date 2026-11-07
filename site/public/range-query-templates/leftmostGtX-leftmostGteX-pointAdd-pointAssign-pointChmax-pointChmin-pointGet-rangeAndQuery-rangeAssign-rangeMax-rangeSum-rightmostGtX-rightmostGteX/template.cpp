@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeSum rightmostGtX rightmostGteX
+// @operations: andAll getAll leftmostGtX leftmostGteX maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMax rangeSum rightmostGtX rightmostGteX sumAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -21,6 +21,9 @@ using ll = long long;
 //   rangeSum: log(N)
 //   rightmostGtX: log(N)
 //   rightmostGteX: log(N)
+//   sumAll: log(N)
+//   maxAll: log(N)
+//   andAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -214,6 +217,24 @@ struct LazySegTree {
             return t - n;
         }
         return -1;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
+    // O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto andAll() {
+        if (n < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, n - 1);
     }
 
     // ---- internals ----

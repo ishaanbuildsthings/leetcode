@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 // @data-structure-type: bit-of-trees
 // @complexities:
 //   countGtX: log(N)*log(U)
@@ -37,6 +37,9 @@ using ll = long long;
 //   sumLtX: log(N)*log(U)
 //   sumLteX: log(N)*log(U)
 //   sumSmallestK: log(N)*log(U)
+//   sumAll: log(N)*log(U)
+//   minAll: log(N)*log(U)
+//   maxAll: log(N)*log(U)
 //   build: N*log(N)*log(U)
 // @memory:
 //   layout: none
@@ -276,6 +279,24 @@ struct DynamicOrderStats {
         long long rk = lb(x), c = countBelow(l, r, rk);
         S s = sumBelow(l, r, rk);
         return S(x) * c - s + (sumFirst(l, r, r - l + 1) - s) - S(x) * (r - l + 1 - c);
+    }
+
+    // O(log(N)*log(U)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)*log(U)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
+    // O(log(N)*log(U)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
     }
 
     // ---- internals ----

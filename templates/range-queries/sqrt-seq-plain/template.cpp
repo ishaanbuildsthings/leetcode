@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split trisect
+// @operations: append appendLeft countGtX countGteX countInValRange countLtX countLteX countOccurrences cut getAll insertAt insertCopiesAt kthGtX kthGteX kthLtX kthLteX kthSmallest largestLtX largestLteX leftmostIndexOf leftmostIndexOfInRange maxAll merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMax rangeMin rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size smallestGtX smallestGteX split trisect
 // @data-structure-type: sqrt
 // @complexities:
 //   append: sqrt(N)*log(N) amortized
@@ -46,6 +46,10 @@ using ll = long long;
 //   split: sqrt(N)*log(N) amortized
 //   trisect: sqrt(N)*log(N) amortized
 //   size: 1
+//   pop: sqrt(N)*log(N) amortized
+//   popLeft: sqrt(N)*log(N) amortized
+//   minAll: sqrt(N)*log(N)
+//   maxAll: sqrt(N)*log(N)
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -495,6 +499,35 @@ struct SqrtSequence {
     int kthGteX(int l, int r, int k, T x) const {
         if (l < 0 || l > r || r >= size()) throw out_of_range("kthGteX: needs 0 <= l <= r < size()");
         return k >= 1 ? kthWhere(l, r, k, x, nullopt, false, false) : -1;
+    }
+
+    // O(sqrt(N)*log(N) amortized) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(sqrt(N)*log(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(sqrt(N)*log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, size() - 1);
+    }
+
+    // O(sqrt(N)*log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, size() - 1);
     }
 
     // ---- internals ----

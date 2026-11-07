@@ -1,9 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-order-stats/sparse.cpp
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
 // @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin smallestGtX smallestGteX
 // @data-structure-type: persistent
 // @complexities:

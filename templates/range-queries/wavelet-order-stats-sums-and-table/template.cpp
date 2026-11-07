@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+// @operations: andGtX andGteX andInValRange andLtX andLteX countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll pointGet rangeMax rangeMin rangeSum smallestGtX smallestGteX sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 // @data-structure-type: wavelet
 // @complexities:
 //   andGtX: log(N)
@@ -37,6 +37,9 @@ using ll = long long;
 //   sumLtX: log(N)
 //   sumLteX: log(N)
 //   sumSmallestK: log(N)
+//   sumAll: log(N)
+//   minAll: log(N)
+//   maxAll: log(N)
 //   build: N*log^2(N)
 // @memory:
 //   layout: none
@@ -304,6 +307,24 @@ struct WaveletMatrix {
         if (l < 0 || l > r || r >= n) throw out_of_range("andInValRange: needs 0 <= l <= r < n");
         if (highVal < lowVal) return ~T(0);
         return andRanks(l, r, lb(lowVal), ub(highVal));
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
     }
 
     // ---- internals ----

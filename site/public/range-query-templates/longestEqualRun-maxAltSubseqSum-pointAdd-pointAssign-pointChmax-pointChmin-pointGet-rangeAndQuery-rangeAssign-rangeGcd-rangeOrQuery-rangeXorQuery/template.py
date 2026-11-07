@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/longestEqualRun-maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeGcd-rangeOrQuery-rangeXorQuery/template.py
-# @operations: getAll longestEqualRun maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeOrQuery rangeXorQuery
+# @operations: andAll gcdAll getAll longestEqualRun maxAltSubseqSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeGcd rangeOrQuery rangeXorQuery xorAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -16,6 +16,10 @@
 #   rangeGcd: log(N)+log(U) ?
 #   rangeOrQuery: log(N)
 #   rangeXorQuery: log(N)
+#   gcdAll: log(N)+log(U) ?
+#   xorAll: log(N)
+#   andAll: log(N)
+#   orAll: log(N)
 #   build: N*log(U) ?
 # @memory:
 #   layout: 2n-iterative
@@ -260,6 +264,30 @@ class LazySegTree:
             lo >>= 1
             hi >>= 1
         return res
+
+    # O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
+    def gcdAll(self):
+        if self.n < 1:
+            raise IndexError("gcdAll: needs n >= 1")
+        return self.rangeGcd(0, self.n - 1)
+
+    # O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.n < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.n - 1)
+
+    # O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
+
+    # O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
 
     # ---- internals ----
 

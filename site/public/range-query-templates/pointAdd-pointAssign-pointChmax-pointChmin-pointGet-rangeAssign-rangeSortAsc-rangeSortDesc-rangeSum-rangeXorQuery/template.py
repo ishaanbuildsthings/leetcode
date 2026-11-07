@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeSortAsc-rangeSortDesc-rangeSum-rangeXorQuery/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSortAsc rangeSortDesc rangeSum rangeXorQuery
+# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeSortAsc rangeSortDesc rangeSum rangeXorQuery sumAll xorAll
 # @data-structure-type: sorted-runs
 # @complexities:
 #   getAll: N*log(U)
@@ -14,6 +14,8 @@
 #   rangeSortDesc: log(N)+log(U) amortized
 #   rangeSum: log(N)+log(U) amortized
 #   rangeXorQuery: log(N)+log(U) amortized
+#   sumAll: log(N)+log(U) amortized
+#   xorAll: log(N)+log(U) amortized
 #   build: N*log(U)
 # @memory:
 #   layout: none
@@ -137,6 +139,18 @@ class SortedRunsSumXor:
             out += self._values(self.root[s], self.desc[s])
             s += self.len[s]
         return out
+
+    # O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.n < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.n - 1)
 
     # ---- internals: runs ----
 

@@ -1,10 +1,6 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-offline-order-stats-mex/fast.cpp
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
-// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointGet rangeMax rangeMex rangeMin size smallestGtX smallestGteX
+// @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX maxAll minAll pointGet pop rangeMax rangeMex rangeMin size smallestGtX smallestGteX
 // @data-structure-type: persistent
 // @values: offline
 // @complexities:
@@ -20,12 +16,15 @@ using ll = long long;
 //   largestLtX: log(N)
 //   largestLteX: log(N)
 //   pointGet: 1
+//   pop: 1
 //   rangeMax: log(N)
 //   rangeMex: log(N)
 //   rangeMin: log(N)
 //   smallestGtX: log(N)
 //   smallestGteX: log(N)
 //   size: 1
+//   minAll: log(N)
+//   maxAll: log(N)
 //   build: N*log(N)
 // @memory:
 //   layout: none
@@ -117,6 +116,17 @@ struct PersistentOfflineOrderStats {
         int prev = mexRoot.back();
         mexRoot.push_back(T(0) <= v && (long long)v <= mexHi ? mexSet(prev, 0, mexHi, int(v), n) : prev);
         arr.push_back(v), n++;
+    }
+
+    // O(1) -- remove a[n-1] and return it: the newest version is dropped (its nodes stay allocated); needs n >= 1,
+    // else throws out_of_range
+    LEETCODE_NO_SANITIZE T pop() {
+        if (n < 1) throw out_of_range("pop: needs n >= 1");
+        root.pop_back();
+        mexRoot.pop_back();
+        T v = arr.back();
+        arr.pop_back(), n--;
+        return v;
     }
 
     // O(1) -- a[i]; needs 0 <= i < size(), else throws out_of_range
@@ -229,6 +239,18 @@ struct PersistentOfflineOrderStats {
 
     LEETCODE_NO_SANITIZE int lb(const T& v) const { return int(lower_bound(srt.begin(), srt.end(), v) - srt.begin()); }
     LEETCODE_NO_SANITIZE int ub(const T& v) const { return int(upper_bound(srt.begin(), srt.end(), v) - srt.begin()); }
+
+    // O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, size() - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto maxAll() {
+        if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, size() - 1);
+    }
 
     // ---- internals ----
 

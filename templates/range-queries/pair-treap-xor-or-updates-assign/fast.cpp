@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorQuery size split trisect
+// @operations: append appendLeft cut getAll insertAt insertCopiesAt merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeOrQuery rangeRotateLeft rangeRotateRight rangeTwinSpin rangeXorQuery size split trisect xorAll
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N) expected
@@ -29,6 +29,10 @@ using ll = long long;
 //   split: log(N) expected
 //   trisect: log(N) expected
 //   size: 1
+//   pop: log(N) expected
+//   popLeft: log(N) expected
+//   xorAll: 1
+//   orAll: 1
 //   build: N
 // @memory:
 //   layout: none
@@ -300,6 +304,35 @@ struct PairSwapTreap {
         left.rE = ae, left.rO = ao, mid.rE = be, mid.rO = bo, right.rE = ce, right.rO = co;
         rE = rO = 0;
         return {left, mid, right};
+    }
+
+    // O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(1) -- xor of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto xorAll() {
+        if (size() < 1) throw out_of_range("xorAll: needs n >= 1");
+        return nd[rE].xr ^ nd[rO].xr;
+    }
+
+    // O(1) -- OR of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (size() < 1) throw out_of_range("orAll: needs n >= 1");
+        return nd[rE].orr | nd[rO].orr;
     }
 
     // ---- internals ----

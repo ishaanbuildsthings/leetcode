@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-treap-value-map-rev-counts/template.py
-# @operations: append appendLeft copy countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet rangeAssign rangeReplace rangeReverse rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size split trisect
+# @operations: append appendLeft copy countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet pop popLeft rangeAssign rangeReplace rangeReverse rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size split trisect
 # @data-structure-type: persistent-treap
 # @complexities:
 #   append: U*log(N) expected
@@ -27,6 +27,8 @@
 #   split: U*log(N) expected
 #   trisect: U*log(N) expected
 #   size: 1
+#   pop: U*log(N) expected
+#   popLeft: U*log(N) expected
 #   build: N*U
 # @memory:
 #   layout: none
@@ -293,6 +295,23 @@ class PersistentValueMapTreap:
             raise IndexError(f"rightmostIndexOfInRange: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
         return self._findIn(l, r, x, False)
+
+    # O(U*log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(U*log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
 
     # ---- internals ----
 

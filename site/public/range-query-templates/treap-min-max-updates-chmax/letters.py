@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/treap-min-max-updates-chmax/letters.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX merge paste pointAssign pointChmax pointChmin pointGet rangeChmax rangeMax rangeMin rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAll merge minAll paste pointAssign pointChmax pointChmin pointGet pop popLeft rangeChmax rangeMax rangeMin rangeRotateLeft rangeRotateRight rightmostGtX rightmostGteX rightmostLtX rightmostLteX size split trisect
 # @data-structure-type: treap
 # @complexities:
 #   append: log(N) expected
@@ -31,6 +31,10 @@
 #   split: log(N) expected
 #   trisect: log(N) expected
 #   size: 1
+#   pop: log(N) expected
+#   popLeft: log(N) expected
+#   minAll: 1
+#   maxAll: 1
 #   build: N
 # @memory:
 #   layout: none
@@ -470,6 +474,35 @@ class ImplicitTreap:
         left.root, mid.root, right.root = self._cut(l, r)
         self.root = 0
         return left, mid, right
+
+    # O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
+
+    # O(1) -- min of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.size() < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.mn[self.root]
+
+    # O(1) -- max of the whole array a[0..n-1] (read off the root); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.size() < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.mx[self.root]
 
     # ---- internals ----
 

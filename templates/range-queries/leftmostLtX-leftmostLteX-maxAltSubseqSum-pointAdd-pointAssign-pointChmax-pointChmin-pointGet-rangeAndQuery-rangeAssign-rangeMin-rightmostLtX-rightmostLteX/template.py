@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostLtX-leftmostLteX-maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndQuery-rangeAssign-rangeMin-rightmostLtX-rightmostLteX/template.py
-# @operations: getAll leftmostLtX leftmostLteX maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMin rightmostLtX rightmostLteX
+# @operations: andAll getAll leftmostLtX leftmostLteX maxAltSubseqSum minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeMin rightmostLtX rightmostLteX
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -17,6 +17,8 @@
 #   rangeMin: log(N)
 #   rightmostLtX: log(N)
 #   rightmostLteX: log(N)
+#   minAll: log(N)
+#   andAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -253,6 +255,18 @@ class LazySegTree:
                     t = 2 * t + 1 if F[2 * t + 1] <= x else 2 * t
                 return t - n
         return -1
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
+
+    # O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def andAll(self):
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
 
     # ---- internals ----
 

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeGcd-rangeSum/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeSum
+# @operations: gcdAll getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeGcd rangeSum sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -12,6 +12,8 @@
 #   rangeAdd: log(N)*log(U) ?
 #   rangeGcd: log(N)+log(U) ?
 #   rangeSum: log(N)
+#   sumAll: log(N)
+#   gcdAll: log(N)+log(U) ?
 #   build: N*log(U) ?
 # @memory:
 #   layout: 2n-iterative
@@ -156,6 +158,18 @@ class LazySegTree:
             lo >>= 1
             hi >>= 1
         return res
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
+    def gcdAll(self):
+        if self.n < 1:
+            raise IndexError("gcdAll: needs n >= 1")
+        return self.rangeGcd(0, self.n - 1)
 
     # ---- internals ----
 

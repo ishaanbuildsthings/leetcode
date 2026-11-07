@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX minPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeOrQuery rangeSum rightmostLtX rightmostLteX
+// @operations: getAll leftmostLtX leftmostLteX leftmostPrefixSumLtX leftmostPrefixSumLteX minAll minPrefixSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeOrQuery rangeSum rightmostLtX rightmostLteX sumAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   getAll: N
@@ -23,6 +23,9 @@ using ll = long long;
 //   rangeSum: log(N)
 //   rightmostLtX: log(N)
 //   rightmostLteX: log(N)
+//   sumAll: log(N)
+//   minAll: log(N)
+//   orAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -266,6 +269,24 @@ struct SegTree {
             return t - n;
         }
         return -1;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
+    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // ---- internals ----

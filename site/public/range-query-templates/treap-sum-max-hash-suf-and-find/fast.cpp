@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut find getAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeHash rangeHashReversed rangeMax rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split trisect
+// @operations: andAll append appendLeft cut find getAll hashAll insertAt insertCopiesAt isPalindrome leftmostGtX leftmostGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAndQuery rangeHash rangeHashReversed rangeMax rangeRotateLeft rangeRotateRight rangeSum rangesEqual rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split sumAll trisect
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N) expected
@@ -40,6 +40,14 @@ using ll = long long;
 //   split: log(N) expected
 //   trisect: log(N) expected
 //   size: 1
+//   pop: log(N) expected
+//   popLeft: log(N) expected
+//   longestPalCenteredAtI: log^2(N) expected
+//   longestPalCenteredAtIPlusOne: log^2(N) expected
+//   hashAll: 1
+//   sumAll: 1
+//   maxAll: 1
+//   andAll: 1
 //   build: N
 // @memory:
 //   layout: none
@@ -592,6 +600,77 @@ struct ImplicitTreap {
         cut(l, r, left.root, mid.root, right.root);
         root = 0;
         return {left, mid, right};
+    }
+
+    // O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(log^2(N) expected) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtI(long long i) {
+        long long len = size();
+        if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");
+        long long lo = 0, hi = min(i, len - 1 - i);
+        while (lo < hi) {
+            long long mid = (lo + hi + 1) / 2;
+            if (isPalindrome(i - mid, i + mid)) lo = mid;
+            else hi = mid - 1;
+        }
+        return {i - lo, i + lo};
+    }
+
+    // O(log^2(N) expected) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
+    // needs 0 <= i < n, else throws out_of_range
+    LEETCODE_NO_SANITIZE pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
+        long long len = size();
+        if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtIPlusOne: needs 0 <= i < n");
+        long long lo = 0, hi = min(i + 1, len - 1 - i);
+        while (lo < hi) {
+            long long mid = (lo + hi + 1) / 2;
+            if (isPalindrome(i - mid + 1, i + mid)) lo = mid;
+            else hi = mid - 1;
+        }
+        return {i - lo + 1, i + lo};
+    }
+
+    // O(1) -- hash of the whole array a[0..n-1], read off the root: the same base and mod as rangeHash (shared by every
+    // structure this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto hashAll() {
+        if (size() < 1) throw out_of_range("hashAll: needs n >= 1");
+        return nd[root].fh;
+    }
+
+    // O(1) -- sum of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
+        return nd[root].sm;
+    }
+
+    // O(1) -- max of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto maxAll() {
+        if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
+        return nd[root].mx;
+    }
+
+    // O(1) -- AND of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto andAll() {
+        if (size() < 1) throw out_of_range("andAll: needs n >= 1");
+        return nd[root].an;
     }
 
     // ---- internals ----

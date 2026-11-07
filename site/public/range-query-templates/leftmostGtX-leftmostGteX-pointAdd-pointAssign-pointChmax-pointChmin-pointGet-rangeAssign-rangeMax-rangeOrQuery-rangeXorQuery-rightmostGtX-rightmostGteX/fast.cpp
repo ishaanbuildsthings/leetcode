@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeOrQuery rangeXorQuery rightmostGtX rightmostGteX
+// @operations: getAll leftmostGtX leftmostGteX maxAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeOrQuery rangeXorQuery rightmostGtX rightmostGteX xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -21,6 +21,9 @@ using ll = long long;
 //   rangeXorQuery: log(N)
 //   rightmostGtX: log(N)
 //   rightmostGteX: log(N)
+//   maxAll: log(N)
+//   xorAll: log(N)
+//   orAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -246,6 +249,24 @@ struct LazySegTree {
             return t - n;
         }
         return -1;
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
+    // O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto xorAll() {
+        if (n < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, n - 1);
+    }
+
+    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // ---- internals ----

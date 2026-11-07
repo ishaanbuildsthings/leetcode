@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll isPalindrome pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeMin rangeSortAsc rangeSortDesc rangeSum rangesEqual
+// @operations: andAll getAll hashAll isPalindrome longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeMin rangeSortAsc rangeSortDesc rangeSum rangesEqual sumAll
 // @data-structure-type: sorted-runs
 // @complexities:
 //   getAll: N*log(U)
@@ -24,6 +24,13 @@ using ll = long long;
 //   rangeSortDesc: log(N)+log(U) amortized
 //   rangeSum: log(N)+log(U) amortized
 //   rangesEqual: log(N)+log(U) amortized
+//   longestPalCenteredAtI: log^2(N)+log(N)*log(U) amortized
+//   longestPalCenteredAtIPlusOne: log^2(N)+log(N)*log(U) amortized
+//   hashAll: log(N)+log(U) amortized
+//   sumAll: log(N)+log(U) amortized
+//   minAll: log(N)+log(U) amortized
+//   maxAll: log(N)+log(U) amortized
+//   andAll: log(N)+log(U) amortized
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -245,6 +252,66 @@ struct SortedRunsSumMinMaxAndHash {
         out.reserve(n);
         for (int s = 0; s < n; s += len[s]) values(root[s], desc[s], out);
         return out;
+    }
+
+    // O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    pair<long long, long long> longestPalCenteredAtI(long long i) {
+        long long len = n;
+        if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");
+        long long lo = 0, hi = min(i, len - 1 - i);
+        while (lo < hi) {
+            long long mid = (lo + hi + 1) / 2;
+            if (isPalindrome(i - mid, i + mid)) lo = mid;
+            else hi = mid - 1;
+        }
+        return {i - lo, i + lo};
+    }
+
+    // O(log^2(N)+log(N)*log(U) amortized) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
+    // needs 0 <= i < n, else throws out_of_range
+    pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
+        long long len = n;
+        if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtIPlusOne: needs 0 <= i < n");
+        long long lo = 0, hi = min(i + 1, len - 1 - i);
+        while (lo < hi) {
+            long long mid = (lo + hi + 1) / 2;
+            if (isPalindrome(i - mid + 1, i + mid)) lo = mid;
+            else hi = mid - 1;
+        }
+        return {i - lo + 1, i + lo};
+    }
+
+    // O(log(N)+log(U) amortized) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    // this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
+    auto hashAll() {
+        if (n < 1) throw out_of_range("hashAll: needs n >= 1");
+        return rangeHash(0, n - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto andAll() {
+        if (n < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, n - 1);
     }
 
     // ---- internals: runs ----

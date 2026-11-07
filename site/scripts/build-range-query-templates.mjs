@@ -42,6 +42,7 @@ const manifestPath = path.join(siteDir, "lib/generated/range-query-templates.ts"
 const TAGS = ["operations", "data-structure-type", "fractional-cascading", "values", "letters", "complexities", "memory", "original-file-url"];
 const OPTIONAL_TAGS = ["original-file-url", "fractional-cascading", "values", "letters"];
 
+const FREE_OPS = new Set(["getAll", "size", "pop", "popLeft", "hashAll", "sumAll", "minAll", "maxAll", "gcdAll", "xorAll", "andAll", "orAll", "longestPalCenteredAtI", "longestPalCenteredAtIPlusOne"]);
 const FAST_FILES = ["fast.cpp", "sparse-fast.cpp", "letters-fast.cpp"];  // made by gen_fast.py: the picker's fast mode
 const errors = [];
 const entries = [];
@@ -117,7 +118,9 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
     errors.push(`${folder}: no template.py or template.cpp`);
     continue;
   }
-  const base = data.operations.filter((op) => op !== "getAll" && op !== "size").join("-");
+  // (ops every structure of a kind gets for free stay out of the name, like getAll and size: pop / popLeft on everything
+  // with cut, hashAll on everything with rangeHash, the longest-palindrome walks on everything with isPalindrome)
+  const base = data.operations.filter((op) => !FREE_OPS.has(op)).join("-");
   const allowed = [base, `${base}__${data.dataStructureType}`];
   // a folder may name the structure instead of the op list: "<type>-..." (needed when the list is too long for a
   // filename, or when two variants of one structure share an op list, like the online / offline persistent trees)
@@ -180,6 +183,10 @@ for (const name of fs.readdirSync(bubbleDir)) fs.copyFileSync(path.join(bubbleDi
 const nextPermDir = path.resolve(siteDir, "../templates/next-permutation");
 fs.mkdirSync(path.join(publicDir, "_next-permutation"));
 for (const name of fs.readdirSync(nextPermDir)) fs.copyFileSync(path.join(nextPermDir, name), path.join(publicDir, "_next-permutation", name));
+// the reroot DP functions (the Misc tab): only the current ones, not the older files sharing the folder
+const rerootDir = path.resolve(siteDir, "../templates/reroot");
+fs.mkdirSync(path.join(publicDir, "_reroot"));
+for (const name of fs.readdirSync(rerootDir).filter((name) => /^(FarthestNode|SumOfDistances)\./.test(name))) fs.copyFileSync(path.join(rerootDir, name), path.join(publicDir, "_reroot", name));
 
 const goldenDir = path.resolve(siteDir, "../templates/golden-references");
 fs.mkdirSync(path.join(publicDir, "_golden-references"));

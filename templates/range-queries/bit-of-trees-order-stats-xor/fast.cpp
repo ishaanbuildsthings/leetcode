@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
+// @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX maxAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeMin smallestGtX smallestGteX xorGtX xorGteX xorInValRange xorLtX xorLteX
 // @data-structure-type: bit-of-trees
 // @complexities:
 //   countGtX: log(N)*log(U)
@@ -31,6 +31,8 @@ using ll = long long;
 //   xorInValRange: log(N)*log(U)
 //   xorLtX: log(N)*log(U)
 //   xorLteX: log(N)*log(U)
+//   minAll: log(N)*log(U)
+//   maxAll: log(N)*log(U)
 //   build: N*log(N)*log(U)
 // @memory:
 //   layout: none
@@ -220,6 +222,18 @@ struct DynamicOrderStats {
         long long c = countBelow(l, r, lb(x));
         if (c == 0) return nullopt;
         return kth(l, r, c);
+    }
+
+    // O(log(N)*log(U)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
+    // O(log(N)*log(U)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
     }
 
     // ---- internals ----

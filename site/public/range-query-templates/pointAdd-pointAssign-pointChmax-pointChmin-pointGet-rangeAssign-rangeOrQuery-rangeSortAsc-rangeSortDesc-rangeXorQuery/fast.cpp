@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeSortAsc rangeSortDesc rangeXorQuery
+// @operations: getAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeSortAsc rangeSortDesc rangeXorQuery xorAll
 // @data-structure-type: sorted-runs
 // @complexities:
 //   getAll: N*log(U)
@@ -18,6 +18,8 @@ using ll = long long;
 //   rangeSortAsc: log(N)+log(U) amortized
 //   rangeSortDesc: log(N)+log(U) amortized
 //   rangeXorQuery: log(N)+log(U) amortized
+//   xorAll: log(N)+log(U) amortized
+//   orAll: log(N)+log(U) amortized
 //   build: N*log(U)
 // @memory:
 //   layout: none
@@ -181,6 +183,18 @@ struct SortedRunsXorOr {
         out.reserve(n);
         for (int s = 0; s < n; s += len[s]) values(root[s], desc[s], out);
         return out;
+    }
+
+    // O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto xorAll() {
+        if (n < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, n - 1);
+    }
+
+    // O(log(N)+log(U) amortized) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // ---- internals: runs ----

@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-offline-order-stats-sums-mex/template.py
-# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX pointGet rangeMax rangeMex rangeMin rangeSum size smallestGtX smallestGteX sumAbsDiffToX sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
+# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences getAll kthSmallest largestLtX largestLteX maxAll minAll pointGet pop rangeMax rangeMex rangeMin rangeSum size smallestGtX smallestGteX sumAbsDiffToX sumAll sumGtX sumGteX sumInValRange sumKthLargestRange sumKthSmallestRange sumLargestK sumLtX sumLteX sumSmallestK
 # @data-structure-type: persistent
 # @values: offline
 # @complexities:
@@ -16,6 +16,7 @@
 #   largestLtX: log(N)
 #   largestLteX: log(N)
 #   pointGet: 1
+#   pop: 1
 #   rangeMax: log(N)
 #   rangeMex: log(N)
 #   rangeMin: log(N)
@@ -33,6 +34,9 @@
 #   sumLteX: log(N)
 #   sumSmallestK: log(N)
 #   size: 1
+#   sumAll: log(N)
+#   minAll: log(N)
+#   maxAll: log(N)
 #   build: N*log(N)
 # @memory:
 #   layout: none
@@ -79,6 +83,16 @@ class PersistentOfflineOrderStats:
         self.mexRoot.append(self._mexSet(prev, v, self.n) if 0 <= v <= self.mexHi else prev)
         self.arr.append(v)
         self.n += 1
+
+    # O(1) -- remove a[n-1] and return it: the newest version is dropped (its nodes stay allocated); needs n >= 1,
+    # else raises IndexError
+    def pop(self):
+        if self.n < 1:
+            raise IndexError("pop: needs n >= 1")
+        self.root.pop()
+        self.mexRoot.pop()
+        self.n -= 1
+        return self.arr.pop()
 
     # O(1) -- a[i]; needs 0 <= i < size(), else IndexError
     def pointGet(self, i):
@@ -273,6 +287,24 @@ class PersistentOfflineOrderStats:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeMex: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._mexFrom(l, r, 0)
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.size() < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.size() - 1)
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.size() < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.size() - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.size() < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.size() - 1)
 
     # ---- internals ----
 

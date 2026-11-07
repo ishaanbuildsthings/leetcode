@@ -127,6 +127,18 @@ export type OpId =
   | "kthLtX"
   | "append"
   | "appendLeft"
+  | "pop"
+  | "popLeft"
+  | "hashAll"
+  | "sumAll"
+  | "minAll"
+  | "maxAll"
+  | "gcdAll"
+  | "xorAll"
+  | "andAll"
+  | "orAll"
+  | "longestPalCenteredAtI"
+  | "longestPalCenteredAtIPlusOne"
   | "insertAt"
   | "rangeReverse"
   | "rangeRotateLeft"
@@ -267,6 +279,19 @@ export const OP_GROUPS: OpGroup[] = [
         ],
       },
       {
+        kind: "topic",
+        label: "Whole array",
+        ops: [
+          { id: "sumAll", signature: "sumAll()", description: "a[0] + … + a[n-1]" },
+          { id: "minAll", signature: "minAll()", description: "min of the whole array" },
+          { id: "maxAll", signature: "maxAll()", description: "max of the whole array" },
+          { id: "gcdAll", signature: "gcdAll()", description: "gcd of the whole array" },
+          { id: "xorAll", signature: "xorAll()", description: "xor of the whole array" },
+          { id: "andAll", signature: "andAll()", description: "AND of the whole array" },
+          { id: "orAll", signature: "orAll()", description: "OR of the whole array" },
+        ],
+      },
+      {
         kind: "uncommon",
         ops: [
           { id: "countOccurrences", signature: "countOccurrences(l, r, x)", description: "# of i in [l, r] with a[i] = x" },
@@ -311,6 +336,8 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "rangeRotateRight", signature: "rangeRotateRight(l, r, k)", description: "Cyclic shift l..r right by k (a[r−k+1…r] move to the front)" },
           { id: "append", signature: "append(val)", description: "Add val at the end" },
           { id: "appendLeft", signature: "appendLeft(val)", description: "Add val at the front (every index shifts up by 1)" },
+          { id: "pop", signature: "pop()", description: "Remove and return the last value" },
+          { id: "popLeft", signature: "popLeft()", description: "Remove and return the first value (every index shifts down by 1)" },
           { id: "insertCopiesAt", signature: "insertCopiesAt(i, val, k)", description: "Insert k copies of val so they become i..i+k−1" },
           { id: "rangeTwinSpin", signature: "rangeTwinSpin(l, r)", description: "Swap a[l]↔a[l+1], a[l+2]↔a[l+3], … (an odd last one stays)" },
         ],
@@ -422,6 +449,9 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "rangeHashReversed", signature: "rangeHashReversed(l, r)", description: "Hash of l..r read right to left" },
           { id: "isPalindrome", signature: "isPalindrome(l, r)", description: "Is l..r a palindrome" },
           { id: "rangesEqual", signature: "rangesEqual(l1, r1, l2, r2)", description: "Are l1..r1 and l2..r2 equal" },
+          { id: "hashAll", signature: "hashAll()", description: "Hash of the whole array (compares with any structure's hashes this run)" },
+          { id: "longestPalCenteredAtI", signature: "longestPalCenteredAtI(i)", description: "(l, r) of the longest odd palindrome centred on a[i]" },
+          { id: "longestPalCenteredAtIPlusOne", signature: "longestPalCenteredAtIPlusOne(i)", description: "(l, r) of the longest even palindrome centred between a[i] and a[i+1]; (i+1, i) if none" },
         ],
       },
     ],
@@ -600,6 +630,8 @@ export const DATA_STRUCTURE_TYPES = [
   "sorted-runs",
   "beats",
   "sqrt",
+  "rolling-hash",
+  "manacher",
 ] as const;
 
 export type DataStructureType = (typeof DATA_STRUCTURE_TYPES)[number];
@@ -623,6 +655,8 @@ export const DATA_STRUCTURE_TYPE_LABELS: Record<DataStructureType, string> = {
   treap: "Implicit treap",
   beats: "Seg tree beats",
   sqrt: "Sqrt decomposition",
+  "rolling-hash": "Rolling hash deque",
+  manacher: "Manacher's algorithm",
 };
 
 export interface RangeQueryTemplate {

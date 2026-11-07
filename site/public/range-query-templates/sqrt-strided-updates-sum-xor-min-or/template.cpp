@@ -127,7 +127,8 @@ struct StridedQueries {
 
     // a[l] + a[l + step] + ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     S stridedSum(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedSum: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedSum: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedSum: needs step >= 1");
         int last = l + (r - l) / step * step;
         if (step > blockStrides) {
             S res = 0;
@@ -151,7 +152,8 @@ struct StridedQueries {
 
     // a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedXorQuery(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedXorQuery: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedXorQuery: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedXorQuery: needs step >= 1");
         int last = l + (r - l) / step * step;
         if (step > blockStrides) {
             T res = 0;
@@ -175,7 +177,8 @@ struct StridedQueries {
 
     // min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedMin(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedMin: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedMin: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedMin: needs step >= 1");
         int last = l + (r - l) / step * step;
         if (step > treeStrides) {
             T res = A[l];
@@ -195,7 +198,8 @@ struct StridedQueries {
 
     // a[l] | a[l + step] | ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedOrQuery(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedOrQuery: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedOrQuery: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedOrQuery: needs step >= 1");
         int last = l + (r - l) / step * step;
         if (step > treeStrides) {
             T res = A[l];

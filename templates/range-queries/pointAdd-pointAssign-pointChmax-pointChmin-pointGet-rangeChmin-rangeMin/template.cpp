@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeChmin rangeMin
+// @operations: getAll minAll pointAdd pointAssign pointChmax pointChmin pointGet rangeChmin rangeMin
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -15,6 +15,7 @@ using ll = long long;
 //   pointGet: log(N)
 //   rangeChmin: log(N)
 //   rangeMin: log(N)
+//   minAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -148,4 +149,11 @@ struct ChminMinTree {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         if (v < pointGet(i)) pointAssign(i, v);
     }
+
+    // O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
 };

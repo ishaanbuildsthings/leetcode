@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAssign-rangeChmin-rangeMax-rangeSum-rightmostGtX-rightmostGteX/template.py
-# @operations: getAll leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmin rangeMax rangeSum rightmostGtX rightmostGteX
+# @operations: getAll leftmostGtX leftmostGteX maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeChmin rangeMax rangeSum rightmostGtX rightmostGteX sumAll
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
@@ -17,6 +17,8 @@
 #   rangeSum: log(N)
 #   rightmostGtX: log(N)
 #   rightmostGteX: log(N)
+#   sumAll: log(N)
+#   maxAll: log(N)
 #   build: N
 # @memory:
 #   layout: 4n-recursive
@@ -251,6 +253,18 @@ class ChminChmaxBeats:
     # the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
     # node fully inside [l, r] that passes is ever walked down (it always holds an answer)
     def _lastPass(self, i, tl, tr, l, r, ok):
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
         if r < tl or tr < l or not ok(i):
             return -1
         if tl == tr:

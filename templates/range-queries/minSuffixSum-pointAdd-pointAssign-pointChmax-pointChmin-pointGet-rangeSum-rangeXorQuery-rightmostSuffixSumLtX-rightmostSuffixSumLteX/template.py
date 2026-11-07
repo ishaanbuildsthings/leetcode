@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/minSuffixSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeSum-rangeXorQuery-rightmostSuffixSumLtX-rightmostSuffixSumLteX/template.py
-# @operations: getAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rangeXorQuery rightmostSuffixSumLtX rightmostSuffixSumLteX
+# @operations: getAll minSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rangeXorQuery rightmostSuffixSumLtX rightmostSuffixSumLteX sumAll xorAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -14,6 +14,8 @@
 #   rangeXorQuery: log(N)
 #   rightmostSuffixSumLtX: log(N)
 #   rightmostSuffixSumLteX: log(N)
+#   sumAll: log(N)
+#   xorAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -169,6 +171,18 @@ class SegTree:
                 return t - n
             acc += sm[t]
         return -1
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.n < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.n - 1)
 
     # ---- internals ----
 

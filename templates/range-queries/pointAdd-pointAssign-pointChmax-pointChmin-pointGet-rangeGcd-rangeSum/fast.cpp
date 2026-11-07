@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeSum
+// @operations: gcdAll getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeSum sumAll
 // @data-structure-type: seg-tree
 // @complexities:
 //   getAll: N
@@ -15,6 +15,8 @@ using ll = long long;
 //   pointGet: log(N)
 //   rangeGcd: log(N)+log(U) ?
 //   rangeSum: log(N)
+//   sumAll: log(N)
+//   gcdAll: log(N)+log(U) ?
 //   build: N*log(U) ?
 // @memory:
 //   layout: 2n-iterative
@@ -138,6 +140,18 @@ struct SegTree {
             if (hi & 1) res += sm[--hi];
         }
         return res;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto gcdAll() {
+        if (n < 1) throw out_of_range("gcdAll: needs n >= 1");
+        return rangeGcd(0, n - 1);
     }
 
     // ---- internals ----

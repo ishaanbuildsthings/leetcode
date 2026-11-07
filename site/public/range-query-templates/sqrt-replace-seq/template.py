@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sqrt-replace-seq/template.py
-# @operations: append appendLeft countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet rangeAssign rangeReplace rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size split trisect
+# @operations: append appendLeft countOccurrences cut getAll insertAt insertCopiesAt leftmostIndexOf leftmostIndexOfInRange merge paste pointAssign pointGet pop popLeft rangeAssign rangeReplace rangeRotateLeft rangeRotateRight rightmostIndexOf rightmostIndexOfInRange size split trisect
 # @data-structure-type: sqrt
 # @letters: same
 # @complexities:
@@ -26,6 +26,8 @@
 #   split: sqrt(N) amortized
 #   trisect: sqrt(N) amortized
 #   size: 1
+#   pop: sqrt(N) amortized
+#   popLeft: sqrt(N) amortized
 #   build: N
 # @memory:
 #   layout: none
@@ -333,6 +335,23 @@ class SqrtReplace:
         left, right = self.split(r + 1)
         left, mid = left.split(l)
         return left, mid, right
+
+    # O(sqrt(N) amortized) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(sqrt(N) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
 
     # ---- internals ----
 

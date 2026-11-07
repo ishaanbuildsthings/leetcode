@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeOrQuery/template.py
-# @operations: getAll maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeOrQuery
+# @operations: getAll maxAltSubseqSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeOrQuery
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -11,6 +11,7 @@
 #   pointChmin: log(N)
 #   pointGet: log(N)
 #   rangeOrQuery: log(N)
+#   orAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -122,6 +123,12 @@ class SegTree:
             lo >>= 1
             hi >>= 1
         return res
+
+    # O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
 
     # ---- internals ----
 

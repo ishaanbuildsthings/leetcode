@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll isPalindrome leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeXorQuery rangesEqual rightmostGtX rightmostGteX
+// @operations: andAll getAll hashAll isPalindrome leftmostGtX leftmostGteX longestPalCenteredAtI longestPalCenteredAtIPlusOne maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeAssign rangeHash rangeHashReversed rangeMax rangeXorQuery rangesEqual rightmostGtX rightmostGteX xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -25,6 +25,12 @@ using ll = long long;
 //   rangesEqual: log(N)
 //   rightmostGtX: log(N)
 //   rightmostGteX: log(N)
+//   longestPalCenteredAtI: log^2(N)
+//   longestPalCenteredAtIPlusOne: log^2(N)
+//   hashAll: log(N)
+//   maxAll: log(N)
+//   xorAll: log(N)
+//   andAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -294,6 +300,60 @@ struct LazySegTree {
             return t - n;
         }
         return -1;
+    }
+
+    // O(log^2(N)) -- (l, r) of the longest odd palindrome a[l..r] centred on a[i] (at least (i, i)): a binary search on
+    // its radius, log N calls of isPalindrome; needs 0 <= i < n, else throws out_of_range
+    pair<long long, long long> longestPalCenteredAtI(long long i) {
+        long long len = n;
+        if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtI: needs 0 <= i < n");
+        long long lo = 0, hi = min(i, len - 1 - i);
+        while (lo < hi) {
+            long long mid = (lo + hi + 1) / 2;
+            if (isPalindrome(i - mid, i + mid)) lo = mid;
+            else hi = mid - 1;
+        }
+        return {i - lo, i + lo};
+    }
+
+    // O(log^2(N)) -- (l, r) of the longest even palindrome a[l..r] centred between a[i] and a[i+1]; (i + 1, i), the empty
+    // range, when there is none (so also for i = n - 1): a binary search on its radius, log N calls of isPalindrome;
+    // needs 0 <= i < n, else throws out_of_range
+    pair<long long, long long> longestPalCenteredAtIPlusOne(long long i) {
+        long long len = n;
+        if (i < 0 || i >= len) throw out_of_range("longestPalCenteredAtIPlusOne: needs 0 <= i < n");
+        long long lo = 0, hi = min(i + 1, len - 1 - i);
+        while (lo < hi) {
+            long long mid = (lo + hi + 1) / 2;
+            if (isPalindrome(i - mid + 1, i + mid)) lo = mid;
+            else hi = mid - 1;
+        }
+        return {i - lo + 1, i + lo};
+    }
+
+    // O(log(N)) -- hash of the whole array a[0..n-1]: the same base and mod as rangeHash (shared by every structure
+    // this run, so it compares with another one's hashes); needs n >= 1, else throws out_of_range
+    auto hashAll() {
+        if (n < 1) throw out_of_range("hashAll: needs n >= 1");
+        return rangeHash(0, n - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
+    // O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto xorAll() {
+        if (n < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, n - 1);
+    }
+
+    // O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto andAll() {
+        if (n < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, n - 1);
     }
 
     // ---- internals ----

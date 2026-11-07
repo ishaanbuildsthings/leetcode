@@ -26,7 +26,7 @@ LOGN, LOGU = "1*N*log(N)", "1*N*log(U)"
 def header(cm, ops, online, sums, mex, node, other, note, offline=False):
     q = "log(U)" if online else "log(N)"
     lines = [f"@operations: {' '.join(ops)}", "@data-structure-type: persistent"] + (["@values: offline"] if offline else []) + ["@complexities:"]
-    lines += [f"  {op}: {'1' if op == 'pointGet' else 'N' if op == 'getAll' else q}" for op in ops] + [f"  build: N*{q}"]
+    lines += [f"  {op}: {'1' if op in ('pointGet', 'pop') else 'N' if op == 'getAll' else q}" for op in ops] + [f"  build: N*{q}"]
     lines += ["@memory:", "  layout: none", f"  node: {node}", "  tags: none", f"  other: {other}", f"  note: {note}"]
     return "\n".join(f"{cm} {x}" for x in lines) + "\n"
 
@@ -199,6 +199,16 @@ class PersistentOnlineOrderStats:
 ''' if mex else "") + '''        self.arr.append(v)
         self.n += 1
 
+    # O(1) -- remove a[n-1] and return it: the newest version is dropped (its nodes stay allocated); needs n >= 1,
+    # else raises IndexError
+    def pop(self):
+        if self.n < 1:
+            raise IndexError("pop: needs n >= 1")
+        self.root.pop()
+''' + ('''        self.mexRoot.pop()
+''' if mex else "") + '''        self.n -= 1
+        return self.arr.pop()
+
 ''' + W.PY_OPS["pointGet"] + "\n" + py_query_ops(ops) + ("\n" + W.PY_OPS["rangeMex"] if mex else "") +
             py_prims(True, sums) + ("\n" + PY_MEX if mex else ""))
 
@@ -357,6 +367,17 @@ struct PersistentOnlineOrderStats {
 ''' if mex else "") + '''        arr.push_back(v), n++;
     }
 
+    // O(1) -- remove a[n-1] and return it: the newest version is dropped (its nodes stay allocated); needs n >= 1,
+    // else throws out_of_range
+    T pop() {
+        if (n < 1) throw out_of_range("pop: needs n >= 1");
+        root.pop_back();
+''' + ('''        mexRoot.pop_back();
+''' if mex else "") + '''        T v = arr.back();
+        arr.pop_back(), n--;
+        return v;
+    }
+
 ''' + W.CPP_OPS["pointGet"] + "\n" + cpp_query_ops(ops) + ("\n" + W.CPP_OPS["rangeMex"] if mex else "") + '''
     static long long lb(T x) { return (long long)x; }       // "values < this" for < x
     static long long ub(T x) { return (long long)x + 1; }   // "values < this" for <= x (integers)
@@ -408,6 +429,16 @@ class PersistentOfflineOrderStats:
 ''' if mex else "") + '''        self.arr.append(v)
         self.n += 1
 
+    # O(1) -- remove a[n-1] and return it: the newest version is dropped (its nodes stay allocated); needs n >= 1,
+    # else raises IndexError
+    def pop(self):
+        if self.n < 1:
+            raise IndexError("pop: needs n >= 1")
+        self.root.pop()
+''' + ('''        self.mexRoot.pop()
+''' if mex else "") + '''        self.n -= 1
+        return self.arr.pop()
+
 ''' + "\n".join(W.PY_OPS[op] for op in W.ORDER if op in ops) + py_prims(False, sums) + ("\n" + PY_MEX if mex else ""))
 
 
@@ -448,6 +479,17 @@ struct PersistentOfflineOrderStats {
 ''' if mex else "") + '''        arr.push_back(v), n++;
     }
 
+    // O(1) -- remove a[n-1] and return it: the newest version is dropped (its nodes stay allocated); needs n >= 1,
+    // else throws out_of_range
+    T pop() {
+        if (n < 1) throw out_of_range("pop: needs n >= 1");
+        root.pop_back();
+''' + ('''        mexRoot.pop_back();
+''' if mex else "") + '''        T v = arr.back();
+        arr.pop_back(), n--;
+        return v;
+    }
+
 ''' + "\n".join(W.CPP_OPS[op] for op in W.ORDER if op in ops) + '''
     int lb(const T& v) const { return int(lower_bound(srt.begin(), srt.end(), v) - srt.begin()); }
     int ub(const T& v) const { return int(upper_bound(srt.begin(), srt.end(), v) - srt.begin()); }
@@ -479,7 +521,7 @@ def main():
         print("wrote", folder)
     for sums in (False, True):
         for mex in (False, True):
-            ops = sorted(["getAll", "append"] + W.BASE + (W.SUMS if sums else []) + (W.MEX if mex else []))
+            ops = sorted(["getAll", "append", "pop"] + W.BASE + (W.SUMS if sums else []) + (W.MEX if mex else []))
             folder = "persistent-online-order-stats" + ("-sums" if sums else "") + ("-mex" if mex else "")
             path = os.path.join(DIR, folder)
             os.makedirs(path, exist_ok=True)
@@ -493,7 +535,7 @@ def main():
             print("wrote", folder)
     for sums in (False, True):
         for mex in (False, True):
-            ops = sorted(["getAll", "append"] + W.BASE + (W.SUMS if sums else []) + (W.MEX if mex else []))
+            ops = sorted(["getAll", "append", "pop"] + W.BASE + (W.SUMS if sums else []) + (W.MEX if mex else []))
             folder = "persistent-offline-order-stats" + ("-sums" if sums else "") + ("-mex" if mex else "")
             path = os.path.join(DIR, folder)
             os.makedirs(path, exist_ok=True)

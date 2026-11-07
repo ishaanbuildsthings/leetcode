@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeOrQuery rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX
+// @operations: andAll getAll leftmostGtX leftmostGteX leftmostLtX leftmostLteX maxAll minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndQuery rangeFloorDiv rangeFloorSqrt rangeMax rangeMin rangeMod rangeOrQuery rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX sumAll
 // @data-structure-type: beats
 // @complexities:
 //   getAll: N
@@ -29,6 +29,11 @@ using ll = long long;
 //   rightmostGteX: log(N)
 //   rightmostLtX: log(N)
 //   rightmostLteX: log(N)
+//   sumAll: log(N)
+//   minAll: log(N)
+//   maxAll: log(N)
+//   andAll: log(N)
+//   orAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -326,6 +331,36 @@ struct ShrinkSegTree {
             return t - n;
         }
         return -1;
+    }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
+    // O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
+    // O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto andAll() {
+        if (n < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, n - 1);
+    }
+
+    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // ---- internals ----

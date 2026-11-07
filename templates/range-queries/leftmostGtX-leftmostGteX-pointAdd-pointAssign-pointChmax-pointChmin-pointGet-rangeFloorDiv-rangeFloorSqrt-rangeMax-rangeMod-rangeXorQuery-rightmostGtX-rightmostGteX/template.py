@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMod-rangeXorQuery-rightmostGtX-rightmostGteX/template.py
-# @operations: getAll leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeXorQuery rightmostGtX rightmostGteX
+# @operations: getAll leftmostGtX leftmostGteX maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeXorQuery rightmostGtX rightmostGteX xorAll
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
@@ -18,6 +18,8 @@
 #   rangeXorQuery: log(N)
 #   rightmostGtX: log(N)
 #   rightmostGteX: log(N)
+#   maxAll: log(N)
+#   xorAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -203,6 +205,18 @@ class ShrinkSegTree:
                     t = 2 * t + 1 if F[2 * t + 1] >= x else 2 * t
                 return t - n
         return -1
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
+
+    # O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.n < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.n - 1)
 
     # ---- internals ----
 

@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxPrefixSum maxSubarraySum maxSuffixSum merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt leftmostGtX leftmostGteX leftmostLtX leftmostLteX leftmostPrefixSumGtX leftmostPrefixSumGteX maxAll maxPrefixSum maxSubarraySum maxSuffixSum merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeMax rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rightmostGtX rightmostGteX rightmostLtX rightmostLteX rightmostSuffixSumGtX rightmostSuffixSumGteX size split sumAll trisect
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N) expected
@@ -47,6 +47,12 @@ using ll = long long;
 //   split: log(N) expected
 //   trisect: log(N) expected
 //   size: 1
+//   pop: log(N) expected
+//   popLeft: log(N) expected
+//   sumAll: 1
+//   minAll: 1
+//   maxAll: 1
+//   orAll: 1
 //   build: N
 // @memory:
 //   layout: none
@@ -704,6 +710,47 @@ struct PersistentTreap {
         cut(l, r, left.root, mid.root, right.root);
         root = 0;
         return {left, mid, right};
+    }
+
+    // O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(1) -- sum of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
+        return nd[root].sm;
+    }
+
+    // O(1) -- min of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return nd[root].mn;
+    }
+
+    // O(1) -- max of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto maxAll() {
+        if (size() < 1) throw out_of_range("maxAll: needs n >= 1");
+        return nd[root].mx;
+    }
+
+    // O(1) -- OR of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto orAll() {
+        if (size() < 1) throw out_of_range("orAll: needs n >= 1");
+        return nd[root].orr;
     }
 
     // ---- internals ----

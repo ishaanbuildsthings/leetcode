@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/sorted-runs-sum-xor-max-seq/template.py
-# @operations: append appendLeft cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum rangeXorQuery size split trisect
+# @operations: append appendLeft cut getAll insertAt insertCopiesAt maxAll merge paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeMax rangeReverse rangeRotateLeft rangeRotateRight rangeSortAsc rangeSortDesc rangeSum rangeXorQuery size split sumAll trisect xorAll
 # @data-structure-type: sorted-runs
 # @complexities:
 #   append: log(N)+log(U) amortized
@@ -28,6 +28,11 @@
 #   split: log(N)+log(U) amortized
 #   trisect: log(N)+log(U) amortized
 #   size: 1
+#   pop: log(N)+log(U) amortized
+#   popLeft: log(N)+log(U) amortized
+#   sumAll: log(N)+log(U) amortized
+#   maxAll: log(N)+log(U) amortized
+#   xorAll: log(N)+log(U) amortized
 #   build: N*log(U)
 # @memory:
 #   layout: none
@@ -303,6 +308,41 @@ class SortedRunsSumXorMaxSeq:
             out += self._values(self.TV[x], self.TD[x])
             x = self.TR[x]
         return out
+
+    # O(log(N)+log(U) amortized) -- remove a[size()-1] and return it; needs size() >= 1, else raises IndexError
+    def pop(self):
+        n = self.size()
+        if n < 1:
+            raise IndexError("pop: needs size() >= 1")
+        v = self.pointGet(n - 1)
+        self.cut(n - 1, n - 1)
+        return v
+
+    # O(log(N)+log(U) amortized) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else raises IndexError
+    def popLeft(self):
+        if self.size() < 1:
+            raise IndexError("popLeft: needs size() >= 1")
+        v = self.pointGet(0)
+        self.cut(0, 0)
+        return v
+
+    # O(log(N)+log(U) amortized) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.size() < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.size() - 1)
+
+    # O(log(N)+log(U) amortized) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.size() < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.size() - 1)
+
+    # O(log(N)+log(U) amortized) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def xorAll(self):
+        if self.size() < 1:
+            raise IndexError("xorAll: needs n >= 1")
+        return self.rangeXorQuery(0, self.size() - 1)
 
     # ---- internals: the treap of runs ----
 

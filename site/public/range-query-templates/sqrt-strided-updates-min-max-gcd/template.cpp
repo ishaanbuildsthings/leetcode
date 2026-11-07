@@ -119,7 +119,8 @@ struct StridedQueries {
 
     // min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedMin(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedMin: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedMin: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedMin: needs step >= 1");
         int last = l + (r - l) / step * step;
         if (step > treeStrides) {
             T res = A[l];
@@ -139,7 +140,8 @@ struct StridedQueries {
 
     // max of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedMax(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedMax: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedMax: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedMax: needs step >= 1");
         int last = l + (r - l) / step * step;
         if (step > treeStrides) {
             T res = A[l];
@@ -159,7 +161,8 @@ struct StridedQueries {
 
     // gcd of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedGcd(int l, int r, int step) {
-        if (l < 0 || l > r || r >= n || step < 1) throw out_of_range("stridedGcd: needs 0 <= l <= r < n and step >= 1");
+        if (l < 0 || l > r || r >= n) throw out_of_range("stridedGcd: needs 0 <= l <= r < n");
+        if (step < 1) throw out_of_range("stridedGcd: needs step >= 1");
         int last = l + (r - l) / step * step;
         if (step > treeStrides) {
             T res = A[l];

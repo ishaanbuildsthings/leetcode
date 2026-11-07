@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rightmostLtX rightmostLteX size split trisect
+// @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge minAll orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeMin rangeOrQuery rangeReverse rangeRotateLeft rangeRotateRight rangeSum rangeTwinSpin rightmostLtX rightmostLteX size split sumAll trisect
 // @data-structure-type: pair-treap
 // @complexities:
 //   append: log(N) expected
@@ -35,6 +35,11 @@ using ll = long long;
 //   split: log(N) expected
 //   trisect: log(N) expected
 //   size: 1
+//   pop: log(N) expected
+//   popLeft: log(N) expected
+//   sumAll: 1
+//   minAll: log(N) expected
+//   orAll: 1
 //   build: N
 // @memory:
 //   layout: none
@@ -375,6 +380,41 @@ struct PairSwapTreap {
         left.rE = ae, left.rO = ao, mid.rE = be, mid.rO = bo, right.rE = ce, right.rO = co;
         rE = rO = 0;
         return {left, mid, right};
+    }
+
+    // O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(1) -- sum of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto sumAll() {
+        if (size() < 1) throw out_of_range("sumAll: needs n >= 1");
+        return nd[rE].sm + nd[rO].sm;
+    }
+
+    // O(log(N) expected) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, size() - 1);
+    }
+
+    // O(1) -- OR of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto orAll() {
+        if (size() < 1) throw out_of_range("orAll: needs n >= 1");
+        return nd[rE].orr | nd[rO].orr;
     }
 
     // ---- internals ----

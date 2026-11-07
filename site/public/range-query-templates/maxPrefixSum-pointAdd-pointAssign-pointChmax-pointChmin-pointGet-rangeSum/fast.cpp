@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum
+// @operations: getAll maxPrefixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeSum sumAll
 // @data-structure-type: seg-tree
 // @letters: same
 // @complexities:
@@ -16,6 +16,7 @@ using ll = long long;
 //   pointChmin: log(N)
 //   pointGet: 1
 //   rangeSum: log(N)
+//   sumAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -142,4 +143,11 @@ struct MaxPrefixSumTree {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         if (v < pointGet(i)) pointAssign(i, v);
     }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
 };

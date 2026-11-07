@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeGcd/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
+# @operations: gcdAll getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -10,6 +10,7 @@
 #   pointChmin: log(N)*log(U) ?
 #   pointGet: 1
 #   rangeGcd: log(N)+log(U) ?
+#   gcdAll: log(N)+log(U) ?
 #   build: N*log(U) ?
 # @memory:
 #   layout: 2n-iterative
@@ -102,8 +103,16 @@ class GcdSegmentTree:
         if val < self.tree[self.n + i]:
             self.pointAssign(i, val)
 
-    # a[i] += delta; needs 0 <= i < n, else IndexError
+    # a[i] += delta; needs needs 0 <= i < n, else IndexError, else IndexError
     def pointAdd(self, i, delta):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
+
+    # O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
+    def gcdAll(self):
+        if self.n < 1:
+            raise IndexError("gcdAll: needs n >= 1")
+        return self.rangeGcd(0, self.n - 1)
         if not 0 <= i < self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.pointAssign(i, self.tree[self.n + i] + delta)

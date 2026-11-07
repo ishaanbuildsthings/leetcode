@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery size split trisect
+// @operations: append appendLeft copy cut getAll insertAt insertCopiesAt merge orAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeAssign rangeOrQuery rangeRotateLeft rangeRotateRight rangeXorQuery size split trisect xorAll
 // @data-structure-type: persistent-treap
 // @complexities:
 //   append: log(N) expected
@@ -29,6 +29,10 @@ using ll = long long;
 //   split: log(N) expected
 //   trisect: log(N) expected
 //   size: 1
+//   pop: log(N) expected
+//   popLeft: log(N) expected
+//   xorAll: 1
+//   orAll: 1
 //   build: N
 // @memory:
 //   layout: none
@@ -258,6 +262,35 @@ struct PersistentTreap {
         cut(l, r, left.root, mid.root, right.root);
         root = 0;
         return {left, mid, right};
+    }
+
+    // O(log(N) expected) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N) expected) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(1) -- xor of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto xorAll() {
+        if (size() < 1) throw out_of_range("xorAll: needs n >= 1");
+        return nd[root].xr;
+    }
+
+    // O(1) -- OR of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto orAll() {
+        if (size() < 1) throw out_of_range("orAll: needs n >= 1");
+        return nd[root].orr;
     }
 
     // ---- internals ----

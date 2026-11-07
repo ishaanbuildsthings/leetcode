@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX
+// @operations: getAll leftmostPrefixSumGtX leftmostPrefixSumGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeSum rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 // @data-structure-type: BIT
 // @complexities:
 //   getAll: N
@@ -18,6 +18,7 @@ using ll = long long;
 //   rangeSum: log(N)
 //   rightmostSuffixSumGtX: log(N)
 //   rightmostSuffixSumGteX: log(N)
+//   sumAll: log(N)
 //   build: N
 // @memory:
 //   layout: none
@@ -185,4 +186,11 @@ struct BIT {
         int i = min(r, prefixLowerBound(t, false));
         return i >= l ? i : -1;
     }
+
+    // O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto sumAll() {
+        if (n < 1) throw out_of_range("sumAll: needs n >= 1");
+        return rangeSum(0, n - 1);
+    }
+
 };

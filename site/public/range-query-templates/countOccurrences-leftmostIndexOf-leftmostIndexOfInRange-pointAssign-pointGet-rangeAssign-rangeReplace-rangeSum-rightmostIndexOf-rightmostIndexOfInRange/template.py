@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/countOccurrences-leftmostIndexOf-leftmostIndexOfInRange-pointAssign-pointGet-rangeAssign-rangeReplace-rangeSum-rightmostIndexOf-rightmostIndexOfInRange/template.py
-# @operations: countOccurrences getAll leftmostIndexOf leftmostIndexOfInRange pointAssign pointGet rangeAssign rangeReplace rangeSum rightmostIndexOf rightmostIndexOfInRange
+# @operations: countOccurrences getAll leftmostIndexOf leftmostIndexOfInRange pointAssign pointGet rangeAssign rangeReplace rangeSum rightmostIndexOf rightmostIndexOfInRange sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   countOccurrences: U*log(N)
@@ -14,6 +14,7 @@
 #   rangeSum: U*log(N)
 #   rightmostIndexOf: U*log(N)
 #   rightmostIndexOfInRange: U*log(N)
+#   sumAll: U*log(N)
 #   build: N*U
 # @memory:
 #   layout: pow2-iterative
@@ -143,6 +144,12 @@ class ValueMapSeg:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeSum: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return sum(self.sm[k] for k in self._cover(l, r))
+
+    # O(U*log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.size() < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.size() - 1)
 
     # ---- internals ----
 

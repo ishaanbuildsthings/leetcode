@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeOrQuery rightmostGtX rightmostGteX
+// @operations: getAll leftmostGtX leftmostGteX maxAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeOrQuery rightmostGtX rightmostGteX
 // @data-structure-type: seg-tree
 // @complexities:
 //   getAll: N
@@ -19,6 +19,8 @@ using ll = long long;
 //   rangeOrQuery: log(N)
 //   rightmostGtX: log(N)
 //   rightmostGteX: log(N)
+//   maxAll: log(N)
+//   orAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -197,6 +199,18 @@ struct SegTree {
             return t - n;
         }
         return -1;
+    }
+
+    // O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto maxAll() {
+        if (n < 1) throw out_of_range("maxAll: needs n >= 1");
+        return rangeMax(0, n - 1);
+    }
+
+    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // ---- internals ----

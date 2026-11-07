@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeXorApply rangeXorQuery
+// @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAssign rangeXorApply rangeXorQuery xorAll
 // @data-structure-type: lazy-seg-tree
 // @complexities:
 //   getAll: N
@@ -16,6 +16,7 @@ using ll = long long;
 //   rangeAssign: log(N)
 //   rangeXorApply: log(N)
 //   rangeXorQuery: log(N)
+//   xorAll: log(N)
 //   build: N
 // @memory:
 //   layout: 2n-iterative
@@ -170,6 +171,12 @@ struct LazySegTree {
             if (hi & 1) res ^= xr[--hi];
         }
         return res;
+    }
+
+    // O(log(N)) -- xor of the whole array a[0..n-1] (rangeXorQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto xorAll() {
+        if (n < 1) throw out_of_range("xorAll: needs n >= 1");
+        return rangeXorQuery(0, n - 1);
     }
 
     // ---- internals ----

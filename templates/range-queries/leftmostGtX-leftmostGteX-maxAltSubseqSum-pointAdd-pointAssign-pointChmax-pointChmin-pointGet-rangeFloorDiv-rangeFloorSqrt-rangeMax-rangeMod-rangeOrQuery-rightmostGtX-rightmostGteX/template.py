@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/leftmostGtX-leftmostGteX-maxAltSubseqSum-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeFloorDiv-rangeFloorSqrt-rangeMax-rangeMod-rangeOrQuery-rightmostGtX-rightmostGteX/template.py
-# @operations: getAll leftmostGtX leftmostGteX maxAltSubseqSum pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeOrQuery rightmostGtX rightmostGteX
+# @operations: getAll leftmostGtX leftmostGteX maxAll maxAltSubseqSum orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeFloorDiv rangeFloorSqrt rangeMax rangeMod rangeOrQuery rightmostGtX rightmostGteX
 # @data-structure-type: beats
 # @complexities:
 #   getAll: N
@@ -19,6 +19,8 @@
 #   rangeOrQuery: log(N)
 #   rightmostGtX: log(N)
 #   rightmostGteX: log(N)
+#   maxAll: log(N)
+#   orAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -229,6 +231,18 @@ class ShrinkSegTree:
                     t = 2 * t + 1 if F[2 * t + 1] >= x else 2 * t
                 return t - n
         return -1
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
+
+    # O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
+    def orAll(self):
+        if self.n < 1:
+            raise IndexError("orAll: needs n >= 1")
+        return self.rangeOrQuery(0, self.n - 1)
 
     # ---- internals ----
 

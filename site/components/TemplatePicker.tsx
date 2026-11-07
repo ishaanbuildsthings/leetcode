@@ -89,8 +89,9 @@ export type FillIn = {
   debugToggle?: boolean;
   // there's a C++ fast version (file[.level][.norev].fast.cpp): a version option, and what its panel says
   fast?: FastInfo;
-  // another version behind a checkbox, on the card and by the ops in its drawer (off by default, remembered): its
-  // label, hover text, where it's remembered, and what changes while it's ticked (e.g. the in-place next permutation)
+  // another version behind a checkbox, on the card and by the ops in its drawer (off on every page load, not
+  // remembered): its label, hover text, the key the card and drawer share it by, and what changes while it's ticked
+  // (e.g. the in-place next permutation)
   variant?: { label: string; title: string; storageKey: string; on: Partial<Pick<FillIn, "label" | "file" | "ops">> };
 };
 
@@ -98,6 +99,20 @@ export type FillIn = {
 export type MiscSection = { title: string; items: FillIn[] };
 
 // a remembered checkbox, the same everywhere it shows (writeStored tells every subscriber)
+// a checkbox shared by every place it shows (a Misc card and its drawer) but not remembered: MiscTemplates clears
+// these when the page mounts, so they start off on every visit
+const pageFlags = new Map<string, boolean>();
+function usePageFlag(key: string): [boolean, (on: boolean) => void] {
+  const on = useSyncExternalStore(subscribeMode, () => !!key && pageFlags.get(key) === true, () => false);
+  return [
+    on,
+    (v: boolean) => {
+      pageFlags.set(key, v);
+      modeListeners.forEach((notify) => notify());
+    },
+  ];
+}
+
 function useStoredFlag(key: string): [boolean, (on: boolean) => void] {
   const on = useSyncExternalStore(subscribeMode, () => !!key && readStored(key) === "1", () => false);
   return [on, (v: boolean) => writeStored(key, v ? "1" : "0")];
@@ -125,7 +140,8 @@ type GenericVersion = (typeof GENERIC_VERSIONS)[number]["id"];
 
 // Everything a picker page decides for itself; the rest (op grid, matching, ranking, cards, code drawer with usage
 // and memory) is shared.
-export type CtorNote = { py: string; cpp: string; inCall?: boolean };
+// shown: false drops the generic "Optional: name (default ...)" line (the catalog explains the argument its own way)
+export type CtorNote = { py: string; cpp: string; inCall?: boolean; shown?: boolean };
 
 export interface PickerCatalog<V extends PickerTemplate> {
   title: string;
@@ -204,6 +220,8 @@ export interface PickerCatalog<V extends PickerTemplate> {
   // inCall: an optional argument shown in the example call anyway (e.g. the initial array), with "leave it out" in its note
   ctorNotes: Record<string, CtorNote> | ((t: V) => Record<string, CtorNote>);
   ctorComments?: (t: V, lang: TemplateLang) => string[];
+  // true: ctorComments go after the argument notes (for example constructions), not before them
+  ctorCommentsAfterArgs?: (t: V) => boolean;
   queryNote?: (t: V, op: string) => string;
   // ops whose result is shown with names in the usage lines, update ops included (cut -> piece; split -> left, right)
   pairResults?: Record<string, string[]>;
@@ -728,7 +746,7 @@ function FillInDrawer({
   const [level, setLevel] = useState<CppLevel>("basic");
   const [withReverse, chooseReverse] = useStoredFlag(REVERSE_STORAGE_KEY);
   const [version, setVersion] = useState<GenericVersion>("default");
-  const [variantOn, chooseVariant] = useStoredFlag(base.variant?.storageKey ?? "");
+  const [variantOn, chooseVariant] = usePageFlag(base.variant?.storageKey ?? "");
   const fillIn = withVariant(base, variantOn);
   const levels = lang === "cpp" && fillIn.cppLevels;
   const suffix = levels ? CPP_LEVELS.find((l) => l.id === level)!.suffix : "";
@@ -928,17 +946,19 @@ function UsagePanel<V extends PickerTemplate>({
         ],
         code: `${cls.className}<${elem}>::resetPool();`,
       });
+    const extraComments = catalog.ctorComments?.(template, lang) ?? [];
+    const afterArgs = catalog.ctorCommentsAfterArgs?.(template) ?? false;  // (example constructions read best after the argument notes)
     const comments = [
-      ...(catalog.ctorComments?.(template, lang) ?? []),
+      ...(afterArgs ? [] : extraComments),
       ...requiredParams.flatMap((p) =>
         notes[p.name] && !["mod", "bits"].includes(p.name)
           ? [notes[p.name][lang] + (shownOptional(p) ? " (optional: leave it out to start empty)" : "")]
           : [],
       ),
-      ...optional.map(
-        (p) =>
-          `Optional: ${p.name} (default ${p.default})${notes[p.name] ? `, ${notes[p.name][lang]}` : ""}.`,
-      ),
+      ...optional
+        .filter((p) => notes[p.name]?.shown !== false)
+        .map((p) => `Optional: ${p.name} (default ${p.default})${notes[p.name] ? `, ${notes[p.name][lang]}` : ""}.`),
+      ...(afterArgs ? extraComments : []),
       ...(cpp
         ? [
             deducible
@@ -1745,6 +1765,7 @@ export function MiscTemplates({
   planned?: string[];
 }) {
   const [open, setOpen] = useState<FillIn | null>(null);
+  useState(() => pageFlags.clear()); // once per visit, before the cards render: every checkbox starts off
   return (
     <main className="mx-auto max-w-[1800px] px-6 pb-16 pt-16 font-[family-name:var(--font-dm-sans)]">
       <div className="sticky top-16 z-30 -mx-6 bg-background px-6 pt-2">
@@ -1773,7 +1794,7 @@ export function MiscTemplates({
 
 // a Misc card: its label (the variant's while ticked), opening the drawer; a card with a variant shows its checkbox
 function MiscCard({ item, onOpen }: { item: FillIn; onOpen: () => void }) {
-  const [on, choose] = useStoredFlag(item.variant?.storageKey ?? "");
+  const [on, choose] = usePageFlag(item.variant?.storageKey ?? "");
   const f = withVariant(item, on);
   return (
     <div className="rounded-lg border border-border bg-card transition-colors hover:border-primary">

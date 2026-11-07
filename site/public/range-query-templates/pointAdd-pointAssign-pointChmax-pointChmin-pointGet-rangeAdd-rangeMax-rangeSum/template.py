@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAdd-rangeMax-rangeSum/template.py
-# @operations: getAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeMax rangeSum
+# @operations: getAll maxAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAdd rangeMax rangeSum sumAll
 # @data-structure-type: lazy-seg-tree
 # @complexities:
 #   getAll: N
@@ -12,6 +12,8 @@
 #   rangeAdd: log(N)
 #   rangeMax: log(N)
 #   rangeSum: log(N)
+#   sumAll: log(N)
+#   maxAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -185,8 +187,22 @@ class AddSumMaxTree:
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i] = min(a[i], val); needs needs 0 <= i < n, else IndexError, else IndexError
     def pointChmin(self, i, val):
+        if not 0 <= i < self.n:
+            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):

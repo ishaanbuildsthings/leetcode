@@ -4,7 +4,7 @@
 using namespace std;
 using ll = long long;
 
-// @operations: append appendLeft cut find getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge paste pointAdd pointAssign pointChmax pointChmin pointGet rangeGcd rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rightmostLtX rightmostLteX size split trisect
+// @operations: append appendLeft cut find gcdAll getAll insertAt insertCopiesAt leftmostLtX leftmostLteX merge minAll paste pointAdd pointAssign pointChmax pointChmin pointGet pop popLeft rangeGcd rangeMin rangeReverse rangeRotateLeft rangeRotateRight rangeXorQuery rightmostLtX rightmostLteX size split trisect xorAll
 // @data-structure-type: treap
 // @complexities:
 //   append: log(N)*log(U) expected ?
@@ -34,6 +34,11 @@ using ll = long long;
 //   split: log(N)*log(U) expected ?
 //   trisect: log(N)*log(U) expected ?
 //   size: 1
+//   pop: log(N)*log(U) expected ?
+//   popLeft: log(N)*log(U) expected ?
+//   minAll: 1
+//   gcdAll: 1
+//   xorAll: 1
 //   build: N*log(U) ?
 // @memory:
 //   layout: none
@@ -418,6 +423,41 @@ struct ImplicitTreap {
         cut(l, r, left.root, mid.root, right.root);
         root = 0;
         return {left, mid, right};
+    }
+
+    // O(log(N)*log(U) expected ?) -- remove a[size()-1] and return it; needs size() >= 1, else throws out_of_range
+    T pop() {
+        auto n = size();
+        if (n < 1) throw out_of_range("pop: needs size() >= 1");
+        T v = pointGet(n - 1);
+        cut(n - 1, n - 1);
+        return v;
+    }
+
+    // O(log(N)*log(U) expected ?) -- remove a[0] and return it (every index shifts down by 1); needs size() >= 1, else throws out_of_range
+    T popLeft() {
+        if (size() < 1) throw out_of_range("popLeft: needs size() >= 1");
+        T v = pointGet(0);
+        cut(0, 0);
+        return v;
+    }
+
+    // O(1) -- min of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto minAll() {
+        if (size() < 1) throw out_of_range("minAll: needs n >= 1");
+        return nd[root].mn;
+    }
+
+    // O(1) -- gcd of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto gcdAll() {
+        if (size() < 1) throw out_of_range("gcdAll: needs n >= 1");
+        return nd[root].g;
+    }
+
+    // O(1) -- xor of the whole array a[0..n-1] (read off the root); needs n >= 1, else throws out_of_range
+    auto xorAll() {
+        if (size() < 1) throw out_of_range("xorAll: needs n >= 1");
+        return nd[root].xr;
     }
 
     // ---- internals ----

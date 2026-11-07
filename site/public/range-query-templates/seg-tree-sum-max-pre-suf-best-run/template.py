@@ -1,6 +1,6 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/seg-tree-sum-max-pre-suf-best-run/template.py
-# @operations: getAll leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxPrefixSum maxSubarraySum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeSum rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX
+# @operations: getAll leftmostGtX leftmostGteX leftmostPrefixSumGtX leftmostPrefixSumGteX longestEqualRun maxAll maxPrefixSum maxSubarraySum maxSuffixSum pointAdd pointAssign pointChmax pointChmin pointGet rangeMax rangeSum rightmostGtX rightmostGteX rightmostSuffixSumGtX rightmostSuffixSumGteX sumAll
 # @data-structure-type: seg-tree
 # @complexities:
 #   getAll: N
@@ -23,6 +23,8 @@
 #   rightmostGteX: log(N)
 #   rightmostSuffixSumGtX: log(N)
 #   rightmostSuffixSumGteX: log(N)
+#   sumAll: log(N)
+#   maxAll: log(N)
 #   build: N
 # @memory:
 #   layout: 2n-iterative
@@ -333,6 +335,18 @@ class SegTree:
                 return t - n
             acc += sm[t]
         return -1
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
 
     # ---- internals ----
 

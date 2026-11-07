@@ -1,8 +1,7 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/range-queries/persistent-order-stats/template.py
-# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX pointGet rangeMax rangeMin smallestGtX smallestGteX
+# @operations: countGtX countGteX countInValRange countLtX countLteX countOccurrences kthSmallest largestLtX largestLteX maxAll minAll pointGet rangeMax rangeMin smallestGtX smallestGteX
 # @data-structure-type: persistent
-# @letters: same
 # @complexities:
 #   countGtX: log(N)
 #   countGteX: log(N)
@@ -18,6 +17,8 @@
 #   rangeMin: log(N)
 #   smallestGtX: log(N)
 #   smallestGteX: log(N)
+#   minAll: log(N)
+#   maxAll: log(N)
 #   build: N*log(N)
 # @memory:
 #   layout: none
@@ -140,6 +141,18 @@ class PersistentOrderStats:
             raise IndexError(f"largestLtX: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         c = self._countBelow(l, r, bisect_left(self.srt, x))
         return None if c == 0 else self._kth(l, r, c)
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)
 
     # ---- internals ----
 
