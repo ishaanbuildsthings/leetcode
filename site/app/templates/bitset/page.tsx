@@ -3,10 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
 import { BITSETS } from "@/lib/bitset";
+import { BIT_SUMS, SOS_DP, XOR_BASIS, XOR_CONVOLUTION } from "@/lib/bit-operations";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
-  title: "Bitset Templates — LeetGoat",
+  title: "Bit Operation & Bitset Templates — LeetGoat",
 };
 
 export default async function BitsetTemplatesPage() {
@@ -30,7 +31,11 @@ export default async function BitsetTemplatesPage() {
     <AuthProvider value={{ userId, isAdmin }}>
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
-        <MiscTemplates title="Bitset templates" sections={[
+        <MiscTemplates title="Bit operation & bitset templates" sections={[
+            { title: "XOR basis", items: XOR_BASIS },
+            { title: "AND / OR counts (SOS DP)", items: SOS_DP },
+            { title: "XOR convolution", items: XOR_CONVOLUTION },
+            { title: "Sums of XOR / AND / OR over pairs and subarrays", items: BIT_SUMS },
             { title: "Bitsets", items: BITSETS },
           ]} publicBase="/range-query-templates" />
       </div>
