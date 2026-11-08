@@ -1,0 +1,295 @@
+
+    // ---- plain order statistics over a[l..r] (the same walks with x = 0) ----
+
+    // COST -- # of values < x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long countLtX(long long l, long long r, long long x) const {
+        rangeCheck("countLtX", l, r);
+        return lt(l, r, x);
+    }
+
+    // COST -- # of values <= x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long countLteX(long long l, long long r, long long x) const {
+        rangeCheck("countLteX", l, r);
+        return lt(l, r, x + 1);
+    }
+
+    // COST -- # of values > x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long countGtX(long long l, long long r, long long x) const {
+        rangeCheck("countGtX", l, r);
+        return r - l + 1 - lt(l, r, x + 1);
+    }
+
+    // COST -- # of values >= x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long countGteX(long long l, long long r, long long x) const {
+        rangeCheck("countGteX", l, r);
+        return r - l + 1 - lt(l, r, x);
+    }
+
+    // COST -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    long long countInValRange(long long l, long long r, long long lowVal, long long highVal) const {
+        rangeCheck("countInValRange", l, r);
+        return lowVal <= highVal ? lt(l, r, highVal + 1) - lt(l, r, lowVal) : 0;
+    }
+
+    // COST -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else throws out_of_range
+    long long countOccurrences(long long l, long long r, long long x) const {
+        rangeCheck("countOccurrences", l, r);
+        return lt(l, r, x + 1) - lt(l, r, x);
+    }
+
+    // COST -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    // else throws out_of_range
+    T kthSmallest(long long l, long long r, long long k) const {
+        rangeCheck("kthSmallest", l, r);
+        if (k < 1 || k > r - l + 1) throw out_of_range("kthSmallest: needs 1 <= k <= r - l + 1");
+        return (T)kth(l, r, k);
+    }
+
+    // COST -- min of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    T rangeMin(long long l, long long r) const {
+        rangeCheck("rangeMin", l, r);
+        return (T)kth(l, r, 1);
+    }
+
+    // COST -- max of a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    T rangeMax(long long l, long long r) const {
+        rangeCheck("rangeMax", l, r);
+        return (T)kth(l, r, r - l + 1);
+    }
+
+    // COST -- smallest value >= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
+    optional<T> smallestGteX(long long l, long long r, long long x) const {
+        rangeCheck("smallestGteX", l, r);
+        long long c = lt(l, r, x);
+        if (c == r - l + 1) return nullopt;
+        return (T)kth(l, r, c + 1);
+    }
+
+    // COST -- smallest value > x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
+    optional<T> smallestGtX(long long l, long long r, long long x) const {
+        rangeCheck("smallestGtX", l, r);
+        long long c = lt(l, r, x + 1);
+        if (c == r - l + 1) return nullopt;
+        return (T)kth(l, r, c + 1);
+    }
+
+    // COST -- largest value <= x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
+    optional<T> largestLteX(long long l, long long r, long long x) const {
+        rangeCheck("largestLteX", l, r);
+        long long c = lt(l, r, x + 1);
+        if (!c) return nullopt;
+        return (T)kth(l, r, c);
+    }
+
+    // COST -- largest value < x in a[l..r], or nullopt; needs 0 <= l <= r < size(), else throws out_of_range
+    optional<T> largestLtX(long long l, long long r, long long x) const {
+        rangeCheck("largestLtX", l, r);
+        long long c = lt(l, r, x);
+        if (!c) return nullopt;
+        return (T)kth(l, r, c);
+    }
+
+    // COST -- min of the whole array; throws out_of_range if it is empty
+    T minAll() const {
+        if (!size()) throw out_of_range("minAll: the array is empty");
+        return (T)kth(0, size() - 1, 1);
+    }
+
+    // COST -- max of the whole array; throws out_of_range if it is empty
+    T maxAll() const {
+        if (!size()) throw out_of_range("maxAll: the array is empty");
+        return (T)kth(0, size() - 1, size());
+    }
+    //<mex>
+
+    // COST -- smallest integer >= 0 that is not in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long rangeMex(long long l, long long r) const { return mexXor(l, r, 0); }
+    //</mex>
+    //<sumany>
+
+    // COST -- a[l] + ... + a[r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long rangeSum(long long l, long long r) const {
+        rangeCheck("rangeSum", l, r);
+        return sumAll(l, r);
+    }
+    //</sumany>
+    //<xorany>
+
+    // COST -- a[l] ^ ... ^ a[r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long rangeXorQuery(long long l, long long r) const {
+        rangeCheck("rangeXorQuery", l, r);
+        return xorAll(l, r);
+    }
+    //</xorany>
+    //<sums>
+
+    // COST -- sum of the values < x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long sumLtX(long long l, long long r, long long x) const {
+        rangeCheck("sumLtX", l, r);
+        return sumLt(l, r, x);
+    }
+
+    // COST -- sum of the values <= x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long sumLteX(long long l, long long r, long long x) const {
+        rangeCheck("sumLteX", l, r);
+        return sumLt(l, r, x + 1);
+    }
+
+    // COST -- sum of the values > x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long sumGtX(long long l, long long r, long long x) const {
+        rangeCheck("sumGtX", l, r);
+        return sumAll(l, r) - sumLt(l, r, x + 1);
+    }
+
+    // COST -- sum of the values >= x in a[l..r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long sumGteX(long long l, long long r, long long x) const {
+        rangeCheck("sumGteX", l, r);
+        return sumAll(l, r) - sumLt(l, r, x);
+    }
+
+    // COST -- sum of the values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs
+    // 0 <= l <= r < size()
+    long long sumInValRange(long long l, long long r, long long lowVal, long long highVal) const {
+        rangeCheck("sumInValRange", l, r);
+        return lowVal <= highVal ? sumLt(l, r, highVal + 1) - sumLt(l, r, lowVal) : 0;
+    }
+
+    // COST -- sum of the k smallest values in a[l..r]; needs 0 <= l <= r < size() and 0 <= k <= r - l + 1, else
+    // throws out_of_range
+    long long sumSmallestK(long long l, long long r, long long k) const {
+        rangeCheck("sumSmallestK", l, r);
+        if (k < 0 || k > r - l + 1) throw out_of_range("sumSmallestK: needs 0 <= k <= r - l + 1");
+        return sumKth(l, r, k);
+    }
+
+    // COST -- sum of the k largest values in a[l..r]; needs 0 <= l <= r < size() and 0 <= k <= r - l + 1, else
+    // throws out_of_range
+    long long sumLargestK(long long l, long long r, long long k) const {
+        rangeCheck("sumLargestK", l, r);
+        if (k < 0 || k > r - l + 1) throw out_of_range("sumLargestK: needs 0 <= k <= r - l + 1");
+        return sumAll(l, r) - sumKth(l, r, r - l + 1 - k);
+    }
+
+    // COST -- sum of the kFrom-th .. kTo-th smallest values in a[l..r] (1-indexed, inclusive); needs
+    // 0 <= l <= r < size() and 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
+    long long sumKthSmallestRange(long long l, long long r, long long kFrom, long long kTo) const {
+        rangeCheck("sumKthSmallestRange", l, r);
+        if (kFrom < 1 || kFrom > kTo || kTo > r - l + 1) throw out_of_range("sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        return sumKth(l, r, kTo) - sumKth(l, r, kFrom - 1);
+    }
+
+    // COST -- sum of the kFrom-th .. kTo-th largest values in a[l..r] (1-indexed, inclusive); needs
+    // 0 <= l <= r < size() and 1 <= kFrom <= kTo <= r - l + 1, else throws out_of_range
+    long long sumKthLargestRange(long long l, long long r, long long kFrom, long long kTo) const {
+        rangeCheck("sumKthLargestRange", l, r);
+        long long n = r - l + 1;
+        if (kFrom < 1 || kFrom > kTo || kTo > n) throw out_of_range("sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1");
+        return sumKth(l, r, n - kFrom + 1) - sumKth(l, r, n - kTo);
+    }
+
+    // COST -- sum of |a[i] - x| over i in [l, r]; needs 0 <= l <= r < size(), else throws out_of_range
+    long long sumAbsDiffToX(long long l, long long r, long long x) const {
+        rangeCheck("sumAbsDiffToX", l, r);
+        long long c = lt(l, r, x), s = sumLt(l, r, x);
+        return x * c - s + (sumAll(l, r) - s) - x * (r - l + 1 - c);
+    }
+    //</sums>
+    //<xorv>
+
+    // COST -- xor of the values < x in a[l..r] (copies count); needs 0 <= l <= r < size(), else throws out_of_range
+    long long xorLtX(long long l, long long r, long long x) const {
+        rangeCheck("xorLtX", l, r);
+        return xorLt(l, r, x);
+    }
+
+    // COST -- xor of the values <= x in a[l..r] (copies count); needs 0 <= l <= r < size(), else throws out_of_range
+    long long xorLteX(long long l, long long r, long long x) const {
+        rangeCheck("xorLteX", l, r);
+        return xorLt(l, r, x + 1);
+    }
+
+    // COST -- xor of the values > x in a[l..r] (copies count); needs 0 <= l <= r < size(), else throws out_of_range
+    long long xorGtX(long long l, long long r, long long x) const {
+        rangeCheck("xorGtX", l, r);
+        return xorAll(l, r) ^ xorLt(l, r, x + 1);
+    }
+
+    // COST -- xor of the values >= x in a[l..r] (copies count); needs 0 <= l <= r < size(), else throws out_of_range
+    long long xorGteX(long long l, long long r, long long x) const {
+        rangeCheck("xorGteX", l, r);
+        return xorAll(l, r) ^ xorLt(l, r, x);
+    }
+
+    // COST -- xor of the values v in a[l..r] with lowVal <= v <= highVal (copies count; 0 if lowVal > highVal); needs
+    // 0 <= l <= r < size()
+    long long xorInValRange(long long l, long long r, long long lowVal, long long highVal) const {
+        rangeCheck("xorInValRange", l, r);
+        return lowVal <= highVal ? xorLt(l, r, highVal + 1) ^ xorLt(l, r, lowVal) : 0;
+    }
+    //</xorv>
+    //<or>
+
+    // COST -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    long long orLtX(long long l, long long r, long long x) const {
+        rangeCheck("orLtX", l, r);
+        return orIn(l, r, 0, x - 1);
+    }
+
+    // COST -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    long long orLteX(long long l, long long r, long long x) const {
+        rangeCheck("orLteX", l, r);
+        return orIn(l, r, 0, x);
+    }
+
+    // COST -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    long long orGtX(long long l, long long r, long long x) const {
+        rangeCheck("orGtX", l, r);
+        return orIn(l, r, x + 1, top);
+    }
+
+    // COST -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    long long orGteX(long long l, long long r, long long x) const {
+        rangeCheck("orGteX", l, r);
+        return orIn(l, r, x, top);
+    }
+
+    // COST -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <= r < size(), else
+    // throws out_of_range
+    long long orInValRange(long long l, long long r, long long lowVal, long long highVal) const {
+        rangeCheck("orInValRange", l, r);
+        return orIn(l, r, lowVal, highVal);
+    }
+    //</or>
+    //<and>
+
+    // COST -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    long long andLtX(long long l, long long r, long long x) const {
+        rangeCheck("andLtX", l, r);
+        return andIn(l, r, 0, x - 1);
+    }
+
+    // COST -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    long long andLteX(long long l, long long r, long long x) const {
+        rangeCheck("andLteX", l, r);
+        return andIn(l, r, 0, x);
+    }
+
+    // COST -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    long long andGtX(long long l, long long r, long long x) const {
+        rangeCheck("andGtX", l, r);
+        return andIn(l, r, x + 1, top);
+    }
+
+    // COST -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    long long andGteX(long long l, long long r, long long x) const {
+        rangeCheck("andGteX", l, r);
+        return andIn(l, r, x, top);
+    }
+
+    // COST -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else
+    // throws out_of_range
+    long long andInValRange(long long l, long long r, long long lowVal, long long highVal) const {
+        rangeCheck("andInValRange", l, r);
+        return andIn(l, r, lowVal, highVal);
+    }
+    //</and>

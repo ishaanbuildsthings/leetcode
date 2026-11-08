@@ -205,10 +205,8 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
   planned: [
     "2D tree queries",
     "persistent seg tree queries",
-    "persistent binary trie",
     "tuple values with a custom comparator",
     "interval tree",
-    "generic sparse table",
     "2D sparse table",
   ],
 };

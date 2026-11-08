@@ -1,0 +1,257 @@
+
+    # ---- plain order statistics over a[l..r] (the same walks with x = 0) ----
+
+    # COST -- # of values < x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def countLtX(self, l, r, x):
+        self._rangeCheck("countLtX", l, r)
+        return self._lt(l, r, x)
+
+    # COST -- # of values <= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def countLteX(self, l, r, x):
+        self._rangeCheck("countLteX", l, r)
+        return self._lt(l, r, x + 1)
+
+    # COST -- # of values > x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def countGtX(self, l, r, x):
+        self._rangeCheck("countGtX", l, r)
+        return r - l + 1 - self._lt(l, r, x + 1)
+
+    # COST -- # of values >= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def countGteX(self, l, r, x):
+        self._rangeCheck("countGteX", l, r)
+        return r - l + 1 - self._lt(l, r, x)
+
+    # COST -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    def countInValRange(self, l, r, lowVal, highVal):
+        self._rangeCheck("countInValRange", l, r)
+        return self._lt(l, r, highVal + 1) - self._lt(l, r, lowVal) if lowVal <= highVal else 0
+
+    # COST -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else IndexError
+    def countOccurrences(self, l, r, x):
+        self._rangeCheck("countOccurrences", l, r)
+        return self._lt(l, r, x + 1) - self._lt(l, r, x)
+
+    # COST -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    # else IndexError
+    def kthSmallest(self, l, r, k):
+        self._rangeCheck("kthSmallest", l, r)
+        if not 1 <= k <= r - l + 1:
+            raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
+        return self._kth(l, r, k)
+
+    # COST -- min of a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def rangeMin(self, l, r):
+        self._rangeCheck("rangeMin", l, r)
+        return self._kth(l, r, 1)
+
+    # COST -- max of a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def rangeMax(self, l, r):
+        self._rangeCheck("rangeMax", l, r)
+        return self._kth(l, r, r - l + 1)
+
+    # COST -- smallest value >= x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    def smallestGteX(self, l, r, x):
+        self._rangeCheck("smallestGteX", l, r)
+        c = self._lt(l, r, x)
+        return None if c == r - l + 1 else self._kth(l, r, c + 1)
+
+    # COST -- smallest value > x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    def smallestGtX(self, l, r, x):
+        self._rangeCheck("smallestGtX", l, r)
+        c = self._lt(l, r, x + 1)
+        return None if c == r - l + 1 else self._kth(l, r, c + 1)
+
+    # COST -- largest value <= x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    def largestLteX(self, l, r, x):
+        self._rangeCheck("largestLteX", l, r)
+        c = self._lt(l, r, x + 1)
+        return self._kth(l, r, c) if c else None
+
+    # COST -- largest value < x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    def largestLtX(self, l, r, x):
+        self._rangeCheck("largestLtX", l, r)
+        c = self._lt(l, r, x)
+        return self._kth(l, r, c) if c else None
+
+    # COST -- min of the whole array; raises IndexError if it is empty
+    def minAll(self):
+        if not self.size():
+            raise IndexError("minAll: the array is empty")
+        return self._kth(0, self.size() - 1, 1)
+
+    # COST -- max of the whole array; raises IndexError if it is empty
+    def maxAll(self):
+        if not self.size():
+            raise IndexError("maxAll: the array is empty")
+        return self._kth(0, self.size() - 1, self.size())
+    #<mex>
+
+    # COST -- smallest integer >= 0 that is not in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def rangeMex(self, l, r):
+        return self.mexXor(l, r, 0)
+    #</mex>
+    #<sumany>
+
+    # COST -- a[l] + ... + a[r]; needs 0 <= l <= r < size(), else IndexError
+    def rangeSum(self, l, r):
+        self._rangeCheck("rangeSum", l, r)
+        return self._sumAll(l, r)
+    #</sumany>
+    #<xorany>
+
+    # COST -- a[l] ^ ... ^ a[r]; needs 0 <= l <= r < size(), else IndexError
+    def rangeXorQuery(self, l, r):
+        self._rangeCheck("rangeXorQuery", l, r)
+        return self._xorAll(l, r)
+    #</xorany>
+    #<sums>
+
+    # COST -- sum of the values < x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def sumLtX(self, l, r, x):
+        self._rangeCheck("sumLtX", l, r)
+        return self._sumLt(l, r, x)
+
+    # COST -- sum of the values <= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def sumLteX(self, l, r, x):
+        self._rangeCheck("sumLteX", l, r)
+        return self._sumLt(l, r, x + 1)
+
+    # COST -- sum of the values > x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def sumGtX(self, l, r, x):
+        self._rangeCheck("sumGtX", l, r)
+        return self._sumAll(l, r) - self._sumLt(l, r, x + 1)
+
+    # COST -- sum of the values >= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def sumGteX(self, l, r, x):
+        self._rangeCheck("sumGteX", l, r)
+        return self._sumAll(l, r) - self._sumLt(l, r, x)
+
+    # COST -- sum of the values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs
+    # 0 <= l <= r < size()
+    def sumInValRange(self, l, r, lowVal, highVal):
+        self._rangeCheck("sumInValRange", l, r)
+        return self._sumLt(l, r, highVal + 1) - self._sumLt(l, r, lowVal) if lowVal <= highVal else 0
+
+    # COST -- sum of the k smallest values in a[l..r]; needs 0 <= l <= r < size() and 0 <= k <= r - l + 1, else
+    # IndexError
+    def sumSmallestK(self, l, r, k):
+        self._rangeCheck("sumSmallestK", l, r)
+        if not 0 <= k <= r - l + 1:
+            raise IndexError(f"sumSmallestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
+        return self._sumKth(l, r, k)
+
+    # COST -- sum of the k largest values in a[l..r]; needs 0 <= l <= r < size() and 0 <= k <= r - l + 1, else
+    # IndexError
+    def sumLargestK(self, l, r, k):
+        self._rangeCheck("sumLargestK", l, r)
+        if not 0 <= k <= r - l + 1:
+            raise IndexError(f"sumLargestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
+        return self._sumAll(l, r) - self._sumKth(l, r, r - l + 1 - k)
+
+    # COST -- sum of the kFrom-th .. kTo-th smallest values in a[l..r] (1-indexed, inclusive); needs
+    # 0 <= l <= r < size() and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
+    def sumKthSmallestRange(self, l, r, kFrom, kTo):
+        self._rangeCheck("sumKthSmallestRange", l, r)
+        if not 1 <= kFrom <= kTo <= r - l + 1:
+            raise IndexError(f"sumKthSmallestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}")
+        return self._sumKth(l, r, kTo) - self._sumKth(l, r, kFrom - 1)
+
+    # COST -- sum of the kFrom-th .. kTo-th largest values in a[l..r] (1-indexed, inclusive); needs
+    # 0 <= l <= r < size() and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
+    def sumKthLargestRange(self, l, r, kFrom, kTo):
+        self._rangeCheck("sumKthLargestRange", l, r)
+        n = r - l + 1
+        if not 1 <= kFrom <= kTo <= n:
+            raise IndexError(f"sumKthLargestRange: needs 1 <= kFrom <= kTo <= r - l + 1, got kFrom = {kFrom}, kTo = {kTo}")
+        return self._sumKth(l, r, n - kFrom + 1) - self._sumKth(l, r, n - kTo)
+
+    # COST -- sum of |a[i] - x| over i in [l, r]; needs 0 <= l <= r < size(), else IndexError
+    def sumAbsDiffToX(self, l, r, x):
+        self._rangeCheck("sumAbsDiffToX", l, r)
+        c, s = self._lt(l, r, x), self._sumLt(l, r, x)
+        return x * c - s + (self._sumAll(l, r) - s) - x * (r - l + 1 - c)
+    #</sums>
+    #<xorv>
+
+    # COST -- xor of the values < x in a[l..r] (copies count); needs 0 <= l <= r < size(), else IndexError
+    def xorLtX(self, l, r, x):
+        self._rangeCheck("xorLtX", l, r)
+        return self._xorLt(l, r, x)
+
+    # COST -- xor of the values <= x in a[l..r] (copies count); needs 0 <= l <= r < size(), else IndexError
+    def xorLteX(self, l, r, x):
+        self._rangeCheck("xorLteX", l, r)
+        return self._xorLt(l, r, x + 1)
+
+    # COST -- xor of the values > x in a[l..r] (copies count); needs 0 <= l <= r < size(), else IndexError
+    def xorGtX(self, l, r, x):
+        self._rangeCheck("xorGtX", l, r)
+        return self._xorAll(l, r) ^ self._xorLt(l, r, x + 1)
+
+    # COST -- xor of the values >= x in a[l..r] (copies count); needs 0 <= l <= r < size(), else IndexError
+    def xorGteX(self, l, r, x):
+        self._rangeCheck("xorGteX", l, r)
+        return self._xorAll(l, r) ^ self._xorLt(l, r, x)
+
+    # COST -- xor of the values v in a[l..r] with lowVal <= v <= highVal (copies count; 0 if lowVal > highVal); needs
+    # 0 <= l <= r < size()
+    def xorInValRange(self, l, r, lowVal, highVal):
+        self._rangeCheck("xorInValRange", l, r)
+        return self._xorLt(l, r, highVal + 1) ^ self._xorLt(l, r, lowVal) if lowVal <= highVal else 0
+    #</xorv>
+    #<or>
+
+    # COST -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    def orLtX(self, l, r, x):
+        self._rangeCheck("orLtX", l, r)
+        return self._orIn(l, r, 0, x - 1)
+
+    # COST -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    def orLteX(self, l, r, x):
+        self._rangeCheck("orLteX", l, r)
+        return self._orIn(l, r, 0, x)
+
+    # COST -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    def orGtX(self, l, r, x):
+        self._rangeCheck("orGtX", l, r)
+        return self._orIn(l, r, x + 1, self.top)
+
+    # COST -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    def orGteX(self, l, r, x):
+        self._rangeCheck("orGteX", l, r)
+        return self._orIn(l, r, x, self.top)
+
+    # COST -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <= r < size(), else
+    # IndexError
+    def orInValRange(self, l, r, lowVal, highVal):
+        self._rangeCheck("orInValRange", l, r)
+        return self._orIn(l, r, lowVal, highVal)
+    #</or>
+    #<and>
+
+    # COST -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    def andLtX(self, l, r, x):
+        self._rangeCheck("andLtX", l, r)
+        return self._andIn(l, r, 0, x - 1)
+
+    # COST -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    def andLteX(self, l, r, x):
+        self._rangeCheck("andLteX", l, r)
+        return self._andIn(l, r, 0, x)
+
+    # COST -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    def andGtX(self, l, r, x):
+        self._rangeCheck("andGtX", l, r)
+        return self._andIn(l, r, x + 1, self.top)
+
+    # COST -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    def andGteX(self, l, r, x):
+        self._rangeCheck("andGteX", l, r)
+        return self._andIn(l, r, x, self.top)
+
+    # COST -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else
+    # IndexError
+    def andInValRange(self, l, r, lowVal, highVal):
+        self._rangeCheck("andInValRange", l, r)
+        return self._andIn(l, r, lowVal, highVal)
+    #</and>

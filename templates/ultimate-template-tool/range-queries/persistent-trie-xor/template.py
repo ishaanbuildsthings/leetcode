@@ -1,0 +1,443 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/persistent-trie-xor/template.py
+# @operations: append countGtX countGteX countInValRange countLtX countLteX countOccurrences countXorGtK countXorGteK countXorLtK countXorLteK getAll kthSmallest kthXor largestLtX largestLteX largestXorLtK largestXorLteK maxAll maxXorAgainstX maxXorWithVGtM maxXorWithVGteM maxXorWithVInValRange maxXorWithVLtM maxXorWithVLteM minAll minXorAgainstX minXorWithVGtM minXorWithVGteM minXorWithVInValRange minXorWithVLtM minXorWithVLteM pointGet pop rangeMax rangeMin size smallestGtX smallestGteX smallestXorGtK smallestXorGteK
+# @data-structure-type: persistent-trie
+# @complexities:
+#   append: log(U)
+#   countGtX: log(U)
+#   countGteX: log(U)
+#   countInValRange: log(U)
+#   countLtX: log(U)
+#   countLteX: log(U)
+#   countOccurrences: log(U)
+#   countXorGtK: log(U)
+#   countXorGteK: log(U)
+#   countXorLtK: log(U)
+#   countXorLteK: log(U)
+#   getAll: N
+#   kthSmallest: log(U)
+#   kthXor: log(U)
+#   largestLtX: log(U)
+#   largestLteX: log(U)
+#   largestXorLtK: log(U)
+#   largestXorLteK: log(U)
+#   maxAll: log(U)
+#   maxXorAgainstX: log(U)
+#   maxXorWithVGtM: log(U)
+#   maxXorWithVGteM: log(U)
+#   maxXorWithVInValRange: log(U)
+#   maxXorWithVLtM: log(U)
+#   maxXorWithVLteM: log(U)
+#   minAll: log(U)
+#   minXorAgainstX: log(U)
+#   minXorWithVGtM: log(U)
+#   minXorWithVGteM: log(U)
+#   minXorWithVInValRange: log(U)
+#   minXorWithVLtM: log(U)
+#   minXorWithVLteM: log(U)
+#   pointGet: 1
+#   pop: 1
+#   rangeMax: log(U)
+#   rangeMin: log(U)
+#   size: 1
+#   smallestGtX: log(U)
+#   smallestGteX: log(U)
+#   smallestXorGtK: log(U)
+#   smallestXorGteK: log(U)
+#   build: N*log(U)
+# @memory:
+#   layout: none
+#   node: L[1*N*log(U)] R[1*N*log(U)] C[1*N*log(U)]
+#   tags: none
+#   other: root[1*N] arr[1*N]
+#   note: N = every value ever added (initial array plus each append); each adds one root-to-leaf path of log U + 1 nodes, U = 2^bits
+
+# a[l..r] as a multiset, asked about v ^ x over its values v. A persistent binary trie over the values: one level per
+# bit, highest bit first, and version p holds a[0..p-1], so the values of a[l..r] are version r + 1 minus version l
+# (walk both, subtract counts). Each append adds one version. Values and every x must lie in [0, 2^bits); thresholds
+# (k, m, lo, hi) can be any integers. 0-indexed, inclusive.
+# The plain order statistics (counts, k-th, min / max, predecessor / successor) are the same walks with x = 0.
+
+
+class PersistentXorTrie:
+    __slots__ = ('B', 'top', 'arr', 'root', 'L', 'R', 'C', 'M', 'S', 'X', 'OI', 'AI', 'P')
+
+    # O(N log U) -- arr: the initial values (a list, may be empty), each in [0, 2^bits) (bits = 30 holds values up to
+    # 1073741823); U = 2^bits
+    def __init__(self, arr, bits):
+        self.B, self.top = bits, (1 << bits) - 1
+        self.arr = []
+        self.L, self.R, self.C = [0], [0], [0]  # node 0 = the empty trie
+        self.OI = [-1] * bits  #@or  OI[node * bits + h] = latest index of a value below with bit h set (-1: none)
+        self.AI = [-1] * bits  #@and  AI[node * bits + h] = latest index of a value below with bit h clear (-1: none)
+        self.root = [0]
+        for v in arr:
+            self.append(v)
+
+    # O(logU) -- append v (0 <= v < 2^bits): it becomes a[n], and n grows by 1; raises ValueError outside that
+    def append(self, v):
+        if not 0 <= v <= self.top:
+            raise ValueError(f"append: needs 0 <= v < 2^bits, got v = {v}, bits = {self.B}")
+        self.root.append(self._ins(self.root[-1], v, len(self.arr)))
+        self.arr.append(v)
+
+    # O(1) -- remove a[n-1] and return it (its nodes stay allocated); raises IndexError if the array is empty
+    def pop(self):
+        if not self.arr:
+            raise IndexError("pop: the array is empty")
+        self.root.pop()
+        return self.arr.pop()
+
+    # O(1) -- a[i]; needs 0 <= i < size(), else IndexError
+    def pointGet(self, i):
+        if not 0 <= i < len(self.arr):
+            raise IndexError(f"pointGet: needs 0 <= i < size(), got i = {i}, n = {len(self.arr)}")
+        return self.arr[i]
+
+    # O(N) -- the whole array (a copy)
+    def getAll(self):
+        return list(self.arr)
+
+    # O(1) -- the current length of the array
+    def size(self):
+        return len(self.arr)
+
+    # O(logU) -- largest v ^ x over the values v in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def maxXorAgainstX(self, l, r, x):
+        self._rangeCheck("maxXorAgainstX", l, r)
+        return self._extreme(self.root[r + 1], self.root[l], self.B - 1, x, 1)
+
+    # O(logU) -- smallest v ^ x over the values v in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def minXorAgainstX(self, l, r, x):
+        self._rangeCheck("minXorAgainstX", l, r)
+        return self._extreme(self.root[r + 1], self.root[l], self.B - 1, x, 0)
+
+    # O(logU) -- the i-th smallest of v ^ x over the values v in a[l..r], 0-indexed: kthXor(l, r, x, 0) is the smallest
+    # (copies count); needs 0 <= l <= r < size() and 0 <= i <= r - l, else IndexError
+    def kthXor(self, l, r, x, i):
+        self._rangeCheck("kthXor", l, r)
+        if not 0 <= i <= r - l:
+            raise IndexError(f"kthXor: needs 0 <= i <= r - l, got i = {i}, r - l = {r - l}")
+        return self._kthX(l, r, i + 1, x)
+
+    # O(logU) -- how many values v in a[l..r] have v ^ x < k (k is a VALUE, not a rank); needs 0 <= l <= r < size()
+    def countXorLtK(self, l, r, x, k):
+        self._rangeCheck("countXorLtK", l, r)
+        return self._cntLt(l, r, k, x)
+
+    # O(logU) -- how many values v in a[l..r] have v ^ x <= k (k is a VALUE, not a rank); needs 0 <= l <= r < size()
+    def countXorLteK(self, l, r, x, k):
+        self._rangeCheck("countXorLteK", l, r)
+        return self._cntLt(l, r, k + 1, x)
+
+    # O(logU) -- how many values v in a[l..r] have v ^ x > k (k is a VALUE, not a rank); needs 0 <= l <= r < size()
+    def countXorGtK(self, l, r, x, k):
+        self._rangeCheck("countXorGtK", l, r)
+        return r - l + 1 - self._cntLt(l, r, k + 1, x)
+
+    # O(logU) -- how many values v in a[l..r] have v ^ x >= k (k is a VALUE, not a rank); needs 0 <= l <= r < size()
+    def countXorGteK(self, l, r, x, k):
+        self._rangeCheck("countXorGteK", l, r)
+        return r - l + 1 - self._cntLt(l, r, k, x)
+
+    # O(logU) -- largest v ^ x < k over the values v in a[l..r] (k is a VALUE, not a rank), or None; needs
+    # 0 <= l <= r < size()
+    def largestXorLtK(self, l, r, x, k):
+        self._rangeCheck("largestXorLtK", l, r)
+        c = self._cntLt(l, r, k, x)
+        return self._kthX(l, r, c, x) if c else None
+
+    # O(logU) -- largest v ^ x <= k over the values v in a[l..r] (k is a VALUE, not a rank), or None; needs
+    # 0 <= l <= r < size()
+    def largestXorLteK(self, l, r, x, k):
+        self._rangeCheck("largestXorLteK", l, r)
+        c = self._cntLt(l, r, k + 1, x)
+        return self._kthX(l, r, c, x) if c else None
+
+    # O(logU) -- smallest v ^ x > k over the values v in a[l..r] (k is a VALUE, not a rank), or None; needs
+    # 0 <= l <= r < size()
+    def smallestXorGtK(self, l, r, x, k):
+        self._rangeCheck("smallestXorGtK", l, r)
+        c = self._cntLt(l, r, k + 1, x)
+        return self._kthX(l, r, c + 1, x) if c <= r - l else None
+
+    # O(logU) -- smallest v ^ x >= k over the values v in a[l..r] (k is a VALUE, not a rank), or None; needs
+    # 0 <= l <= r < size()
+    def smallestXorGteK(self, l, r, x, k):
+        self._rangeCheck("smallestXorGteK", l, r)
+        c = self._cntLt(l, r, k, x)
+        return self._kthX(l, r, c + 1, x) if c <= r - l else None
+
+    # O(logU) -- largest v ^ x over the values v < m in a[l..r], or None; needs 0 <= l <= r < size()
+    def maxXorWithVLtM(self, l, r, x, m):
+        self._rangeCheck("maxXorWithVLtM", l, r)
+        return self._bestIn(l, r, x, 0, m - 1, 1)
+
+    # O(logU) -- largest v ^ x over the values v <= m in a[l..r], or None; needs 0 <= l <= r < size()
+    def maxXorWithVLteM(self, l, r, x, m):
+        self._rangeCheck("maxXorWithVLteM", l, r)
+        return self._bestIn(l, r, x, 0, m, 1)
+
+    # O(logU) -- largest v ^ x over the values v > m in a[l..r], or None; needs 0 <= l <= r < size()
+    def maxXorWithVGtM(self, l, r, x, m):
+        self._rangeCheck("maxXorWithVGtM", l, r)
+        return self._bestIn(l, r, x, m + 1, self.top, 1)
+
+    # O(logU) -- largest v ^ x over the values v >= m in a[l..r], or None; needs 0 <= l <= r < size()
+    def maxXorWithVGteM(self, l, r, x, m):
+        self._rangeCheck("maxXorWithVGteM", l, r)
+        return self._bestIn(l, r, x, m, self.top, 1)
+
+    # O(logU) -- smallest v ^ x over the values v < m in a[l..r], or None; needs 0 <= l <= r < size()
+    def minXorWithVLtM(self, l, r, x, m):
+        self._rangeCheck("minXorWithVLtM", l, r)
+        return self._bestIn(l, r, x, 0, m - 1, 0)
+
+    # O(logU) -- smallest v ^ x over the values v <= m in a[l..r], or None; needs 0 <= l <= r < size()
+    def minXorWithVLteM(self, l, r, x, m):
+        self._rangeCheck("minXorWithVLteM", l, r)
+        return self._bestIn(l, r, x, 0, m, 0)
+
+    # O(logU) -- smallest v ^ x over the values v > m in a[l..r], or None; needs 0 <= l <= r < size()
+    def minXorWithVGtM(self, l, r, x, m):
+        self._rangeCheck("minXorWithVGtM", l, r)
+        return self._bestIn(l, r, x, m + 1, self.top, 0)
+
+    # O(logU) -- smallest v ^ x over the values v >= m in a[l..r], or None; needs 0 <= l <= r < size()
+    def minXorWithVGteM(self, l, r, x, m):
+        self._rangeCheck("minXorWithVGteM", l, r)
+        return self._bestIn(l, r, x, m, self.top, 0)
+
+    # O(logU) -- largest v ^ x over the values v in a[l..r] with lo <= v <= hi, or None; needs 0 <= l <= r < size()
+    def maxXorWithVInValRange(self, l, r, x, lo, hi):
+        self._rangeCheck("maxXorWithVInValRange", l, r)
+        return self._bestIn(l, r, x, lo, hi, 1)
+
+    # O(logU) -- smallest v ^ x over the values v in a[l..r] with lo <= v <= hi, or None; needs 0 <= l <= r < size()
+    def minXorWithVInValRange(self, l, r, x, lo, hi):
+        self._rangeCheck("minXorWithVInValRange", l, r)
+        return self._bestIn(l, r, x, lo, hi, 0)
+
+    # ---- plain order statistics over a[l..r] (the same walks with x = 0) ----
+
+    # O(logU) -- # of values < x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def countLtX(self, l, r, x):
+        self._rangeCheck("countLtX", l, r)
+        return self._lt(l, r, x)
+
+    # O(logU) -- # of values <= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def countLteX(self, l, r, x):
+        self._rangeCheck("countLteX", l, r)
+        return self._lt(l, r, x + 1)
+
+    # O(logU) -- # of values > x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def countGtX(self, l, r, x):
+        self._rangeCheck("countGtX", l, r)
+        return r - l + 1 - self._lt(l, r, x + 1)
+
+    # O(logU) -- # of values >= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def countGteX(self, l, r, x):
+        self._rangeCheck("countGteX", l, r)
+        return r - l + 1 - self._lt(l, r, x)
+
+    # O(logU) -- # of values v in a[l..r] with lowVal <= v <= highVal (0 if lowVal > highVal); needs 0 <= l <= r < size()
+    def countInValRange(self, l, r, lowVal, highVal):
+        self._rangeCheck("countInValRange", l, r)
+        return self._lt(l, r, highVal + 1) - self._lt(l, r, lowVal) if lowVal <= highVal else 0
+
+    # O(logU) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else IndexError
+    def countOccurrences(self, l, r, x):
+        self._rangeCheck("countOccurrences", l, r)
+        return self._lt(l, r, x + 1) - self._lt(l, r, x)
+
+    # O(logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    # else IndexError
+    def kthSmallest(self, l, r, k):
+        self._rangeCheck("kthSmallest", l, r)
+        if not 1 <= k <= r - l + 1:
+            raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
+        return self._kth(l, r, k)
+
+    # O(logU) -- min of a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def rangeMin(self, l, r):
+        self._rangeCheck("rangeMin", l, r)
+        return self._kth(l, r, 1)
+
+    # O(logU) -- max of a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    def rangeMax(self, l, r):
+        self._rangeCheck("rangeMax", l, r)
+        return self._kth(l, r, r - l + 1)
+
+    # O(logU) -- smallest value >= x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    def smallestGteX(self, l, r, x):
+        self._rangeCheck("smallestGteX", l, r)
+        c = self._lt(l, r, x)
+        return None if c == r - l + 1 else self._kth(l, r, c + 1)
+
+    # O(logU) -- smallest value > x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    def smallestGtX(self, l, r, x):
+        self._rangeCheck("smallestGtX", l, r)
+        c = self._lt(l, r, x + 1)
+        return None if c == r - l + 1 else self._kth(l, r, c + 1)
+
+    # O(logU) -- largest value <= x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    def largestLteX(self, l, r, x):
+        self._rangeCheck("largestLteX", l, r)
+        c = self._lt(l, r, x + 1)
+        return self._kth(l, r, c) if c else None
+
+    # O(logU) -- largest value < x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    def largestLtX(self, l, r, x):
+        self._rangeCheck("largestLtX", l, r)
+        c = self._lt(l, r, x)
+        return self._kth(l, r, c) if c else None
+
+    # O(logU) -- min of the whole array; raises IndexError if it is empty
+    def minAll(self):
+        if not self.size():
+            raise IndexError("minAll: the array is empty")
+        return self._kth(0, self.size() - 1, 1)
+
+    # O(logU) -- max of the whole array; raises IndexError if it is empty
+    def maxAll(self):
+        if not self.size():
+            raise IndexError("maxAll: the array is empty")
+        return self._kth(0, self.size() - 1, self.size())
+
+    # ---- internals ----
+
+    def _rangeCheck(self, name, l, r):
+        if not 0 <= l <= r < len(self.arr):
+            raise IndexError(f"{name}: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {len(self.arr)}")
+
+    # copy of version node with one more copy of v, the value at index i
+    def _ins(self, node, v, i):
+        L, R, C = self.L, self.R, self.C
+        path = []
+        for h in range(self.B - 1, -1, -1):
+            path.append(node)
+            node = R[node] if v >> h & 1 else L[node]
+        cur = len(C)
+        L.append(0), R.append(0), C.append(C[node] + 1)
+        for h in range(self.B):
+            old = path[self.B - 1 - h]
+            lc, rc = (L[old], cur) if v >> h & 1 else (cur, R[old])
+            cur = len(C)
+            L.append(lc), R.append(rc), C.append(C[lc] + C[rc])
+        return cur
+
+    def _lt(self, l, r, k):  # how many values in a[l..r] are < k
+        return self._cntLt(l, r, k, 0)
+
+    def _kth(self, l, r, k):  # the k-th smallest (1-indexed) of a[l..r]
+        return self._kthX(l, r, k, 0)
+
+
+    # how many values v in a[l..r] have v ^ x < k
+    def _cntLt(self, l, r, k, x):
+        if k <= 0:
+            return 0
+        if k > self.top:
+            return r - l + 1
+        L, R, C = self.L, self.R, self.C
+        a, b, res = self.root[r + 1], self.root[l], 0
+        for h in range(self.B - 1, -1, -1):
+            if x >> h & 1:
+                za, zb, oa, ob = R[a], R[b], L[a], L[b]
+            else:
+                za, zb, oa, ob = L[a], L[b], R[a], R[b]
+            if k >> h & 1:  # every result with bit h = 0 is < k
+                res += C[za] - C[zb]
+                a, b = oa, ob
+            else:
+                a, b = za, zb
+            if not a:
+                break
+        return res
+
+    # the k-th smallest (1-indexed) v ^ x over the values v in a[l..r]
+    def _kthX(self, l, r, k, x):
+        L, R, C = self.L, self.R, self.C
+        a, b, res = self.root[r + 1], self.root[l], 0
+        for h in range(self.B - 1, -1, -1):
+            if x >> h & 1:
+                za, zb, oa, ob = R[a], R[b], L[a], L[b]
+            else:
+                za, zb, oa, ob = L[a], L[b], R[a], R[b]
+            c = C[za] - C[zb]
+            if k <= c:
+                a, b = za, zb
+            else:
+                k -= c
+                a, b = oa, ob
+                res |= 1 << h
+        return res
+
+    # bits h..0 of the largest (big = 1) / smallest v ^ x below the node pair (a, b), which holds some value
+    def _extreme(self, a, b, h, x, big):
+        L, R, C = self.L, self.R, self.C
+        res = 0
+        while h >= 0:
+            p = (x >> h & 1) ^ big  # the child whose result bit is big
+            ua, ub = (R[a], R[b]) if p else (L[a], L[b])
+            if C[ua] != C[ub]:
+                a, b = ua, ub
+                res |= big << h
+            else:
+                a, b = (L[a], L[b]) if p else (R[a], R[b])
+                res |= (big ^ 1) << h
+            h -= 1
+        return res
+
+    # the largest (big = 1) / smallest v ^ x over the values v in a[l..r] with lo <= v <= hi, or None. Walks down the
+    # bits lo and hi share, then splits: below lo's side only the lower bound matters, below hi's only the upper one
+    def _bestIn(self, l, r, x, lo, hi, big):
+        lo, hi = max(lo, 0), min(hi, self.top)
+        if lo > hi:
+            return None
+        L, R, C = self.L, self.R, self.C
+        a, b, res, h = self.root[r + 1], self.root[l], 0, self.B - 1
+        while h >= 0 and (lo >> h & 1) == (hi >> h & 1):
+            bit = lo >> h & 1
+            a, b = (R[a], R[b]) if bit else (L[a], L[b])
+            if C[a] == C[b]:
+                return None
+            res |= (bit ^ (x >> h & 1)) << h
+            h -= 1
+        if h < 0:
+            return res
+        xb = x >> h & 1
+        c0 = self._oneSide(L[a], L[b], h - 1, lo, x, big, 1, res | xb << h)
+        c1 = self._oneSide(R[a], R[b], h - 1, hi, x, big, 0, res | (xb ^ 1) << h)
+        if c0 is None or c1 is None:
+            return c1 if c0 is None else c0
+        return max(c0, c1) if big else min(c0, c1)
+
+    # below the node pair (a, b): the best v ^ x whose bits h..0 are >= (lower = 1) / <= bound's bits h..0, or None;
+    # res holds the result's bits above h. Along the path that matches bound, each step off it (to the side the bound
+    # allows) is a free subtree: take it at once if its result bit beats the path's, else remember the deepest one
+    def _oneSide(self, a, b, h, bound, x, big, lower, res):
+        L, R, C = self.L, self.R, self.C
+        if C[a] == C[b]:
+            return None
+        fallback = None
+        while h >= 0:
+            xb, bb = x >> h & 1, bound >> h & 1
+            if bb != lower:  # a free side exists: v bit = lower
+                fa, fb = (R[a], R[b]) if lower else (L[a], L[b])
+                if C[fa] != C[fb]:
+                    fres = res | (lower ^ xb) << h
+                    if lower ^ xb == big:
+                        return fres | self._extreme(fa, fb, h - 1, x, big)
+                    fallback = (fa, fb, h, fres)
+            a, b = (R[a], R[b]) if bb else (L[a], L[b])
+            if C[a] == C[b]:
+                break
+            res |= (bb ^ xb) << h
+            h -= 1
+        else:
+            return res  # v equal to bound below here: allowed (inclusive)
+        if fallback is None:
+            return None
+        fa, fb, fh, fres = fallback
+        return fres | self._extreme(fa, fb, fh - 1, x, big)

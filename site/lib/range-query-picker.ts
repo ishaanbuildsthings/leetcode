@@ -81,6 +81,29 @@ export type OpId =
   | "xorGtX"
   | "xorGteX"
   | "xorInValRange"
+  | "maxXorAgainstX"
+  | "minXorAgainstX"
+  | "kthXor"
+  | "countXorLtK"
+  | "countXorLteK"
+  | "countXorGtK"
+  | "countXorGteK"
+  | "largestXorLtK"
+  | "largestXorLteK"
+  | "smallestXorGtK"
+  | "smallestXorGteK"
+  | "mexXor"
+  | "sumXor"
+  | "maxXorWithVLtM"
+  | "maxXorWithVLteM"
+  | "maxXorWithVGtM"
+  | "maxXorWithVGteM"
+  | "minXorWithVLtM"
+  | "minXorWithVLteM"
+  | "minXorWithVGtM"
+  | "minXorWithVGteM"
+  | "maxXorWithVInValRange"
+  | "minXorWithVInValRange"
   | "orLtX"
   | "orLteX"
   | "orGtX"
@@ -516,6 +539,41 @@ export const OP_GROUPS: OpGroup[] = [
           { id: "xorInValRange", signature: "xorInValRange(l, r, lowVal, highVal)", description: "XOR of the values in [lowVal, highVal] in l..r (copies count)" },
         ],
       },
+      {
+        kind: "topic",
+        label: "XOR with x over a[l..r]",
+        ops: [
+          { id: "maxXorAgainstX", signature: "maxXorAgainstX(l, r, x)", description: "Largest v ^ x over the values v in l..r" },
+          { id: "minXorAgainstX", signature: "minXorAgainstX(l, r, x)", description: "Smallest v ^ x over the values v in l..r" },
+          { id: "kthXor", signature: "kthXor(l, r, x, i)", description: "i-th smallest v ^ x over l..r, 0-indexed: kthXor(l, r, x, 0) is the smallest" },
+          { id: "countXorLtK", signature: "countXorLtK(l, r, x, k)", description: "How many v in l..r have v ^ x < k (k is a value, not a rank)" },
+          { id: "countXorLteK", signature: "countXorLteK(l, r, x, k)", description: "How many v in l..r have v ^ x ≤ k (k is a value, not a rank)" },
+          { id: "countXorGtK", signature: "countXorGtK(l, r, x, k)", description: "How many v in l..r have v ^ x > k (k is a value, not a rank)" },
+          { id: "countXorGteK", signature: "countXorGteK(l, r, x, k)", description: "How many v in l..r have v ^ x ≥ k (k is a value, not a rank)" },
+          { id: "largestXorLtK", signature: "largestXorLtK(l, r, x, k)", description: "Largest v ^ x over l..r that is < k (k is a value, not a rank)" },
+          { id: "largestXorLteK", signature: "largestXorLteK(l, r, x, k)", description: "Largest v ^ x over l..r that is ≤ k (k is a value, not a rank)" },
+          { id: "smallestXorGtK", signature: "smallestXorGtK(l, r, x, k)", description: "Smallest v ^ x over l..r that is > k (k is a value, not a rank)" },
+          { id: "smallestXorGteK", signature: "smallestXorGteK(l, r, x, k)", description: "Smallest v ^ x over l..r that is ≥ k (k is a value, not a rank)" },
+          { id: "mexXor", signature: "mexXor(l, r, x)", description: "Smallest non-negative integer that is no v ^ x over the values v in l..r" },
+          { id: "sumXor", signature: "sumXor(l, r, x)", description: "Sum of v ^ x over every value v in l..r" },
+        ],
+      },
+      {
+        kind: "topic",
+        label: "XOR with x over a[l..r], limit on v",
+        ops: [
+          { id: "maxXorWithVLtM", signature: "maxXorWithVLtM(l, r, x, m)", description: "Largest v ^ x over the values v < m in l..r" },
+          { id: "maxXorWithVLteM", signature: "maxXorWithVLteM(l, r, x, m)", description: "Largest v ^ x over the values v ≤ m in l..r" },
+          { id: "maxXorWithVGtM", signature: "maxXorWithVGtM(l, r, x, m)", description: "Largest v ^ x over the values v > m in l..r" },
+          { id: "maxXorWithVGteM", signature: "maxXorWithVGteM(l, r, x, m)", description: "Largest v ^ x over the values v ≥ m in l..r" },
+          { id: "minXorWithVLtM", signature: "minXorWithVLtM(l, r, x, m)", description: "Smallest v ^ x over the values v < m in l..r" },
+          { id: "minXorWithVLteM", signature: "minXorWithVLteM(l, r, x, m)", description: "Smallest v ^ x over the values v ≤ m in l..r" },
+          { id: "minXorWithVGtM", signature: "minXorWithVGtM(l, r, x, m)", description: "Smallest v ^ x over the values v > m in l..r" },
+          { id: "minXorWithVGteM", signature: "minXorWithVGteM(l, r, x, m)", description: "Smallest v ^ x over the values v ≥ m in l..r" },
+          { id: "maxXorWithVInValRange", signature: "maxXorWithVInValRange(l, r, x, lo, hi)", description: "Largest v ^ x over the values v in [lo, hi] in l..r" },
+          { id: "minXorWithVInValRange", signature: "minXorWithVInValRange(l, r, x, lo, hi)", description: "Smallest v ^ x over the values v in [lo, hi] in l..r" },
+        ],
+      },
     ],
   },
   {
@@ -620,7 +678,9 @@ export const DATA_STRUCTURE_TYPES = [
   "merge-sort-tree",
   "wavelet",
   "persistent",
+  "persistent-trie",
   "bit-of-trees",
+  "bit-of-tries",
   "seg-of-trees",
   "position-trees",
   // treap-likes, lightest first (on a cost tie): one treap; two (even / odd lanes); copies on every update; value trees
@@ -630,6 +690,7 @@ export const DATA_STRUCTURE_TYPES = [
   "sorted-runs",
   "beats",
   "sqrt",
+  "sqrt-tries",
   "rolling-hash",
   "manacher",
 ] as const;
@@ -646,7 +707,9 @@ export const DATA_STRUCTURE_TYPE_LABELS: Record<DataStructureType, string> = {
   "merge-sort-tree": "Merge sort tree",
   wavelet: "Wavelet matrix",
   persistent: "Persistent seg tree",
+  "persistent-trie": "Persistent binary trie (appendable)",
   "bit-of-trees": "BIT of value seg trees",
+  "bit-of-tries": "BIT of binary tries",
   "seg-of-trees": "Seg tree of value seg trees",
   "position-trees": "Seg tree of positions per value (split / merge)",
   "pair-treap": "Treap pair (even / odd positions)",
@@ -655,6 +718,7 @@ export const DATA_STRUCTURE_TYPE_LABELS: Record<DataStructureType, string> = {
   treap: "Implicit treap",
   beats: "Seg tree beats",
   sqrt: "Sqrt decomposition",
+  "sqrt-tries": "Sqrt blocks of binary tries (lazy xor / assign)",
   "rolling-hash": "Rolling hash deque",
   manacher: "Manacher's algorithm",
 };
@@ -828,7 +892,13 @@ export function templateKindLabel(t: TemplateView): string {
     [["sortedlist", "sorted lists"], ["treap", "treaps"], ["hashfenwick", "hashed Fenwick trees"], ["offline", "Fenwick trees, every update listed up front"]] as const
   ).find(([key]) => t.folder.startsWith(`merge-sort-tree-updates-${key}`));
   if (inner) return `Merge sort tree with updates (${inner[1]})`;
-  const base = kind + extras + mex + appendable;
+  // the binary tries name what they keep beyond the counts: each node's smallest last index (for mexXor),
+  // per-bit prefix counts (for sumXor), node sums / xors (by-value sums / xors), per-bit latest indices (by-value OR / AND)
+  const trieKept =
+    !["persistent-trie", "bit-of-tries", "sqrt-tries"].includes(t.dataStructureType)
+      ? []
+      : ([["mexXor", "last index per node"], ["sumXor", "bit counts"], ["sumLtX", "sums"], ["xorLtX", "xors"], ["orLtX", "OR bit indices"], ["andLtX", "AND bit indices"]] as const).filter(([op]) => t.operations.includes(op)).map(([, w]) => w);
+  const base = kind + extras + mex + appendable + (trieKept.length ? ` with ${trieKept.join(", ")}` : "");
   const fc = t.fractionalCascading === undefined ? "" : t.fractionalCascading ? " (FC)" : " (no FC)";
   if (t.file !== "sparse") return base + fc;
   // lowercase the first word after "Sparse", unless it's an acronym ("BIT", "BIT of value seg trees")

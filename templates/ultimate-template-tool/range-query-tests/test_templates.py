@@ -200,6 +200,15 @@ ORDER_OPS = {
 BIT_AGG = {"xor": (lambda x, y: x ^ y, 0), "or": (lambda x, y: x | y, 0), "and": (lambda x, y: x & y, -1)}
 ORDER_OPS.update({f"{a}{s}X": "lrx" for a in BIT_AGG for s in ("Lt", "Lte", "Gt", "Gte")})
 ORDER_OPS.update({f"{a}InValRange": "lrlohi" for a in BIT_AGG})
+# v ^ x over the values v of a[l..r] (the sets picker's trie queries, asked about a subarray). Values and x live in
+# [0, 2^XOR_BITS); k / m / lo / hi can be anything. op -> arg kind.
+XOR_BITS = 4
+XOR_X_OPS = {"maxXorAgainstX": "lrx", "minXorAgainstX": "lrx", "mexXor": "lrx", "sumXor": "lrx", "kthXor": "lrxi"}
+XOR_X_OPS.update({f"countXor{c}K": "lrxk" for c in ("Lt", "Lte", "Gt", "Gte")})
+XOR_X_OPS.update({"largestXorLtK": "lrxk", "largestXorLteK": "lrxk", "smallestXorGtK": "lrxk", "smallestXorGteK": "lrxk"})
+XOR_X_OPS.update({f"{mm}XorWithV{c}M": "lrxk" for mm in ("max", "min") for c in ("Lt", "Lte", "Gt", "Gte")})
+XOR_X_OPS.update({"maxXorWithVInValRange": "lrxlohi", "minXorWithVInValRange": "lrxlohi"})
+ORDER_OPS.update(XOR_X_OPS)
 
 
 def order_stat(op, tot, n, xs):
@@ -246,6 +255,28 @@ def order_stat(op, tot, n, xs):
         while tot.get(v):
             v += 1
         return v
+    if op in XOR_X_OPS:
+        ys = sorted(v ^ x for v in keys for _ in range(tot[v]))
+        if op == "maxXorAgainstX": return ys[-1]
+        if op == "minXorAgainstX": return ys[0]
+        if op == "sumXor": return sum(ys)
+        if op == "kthXor": return ys[xs[1]]
+        if op == "mexXor":
+            have, t = set(ys), 0
+            while t in have:
+                t += 1
+            return t
+        k = xs[1] if len(xs) > 1 else None
+        for name, cmp in CMP.items():
+            if op == f"countXor{name}K": return sum(cmp(y, k) for y in ys)
+        if op == "largestXorLtK": return max((y for y in ys if y < k), default=None)
+        if op == "largestXorLteK": return max((y for y in ys if y <= k), default=None)
+        if op == "smallestXorGtK": return min((y for y in ys if y > k), default=None)
+        if op == "smallestXorGteK": return min((y for y in ys if y >= k), default=None)
+        keep = (lambda v: xs[1] <= v <= xs[2]) if op.endswith("InValRange") else (lambda v, c=CMP[op[op.index("WithV") + 5:-1]]: c(v, k))
+        cand = [v ^ x for v in keys if keep(v)]
+        if not cand: return None
+        return max(cand) if op.startswith("max") else min(cand)
     for agg, (f, ident) in BIT_AGG.items():
         if op.startswith(agg) and op[len(agg):len(agg) + 1].isupper():
             suf = op[len(agg):]
@@ -469,6 +500,8 @@ def domain(folder, ops):
         return (lambda r: r.randint(-50, 50)), small, ["UPDATES"], ctx
     if folder.startswith("merge-sort-tree-updates-hashfenwick"):  # a value range
         return (lambda r: r.randint(-50, 50)), small, [-10**9, 10**9], ctx
+    if set(XOR_X_OPS) & set(ops):  # xor with x: values in [0, 2^bits), the bit count passed to the ctor
+        return (lambda r: r.randint(0, (1 << XOR_BITS) - 1)), nonneg_small, [XOR_BITS], ctx
     if {"stridedXorQuery", "stridedAndQuery", "stridedOrQuery", "stridedGcd"} & set(ops):  # bit ops and gcd: values >= 0
         return (lambda r: r.randint(0, 63)), nonneg_small, [], ctx
     if "find" in ops:  # find needs distinct values: each new one 1000 above the last (point adds move them by at most 3)
@@ -702,6 +735,12 @@ def make_trials(folder, ops, trials, letters=False):
                     args = [l, r, *sorted((rng.randint(1, r - l + 1), rng.randint(1, r - l + 1)))]
                 elif kind == "lrlohi":
                     args = [l, r, *sorted((gen(rng), gen(rng)))]
+                elif kind == "lrxk":  # (k / m anywhere around the value range, past both ends too)
+                    args = [l, r, gen(rng), rng.randint(-2, (1 << XOR_BITS) + 2)]
+                elif kind == "lrxi":  # (a 0-indexed rank in a[l..r])
+                    args = [l, r, gen(rng), rng.randint(0, r - l)]
+                elif kind == "lrxlohi":
+                    args = [l, r, gen(rng), *sorted((rng.randint(-2, (1 << XOR_BITS) + 2), rng.randint(-2, (1 << XOR_BITS) + 2)))]
                 else:
                     args = [l, r]
             seq.append((op, args))
@@ -1360,6 +1399,10 @@ def cpp_driver(folder, ops, structs, ctor_extra, stem="template", chars=False):
                 body = f"long long l, r, k; cin >> l >> r >> k; out({s}.{op}(l, r, k));"
             elif kind == "lrij":
                 body = f"long long l, r, i, j; cin >> l >> r >> i >> j; out({s}.{op}(l, r, i, j));"
+            elif kind in ("lrxk", "lrxi"):
+                body = f"long long l, r, x, k; cin >> l >> r >> x >> k; out({s}.{op}(l, r, x, k));"
+            elif kind == "lrxlohi":
+                body = f"long long l, r, x, lo, hi; cin >> l >> r >> x >> lo >> hi; out({s}.{op}(l, r, x, lo, hi));"
             else:
                 body = f"long long l, r, lo, hi; cin >> l >> r >> lo >> hi; out({s}.{op}(l, r, lo, hi));"
         lines.append(f'      else if (op == "{op}") {{ {body} }}')
