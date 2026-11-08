@@ -34,7 +34,7 @@ const PICKER_PAGES = [
   { href: "/templates/trees", label: "Trees" },
   { href: "/templates/matrices", label: "Matrices" },
   { href: "/templates/combinatorics", label: "Combinatorics" },
-  { href: "/templates/bitset", label: "Bitset" },
+  { href: "/templates/bitset", label: "Bit ops & Bitset" },
   { href: "/templates/misc", label: "Misc." },
   { href: "/templates/golden-references", label: "Golden References" },
 ];

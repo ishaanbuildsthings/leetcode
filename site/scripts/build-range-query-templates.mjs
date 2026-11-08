@@ -220,6 +220,11 @@ const bitsetDir = path.resolve(siteDir, "../templates/ultimate-template-tool/bit
 fs.mkdirSync(path.join(publicDir, "_bitset"));
 for (const name of fs.readdirSync(bitsetDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(bitsetDir, name), path.join(publicDir, "_bitset", name));
 
+// the bit operation templates (the Bit ops & Bitset tab): XOR basis, SOS DP, XOR convolution, pair / subarray bit sums
+const bitOpsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/bit-operations");
+fs.mkdirSync(path.join(publicDir, "_bit-operations"));
+for (const name of fs.readdirSync(bitOpsDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(bitOpsDir, name), path.join(publicDir, "_bit-operations", name));
+
 // Thousands of templates share a few op lists, cost lists and memory layouts: the manifest is those tables plus one
 // short row per template, expanded in the browser by decodeRangeTemplates (lib/range-query-picker.ts). The usage panel
 // isn't in it either: the drawer reads it from the code it fetches (this script only checks that it can).

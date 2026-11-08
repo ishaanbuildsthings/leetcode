@@ -129,6 +129,10 @@ const FACTOR_VALUES: Record<string, number> = {
   "log(U)": Math.log2(SIZES.U),
   "log64(U)": Math.log2(SIZES.U) / 6,
   "log(log(U))": Math.log2(Math.log2(SIZES.U)),
+  // the bit operation templates: B = number of bits in the largest value
+  B: 30,
+  "B^2": 900,
+  "2^B": 2 ** 20,
 };
 
 export function costValue(cost: string): number {
@@ -252,6 +256,10 @@ const PRETTY_FACTORS: Record<string, string> = {
   "log(e)": "log e",
   "log(MOD)": "log MOD",
   "log(x)": "log x",
+  // the bit operation templates: B = number of bits in the largest value
+  B: "B",
+  "B^2": "B²",
+  "2^B": "2ᴮ",
 };
 
 export function formatCost(cost: string): string {
