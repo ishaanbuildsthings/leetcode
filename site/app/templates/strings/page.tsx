@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
-import { STRINGS } from "@/lib/strings";
+import { PATTERN_MATCHING, ROTATIONS } from "@/lib/strings";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -31,7 +31,8 @@ export default async function StringTemplatesPage() {
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
         <MiscTemplates title="String templates" sections={[
-            { title: "Strings", items: STRINGS },
+            { title: "Rotations", items: ROTATIONS },
+            { title: "Pattern matching", items: PATTERN_MATCHING },
           ]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>

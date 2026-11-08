@@ -3,16 +3,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Linear recurrences mod MOD (default 1e9+7, any MOD < 2^32; berlekampMassey / guessNthTerm need it prime), terms 0-indexed:
+// Linear recurrences mod MOD (default 1e9+7, any MOD < 2^32), terms 0-indexed:
 //   a[i] = coeffs[0] * a[i-1] + coeffs[1] * a[i-2] + ... + coeffs[d-1] * a[i-d]   for i >= d
 // The same thing as vec * M^n with a d x d companion matrix, but d^2 log n instead of d^3 log n
 // nthTerm(coeffs, initial, n)              a[n], given coeffs and the first d terms
-// berlekampMassey(seq)                     the shortest coeffs that generate seq
-// guessNthTerm(seq, n)                     a[n], given enough first terms (2d of them suffice) and no recurrence
 // nthTerm<998244353>(coeffs, initial, n)   another mod
 // fib: nthTerm({1, 1}, {0, 1}, 10) -> 55
-//      berlekampMassey({0, 1, 1, 2, 3, 5}) -> {1, 1}
-//      guessNthTerm({0, 1, 1, 2, 3, 5}, 10) -> 55
 
 #pragma GCC push_options
 #pragma GCC optimize("O3") // only this hot loop, so it vectorizes on GCC builds that skip that at -O2
@@ -64,63 +60,4 @@ long long nthTerm(const vector<long long>& coeffs, const vector<long long>& init
         n >>= 1;
     }
     return P[0]; // Q[0] stays 1
-}
-
-// shortest coeffs (same convention as nthTerm) with seq[i] = sum coeffs[j] * seq[i-1-j] for all i >= coeffs.size()
-// O(seq.size()^2)
-template <uint32_t MOD = 1'000'000'007>
-vector<long long> berlekampMassey(const vector<long long>& input) {
-    auto modPow = [](uint64_t b, uint64_t e) {
-        uint64_t r = 1 % MOD;
-        for (b %= MOD; e; e >>= 1, b = b * b % MOD) {
-            if (e & 1) r = r * b % MOD;
-        }
-        return r;
-    };
-    vector<uint64_t> seq(input.size());
-    for (size_t i = 0; i < input.size(); i++) {
-        long long x = input[i] % (long long)MOD;
-        seq[i] = x < 0 ? x + MOD : x;
-    }
-    vector<uint64_t> cur{1}, prev{1}; // connection polynomial: sum cur[j] * seq[i-j] = 0
-    int length = 0, gap = 1;
-    uint64_t prevDisc = 1;
-    for (int i = 0; i < (int)seq.size(); i++) {
-        uint64_t disc = seq[i];
-        for (int j = 1; j <= length; j++) disc = (disc + cur[j] * seq[i - j]) % MOD;
-        if (disc == 0) {
-            gap++;
-            continue;
-        }
-        uint64_t factor = disc * modPow(prevDisc, MOD - 2) % MOD;
-        vector<uint64_t> nxt = cur;
-        if (nxt.size() < prev.size() + gap) nxt.resize(prev.size() + gap, 0);
-        for (size_t j = 0; j < prev.size(); j++) nxt[j + gap] = (nxt[j + gap] + MOD - factor * prev[j] % MOD) % MOD;
-        if (2 * length <= i) {
-            prev = cur;
-            length = i + 1 - length;
-            prevDisc = disc;
-            gap = 1;
-        } else {
-            gap++;
-        }
-        cur = nxt;
-    }
-    cur.resize(length + 1, 0);
-    vector<long long> coeffs(length);
-    for (int j = 0; j < length; j++) coeffs[j] = (MOD - cur[j + 1]) % MOD;
-    return coeffs;
-}
-
-// a[n] of the shortest recurrence that fits seq, n >= 0 (for a recurrence of order d, give at least 2d terms)
-// O(seq.size()^2 + d^2 log n)
-template <uint32_t MOD = 1'000'000'007>
-long long guessNthTerm(const vector<long long>& seq, long long n) {
-    if (n < (long long)seq.size()) {
-        long long x = seq[n] % (long long)MOD;
-        return x < 0 ? x + MOD : x;
-    }
-    vector<long long> coeffs = berlekampMassey<MOD>(seq);
-    if (coeffs.empty()) return 0;
-    return nthTerm<MOD>(coeffs, vector<long long>(seq.begin(), seq.begin() + coeffs.size()), n);
 }

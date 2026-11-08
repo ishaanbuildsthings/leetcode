@@ -5,6 +5,39 @@ using namespace std;
 
 // gives the least/greatest lexicographical rotation of any comparable container (string, vector<int>, vector<ll>) in O(n) time
 
+// (the index functions are defined below the rotation functions, which call them)
+template <class T>
+vector<int> minRotationIndices(const T& stringOrArray);
+template <class T>
+vector<int> maxRotationIndices(const T& stringOrArray);
+
+// Returns the lexicographically smallest rotation.
+// minRotation("bcabca") -> "abcabc" // the rotation itself, use minRotationIndices for where it starts
+// minRotation({2, 1, 2, 1}) -> {1, 2, 1, 2}
+// O(n) time
+template <class T>
+T minRotation(const T& stringOrArray) {
+    vector<int> idx = minRotationIndices(stringOrArray);
+    if (idx.empty()) return stringOrArray;
+    int i = idx[0];
+    T res(stringOrArray.begin() + i, stringOrArray.end());
+    res.insert(res.end(), stringOrArray.begin(), stringOrArray.begin() + i);
+    return res;
+}
+
+// Returns the lexicographically largest rotation.
+// maxRotation("bcabca") -> "cabcab" // the rotation itself, use maxRotationIndices for where it starts
+// maxRotation({2, 1, 2, 1}) -> {2, 1, 2, 1}
+// O(n) time
+template <class T>
+T maxRotation(const T& stringOrArray) {
+    vector<int> idx = maxRotationIndices(stringOrArray);
+    if (idx.empty()) return stringOrArray;
+    int i = idx[0];
+    T res(stringOrArray.begin() + i, stringOrArray.end());
+    res.insert(res.end(), stringOrArray.begin(), stringOrArray.begin() + i);
+    return res;
+}
 
 // Returns every start index whose rotation equals the lexicographically smallest one, ascending.
 // minRotationIndices("bcabca") -> {2, 5} // starting indices that have the min rotation (if multiple, those are equal rotations)
@@ -61,33 +94,5 @@ vector<int> maxRotationIndices(const T& stringOrArray) {
     vector<int> res;
     res.reserve(n / period);
     for (int x = ans % period; x < n; x += period) res.push_back(x);
-    return res;
-}
-
-// Returns the lexicographically smallest rotation.
-// minRotation("bcabca") -> "abcabc" // the rotation itself, use minRotationIndices for where it starts
-// minRotation({2, 1, 2, 1}) -> {1, 2, 1, 2}
-// O(n) time
-template <class T>
-T minRotation(const T& stringOrArray) {
-    vector<int> idx = minRotationIndices(stringOrArray);
-    if (idx.empty()) return stringOrArray;
-    int i = idx[0];
-    T res(stringOrArray.begin() + i, stringOrArray.end());
-    res.insert(res.end(), stringOrArray.begin(), stringOrArray.begin() + i);
-    return res;
-}
-
-// Returns the lexicographically largest rotation.
-// maxRotation("bcabca") -> "cabcab" // the rotation itself, use maxRotationIndices for where it starts
-// maxRotation({2, 1, 2, 1}) -> {2, 1, 2, 1}
-// O(n) time
-template <class T>
-T maxRotation(const T& stringOrArray) {
-    vector<int> idx = maxRotationIndices(stringOrArray);
-    if (idx.empty()) return stringOrArray;
-    int i = idx[0];
-    T res(stringOrArray.begin() + i, stringOrArray.end());
-    res.insert(res.end(), stringOrArray.begin(), stringOrArray.begin() + i);
     return res;
 }

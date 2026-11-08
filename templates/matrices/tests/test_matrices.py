@@ -32,17 +32,13 @@ def naivePow(M, p, mod):
 
 def testModMatrix():
     for mod in (10**9 + 7, 998244353, 7, 2, 2**31 - 1):
-        env = load("MatPowQueries", mod)  # superset of ModMatrix
-        ModMatrix, MatPowQueries = env["ModMatrix"], env["MatPowQueries"]
+        ModMatrix = load("ModMatrix", mod)["ModMatrix"]
         for _ in range(150):
             x, y, z = random.randint(1, 20), random.randint(1, 20), random.randint(1, 20)
             A, B = randMat(x, y), randMat(y, z)
             assert (ModMatrix(A) @ ModMatrix(B)).rows == naiveMul(A, B, mod)
             vec = [random.randint(-10**15, 10**15) for _ in range(x)]
             assert vec @ ModMatrix(randMat(1, 1) and A) == naiveMul([vec], A, mod)[0]
-            assert (ModMatrix(A) + ModMatrix(A)).rows == [[2 * v % mod for v in r] for r in A]
-            assert (ModMatrix(A) - ModMatrix(A)).rows == [[0] * y for _ in range(x)]
-            assert ModMatrix(A).T.rows == [[v % mod for v in c] for c in zip(*A)]
             k = random.randint(1, 12)
             M = randMat(k, k)
             p = random.randint(0, 12)
@@ -50,16 +46,9 @@ def testModMatrix():
             assert (ModMatrix(M) ** p).rows == want
             v = [random.randint(-50, 50) for _ in range(k)]
             assert ModMatrix(M).vecPow(v, p) == naiveMul([v], want, mod)[0]
-            S = [[0] * k for _ in range(k)]
-            for i in range(p):
-                Pi = naivePow(M, i, mod)
-                S = [[(a + b) % mod for a, b in zip(r1, r2)] for r1, r2 in zip(S, Pi)]
-            assert ModMatrix(M).powSum(p).rows == S
-            pq = MatPowQueries(ModMatrix(M), 40)
-            assert pq.query(v, p) == naiveMul([v], want, mod)[0]
         big = ModMatrix([[1, 1], [1, 0]])
-        assert MatPowQueries(big, 10**18).query([1, 0], 10**18) == [1, 0] @ big ** 10**18 == big.vecPow([1, 0], 10**18)
-    print("ModMatrix + MatPowQueries ok")
+        assert [1, 0] @ big ** 10**18 == big.vecPow([1, 0], 10**18)
+    print("ModMatrix ok")
 
 
 def testTropical():
@@ -128,7 +117,7 @@ def testBool():
 def testLinearRecurrence():
     for mod in (10**9 + 7, 998244353, 7, 2):
         env = load("LinearRecurrence", mod)
-        nthTerm, bm, guess = env["nthTerm"], env["berlekampMassey"], env["guessNthTerm"]
+        nthTerm = env["nthTerm"]
         for _ in range(200):
             d = random.randint(1, 25)
             coeffs = [random.randint(-10**9, 10**9) for _ in range(d)]
@@ -138,64 +127,7 @@ def testLinearRecurrence():
                 seq.append(sum(coeffs[j] * seq[i - 1 - j] for j in range(d)) % mod)
             for n in random.sample(range(120), 15):
                 assert nthTerm(coeffs, init, n) == seq[n], (mod, d, n)
-            found = bm(seq[: 2 * d])
-            assert len(found) <= d
-            for i in range(len(found), 120):
-                assert sum(found[j] * seq[i - 1 - j] for j in range(len(found))) % mod == seq[i]
-            assert guess(seq[: 2 * d], 119) == seq[119]
     print("LinearRecurrence ok")
-
-
-def naiveRank(M, mod):
-    M = [[x % mod for x in row] for row in M]
-    r = 0
-    for c in range(len(M[0]) if M else 0):
-        piv = next((i for i in range(r, len(M)) if M[i][c]), None)
-        if piv is None:
-            continue
-        M[r], M[piv] = M[piv], M[r]
-        inv = pow(M[r][c], mod - 2, mod)
-        for i in range(len(M)):
-            if i != r and M[i][c]:
-                f = M[i][c] * inv % mod
-                M[i] = [(a - f * b) % mod for a, b in zip(M[i], M[r])]
-        r += 1
-    return r
-
-
-def testGauss():
-    for mod in (10**9 + 7, 998244353, 7, 2, 2**31 - 1):
-        env = load("GaussianElimination", mod)
-        det, rank, inv, solve = env["determinant"], env["matrixRank"], env["inverse"], env["solve"]
-        for _ in range(250):
-            k = random.randint(1, 6)
-            M = randMat(k, k, -5, 5, 0.3 if random.random() < 0.5 else 0.0)
-            brute = 0
-            for perm in itertools.permutations(range(k)):
-                sign = (-1) ** sum(perm[i] > perm[j] for i in range(k) for j in range(i + 1, k))
-                term = sign
-                for i in range(k):
-                    term *= M[i][perm[i]]
-                brute += term
-            assert det(M) == brute % mod, (M, mod)
-            I = inv(M)
-            if brute % mod == 0:
-                assert I is None
-            else:
-                assert naiveMul([[x % mod for x in r] for r in M], I, mod) == [[int(i == j) for j in range(k)] for i in range(k)]
-            x, y = random.randint(1, 30), random.randint(1, 30)
-            A = randMat(x, y, -10**12, 10**12, random.choice([0.0, 0.5, 0.9]))
-            if random.random() < 0.3 and x > 1:
-                A[-1] = [a + b for a, b in zip(A[0], A[1 % x])]  # force dependence
-            assert rank(A) == naiveRank(A, mod)
-            b = [random.randint(-10**12, 10**12) for _ in range(x)]
-            sol = solve(A, b)
-            aug = [row + [v] for row, v in zip(A, b)]
-            if naiveRank(aug, mod) > naiveRank(A, mod):
-                assert sol is None
-            else:
-                assert sol is not None and all(sum(a * s for a, s in zip(row, sol)) % mod == v % mod for row, v in zip(A, b))
-    print("GaussianElimination ok")
 
 
 if __name__ == "__main__":
@@ -204,4 +136,3 @@ if __name__ == "__main__":
     testTropical()
     testBool()
     testLinearRecurrence()
-    testGauss()

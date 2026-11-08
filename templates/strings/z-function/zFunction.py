@@ -25,19 +25,19 @@ def zFunction(arrOrString):
 
 
 # For every index of text, the length of the longest prefix of pattern that starts there.
-# longestPrefixMatches("aab", "xaabaa") -> [0, 3, 1, 0, 2, 1]
+# longestPrefixMatches("xaabaa", "aab") -> [0, 3, 1, 0, 2, 1]
 # O(n + m) time
-def longestPrefixMatches(pattern, text):
+def longestPrefixMatches(text, pattern):
     m = len(pattern)
     z = zFunction(pattern + text)
     return [min(z[m + i], m) for i in range(len(text))]
 
 
 # Every start index in text where pattern occurs (overlaps included), ascending.
-# findMatches("aba", "ababa") -> [0, 2]
-# findMatches([1, 2], [1, 2, 1, 2]) -> [0, 2]
+# findMatches("ababa", "aba") -> [0, 2]
+# findMatches([1, 2, 1, 2], [1, 2]) -> [0, 2]
 # O(n + m) time
-def findMatches(pattern, text):
+def findMatches(text, pattern):
     m = len(pattern)
     if m == 0:
         return list(range(len(text) + 1))

@@ -7,13 +7,10 @@ MOD = 10**9 + 7
 
 # Matrix with entries mod MOD. Row-vector convention: vec[1, x] @ M[x, y] = vec[1, y]
 # M = ModMatrix([[1, 1], [1, 0]])        any ints, negatives fine (stored in [0, MOD))
-# I = ModMatrix.identity(3)
-# Z = ModMatrix.zeros(2, 3)
 # C = A @ B                 A[x, y] @ B[y, z] = C[x, z]
 # v = vec @ M               [a, b] @ M -> [a', b'] (vec is a plain list)
 # P = M ** p                M[k, k] ^ p
 # v = M.vecPow(vec, p)      vec @ M^p
-# S = M.powSum(p)           I + M + M^2 + ... + M^(p-1)
 # M[i][j]                   read an entry (M.rows is the list of lists)
 # fib: [1, 0] @ ModMatrix([[1, 1], [1, 0]]) ** 10 -> [89, 55]
 class ModMatrix:
@@ -25,15 +22,9 @@ class ModMatrix:
         self.n = len(self.rows)
         self.m = len(self.rows[0]) if self.rows else 0
 
-    # O(k^2) -- the k x k identity
     @staticmethod
-    def identity(k):
+    def _identity(k):
         return ModMatrix._wrap([[int(i == j) for j in range(k)] for i in range(k)])
-
-    # O(x*y) -- an x by y matrix of zeros
-    @staticmethod
-    def zeros(x, y):
-        return ModMatrix._wrap([[0] * y for _ in range(x)])
 
     @staticmethod
     def _wrap(rows):  # rows already in [0, MOD)
@@ -85,7 +76,7 @@ class ModMatrix:
             if not p:
                 break
             base = base @ base
-        return res if res is not None else ModMatrix.identity(self.n)
+        return res if res is not None else ModMatrix._identity(self.n)
 
     # vec[1, k] @ M[k, k]^p = vec[1, k], about half the work of vec @ (M ** p) (no result matrix is built)
     # O(k^3 log p)
@@ -103,42 +94,6 @@ class ModMatrix:
             if p:
                 base = base @ base
         return res
-
-    # I + M + M^2 + ... + M^(p-1) for M[k, k], p >= 0 (p = 0 gives zeros)
-    # e.g. vec @ M.powSum(p) sums vec @ M^i over 0 <= i < p (walks of length < p)
-    # O(k^3 log p)
-    def powSum(self, p):
-        if self.n != self.m:
-            raise ValueError(f"matrix power sum needs a square matrix, got [{self.n}, {self.m}]")
-        if p < 0:
-            raise ValueError("matrix power sum needs p >= 0")
-        k = self.n
-        power = ModMatrix.identity(k)  # M^c
-        total = ModMatrix.zeros(k, k)  # I + ... + M^(c-1)
-        for bit in bin(p)[2:]:
-            total = total + total @ power  # c -> 2c
-            power = power @ power
-            if bit == "1":  # c -> c + 1
-                total = total + power
-                power = power @ self
-        return total
-
-    # O(x*y) -- entrywise sum
-    def __add__(self, other):
-        if (self.n, self.m) != (other.n, other.m):
-            raise ValueError(f"add shape mismatch: [{self.n}, {self.m}] + [{other.n}, {other.m}]")
-        return ModMatrix._wrap([[(a + b) % MOD for a, b in zip(r1, r2)] for r1, r2 in zip(self.rows, other.rows)])
-
-    # O(x*y) -- entrywise difference
-    def __sub__(self, other):
-        if (self.n, self.m) != (other.n, other.m):
-            raise ValueError(f"sub shape mismatch: [{self.n}, {self.m}] - [{other.n}, {other.m}]")
-        return ModMatrix._wrap([[(a - b) % MOD for a, b in zip(r1, r2)] for r1, r2 in zip(self.rows, other.rows)])
-
-    # O(x*y) -- the transpose, M[x, y] -> M.T[y, x]
-    @property
-    def T(self):
-        return ModMatrix._wrap([list(col) for col in zip(*self.rows)])
 
 
 def _mulRows(rowsA, B):  # rowsA (entries in [0, MOD)) @ B -> list of rows

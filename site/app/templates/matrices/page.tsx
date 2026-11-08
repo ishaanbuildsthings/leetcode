@@ -32,7 +32,7 @@ export default async function MatrixTemplatesPage() {
         <Nav isDev={isDev} />
         <MiscTemplates title="Matrix templates" sections={[
             { title: "Matrix multiplication", items: MATRIX_MULTIPLICATION },
-            { title: "Linear algebra", items: LINEAR_ALGEBRA },
+            { title: "Linear recurrences", items: LINEAR_ALGEBRA },
           ]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>

@@ -21,10 +21,10 @@ def prefixFunction(arrOrString):
 
 
 # Every start index in text where pattern occurs (overlaps included), ascending. KMP, no concatenation.
-# findMatchesKmp("aba", "ababa") -> [0, 2]
-# findMatchesKmp([1, 2], [1, 2, 1, 2]) -> [0, 2]
+# findMatchesKmp("ababa", "aba") -> [0, 2]
+# findMatchesKmp([1, 2, 1, 2], [1, 2]) -> [0, 2]
 # O(n + m) time, O(m) space
-def findMatchesKmp(pattern, text):
+def findMatchesKmp(text, pattern):
     m = len(pattern)
     if m == 0:
         return list(range(len(text) + 1))

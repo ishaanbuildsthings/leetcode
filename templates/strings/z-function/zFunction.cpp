@@ -29,10 +29,10 @@ vector<int> zFunction(const T& arrOrString) {
 }
 
 // For every index of text, the length of the longest prefix of pattern that starts there.
-// longestPrefixMatches(string("aab"), string("xaabaa")) -> {0, 3, 1, 0, 2, 1}
+// longestPrefixMatches(string("xaabaa"), string("aab")) -> {0, 3, 1, 0, 2, 1}
 // O(n + m) time
 template <class T>
-vector<int> longestPrefixMatches(const T& pattern, const T& text) {
+vector<int> longestPrefixMatches(const T& text, const T& pattern) {
     int m = (int)pattern.size();
     T joined = pattern;
     joined.insert(joined.end(), text.begin(), text.end());
@@ -43,11 +43,11 @@ vector<int> longestPrefixMatches(const T& pattern, const T& text) {
 }
 
 // Every start index in text where pattern occurs (overlaps included), ascending.
-// findMatches(string("aba"), string("ababa")) -> {0, 2}
-// findMatches(vector<int>{1, 2}, vector<int>{1, 2, 1, 2}) -> {0, 2}
+// findMatches(string("ababa"), string("aba")) -> {0, 2}
+// findMatches(vector<int>{1, 2, 1, 2}, vector<int>{1, 2}) -> {0, 2}
 // O(n + m) time
 template <class T>
-vector<int> findMatches(const T& pattern, const T& text) {
+vector<int> findMatches(const T& text, const T& pattern) {
     int m = (int)pattern.size();
     vector<int> res;
     if (m == 0) {

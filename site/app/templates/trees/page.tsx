@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
 import { TREES } from "@/lib/trees";
+import { REROOT } from "@/lib/reroot";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -32,6 +33,7 @@ export default async function TreeTemplatesPage() {
         <Nav isDev={isDev} />
         <MiscTemplates title="Tree templates" sections={[
             { title: "Trees", items: TREES },
+            { title: "Reroot DP", items: REROOT },
           ]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>

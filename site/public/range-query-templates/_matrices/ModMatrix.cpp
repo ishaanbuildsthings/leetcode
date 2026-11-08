@@ -6,13 +6,10 @@ using namespace std;
 // Matrix with entries mod MOD (default 1e9+7, any MOD < 2^32). Row-vector convention: vec[1, x] * M[x, y] = vec[1, y]
 // ModMatrix M({{1, 1}, {1, 0}});            from vector<vector<int / long long>>, negatives fine (stored in [0, MOD))
 // ModMatrix<998244353> M2(rows);            another mod
-// auto I = ModMatrix<>::identity(3);
-// auto Z = ModMatrix<>::zeros(2, 3);
 // auto C = A * B;                           A[x, y] * B[y, z] = C[x, z]
 // auto v = vec * M;                         vector<long long> {a, b} * M -> {a', b'}
 // auto P = M.pow(p);                        M[k, k] ^ p
 // auto v = M.vecPow(vec, p);                vec * M^p
-// auto S = M.powSum(p);                     I + M + M^2 + ... + M^(p-1)
 // M[i][j]                                   read / write an entry (keep it in [0, MOD))
 // fib: vector<long long>{1, 0} * ModMatrix({{1, 1}, {1, 0}}).pow(10) -> {89, 55}
 template <uint32_t MOD = 1'000'000'007>
@@ -24,16 +21,6 @@ struct ModMatrix {
     ModMatrix(const vector<vector<long long>>& init) { assign(init); }
     template <typename T>
     ModMatrix(const vector<vector<T>>& init) { assign(init); }
-
-    // O(k^2) -- the k x k identity
-    static ModMatrix identity(int k) {
-        ModMatrix res(k, k);
-        for (int i = 0; i < k; i++) res[i][i] = 1 % MOD;
-        return res;
-    }
-
-    // O(x*y) -- an x by y matrix of zeros
-    static ModMatrix zeros(int x, int y) { return ModMatrix(x, y); }
 
     uint32_t* operator[](int i) { return vals.data() + (size_t)i * cols; }
     const uint32_t* operator[](int i) const { return vals.data() + (size_t)i * cols; }
@@ -110,54 +97,13 @@ struct ModMatrix {
         return res;
     }
 
-    // I + M + M^2 + ... + M^(p-1) for M[k, k], p >= 0 (p = 0 gives zeros)
-    // e.g. vec * M.powSum(p) sums vec * M^i over 0 <= i < p (walks of length < p)
-    // O(k^3 log p)
-    ModMatrix powSum(long long p) const {
-        requireSquare("matrix power sum", p);
-        ModMatrix power = identity(rows); // M^c
-        ModMatrix total(rows, rows);      // I + ... + M^(c-1)
-        for (int bit = 62; bit >= 0; bit--) {
-            if (!(p >> bit) && bit) continue;
-            total = total + total * power; // c -> 2c
-            power = power * power;
-            if ((p >> bit) & 1) {           // c -> c + 1
-                total = total + power;
-                power = power * (*this);
-            }
-        }
-        return total;
-    }
-
-    // O(x*y) -- entrywise sum
-    ModMatrix operator+(const ModMatrix& other) const {
-        if (rows != other.rows || cols != other.cols) throw invalid_argument(shapeError("add", rows, cols, other.rows, other.cols));
-        ModMatrix res(rows, cols);
-        for (size_t i = 0; i < vals.size(); i++) {
-            uint64_t sum = (uint64_t)vals[i] + other.vals[i];
-            res.vals[i] = sum >= MOD ? sum - MOD : sum;
-        }
-        return res;
-    }
-
-    // O(x*y) -- entrywise difference
-    ModMatrix operator-(const ModMatrix& other) const {
-        if (rows != other.rows || cols != other.cols) throw invalid_argument(shapeError("sub", rows, cols, other.rows, other.cols));
-        ModMatrix res(rows, cols);
-        for (size_t i = 0; i < vals.size(); i++) res.vals[i] = vals[i] >= other.vals[i] ? vals[i] - other.vals[i] : vals[i] + (MOD - other.vals[i]);
-        return res;
-    }
-
-    // O(x*y) -- the transpose, M[x, y] -> T[y, x]
-    ModMatrix transpose() const {
-        ModMatrix res(cols, rows);
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) res[j][i] = (*this)[i][j];
-        }
-        return res;
-    }
-
 private:
+    static ModMatrix identity(int k) {
+        ModMatrix res(k, k);
+        for (int i = 0; i < k; i++) res[i][i] = 1 % MOD;
+        return res;
+    }
+
     template <typename T>
     void assign(const vector<vector<T>>& init) {
         rows = init.size();

@@ -243,6 +243,12 @@ const PRETTY_FACTORS: Record<string, string> = {
   "log(n)": "log n",
   "L^2": "L²",
   "min(x,y)": "min(x, y)",
+  // the string templates: N = text length, M = pattern length
+  M: "M",
+  // the combinatorics templates
+  "log(e)": "log e",
+  "log(MOD)": "log MOD",
+  "log(x)": "log x",
 };
 
 export function formatCost(cost: string): string {

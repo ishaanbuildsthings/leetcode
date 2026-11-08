@@ -25,6 +25,14 @@ using namespace std;
 // Visit every set bit, smallest first / largest first:
 //   for (int i = b.minIndexOfOne(); i != -1; i = b.nextOneAfter(i)) { ... }
 //   for (int i = b.maxIndexOfOne(); i != -1; i = b.prevOneBefore(i)) { ... }
+// Counting uses the CPU's popcnt instruction where there is one (every x86 judge): only the counting functions get it,
+// nothing else in your file changes, and other machines (ARM) compile them without it
+#if defined(__x86_64__) || defined(__i386__)
+#define DYNAMIC_BITSET_POPCNT __attribute__((target("popcnt")))
+#else
+#define DYNAMIC_BITSET_POPCNT
+#endif
+
 struct DynamicBitset {
     using Word = unsigned long long;
     int n = 0;
@@ -125,13 +133,18 @@ struct DynamicBitset {
     }
 
     // O(n/64) -- how many bits are 1
-    int countOnes() const {
+    DYNAMIC_BITSET_POPCNT int countOnes() const {
+        const Word* w = words.data();
+        int wc = (int)words.size();
         int total = 0;
-        for (Word w : words) {
-            total += __builtin_popcountll(w);
+        for (int i = 0; i < wc; i++) {
+            total += __builtin_popcountll(w[i]);
         }
         return total;
     }
+
+    // O(n/64) -- how many bits are 0
+    int countZeros() const { return n - countOnes(); }
 
     // O(n/64) -- every bit is 0 (true when n = 0)
     bool allZeros() const {
@@ -158,7 +171,7 @@ struct DynamicBitset {
     void rangeToggle(int l, int r) { checkRange(l, r); forRangeWords(l, r, [](Word& w, Word m) { w ^= m; }); }
 
     // O((r - l)/64 + 1) -- how many of bits l..r are 1
-    int countOnesInRange(int l, int r) const {
+    DYNAMIC_BITSET_POPCNT int countOnesInRange(int l, int r) const {
         checkRange(l, r);
         int lw = l >> 6, rw = r >> 6;
         Word lowMask = ~0ULL << (l & 63), highMask = ~0ULL >> (63 - (r & 63));

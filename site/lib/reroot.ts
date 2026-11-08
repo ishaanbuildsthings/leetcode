@@ -1,6 +1,6 @@
 import type { FillIn } from "@/components/TemplatePicker";
 
-// The reroot DP templates (templates/reroot/): one function each, on the Misc tab. The weighted box swaps in the
+// The reroot DP templates (templates/reroot/): one function each, on the Trees tab. The weighted box swaps in the
 // version that takes [a, b, w] edges.
 const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/reroot/";
 

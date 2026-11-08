@@ -24,11 +24,11 @@ vector<int> prefixFunction(const T& arrOrString) {
 }
 
 // Every start index in text where pattern occurs (overlaps included), ascending. KMP, no concatenation.
-// findMatchesKmp(string("aba"), string("ababa")) -> {0, 2}
-// findMatchesKmp(vector<int>{1, 2}, vector<int>{1, 2, 1, 2}) -> {0, 2}
+// findMatchesKmp(string("ababa"), string("aba")) -> {0, 2}
+// findMatchesKmp(vector<int>{1, 2, 1, 2}, vector<int>{1, 2}) -> {0, 2}
 // O(n + m) time, O(m) space
 template <class T>
-vector<int> findMatchesKmp(const T& pattern, const T& text) {
+vector<int> findMatchesKmp(const T& text, const T& pattern) {
     int m = (int)pattern.size();
     vector<int> res;
     if (m == 0) {

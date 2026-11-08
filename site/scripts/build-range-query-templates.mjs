@@ -187,17 +187,20 @@ for (const name of fs.readdirSync(nextPermDir)) fs.copyFileSync(path.join(nextPe
 const rerootDir = path.resolve(siteDir, "../templates/reroot");
 fs.mkdirSync(path.join(publicDir, "_reroot"));
 for (const name of fs.readdirSync(rerootDir).filter((name) => /^(FarthestNode|SumOfDistances)\./.test(name))) fs.copyFileSync(path.join(rerootDir, name), path.join(publicDir, "_reroot", name));
-// the one-off string templates (the Strings tab): copied as they are, from their folders under templates/strings
-const stringsDir = path.resolve(siteDir, "../templates/strings");
+// the string templates (the Strings tab): one function per file, copied as they are
+const stringsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/strings");
 fs.mkdirSync(path.join(publicDir, "_strings"));
-for (const sub of ["min-max-lex-duvals-rotations", "z-function", "prefix-function"]) {
-  for (const name of fs.readdirSync(path.join(stringsDir, sub)).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(stringsDir, sub, name), path.join(publicDir, "_strings", name));
-}
+for (const name of fs.readdirSync(stringsDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(stringsDir, name), path.join(publicDir, "_strings", name));
 
 // the matrix templates (the Matrices tab): only these files, not the older ones or tests sharing the folder
 const matricesDir = path.resolve(siteDir, "../templates/matrices");
 fs.mkdirSync(path.join(publicDir, "_matrices"));
-for (const name of fs.readdirSync(matricesDir).filter((name) => /^(ModMatrix|MatPowQueries|MinPlusMatrix|MaxPlusMatrix|BoolMatrix|LinearRecurrence|GaussianElimination)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(matricesDir, name), path.join(publicDir, "_matrices", name));
+for (const name of fs.readdirSync(matricesDir).filter((name) => /^(ModMatrix|MinPlusMatrix|MaxPlusMatrix|LinearRecurrence)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(matricesDir, name), path.join(publicDir, "_matrices", name));
+
+// the combinatorics templates (the Combinatorics tab): only these files from templates/math
+const combinatoricsDir = path.resolve(siteDir, "../templates/math");
+fs.mkdirSync(path.join(publicDir, "_combinatorics"));
+for (const name of fs.readdirSync(combinatoricsDir).filter((name) => /^(ModCalc|Fibonacci)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(combinatoricsDir, name), path.join(publicDir, "_combinatorics", name));
 
 const goldenDir = path.resolve(siteDir, "../templates/golden-references");
 fs.mkdirSync(path.join(publicDir, "_golden-references"));

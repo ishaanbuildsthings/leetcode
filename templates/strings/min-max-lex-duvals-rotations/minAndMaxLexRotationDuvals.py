@@ -3,6 +3,30 @@
 # gives the least/greatest lexicographical rotation of any comparable item (string, list, tuple) in O(n) time
 
 
+# Returns the lexicographically smallest rotation.
+# minRotation("bcabca") -> "abcabc" # the rotation itself, use minRotationIndices for where it starts
+# minRotation([2, 1, 2, 1]) -> [1, 2, 1, 2]
+# O(n) time
+def minRotation(stringOrArray):
+    idx = minRotationIndices(stringOrArray)
+    if not idx:
+        return stringOrArray
+    i = idx[0]
+    return stringOrArray[i:] + stringOrArray[:i]
+
+
+# Returns the lexicographically largest rotation.
+# maxRotation("bcabca") -> "cabcab" # the rotation itself, use maxRotationIndices for where it starts
+# maxRotation([2, 1, 2, 1]) -> [2, 1, 2, 1]
+# O(n) time
+def maxRotation(stringOrArray):
+    idx = maxRotationIndices(stringOrArray)
+    if not idx:
+        return stringOrArray
+    i = idx[0]
+    return stringOrArray[i:] + stringOrArray[:i]
+
+
 # Returns every start index whose rotation equals the lexicographically smallest one, ascending.
 # minRotationIndices("bcabca") -> [2, 5] # starting indices that have the min rotation (if multiple, those are equal rotations)
 # minRotationIndices([2, 1, 2, 1]) -> [1, 3]
@@ -57,27 +81,3 @@ def maxRotationIndices(stringOrArray):
     if period <= 0 or n % period:   # guard, unreachable on a completed scan
         period = n
     return list(range(ans % period, n, period))
-
-
-# Returns the lexicographically smallest rotation.
-# minRotation("bcabca") -> "abcabc" # the rotation itself, use minRotationIndices for where it starts
-# minRotation([2, 1, 2, 1]) -> [1, 2, 1, 2]
-# O(n) time
-def minRotation(stringOrArray):
-    idx = minRotationIndices(stringOrArray)
-    if not idx:
-        return stringOrArray
-    i = idx[0]
-    return stringOrArray[i:] + stringOrArray[:i]
-
-
-# Returns the lexicographically largest rotation.
-# maxRotation("bcabca") -> "cabcab" # the rotation itself, use maxRotationIndices for where it starts
-# maxRotation([2, 1, 2, 1]) -> [2, 1, 2, 1]
-# O(n) time
-def maxRotation(stringOrArray):
-    idx = maxRotationIndices(stringOrArray)
-    if not idx:
-        return stringOrArray
-    i = idx[0]
-    return stringOrArray[i:] + stringOrArray[:i]
