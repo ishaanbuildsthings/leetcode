@@ -206,6 +206,20 @@ const goldenDir = path.resolve(siteDir, "../templates/ultimate-template-tool/gol
 fs.mkdirSync(path.join(publicDir, "_golden-references"));
 for (const name of fs.readdirSync(goldenDir)) fs.copyFileSync(path.join(goldenDir, name), path.join(publicDir, "_golden-references", name));
 
+// the tree templates (the Trees tab): the hand-written files in templates/tree the cards name (lib/trees.ts)
+const treesDir = path.resolve(siteDir, "../templates/tree");
+fs.mkdirSync(path.join(publicDir, "_trees"));
+for (const name of fs.readdirSync(treesDir).filter((name) => /^(edgeListToTree|weightedEdgeListToTree|findCentroids|getAllSubtreeHashes)\.(py|cpp)$/.test(name)))
+  fs.copyFileSync(path.join(treesDir, name), path.join(publicDir, "_trees", name));
+// (the Python one is misnamed geetAllSubtreeHashes.py in templates/tree; the card asks for getAllSubtreeHashes.py)
+if (fs.existsSync(path.join(treesDir, "geetAllSubtreeHashes.py")) && !fs.existsSync(path.join(treesDir, "getAllSubtreeHashes.py")))
+  fs.copyFileSync(path.join(treesDir, "geetAllSubtreeHashes.py"), path.join(publicDir, "_trees", "getAllSubtreeHashes.py"));
+
+// the bitset templates (the Bitset tab)
+const bitsetDir = path.resolve(siteDir, "../templates/ultimate-template-tool/bitset");
+fs.mkdirSync(path.join(publicDir, "_bitset"));
+for (const name of fs.readdirSync(bitsetDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(bitsetDir, name), path.join(publicDir, "_bitset", name));
+
 // Thousands of templates share a few op lists, cost lists and memory layouts: the manifest is those tables plus one
 // short row per template, expanded in the browser by decodeRangeTemplates (lib/range-query-picker.ts). The usage panel
 // isn't in it either: the drawer reads it from the code it fetches (this script only checks that it can).
