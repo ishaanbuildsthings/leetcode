@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/prefixFunction.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // pi[i] = length of the longest proper prefix that is also a suffix of arrOrString[0..i]
 // prefixFunction(string("aabaaab")) -> {0, 1, 0, 1, 2, 2, 3}

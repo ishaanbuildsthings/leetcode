@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/findMatchesKmp.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // list of indices i where text[i...] matches pattern (an empty pattern matches at every i in 0..text.size())
 // findMatchesKmp(string("ababa"), string("aba")) -> {0, 2}

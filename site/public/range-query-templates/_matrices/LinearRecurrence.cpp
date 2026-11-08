@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/matrices/LinearRecurrence.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // Linear recurrences mod MOD (default 1e9+7, any MOD < 2^32), terms 0-indexed:
 //   a[i] = coeffs[0] * a[i-1] + coeffs[1] * a[i-2] + ... + coeffs[d-1] * a[i-d]   for i >= d

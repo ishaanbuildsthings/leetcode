@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/matrices/MaxPlusMatrix.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // (max, +) matrix: "multiply" adds weights, "add" takes the max. Row-vector convention like ModMatrix
 // M[i][j] = weight of edge i -> j (MaxPlusMatrix::NEG_INF for no edge), weights any ints (negatives fine)

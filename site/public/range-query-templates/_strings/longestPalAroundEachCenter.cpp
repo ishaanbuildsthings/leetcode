@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/longestPalAroundEachCenter.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // two vectors of size n, from Manacher:
 //   atI[i] = {l, r} of the longest palindrome centered on index i

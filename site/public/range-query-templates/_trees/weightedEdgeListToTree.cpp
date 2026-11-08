@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/trees/weightedEdgeListToTree.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // TEMPLATE BY ISHAAN AGRAWAL, github: ishaanbuildsthings
 
 // edgeList = {{a, b, w}, {c, d, w}, ...}

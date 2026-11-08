@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/DoubleEndedEertree.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // Palindromic tree (eertree) that grows at both ends. A palindrome's longest palindromic suffix is also its longest
 // palindromic prefix, so one set of links serves both sides; it tracks the longest palindromic suffix and prefix of the

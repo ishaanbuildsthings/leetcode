@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/matrices/MinPlusMatrix.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // (min, +) matrix: "multiply" adds weights, "add" takes the min. Row-vector convention like ModMatrix
 // M[i][j] = weight of edge i -> j (MinPlusMatrix::INF for no edge), weights any ints (negatives fine)

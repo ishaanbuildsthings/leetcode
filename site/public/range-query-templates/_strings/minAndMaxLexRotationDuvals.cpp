@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // TEMPLATE BY github.com/ishaanbuildsthings PLEASE DO NOT USE
 

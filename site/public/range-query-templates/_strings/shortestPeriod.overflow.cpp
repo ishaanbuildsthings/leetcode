@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/shortestPeriod.overflow.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // length of the shortest prefix that repeats to form the sequence, where the last copy may be cut off (n if none, 0 if empty)
 // i.e. the smallest p with arrOrString[i] == arrOrString[i + p] for every i; p doesn't have to divide n

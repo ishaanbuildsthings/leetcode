@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/Eertree.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // Palindromic tree (eertree) over a sequence: every distinct palindromic substring is one node inside, but every method
 // below talks in indices into the sequence. A sequence of length n has at most n distinct palindromic substrings.

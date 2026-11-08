@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bitset/DynamicBitset.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // DynamicBitset: n bits, n chosen at runtime and able to grow and shrink (appendBit / popBit / resize). Built on its own
 // array of 64-bit words, so unlike std::bitset it also gives range ops that only touch

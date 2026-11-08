@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/combinatorics/Fibonacci.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 // by ishaanbuildsthings
 
 // returns a list of all fibs <= n

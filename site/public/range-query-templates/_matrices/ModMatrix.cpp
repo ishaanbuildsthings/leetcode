@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/matrices/ModMatrix.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // Matrix with entries mod MOD (default 1e9+7, any MOD < 2^32). Row-vector convention: vec[1, x] * M[x, y] = vec[1, y]
 // ModMatrix M({{1, 1}, {1, 0}});            from vector<vector<int / long long>>, negatives fine (stored in [0, MOD))

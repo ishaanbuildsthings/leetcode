@@ -5,7 +5,8 @@
 A dominates B when A supports every op B does, keeps no more current on every update (@tracks), needs no more
 knowledge of the values up front (online <
 online-range < offline), has a cost <= B's for each of B's ops and for the build, the same or a stronger guarantee
-(worst case beats expected and amortized; expected and amortized don't compare), and memory <= B's; with at least
+(worst case beats expected and amortized, which both beat amortized expected; expected and amortized don't
+compare), and memory <= B's; with at least
 one of these strictly better. Python and C++ share headers.
 """
 import math
@@ -55,16 +56,17 @@ def value(expr):
 
 
 def cost(c):
-    """(number, guarantee) with guarantee in worst / expected / amortized."""
+    """(number, guarantee) with guarantee in worst / expected / amortized / amortized expected."""
     kind = "worst"
-    for k in ("amortized", "expected"):
+    for k in ("amortized expected", "amortized", "expected"):
         if c.endswith(" " + k):
             kind, c = k, c[: -len(k) - 1]
+            break
     return value(c), kind
 
 
-def stronger_or_equal(a, b):
-    return a == b or a == "worst"
+def stronger_or_equal(a, b):  # (amortized expected is weaker than both amortized and expected)
+    return a == b or a == "worst" or b == "amortized expected"
 
 
 def read(folder):

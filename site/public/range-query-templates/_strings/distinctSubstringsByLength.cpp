@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/distinctSubstringsByLength.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 #ifndef CHILD_TABLE_DEFINED
 #define CHILD_TABLE_DEFINED

@@ -20,7 +20,8 @@ Structures (each in a count-only version and a count + sum version, unless noted
     fenwick      offline: Fenwick trees over the compressed values you pass in up front   log N
     avl          online: AVL tree on a node pool (subtree counts / sums), freed nodes reused   log N worst case
     blocks       online: sorted blocks of distinct keys with per-block counts / sums + Fenwick over blocks   sqrt N
-    blocks-fenwick   online: the same blocks with a Fenwick tree inside each block: queries log N, updates sqrt N
+                 (blocks of about sqrt N, all cut again once N / 2 distinct values come or go: updates amortized)
+    blocks-fenwick   online: the same blocks with a Fenwick tree inside each block: queries log N, updates sqrt N amortized
     value-tree   online, values in [lo, hi]: a dynamic value tree (a node pool per multiset)   log U
     treap        online: treap on a node pool, freed nodes reused   log N expected
     splay        online: splay tree on a node pool, freed nodes reused   log N amortized
@@ -449,12 +450,17 @@ def py_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift
     if mode or gaps:
         out += ["        g = f - c  # x's old count"]
     if mode:  # move x from the bucket of its old count to its new one
-        out += ["        # mode: x moves from the bucket of its old count to its new one",
-                "        bk, key = self.bk, x ^ self.salt if x.__class__ is int else x  # (salted: no fixed input can force set collisions)", "        if g:", "            vs = bk[g]", "            vs.discard(key)", "            if not vs:",
-                "                del bk[g]", "        if f:", "            if f in bk:", "                bk[f].add(key)", "            else:",
-                "                bk[f] = {key}", "            if f > self.maxF:", "                self.maxF = f",
-                "        while self.maxF and self.maxF not in bk:  # (it only drops as far as copies were removed: amortized O(1))",
-                "            self.maxF -= 1"]
+        out += ["        # mode: x moves from the bucket of its old count to its new one (a bucket is a list, and x's index in it is",
+                "        # kept, so x leaves by swapping in the bucket's last value); a bucket that appears or empties pushes or drops",
+                "        # its count in the max-heap of counts: O(log N) worst case, however far a count jumps",
+                "        salt, bk, at = self.salt, self.bk, self.bkAt",
+                "        key = x ^ salt if x.__class__ is int else x  # (salted: no fixed input can force dict collisions)",
+                "        if g:", "            vs = bk[g ^ salt]", "            last = vs.pop()", "            if vs:", "                i = at[key]",
+                "                if i < len(vs):", "                    vs[i] = last", "                    at[last] = i", "            else:",
+                "                del bk[g ^ salt]", "                self._dropFreq(g)",
+                "        if f:", "            vs = bk.get(f ^ salt)", "            if vs is None:", "                bk[f ^ salt] = [key]",
+                "                at[key] = 0", "                self._pushFreq(f)", "            else:", "                at[key] = len(vs)",
+                "                vs.append(key)", "        else:", "            del at[key]"]
     if gaps:  # x's count went g -> f: duplicates, and the gaps around x when it appears or disappears
         out += [
             "        if (g >= 2) != (f >= 2):  # values with 2+ copies (then the smallest difference is 0)",
@@ -499,6 +505,8 @@ def py_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift
                     "        if x < self.highV:", "            self.highB += c", "        elif x == self.highV:", "            self.highC += c",
                     "        r = (n >> 1) + 1", "        if not self.highB < r <= self.highB + self.highC:",
                     "            self.highV, self.highB, self.highC = self._kthInfo(r)" + ("[:3]" if S else "")]
+    if mode:
+        out += MODE_HEAP_PY.split("\n")
     if gaps:
         out += ["", "    def _gap(self, g, c):  # one more (c = 1) / fewer (c = -1) gap of size g",
                 "        gc, key = self.gc, g ^ self.salt", "        k = gc.get(key, 0) + c", "        if k:", "            gc[key] = k",
@@ -515,6 +523,50 @@ def py_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift
         out += ["", "    def _sumFirst(self, k):  # sum of the k smallest values", "        if k <= 0:", "            return 0",
                 "        v, b, _, s = self._kthInfo(k)", "        return s + (k - b) * v"]
     return "\n".join(out) + "\n"
+
+
+MODE_HEAP_PY = """
+    def _pushFreq(self, f):  # count f got a bucket: into the max-heap of counts (fhAt: count -> its index), O(log N)
+        h, at, salt = self.fh, self.fhAt, self.salt
+        i = len(h)
+        h.append(f)
+        while i:
+            p = (i - 1) >> 1
+            if h[p] >= f:
+                break
+            h[i] = h[p]
+            at[h[p] ^ salt] = i
+            i = p
+        h[i] = f
+        at[f ^ salt] = i
+
+    def _dropFreq(self, f):  # count f's bucket emptied: out of the heap (the heap's last count takes its place), O(log N)
+        h, at, salt = self.fh, self.fhAt, self.salt
+        i = at.pop(f ^ salt)
+        last = h.pop()
+        m = len(h)
+        if i == m:
+            return
+        while i:  # up while bigger than its parent
+            p = (i - 1) >> 1
+            if h[p] >= last:
+                break
+            h[i] = h[p]
+            at[h[p] ^ salt] = i
+            i = p
+        while True:  # down while a child is bigger
+            c = 2 * i + 1
+            if c >= m:
+                break
+            if c + 1 < m and h[c + 1] > h[c]:
+                c += 1
+            if h[c] <= last:
+                break
+            h[i] = h[c]
+            at[h[c] ^ salt] = i
+            i = c
+        h[i] = last
+        at[last ^ salt] = i"""
 
 
 def cpp_add(sums, mexc, minmax, medians, mode=False, gaps=False, xor=False, shift=False, ranks=True):
@@ -2871,21 +2923,24 @@ def blocks(sums, bits=(False, False, False)):
     agg = " and each block's " + " / ".join(words) if words else ""
     ops_imp = [f for f, on in (("and_", X or A), ("or_", O), ("xor", X)) if on]
     imports = (("from functools import reduce\n" if X or O or A else "") + (
-        "from itertools import accumulate" + (", compress, repeat" if X else "") + "\n") + (
+        "from itertools import accumulate, chain" + (", compress, repeat" if X else "") + "\nfrom math import isqrt\n") + (
         "from operator import " + ", ".join(ops_imp) + "\n" if ops_imp else "")).rstrip("\n")
     py = f'''from bisect import bisect_left, bisect_right, insort
 {imports}
 
 
 # Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
-# LOAD..2*LOAD, each block keeping its values' copies{" and copies * value" if s else ""} plus block totals{agg}, and a Fenwick tree over the
-# block totals (rebuilt only after a block splits or empties). A query finds its block by binary search (or by
-# lifting over the block Fenwick for k-th) and then works inside one block with C-level list operations.
+# about sqrt(N), each block keeping its values' copies{" and copies * value" if s else ""} plus block totals{agg}, and a Fenwick tree over the
+# block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
+# once N / 2 distinct values have come or gone since the last cut, every block is cut again at sqrt(N) (never below
+# LOAD): blocks stay about sqrt(N) as N grows or shrinks, and the O(N) cut is paid for by those N / 2 updates. A query
+# finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block
+# with C-level list operations.
 
 
 class BlockMultiset:
-    LOAD = 64
-    __slots__ = ("keys", "cnts",{' "sums",' if s else ""} "maxes", "bc",{' "bs",' if s else ""} "fc",{' "fs",' if s else ""}{' "bx", "fx",' if X else ""}{' "bo",' if O else ""}{' "ba",' if A else ""} "cnt", "n",{' "total",' if s else ""} "d")
+    LOAD = 64  # the smallest block size (blocks are about sqrt(N) once N passes LOAD^2)
+    __slots__ = ("load", "due", "keys", "cnts",{' "sums",' if s else ""} "maxes", "bc",{' "bs",' if s else ""} "fc",{' "fs",' if s else ""}{' "bx", "fx",' if X else ""}{' "bo",' if O else ""}{' "ba",' if A else ""} "cnt", "n",{' "total",' if s else ""} "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -2899,6 +2954,7 @@ class BlockMultiset:
         self.bo = []  # per block: OR of its values  @or
         self.ba = []  # per block: AND of its values  @and
         self.cnt = {{}}  # value -> copies
+        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1  # block size; distinct values to add / drop before a cut
         self.n = {"self.total = " if s else ""}self.d = 0
 
     @staticmethod
@@ -2931,6 +2987,8 @@ class BlockMultiset:
         return res
 
     def _insert(self, x, c):
+        if self.due <= 0:  # enough distinct values came or went: cut the blocks again at sqrt(N)
+            self._recut()
         old = self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
         if old:
             k = bisect_left(self.maxes, x)
@@ -2946,6 +3004,7 @@ class BlockMultiset:
 {"                self.bs[k] += c * x" + chr(10) + "                self._fen(self.fs, k, c * x)" + chr(10) if s else ""}                return old + c
             del self.cnt[x ^ self.salt if x.__class__ is int else x]
             self.d -= 1
+            self.due -= 1
             del self.keys[k][j], self.cnts[k][j]
 {"            del self.sums[k][j]" + chr(10) if s else ""}            if not self.keys[k]:  # the block is empty: drop it
                 del self.keys[k], self.cnts[k], self.maxes[k], self.bc[k]
@@ -2963,6 +3022,7 @@ class BlockMultiset:
 {"            self.bs[k] += c * x" + chr(10) + "            self._fen(self.fs, k, c * x)" + chr(10) if s else ""}            return 0
         self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
+        self.due -= 1
         if not self.keys:
             self.keys.append([x])
             self.cnts.append([c])
@@ -2988,8 +3048,8 @@ class BlockMultiset:
             self._fenx(self.fx, k, x)  @xor
         self.bo[k] |= x  @or
         self.ba[k] &= x  @and
-        if len(self.keys[k]) > 2 * self.LOAD:  # split the block in half
-            h = self.LOAD
+        if len(self.keys[k]) > 2 * self.load:  # split the block in half
+            h = self.load
             for arr in (self.keys, self.cnts{", self.sums" if s else ""}):
                 b = arr[k]
                 arr[k:k + 1] = [b[:h], b[h:]]
@@ -3001,6 +3061,22 @@ class BlockMultiset:
             self.fc = {"self.fs = " if s else ""}None
             self.fx = None  @xor
         return c
+
+    def _recut(self):  # every block cut again at about sqrt(N): O(N), once per N / 2 updates that add or drop a value
+        d = self.d
+        h = self.load = max(self.LOAD, isqrt(d))
+        self.due = max(d, self.LOAD * self.LOAD) >> 1
+        keys = list(chain.from_iterable(self.keys))
+        cnts = list(chain.from_iterable(self.cnts))
+{"        sums = list(chain.from_iterable(self.sums))" + chr(10) if s else ""}        self.keys = [keys[i:i + h] for i in range(0, d, h)]
+        self.cnts = [cnts[i:i + h] for i in range(0, d, h)]
+{"        self.sums = [sums[i:i + h] for i in range(0, d, h)]" + chr(10) if s else ""}        self.maxes = [b[-1] for b in self.keys]
+        self.bc = list(map(sum, self.cnts))
+{"        self.bs = list(map(sum, self.sums))" + chr(10) if s else ""}        self.bx = list(map(self._xodd, self.keys, self.cnts))  @xor
+        self.bo = [reduce(or_, b, 0) for b in self.keys]  @or
+        self.ba = [reduce(and_, b, -1) for b in self.keys]  @and
+        self.fc = {"self.fs = " if s else ""}None
+        self.fx = None  @xor
 
     def _count(self, x, strict, which):  # copies (which=0){" or sums (which=1)" if s else ""} of the values < x (strict) or <= x
         k = bisect_left(self.maxes, x)
@@ -3074,13 +3150,18 @@ class BlockMultiset:
 '''
     cpp = f'''
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
-// LOAD..2*LOAD, each block keeping its values' copies{" and copies * value" if s else ""} plus block totals{agg}, and a Fenwick tree over the
-// block totals (rebuilt only after a block splits or empties). A query finds its block by binary search (or by
-// lifting over the block Fenwick for k-th) and then works inside one block. T: an integer type; sums in S.
+// about sqrt(N), each block keeping its values' copies{" and copies * value" if s else ""} plus block totals{agg}, and a Fenwick tree over the
+// block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
+// once N / 2 distinct values have come or gone since the last cut, every block is cut again at sqrt(N) (never below
+// LOAD): blocks stay about sqrt(N) as N grows or shrinks, and the O(N) cut is paid for by those N / 2 updates. A query
+// finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block.
+// T: an integer type; sums in S.
 template <typename T>
 struct BlockMultiset {{
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    static constexpr int LOAD = 512;
+    static constexpr int LOAD = 512;  // the smallest block size (blocks are about sqrt(N) once N passes LOAD^2)
+    int load = LOAD;  // the block size now
+    long long due = (long long)LOAD * LOAD / 2;  // distinct values to add or drop before the next cut
     vector<vector<T>> keys;  // blocks of sorted distinct values
     vector<vector<long long>> cnts;  // per block: copies of each value
 {"    vector<vector<S>> sums;  // per block: copies * value" + chr(10) if s else ""}    vector<T> maxes;  // last value of each block
@@ -3128,6 +3209,7 @@ struct BlockMultiset {{
     int blockOf(T x) const {{ return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin()); }}
 
     long long insert(T x, long long c) {{  // returns x's new count
+        if (due <= 0) recut();  // enough distinct values came or went: cut the blocks again at sqrt(N)
         int k = blockOf(x);
         if (k < (int)keys.size()) {{
             int j = int(lower_bound(keys[k].begin(), keys[k].end(), x) - keys[k].begin());
@@ -3137,7 +3219,7 @@ struct BlockMultiset {{
                     cnts[k][j] += c, bc[k] += c, fen(fc, k, c);
 {"                    sums[k][j] += S(c) * x, bs[k] += S(c) * x, fen(fs, k, S(c) * x);" + chr(10) if s else ""}                    return cnts[k][j];
                 }}
-                d--;
+                d--, due--;
                 keys[k].erase(keys[k].begin() + j), cnts[k].erase(cnts[k].begin() + j);
 {"                sums[k].erase(sums[k].begin() + j);" + chr(10) if s else ""}                if (keys[k].empty()) {{  // the block is empty: drop it
                     keys.erase(keys.begin() + k), cnts.erase(cnts.begin() + k), maxes.erase(maxes.begin() + k), bc.erase(bc.begin() + k);
@@ -3153,7 +3235,7 @@ struct BlockMultiset {{
 {"                bs[k] += S(c) * x, fen(fs, k, S(c) * x);" + chr(10) if s else ""}                return 0;
             }}
         }}
-        d++;
+        d++, due--;
         if (keys.empty()) {{
             keys.push_back({{x}}), cnts.push_back({{c}}), maxes.push_back(x), bc.push_back(c);
 {"            sums.push_back({S(c) * x}), bs.push_back(S(c) * x);" + chr(10) if s else ""}            bx.push_back(c & 1 ? x : T(0));  @xor
@@ -3169,10 +3251,10 @@ struct BlockMultiset {{
         if (c & 1) bx[k] ^= x, fenx(k, x);  @xor
         bo[k] |= x;  @or
         ba[k] &= x;  @and
-        if ((int)keys[k].size() > 2 * LOAD) {{  // split the block in half
+        if ((int)keys[k].size() > 2 * load) {{  // split the block in half
             auto half = [&](auto& arr) {{
-                arr.insert(arr.begin() + k + 1, decay_t<decltype(arr[k])>(arr[k].begin() + LOAD, arr[k].end()));
-                arr[k].resize(LOAD);
+                arr.insert(arr.begin() + k + 1, decay_t<decltype(arr[k])>(arr[k].begin() + load, arr[k].end()));
+                arr[k].resize(load);
             }};
             half(keys), half(cnts);
 {"            half(sums);" + chr(10) if s else ""}            maxes[k] = keys[k].back(), maxes.insert(maxes.begin() + k + 1, keys[k + 1].back());
@@ -3186,6 +3268,31 @@ struct BlockMultiset {{
             stale = true;
         }}
         return c;
+    }}
+
+    void recut() {{  // every block cut again at about sqrt(N): O(N), once per N / 2 updates that add or drop a value
+        load = std::max(LOAD, (int)sqrt((double)d));  // (std::: the class has its own min / max)
+        due = std::max(d, (long long)LOAD * LOAD) / 2;
+        auto regroup = [&](auto& arr) {{  // the blocks' entries end to end, cut into blocks of load
+            decay_t<decltype(arr[0])> all;
+            for (auto& b : arr) all.insert(all.end(), b.begin(), b.end());
+            arr.clear();
+            for (size_t i = 0; i < all.size(); i += load)
+                arr.emplace_back(all.begin() + i, all.begin() + std::min(all.size(), i + load));
+        }};
+        regroup(keys), regroup(cnts);
+{"        regroup(sums);" + chr(10) if s else ""}        int m = (int)keys.size();
+        maxes.resize(m), bc.resize(m);
+{"        bs.resize(m);" + chr(10) if s else ""}        bx.resize(m);  @xor
+        bo.resize(m);  @or
+        ba.resize(m);  @and
+        for (int k = 0; k < m; k++) {{
+            maxes[k] = keys[k].back(), bc[k] = accumulate(cnts[k].begin(), cnts[k].end(), 0LL);
+{"            bs[k] = accumulate(sums[k].begin(), sums[k].end(), S(0));" + chr(10) if s else ""}            bx[k] = xodd(k);  @xor
+            bo[k] = accumulate(keys[k].begin(), keys[k].end(), T(0), bit_or<T>());  @or
+            ba[k] = accumulate(keys[k].begin(), keys[k].end(), ~T(0), bit_and<T>());  @and
+        }}
+        stale = true;
     }}
 
     long long countBelow(T x, bool strict) {{  // copies of the values < x (strict) or <= x
@@ -3273,6 +3380,7 @@ struct BlockMultiset {{
 '''
     comps = {op: "sqrt(N)" for op in OPS}
     comps.update({"size": "1", "sumAll": "1", "countDistinct": "1", "min": "1", "max": "1", "count": "log(N)", "build": "1"})
+    comps.update({op: "sqrt(N) amortized" for op in ("add", "addCount", "remove", "removeCount", "removeAll")})  # (a cut now and then)
     node = "keys[1*N] cnts[1*N]" + (" sums[1*N]" if s else "")
     other = "maxes[1*sqrt(N)] bc[2*sqrt(N)]" + (" bs[2*sqrt(N)]" if s else "") + (" bx[2*sqrt(N)]" if X else "") + (
         " bo[1*sqrt(N)]" if O else "") + (" ba[1*sqrt(N)]" if A else "") + " cnt[1*N]"
@@ -3281,7 +3389,8 @@ struct BlockMultiset {{
                 comps=comps, bits=bits,
 
                 mem=("none", node, "none", other),
-                note="N = distinct values present; blocks of LOAD..2*LOAD values (Python LOAD = 64, C++ 512); each "
+                note="N = distinct values present; blocks of about sqrt(N) values (at least LOAD: Python 64, C++ 512), all cut again "
+                     "once N / 2 distinct values have come or gone; each "
                      "operation costs a few binary searches plus one block's worth of C-level list work")
 
 
@@ -3289,19 +3398,22 @@ def blocks_fenwick(sums, bits=(False, False, False)):
     s = sums
     X = bits[0]  # (xor only: OR / AND would need more than prefix Fenwicks)
     py = f'''from bisect import bisect_left, bisect_right
-{"from functools import reduce" + chr(10) if X else ""}from itertools import accumulate
+{"from functools import reduce" + chr(10) if X else ""}from itertools import accumulate, chain
+from math import isqrt
 from operator import and_, sub{", xor" if X else ""}
 
 
 # Ordered multiset (online: any values, nothing known ahead), sqrt-style with a Fenwick tree inside every block: the
-# distinct values in sorted blocks of LOAD..2*LOAD, each block keeping its values' copies{" and copies * value" if s else ""}{" and xor" if X else ""} plus a Fenwick
+# distinct values in sorted blocks of about sqrt(N), each block keeping its values' copies{" and copies * value" if s else ""}{" and xor" if X else ""} plus a Fenwick
 # tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
 # one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N), C-level).
+# A block splits in half past twice the block size, and once N / 2 distinct values have come or gone since the last
+# cut, every block is cut again at sqrt(N) (never below LOAD): the O(N) cut is paid for by those N / 2 updates.
 
 
 class BlockFenwickMultiset:
-    LOAD = 64
-    __slots__ = ("keys", "cnts", "fcs",{' "sums", "fss",' if s else ""}{' "xvs", "fxs",' if X else ""} "maxes", "bc", "fc",{' "bs", "fs",' if s else ""}{' "bx", "fx",' if X else ""} "cnt", "n",{' "total",' if s else ""} "d")
+    LOAD = 64  # the smallest block size (blocks are about sqrt(N) once N passes LOAD^2)
+    __slots__ = ("load", "due", "keys", "cnts", "fcs",{' "sums", "fss",' if s else ""}{' "xvs", "fxs",' if X else ""} "maxes", "bc", "fc",{' "bs", "fs",' if s else ""}{' "bx", "fx",' if X else ""} "cnt", "n",{' "total",' if s else ""} "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -3312,6 +3424,7 @@ class BlockFenwickMultiset:
 {"        self.bs, self.fs = [], [0]  # per block: total sum; Fenwick over them" + chr(10) if s else ""}        self.xvs, self.fxs = [], []  # per block: each value where its count is odd (else 0); xor Fenwick over them  @xor
         self.bx, self.fx = [], [0]  # per block: xor of those; xor Fenwick over them  @xor
         self.cnt = {{}}  # value -> copies
+        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1  # block size; distinct values to add / drop before a cut
         self.n = {"self.total = " if s else ""}self.d = 0
 
     @staticmethod
@@ -3344,6 +3457,8 @@ class BlockFenwickMultiset:
 {"        self.fss[k] = self._build(self.sums[k])" + chr(10) if s else ""}        self.fxs[k] = self._buildx(self.xvs[k])  @xor
 
     def _insert(self, x, c):
+        if self.due <= 0:  # enough distinct values came or went: cut the blocks again at sqrt(N)
+            self._recut()
         old = self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
         if old:
             k = bisect_left(self.maxes, x)
@@ -3363,6 +3478,7 @@ class BlockFenwickMultiset:
                 return old + c
             del self.cnt[x ^ self.salt if x.__class__ is int else x]
             self.d -= 1
+            self.due -= 1
             del self.keys[k][j], self.cnts[k][j]
 {"            del self.sums[k][j]" + chr(10) if s else ""}            del self.xvs[k][j]  @xor
             if not self.keys[k]:  # the block is empty: drop it
@@ -3375,6 +3491,7 @@ class BlockFenwickMultiset:
             return 0
         self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
+        self.due -= 1
         if not self.keys:
             self.keys.append([x])
             self.cnts.append([c])
@@ -3400,8 +3517,8 @@ class BlockFenwickMultiset:
         self.maxes[k] = self.keys[k][-1]
         self.bc[k] += c
         self._fen(self.fc, k, c)
-        if len(self.keys[k]) > 2 * self.LOAD:  # split the block in half
-            h = self.LOAD
+        if len(self.keys[k]) > 2 * self.load:  # split the block in half
+            h = self.load
             for arr in (self.keys, self.cnts{", self.sums" if s else ""}{", self.xvs" if X else ""}):
                 b = arr[k]
                 arr[k:k + 1] = [b[:h], b[h:]]
@@ -3416,6 +3533,23 @@ class BlockFenwickMultiset:
         else:
             self._reinner(k)
         return c
+
+    def _recut(self):  # every block cut again at about sqrt(N): O(N), once per N / 2 updates that add or drop a value
+        d = self.d
+        h = self.load = max(self.LOAD, isqrt(d))
+        self.due = max(d, self.LOAD * self.LOAD) >> 1
+        keys = list(chain.from_iterable(self.keys))
+        cnts = list(chain.from_iterable(self.cnts))
+        self.keys = [keys[i:i + h] for i in range(0, d, h)]
+        self.cnts = [cnts[i:i + h] for i in range(0, d, h)]
+        self.fcs = list(map(self._build, self.cnts))
+{"        sums = list(chain.from_iterable(self.sums))" + chr(10) if s else ""}{"        self.sums = [sums[i:i + h] for i in range(0, d, h)]" + chr(10) if s else ""}{"        self.fss = list(map(self._build, self.sums))" + chr(10) if s else ""}{"        self.bs = list(map(sum, self.sums))" + chr(10) if s else ""}        xvs = list(chain.from_iterable(self.xvs))  @xor
+        self.xvs = [xvs[i:i + h] for i in range(0, d, h)]  @xor
+        self.fxs = list(map(self._buildx, self.xvs))  @xor
+        self.bx = [reduce(xor, b, 0) for b in self.xvs]  @xor
+        self.maxes = [b[-1] for b in self.keys]
+        self.bc = list(map(sum, self.cnts))
+        self._reblock()
 
     def _lt(self, x):
         k = bisect_left(self.maxes, x)
@@ -3498,14 +3632,18 @@ class BlockFenwickMultiset:
     sv = "S(c) * x"
     cpp = f'''
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style with a Fenwick tree inside every block: the
-// distinct values in sorted blocks of LOAD..2*LOAD, each block keeping its values' copies{" and copies * value" if s else ""}{" and xor" if X else ""} plus a Fenwick
+// distinct values in sorted blocks of about sqrt(N), each block keeping its values' copies{" and copies * value" if s else ""}{" and xor" if X else ""} plus a Fenwick
 // tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
 // one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N)).
+// A block splits in half past twice the block size, and once N / 2 distinct values have come or gone since the last
+// cut, every block is cut again at sqrt(N) (never below LOAD): the O(N) cut is paid for by those N / 2 updates.
 // T: an integer type; sums in S.
 template <typename T>
 struct BlockFenwickMultiset {{
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    static constexpr int LOAD = 512;
+    static constexpr int LOAD = 512;  // the smallest block size (blocks are about sqrt(N) once N passes LOAD^2)
+    int load = LOAD;  // the block size now
+    long long due = (long long)LOAD * LOAD / 2;  // distinct values to add or drop before the next cut
     vector<vector<T>> keys;  // blocks of sorted distinct values
     vector<vector<long long>> cnts, fcs;  // per block: copies of each value; Fenwick over them
 {"    vector<vector<S>> sums, fss;  // per block: copies * value; Fenwick over them" + chr(10) if s else ""}    vector<T> maxes;  // last value of each block
@@ -3566,6 +3704,7 @@ struct BlockFenwickMultiset {{
     int blockOf(T x) const {{ return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin()); }}
 
     long long insert(T x, long long c) {{  // returns x's new count
+        if (due <= 0) recut();  // enough distinct values came or went: cut the blocks again at sqrt(N)
         int k = blockOf(x);
         if (k < (int)keys.size()) {{
             int j = int(lower_bound(keys[k].begin(), keys[k].end(), x) - keys[k].begin());
@@ -3577,7 +3716,7 @@ struct BlockFenwickMultiset {{
 {f"                    sums[k][j] += {sv}, fen(fss[k], j, {sv});" + chr(10) if s else ""}                    if (c & 1) xvs[k][j] ^= x, fenx(fxs[k], j, x);  @xor
                     return cnts[k][j];
                 }}
-                d--;
+                d--, due--;
                 keys[k].erase(keys[k].begin() + j), cnts[k].erase(cnts[k].begin() + j);
 {"                sums[k].erase(sums[k].begin() + j);" + chr(10) if s else ""}                xvs[k].erase(xvs[k].begin() + j);  @xor
                 if (keys[k].empty()) {{  // the block is empty: drop it
@@ -3592,7 +3731,7 @@ struct BlockFenwickMultiset {{
                 return 0;
             }}
         }}
-        d++;
+        d++, due--;
         if (keys.empty()) {{
             keys.push_back({{x}}), cnts.push_back({{c}}), fcs.emplace_back(), maxes.push_back(x), bc.push_back(c);
 {f"            sums.push_back({{{sv}}}), fss.emplace_back(), bs.push_back({sv});" + chr(10) if s else ""}            xvs.push_back({{c & 1 ? x : T(0)}}), fxs.emplace_back(), bx.push_back(c & 1 ? x : T(0));  @xor
@@ -3605,10 +3744,10 @@ struct BlockFenwickMultiset {{
 {f"        sums[k].insert(sums[k].begin() + j, {sv}), bs[k] += {sv}, fen(fs, k, {sv});" + chr(10) if s else ""}        xvs[k].insert(xvs[k].begin() + j, c & 1 ? x : T(0));  @xor
         if (c & 1) bx[k] ^= x, fenx(fx, k, x);  @xor
         maxes[k] = keys[k].back(), bc[k] += c, fen(fc, k, c);
-        if ((int)keys[k].size() > 2 * LOAD) {{  // split the block in half
+        if ((int)keys[k].size() > 2 * load) {{  // split the block in half
             auto half = [&](auto& arr) {{
-                arr.insert(arr.begin() + k + 1, decay_t<decltype(arr[k])>(arr[k].begin() + LOAD, arr[k].end()));
-                arr[k].resize(LOAD);
+                arr.insert(arr.begin() + k + 1, decay_t<decltype(arr[k])>(arr[k].begin() + load, arr[k].end()));
+                arr[k].resize(load);
             }};
             half(keys), half(cnts);
             fcs.emplace(fcs.begin() + k + 1);
@@ -3622,6 +3761,29 @@ struct BlockFenwickMultiset {{
             reblock();
         }} else reinner(k, j);
         return c;
+    }}
+
+    void recut() {{  // every block cut again at about sqrt(N): O(N), once per N / 2 updates that add or drop a value
+        load = std::max(LOAD, (int)sqrt((double)d));  // (std::: the class has its own min / max)
+        due = std::max(d, (long long)LOAD * LOAD) / 2;
+        auto regroup = [&](auto& arr) {{  // the blocks' entries end to end, cut into blocks of load
+            decay_t<decltype(arr[0])> all;
+            for (auto& b : arr) all.insert(all.end(), b.begin(), b.end());
+            arr.clear();
+            for (size_t i = 0; i < all.size(); i += load)
+                arr.emplace_back(all.begin() + i, all.begin() + std::min(all.size(), i + load));
+        }};
+        regroup(keys), regroup(cnts);
+{"        regroup(sums);" + chr(10) if s else ""}        regroup(xvs);  @xor
+        int m = (int)keys.size();
+        fcs.clear(), fcs.resize(m), maxes.resize(m), bc.resize(m);
+{"        fss.clear(), fss.resize(m), bs.resize(m);" + chr(10) if s else ""}        fxs.clear(), fxs.resize(m), bx.resize(m);  @xor
+        for (int k = 0; k < m; k++) {{
+            reinner(k);
+            maxes[k] = keys[k].back(), bc[k] = accumulate(cnts[k].begin(), cnts[k].end(), 0LL);
+{"            bs[k] = accumulate(sums[k].begin(), sums[k].end(), S(0));" + chr(10) if s else ""}            bx[k] = accumulate(xvs[k].begin(), xvs[k].end(), T(0), bit_xor<T>());  @xor
+        }}
+        reblock();
     }}
 
     template <class V>
@@ -3682,7 +3844,7 @@ struct BlockFenwickMultiset {{
     }}
 '''
     comps = {op: "log(N)" for op in OPS}
-    comps.update({op: "sqrt(N)" for op in ("add", "addCount", "remove", "removeCount", "removeAll", "popMin", "popMax")})
+    comps.update({op: "sqrt(N) amortized" for op in ("add", "addCount", "remove", "removeCount", "removeAll", "popMin", "popMax")})  # (a cut now and then)
     comps.update({"size": "1", "sumAll": "1", "countDistinct": "1", "build": "1"})
     node = "keys[1*N] cnts[1*N] fcs[1*N]" + (" sums[1*N] fss[1*N]" if s else "") + (" xvs[1*N] fxs[1*N]" if X else "")
     other = "maxes[1*sqrt(N)] bc[2*sqrt(N)]" + (" bs[2*sqrt(N)]" if s else "") + (" bx[2*sqrt(N)]" if X else "") + " cnt[1*N]"
@@ -3691,8 +3853,9 @@ struct BlockFenwickMultiset {{
                 comps=comps, bits=(X, False, False),
 
                 mem=("none", node, "none", other),
-                note="N = distinct values present; blocks of LOAD..2*LOAD values (Python LOAD = 64, C++ 512); queries are "
-                     "O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt)")
+                note="N = distinct values present; blocks of about sqrt(N) values (at least LOAD: Python 64, C++ 512), all cut again "
+                     "once N / 2 distinct values have come or gone; queries are "
+                     "O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt; amortized: a cut now and then)")
 
 
 def pbds():
@@ -4714,7 +4877,8 @@ class FastSet:
             width = words
         self.n = 0
 """ + ("        self.mn = self.mx = 0  # kept current while n > 0\n" if minmax else "") + (
-        "        self.gc, self.gmin, self.gmax = {}, [], []  # gaps: size -> how many; min / max heaps\n" if gaps else "") + """
+        "        self.gc, self.gmin, self.gmax = {}, [], []  # gaps: size -> how many; min / max heaps\n"
+        "        self.salt = getrandbits(60)  # gap sizes are dict keys salted with this, so no fixed input can force collisions\n" if gaps else "") + """
 """ + nxt + """    # O(log64(U)) -- add x (nothing if x is already in the set: no duplicates)
     def add(self, x):
         i = x - self.lo  # x must lie in [lo, hi]
@@ -4851,26 +5015,26 @@ class FastSet:
         return None if i < 0 else self.lo + i
 """ + ("""
     def _gap(self, g, c):  # one more (c = 1) / fewer (c = -1) gap of size g
-        gc = self.gc
-        k = gc.get(g, 0) + c
+        gc, key = self.gc, g ^ self.salt
+        k = gc.get(key, 0) + c
         if k:
-            gc[g] = k
+            gc[key] = k
             if k == 1 and c > 0:  # (a size already present has an entry in both heaps)
                 if len(self.gmin) > 2 * len(gc) + 8:  # mostly sizes no longer present: rebuild from the live ones
-                    self.gmin = sorted(gc)
+                    self.gmin = sorted(v ^ self.salt for v in gc)
                     self.gmax = [-v for v in reversed(self.gmin)]
                 else:
                     heappush(self.gmin, g)
                     heappush(self.gmax, -g)
         else:
-            del gc[g]
+            del gc[key]
 
     # O(1 amortized) -- smallest difference between two values in the set; None if fewer than 2 values
     def minAdjacentDiff(self):
         if self.n < 2:
             return None
-        h, gc = self.gmin, self.gc
-        while h[0] not in gc:  # heap tops of sizes no longer present are dropped as they surface
+        h, gc, salt = self.gmin, self.gc, self.salt
+        while h[0] ^ salt not in gc:  # heap tops of sizes no longer present are dropped as they surface
             heappop(h)
         return h[0]
 
@@ -4878,8 +5042,8 @@ class FastSet:
     def maxGap(self):
         if self.n < 2:
             return None
-        h, gc = self.gmax, self.gc
-        while -h[0] not in gc:
+        h, gc, salt = self.gmax, self.gc, self.salt
+        while -h[0] ^ salt not in gc:
             heappop(h)
         return -h[0]
 """ if gaps else "")
@@ -5052,9 +5216,9 @@ struct FastSet {
     }
 """ if gaps else "") + """};
 """
-    py = must_replace(py, "@slots", (', "mn", "mx"' if minmax else "") + (', "gc", "gmin", "gmax"' if gaps else ""))
+    py = must_replace(py, "@slots", (', "mn", "mx"' if minmax else "") + (', "gc", "gmin", "gmax", "salt"' if gaps else ""))
     if gaps:
-        py = "from heapq import heappop, heappush\n" + py
+        py = "from heapq import heappop, heappush\nfrom random import getrandbits\n" + py
     ops = sorted(["add", "remove", "count", "countDistinct", "size", "min", "max", "popMin", "popMax", "smallestGteX",
                   "smallestGtX", "largestLteX", "largestLtX", "clear", "removeInValRange"] + (["minAdjacentDiff", "maxGap"] if gaps else []))
     comps = {op: "log64(U)" for op in ops}
@@ -5064,6 +5228,18 @@ struct FastSet {
         comps.update(min="1", max="1")
     if gaps:
         comps.update(minAdjacentDiff="1 amortized", maxGap="1 amortized")
+        for op in ("add", "remove", "popMin", "popMax"):  # (Python's gap heaps are rebuilt now and then: see _gap)
+            comps[op] = amortized(comps[op])
+        for old, new in (("O(log64(U)) -- add x", "O(log64(U) amortized) -- add x"),
+                         ("O(log64(U)) -- remove x if present", "O(log64(U) amortized) -- remove x if present"),
+                         ("O(log64(U)) -- remove and return the smallest", "O(log64(U) amortized) -- remove and return the smallest"),
+                         ("O(log64(U)) -- remove and return the largest", "O(log64(U) amortized) -- remove and return the largest"),
+                         ("// O(1) -- smallest difference", "// O(1 amortized) -- smallest difference"),
+                         ("// O(1) -- largest difference", "// O(1 amortized) -- largest difference")):
+            if old.startswith("//"):
+                cpp = must_replace(cpp, old, new)
+            else:
+                py, cpp = must_replace(py, old, new), must_replace(cpp, old, new)
     extras = (["minmax"] if minmax else []) + (["gaps"] if gaps else [])
     folder = "fastset" + ("-with-" + "-".join(extras) if extras else "")
     spec = dict(dtype="fastset", values="online-range", keys="numbers", tracks=" ".join(extras) or "none", comps=comps,
@@ -5143,7 +5319,7 @@ CLEAR_COST = {dtype: "1 amortized" for dtype in ("fenwick", "value-tree", "avl",
 
 def clear_py(dtype, sums, mex, mexc, mode=False, gaps=False, bits=(False, False, False), shift=False):
     X, O, A = bits
-    reset = (["        self.mexV = 0"] if mexc else []) + (["        self.bk, self.maxF = {}, 0"] if mode else []) + (
+    reset = (["        self.mexV = 0"] if mexc else []) + (["        self.bk, self.bkAt, self.fh, self.fhAt = {}, {}, [], {}"] if mode else []) + (
         ["        self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0"] if gaps else []) + ["        self.n = self.d = 0"] + (
         ["        self.total = 0"] if sums else []) + (["        self.xtotal = 0"] if X else []) + (["        self.off = 0"] if shift else [])
     out = "\n    def _resetCached(self):  # nothing counted: as newly built\n" + "\n".join(reset) + "\n"
@@ -5188,10 +5364,12 @@ def clear_py(dtype, sums, mex, mexc, mode=False, gaps=False, bits=(False, False,
                 "        self.free = []\n        self.root = 0\n")
     elif dtype == "blocks":
         out += ("\n    def _clearData(self):\n        self.keys, self.cnts, self.maxes, self.bc = [], [], [], []\n        self.fc = None\n"
+                "        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1\n"
                 "        self.cnt = {}\n" + ("        self.sums, self.bs = [], []\n        self.fs = None\n" if sums else "") +
                 ("        self.bx, self.fx = [], None\n" if X else "") + ("        self.bo = []\n" if O else "") + ("        self.ba = []\n" if A else ""))
     elif dtype == "blocks-fenwick":
         out += ("\n    def _clearData(self):\n        self.keys, self.cnts, self.fcs, self.maxes, self.bc = [], [], [], [], []\n"
+                "        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1\n"
                 "        self.fc = [0]\n        self.cnt = {}\n" + ("        self.sums, self.fss, self.bs = [], [], []\n        self.fs = [0]\n" if sums else "") +
                 ("        self.xvs, self.fxs, self.bx = [], [], []\n        self.fx = [0]\n" if X else ""))
     elif dtype == "fastset":
@@ -5260,11 +5438,13 @@ def clear_cpp(dtype, sums, mex, mexc, mode=False, gaps=False, bits=(False, False
     }
 """
     elif dtype == "blocks":
-        out += ("\n    void clearData() {\n        keys.clear(), cnts.clear(), maxes.clear(), bc.clear(), fc.clear();\n" +
+        out += ("\n    void clearData() {\n        keys.clear(), cnts.clear(), maxes.clear(), bc.clear(), fc.clear();\n"
+                "        load = LOAD, due = (long long)LOAD * LOAD / 2;\n" +
                 ("        sums.clear(), bs.clear(), fs.clear();\n" if sums else "") + ("        bx.clear(), fx.clear();\n" if X else "") +
                 ("        bo.clear();\n" if O else "") + ("        ba.clear();\n" if A else "") + "        stale = true;\n    }\n")
     elif dtype == "blocks-fenwick":
-        out += ("\n    void clearData() {\n        keys.clear(), cnts.clear(), fcs.clear(), maxes.clear(), bc.clear();\n        fc.assign(1, 0);\n" +
+        out += ("\n    void clearData() {\n        keys.clear(), cnts.clear(), fcs.clear(), maxes.clear(), bc.clear();\n        fc.assign(1, 0);\n"
+                "        load = LOAD, due = (long long)LOAD * LOAD / 2;\n" +
                 ("        sums.clear(), fss.clear(), bs.clear();\n        fs.assign(1, S(0));\n" if sums else "") +
                 ("        xvs.clear(), fxs.clear(), bx.clear();\n        fx.assign(1, T(0));\n" if X else "") + "    }\n")
     elif dtype == "pbds":
@@ -6413,7 +6593,7 @@ def with_cached(body, ext, sums, minmax, medians, mexc, mode=False, gaps=False, 
     """Adds the fields of the whole-set answers this variant caches (kept current by _add / addRaw)."""
     if ext == "py":
         extra = (' "mn", "mx",' if minmax else "") + (' "lowV", "lowB", "lowC",' + (' "lowS",' if sums else "") + ' "highV", "highB", "highC",'
-                                                       if medians else "") + (' "mexV",' if mexc else "") + (' "bk", "maxF",' if mode else "") + (
+                                                       if medians else "") + (' "mexV",' if mexc else "") + (' "bk", "bkAt", "fh", "fhAt",' if mode else "") + (
             ' "gc", "gmin", "gmax", "dups",' if gaps else "") + (' "xtotal",' if xor else "") + (' "off",' if shift else "") + (' "salt",' if salted else "")
         body = must_replace(body, '"n",', '"n",' + extra, 1) if extra else body
         if salted:
@@ -6426,7 +6606,7 @@ def with_cached(body, ext, sums, minmax, medians, mexc, mode=False, gaps=False, 
             body = must_sub(r"^( +)(.*self\.n = .*)$", r"\1self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies\n\1\2",
                           body, count=1, flags=re.M)
         if mode:
-            body = must_sub(r"^( +)(.*self\.n = .*)$", r"\1self.bk, self.maxF = {}, 0  # mode: count -> the values with that many copies; the highest count\n\1\2",
+            body = must_sub(r"^( +)(.*self\.n = .*)$", r"\1self.bk, self.bkAt = {}, {}  # mode: count -> list of the values with that many copies; value -> its index there\n\1self.fh, self.fhAt = [], {}  # mode: max-heap of the counts that have a bucket; count -> its index in it\n\1\2",
                           body, count=1, flags=re.M)
         if mexc:
             body = must_sub(r"^( +)(.*self\.n = .*)$", r"\1self.mexV = 0  # the mex, kept current (0 for the empty set)\n\1\2", body, count=1, flags=re.M)
@@ -6449,7 +6629,7 @@ def with_cached(body, ext, sums, minmax, medians, mexc, mode=False, gaps=False, 
 # keeps it current; without the cache that query walks the structure and updates do nothing for it. No flags: every
 # variant is a separate static template. @tracks lists what a template keeps current on every update, so the picker
 # and the Pareto check know a variant that tracks more is not free.
-MODE_PY = "if not self.n:\n    return None\nf = self.maxF\nv = next(iter(self.bk[f]))\nreturn (v ^ self.salt if v.__class__ is int else v), f"
+MODE_PY = "if not self.n:\n    return None\nf = self.fh[0]\nv = self.bk[f ^ self.salt][0]\nreturn (v ^ self.salt if v.__class__ is int else v), f"
 MODE_CPP = ("optional<pair<T, long long>>", "if (!n) return nullopt;\nauto& [f, vs] = *bk.rbegin();\nreturn pair<T, long long>{*vs.begin(), f};")
 
 
@@ -6809,6 +6989,19 @@ struct FreqBuckets {
     return folder
 
 
+UPDATE_OPS = ("add", "addCount", "remove", "removeCount", "removeAll", "removeInValRange", "popMin", "popMax", "pop")
+
+
+def amortized(cost):
+    """A cost that is now also only amortized: 'log(N)' -> 'log(N) amortized', 'log(N) expected' -> 'log(N) amortized
+    expected'; already amortized stays."""
+    if cost.endswith(" amortized") or cost.endswith(" amortized expected"):
+        return cost
+    if cost.endswith(" expected"):
+        return cost[:-len(" expected")] + " amortized expected"
+    return cost + " amortized"
+
+
 def write(spec, sums, minmax=False, medians=False, mexc=False, mode=False, gaps=False, shift=False):
     ops = sorted(spec.get("ops") or (op for op in ((list(SUM_OPS) + COUNT_OPS) if sums else COUNT_OPS) if op != "mex" or spec.get("mex", True)))
     X, O, A = spec.get("bits") or (False, False, False)  # the bitwise aggregates this variant maintains
@@ -6859,6 +7052,9 @@ def write(spec, sums, minmax=False, medians=False, mexc=False, mode=False, gaps=
         c["shiftAll"] = ("sqrt(N)" if spec["dtype"].startswith("blocks") else c["mex"]) if mexc else "1"
     if mex:  # (sorted blocks find the mex by walking their blocks)
         c["mex"] = "1" if mexc else ("sqrt(N)" if spec["dtype"].startswith("blocks") else c["mex"])
+    if gaps:  # Python's gap heaps are rebuilt from the live sizes once they are mostly stale: every update is amortized
+        for op in UPDATE_OPS:
+            c[op] = amortized(c[op])
     # named by structure and extras (the op list would pass the 255-character name limit); "mex" = computed per query
     extras = ((["sums"] if sums else []) + [k for k, on in (("xor", X), ("or", O), ("and", A)) if on] +
               (["mex"] if mex and not mexc and "mex" in spec else []) + (["cachedmex"] if mexc else []) +

@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/minRotationIndices.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // Every start index whose rotation is the lexicographically smallest one (ascending)
 // more than one only when the sequence repeats: those rotations are all equal

@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/DequeEertree.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // Palindromic tree (eertree) over a deque: append, appendLeft, pop, popLeft.
 // Works on any E that is integral, has std::hash (e.g. string), or is a pair of those, with operator==.

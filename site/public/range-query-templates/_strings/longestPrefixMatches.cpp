@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/longestPrefixMatches.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // list of size text.size(): arr[i] = length of match between pattern and text[i...]
 // text and pattern can be different containers (e.g. string and vector<char>) of any element type that has ==

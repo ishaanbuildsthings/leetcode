@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/trees/findCentroids.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 // TEMPLATE BY ISHAANBUILDSTHINGS on github
 // in:  edgeList  = {{1,2}, {1,3}, {2,4}, {2,5}}   // unrooted, labels can be 0- or 1-indexed
 // out: centroids = {2} or {1, 2}   // 1 or 2 nodes, sorted; deleting one leaves every piece <= n/2

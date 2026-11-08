@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/properBorders.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // properBorders[i] = length of the longest proper prefix of arrOrString[0..i] that is also a suffix of it (this is KMP)
 // works on a string or vector of any element type that has == (char, int, long long, pair, ...)

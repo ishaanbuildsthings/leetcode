@@ -2,6 +2,7 @@
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/zFunction.cpp
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
 // z[i] = longest common prefix of the entire sequence against the suffix starting at i (z[0] = n)
 // works on a string or vector of any element type that has == (char, int, long long, pair, ...)
