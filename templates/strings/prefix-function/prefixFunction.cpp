@@ -23,31 +23,6 @@ vector<int> prefixFunction(const T& arrOrString) {
     return pi;
 }
 
-// Every start index in text where pattern occurs (overlaps included), ascending. KMP, no concatenation.
-// findMatchesKmp(string("ababa"), string("aba")) -> {0, 2}
-// findMatchesKmp(vector<int>{1, 2, 1, 2}, vector<int>{1, 2}) -> {0, 2}
-// O(n + m) time, O(m) space
-template <class T>
-vector<int> findMatchesKmp(const T& text, const T& pattern) {
-    int m = (int)pattern.size();
-    vector<int> res;
-    if (m == 0) {
-        for (int i = 0; i <= (int)text.size(); i++) res.push_back(i);
-        return res;
-    }
-    vector<int> pi = prefixFunction(pattern);
-    int k = 0;
-    for (int i = 0; i < (int)text.size(); i++) {
-        while (k > 0 && text[i] != pattern[k]) k = pi[k - 1];
-        if (text[i] == pattern[k]) k++;
-        if (k == m) {
-            res.push_back(i - m + 1);
-            k = pi[k - 1];
-        }
-    }
-    return res;
-}
-
 // Length of the shortest p such that the sequence is a repeat of its first p items (n if it isn't a repeat).
 // shortestPeriod(string("abcabcabc")) -> 3
 // shortestPeriod(string("abcab")) -> 5

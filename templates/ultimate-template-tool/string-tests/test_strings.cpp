@@ -7,9 +7,11 @@
 #include "../strings/zFunction.cpp"
 #include "../strings/longestPrefixMatches.cpp"
 #include "../strings/findMatches.cpp"
-#include "../strings/prefixFunction.cpp"
-#include "../strings/findMatchesKmp.cpp"
+#include "../strings/properBorders.cpp"
 #include "../strings/shortestPeriod.cpp"
+namespace overflow {
+#include "../strings/shortestPeriod.overflow.cpp"
+}
 
 mt19937 rng(12345);
 int rnd(int lo, int hi) { return uniform_int_distribution<int>(lo, hi)(rng); }
@@ -46,7 +48,7 @@ void checkAll(const T& s, const T& t) {
     for (int i = 0; i < n; i++)
         for (int k = i; k >= 0; k--)
             if (equal(s.begin(), s.begin() + k, s.begin() + i - k + 1)) { pi[i] = k; break; }
-    CHECK(prefixFunction(s) == pi);
+    CHECK(properBorders(s) == pi);
     int period = n;
     for (int p = 1; p <= n; p++) {
         if (n % p) continue;
@@ -55,12 +57,20 @@ void checkAll(const T& s, const T& t) {
         if (ok) { period = p; break; }
     }
     CHECK(shortestPeriod(s) == period);
+    {
+        int want = 0;
+        for (int p = 1; p <= n && !want; p++) {
+            bool ok = true;
+            for (int i = 0; i + p < n; i++) if (!(s[i] == s[i + p])) ok = false;
+            if (ok) want = p;
+        }
+        CHECK(overflow::shortestPeriod(s) == want);
+    }
     vector<int> lens(n), matches;
     for (int i = 0; i < n; i++) lens[i] = lcp(t, 0, s, i);
     for (int i = 0; i + m <= n; i++) if (equal(t.begin(), t.end(), s.begin() + i)) matches.push_back(i);
     CHECK(longestPrefixMatches(s, t) == lens);
     CHECK(findMatches(s, t) == matches);
-    CHECK(findMatchesKmp(s, t) == matches);
 }
 
 template <class T>

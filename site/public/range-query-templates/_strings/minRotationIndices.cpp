@@ -5,8 +5,9 @@ using namespace std;
 
 // Every start index whose rotation is the lexicographically smallest one (ascending)
 // more than one only when the sequence repeats: those rotations are all equal
+// works on a string or vector of any element type that has < (char, int, long long, pair, ...)
 // minRotationIndices(string("bcabca")) -> {2, 5}
-// minRotationIndices(vector<int>{2, 1, 2, 1}) -> {1, 3}
+// minRotationIndices(vector<int>{2, -1, 2, -1}) -> {1, 3}
 // O(n) time, O(1) extra space besides the result
 template <class T>
 vector<int> minRotationIndices(const T& arrOrString) {

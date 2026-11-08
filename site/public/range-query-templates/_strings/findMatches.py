@@ -2,8 +2,9 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/findMatches.py
 
 # list of indices i where text[i...] matches pattern (an empty pattern matches at every i in 0..len(text))
+# text and pattern can be any mix of str / list / tuple, holding any items that can be compared with ==
 # findMatches("ababa", "aba") -> [0, 2]
-# findMatches([1, 2, 1, 2], [1, 2]) -> [0, 2]
+# findMatches([-1, 2, -1, 2, 5], [-1, 2]) -> [0, 2]
 # O(n + m) time, O(m) extra space besides the result (n = len(text), m = len(pattern))
 def findMatches(text, pattern):
     n, m = len(text), len(pattern)

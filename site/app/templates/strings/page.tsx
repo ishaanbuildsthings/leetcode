@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/Nav";
 import { MiscTemplates } from "@/components/TemplatePicker";
-import { PATTERN_MATCHING, ROTATIONS } from "@/lib/strings";
+import { KMP, PALINDROMES, PATTERN_MATCHING, ROTATIONS, STRINGS_MISC, SUBSTRINGS, Z_FUNCTION } from "@/lib/strings";
+import { EertreePicker } from "@/components/EertreePicker";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
@@ -31,8 +32,13 @@ export default async function StringTemplatesPage() {
       <div className="min-h-screen bg-background">
         <Nav isDev={isDev} />
         <MiscTemplates title="String templates" sections={[
-            { title: "Rotations", items: ROTATIONS },
             { title: "Pattern matching", items: PATTERN_MATCHING },
+            { title: "Z-function", items: Z_FUNCTION },
+            { title: "KMP", items: KMP },
+            { title: "Substrings", items: SUBSTRINGS },
+            { title: "Palindromes", items: PALINDROMES, custom: <EertreePicker key="eertree" publicBase="/range-query-templates" /> },
+            { title: "Rotations", items: ROTATIONS },
+            { title: "Misc.", items: STRINGS_MISC },
           ]} publicBase="/range-query-templates" />
       </div>
     </AuthProvider>

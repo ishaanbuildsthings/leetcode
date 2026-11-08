@@ -4,8 +4,9 @@
 using namespace std;
 
 // The lexicographically largest rotation, same type as the input (string, vector<int>, vector<long long>, ...)
+// works on a string or vector of any element type that has < (char, int, long long, pair, ...)
 // maxRotation(string("bcabca")) -> "cabcab"
-// maxRotation(vector<int>{2, 1, 2, 1}) -> {2, 1, 2, 1}
+// maxRotation(vector<int>{3, -1, 2}) -> {3, -1, 2}
 // pass a container, not a string literal: maxRotation(string("abc")), not maxRotation("abc")
 // O(n) time, O(n) space for the result
 template <class T>
@@ -20,8 +21,8 @@ T maxRotation(const T& arrOrString) {
         while (j < 2 * n) {
             const auto& a = arrOrString[k >= n ? k - n : k];
             const auto& b = arrOrString[j >= n ? j - n : j];
-            if (b > a) break;
-            k = (a > b) ? i : k + 1;
+            if (a < b) break;
+            k = (b < a) ? i : k + 1;
             j++;
         }
         period = j - k;

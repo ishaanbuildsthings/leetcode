@@ -4,8 +4,9 @@
 using namespace std;
 
 // The lexicographically smallest rotation, same type as the input (string, vector<int>, vector<long long>, ...)
+// works on a string or vector of any element type that has < (char, int, long long, pair, ...)
 // minRotation(string("bcabca")) -> "abcabc"
-// minRotation(vector<int>{2, 1, 2, 1}) -> {1, 2, 1, 2}
+// minRotation(vector<int>{3, -1, 2}) -> {-1, 2, 3}
 // pass a container, not a string literal: minRotation(string("abc")), not minRotation("abc")
 // O(n) time, O(n) space for the result
 template <class T>

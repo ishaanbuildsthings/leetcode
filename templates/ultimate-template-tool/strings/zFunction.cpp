@@ -4,8 +4,9 @@
 using namespace std;
 
 // z[i] = longest common prefix of the entire sequence against the suffix starting at i (z[0] = n)
+// works on a string or vector of any element type that has == (char, int, long long, pair, ...)
 // zFunction(string("aabxaab")) -> {7, 1, 0, 0, 3, 1, 0}
-// zFunction(vector<int>{1, 2, 1, 2}) -> {4, 0, 2, 0}
+// zFunction(vector<int>{-1, 2, -1, 2, 5}) -> {5, 0, 2, 0, 0}
 // O(n) time and space
 template <class T>
 vector<int> zFunction(const T& arrOrString) {

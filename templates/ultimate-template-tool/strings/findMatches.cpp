@@ -4,8 +4,9 @@
 using namespace std;
 
 // list of indices i where text[i...] matches pattern (an empty pattern matches at every i in 0..text.size())
+// text and pattern can be different containers (e.g. string and vector<char>) of any element type that has ==
 // findMatches(string("ababa"), string("aba")) -> {0, 2}
-// findMatches(vector<int>{1, 2, 1, 2}, vector<int>{1, 2}) -> {0, 2}
+// findMatches(vector<int>{-1, 2, -1, 2, 5}, vector<int>{-1, 2}) -> {0, 2}
 // O(n + m) time, O(m) extra space besides the result (n = text size, m = pattern size)
 template <class T1, class T2>
 vector<int> findMatches(const T1& text, const T2& pattern) {

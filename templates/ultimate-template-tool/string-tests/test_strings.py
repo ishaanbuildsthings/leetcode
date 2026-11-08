@@ -3,8 +3,11 @@ import os, random
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAMES = ["minRotation", "maxRotation", "minRotationIndices", "maxRotationIndices", "zFunction",
-         "longestPrefixMatches", "findMatches", "prefixFunction", "findMatchesKmp", "shortestPeriod"]
+         "longestPrefixMatches", "findMatches", "properBorders", "shortestPeriod"]
 F = {}
+_env = {}
+exec(open(os.path.join(HERE, "..", "strings", "shortestPeriod.overflow.py")).read(), _env)
+OVERFLOW_PERIOD = _env["shortestPeriod"]
 for name in NAMES:
     env = {}
     exec(open(os.path.join(HERE, "..", "strings", name + ".py")).read(), env)
@@ -51,13 +54,15 @@ for it in range(20000):
     else:
         assert F["minRotation"](s) == s and F["maxRotationIndices"](s) == []
     assert F["zFunction"](s) == [lcp(s, s[i:]) for i in range(n)], s
-    assert F["prefixFunction"](s) == [max([k for k in range(i + 1) if s[:k] == s[i - k + 1 : i + 1]]) for i in range(n)], s
+    assert F["properBorders"](s) == [max([k for k in range(i + 1) if s[:k] == s[i - k + 1 : i + 1]]) for i in range(n)], s
     want = n
     for p in range(1, n + 1):
         if n % p == 0 and s[:p] * (n // p) == s:
             want = p
             break
     assert F["shortestPeriod"](s) == (0 if n == 0 else want), s
+    wantOverflow = next((p for p in range(1, n + 1) if all(s[i] == s[i + p] for i in range(n - p))), 0)
+    assert OVERFLOW_PERIOD(s) == wantOverflow, s
     t = randSeq()
     if type(t) != type(s):
         t = type(s)(t) if not isinstance(s, str) else "".join(chr(97 + x) if isinstance(x, int) else x for x in t)
@@ -68,5 +73,4 @@ for it in range(20000):
     assert F["longestPrefixMatches"](s, t) == [lcp(t, s[i:]) for i in range(n)], (s, t)
     want = [i for i in range(n + 1) if s[i : i + len(t)] == t and i + len(t) <= n]
     assert F["findMatches"](s, t) == want, (s, t)
-    assert F["findMatchesKmp"](s, t) == want, (s, t)
 print("all string templates ok:", cases, "random cases")

@@ -99,11 +99,14 @@ export type FillIn = {
   // another version behind a checkbox, on the card and by the ops in its drawer (off on every page load, not
   // remembered): its label, hover text, the key the card and drawer share it by, and what changes while it's ticked
   // (e.g. the in-place next permutation)
-  variant?: { label: string; title: string; storageKey: string; on: Partial<Pick<FillIn, "label" | "file" | "ops">> };
+  variant?: { label: string; title: string; storageKey: string; on: Partial<Pick<FillIn, "label" | "title" | "file" | "ops">> };
+  // rewrites the loaded file before it's shown and copied (the Eertree picker keeps only the ticked ops' code)
+  transform?: (code: string) => string;
 };
 
 // a section of a templates tab without a picker
-export type MiscSection = { title: string; items: FillIn[] };
+// custom: shown under the cards instead of more cards (e.g. the Eertree op picker)
+export type MiscSection = { title: string; items: FillIn[]; custom?: React.ReactNode };
 
 // a remembered checkbox, the same everywhere it shows (writeStored tells every subscriber)
 // a checkbox shared by every place it shows (a Misc card and its drawer) but not remembered: MiscTemplates clears
@@ -737,7 +740,7 @@ function ChoiceRow<T extends string>({
 }
 
 // A fill-in template (catalog.fillIns): just the file, in either language, with Copy and GitHub.
-function FillInDrawer({
+export function FillInDrawer({
   catalog,
   fillIn: base,
   onClose,
@@ -771,7 +774,8 @@ function FillInDrawer({
   const url = codeUrl(catalog, fillIn.folder, fileName);
   const [loaded, setLoaded] = useState<{ url: string; code: string | null } | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
-  const code = loaded?.url === url ? loaded.code : undefined;
+  const raw = loaded?.url === url ? loaded.code : undefined;
+  const code = raw && fillIn.transform ? fillIn.transform(raw) : raw;
 
   useEffect(() => {
     let cancelled = false;
@@ -1797,9 +1801,10 @@ export function MiscTemplates({
           <h2 className="mb-2 text-sm font-semibold text-foreground">{section.title}</h2>
           <div className="flex flex-wrap gap-3">
             {section.items.map((f) => (
-              <MiscCard key={f.file} item={f} onOpen={() => setOpen(f)} />
+              <MiscCard key={`${f.folder}/${f.file}/${f.label}`} item={f} onOpen={() => setOpen(f)} />
             ))}
           </div>
+          {section.custom && <div className={section.items.length ? "mt-3" : ""}>{section.custom}</div>}
         </section>
       ))}
       {planned.length > 0 && (

@@ -2,8 +2,9 @@
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/strings/zFunction.py
 
 # z[i] = longest common prefix of the entire sequence against the suffix starting at i (z[0] = n)
+# works on a str, list or tuple holding any items that can be compared with == (ints, chars, tuples, ...)
 # zFunction("aabxaab") -> [7, 1, 0, 0, 3, 1, 0]
-# zFunction([1, 2, 1, 2]) -> [4, 0, 2, 0]
+# zFunction([-1, 2, -1, 2, 5]) -> [5, 0, 2, 0, 0]
 # O(n) time and space
 def zFunction(arrOrString):
     n = len(arrOrString)

@@ -20,28 +20,6 @@ def prefixFunction(arrOrString):
     return pi
 
 
-# Every start index in text where pattern occurs (overlaps included), ascending. KMP, no concatenation.
-# findMatchesKmp("ababa", "aba") -> [0, 2]
-# findMatchesKmp([1, 2, 1, 2], [1, 2]) -> [0, 2]
-# O(n + m) time, O(m) space
-def findMatchesKmp(text, pattern):
-    m = len(pattern)
-    if m == 0:
-        return list(range(len(text) + 1))
-    pi = prefixFunction(pattern)
-    res = []
-    k = 0
-    for i, c in enumerate(text):
-        while k > 0 and c != pattern[k]:
-            k = pi[k - 1]
-        if c == pattern[k]:
-            k += 1
-        if k == m:
-            res.append(i - m + 1)
-            k = pi[k - 1]
-    return res
-
-
 # Length of the shortest p such that the sequence is a repeat of its first p items (n if it isn't a repeat).
 # shortestPeriod("abcabcabc") -> 3
 # shortestPeriod("abcab") -> 5

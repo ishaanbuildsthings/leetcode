@@ -3,8 +3,9 @@
 
 # Every start index whose rotation is the lexicographically smallest one (ascending)
 # more than one only when the sequence repeats: those rotations are all equal
+# works on a str, list or tuple holding any items that can be ordered with < (ints, chars, tuples, ...)
 # minRotationIndices("bcabca") -> [2, 5]
-# minRotationIndices([2, 1, 2, 1]) -> [1, 3]
+# minRotationIndices([2, -1, 2, -1]) -> [1, 3]
 # O(n) time, O(n) space
 def minRotationIndices(arrOrString):
     n = len(arrOrString)

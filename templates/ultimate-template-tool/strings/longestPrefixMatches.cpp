@@ -4,8 +4,9 @@
 using namespace std;
 
 // list of size text.size(): arr[i] = length of match between pattern and text[i...]
+// text and pattern can be different containers (e.g. string and vector<char>) of any element type that has ==
 // longestPrefixMatches(string("xaabaa"), string("aab")) -> {0, 3, 1, 0, 2, 1}
-// longestPrefixMatches(vector<int>{1, 2, 1, 2}, vector<int>{1, 2}) -> {2, 0, 2, 0}
+// longestPrefixMatches(vector<int>{-1, 2, -1, 5}, vector<int>{-1, 2}) -> {2, 0, 1, 0}
 // O(n + m) time, O(m) extra space besides the result (n = text size, m = pattern size)
 template <class T1, class T2>
 vector<int> longestPrefixMatches(const T1& text, const T2& pattern) {

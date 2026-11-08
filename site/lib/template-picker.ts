@@ -134,7 +134,7 @@ const FACTOR_VALUES: Record<string, number> = {
 export function costValue(cost: string): number {
   return cost
     .replace(/ \?$/, "")
-    .replace(/ (amortized|expected)$/, "")
+    .replace(/ (amortized expected|amortized|expected)$/, "")
     .split("+")
     .reduce(
       (sum, term) =>
@@ -243,8 +243,11 @@ const PRETTY_FACTORS: Record<string, string> = {
   "log(n)": "log n",
   "L^2": "L²",
   "min(x,y)": "min(x, y)",
-  // the string templates: N = text length, M = pattern length
+  // the string templates: N = text length, M = pattern length, σ = number of distinct items (shown as "alphabet")
   M: "M",
+  "σ": "alphabet",
+  "log(σ)": "log alphabet",
+  "sqrt(M)": "√M",
   // the combinatorics templates
   "log(e)": "log e",
   "log(MOD)": "log MOD",
@@ -254,9 +257,9 @@ const PRETTY_FACTORS: Record<string, string> = {
 export function formatCost(cost: string): string {
   const unsure = cost.endsWith(" ?");
   const rest = cost.replace(/ \?$/, "");
-  const kind = rest.match(/ (amortized|expected)$/)?.[1];
+  const kind = rest.match(/ (amortized expected|amortized|expected)$/)?.[1];
   const body = rest
-    .replace(/ (amortized|expected)$/, "")
+    .replace(/ (amortized expected|amortized|expected)$/, "")
     .split("+")
     .map(formatTerm)
     .join(" + ");

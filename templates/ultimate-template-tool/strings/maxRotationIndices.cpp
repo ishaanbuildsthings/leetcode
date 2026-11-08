@@ -5,8 +5,9 @@ using namespace std;
 
 // Every start index whose rotation is the lexicographically largest one (ascending)
 // more than one only when the sequence repeats: those rotations are all equal
+// works on a string or vector of any element type that has < (char, int, long long, pair, ...)
 // maxRotationIndices(string("bcabca")) -> {1, 4}
-// maxRotationIndices(vector<int>{2, 1, 2, 1}) -> {0, 2}
+// maxRotationIndices(vector<int>{2, -1, 2, -1}) -> {0, 2}
 // O(n) time, O(1) extra space besides the result
 template <class T>
 vector<int> maxRotationIndices(const T& arrOrString) {
@@ -20,8 +21,8 @@ vector<int> maxRotationIndices(const T& arrOrString) {
         while (j < 2 * n) {
             const auto& a = arrOrString[k >= n ? k - n : k];
             const auto& b = arrOrString[j >= n ? j - n : j];
-            if (b > a) break;
-            k = (a > b) ? i : k + 1;
+            if (a < b) break;
+            k = (b < a) ? i : k + 1;
             j++;
         }
         period = j - k;

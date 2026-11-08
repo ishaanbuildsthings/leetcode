@@ -3,8 +3,9 @@
 
 # Every start index whose rotation is the lexicographically largest one (ascending)
 # more than one only when the sequence repeats: those rotations are all equal
+# works on a str, list or tuple holding any items that can be ordered with < (ints, chars, tuples, ...)
 # maxRotationIndices("bcabca") -> [1, 4]
-# maxRotationIndices([2, 1, 2, 1]) -> [0, 2]
+# maxRotationIndices([2, -1, 2, -1]) -> [0, 2]
 # O(n) time, O(n) space
 def maxRotationIndices(arrOrString):
     n = len(arrOrString)
