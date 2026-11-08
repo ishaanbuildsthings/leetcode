@@ -10,7 +10,7 @@
 #   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
-#   insertCopiesAt: log(N) expected
+#   insertCopiesAt: K+log(N) expected
 #   leftmostGtX: log(N) expected
 #   leftmostGteX: log(N) expected
 #   longestEqualRun: log(N) expected

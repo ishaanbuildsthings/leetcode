@@ -10,7 +10,7 @@
 #   cut: sqrt(N) amortized
 #   getAll: N
 #   insertAt: sqrt(N) amortized
-#   insertCopiesAt: sqrt(N) amortized
+#   insertCopiesAt: K+sqrt(N) amortized
 #   leftmostIndexOf: sqrt(N) amortized
 #   leftmostIndexOfInRange: sqrt(N) amortized
 #   merge: sqrt(N) amortized

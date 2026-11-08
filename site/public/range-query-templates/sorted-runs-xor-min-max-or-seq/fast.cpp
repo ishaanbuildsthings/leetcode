@@ -12,7 +12,7 @@ using ll = long long;
 //   cut: log(N)+log(U) amortized
 //   getAll: N*log(U)
 //   insertAt: log(N)+log(U) amortized
-//   insertCopiesAt: log(N)+log(U) amortized
+//   insertCopiesAt: K+log(N)+log(U) amortized
 //   merge: log(N)+log(U) amortized
 //   paste: log(N)+log(U) amortized
 //   pointAdd: log(N)+log(U) amortized

@@ -11,7 +11,7 @@ const ENTRY_RE = /^\s*(?:#|\/\/)\s+([A-Za-z]\w*):\s*(.+?)\s*$/;
 // size of the index range instead (and in set templates, the size of the value range [lo, hi]).
 // log64(U) = log base 64 of U (a 64-ary bit trie's depth).
 // α(N) = inverse Ackermann of N (union find with path compression: at most 4 or so).
-// K = how many elements a call returns (union find: the size of the group it lists).
+// K = how many elements a call handles (union find: the size of the group it lists; insertCopiesAt: the copies it inserts).
 // U/64 = U 64-bit words (a bitset over U values).
 const FACTORS = new Set(["1", "α(N)", "K", "N", "log(N)", "log^2(N)", "sqrt(N)", "sqrt(NlogN)", "sqrt(N/logN)", "U", "U/64", "log(U)", "log64(U)", "log(log(U))"]);
 

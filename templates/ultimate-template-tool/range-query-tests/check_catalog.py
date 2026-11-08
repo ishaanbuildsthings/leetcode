@@ -28,7 +28,8 @@ KEPT = {"persistent-online-order-stats-mex", "persistent-order-stats", "persiste
 FACTORS = {"1": 1, "N": N, "log(N)": math.log2(N), "log^2(N)": math.log2(N) ** 2, "sqrt(N)": math.sqrt(N),
            "sqrt(NlogN)": math.sqrt(N * math.log2(N)), "sqrt(N/logN)": math.sqrt(N / math.log2(N)),
            "log(U)": math.log2(U), "log(log(U))": math.log2(math.log2(U)), "U": U, "U/64": U / 64,
-           "log64(U)": math.log2(U) / 6}
+           "log64(U)": math.log2(U) / 6,
+           "K": 20}  # (K = the element count a call handles, e.g. the copies insertCopiesAt inserts: a typical small one)
 
 
 def value(cost):

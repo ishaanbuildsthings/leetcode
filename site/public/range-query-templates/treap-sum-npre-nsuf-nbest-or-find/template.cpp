@@ -13,7 +13,7 @@ using ll = long long;
 //   find: log(N) expected
 //   getAll: N
 //   insertAt: log(N) expected
-//   insertCopiesAt: log(N) expected
+//   insertCopiesAt: K+log(N) expected
 //   leftmostPrefixSumLtX: log(N) expected
 //   leftmostPrefixSumLteX: log(N) expected
 //   merge: log(N) expected

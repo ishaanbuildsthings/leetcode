@@ -8,7 +8,7 @@
 #   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
-#   insertCopiesAt: log(N) expected
+#   insertCopiesAt: K+log(N) expected
 #   leftmostPrefixSumGtX: log(N) expected
 #   leftmostPrefixSumGteX: log(N) expected
 #   leftmostPrefixSumLtX: log(N) expected

@@ -9,7 +9,7 @@
 #   cut: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
-#   insertCopiesAt: log(N) expected
+#   insertCopiesAt: K+log(N) expected
 #   maxAltSubseqSum: log(N) expected
 #   merge: log(N) expected
 #   minSuffixSum: log(N) expected

@@ -9,7 +9,7 @@
 #   find: log(N)*log(U) expected ?
 #   getAll: N
 #   insertAt: log(N)*log(U) expected ?
-#   insertCopiesAt: log(N)*log(U) expected ?
+#   insertCopiesAt: K+log(N)*log(U) expected ?
 #   maxSuffixSum: log(N)*log(U) expected ?
 #   merge: log(N)*log(U) expected ?
 #   paste: log(N)*log(U) expected ?

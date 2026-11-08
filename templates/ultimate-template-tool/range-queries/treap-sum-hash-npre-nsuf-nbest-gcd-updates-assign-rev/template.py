@@ -8,7 +8,7 @@
 #   cut: log(N)*log(U) expected ?
 #   getAll: N
 #   insertAt: log(N)*log(U) expected ?
-#   insertCopiesAt: log(N)*log(U) expected ?
+#   insertCopiesAt: K+log(N)*log(U) expected ?
 #   isPalindrome: log(N)*log(U) expected ?
 #   leftmostPrefixSumLtX: log(N)*log(U) expected ?
 #   leftmostPrefixSumLteX: log(N)*log(U) expected ?

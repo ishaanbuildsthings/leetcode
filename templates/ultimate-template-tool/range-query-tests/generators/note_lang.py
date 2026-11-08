@@ -249,9 +249,15 @@ def add_get_all(code, lang):
     return code[:m.end()] + block + code[m.end():]
 
 
+def fix_copies_cost(text):
+    """insertCopiesAt builds its K copies as nodes before splicing them in, so its header cost carries a K term
+    (K+log(N) expected), matching the method comment; the generators' op-cost tables only know the splice."""
+    return re.sub(r"^((?:#|//)   insertCopiesAt: )(?!K\+)", r"\1K+", text, flags=re.M)
+
+
 def write_template(path, text):
     lang = "py" if path.endswith(".py") else "cpp"
-    open(path, "w").write(attribute(fix_text(add_bounds(add_derived_ops(add_size(text, lang), lang), lang), lang), path))
+    open(path, "w").write(attribute(fix_copies_cost(fix_text(add_bounds(add_derived_ops(add_size(text, lang), lang), lang), lang)), path))
 
 
 if __name__ == "__main__":
@@ -262,7 +268,7 @@ if __name__ == "__main__":
                 path = os.path.join(DIR, folder, stem + ext)
                 if os.path.exists(path):
                     text = open(path).read()
-                    new = attribute(fix_text(add_bounds(add_derived_ops(add_size(text, lang), lang), lang), lang), path)
+                    new = attribute(fix_copies_cost(fix_text(add_bounds(add_derived_ops(add_size(text, lang), lang), lang), lang)), path)
                     if new != text:
                         open(path, "w").write(new)
                         changed += 1

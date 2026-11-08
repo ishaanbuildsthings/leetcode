@@ -14,7 +14,7 @@ using ll = long long;
 //   cut: log(N) expected
 //   getAll: N
 //   insertAt: log(N) expected
-//   insertCopiesAt: log(N) expected
+//   insertCopiesAt: K+log(N) expected
 //   leftmostLtX: log(N) expected
 //   leftmostLteX: log(N) expected
 //   leftmostPrefixSumGtX: log(N) expected

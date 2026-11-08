@@ -9,7 +9,7 @@
 #   find: log(N) expected
 #   getAll: N
 #   insertAt: log(N) expected
-#   insertCopiesAt: log(N) expected
+#   insertCopiesAt: K+log(N) expected
 #   leftmostLtX: log(N) expected
 #   leftmostLteX: log(N) expected
 #   merge: log(N) expected

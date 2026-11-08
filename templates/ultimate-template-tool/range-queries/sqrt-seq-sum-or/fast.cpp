@@ -18,7 +18,7 @@ using ll = long long;
 //   cut: sqrt(N)*log(N) amortized
 //   getAll: N
 //   insertAt: sqrt(N)*log(N) amortized
-//   insertCopiesAt: sqrt(N)*log(N) amortized
+//   insertCopiesAt: K+sqrt(N)*log(N) amortized
 //   kthGtX: sqrt(N)*log(N)
 //   kthGteX: sqrt(N)*log(N)
 //   kthLtX: sqrt(N)*log(N)

@@ -8,7 +8,7 @@
 #   cut: log(N)*log(U) expected ?
 #   getAll: N
 #   insertAt: log(N)*log(U) expected ?
-#   insertCopiesAt: log(N)*log(U) expected ?
+#   insertCopiesAt: K+log(N)*log(U) expected ?
 #   isPalindrome: log(N)*log(U) expected ?
 #   longestEqualRun: log(N)*log(U) expected ?
 #   maxAltSubseqSum: log(N)*log(U) expected ?
