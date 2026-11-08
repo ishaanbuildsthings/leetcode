@@ -65,7 +65,7 @@ from math import isqrt
 
 
 class SqrtXorTries:
-    __slots__ = ('B', 'top', 'n', 'S', 'arr', 'L', 'R', 'C', 'base', 'tag', 'uni', 'ones', 'scratch')
+    __slots__ = ('B', 'top', 'n', 'S', 'arr', 'L', 'R', 'C', 'base', 'tag', 'uni', 'scratch')
 
     # O(N logU) -- arr: the initial values (a list), each in [0, 2^bits) (bits = 30 holds values up to 1073741823);
     # U = 2^bits

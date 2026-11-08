@@ -86,8 +86,15 @@ def write(folder, dstype, costs, build, node, other, notes, tags, stem):
     ops = sorted(o for o in costs)
     for lang, cm in (("py", "#"), ("cpp", "//")):
         src = open(os.path.join(SRC, f"{stem}.{lang}.src")).read()
-        snippet = open(os.path.join(SRC, f"orderstats.{lang}.src")).read().replace("COST", COST_TEXT[stem])
+        snippet = open(os.path.join(SRC, f"orderstats.{lang}.src")).read().replace("ORCOST", "O(logU^2)").replace("COST", COST_TEXT[stem])
         src = src.replace(f"    {cm}@@ORDERSTATS\n", snippet.strip("\n") + "\n")
+        fields = [f for t, f in (("mex", "M"), ("sums", "S"), ("xorv", "X"), ("or", "OI"), ("and", "AI")) if t in tags]
+        fields += {"persistent": ["P"], "bit": ["F"], "sqrt": ["ones"]}[stem] if "sumxor" in tags else []
+        if stem == "sqrt":
+            fields = [f for f in fields if f == "ones"]
+        if stem == "bit":
+            fields = [f for f in fields if f in ("S", "X", "F")]
+        src = src.replace("@@SLOTS", "".join(f", '{f}'" for f in fields))
         body = strip(src, tags, cm)
         tag = [f"@operations: {' '.join(ops)}", f"@data-structure-type: {dstype}", "@complexities:"]
         tag += [f"  {op}: {costs[op]}" for op in ops] + [f"  build: {build}"]

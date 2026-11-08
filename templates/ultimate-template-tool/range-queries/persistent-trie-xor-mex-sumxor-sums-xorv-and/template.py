@@ -92,7 +92,7 @@
 
 
 class PersistentXorTrie:
-    __slots__ = ('B', 'top', 'arr', 'root', 'L', 'R', 'C', 'M', 'S', 'X', 'OI', 'AI', 'P')
+    __slots__ = ('B', 'top', 'arr', 'root', 'L', 'R', 'C', 'M', 'S', 'X', 'AI', 'P')
 
     # O(N log U) -- arr: the initial values (a list, may be empty), each in [0, 2^bits) (bits = 30 holds values up to
     # 1073741823); U = 2^bits
@@ -478,27 +478,27 @@ class PersistentXorTrie:
         self._rangeCheck("xorInValRange", l, r)
         return self._xorLt(l, r, highVal + 1) ^ self._xorLt(l, r, lowVal) if lowVal <= highVal else 0
 
-    # O(logU) -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU^2) -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
     def andLtX(self, l, r, x):
         self._rangeCheck("andLtX", l, r)
         return self._andIn(l, r, 0, x - 1)
 
-    # O(logU) -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU^2) -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
     def andLteX(self, l, r, x):
         self._rangeCheck("andLteX", l, r)
         return self._andIn(l, r, 0, x)
 
-    # O(logU) -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU^2) -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
     def andGtX(self, l, r, x):
         self._rangeCheck("andGtX", l, r)
         return self._andIn(l, r, x + 1, self.top)
 
-    # O(logU) -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU^2) -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
     def andGteX(self, l, r, x):
         self._rangeCheck("andGteX", l, r)
         return self._andIn(l, r, x, self.top)
 
-    # O(logU) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else
+    # O(logU^2) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else
     # IndexError
     def andInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("andInValRange", l, r)

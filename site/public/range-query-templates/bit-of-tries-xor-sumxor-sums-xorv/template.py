@@ -546,8 +546,9 @@ class BitXorTries:
         return res + k * v  # the last k all equal the k-th smallest
 
     def _xorAll(self, l, r):
+        P, N = self._tries(l, r)
         res, X = 0, self.X
-        for t in self._tries(l, r)[0] + self._tries(l, r)[1]:
+        for t in P + N:
             res ^= X[t]
         return res
 

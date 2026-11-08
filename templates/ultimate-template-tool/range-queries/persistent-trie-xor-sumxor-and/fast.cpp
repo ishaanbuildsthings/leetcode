@@ -425,31 +425,31 @@ struct PersistentXorTrie {
         return xorAll(l, r);
     }
 
-    // O(logU) -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU^2) -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
     LEETCODE_NO_SANITIZE long long andLtX(long long l, long long r, long long x) const {
         rangeCheck("andLtX", l, r);
         return andIn(l, r, 0, x - 1);
     }
 
-    // O(logU) -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU^2) -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
     LEETCODE_NO_SANITIZE long long andLteX(long long l, long long r, long long x) const {
         rangeCheck("andLteX", l, r);
         return andIn(l, r, 0, x);
     }
 
-    // O(logU) -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU^2) -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
     LEETCODE_NO_SANITIZE long long andGtX(long long l, long long r, long long x) const {
         rangeCheck("andGtX", l, r);
         return andIn(l, r, x + 1, top);
     }
 
-    // O(logU) -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU^2) -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else throws out_of_range
     LEETCODE_NO_SANITIZE long long andGteX(long long l, long long r, long long x) const {
         rangeCheck("andGteX", l, r);
         return andIn(l, r, x, top);
     }
 
-    // O(logU) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else
+    // O(logU^2) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else
     // throws out_of_range
     LEETCODE_NO_SANITIZE long long andInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("andInValRange", l, r);

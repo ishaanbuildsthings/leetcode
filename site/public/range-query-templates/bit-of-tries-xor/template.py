@@ -60,7 +60,7 @@
 
 
 class BitXorTries:
-    __slots__ = ('B', 'top', 'n', 'arr', 'root', 'L', 'R', 'C', 'S', 'X', 'F')
+    __slots__ = ('B', 'top', 'n', 'arr', 'root', 'L', 'R', 'C')
 
     # O(N logN logU) -- arr: the initial values (a list), each in [0, 2^bits) (bits = 30 holds values up to 1073741823);
     # U = 2^bits

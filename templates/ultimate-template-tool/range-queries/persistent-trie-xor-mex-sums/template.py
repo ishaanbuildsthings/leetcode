@@ -76,7 +76,7 @@
 
 
 class PersistentXorTrie:
-    __slots__ = ('B', 'top', 'arr', 'root', 'L', 'R', 'C', 'M', 'S', 'X', 'OI', 'AI', 'P')
+    __slots__ = ('B', 'top', 'arr', 'root', 'L', 'R', 'C', 'M', 'S')
 
     # O(N log U) -- arr: the initial values (a list, may be empty), each in [0, 2^bits) (bits = 30 holds values up to
     # 1073741823); U = 2^bits

@@ -445,6 +445,23 @@ struct BitXorTries {
         return c;
     }
 
+    // the count of the children for v's bit = bit, without building them
+    long long childCount(const Span& s, int bit) const {
+        long long c = 0;
+        for (int t : s.P) c += nd[bit ? nd[t].R : nd[t].L].C;
+        for (int t : s.N) c -= nd[bit ? nd[t].R : nd[t].L].C;
+        return c;
+    }
+
+    void descend(Span& s, int bit) const {  // s becomes its children for v's bit = bit (empty ones dropped), in place
+        for (auto* side : {&s.P, &s.N}) {
+            size_t k = 0;
+            for (int t : *side)
+                if (int c = bit ? nd[t].R : nd[t].L) (*side)[k++] = c;
+            side->resize(k);
+        }
+    }
+
     Span down(const Span& s, int bit) const {  // the children for v's bit = bit (empty ones dropped)
         Span o;
         for (int t : s.P) if (int c = bit ? nd[t].R : nd[t].L) o.P.push_back(c);
@@ -460,10 +477,10 @@ struct BitXorTries {
         for (int h = B - 1; h >= 0 && !s.P.empty(); h--) {
             int xb = x >> h & 1;
             if (k >> h & 1) {  // every result with bit h = 0 is < k
-                res += cnt(down(s, xb));
-                s = down(s, xb ^ 1);
+                res += childCount(s, xb);
+                descend(s, xb ^ 1);
             } else {
-                s = down(s, xb);
+                descend(s, xb);
             }
         }
         return res;
@@ -474,13 +491,12 @@ struct BitXorTries {
         long long res = 0;
         for (int h = B - 1; h >= 0; h--) {
             int xb = x >> h & 1;
-            Span z = down(s, xb);
-            long long c = cnt(z);
+            long long c = childCount(s, xb);
             if (k <= c) {
-                s = std::move(z);
+                descend(s, xb);
             } else {
                 k -= c;
-                s = down(s, xb ^ 1);
+                descend(s, xb ^ 1);
                 res |= 1LL << h;
             }
         }
@@ -492,12 +508,11 @@ struct BitXorTries {
         long long res = 0;
         for (; h >= 0; h--) {
             int p = (int)(x >> h & 1) ^ big;  // the child whose result bit is big
-            Span u = down(s, p);
-            if (cnt(u)) {
-                s = std::move(u);
+            if (childCount(s, p)) {
+                descend(s, p);
                 res |= (long long)big << h;
             } else {
-                s = down(s, p ^ 1);
+                descend(s, p ^ 1);
                 res |= (long long)(big ^ 1) << h;
             }
         }
@@ -513,7 +528,7 @@ struct BitXorTries {
         long long res = 0;
         for (; h >= 0 && (lo >> h & 1) == (hi >> h & 1); h--) {
             int bit = lo >> h & 1;
-            s = down(s, bit);
+            descend(s, bit);
             if (!cnt(s)) return nullopt;
             res |= (long long)(bit ^ (x >> h & 1)) << h;
         }
@@ -543,7 +558,7 @@ struct BitXorTries {
                     f = std::move(c), fh = h, fres = cres;
                 }
             }
-            s = down(s, bb);
+            descend(s, bb);
             if (!cnt(s)) break;
             res |= (long long)(bb ^ xb) << h;
         }

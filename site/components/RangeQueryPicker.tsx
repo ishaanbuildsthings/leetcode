@@ -208,6 +208,8 @@ const RANGE_CATALOG: PickerCatalog<TemplateView> = {
     "tuple values with a custom comparator",
     "interval tree",
     "2D sparse table",
+    "multiset hashing",
+    "2D hashing",
   ],
 };
 

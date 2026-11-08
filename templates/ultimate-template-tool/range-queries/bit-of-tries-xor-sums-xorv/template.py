@@ -79,7 +79,7 @@
 
 
 class BitXorTries:
-    __slots__ = ('B', 'top', 'n', 'arr', 'root', 'L', 'R', 'C', 'S', 'X', 'F')
+    __slots__ = ('B', 'top', 'n', 'arr', 'root', 'L', 'R', 'C', 'S', 'X')
 
     # O(N logN logU) -- arr: the initial values (a list), each in [0, 2^bits) (bits = 30 holds values up to 1073741823);
     # U = 2^bits
@@ -522,8 +522,9 @@ class BitXorTries:
         return res + k * v  # the last k all equal the k-th smallest
 
     def _xorAll(self, l, r):
+        P, N = self._tries(l, r)
         res, X = 0, self.X
-        for t in self._tries(l, r)[0] + self._tries(l, r)[1]:
+        for t in P + N:
             res ^= X[t]
         return res
 

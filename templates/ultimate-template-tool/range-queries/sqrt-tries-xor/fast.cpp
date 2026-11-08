@@ -529,6 +529,20 @@ struct SqrtXorTries {
         return c;
     }
 
+    // the count of the children for real bit h = bit, without building them
+    LEETCODE_NO_SANITIZE long long childCount(const Src& src, int bit, int h) const {
+        long long c = 0;
+        for (auto& [t, g] : src) c += nd[(bit ^ (int)(g >> h & 1)) ? nd[t].R : nd[t].L].C;
+        return c;
+    }
+
+    LEETCODE_NO_SANITIZE void descend(Src& src, int bit, int h) const {  // src becomes its children for real bit h = bit, in place
+        size_t k = 0;
+        for (auto& [t, g] : src)
+            if (int c = (bit ^ (int)(g >> h & 1)) ? nd[t].R : nd[t].L) src[k++] = {c, g};
+        src.resize(k);
+    }
+
     LEETCODE_NO_SANITIZE Src down(const Src& src, int bit, int h) const {  // the children for real bit h = bit (each through its lazy xor)
         Src out;
         out.reserve(src.size());
@@ -545,10 +559,10 @@ struct SqrtXorTries {
         for (int h = B - 1; h >= 0 && !src.empty(); h--) {
             int xb = x >> h & 1;
             if (k >> h & 1) {  // every result with bit h = 0 is < k
-                res += cnt(down(src, xb, h));
-                src = down(src, xb ^ 1, h);
+                res += childCount(src, xb, h);
+                descend(src, xb ^ 1, h);
             } else {
-                src = down(src, xb, h);
+                descend(src, xb, h);
             }
         }
         return res;
@@ -559,13 +573,12 @@ struct SqrtXorTries {
         long long res = 0;
         for (int h = B - 1; h >= 0; h--) {
             int xb = x >> h & 1;
-            Src z = down(src, xb, h);
-            long long c = cnt(z);
+            long long c = childCount(src, xb, h);
             if (k <= c) {
-                src = std::move(z);
+                descend(src, xb, h);
             } else {
                 k -= c;
-                src = down(src, xb ^ 1, h);
+                descend(src, xb ^ 1, h);
                 res |= 1LL << h;
             }
         }
@@ -577,12 +590,11 @@ struct SqrtXorTries {
         long long res = 0;
         for (; h >= 0; h--) {
             int p = (int)(x >> h & 1) ^ big;  // the child whose result bit is big
-            Src u = down(src, p, h);
-            if (cnt(u)) {
-                src = std::move(u);
+            if (childCount(src, p, h)) {
+                descend(src, p, h);
                 res |= (long long)big << h;
             } else {
-                src = down(src, p ^ 1, h);
+                descend(src, p ^ 1, h);
                 res |= (long long)(big ^ 1) << h;
             }
         }
@@ -598,7 +610,7 @@ struct SqrtXorTries {
         long long res = 0;
         for (; h >= 0 && (lo >> h & 1) == (hi >> h & 1); h--) {
             int bit = lo >> h & 1;
-            src = down(src, bit, h);
+            descend(src, bit, h);
             if (!cnt(src)) return nullopt;
             res |= (long long)(bit ^ (x >> h & 1)) << h;
         }
@@ -628,7 +640,7 @@ struct SqrtXorTries {
                     f = std::move(c), fh = h, fres = cres;
                 }
             }
-            src = down(src, bb, h);
+            descend(src, bb, h);
             if (!cnt(src)) break;
             res |= (long long)(bb ^ xb) << h;
         }
