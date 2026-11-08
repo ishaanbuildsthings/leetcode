@@ -42,7 +42,7 @@ class GcdSegmentTree:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # Point OVERWRITE (not chmax/add): arr[index] becomes newVal. Point overwrite: a[index] = newVal. Only updates the
+    # O(logN * logU) -- Point OVERWRITE (not chmax/add): arr[index] becomes newVal. Point overwrite: a[index] = newVal. Only updates the
     # tree; the array you passed in is untouched.; needs 0 <= index < n, else IndexError
     def pointAssign(self, index, newVal):
         if not 0 <= index < self.n:
@@ -63,7 +63,7 @@ class GcdSegmentTree:
         self.arr[index] = newVal
         self.pointAssign(index, newVal)
 
-    # Inclusive range [l, r]. Requires l <= r. Returns 0 for an empty range.; needs 0 <= l <= r < n, else IndexError
+    # O(logN + logU) -- Inclusive range [l, r]. Requires l <= r. Returns 0 for an empty range.; needs 0 <= l <= r < n, else IndexError
     def rangeGcd(self, l, r):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -89,21 +89,21 @@ class GcdSegmentTree:
     def getAll(self):
         return self.tree[self.n:]
 
-    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN * logU) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.tree[self.n + i]:
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN * logU) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.tree[self.n + i]:
             self.pointAssign(i, val)
 
-    # a[i] += delta; needs 0 <= i < n, else IndexError
+    # O(logN * logU) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
         if not 0 <= i < self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")

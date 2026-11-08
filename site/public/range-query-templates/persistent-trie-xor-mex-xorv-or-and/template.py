@@ -384,53 +384,53 @@ class PersistentXorTrie:
         self._rangeCheck("xorInValRange", l, r)
         return self._xorLt(l, r, highVal + 1) ^ self._xorLt(l, r, lowVal) if lowVal <= highVal else 0
 
-    # O(logU^2) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
     def orLtX(self, l, r, x):
         self._rangeCheck("orLtX", l, r)
         return self._orIn(l, r, 0, x - 1)
 
-    # O(logU^2) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
     def orLteX(self, l, r, x):
         self._rangeCheck("orLteX", l, r)
         return self._orIn(l, r, 0, x)
 
-    # O(logU^2) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
     def orGtX(self, l, r, x):
         self._rangeCheck("orGtX", l, r)
         return self._orIn(l, r, x + 1, self.top)
 
-    # O(logU^2) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else IndexError
     def orGteX(self, l, r, x):
         self._rangeCheck("orGteX", l, r)
         return self._orIn(l, r, x, self.top)
 
-    # O(logU^2) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <= r < size(), else
+    # O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <= r < size(), else
     # IndexError
     def orInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("orInValRange", l, r)
         return self._orIn(l, r, lowVal, highVal)
 
-    # O(logU^2) -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- AND of the values < x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
     def andLtX(self, l, r, x):
         self._rangeCheck("andLtX", l, r)
         return self._andIn(l, r, 0, x - 1)
 
-    # O(logU^2) -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- AND of the values <= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
     def andLteX(self, l, r, x):
         self._rangeCheck("andLteX", l, r)
         return self._andIn(l, r, 0, x)
 
-    # O(logU^2) -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- AND of the values > x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
     def andGtX(self, l, r, x):
         self._rangeCheck("andGtX", l, r)
         return self._andIn(l, r, x + 1, self.top)
 
-    # O(logU^2) -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
+    # O(logU * logU) -- AND of the values >= x in a[l..r] (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else IndexError
     def andGteX(self, l, r, x):
         self._rangeCheck("andGteX", l, r)
         return self._andIn(l, r, x, self.top)
 
-    # O(logU^2) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else
+    # O(logU * logU) -- AND of the values v in a[l..r] with lowVal <= v <= highVal (-1, every bit set, if there are none); needs 0 <= l <= r < size(), else
     # IndexError
     def andInValRange(self, l, r, lowVal, highVal):
         self._rangeCheck("andInValRange", l, r)

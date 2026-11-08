@@ -153,15 +153,15 @@ class SparseOccurrenceLists:
         s = self.pos.get(x)
         return 0 if s is None else s.countLess(r + 1) - s.countLess(l)
 
-    # O(logU) (x == 0: O(log^2 U)) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    # O(logU * logU) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
     def leftmostIndexOf(self, x):
         return self.leftmostIndexOfInRange(self.lo, self.hi, x)
 
-    # O(logU) (x == 0: O(log^2 U)) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    # O(logU * logU) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
     def rightmostIndexOf(self, x):
         return self.rightmostIndexOfInRange(self.lo, self.hi, x)
 
-    # O(logU) (x == 0: O(log^2 U)) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
+    # O(logU * logU) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
     # lo <= l <= r <= hi, else IndexError
     def leftmostIndexOfInRange(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -185,7 +185,7 @@ class SparseOccurrenceLists:
         i = s.succ(l - 1) if s is not None else None
         return i if i is not None and i <= r else self.lo - 1
 
-    # O(logU) (x == 0: O(log^2 U)) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
+    # O(logU * logU) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
     # lo <= l <= r <= hi, else IndexError
     def rightmostIndexOfInRange(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -239,20 +239,20 @@ class SparseOccurrenceLists:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self.vals.get(i, 0)
 
-    # a[i] += delta; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")

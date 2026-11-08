@@ -86,7 +86,7 @@ class WaveletMatrix:
         self.at.append(self._andTab([srt[v] for v in cur]))  # (the final order)
         self._buildMex()
 
-    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
@@ -769,7 +769,7 @@ class SparseWaveletMatrix:
             return 1  # all zeros
         return self.inner._mexFrom(i0, i1, 1) if zeros else self.inner.rangeMex(i0, i1)
 
-    # O(logN) -- OR of the values < x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    # O(log^2 N) -- OR of the values < x in a[l..r]; 0 if there are none (the zeros add nothing); needs
     # lo <= l <= r <= hi, else IndexError
     def orLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -777,7 +777,7 @@ class SparseWaveletMatrix:
         i0, i1, zeros = self._span(l, r)
         return self.inner.orLtX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(logN) -- OR of the values <= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    # O(log^2 N) -- OR of the values <= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
     # lo <= l <= r <= hi, else IndexError
     def orLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -785,7 +785,7 @@ class SparseWaveletMatrix:
         i0, i1, zeros = self._span(l, r)
         return self.inner.orLteX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(logN) -- OR of the values > x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    # O(log^2 N) -- OR of the values > x in a[l..r]; 0 if there are none (the zeros add nothing); needs
     # lo <= l <= r <= hi, else IndexError
     def orGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -793,7 +793,7 @@ class SparseWaveletMatrix:
         i0, i1, zeros = self._span(l, r)
         return self.inner.orGtX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(logN) -- OR of the values >= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
+    # O(log^2 N) -- OR of the values >= x in a[l..r]; 0 if there are none (the zeros add nothing); needs
     # lo <= l <= r <= hi, else IndexError
     def orGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -801,7 +801,7 @@ class SparseWaveletMatrix:
         i0, i1, zeros = self._span(l, r)
         return self.inner.orGteX(i0, i1, x) if i0 <= i1 else 0
 
-    # O(logN) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none (the zeros add
+    # O(log^2 N) -- OR of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; 0 if there are none (the zeros add
     # nothing); needs lo <= l <= r <= hi, else IndexError
     def orInValRange(self, l, r, lowVal, highVal):
         if not self.lo <= l <= r <= self.hi:

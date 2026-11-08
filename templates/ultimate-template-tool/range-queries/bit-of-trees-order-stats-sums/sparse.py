@@ -67,7 +67,7 @@ class SparseDynamicOrderStats:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self.vals.get(i, 0)
 
-    # O(logN logU) -- a[i] = v; needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] = v; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, v):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
@@ -81,31 +81,31 @@ class SparseDynamicOrderStats:
             else:
                 self.vals.pop(i, None)
 
-    # O(logN logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + v)
 
-    # O(logN logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, v):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, max(self.pointGet(i), v))
 
-    # O(logN logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, v):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, min(self.pointGet(i), v))
 
-    # O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else IndexError
     def countOccurrences(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countOccurrences: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self.countInValRange(l, r, x, x)
 
-    # O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else IndexError
     def countInValRange(self, l, r, lowVal, highVal):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countInValRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -113,31 +113,31 @@ class SparseDynamicOrderStats:
             return 0
         return self._countBelow(l, r, highVal + 1) - self._countBelow(l, r, lowVal)
 
-    # O(logN) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- # of values < x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def countLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._countBelow(l, r, x)
 
-    # O(logN) -- # of values <= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- # of values <= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def countLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._countBelow(l, r, x + 1)
 
-    # O(logN) -- # of values > x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- # of values > x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def countGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return r - l + 1 - self._countBelow(l, r, x + 1)
 
-    # O(logN) -- # of values >= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- # of values >= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def countGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"countGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return r - l + 1 - self._countBelow(l, r, x)
 
-    # O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
+    # O(logU * logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs lo <= l <= r <= hi and 1 <= k <= r - l + 1,
     # else IndexError
     def kthSmallest(self, l, r, k):
         if not self.lo <= l <= r <= self.hi:
@@ -146,53 +146,53 @@ class SparseDynamicOrderStats:
             raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._kth(l, r, k)
 
-    # O(logN) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- min of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMin(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._kth(l, r, 1)
 
-    # O(logN) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMax(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeMax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._kth(l, r, r - l + 1)
 
-    # O(logN) -- smallest value >= x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- smallest value >= x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
     def smallestGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"smallestGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         c = self._countBelow(l, r, x)
         return None if c == r - l + 1 else self._kth(l, r, c + 1)
 
-    # O(logN) -- smallest value > x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- smallest value > x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
     def smallestGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"smallestGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         c = self._countBelow(l, r, x + 1)
         return None if c == r - l + 1 else self._kth(l, r, c + 1)
 
-    # O(logN) -- largest value <= x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- largest value <= x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
     def largestLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"largestLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         c = self._countBelow(l, r, x + 1)
         return None if c == 0 else self._kth(l, r, c)
 
-    # O(logN) -- largest value < x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- largest value < x in a[l..r], or None; needs lo <= l <= r <= hi, else IndexError
     def largestLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"largestLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         c = self._countBelow(l, r, x)
         return None if c == 0 else self._kth(l, r, c)
 
-    # O(logN) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._sumFirst(l, r, r - l + 1)
 
-    # O(logN) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- sum of the a[i] in [l, r] with lowVal <= a[i] <= highVal; needs lo <= l <= r <= hi, else IndexError
     def sumInValRange(self, l, r, lowVal, highVal):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumInValRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -200,31 +200,31 @@ class SparseDynamicOrderStats:
             return 0
         return self._sumBelow(l, r, highVal + 1) - self._sumBelow(l, r, lowVal)
 
-    # O(logN) -- sum of the values < x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- sum of the values < x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def sumLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumLtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._sumBelow(l, r, x)
 
-    # O(logN) -- sum of the values <= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- sum of the values <= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def sumLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumLteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._sumBelow(l, r, x + 1)
 
-    # O(logN) -- sum of the values > x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- sum of the values > x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def sumGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumGtX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._sumFirst(l, r, r - l + 1) - self._sumBelow(l, r, x + 1)
 
-    # O(logN) -- sum of the values >= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- sum of the values >= x in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def sumGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumGteX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return self._sumFirst(l, r, r - l + 1) - self._sumBelow(l, r, x)
 
-    # O(logN) -- sum of the k smallest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
+    # O(logU * logU) -- sum of the k smallest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
     # IndexError
     def sumSmallestK(self, l, r, k):
         if not self.lo <= l <= r <= self.hi:
@@ -233,7 +233,7 @@ class SparseDynamicOrderStats:
             raise IndexError(f"sumSmallestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._sumFirst(l, r, k)
 
-    # O(logN) -- sum of the k largest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
+    # O(logU * logU) -- sum of the k largest values in a[l..r]; needs lo <= l <= r <= hi and 0 <= k <= r - l + 1, else
     # IndexError
     def sumLargestK(self, l, r, k):
         if not self.lo <= l <= r <= self.hi:
@@ -243,7 +243,7 @@ class SparseDynamicOrderStats:
             raise IndexError(f"sumLargestK: needs 0 <= k <= r - l + 1, got k = {k}, r - l + 1 = {n}")
         return self._sumFirst(l, r, n) - self._sumFirst(l, r, n - k)
 
-    # O(logN) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs
+    # O(logU * logU) -- sum of the kFrom-th..kTo-th smallest values of a[l..r] (1-indexed, inclusive); needs
     # lo <= l <= r <= hi and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
     def sumKthSmallestRange(self, l, r, kFrom, kTo):
         if not self.lo <= l <= r <= self.hi:
@@ -253,7 +253,7 @@ class SparseDynamicOrderStats:
                              f"kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {r - l + 1}")
         return self._sumFirst(l, r, kTo) - self._sumFirst(l, r, kFrom - 1)
 
-    # O(logN) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest);
+    # O(logU * logU) -- sum of the kFrom-th..kTo-th largest values of a[l..r] (1-indexed, inclusive; (1, 3) = the 3 biggest);
     # needs lo <= l <= r <= hi and 1 <= kFrom <= kTo <= r - l + 1, else IndexError
     def sumKthLargestRange(self, l, r, kFrom, kTo):
         if not self.lo <= l <= r <= self.hi:
@@ -264,7 +264,7 @@ class SparseDynamicOrderStats:
                              f"kFrom = {kFrom}, kTo = {kTo}, r - l + 1 = {n}")
         return self._sumFirst(l, r, n - kFrom + 1) - self._sumFirst(l, r, n - kTo)
 
-    # O(logN) -- sum of |a[i] - x| over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- sum of |a[i] - x| over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def sumAbsDiffToX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"sumAbsDiffToX: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

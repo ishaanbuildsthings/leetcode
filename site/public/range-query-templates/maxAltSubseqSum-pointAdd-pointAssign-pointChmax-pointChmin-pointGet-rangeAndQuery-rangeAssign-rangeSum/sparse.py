@@ -57,7 +57,7 @@ class SparseLazySegTree:
         self.hasAsg = [0]
         self._newZero(self.D)
 
-    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
+    # O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
     # IndexError
     def maxAltSubseqSum(self, l, r):
         if not self.first <= l <= r <= self.last:

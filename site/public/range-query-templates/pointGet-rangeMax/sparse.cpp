@@ -37,14 +37,14 @@ struct SparseMax {
         }
     }
 
-    // O(1) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeMax(int l, int r) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("rangeMax: needs 0 <= l <= r < n");
         int k = 31 - __builtin_clz(r - l + 1);
         return combine(sp[k][l], sp[k][r - (1 << k) + 1]);
     }
 
-    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return sp[0][i];

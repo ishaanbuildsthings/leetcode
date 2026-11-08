@@ -188,7 +188,7 @@ class SparseShrinkSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logN) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def longestEqualRun(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"longestEqualRun: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -209,7 +209,7 @@ class SparseShrinkSegTree:
             last = lv[t]
         return res
 
-    # O(logN) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def maxPrefixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"maxPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -223,7 +223,7 @@ class SparseShrinkSegTree:
             acc += sm[t]
         return res
 
-    # O(logN) -- max sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def maxSubarraySum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"maxSubarraySum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -236,7 +236,7 @@ class SparseShrinkSegTree:
             q = max(suf[t], sm[t] + q)
         return res
 
-    # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def maxSuffixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"maxSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

@@ -40,12 +40,12 @@ using ll = long long;
 //   other: none
 //   note: blocks of about sqrt(N) values; each block's values are classes joined by a union-find (union by size, path halving: O(alpha), counted as O(1)); where maps each value in the block to its class; values are hashed, so any values work
 
-// Blocks whose values form a union-find of classes (mass change, CF 911G, in O(sqrt N), with sequence edits): the
+// Blocks whose values form a union-find of classes (mass change, CF 911G, in O(sqrt(N)), with sequence edits): the
 // array is cut into blocks of about sqrt(N) values. Inside a block equal values form a class, and the classes are
 // joined by a union-find: rangeReplace(l, r, x, y) on a whole block renames x's class to y, or joins it into y's, in
 // O(1); rangeAssign joins every class. Only the (at most two) partly covered blocks are touched value by value. Any
 // values work (each block hashes them). The blocks form a list you can insert into anywhere, rotate, cut pieces out
-// of (that is how to erase) and paste back; a[i] then walks the list (O(sqrt N)). All indices 0-based, ranges
+// of (that is how to erase) and paste back; a[i] then walks the list (O(sqrt(N))). All indices 0-based, ranges
 // inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing qualifies.
 // T: any type with a hash (int, long long, char, ...)
 
@@ -171,7 +171,7 @@ struct SqrtReplace {
         return blocks[j].get(k);
     }
 
-    // O(sqrt(N)) -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
+    // O(sqrt(N)) amortized -- a[i] = v; needs 0 <= i < size(), else throws out_of_range
     void pointAssign(int i, const T& v) {
         if (i < 0 || i >= size()) throw out_of_range("pointAssign: needs 0 <= i < size()");
         auto [j, k] = locate(i);
@@ -203,7 +203,7 @@ struct SqrtReplace {
         });
     }
 
-    // O(sqrt(N)) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else throws out_of_range
+    // O(sqrt(N)) amortized -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else throws out_of_range
     int countOccurrences(int l, int r, const T& x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("countOccurrences: needs 0 <= l <= r < size()");
         int res = 0;
@@ -216,20 +216,20 @@ struct SqrtReplace {
         return res;
     }
 
-    // O(sqrt(N)) -- the smallest i with a[i] == x, or -1 if x isn't in the array
+    // O(sqrt(N)) amortized -- the smallest i with a[i] == x, or -1 if x isn't in the array
     int leftmostIndexOf(const T& x) { return findIn(0, n - 1, x, true); }
 
-    // O(sqrt(N)) -- the largest i with a[i] == x, or -1 if x isn't in the array
+    // O(sqrt(N)) amortized -- the largest i with a[i] == x, or -1 if x isn't in the array
     int rightmostIndexOf(const T& x) { return findIn(0, n - 1, x, false); }
 
-    // O(sqrt(N)) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    // O(sqrt(N)) amortized -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
     // throws out_of_range
     int leftmostIndexOfInRange(int l, int r, const T& x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("leftmostIndexOfInRange: needs 0 <= l <= r < size()");
         return findIn(l, r, x, true);
     }
 
-    // O(sqrt(N)) -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    // O(sqrt(N)) amortized -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
     // throws out_of_range
     int rightmostIndexOfInRange(int l, int r, const T& x) {
         if (l < 0 || l > r || r >= size()) throw out_of_range("rightmostIndexOfInRange: needs 0 <= l <= r < size()");

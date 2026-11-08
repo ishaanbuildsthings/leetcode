@@ -78,7 +78,7 @@ class WaveletMatrix:
         self.xt.append(self._xorTab([srt[v] for v in cur]))  # (the final order)
         self._buildMex()
 
-    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")

@@ -44,7 +44,7 @@ class StridedQueries:
             self.offsets[step] = starts
         self.diffs = [None] + [[0] * (n + 2) for _ in range(self.strides)]  # one Fenwick tree of differences per kept step
 
-    # a[l] += v, a[l + step] += v, ... up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # O(sqrt(N logN)) -- a[l] += v, a[l + step] += v, ... up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedAdd(self, l, r, step, v):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -60,7 +60,7 @@ class StridedQueries:
         self._addDiff(step, starts[l % step] + l // step, v)
         self._addDiff(step, starts[last % step] + last // step + 1, -v)
 
-    # the current a[i]; needs 0 <= i < n, else raises IndexError
+    # O(sqrt(N logN)) -- the current a[i]; needs 0 <= i < n, else raises IndexError
     def pointGet(self, i):
         if i < 0 or i >= self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i={i}, n={self.n}")
@@ -74,19 +74,19 @@ class StridedQueries:
                 node &= node - 1
         return res
 
-    # a[i] += v; needs 0 <= i < n, else raises IndexError
+    # O(1) -- a[i] += v; needs 0 <= i < n, else raises IndexError
     def pointAdd(self, i, v):
         if i < 0 or i >= self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i={i}, n={self.n}")
         self.A[i] += v
 
-    # a[i] = v (overwrite); needs 0 <= i < n, else raises IndexError
+    # O(sqrt(N logN)) -- a[i] = v (overwrite); needs 0 <= i < n, else raises IndexError
     def pointAssign(self, i, v):
         if i < 0 or i >= self.n:
             raise IndexError(f"pointAssign: needs 0 <= i < n, got i={i}, n={self.n}")
         self.A[i] += v - self.pointGet(i)
 
-    # a[i] = max(a[i], v); needs 0 <= i < n, else raises IndexError
+    # O(sqrt(N logN)) -- a[i] = max(a[i], v); needs 0 <= i < n, else raises IndexError
     def pointChmax(self, i, v):
         if i < 0 or i >= self.n:
             raise IndexError(f"pointChmax: needs 0 <= i < n, got i={i}, n={self.n}")
@@ -94,7 +94,7 @@ class StridedQueries:
         if v > current:
             self.A[i] += v - current
 
-    # a[i] = min(a[i], v); needs 0 <= i < n, else raises IndexError
+    # O(sqrt(N logN)) -- a[i] = min(a[i], v); needs 0 <= i < n, else raises IndexError
     def pointChmin(self, i, v):
         if i < 0 or i >= self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i={i}, n={self.n}")
@@ -102,7 +102,7 @@ class StridedQueries:
         if v < current:
             self.A[i] += v - current
 
-    # the whole array
+    # O(N * sqrt NlogN) -- the whole array
     def getAll(self):
         return [self.pointGet(i) for i in range(self.n)]
 

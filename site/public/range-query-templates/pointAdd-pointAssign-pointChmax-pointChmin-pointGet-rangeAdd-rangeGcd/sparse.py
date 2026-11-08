@@ -61,7 +61,7 @@ class SparseRangeAddRangeGcd:
             p >>= 1
         return total
 
-    # O(logU) -- adds x to every a[l..r], x may be negative; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- adds x to every a[l..r], x may be negative; needs lo <= l <= r <= hi, else IndexError
     def rangeAdd(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAdd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -77,7 +77,7 @@ class SparseRangeAddRangeGcd:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._prefix(i)
 
-    # O(logU + logV) -- gcd of a[l..r], always >= 0 (0 only if every value in the range is 0); needs
+    # O(logU) -- gcd of a[l..r], always >= 0 (0 only if every value in the range is 0); needs
     # lo <= l <= r <= hi, else IndexError
     def rangeGcd(self, l, r):
         if not self.lo <= l <= r <= self.hi:
@@ -97,19 +97,19 @@ class SparseRangeAddRangeGcd:
             r >>= 1
         return res
 
-    # O(logU logV) -- a[i] += delta; needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.rangeAdd(i, i, delta)
 
-    # O(logU logV) -- a[i] = val; needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         self.rangeAdd(i, i, val - self._prefix(i))
 
-    # O(logU logV) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
@@ -117,7 +117,7 @@ class SparseRangeAddRangeGcd:
         if val > cur:
             self.rangeAdd(i, i, val - cur)
 
-    # O(logU logV) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")

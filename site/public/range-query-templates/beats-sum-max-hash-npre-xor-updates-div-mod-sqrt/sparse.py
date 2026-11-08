@@ -74,7 +74,7 @@ class SparseShrinkSegTree:
             pw.append(pw[k] * pw[k] % _HP)
         self._newZero(self.D)
 
-    # O(logN) -- is a[l..r] a palindrome (its two hashes agree); needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- is a[l..r] a palindrome (its two hashes agree); needs lo <= l <= r <= hi, else IndexError
     def isPalindrome(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"isPalindrome: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -163,7 +163,7 @@ class SparseShrinkSegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logN) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def minPrefixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -230,7 +230,7 @@ class SparseShrinkSegTree:
             raise IndexError(f"rangeFloorSqrt: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._shrink(t, s, 2, isqrt))
 
-    # O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
+    # O(logU) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
     # lo <= l <= r <= hi, else IndexError
     def rangeHash(self, l, r):
         if not self.first <= l <= r <= self.last:
@@ -240,7 +240,7 @@ class SparseShrinkSegTree:
             res = (res * pw[s] + fh[t]) % P
         return res
 
-    # O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs lo <= l <= r <= hi,
+    # O(logU) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs lo <= l <= r <= hi,
     # else IndexError
     def rangeHashReversed(self, l, r):
         if not self.first <= l <= r <= self.last:
@@ -287,7 +287,7 @@ class SparseShrinkSegTree:
             res ^= xr[t]
         return res
 
-    # O(logN) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
+    # O(logU) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
     # lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi, else IndexError
     def rangesEqual(self, l1, r1, l2, r2):
         if not (self.first <= l1 <= r1 <= self.last and self.first <= l2 <= r2 <= self.last):

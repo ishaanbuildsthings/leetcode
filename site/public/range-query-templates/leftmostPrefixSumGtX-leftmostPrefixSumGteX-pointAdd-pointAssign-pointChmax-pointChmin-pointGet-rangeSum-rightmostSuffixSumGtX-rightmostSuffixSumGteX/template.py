@@ -55,7 +55,7 @@ class BIT:
             i -= i & (-i)
         return s
 
-    # gets sum l...r; needs 0 <= l <= r < n, else IndexError
+    # O(logN) -- gets sum l...r; needs 0 <= l <= r < n, else IndexError
     def rangeSum(self, l, r):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

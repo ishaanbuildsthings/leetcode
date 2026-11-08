@@ -153,12 +153,12 @@ class DynamicOccurrenceLists:
         p = self.pos.get(x)
         return p.countLess(r + 1) - p.countLess(l) if p is not None and l <= r else 0
 
-    # O(1) -- the smallest i with a[i] == x, or -1 if x isn't in the array
+    # O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array
     def leftmostIndexOf(self, x):
         p = self.pos.get(x)
         return p.lists[0][0] if p is not None else -1
 
-    # O(1) -- the largest i with a[i] == x, or -1 if x isn't in the array
+    # O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
     def rightmostIndexOf(self, x):
         p = self.pos.get(x)
         return p.lists[-1][-1] if p is not None else -1

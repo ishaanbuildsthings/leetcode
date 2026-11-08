@@ -217,7 +217,7 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logN) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
+    // O(logU) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     long long longestEqualRun(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
@@ -238,7 +238,7 @@ struct SparseShrinkSegTree {
         return res;
     }
 
-    // O(logN) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     S minPrefixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("minPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -247,7 +247,7 @@ struct SparseShrinkSegTree {
         return res;
     }
 
-    // O(logN) -- min sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else throws
+    // O(logU) -- min sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     S minSubarraySum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("minSubarraySum: needs lo <= l <= r <= hi");
@@ -260,7 +260,7 @@ struct SparseShrinkSegTree {
         return res;
     }
 
-    // O(logN) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     S minSuffixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("minSuffixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)

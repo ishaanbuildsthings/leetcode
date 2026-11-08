@@ -286,25 +286,25 @@ struct BeatsGcd {
         return out;
     }
 
-    // a[i] = v; needs 0 <= i < n, else throws out_of_range
+    // O(log^2 N * logU) amortized -- a[i] = v; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         rangeAssign(i, i, v);
     }
 
-    // a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(log^2 N * logU) amortized -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         rangeChmax(i, i, v);
     }
 
-    // a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(log^2 N * logU) amortized -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         rangeChmin(i, i, v);
     }
 
-    // a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    // O(log^2 N * logU) amortized -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T delta) {
         if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         rangeAdd(i, i, delta);

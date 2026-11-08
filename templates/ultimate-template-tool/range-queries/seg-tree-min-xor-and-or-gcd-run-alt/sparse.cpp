@@ -115,7 +115,7 @@ struct SparseSegTree {
         return first - 1;
     }
 
-    // O(logN) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
+    // O(logU) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     long long longestEqualRun(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
@@ -136,7 +136,7 @@ struct SparseSegTree {
         return res;
     }
 
-    // O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
+    // O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
     // throws out_of_range
     S maxAltSubseqSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxAltSubseqSum: needs lo <= l <= r <= hi");
@@ -190,7 +190,7 @@ struct SparseSegTree {
         return res;
     }
 
-    // O(logU + logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeGcd(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         int ns[128], ls[128], c = cover(l, r, ns, ls);

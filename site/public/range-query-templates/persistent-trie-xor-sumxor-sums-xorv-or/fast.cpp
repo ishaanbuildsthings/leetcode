@@ -546,31 +546,31 @@ struct PersistentXorTrie {
         return lowVal <= highVal ? xorLt(l, r, highVal + 1) ^ xorLt(l, r, lowVal) : 0;
     }
 
-    // O(logU^2) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values < x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
     LEETCODE_NO_SANITIZE long long orLtX(long long l, long long r, long long x) const {
         rangeCheck("orLtX", l, r);
         return orIn(l, r, 0, x - 1);
     }
 
-    // O(logU^2) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values <= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
     LEETCODE_NO_SANITIZE long long orLteX(long long l, long long r, long long x) const {
         rangeCheck("orLteX", l, r);
         return orIn(l, r, 0, x);
     }
 
-    // O(logU^2) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values > x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
     LEETCODE_NO_SANITIZE long long orGtX(long long l, long long r, long long x) const {
         rangeCheck("orGtX", l, r);
         return orIn(l, r, x + 1, top);
     }
 
-    // O(logU^2) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
+    // O(logU * logU) -- OR of the values >= x in a[l..r] (0 if there are none); needs 0 <= l <= r < size(), else throws out_of_range
     LEETCODE_NO_SANITIZE long long orGteX(long long l, long long r, long long x) const {
         rangeCheck("orGteX", l, r);
         return orIn(l, r, x, top);
     }
 
-    // O(logU^2) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <= r < size(), else
+    // O(logU * logU) -- OR of the values v in a[l..r] with lowVal <= v <= highVal (0 if there are none); needs 0 <= l <= r < size(), else
     // throws out_of_range
     LEETCODE_NO_SANITIZE long long orInValRange(long long l, long long r, long long lowVal, long long highVal) const {
         rangeCheck("orInValRange", l, r);

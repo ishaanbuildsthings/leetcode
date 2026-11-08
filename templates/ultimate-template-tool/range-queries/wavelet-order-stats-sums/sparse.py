@@ -65,7 +65,7 @@ class WaveletMatrix:
             self.zsum.append(list(accumulate((0 if (v >> d) & 1 else srt[v] for v in cur), initial=0)))
             cur = [v for v in cur if not (v >> d) & 1] + [v for v in cur if (v >> d) & 1]
 
-    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")

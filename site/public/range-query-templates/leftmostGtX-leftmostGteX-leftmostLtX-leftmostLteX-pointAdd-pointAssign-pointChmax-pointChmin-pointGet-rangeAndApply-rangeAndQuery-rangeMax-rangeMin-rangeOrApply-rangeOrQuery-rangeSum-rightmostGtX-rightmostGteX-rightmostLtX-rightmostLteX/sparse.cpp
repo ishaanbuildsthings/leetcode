@@ -227,7 +227,7 @@ struct SparseBitBeats {
         return l > r ? T(0) : T(query(root, lo, hi, l, r, 4));
     }
 
-    // O(logU) -- a[i] = v & FULL; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = v & FULL; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         set(root, lo, hi, i, v & FULL);
@@ -247,19 +247,19 @@ struct SparseBitBeats {
         getAllRec(nd[i].Lc, tl, tm, out), getAllRec(nd[i].Rc, tm + 1, tr, out);
     }
 
-    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         if (v > pointGet(i)) pointAssign(i, v);
     }
 
-    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);
     }
 
-    // O(logU) -- a[i] = (a[i] + delta) & FULL; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) amortized -- a[i] = (a[i] + delta) & FULL; needs lo <= i <= hi, else throws out_of_range
     void pointAdd(long long i, T delta) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         pointAssign(i, pointGet(i) + delta);

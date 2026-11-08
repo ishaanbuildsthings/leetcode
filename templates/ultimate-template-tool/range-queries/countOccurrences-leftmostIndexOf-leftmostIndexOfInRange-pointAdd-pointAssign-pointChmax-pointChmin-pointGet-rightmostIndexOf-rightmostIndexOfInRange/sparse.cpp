@@ -71,13 +71,13 @@ struct SparseOccurrenceLists {
         return (long long)(it->second.order_of_key(r + 1) - it->second.order_of_key(l));
     }
 
-    // O(logU) (x == 0: O(log^2 U)) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    // O(logU * logU) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
     long long leftmostIndexOf(const T& x) const { return leftmostIndexOfInRange(lo, hi, x); }
 
-    // O(logU) (x == 0: O(log^2 U)) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
+    // O(logU * logU) -- the largest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
     long long rightmostIndexOf(const T& x) const { return rightmostIndexOfInRange(lo, hi, x); }
 
-    // O(logU) (x == 0: O(log^2 U)) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
+    // O(logU * logU) -- the smallest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
     // lo <= l <= r <= hi, else throws out_of_range
     long long leftmostIndexOfInRange(long long l, long long r, const T& x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("leftmostIndexOfInRange: needs lo <= l <= r <= hi");
@@ -98,7 +98,7 @@ struct SparseOccurrenceLists {
         return j != it->second.end() && *j <= r ? *j : lo - 1;
     }
 
-    // O(logU) (x == 0: O(log^2 U)) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
+    // O(logU * logU) -- the largest i in [l, r] with a[i] == x, or lo - 1 if there is none; needs
     // lo <= l <= r <= hi, else throws out_of_range
     long long rightmostIndexOfInRange(long long l, long long r, const T& x) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rightmostIndexOfInRange: needs lo <= l <= r <= hi");
@@ -141,25 +141,25 @@ struct SparseOccurrenceLists {
         }
     }
 
-    // a[i]; needs lo <= i <= hi, else throws out_of_range
+    // O(1) -- a[i]; needs lo <= i <= hi, else throws out_of_range
     T pointGet(long long i) const {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return valueAt(i);
     }
 
-    // a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
     void pointAdd(long long i, T delta) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         pointAssign(i, pointGet(i) + delta);
     }
 
-    // a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         if (v > pointGet(i)) pointAssign(i, v);
     }
 
-    // a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         if (v < pointGet(i)) pointAssign(i, v);

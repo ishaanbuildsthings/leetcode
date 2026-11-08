@@ -172,35 +172,35 @@ struct MergeSortTree {
         return countPrefix(ql, qr, atMost(valHigh)) - countPrefix(ql, qr, lessThan(valLow));
     }
 
-    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] >= x, or -1; needs
+    // O(log^2 N) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] >= x, or -1; needs
     // 0 <= ql <= qr < n, else throws out_of_range
     int kthGteX(int ql, int qr, int k, const T& x) const {
         if (ql < 0 || ql > qr || qr >= n) throw out_of_range("kthGteX: needs 0 <= ql <= qr < n");
         return kth(ql, qr, k, lessThan(x), true);
     }
 
-    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] <= x, or -1; needs
+    // O(log^2 N) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] <= x, or -1; needs
     // 0 <= ql <= qr < n, else throws out_of_range
     int kthLteX(int ql, int qr, int k, const T& x) const {
         if (ql < 0 || ql > qr || qr >= n) throw out_of_range("kthLteX: needs 0 <= ql <= qr < n");
         return kth(ql, qr, k, atMost(x), false);
     }
 
-    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] > x, or -1; needs
+    // O(log^2 N) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] > x, or -1; needs
     // 0 <= ql <= qr < n, else throws out_of_range
     int kthGtX(int ql, int qr, int k, const T& x) const {
         if (ql < 0 || ql > qr || qr >= n) throw out_of_range("kthGtX: needs 0 <= ql <= qr < n");
         return kth(ql, qr, k, atMost(x), true);
     }
 
-    // O(logN) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] < x, or -1; needs
+    // O(log^2 N) -- index of the k-th (1-indexed, left to right) i in [ql, qr] with a[i] < x, or -1; needs
     // 0 <= ql <= qr < n, else throws out_of_range
     int kthLtX(int ql, int qr, int k, const T& x) const {
         if (ql < 0 || ql > qr || qr >= n) throw out_of_range("kthLtX: needs 0 <= ql <= qr < n");
         return kth(ql, qr, k, lessThan(x), false);
     }
 
-    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return arr[i];

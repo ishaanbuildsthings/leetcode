@@ -133,7 +133,7 @@ class SparseSegTree:
             res &= an[t]
         return res
 
-    # O(logU + logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else IndexError
     def rangeGcd(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeGcd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

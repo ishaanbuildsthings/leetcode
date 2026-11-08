@@ -148,7 +148,7 @@ class SparseLazySegTree:
             acc += sm[t]
         return self.first - 1
 
-    # O(logN) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def longestEqualRun(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"longestEqualRun: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -169,7 +169,7 @@ class SparseLazySegTree:
             last = lv[t]
         return res
 
-    # O(logN) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def minPrefixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minPrefixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -183,7 +183,7 @@ class SparseLazySegTree:
             acc += sm[t]
         return res
 
-    # O(logN) -- min sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def minSubarraySum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minSubarraySum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -196,7 +196,7 @@ class SparseLazySegTree:
             q = min(nsuf[t], sm[t] + q)
         return res
 
-    # O(logN) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def minSuffixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

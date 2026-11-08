@@ -79,13 +79,13 @@ class PersistentOnlineOrderStats:
     def size(self):
         return len(self.arr)
 
-    # O(logN) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else IndexError
     def countOccurrences(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"countOccurrences: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self.countInValRange(l, r, x, x)
 
-    # O(logN) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- # of i in [l, r] with lowVal <= a[i] <= highVal; needs 0 <= l <= r < size(), else IndexError
     def countInValRange(self, l, r, lowVal, highVal):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"countInValRange: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
@@ -93,31 +93,31 @@ class PersistentOnlineOrderStats:
             return 0
         return self._countBelow(l, r, highVal + 1) - self._countBelow(l, r, lowVal)
 
-    # O(logN) -- # of values < x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- # of values < x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def countLtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"countLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._countBelow(l, r, x)
 
-    # O(logN) -- # of values <= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- # of values <= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def countLteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"countLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._countBelow(l, r, x + 1)
 
-    # O(logN) -- # of values > x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- # of values > x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def countGtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"countGtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return r - l + 1 - self._countBelow(l, r, x + 1)
 
-    # O(logN) -- # of values >= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- # of values >= x in a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def countGteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"countGteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return r - l + 1 - self._countBelow(l, r, x)
 
-    # O(logN) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
+    # O(logU) -- the k-th smallest of a[l..r] (k = 1 is the min); needs 0 <= l <= r < size() and 1 <= k <= r - l + 1,
     # else IndexError
     def kthSmallest(self, l, r, k):
         if not 0 <= l <= r < self.size():
@@ -126,40 +126,40 @@ class PersistentOnlineOrderStats:
             raise IndexError(f"kthSmallest: needs 1 <= k <= r - l + 1, got k = {k}, r - l + 1 = {r - l + 1}")
         return self._kth(l, r, k)
 
-    # O(logN) -- min of a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- min of a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeMin(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeMin: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._kth(l, r, 1)
 
-    # O(logN) -- max of a[l..r]; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- max of a[l..r]; needs 0 <= l <= r < size(), else IndexError
     def rangeMax(self, l, r):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeMax: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         return self._kth(l, r, r - l + 1)
 
-    # O(logN) -- smallest value >= x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- smallest value >= x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
     def smallestGteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"smallestGteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         c = self._countBelow(l, r, x)
         return None if c == r - l + 1 else self._kth(l, r, c + 1)
 
-    # O(logN) -- smallest value > x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- smallest value > x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
     def smallestGtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"smallestGtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         c = self._countBelow(l, r, x + 1)
         return None if c == r - l + 1 else self._kth(l, r, c + 1)
 
-    # O(logN) -- largest value <= x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- largest value <= x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
     def largestLteX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"largestLteX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
         c = self._countBelow(l, r, x + 1)
         return None if c == 0 else self._kth(l, r, c)
 
-    # O(logN) -- largest value < x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
+    # O(logU) -- largest value < x in a[l..r], or None; needs 0 <= l <= r < size(), else IndexError
     def largestLtX(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"largestLtX: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")

@@ -59,7 +59,7 @@ class SumSegTree:
             raise IndexError(f"rangeSum: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return self._queryHalfOpen(l, r + 1)
 
-    # Point overwrite: a[index] = newVal. Only updates the tree; the array you passed in is untouched.; needs
+    # O(logN) -- Point overwrite: a[index] = newVal. Only updates the tree; the array you passed in is untouched.; needs
     # 0 <= index < n, else IndexError
     def pointAssign(self, index, newVal):
         if not 0 <= index < self.n:
@@ -87,21 +87,21 @@ class SumSegTree:
     def getAll(self):
         return self.tree[self.size:self.size + self.n]
 
-    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.tree[self.size + i]:
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.tree[self.size + i]:
             self.pointAssign(i, val)
 
-    # a[i] += delta; needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
         if not 0 <= i < self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")

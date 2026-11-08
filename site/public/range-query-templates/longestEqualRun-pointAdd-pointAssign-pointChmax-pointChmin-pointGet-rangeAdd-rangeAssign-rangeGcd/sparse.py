@@ -50,7 +50,7 @@ class SparseLazySegTree:
         self.add = [0]
         self._newZero(self.D)
 
-    # O(logN) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def longestEqualRun(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"longestEqualRun: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -121,7 +121,7 @@ class SparseLazySegTree:
             raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._applyAssign(t, s, v))
 
-    # O(logN + logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else IndexError
     def rangeGcd(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeGcd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

@@ -120,56 +120,56 @@ class SparseBitCountTree:
             return self._query(self.R[x], m + 1, b, l, r, d)
         return self._merge(self._query(self.L[x], a, m, l, r, d), self._query(self.R[x], m + 1, b, l, r, d))
 
-    # O(logU) -- a[i] &= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- a[i] &= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAndApply(self, l, r, X):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAndApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (X & FULL, 0))
 
-    # O(logU) -- a[i] |= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- a[i] |= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeOrApply(self, l, r, X):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeOrApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (~X & FULL, X & FULL))
 
-    # O(logU) -- a[i] ^= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- a[i] ^= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeXorApply(self, l, r, X):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeXorApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r:
             self._update(1, self.lo, self.hi, l, r, (FULL, X & FULL))
 
-    # O(logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- a[l] + ... + a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeSum(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(1, self.lo, self.hi, l, r, None)
         return sum(c << b for b, c in enumerate(res))
 
-    # O(logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- a[l] & ... & a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAndQuery(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAndQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(1, self.lo, self.hi, l, r, None)
         return sum(1 << b for b, c in enumerate(res) if c == r - l + 1)
 
-    # O(logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) -- a[l] | ... | a[r]; needs lo <= l <= r <= hi, else IndexError
     def rangeOrQuery(self, l, r):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeOrQuery: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         res = self._query(1, self.lo, self.hi, l, r, None)
         return sum(1 << b for b, c in enumerate(res) if c)
 
-    # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         res = self._query(1, self.lo, self.hi, i, i, None)
         return sum(c << b for b, c in enumerate(res))
 
-    # O(logU) -- a[i] = val & FULL; needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] = val & FULL; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
@@ -187,20 +187,20 @@ class SparseBitCountTree:
         for y in reversed(path):
             self._pull(y)
 
-    # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.pointAssign(i, self.pointGet(i) + delta)
 
-    # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
+    # O(logU * logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")

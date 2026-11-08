@@ -32,7 +32,7 @@ class SparseMax:
                     val = max(val, self.sparse[power - 1][rightEdge])
                 self.sparse[power][left] = val
 
-    # O(1) -- max of a[l..r]; needs 0 <= l <= r < n, else IndexError
+    # O(logN) -- max of a[l..r]; needs 0 <= l <= r < n, else IndexError
     def rangeMax(self, l, r):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeMax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -44,7 +44,7 @@ class SparseMax:
             self.sparse[maxPow][l + width - powWidth]
         )
 
-    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")

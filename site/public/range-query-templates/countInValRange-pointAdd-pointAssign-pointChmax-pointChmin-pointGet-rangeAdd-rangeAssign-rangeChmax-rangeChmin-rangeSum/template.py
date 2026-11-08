@@ -480,21 +480,21 @@ class SqrtBlocks_PERFORMANT:
                 res += pf[R] - (pf[L - 1] if L else 0) + add * mid
         return res
 
-    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
+    # O(sqrt(N)) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(sqrt(N)) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] += delta; needs 0 <= i < n, else IndexError
+    # O(sqrt(N)) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
         if not 0 <= i < self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
@@ -807,21 +807,21 @@ class SqrtBlocks_CLEAN_CODE:
         
         return res
 
-    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
+    # O(sqrt(N)) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(sqrt(N)) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] += delta; needs 0 <= i < n, else IndexError
+    # O(sqrt(N)) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
         if not 0 <= i < self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")

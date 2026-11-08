@@ -112,31 +112,31 @@ struct StridedQueries {
         return A[i];
     }
 
-    // a[i] = v (overwrite); needs 0 <= i < n, else throws out_of_range
+    // O(2 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = v (overwrite); needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         write(i, v);
     }
 
-    // a[i] += v; needs 0 <= i < n, else throws out_of_range
+    // O(2 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] += v; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         write(i, T(A[i] + v));
     }
 
-    // a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(2 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         write(i, max(A[i], v));
     }
 
-    // a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(2 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         write(i, min(A[i], v));
     }
 
-    // a[l] + a[l + step] + ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N)) -- a[l] + a[l + step] + ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     S stridedSum(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedSum: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedSum: needs step >= 1");
@@ -161,7 +161,7 @@ struct StridedQueries {
         return res;
     }
 
-    // a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N)) -- a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedXorQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedXorQuery: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedXorQuery: needs step >= 1");
@@ -186,7 +186,7 @@ struct StridedQueries {
         return res;
     }
 
-    // min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedMin(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedMin: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedMin: needs step >= 1");
@@ -207,7 +207,7 @@ struct StridedQueries {
         return res;
     }
 
-    // gcd of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN) + logU) -- gcd of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedGcd(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedGcd: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedGcd: needs step >= 1");
@@ -228,7 +228,7 @@ struct StridedQueries {
         return res;
     }
 
-    // a[l] | a[l + step] | ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- a[l] | a[l + step] | ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     T stridedOrQuery(int l, int r, int step) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedOrQuery: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedOrQuery: needs step >= 1");

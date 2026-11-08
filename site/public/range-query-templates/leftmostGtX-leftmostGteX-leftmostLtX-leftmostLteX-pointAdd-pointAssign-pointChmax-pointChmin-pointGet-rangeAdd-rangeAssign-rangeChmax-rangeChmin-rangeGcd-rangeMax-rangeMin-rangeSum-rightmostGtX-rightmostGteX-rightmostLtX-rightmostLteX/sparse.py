@@ -260,7 +260,7 @@ class SparseBeatsGcd:
         self._chmin(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(log^2 U logU) -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU * logU) amortized -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeChmin(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeChmin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -277,7 +277,7 @@ class SparseBeatsGcd:
         self._chmax(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(log^2 U logU) -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU * logU) amortized -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeChmax(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeChmax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -294,7 +294,7 @@ class SparseBeatsGcd:
         self._add(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(log^2 U logU) -- a[i] += v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU * logU) amortized -- a[i] += v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAdd(self, l, r, v):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAdd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -311,13 +311,13 @@ class SparseBeatsGcd:
         self._assign(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(log^2 U logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU * logU) amortized -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAssign(self, l, r, v):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r: self._assign(1, self.lo, self.hi, l, r, v)
 
-    # O(log^2 U logU) -- a[p] = v; needs lo <= p <= hi, else IndexError
+    # O(logU * logU * logU) amortized -- a[p] = v; needs lo <= p <= hi, else IndexError
     def pointAssign(self, p, v):
         if not self.lo <= p <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= p <= hi, got p = {p}")
@@ -395,19 +395,19 @@ class SparseBeatsGcd:
             raise IndexError(f"rangeGcd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         return 0 if (l > r) else self._qgcd(1, self.lo, self.hi, l, r)
 
-    # a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
+    # O(logU * logU * logU) amortized -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         self.rangeChmax(i, i, val)
 
-    # a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
+    # O(logU * logU * logU) amortized -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         self.rangeChmin(i, i, val)
 
-    # a[i] += delta; needs lo <= i <= hi, else IndexError
+    # O(logU * logU * logU) amortized -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")

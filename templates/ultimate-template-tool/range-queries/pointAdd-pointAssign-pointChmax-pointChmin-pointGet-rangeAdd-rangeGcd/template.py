@@ -165,19 +165,19 @@ class RangeAddRangeGcd:
             res = gcd(res, self._segQuery(l + 1, r))
         return res
 
-    # a[i] += delta; needs 0 <= i < n, else IndexError
+    # O(logN * logU) -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
         if not 0 <= i < self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAdd(i, i, delta)
 
-    # a[i] = val; needs 0 <= i < n, else IndexError
+    # O(logN * logU) -- a[i] = val; needs 0 <= i < n, else IndexError
     def pointAssign(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointAssign: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeAdd(i, i, val - self.pointGet(i))
 
-    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN * logU) -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
@@ -185,7 +185,7 @@ class RangeAddRangeGcd:
         if val > cur:
             self.rangeAdd(i, i, val - cur)
 
-    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN * logU) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")

@@ -47,7 +47,7 @@ class PersistentOrderStats:
         for v in arr:
             self.root.append(self._ins(self.root[-1], where[v], v))
 
-    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")

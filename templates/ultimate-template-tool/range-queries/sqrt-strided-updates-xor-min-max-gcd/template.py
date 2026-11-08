@@ -99,31 +99,31 @@ class StridedQueries:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i={i}, n={self.n}")
         return self.A[i]
 
-    # a[i] = v (overwrite); needs 0 <= i < n, else raises IndexError
+    # O(1 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = v (overwrite); needs 0 <= i < n, else raises IndexError
     def pointAssign(self, i, v):
         if i < 0 or i >= self.n:
             raise IndexError(f"pointAssign: needs 0 <= i < n, got i={i}, n={self.n}")
         self._write(i, v)
 
-    # a[i] += v; needs 0 <= i < n, else raises IndexError
+    # O(1 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] += v; needs 0 <= i < n, else raises IndexError
     def pointAdd(self, i, v):
         if i < 0 or i >= self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i={i}, n={self.n}")
         self._write(i, self.A[i] + v)
 
-    # a[i] = max(a[i], v); needs 0 <= i < n, else raises IndexError
+    # O(1 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = max(a[i], v); needs 0 <= i < n, else raises IndexError
     def pointChmax(self, i, v):
         if i < 0 or i >= self.n:
             raise IndexError(f"pointChmax: needs 0 <= i < n, got i={i}, n={self.n}")
         self._write(i, max(self.A[i], v))
 
-    # a[i] = min(a[i], v); needs 0 <= i < n, else raises IndexError
+    # O(1 * sqrt N + 3 * sqrt NlogN + sqrt(N/logN) * logU) -- a[i] = min(a[i], v); needs 0 <= i < n, else raises IndexError
     def pointChmin(self, i, v):
         if i < 0 or i >= self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i={i}, n={self.n}")
         self._write(i, min(self.A[i], v))
 
-    # a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # O(sqrt(N)) -- a[l] ^ a[l + step] ^ ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedXorQuery(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedXorQuery: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -144,7 +144,7 @@ class StridedQueries:
         middle = self.xorBlocks[step][firstBlock + 1:lastBlock]
         return reduce(xor, A[l:leftEnd:step], 0) ^ reduce(xor, middle, 0) ^ reduce(xor, A[rightStart:last + 1:step], 0)
 
-    # min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # O(sqrt(N logN)) -- min of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedMin(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedMin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -171,7 +171,7 @@ class StridedQueries:
             high >>= 1
         return res
 
-    # max of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # O(sqrt(N logN)) -- max of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedMax(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedMax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -198,7 +198,7 @@ class StridedQueries:
             high >>= 1
         return res
 
-    # gcd of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
+    # O(sqrt(N logN) + logU) -- gcd of a[l], a[l + step], ..., up to at most r; needs 0 <= l <= r < n and step >= 1, else raises IndexError
     def stridedGcd(self, l, r, step):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"stridedGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")

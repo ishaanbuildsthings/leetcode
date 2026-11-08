@@ -97,7 +97,7 @@ struct SparseShrinkSegTree {
         newZero(D);
     }
 
-    // O(logN) -- is a[l..r] a palindrome (its two hashes agree); needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- is a[l..r] a palindrome (its two hashes agree); needs lo <= l <= r <= hi, else throws out_of_range
     bool isPalindrome(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("isPalindrome: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -152,7 +152,7 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logN) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
+    // O(logU) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     long long longestEqualRun(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");
@@ -227,7 +227,7 @@ struct SparseShrinkSegTree {
         });
     }
 
-    // O(logN) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
+    // O(logU) -- hash of a[l..r] left to right (mod 2^61 - 1, random base): equal ranges hash equal; needs
     // lo <= l <= r <= hi, else throws out_of_range
     U64 rangeHash(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeHash: needs lo <= l <= r <= hi");
@@ -237,7 +237,7 @@ struct SparseShrinkSegTree {
         return res;
     }
 
-    // O(logN) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs lo <= l <= r <= hi,
+    // O(logU) -- hash of a[l..r] read right to left (= rangeHash of the reversed range); needs lo <= l <= r <= hi,
     // else throws out_of_range
     U64 rangeHashReversed(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("rangeHashReversed: needs lo <= l <= r <= hi");
@@ -266,7 +266,7 @@ struct SparseShrinkSegTree {
             });
     }
 
-    // O(logN) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
+    // O(logU) -- are a[l1..r1] and a[l2..r2] equal (same length and hash); needs
     // lo <= l1 <= r1 <= hi and lo <= l2 <= r2 <= hi, else throws out_of_range
     bool rangesEqual(long long l1, long long r1, long long l2, long long r2) {
         if (l1 < first || l1 > r1 || r1 > last || l2 < first || l2 > r2 || r2 > last)

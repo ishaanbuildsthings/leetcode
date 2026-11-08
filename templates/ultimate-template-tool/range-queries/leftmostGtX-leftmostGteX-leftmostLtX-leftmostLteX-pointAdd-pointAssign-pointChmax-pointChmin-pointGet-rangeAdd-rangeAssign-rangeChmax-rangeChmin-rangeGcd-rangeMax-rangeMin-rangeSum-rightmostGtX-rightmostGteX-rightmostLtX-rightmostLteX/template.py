@@ -238,7 +238,7 @@ class BeatsGcd_PERFORMANT:
         self._chmin(2 * i + 1, tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(log^2 N logU) -- a[i] = min(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
+    # O(log^2 N * logU) amortized -- a[i] = min(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeChmin(self, l, r, x):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeChmin: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -254,7 +254,7 @@ class BeatsGcd_PERFORMANT:
         self._chmax(2 * i + 1, tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(log^2 N logU) -- a[i] = max(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
+    # O(log^2 N * logU) amortized -- a[i] = max(a[i], x) for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeChmax(self, l, r, x):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeChmax: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -270,7 +270,7 @@ class BeatsGcd_PERFORMANT:
         self._add(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(log^2 N logU) -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
+    # O(log^2 N * logU) amortized -- a[i] += v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAdd(self, l, r, v):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeAdd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -286,13 +286,13 @@ class BeatsGcd_PERFORMANT:
         self._assign(2 * i + 1, tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # O(log^2 N logU) -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
+    # O(log^2 N * logU) amortized -- a[i] = v for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, v):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeAssign: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l <= r and self.n: self._assign(1, 0, self.n - 1, l, r, v)
 
-    # O(log^2 N logU) -- a[p] = v; needs 0 <= p < n, else IndexError
+    # O(log^2 N * logU) amortized -- a[p] = v; needs 0 <= p < n, else IndexError
     def pointAssign(self, p, v):
         if not 0 <= p < self.n:
             raise IndexError(f"pointAssign: needs 0 <= p < n, got p = {p}, n = {self.n}")
@@ -382,19 +382,19 @@ class BeatsGcd_PERFORMANT:
             raise IndexError(f"rangeGcd: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         return 0 if (l > r or not self.n) else self._qgcd(1, 0, self.n - 1, l, r)
 
-    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
+    # O(log^2 N * logU) amortized -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeChmax(i, i, val)
 
-    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(log^2 N * logU) amortized -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         self.rangeChmin(i, i, val)
 
-    # a[i] += delta; needs 0 <= i < n, else IndexError
+    # O(log^2 N * logU) amortized -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
         if not 0 <= i < self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")

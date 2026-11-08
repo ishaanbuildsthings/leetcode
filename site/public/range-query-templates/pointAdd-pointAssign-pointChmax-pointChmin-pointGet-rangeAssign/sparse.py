@@ -67,7 +67,7 @@ class SparseRangeAssignTree:
             p >>= 1
         return res
 
-    # O(1) -- a[i] = val; needs lo <= i <= hi, else IndexError
+    # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")

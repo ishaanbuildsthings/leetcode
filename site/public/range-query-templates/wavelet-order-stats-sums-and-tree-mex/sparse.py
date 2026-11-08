@@ -77,7 +77,7 @@ class WaveletMatrix:
         self.at.append(self._andTab([srt[v] for v in cur]))  # (the final order)
         self._buildMex()
 
-    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
+    # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
@@ -692,7 +692,7 @@ class SparseWaveletMatrix:
             return 1  # all zeros
         return self.inner._mexFrom(i0, i1, 1) if zeros else self.inner.rangeMex(i0, i1)
 
-    # O(logN) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    # O(log^2 N) -- AND of the values < x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
     # IndexError
     def andLtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -702,7 +702,7 @@ class SparseWaveletMatrix:
             return 0
         return self.inner.andLtX(i0, i1, x) if i0 <= i1 else -1
 
-    # O(logN) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    # O(log^2 N) -- AND of the values <= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
     # IndexError
     def andLteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -712,7 +712,7 @@ class SparseWaveletMatrix:
             return 0
         return self.inner.andLteX(i0, i1, x) if i0 <= i1 else -1
 
-    # O(logN) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    # O(log^2 N) -- AND of the values > x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
     # IndexError
     def andGtX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -722,7 +722,7 @@ class SparseWaveletMatrix:
             return 0
         return self.inner.andGtX(i0, i1, x) if i0 <= i1 else -1
 
-    # O(logN) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
+    # O(log^2 N) -- AND of the values >= x in a[l..r]; -1 (every bit) if there are none; needs lo <= l <= r <= hi, else
     # IndexError
     def andGteX(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
@@ -732,7 +732,7 @@ class SparseWaveletMatrix:
             return 0
         return self.inner.andGteX(i0, i1, x) if i0 <= i1 else -1
 
-    # O(logN) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; needs
+    # O(log^2 N) -- AND of the a[i] with lowVal <= a[i] <= highVal in a[l..r]; -1 (every bit) if there are none; needs
     # lo <= l <= r <= hi, else IndexError
     def andInValRange(self, l, r, lowVal, highVal):
         if not self.lo <= l <= r <= self.hi:

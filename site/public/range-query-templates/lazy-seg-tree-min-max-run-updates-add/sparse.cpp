@@ -152,7 +152,7 @@ struct SparseLazySegTree {
         return first - 1;
     }
 
-    // O(logN) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
+    // O(logU) -- the longest run of equal adjacent values in a[l..r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     long long longestEqualRun(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("longestEqualRun: needs lo <= l <= r <= hi");

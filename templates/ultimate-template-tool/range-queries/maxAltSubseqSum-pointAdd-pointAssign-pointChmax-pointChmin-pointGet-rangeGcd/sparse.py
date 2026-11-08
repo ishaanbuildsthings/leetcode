@@ -53,7 +53,7 @@ class SparseSegTree:
         self.a11 = [0]
         self._newZero(self.D)
 
-    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
+    # O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
     # IndexError
     def maxAltSubseqSum(self, l, r):
         if not self.first <= l <= r <= self.last:
@@ -104,7 +104,7 @@ class SparseSegTree:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         return self._leaf(self._leafOf(i)[0])
 
-    # O(logU + logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else IndexError
     def rangeGcd(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeGcd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

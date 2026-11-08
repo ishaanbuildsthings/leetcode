@@ -51,7 +51,7 @@ struct StridedQueries {
         diffs.assign((size_t)strides * (n + 2), 0);
     }
 
-    // a[l] += v, a[l + step] += v, ... up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
+    // O(sqrt(N logN)) -- a[l] += v, a[l + step] += v, ... up to at most r; needs 0 <= l <= r < n and step >= 1, else throws out_of_range
     void stridedAdd(int l, int r, int step, T v) {
         if (l < 0 || l > r || r >= n) throw out_of_range("stridedAdd: needs 0 <= l <= r < n");
         if (step < 1) throw out_of_range("stridedAdd: needs step >= 1");
@@ -64,7 +64,7 @@ struct StridedQueries {
         addDiff(step, listIndex(step, last) + 1, -S(v));
     }
 
-    // the current a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(sqrt(N logN)) -- the current a[i]; needs 0 <= i < n, else throws out_of_range
     S pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         S res = A[i];
@@ -75,33 +75,33 @@ struct StridedQueries {
         return res;
     }
 
-    // a[i] += v; needs 0 <= i < n, else throws out_of_range
+    // O(1) -- a[i] += v; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         A[i] += v;
     }
 
-    // a[i] = v (overwrite); needs 0 <= i < n, else throws out_of_range
+    // O(sqrt(N logN)) -- a[i] = v (overwrite); needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         A[i] += S(v) - pointGet(i);
     }
 
-    // a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(sqrt(N logN)) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         S current = pointGet(i);
         if (S(v) > current) A[i] += S(v) - current;
     }
 
-    // a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(sqrt(N logN)) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         S current = pointGet(i);
         if (S(v) < current) A[i] += S(v) - current;
     }
 
-    // the whole array
+    // O(N * sqrt NlogN) -- the whole array
     vector<S> getAll() const {
         vector<S> out(n);
         for (int i = 0; i < n; i++) out[i] = pointGet(i);

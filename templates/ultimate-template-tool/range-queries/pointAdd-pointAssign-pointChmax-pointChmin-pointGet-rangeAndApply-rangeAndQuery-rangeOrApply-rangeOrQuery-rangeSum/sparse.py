@@ -214,13 +214,13 @@ class SparseBitBeats:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # O(logU logU) -- a[i] &= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) amortized -- a[i] &= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAndApply(self, l, r, X):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAndApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l <= r: self._upd(1, self.lo, self.hi, l, r, X & self.FULL, 0)
 
-    # O(logU logU) -- a[i] |= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU) amortized -- a[i] |= X for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeOrApply(self, l, r, X):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeOrApply: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -238,7 +238,7 @@ class SparseBitBeats:
         else: self._set(self.R[i], tm + 1, tr, p, v)
         self._pull(i)
 
-    # O(logU) -- a[p] = v; needs lo <= p <= hi, else IndexError
+    # O(logU) amortized -- a[p] = v; needs lo <= p <= hi, else IndexError
     def pointAssign(self, p, v):
         if not self.lo <= p <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= p <= hi, got p = {p}")
@@ -291,21 +291,21 @@ class SparseBitBeats:
         self._getAllRec(self.L[i], tl, tm, out)
         self._getAllRec(self.R[i], tm + 1, tr, out)
 
-    # a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
+    # O(logU) amortized -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
+    # O(logU) amortized -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] += delta; needs lo <= i <= hi, else IndexError
+    # O(logU) amortized -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")

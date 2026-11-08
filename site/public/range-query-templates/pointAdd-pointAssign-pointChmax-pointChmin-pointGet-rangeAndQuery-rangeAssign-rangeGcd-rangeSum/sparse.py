@@ -98,7 +98,7 @@ class SparseLazySegTree:
             raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         self._update(1, self.D, self.first, l, r, lambda t, s, tl: self._applyAssign(t, s, v))
 
-    # O(logU + logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- gcd of |a[l]|, ..., |a[r]|; needs lo <= l <= r <= hi, else IndexError
     def rangeGcd(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"rangeGcd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

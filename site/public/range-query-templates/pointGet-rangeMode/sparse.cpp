@@ -16,9 +16,9 @@ using ll = long long;
 //   tags: none
 //   other: idx[1*N] vals[1*N] zc[1*N] comp[1*N] positions[1*N] posIdx[1*N]
 //   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; the sqrt mode structure is over the given values only; 0's frequency is the zeros of [l, r] plus the given values holding 0 (zc), and it wins whenever it is at least the given values' mode frequency
-// Online range mode in O(sqrt N) per query, O(N sqrt N) build, O(N) memory beyond the block table.
+// Online range mode in O(sqrt(N)) per query, O(N sqrt N) build, O(N) memory beyond the block table.
 // Split into ~sqrt N blocks and precompute the mode of every run of whole blocks. For a query, the answer is either
-// the mode of the whole middle blocks or one of the O(sqrt N) edge elements. For an edge element, positions[val]
+// the mode of the whole middle blocks or one of the O(sqrt(N)) edge elements. For an edge element, positions[val]
 // and posIdx let us test in O(1) whether it occurs best + 1 times inside [l, r], so best only ever climbs.
 // All indices 0-based, ranges inclusive. Ties return any one of the tied values. T: any type with < and ==.
 template <typename T>
@@ -56,7 +56,7 @@ struct RangeMode {
         }
     }
 
-    // O(sqrt N) -- (mode of a[l..r], its frequency); requires needs 0 <= l <= r < n, else throws out_of_range
+    // O(sqrt(N)) -- (mode of a[l..r], its frequency); requires needs 0 <= l <= r < n, else throws out_of_range
     pair<T, int> rangeMode(int l, int r) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("rangeMode: needs 0 <= l <= r < n");
         int lb = l / B, rb = r / B, best, bestVal, leftEdgeEnd, rightEdgeStart;
@@ -80,7 +80,7 @@ struct RangeMode {
         return {vals[bestVal], best};
     }
 
-    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return arr[i];

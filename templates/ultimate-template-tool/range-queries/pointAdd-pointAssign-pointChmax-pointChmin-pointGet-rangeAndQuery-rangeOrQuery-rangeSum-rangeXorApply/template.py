@@ -162,7 +162,7 @@ class BitCountTree:
         self._push(p)
         return sum(self.cnt[b][p] << b for b in range(self.bits))
 
-    # O(N) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
+    # O(N * logU) -- the whole array: push every tag down one level at a time from the root (the nodes s levels above
     # the leaves are (n >> s) .. ((2n - 1) >> s); their children cover k = 1 << (s - 1) leaves), then read the leaves
     def getAll(self):
         n, full = self.n, self.full

@@ -37,14 +37,14 @@ struct SparseGcd {
         }
     }
 
-    // O(logU) because of the gcd call, O(1) -- gcd of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
+    // O(logN + logU) -- gcd of a[l..r]; needs 0 <= l <= r < n, else throws out_of_range
     T rangeGcd(int l, int r) const {
         if (l < 0 || l > r || r >= n) throw out_of_range("rangeGcd: needs 0 <= l <= r < n");
         int k = 31 - __builtin_clz(r - l + 1);
         return combine(sp[k][l], sp[k][r - (1 << k) + 1]);
     }
 
-    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return sp[0][i];
@@ -82,7 +82,7 @@ struct SparseStaticGcd {
 
     int element(long long i) const { return int(upper_bound(starts.begin(), starts.end(), i) - starts.begin()) - 1; }
 
-    // O(logN) -- range gcd of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logN + logU) -- range gcd of a[l..r]; needs lo <= l <= r <= hi, else throws out_of_range
     T rangeGcd(long long l, long long r) const {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeGcd: needs lo <= l <= r <= hi");
         return inner.rangeGcd(element(l), element(r));

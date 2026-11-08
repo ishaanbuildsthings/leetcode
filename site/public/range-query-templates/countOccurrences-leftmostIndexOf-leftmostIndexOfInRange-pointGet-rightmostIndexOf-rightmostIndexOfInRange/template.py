@@ -45,12 +45,12 @@ class OccurrenceLists:
         p = self.pos.get(x)
         return bisect_right(p, r) - bisect_left(p, l) if p and l <= r else 0
 
-    # O(1) -- the smallest i with a[i] == x, or -1 if x isn't in the array
+    # O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array
     def leftmostIndexOf(self, x):
         p = self.pos.get(x)
         return p[0] if p else -1
 
-    # O(1) -- the largest i with a[i] == x, or -1 if x isn't in the array
+    # O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
     def rightmostIndexOf(self, x):
         p = self.pos.get(x)
         return p[-1] if p else -1

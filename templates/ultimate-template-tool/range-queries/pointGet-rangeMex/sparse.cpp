@@ -36,7 +36,7 @@ struct PersistentMex {
     // O(N log N) -- arr: the initial array, 0-indexed
     explicit PersistentMex(const vector<T>& a) : n((int)a.size()), arr(a) { buildMex(); }
 
-    // O(1) -- a[i]; needs 0 <= i < n, else throws out_of_range
+    // O(logN) -- a[i]; needs 0 <= i < n, else throws out_of_range
     T pointGet(int i) const {
         if (i < 0 || i >= n) throw out_of_range("pointGet: needs 0 <= i < n");
         return arr[i];

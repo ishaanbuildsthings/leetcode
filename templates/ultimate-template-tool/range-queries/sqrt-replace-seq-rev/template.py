@@ -39,12 +39,12 @@
 
 from math import isqrt
 
-# Blocks whose values form a union-find of classes (mass change, CF 911G, in O(sqrt N), with sequence edits): the
+# Blocks whose values form a union-find of classes (mass change, CF 911G, in O(sqrt(N)), with sequence edits): the
 # array is cut into blocks of about sqrt(N) values. Inside a block equal values form a class, and the classes are
 # joined by a union-find: rangeReplace(l, r, x, y) on a whole block renames x's class to y, or joins it into y's, in
 # O(1); rangeAssign joins every class. Only the (at most two) partly covered blocks are touched value by value. Any
 # values work (each block hashes them). The blocks form a list you can insert into anywhere, reverse, rotate, cut
-# pieces out of (that is how to erase) and paste back; a[i] then walks the list (O(sqrt N)). All indices 0-based,
+# pieces out of (that is how to erase) and paste back; a[i] then walks the list (O(sqrt(N))). All indices 0-based,
 # ranges inclusive [l, r], an index always the position in the CURRENT array; searches return -1 when nothing
 # qualifies.
 class _Block:
@@ -168,7 +168,7 @@ class SqrtReplace:
         b, k = self._locate(i)
         return b.get(k)
 
-    # O(sqrt(N)) -- a[i] = v; needs 0 <= i < size(), else IndexError
+    # O(sqrt(N)) amortized -- a[i] = v; needs 0 <= i < size(), else IndexError
     def pointAssign(self, i, v):
         if not 0 <= i < self.size():
             raise IndexError(f"pointAssign: needs 0 <= i < size(), got i = {i}, n = {self.size()}")
@@ -200,7 +200,7 @@ class SqrtReplace:
                 for k in range(lo, hi + 1):
                     b.assign(k, v)
 
-    # O(sqrt(N)) -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else IndexError
+    # O(sqrt(N)) amortized -- # of i in [l, r] with a[i] == x; needs 0 <= l <= r < size(), else IndexError
     def countOccurrences(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"countOccurrences: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
@@ -209,15 +209,15 @@ class SqrtReplace:
             res += b.count(x) if full else sum(b.get(k) == x for k in range(lo, hi + 1))
         return res
 
-    # O(sqrt(N)) -- the smallest i with a[i] == x, or -1 if x isn't in the array
+    # O(sqrt(N)) amortized -- the smallest i with a[i] == x, or -1 if x isn't in the array
     def leftmostIndexOf(self, x):
         return self._find(0, self.n - 1, x, True)
 
-    # O(sqrt(N)) -- the largest i with a[i] == x, or -1 if x isn't in the array
+    # O(sqrt(N)) amortized -- the largest i with a[i] == x, or -1 if x isn't in the array
     def rightmostIndexOf(self, x):
         return self._find(0, self.n - 1, x, False)
 
-    # O(sqrt(N)) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    # O(sqrt(N)) amortized -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
     # IndexError
     def leftmostIndexOfInRange(self, l, r, x):
         if not 0 <= l <= r < self.size():
@@ -225,7 +225,7 @@ class SqrtReplace:
                              f"l = {l}, r = {r}, n = {self.size()}")
         return self._find(l, r, x, True)
 
-    # O(sqrt(N)) -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
+    # O(sqrt(N)) amortized -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
     # IndexError
     def rightmostIndexOfInRange(self, l, r, x):
         if not 0 <= l <= r < self.size():

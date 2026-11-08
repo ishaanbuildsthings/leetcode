@@ -184,7 +184,7 @@ struct BitBeats {
         return l > r || !n ? T(0) : T(query(1, 0, n - 1, l, r, 3));
     }
 
-    // O(logN) -- a[i] = v & FULL; needs 0 <= i < n, else throws out_of_range
+    // O(logN) amortized -- a[i] = v & FULL; needs 0 <= i < n, else throws out_of_range
     void pointAssign(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
         if (n) set(1, 0, n - 1, i, v & FULL);
@@ -211,19 +211,19 @@ struct BitBeats {
         return out;
     }
 
-    // O(logN) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(logN) amortized -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         if (v > pointGet(i)) pointAssign(i, v);
     }
 
-    // O(logN) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(logN) amortized -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         if (v < pointGet(i)) pointAssign(i, v);
     }
 
-    // O(logN) -- a[i] = (a[i] + delta) & FULL; needs 0 <= i < n, else throws out_of_range
+    // O(logN) amortized -- a[i] = (a[i] + delta) & FULL; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T delta) {
         if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         pointAssign(i, pointGet(i) + delta);

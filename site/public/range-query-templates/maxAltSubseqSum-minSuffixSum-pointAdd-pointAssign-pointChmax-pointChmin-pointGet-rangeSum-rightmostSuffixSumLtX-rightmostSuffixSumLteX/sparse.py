@@ -55,7 +55,7 @@ class SparseSegTree:
         self.a11 = [0]
         self._newZero(self.D)
 
-    # O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
+    # O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
     # IndexError
     def maxAltSubseqSum(self, l, r):
         if not self.first <= l <= r <= self.last:
@@ -68,7 +68,7 @@ class SparseSegTree:
             c = _altJoin(c, (a00[t], a01[t], a10[t], a11[t]))
         return max(c[0], c[1])
 
-    # O(logN) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def minSuffixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

@@ -221,7 +221,7 @@ struct SparseShrinkSegTree {
         return first - 1;
     }
 
-    // O(logN) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
+    // O(logU) -- max of +b1 - b2 + b3 - ... over non-empty subsequences b of a[l..r]; needs lo <= l <= r <= hi, else
     // throws out_of_range
     S maxAltSubseqSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxAltSubseqSum: needs lo <= l <= r <= hi");
@@ -231,7 +231,7 @@ struct SparseShrinkSegTree {
         return max(a[0], a[1]);
     }
 
-    // O(logN) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- max of a[l] + ... + a[i] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     S maxPrefixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxPrefixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)
@@ -240,7 +240,7 @@ struct SparseShrinkSegTree {
         return res;
     }
 
-    // O(logN) -- max sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else throws
+    // O(logU) -- max sum of a non-empty contiguous subarray of a[l..r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     S maxSubarraySum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxSubarraySum: needs lo <= l <= r <= hi");
@@ -253,7 +253,7 @@ struct SparseShrinkSegTree {
         return res;
     }
 
-    // O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // O(logU) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     S maxSuffixSum(long long l, long long r) {
         if (l < first || l > r || r > last) throw out_of_range("maxSuffixSum: needs lo <= l <= r <= hi");
         int ns[128]{}, ls[128]{}, c = cover(l, r, ns, ls);  // (zeroed: l <= r gives at least one node)

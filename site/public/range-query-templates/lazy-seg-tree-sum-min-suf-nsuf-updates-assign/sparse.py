@@ -94,7 +94,7 @@ class SparseLazySegTree:
                 return tl
         return self.first - 1
 
-    # O(logN) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- max of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def maxSuffixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"maxSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -108,7 +108,7 @@ class SparseLazySegTree:
             acc += sm[t]
         return res
 
-    # O(logN) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU) -- min of a[i] + ... + a[r] over i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def minSuffixSum(self, l, r):
         if not self.first <= l <= r <= self.last:
             raise IndexError(f"minSuffixSum: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

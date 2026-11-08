@@ -210,13 +210,13 @@ class BitBeats_PERFORMANT:
 
     ################ PUBLIC METHODS START HERE ################
 
-    # O(logN logU) -- a[i] &= X for i in [l, r]; needs 0 <= l <= r < n, else IndexError
+    # O(logN * logU) amortized -- a[i] &= X for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAndApply(self, l, r, X):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeAndApply: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l <= r and self.n: self._upd(1, 0, self.n - 1, l, r, X & self.FULL, 0)
 
-    # O(logN logU) -- a[i] |= X for i in [l, r]; needs 0 <= l <= r < n, else IndexError
+    # O(logN * logU) amortized -- a[i] |= X for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeOrApply(self, l, r, X):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rangeOrApply: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
@@ -233,7 +233,7 @@ class BitBeats_PERFORMANT:
         else: self._set(2 * i + 1, tm + 1, tr, p, v)
         self._pull(i)
 
-    # O(logN) -- a[p] = v; needs 0 <= p < n, else IndexError
+    # O(logN) amortized -- a[p] = v; needs 0 <= p < n, else IndexError
     def pointAssign(self, p, v):
         if not 0 <= p < self.n:
             raise IndexError(f"pointAssign: needs 0 <= p < n, got p = {p}, n = {self.n}")
@@ -296,21 +296,21 @@ class BitBeats_PERFORMANT:
         if self.n: self._getAllRec(1, 0, self.n - 1, out)
         return out
 
-    # a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN) amortized -- a[i] = max(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmax(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmax: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
+    # O(logN) amortized -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
         if val < self.pointGet(i):
             self.pointAssign(i, val)
 
-    # a[i] += delta; needs 0 <= i < n, else IndexError
+    # O(logN) amortized -- a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
         if not 0 <= i < self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")

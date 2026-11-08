@@ -34,7 +34,7 @@ using ll = long long;
 // that copy, and one pending tag "v -> clamp(v + add, floor, ceil)" (floor == ceil means assigned). A tag is
 // monotone, so it keeps the sorted copy sorted: a whole block answers with a few binary searches, and pushing a
 // tag rewrites the sorted copy in place without re-sorting. A partial block is pushed, edited, and re-sorted.
-// Build O(N log N); range ops O(sqrt N log N); point assign O(sqrt N); pointGet O(1).
+// Build O(N log N); range ops O(sqrt N log N); point assign O(sqrt(N)); pointGet O(1).
 // T: int, long long, ...; sums accumulate in S (long long for small T).
 template <typename T>
 struct SqrtBlocks {
@@ -82,7 +82,7 @@ struct SqrtBlocks {
         if (sumReady) buildPf(b);
     }
 
-    // O(sqrt N) -- bake the tag into the block and clear it; the sorted copy stays sorted
+    // O(sqrt(N)) -- bake the tag into the block and clear it; the sorted copy stays sorted
     void push(int b) {
         if (!tagged(b)) return;
         for (int i = lo(b); i <= hi(b); i++) vals[i] = applyTag(b, vals[i]);
@@ -216,7 +216,7 @@ struct SqrtBlocks {
         return out;
     }
 
-    // O(sqrt N) -- a[i] = v; one value moves inside the sorted copy, so no re-sort; needs 0 <= i < n, else throws
+    // O(sqrt(N)) -- a[i] = v; one value moves inside the sorted copy, so no re-sort; needs 0 <= i < n, else throws
     // out_of_range
     void pointAssign(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointAssign: needs 0 <= i < n");
@@ -231,19 +231,19 @@ struct SqrtBlocks {
         if (sumReady) buildPf(b);
     }
 
-    // a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(sqrt(N)) -- a[i] = max(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmax(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmax: needs 0 <= i < n");
         if (v > pointGet(i)) pointAssign(i, v);
     }
 
-    // a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
+    // O(sqrt(N)) -- a[i] = min(a[i], v); needs 0 <= i < n, else throws out_of_range
     void pointChmin(int i, T v) {
         if (i < 0 || i >= n) throw out_of_range("pointChmin: needs 0 <= i < n");
         if (v < pointGet(i)) pointAssign(i, v);
     }
 
-    // a[i] += delta; needs 0 <= i < n, else throws out_of_range
+    // O(sqrt(N)) -- a[i] += delta; needs 0 <= i < n, else throws out_of_range
     void pointAdd(int i, T delta) {
         if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         pointAssign(i, pointGet(i) + delta);

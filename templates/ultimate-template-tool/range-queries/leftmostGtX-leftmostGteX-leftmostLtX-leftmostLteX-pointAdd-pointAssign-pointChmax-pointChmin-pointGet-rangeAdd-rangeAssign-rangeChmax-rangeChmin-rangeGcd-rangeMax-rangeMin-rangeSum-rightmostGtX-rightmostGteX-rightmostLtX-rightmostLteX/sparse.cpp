@@ -292,25 +292,25 @@ struct SparseBeatsGcd {
         return rangeMax(i, i);
     }
 
-    // a[i] = v; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU * logU) amortized -- a[i] = v; needs lo <= i <= hi, else throws out_of_range
     void pointAssign(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointAssign: needs lo <= i <= hi");
         rangeAssign(i, i, v);
     }
 
-    // a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU * logU) amortized -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmax(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmax: needs lo <= i <= hi");
         rangeChmax(i, i, v);
     }
 
-    // a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU * logU) amortized -- a[i] = min(a[i], v); needs lo <= i <= hi, else throws out_of_range
     void pointChmin(long long i, T v) {
         if (i < lo || i > hi) throw out_of_range("pointChmin: needs lo <= i <= hi");
         rangeChmin(i, i, v);
     }
 
-    // a[i] += delta; needs lo <= i <= hi, else throws out_of_range
+    // O(logU * logU * logU) amortized -- a[i] += delta; needs lo <= i <= hi, else throws out_of_range
     void pointAdd(long long i, T delta) {
         if (i < lo || i > hi) throw out_of_range("pointAdd: needs lo <= i <= hi");
         rangeAdd(i, i, delta);
