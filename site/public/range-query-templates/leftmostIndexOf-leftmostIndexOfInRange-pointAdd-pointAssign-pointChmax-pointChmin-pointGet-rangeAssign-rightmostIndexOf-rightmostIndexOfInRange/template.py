@@ -24,6 +24,7 @@
 #   note: one entry per run of equal values (at most N, usually far fewer), in the run map and in its value's set
 
 from bisect import bisect_left, bisect_right, insort
+from random import getrandbits
 
 
 # SortedList: a self-contained sorted container (no sortedcontainers import needed), used by the class below.
@@ -134,20 +135,21 @@ class SortedList:
 
 
 class IntervalMap:
-    __slots__ = ("n", "starts", "val", "byVal")
+    __slots__ = ("n", "starts", "val", "byVal", "salt")
 
     # O(N) -- arr: the initial array (equal neighbours become one run)
     def __init__(self, arr):
         n = self.n = len(arr)
         starts, val, by = [], {}, {}
+        salt = self.salt = getrandbits(62)  # byVal's int keys are salted with this, so no fixed input can make them collide
         for i, v in enumerate(arr):
             if i == 0 or v != arr[i - 1]:
                 starts.append(i)
                 val[i] = v
-                by.setdefault(v, []).append(i)
+                by.setdefault(v ^ salt if type(v) is int else v, []).append(i)
         self.starts = SortedList(starts)  # every run's start, in order
         self.val = val  # run start -> its value
-        self.byVal = {v: SortedList(s) for v, s in by.items()}  # value -> the starts of its runs
+        self.byVal = {k: SortedList(s) for k, s in by.items()}  # value (salted) -> the starts of its runs
 
     # O(logN) amortized -- a[i] = x for i in [l, r]; needs 0 <= l <= r < n, else IndexError
     def rangeAssign(self, l, r, x):
@@ -163,26 +165,28 @@ class IntervalMap:
             nxt = starts.succ(s)
             starts.remove(s)
             v = val.pop(s)
-            p = by[v]
+            key = v ^ self.salt if type(v) is int else v
+            p = by[key]
             p.remove(s)
             if not len(p):
-                del by[v]
+                del by[key]
             s = nxt
         starts.add(l)
         val[l] = x
-        p = by.get(x)
+        key = x ^ self.salt if type(x) is int else x
+        p = by.get(key)
         if p is None:
-            p = by[x] = SortedList()
+            p = by[key] = SortedList()
         p.add(l)
 
     # O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array
     def leftmostIndexOf(self, x):
-        p = self.byVal.get(x)
+        p = self.byVal.get(x ^ self.salt if type(x) is int else x)
         return p.lists[0][0] if p is not None else -1
 
     # O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
     def rightmostIndexOf(self, x):
-        p = self.byVal.get(x)
+        p = self.byVal.get(x ^ self.salt if type(x) is int else x)
         return self._end(p.lists[-1][-1]) if p is not None else -1
 
     # O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < n, else
@@ -190,7 +194,7 @@ class IntervalMap:
     def leftmostIndexOfInRange(self, l, r, x):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"leftmostIndexOfInRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
-        p = self.byVal.get(x)
+        p = self.byVal.get(x ^ self.salt if type(x) is int else x)
         if p is None or l > r:
             return -1
         s = p.pred(l + 1)  # x's last run starting at or before l: does it reach l?
@@ -204,7 +208,7 @@ class IntervalMap:
     def rightmostIndexOfInRange(self, l, r, x):
         if not 0 <= l <= r < self.n:
             raise IndexError(f"rightmostIndexOfInRange: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
-        p = self.byVal.get(x)
+        p = self.byVal.get(x ^ self.salt if type(x) is int else x)
         if p is None or l > r:
             return -1
         s = p.pred(r + 1)  # x's last run starting at or before r
@@ -272,4 +276,4 @@ class IntervalMap:
         v = val[self.starts.pred(i)]
         self.starts.add(i)
         val[i] = v
-        self.byVal[v].add(i)
+        self.byVal[v ^ self.salt if type(v) is int else v].add(i)

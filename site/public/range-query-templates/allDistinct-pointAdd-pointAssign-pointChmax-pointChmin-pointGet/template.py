@@ -20,6 +20,7 @@
 #   note: tree is a min tree over nxt[i]; chains maps each value to its sorted positions (a bucketed SortedList, defined at the top of the file, so each change is a few binary searches plus a C-level shift of at most 1024 elements); the build is O(N): a dict groups the positions, already in order
 
 from bisect import bisect_left, bisect_right, insort
+from random import getrandbits
 
 
 # SortedList: a self-contained sorted container (no sortedcontainers import needed), used by the class below.
@@ -129,7 +130,7 @@ class SortedList:
 
 
 class DistinctTree:
-    __slots__ = ("n", "a", "tree", "chains")
+    __slots__ = ("n", "a", "tree", "chains", "salt")
 
     # O(N)
     def __init__(self, arr):
@@ -137,7 +138,10 @@ class DistinctTree:
         self.a = list(arr)
         tree = self.tree = [0] * (2 * n)
         positions = {}
+        salt = self.salt = getrandbits(62)  # int values are salted as dict keys, so no fixed input can make them collide
         for i, v in enumerate(arr):
+            if type(v) is int:
+                v ^= salt
             if v in positions:
                 positions[v].append(i)
             else:
@@ -187,7 +191,10 @@ class DistinctTree:
         old = self.a[i]
         if old == val:
             return
-        n, chains = self.n, self.chains
+        n, chains, salt = self.n, self.chains, self.salt
+        if type(old) is int:
+            old ^= salt
+        key = val ^ salt if type(val) is int else val
         chain = chains[old]
         p, s = chain.pred(i), chain.succ(i)
         if p is not None:
@@ -195,9 +202,9 @@ class DistinctTree:
         chain.remove(i)
         if not len(chain):
             del chains[old]
-        chain = chains.get(val)
+        chain = chains.get(key)
         if chain is None:
-            chain = chains[val] = SortedList()
+            chain = chains[key] = SortedList()
         chain.add(i)
         p, s = chain.pred(i), chain.succ(i)
         self._setNxt(i, n if s is None else s)

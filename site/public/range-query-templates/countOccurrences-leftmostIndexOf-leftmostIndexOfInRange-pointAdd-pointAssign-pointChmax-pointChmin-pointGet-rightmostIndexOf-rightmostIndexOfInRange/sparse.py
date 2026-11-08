@@ -131,6 +131,11 @@ class SortedList:
 # never-written index, O(log^2 U).
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted, so no fixed input can make the dict collide
+
+
 class SparseOccurrenceLists:
     __slots__ = ("lo", "hi", "vals", "pos", "nz")
 
@@ -150,7 +155,7 @@ class SparseOccurrenceLists:
         if x == 0:
             nz = self.nz
             return (r - l + 1) - (nz.countLess(r + 1) - nz.countLess(l))
-        s = self.pos.get(x)
+        s = self.pos.get(x ^ SALT if type(x) is int else x)
         return 0 if s is None else s.countLess(r + 1) - s.countLess(l)
 
     # O(logU * logU) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
@@ -169,7 +174,7 @@ class SparseOccurrenceLists:
         if l > r:
             return self.lo - 1
         if x == 0:
-            if l not in self.vals:
+            if l ^ SALT not in self.vals:
                 return l
             nz = self.nz
             base = nz.countLess(l)
@@ -181,7 +186,7 @@ class SparseOccurrenceLists:
                 else:
                     a = m + 1
             return a if a <= r else self.lo - 1
-        s = self.pos.get(x)
+        s = self.pos.get(x ^ SALT if type(x) is int else x)
         i = s.succ(l - 1) if s is not None else None
         return i if i is not None and i <= r else self.lo - 1
 
@@ -193,7 +198,7 @@ class SparseOccurrenceLists:
         if l > r:
             return self.lo - 1
         if x == 0:
-            if r not in self.vals:
+            if r ^ SALT not in self.vals:
                 return r
             nz = self.nz
             top = nz.countLess(r + 1)
@@ -205,7 +210,7 @@ class SparseOccurrenceLists:
                 else:
                     b = m - 1
             return a if a >= l else self.lo - 1
-        s = self.pos.get(x)
+        s = self.pos.get(x ^ SALT if type(x) is int else x)
         i = s.pred(r + 1) if s is not None else None
         return i if i is not None and i >= l else self.lo - 1
 
@@ -213,31 +218,31 @@ class SparseOccurrenceLists:
     def pointAssign(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
-        old = self.vals.get(i, 0)
+        old = self.vals.get(i ^ SALT, 0)
         if old == val:
             return
         if old:
-            s = self.pos[old]
+            s = self.pos[old ^ SALT if type(old) is int else old]
             s.remove(i)
             if not len(s):
-                del self.pos[old]
+                del self.pos[old ^ SALT if type(old) is int else old]
         else:
             self.nz.add(i)
         if val:
-            s = self.pos.get(val)
+            s = self.pos.get(val ^ SALT if type(val) is int else val)
             if s is None:
-                s = self.pos[val] = SortedList()
+                s = self.pos[val ^ SALT if type(val) is int else val] = SortedList()
             s.add(i)
-            self.vals[i] = val
+            self.vals[i ^ SALT] = val
         else:
             self.nz.remove(i)
-            del self.vals[i]
+            del self.vals[i ^ SALT]
 
     # O(1) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
-        return self.vals.get(i, 0)
+        return self.vals.get(i ^ SALT, 0)
 
     # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):

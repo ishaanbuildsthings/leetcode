@@ -39,6 +39,11 @@ GCD_PY = '''
 from math import gcd
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseRangeAddRangeGcd:
     __slots__ = ("lo", "hi", "size", "s", "g")
 
@@ -53,23 +58,23 @@ class SparseRangeAddRangeGcd:
     def _shiftDiff(self, i, x):
         s, g = self.s, self.g
         p = self.size + i - self.lo
-        v = s.get(p, 0) + x
-        s[p] = v
-        g[p] = abs(v)
+        v = s.get(p ^ SALT, 0) + x
+        s[p ^ SALT] = v
+        g[p ^ SALT] = abs(v)
         p >>= 1
         while p:
-            s[p] = s.get(2 * p, 0) + s.get(2 * p + 1, 0)
-            g[p] = gcd(g.get(2 * p, 0), g.get(2 * p + 1, 0))
+            s[p ^ SALT] = s.get((2 * p) ^ SALT, 0) + s.get((2 * p + 1) ^ SALT, 0)
+            g[p ^ SALT] = gcd(g.get((2 * p) ^ SALT, 0), g.get((2 * p + 1) ^ SALT, 0))
             p >>= 1
 
     # O(logU) -- d[lo] + ... + d[i], which is a[i]
     def _prefix(self, i):
         s = self.s
         p = self.size + i - self.lo
-        total = s.get(p, 0)
+        total = s.get(p ^ SALT, 0)
         while p > 1:
             if p & 1:
-                total += s.get(p - 1, 0)
+                total += s.get((p - 1) ^ SALT, 0)
             p >>= 1
         return total
 
@@ -93,11 +98,11 @@ class SparseRangeAddRangeGcd:
         r += self.size - self.lo + 1
         while l < r:
             if l & 1:
-                res = gcd(res, g.get(l, 0))
+                res = gcd(res, g.get(l ^ SALT, 0))
                 l += 1
             if r & 1:
                 r -= 1
-                res = gcd(res, g.get(r, 0))
+                res = gcd(res, g.get(r ^ SALT, 0))
             l >>= 1
             r >>= 1
         return res

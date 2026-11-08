@@ -53,6 +53,8 @@ Now for any partial value we can find exactly where it occurs in its indices lis
 # ========================
 
 
+from bisect import bisect_left
+from itertools import groupby, repeat
 from math import isqrt
 
 
@@ -66,10 +68,9 @@ class RangeMode:
         self.B = B = max(1, isqrt(n))
         self.numBlocks = numBlocks = (n + B - 1) // B
 
-        # coordinate compress so counting can use a flat list
-        self.vals = sorted(set(arr))
-        idOf = {val: i for i, val in enumerate(self.vals)}
-        self.comp = comp = [idOf[val] for val in arr]
+        # coordinate compress so counting can use a flat list (by sorting, so no value is ever hashed)
+        self.vals = vals = [val for val, _ in groupby(sorted(arr))]
+        self.comp = comp = list(map(bisect_left, repeat(vals), arr))
 
         # positions[valId] = sorted indices holding valId
         # posIdx[i] = where index i sits inside positions[comp[i]]

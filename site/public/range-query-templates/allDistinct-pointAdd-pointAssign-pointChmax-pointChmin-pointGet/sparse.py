@@ -129,6 +129,11 @@ class SortedList:
 INF = float("inf")
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted, so no fixed input can make the dict collide
+
+
 class SparseDistinctTree:
     __slots__ = ("lo", "hi", "size", "mn", "cnt", "vals", "chains")
 
@@ -145,12 +150,12 @@ class SparseDistinctTree:
     def _set(self, i, v, c):
         mn, cnt = self.mn, self.cnt
         p = self.size + i - self.lo
-        mn[p], cnt[p] = v, c
+        mn[p ^ SALT], cnt[p ^ SALT] = v, c
         p >>= 1
         while p:
-            a, b = mn.get(2 * p, INF), mn.get(2 * p + 1, INF)
-            mn[p] = a if a < b else b
-            cnt[p] = cnt.get(2 * p, 0) + cnt.get(2 * p + 1, 0)
+            a, b = mn.get((2 * p) ^ SALT, INF), mn.get((2 * p + 1) ^ SALT, INF)
+            mn[p ^ SALT] = a if a < b else b
+            cnt[p ^ SALT] = cnt.get((2 * p) ^ SALT, 0) + cnt.get((2 * p + 1) ^ SALT, 0)
             p >>= 1
 
     # O(logU) -- True iff no value repeats inside a[l..r]; needs lo <= l <= r <= hi, else IndexError
@@ -162,13 +167,13 @@ class SparseDistinctTree:
         best, c = INF, 0
         while lo_ < hi_:
             if lo_ & 1:
-                best = min(best, mn.get(lo_, INF))
-                c += cnt.get(lo_, 0)
+                best = min(best, mn.get(lo_ ^ SALT, INF))
+                c += cnt.get(lo_ ^ SALT, 0)
                 lo_ += 1
             if hi_ & 1:
                 hi_ -= 1
-                best = min(best, mn.get(hi_, INF))
-                c += cnt.get(hi_, 0)
+                best = min(best, mn.get(hi_ ^ SALT, INF))
+                c += cnt.get(hi_ ^ SALT, 0)
             lo_ >>= 1
             hi_ >>= 1
         return (r - l + 1) - c < 2 and best > r
@@ -177,36 +182,36 @@ class SparseDistinctTree:
     def pointAssign(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
-        old = self.vals.get(i, 0)
+        old = self.vals.get(i ^ SALT, 0)
         if old == val:
             return
         if old:
-            s = self.chains[old]
+            s = self.chains[old ^ SALT if type(old) is int else old]
             p, nx = s.pred(i), s.succ(i)
             if p is not None:
                 self._set(p, INF if nx is None else nx, 1)
             s.remove(i)
             if not len(s):
-                del self.chains[old]
+                del self.chains[old ^ SALT if type(old) is int else old]
         if val:
-            s = self.chains.get(val)
+            s = self.chains.get(val ^ SALT if type(val) is int else val)
             if s is None:
-                s = self.chains[val] = SortedList()
+                s = self.chains[val ^ SALT if type(val) is int else val] = SortedList()
             s.add(i)
             p, nx = s.pred(i), s.succ(i)
             self._set(i, INF if nx is None else nx, 1)
             if p is not None:
                 self._set(p, i, 1)
-            self.vals[i] = val
+            self.vals[i ^ SALT] = val
         else:
             self._set(i, INF, 0)
-            del self.vals[i]
+            del self.vals[i ^ SALT]
 
     # O(logU) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
-        return self.vals.get(i, 0)
+        return self.vals.get(i ^ SALT, 0)
 
     # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):

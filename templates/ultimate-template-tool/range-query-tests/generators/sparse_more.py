@@ -61,7 +61,7 @@ def sorted_list_src():
 PY_POINTS = '''
     # O(1) -- a[i]
     def pointGet(self, i):
-        return self.vals.get(i, 0)
+        return self.vals.get(i ^ SALT, 0)
 
     # a[i] += delta
     def pointAdd(self, i, delta):
@@ -183,7 +183,7 @@ PY_FENWICK = '''
         d, n = self.d, self.n
         x = i - self.lo + 1
         while x <= n:
-            d[x] = d.get(x, 0) {op} v
+            d[x ^ SALT] = d.get(x ^ SALT, 0) {op} v
             x += x & -x
 
     # O(logU) -- total of the changes at positions lo..i (0 for i < lo)
@@ -192,7 +192,7 @@ PY_FENWICK = '''
         s = 0
         x = i - self.lo + 1
         while x > 0:
-            s {op}= d.get(x, 0)
+            s {op}= d.get(x ^ SALT, 0)
             x &= x - 1
         return s
 '''
@@ -210,6 +210,9 @@ write(PLAIN + ["doAllElementsAppearEvenFrequency"], "BIT", {"pointGet": "log(U)"
 import random
 
 MASK = (1 << 64) - 1
+
+SALT = random.getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
 
 # Range "does every value appear an even number of times?" via xor hashing, with point updates, over any index
 # range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value's 64-bit tag is
@@ -249,11 +252,11 @@ class SparseXorEven:
 
     # O(logU) -- a[i] = val
     def pointAssign(self, i, val):
-        d = self._tagOf(self.vals.get(i, 0)) ^ self._tagOf(val)
+        d = self._tagOf(self.vals.get(i ^ SALT, 0)) ^ self._tagOf(val)
         if val:
-            self.vals[i] = val
+            self.vals[i ^ SALT] = val
         else:
-            self.vals.pop(i, None)
+            self.vals.pop(i ^ SALT, None)
         if d:
             self._add(i, d)
 ''' + PY_POINTS, '''
@@ -323,6 +326,11 @@ from bisect import bisect_left, bisect_right, insort
 # never-written index, O(log^2 U).
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted, so no fixed input can make the dict collide
+
+
 class SparseOccurrenceLists:
     __slots__ = ("lo", "hi", "vals", "pos", "nz")
 
@@ -340,7 +348,7 @@ class SparseOccurrenceLists:
         if x == 0:
             nz = self.nz
             return (r - l + 1) - (nz.countLess(r + 1) - nz.countLess(l))
-        s = self.pos.get(x)
+        s = self.pos.get(x ^ SALT if type(x) is int else x)
         return 0 if s is None else s.countLess(r + 1) - s.countLess(l)
 
     # O(logU) (x == 0: O(log^2 U)) -- the smallest i in [lo, hi] with a[i] == x, or lo - 1 if there is none
@@ -356,7 +364,7 @@ class SparseOccurrenceLists:
         if l > r:
             return self.lo - 1
         if x == 0:
-            if l not in self.vals:
+            if l ^ SALT not in self.vals:
                 return l
             nz = self.nz
             base = nz.countLess(l)
@@ -368,7 +376,7 @@ class SparseOccurrenceLists:
                 else:
                     a = m + 1
             return a if a <= r else self.lo - 1
-        s = self.pos.get(x)
+        s = self.pos.get(x ^ SALT if type(x) is int else x)
         i = s.succ(l - 1) if s is not None else None
         return i if i is not None and i <= r else self.lo - 1
 
@@ -377,7 +385,7 @@ class SparseOccurrenceLists:
         if l > r:
             return self.lo - 1
         if x == 0:
-            if r not in self.vals:
+            if r ^ SALT not in self.vals:
                 return r
             nz = self.nz
             top = nz.countLess(r + 1)
@@ -389,31 +397,31 @@ class SparseOccurrenceLists:
                 else:
                     b = m - 1
             return a if a >= l else self.lo - 1
-        s = self.pos.get(x)
+        s = self.pos.get(x ^ SALT if type(x) is int else x)
         i = s.pred(r + 1) if s is not None else None
         return i if i is not None and i >= l else self.lo - 1
 
     # O(logU) -- a[i] = val
     def pointAssign(self, i, val):
-        old = self.vals.get(i, 0)
+        old = self.vals.get(i ^ SALT, 0)
         if old == val:
             return
         if old:
-            s = self.pos[old]
+            s = self.pos[old ^ SALT if type(old) is int else old]
             s.remove(i)
             if not len(s):
-                del self.pos[old]
+                del self.pos[old ^ SALT if type(old) is int else old]
         else:
             self.nz.add(i)
         if val:
-            s = self.pos.get(val)
+            s = self.pos.get(val ^ SALT if type(val) is int else val)
             if s is None:
-                s = self.pos[val] = SortedList()
+                s = self.pos[val ^ SALT if type(val) is int else val] = SortedList()
             s.add(i)
-            self.vals[i] = val
+            self.vals[i ^ SALT] = val
         else:
             self.nz.remove(i)
-            del self.vals[i]
+            del self.vals[i ^ SALT]
 ''' + PY_POINTS + "\n\n" + SL, '''
 // "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?" with point updates,
 // over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Each nonzero value keeps its
@@ -545,6 +553,11 @@ from bisect import bisect_left, bisect_right, insort
 INF = float("inf")
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted, so no fixed input can make the dict collide
+
+
 class SparseDistinctTree:
     __slots__ = ("lo", "hi", "size", "mn", "cnt", "vals", "chains")
 
@@ -561,12 +574,12 @@ class SparseDistinctTree:
     def _set(self, i, v, c):
         mn, cnt = self.mn, self.cnt
         p = self.size + i - self.lo
-        mn[p], cnt[p] = v, c
+        mn[p ^ SALT], cnt[p ^ SALT] = v, c
         p >>= 1
         while p:
-            a, b = mn.get(2 * p, INF), mn.get(2 * p + 1, INF)
-            mn[p] = a if a < b else b
-            cnt[p] = cnt.get(2 * p, 0) + cnt.get(2 * p + 1, 0)
+            a, b = mn.get((2 * p) ^ SALT, INF), mn.get((2 * p + 1) ^ SALT, INF)
+            mn[p ^ SALT] = a if a < b else b
+            cnt[p ^ SALT] = cnt.get((2 * p) ^ SALT, 0) + cnt.get((2 * p + 1) ^ SALT, 0)
             p >>= 1
 
     # O(logU) -- True iff no value repeats inside a[l..r]
@@ -576,43 +589,43 @@ class SparseDistinctTree:
         best, c = INF, 0
         while lo_ < hi_:
             if lo_ & 1:
-                best = min(best, mn.get(lo_, INF))
-                c += cnt.get(lo_, 0)
+                best = min(best, mn.get(lo_ ^ SALT, INF))
+                c += cnt.get(lo_ ^ SALT, 0)
                 lo_ += 1
             if hi_ & 1:
                 hi_ -= 1
-                best = min(best, mn.get(hi_, INF))
-                c += cnt.get(hi_, 0)
+                best = min(best, mn.get(hi_ ^ SALT, INF))
+                c += cnt.get(hi_ ^ SALT, 0)
             lo_ >>= 1
             hi_ >>= 1
         return (r - l + 1) - c < 2 and best > r
 
     # O(logU) -- a[i] = val
     def pointAssign(self, i, val):
-        old = self.vals.get(i, 0)
+        old = self.vals.get(i ^ SALT, 0)
         if old == val:
             return
         if old:
-            s = self.chains[old]
+            s = self.chains[old ^ SALT if type(old) is int else old]
             p, nx = s.pred(i), s.succ(i)
             if p is not None:
                 self._set(p, INF if nx is None else nx, 1)
             s.remove(i)
             if not len(s):
-                del self.chains[old]
+                del self.chains[old ^ SALT if type(old) is int else old]
         if val:
-            s = self.chains.get(val)
+            s = self.chains.get(val ^ SALT if type(val) is int else val)
             if s is None:
-                s = self.chains[val] = SortedList()
+                s = self.chains[val ^ SALT if type(val) is int else val] = SortedList()
             s.add(i)
             p, nx = s.pred(i), s.succ(i)
             self._set(i, INF if nx is None else nx, 1)
             if p is not None:
                 self._set(p, i, 1)
-            self.vals[i] = val
+            self.vals[i ^ SALT] = val
         else:
             self._set(i, INF, 0)
-            del self.vals[i]
+            del self.vals[i ^ SALT]
 ''' + PY_POINTS + "\n\n" + SL, '''
 // "Are all values in a[l..r] distinct?" with point updates, over any index range [lo, hi] (huge or negative is fine);
 // every position starts at 0. Two zeros repeat, so a range with >= 2 positions holding 0 is not distinct. Among the
@@ -751,6 +764,11 @@ from bisect import bisect_left, bisect_right, insort
 # its length. An assign changes at most 3 nxt values, in an order that never lets two positions share an nxt value.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted, so no fixed input can make the dict collide
+
+
 class SparseDistinctBIT:
     __slots__ = ("lo", "hi", "n", "none", "vals", "nxt", "last", "sets", "chains")
 
@@ -769,7 +787,7 @@ class SparseDistinctBIT:
         last, n = self.last, self.n
         j = i - self.lo + 1
         while j <= n:
-            last[j] = last.get(j, 0) + d
+            last[j ^ SALT] = last.get(j ^ SALT, 0) + d
             j += j & -j
 
     # how many tracked positions p <= x have nxt[p] > r (0 for x < lo)
@@ -778,8 +796,8 @@ class SparseDistinctBIT:
         res = 0
         j = x - self.lo + 1
         while j > 0:
-            res += last.get(j, 0)
-            s = sets.get(j)
+            res += last.get(j ^ SALT, 0)
+            s = sets.get(j ^ SALT)
             if s is not None:
                 res += len(s) - s.countLess(r + 1)
             j &= j - 1
@@ -787,7 +805,7 @@ class SparseDistinctBIT:
 
     # O(log^2 U) -- nxt[i] = v (None: i is not tracked, it holds 0)
     def _setNxt(self, i, v):
-        old = self.nxt.get(i)
+        old = self.nxt.get(i ^ SALT)
         if old == v:
             return
         n, sets = self.n, self.sets
@@ -796,25 +814,25 @@ class SparseDistinctBIT:
         elif old is not None:
             j = i - self.lo + 1
             while j <= n:
-                s = sets[j]
+                s = sets[j ^ SALT]
                 s.remove(old)
                 if not len(s):
-                    del sets[j]
+                    del sets[j ^ SALT]
                 j += j & -j
         if v == self.none:
             self._lastAdd(i, 1)
         elif v is not None:
             j = i - self.lo + 1
             while j <= n:
-                s = sets.get(j)
+                s = sets.get(j ^ SALT)
                 if s is None:
-                    s = sets[j] = SortedList()
+                    s = sets[j ^ SALT] = SortedList()
                 s.add(v)
                 j += j & -j
         if v is None:
-            del self.nxt[i]
+            del self.nxt[i ^ SALT]
         else:
-            self.nxt[i] = v
+            self.nxt[i ^ SALT] = v
 
     # O(log^2 U) -- # of distinct values in a[l..r]
     def countDistinct(self, l, r):
@@ -826,30 +844,30 @@ class SparseDistinctBIT:
 
     # O(log^2 U) -- a[i] = val; rewires i's old predecessor, i's new predecessor, and i
     def pointAssign(self, i, val):
-        old = self.vals.get(i, 0)
+        old = self.vals.get(i ^ SALT, 0)
         if old == val:
             return
         if old:
-            s = self.chains[old]
+            s = self.chains[old ^ SALT if type(old) is int else old]
             self._setNxt(i, None)  # unlink i first, so its successor is free for its predecessor
             p, nx = s.pred(i), s.succ(i)
             if p is not None:
                 self._setNxt(p, self.none if nx is None else nx)
             s.remove(i)
             if not len(s):
-                del self.chains[old]
+                del self.chains[old ^ SALT if type(old) is int else old]
         if val:
-            s = self.chains.get(val)
+            s = self.chains.get(val ^ SALT if type(val) is int else val)
             if s is None:
-                s = self.chains[val] = SortedList()
+                s = self.chains[val ^ SALT if type(val) is int else val] = SortedList()
             s.add(i)
             p, nx = s.pred(i), s.succ(i)
             if p is not None:
                 self._setNxt(p, i)  # move the predecessor off the successor first, then hand it to i
             self._setNxt(i, self.none if nx is None else nx)
-            self.vals[i] = val
+            self.vals[i ^ SALT] = val
         else:
-            del self.vals[i]
+            del self.vals[i ^ SALT]
 ''' + PY_POINTS + "\n\n" + SL, '''
 // Range count distinct with point updates in O(log^2 U), online, over any index range [lo, hi] (huge or negative is
 // fine); every position starts at 0. Only nonzero positions are tracked: nxt[i] = the next position with the same

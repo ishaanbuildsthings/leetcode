@@ -24,6 +24,11 @@
 # enters one.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseRangeModTree:
     __slots__ = ("lo", "hi", "size", "mx")
 
@@ -38,9 +43,9 @@ class SparseRangeModTree:
         mx = self.mx
         p >>= 1
         while p:
-            a = mx.get(2 * p, 0)
-            b = mx.get(2 * p + 1, 0)
-            mx[p] = a if a > b else b
+            a = mx.get((2 * p) ^ SALT, 0)
+            b = mx.get((2 * p + 1) ^ SALT, 0)
+            mx[p ^ SALT] = a if a > b else b
             p >>= 1
 
     def _descend(self, top, mod):
@@ -48,18 +53,18 @@ class SparseRangeModTree:
         stack, inner = [top], []
         while stack:
             y = stack.pop()
-            if mx.get(y, 0) < mod:
+            if mx.get(y ^ SALT, 0) < mod:
                 continue
             if y >= size:
-                mx[y] %= mod
+                mx[y ^ SALT] %= mod
             else:
                 inner.append(y)
                 stack.append(2 * y)
                 stack.append(2 * y + 1)
         for y in reversed(inner):  # pre-order reversed puts every child before its parent
-            a = mx.get(2 * y, 0)
-            b = mx.get(2 * y + 1, 0)
-            mx[y] = a if a > b else b
+            a = mx.get((2 * y) ^ SALT, 0)
+            b = mx.get((2 * y + 1) ^ SALT, 0)
+            mx[y ^ SALT] = a if a > b else b
 
     # amortized O(logU logV) -- a[i] %= mod for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeMod(self, l, r, mod):
@@ -86,14 +91,14 @@ class SparseRangeModTree:
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
-        return self.mx.get(self.size + i - self.lo, 0)
+        return self.mx.get((self.size + i - self.lo) ^ SALT, 0)
 
     # O(logU) -- a[i] = val; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
-        self.mx[p] = val
+        self.mx[p ^ SALT] = val
         self._pull(p)
 
     # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError

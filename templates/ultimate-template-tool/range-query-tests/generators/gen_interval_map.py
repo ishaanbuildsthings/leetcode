@@ -37,20 +37,21 @@ DOC = '''{c} "Where is x's first / last copy, in the whole array or inside a[l..
 PY = '''
 
 class IntervalMap:
-    __slots__ = ("n", "starts", "val", "byVal")
+    __slots__ = ("n", "starts", "val", "byVal", "salt")
 
     # O(N) -- arr: the initial array (equal neighbours become one run)
     def __init__(self, arr):
         n = self.n = len(arr)
         starts, val, by = [], {}, {}
+        salt = self.salt = getrandbits(62)  # byVal's int keys are salted with this, so no fixed input can make them collide
         for i, v in enumerate(arr):
             if i == 0 or v != arr[i - 1]:
                 starts.append(i)
                 val[i] = v
-                by.setdefault(v, []).append(i)
+                by.setdefault(v ^ salt if type(v) is int else v, []).append(i)
         self.starts = SortedList(starts)  # every run's start, in order
         self.val = val  # run start -> its value
-        self.byVal = {v: SortedList(s) for v, s in by.items()}  # value -> the starts of its runs
+        self.byVal = {k: SortedList(s) for k, s in by.items()}  # value (salted) -> the starts of its runs
 
     # O(logN) amortized -- a[i] = x for i in [l, r]
     def rangeAssign(self, l, r, x):
@@ -64,31 +65,33 @@ class IntervalMap:
             nxt = starts.succ(s)
             starts.remove(s)
             v = val.pop(s)
-            p = by[v]
+            key = v ^ self.salt if type(v) is int else v
+            p = by[key]
             p.remove(s)
             if not len(p):
-                del by[v]
+                del by[key]
             s = nxt
         starts.add(l)
         val[l] = x
-        p = by.get(x)
+        key = x ^ self.salt if type(x) is int else x
+        p = by.get(key)
         if p is None:
-            p = by[x] = SortedList()
+            p = by[key] = SortedList()
         p.add(l)
 
     # O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array
     def leftmostIndexOf(self, x):
-        p = self.byVal.get(x)
+        p = self.byVal.get(x ^ self.salt if type(x) is int else x)
         return p.lists[0][0] if p is not None else -1
 
     # O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
     def rightmostIndexOf(self, x):
-        p = self.byVal.get(x)
+        p = self.byVal.get(x ^ self.salt if type(x) is int else x)
         return self._end(p.lists[-1][-1]) if p is not None else -1
 
     # O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
     def leftmostIndexOfInRange(self, l, r, x):
-        p = self.byVal.get(x)
+        p = self.byVal.get(x ^ self.salt if type(x) is int else x)
         if p is None or l > r:
             return -1
         s = p.pred(l + 1)  # x's last run starting at or before l: does it reach l?
@@ -99,7 +102,7 @@ class IntervalMap:
 
     # O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
     def rightmostIndexOfInRange(self, l, r, x):
-        p = self.byVal.get(x)
+        p = self.byVal.get(x ^ self.salt if type(x) is int else x)
         if p is None or l > r:
             return -1
         s = p.pred(r + 1)  # x's last run starting at or before r
@@ -157,7 +160,7 @@ class IntervalMap:
         v = val[self.starts.pred(i)]
         self.starts.add(i)
         val[i] = v
-        self.byVal[v].add(i)
+        self.byVal[v ^ self.salt if type(v) is int else v].add(i)
 '''
 
 CPP = '''// T: int, long long, char, ... (any type usable as a std::map key).
@@ -268,7 +271,8 @@ def sorted_list_py():
     src = strip_attribution(open(os.path.join(DIR, SORTED_LIST_FROM, "template.py")).read())
     a = src.index("# SortedList: a self-contained sorted container")
     b = src.index("\n# ", src.index("class SortedList"))  # (up to the next top-level comment: the template's own doc)
-    return src[src.index("from bisect"):src.index("\n", src.index("from bisect")) + 1] + "\n\n" + src[a:b].rstrip() + "\n"
+    return (src[src.index("from bisect"):src.index("\n", src.index("from bisect")) + 1] + "from random import getrandbits\n\n\n" +
+            src[a:b].rstrip() + "\n")
 
 
 def main():

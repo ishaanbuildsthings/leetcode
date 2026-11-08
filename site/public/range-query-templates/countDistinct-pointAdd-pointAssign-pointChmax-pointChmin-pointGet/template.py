@@ -20,6 +20,7 @@
 #   note: Fenwick node j keeps an ordered set of the nxt values in its lowbit(j) positions, about N*log(N)/2 keys in all; those are balanced-tree / bucket entries, several times heavier than a plain int
 
 from bisect import bisect_left, bisect_right, insort
+from random import getrandbits
 
 
 # SortedList: a self-contained sorted container (no sortedcontainers import needed), used by the class below.
@@ -132,7 +133,7 @@ class SortedList:
 
 
 class DynamicDistinctBIT:
-    __slots__ = ("n", "a", "nxt", "last", "sets", "chains")
+    __slots__ = ("n", "a", "nxt", "last", "sets", "chains", "salt")
 
     # O(N log^2 N)
     def __init__(self, arr):
@@ -140,7 +141,10 @@ class DynamicDistinctBIT:
         self.a = list(arr)
         nxt = self.nxt = [n] * n
         positions = {}
+        salt = self.salt = getrandbits(62)  # int values are salted as dict keys, so no fixed input can make them collide
         for i, v in enumerate(arr):
+            if type(v) is int:
+                v ^= salt
             if v in positions:
                 nxt[positions[v][-1]] = i
                 positions[v].append(i)
@@ -213,7 +217,10 @@ class DynamicDistinctBIT:
         old = self.a[i]
         if old == val:
             return
-        n, chains = self.n, self.chains
+        n, chains, salt = self.n, self.chains, self.salt
+        if type(old) is int:
+            old ^= salt
+        key = val ^ salt if type(val) is int else val
         chain = chains[old]
         p, s = chain.pred(i), chain.succ(i)
         self._setNxt(i, n)  # unlink i first, so its successor is free for p
@@ -222,9 +229,9 @@ class DynamicDistinctBIT:
         chain.remove(i)
         if not len(chain):
             del chains[old]
-        chain = chains.get(val)
+        chain = chains.get(key)
         if chain is None:
-            chain = chains[val] = SortedList()
+            chain = chains[key] = SortedList()
         chain.add(i)
         p, s = chain.pred(i), chain.succ(i)
         if p is not None:

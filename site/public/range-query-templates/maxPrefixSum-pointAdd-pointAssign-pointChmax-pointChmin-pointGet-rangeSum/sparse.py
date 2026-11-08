@@ -25,6 +25,11 @@
 ZERO = (0, 0)  # the summary of any block of zeros
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseMaxPrefixSumTree:
     __slots__ = ("lo", "hi", "size", "t")
 
@@ -44,12 +49,12 @@ class SparseMaxPrefixSumTree:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         t = self.t
         p = self.size + i - self.lo
-        t[p] = (val, val)
+        t[p ^ SALT] = (val, val)
         p >>= 1
         k = 1  # length of p's children
         while p:
-            a, b = t.get(2 * p), t.get(2 * p + 1)
-            t[p] = self._merge(ZERO if a is None else a, ZERO if b is None else b)
+            a, b = t.get((2 * p) ^ SALT), t.get((2 * p + 1) ^ SALT)
+            t[p ^ SALT] = self._merge(ZERO if a is None else a, ZERO if b is None else b)
             p >>= 1
             k <<= 1
 
@@ -62,13 +67,13 @@ class SparseMaxPrefixSumTree:
         k = 1
         while l < r:
             if l & 1:
-                v = t.get(l)
+                v = t.get(l ^ SALT)
                 v = ZERO if v is None else v
                 left = v if left is None else self._merge(left, v)
                 l += 1
             if r & 1:
                 r -= 1
-                v = t.get(r)
+                v = t.get(r ^ SALT)
                 v = ZERO if v is None else v
                 right = v if right is None else self._merge(v, right)
             l >>= 1
@@ -98,7 +103,7 @@ class SparseMaxPrefixSumTree:
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
-        return (lambda v: 0 if v is None else v[0])(self.t.get(self.size + i - self.lo))
+        return (lambda v: 0 if v is None else v[0])(self.t.get((self.size + i - self.lo) ^ SALT))
 
     # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):

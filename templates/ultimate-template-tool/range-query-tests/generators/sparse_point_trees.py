@@ -150,6 +150,11 @@ def scalar(folder, query_op, name, desc, py_merge, py_identity, cpp_merge, cpp_i
 # so only the log U nodes on each updated path exist. Same bottom-up loops as the dense tree.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class {name}:
     __slots__ = ("lo", "hi", "size", "t")
 
@@ -163,11 +168,11 @@ class {name}:
     def pointAssign(self, i, val):
         t = self.t
         p = self.size + i - self.lo
-        t[p] = {py_leaf}
+        t[p ^ SALT] = {py_leaf}
         p >>= 1
         while p:
-            a, b = t.get(2 * p, 0), t.get(2 * p + 1, 0)
-            t[p] = {py_merge}
+            a, b = t.get((2 * p) ^ SALT, 0), t.get((2 * p + 1) ^ SALT, 0)
+            t[p ^ SALT] = {py_merge}
             p >>= 1
 
     # O(logU) -- {qdesc}
@@ -177,17 +182,17 @@ class {name}:
         r += self.size - self.lo + 1
         while l < r:
             if l & 1:
-                a, b = res, t.get(l, 0)
+                a, b = res, t.get(l ^ SALT, 0)
                 res = {py_merge}
                 l += 1
             if r & 1:
                 r -= 1
-                a, b = res, t.get(r, 0)
+                a, b = res, t.get(r ^ SALT, 0)
                 res = {py_merge}
             l >>= 1
             r >>= 1
         return res
-''' + PY_POINT_OPS.format(get="self.t.get(self.size + i - self.lo, 0)")
+''' + PY_POINT_OPS.format(get="self.t.get((self.size + i - self.lo) ^ SALT, 0)")
     cpp = f'''
 // {desc}, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
 // Sparse: only the nodes on updated paths exist, in one pool shared by every {name}; node 0 is the shared
@@ -261,6 +266,11 @@ def summary(folder, name, desc, fields, py_merge, cpp_merge, py_leaf, cpp_leaf, 
 {"" if len_dependent else f"ZERO = {py_zero}  # the summary of any block of zeros"}
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class {name}:
     __slots__ = ("lo", "hi", "size", "t")
 
@@ -278,12 +288,12 @@ class {name}:
     def pointAssign(self, i, val):
         t = self.t
         p = self.size + i - self.lo
-        t[p] = {py_leaf}
+        t[p ^ SALT] = {py_leaf}
         p >>= 1
         k = 1  # length of p's children
         while p:
-            a, b = t.get(2 * p), t.get(2 * p + 1)
-            t[p] = self._merge({zero_get} if a is None else a, {zero_get} if b is None else b)
+            a, b = t.get((2 * p) ^ SALT), t.get((2 * p + 1) ^ SALT)
+            t[p ^ SALT] = self._merge({zero_get} if a is None else a, {zero_get} if b is None else b)
             p >>= 1
             k <<= 1
 
@@ -296,13 +306,13 @@ class {name}:
         k = 1
         while l < r:
             if l & 1:
-                v = t.get(l)
+                v = t.get(l ^ SALT)
                 v = {zero_get} if v is None else v
                 left = v if left is None else self._merge(left, v)
                 l += 1
             if r & 1:
                 r -= 1
-                v = t.get(r)
+                v = t.get(r ^ SALT)
                 v = {zero_get} if v is None else v
                 right = v if right is None else self._merge(v, right)
             l >>= 1
@@ -402,7 +412,7 @@ def prefix_variant(folder, name, desc, keep):
     summary(folder, name, desc, fields, py_merge, "Agg{" + ", ".join(cm) + "}",
             f"({', '.join(['val'] * n)})", "Agg{" + ", ".join(["S(v)"] * n) + "}",
             f"({', '.join(['0'] * n)})", "Agg{" + ", ".join(["0"] * n) + "}", False, queries,
-            "(lambda v: 0 if v is None else v[0])(self.t.get(self.size + i - self.lo))", "T(pool[x].v.sm)",
+            "(lambda v: 0 if v is None else v[0])(self.t.get((self.size + i - self.lo) ^ SALT))", "T(pool[x].v.sm)",
             " ".join(f"{f}[1*log(U)]" for f, _ in fields),
             note="pieces are non-empty, so a block of zeros summarizes to all zeros;")
 
@@ -429,7 +439,7 @@ summary("longestEqualRun-" + P, "SparseEqualRunTree", "Longest run of equal adja
         "max({a.best, b.best, a.rv == b.lv ? a.suf + b.pre : 0LL}), a.lv, b.rv}",
         "(1, 1, 1, 1, val, val)", "Agg{1, 1, 1, 1, v, v}", "(k, k, k, k, 0, 0)", "Agg{len, len, len, len, T(0), T(0)}", True,
         {"longestEqualRun": ("res[3]", "res.best")},
-        "(lambda v: 0 if v is None else v[4])(self.t.get(self.size + i - self.lo))", "pool[x].v.lv",
+        "(lambda v: 0 if v is None else v[4])(self.t.get((self.size + i - self.lo) ^ SALT))", "pool[x].v.lv",
         "ln[1*log(U)] pre[1*log(U)] suf[1*log(U)] best[1*log(U)] lv[1*log(U)] rv[1*log(U)]",
         note="a block of k zeros is one run of length k, so missing nodes are summarized from their length;")
 
@@ -446,7 +456,7 @@ summary("maxAltSubseqSum-" + P, "SparseAltSumTree", "Max alternating subsequence
         "(val, NEG, NEG, -val)", "Agg{S(v), NEG, NEG, -S(v)}", "(0, 0 if k > 1 else NEG, 0 if k > 1 else NEG, 0)",
         "Agg{0, len > 1 ? S(0) : NEG, len > 1 ? S(0) : NEG, 0}", True,
         {"maxAltSubseqSum": ("max(res[0], res[1])", "max(res.pp, res.pm)")},
-        "(lambda v: 0 if v is None else v[0])(self.t.get(self.size + i - self.lo))", "T(pool[x].v.pp)",
+        "(lambda v: 0 if v is None else v[0])(self.t.get((self.size + i - self.lo) ^ SALT))", "T(pool[x].v.pp)",
         "pp[1*log(U)] pm[1*log(U)] mp[1*log(U)] mm[1*log(U)]",
         note="pairs (first sign, last sign) of a block of zeros: a single zero can't start + and end -;",
         py_pre='\nNEG = float("-inf")', cpp_pre="")
@@ -479,13 +489,13 @@ def search_tree(kind):
         r += self.size - self.lo + 1
         while l < r:
             if l & 1:
-                v = t.get(l, 0)
+                v = t.get(l ^ SALT, 0)
                 if v {cmp} res:
                     res = v
                 l += 1
             if r & 1:
                 r -= 1
-                v = t.get(r, 0)
+                v = t.get(r ^ SALT, 0)
                 if v {cmp} res:
                     res = v
             l >>= 1
@@ -503,10 +513,10 @@ def search_tree(kind):
         while True:
             while not p & 1:  # climb while p is a left child: its parent starts at the same index
                 p >>= 1
-            if t.get(p, 0) {sym} x:  # the answer is inside p: descend, preferring the left child
+            if t.get(p ^ SALT, 0) {sym} x:  # the answer is inside p: descend, preferring the left child
                 while p < size:
                     p <<= 1
-                    if not t.get(p, 0) {sym} x:
+                    if not t.get(p ^ SALT, 0) {sym} x:
                         p += 1
                 i = p - size + self.lo
                 return i if i <= r else self.lo - 1
@@ -522,21 +532,21 @@ def search_tree(kind):
             p -= 1
             while p > 1 and p & 1:  # climb while p is a right child: its parent ends at the same index
                 p >>= 1
-            if t.get(p, 0) {sym} x:  # the answer is inside p: descend, preferring the right child
+            if t.get(p ^ SALT, 0) {sym} x:  # the answer is inside p: descend, preferring the right child
                 while p < size:
                     p = 2 * p + 1
-                    if not t.get(p, 0) {sym} x:
+                    if not t.get(p ^ SALT, 0) {sym} x:
                         p -= 1
                 i = p - size + self.lo
                 return i if i >= l else self.lo - 1
             if not p & (p - 1):  # walked off the left edge
                 return self.lo - 1
 '''
-    set_leaf = " = ".join(f"self.{a}[p]" for a in keeps) + " = val"
+    set_leaf = " = ".join(f"self.{a}[p ^ SALT]" for a in keeps) + " = val"
     recompute = ""
     for a in keeps:
         cmp = ">" if a == "mx" else "<"
-        recompute += f"            u, w = self.{a}.get(2 * p, 0), self.{a}.get(2 * p + 1, 0)\n            self.{a}[p] = u if u {cmp} w else w\n"
+        recompute += f"            u, w = self.{a}.get((2 * p) ^ SALT, 0), self.{a}.get((2 * p + 1) ^ SALT, 0)\n            self.{a}[p ^ SALT] = u if u {cmp} w else w\n"
     py = f'''
 NEG = float("-inf")
 INF = float("inf")
@@ -546,6 +556,11 @@ INF = float("inf")
 # qualifies (-1 when lo = 0). Sparse: dicts keyed by heap index over a power-of-two cover of [lo, hi]; a missing key is a block of
 # zeros. The searches are the dense tree's iterative walks: climb from the boundary until a node holds a match,
 # then descend into it.
+
+
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
 
 
 class {name}:
@@ -563,7 +578,7 @@ class {name}:
         p >>= 1
         while p:
 {recompute}            p >>= 1
-{py_fold}{py_walks}''' + PY_POINT_OPS.format(get=f"self.{keeps[0]}.get(self.size + i - self.lo, 0)")
+{py_fold}{py_walks}''' + PY_POINT_OPS.format(get=f"self.{keeps[0]}.get((self.size + i - self.lo) ^ SALT, 0)")
 
     # ---------------- C++
     agg = "Agg"

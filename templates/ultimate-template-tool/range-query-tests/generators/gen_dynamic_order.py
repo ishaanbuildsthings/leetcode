@@ -330,6 +330,11 @@ def py_sparse(ops, sums, xr=False):
 # minus the stored values in it) sit between the stored negatives and positives.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseDynamicOrderStats:
 ''' + f"    __slots__ = ({', '.join(repr(s) for s in slots)})\n\n" + '''    # O(1) -- indices: any integers in [lo, hi], every position starting at 0; every value a[i] ever holds must lie in
     # [valLo, valHi] (U = the larger of the two ranges' sizes)
@@ -340,20 +345,20 @@ class SparseDynamicOrderStats:
         self.root = {}  # BIT node -> its value tree (missing: empty)
         self.L, self.R, self.C = [0], [0], [0]  # node 0 = the empty tree
 ''' + ("        self.S = [0]\n" if sums else "") + ("        self.X = [0]  # xor of the values below with an odd count\n" if xr else "") + "\n" +
-            PY_POINT.format(get="self.vals.get(i, 0)", assign='''if old:
+            PY_POINT.format(get="self.vals.get(i ^ SALT, 0)", assign='''if old:
                 self._add(i, old, -1)
             if v:
                 self._add(i, v, 1)
-                self.vals[i] = v
+                self.vals[i ^ SALT] = v
             else:
-                self.vals.pop(i, None)''') + "\n" + py_query_ops(ops) + '''
+                self.vals.pop(i ^ SALT, None)''') + "\n" + py_query_ops(ops) + '''
     # ---- internals ----
 
     # a[i] = v gains d copies in every BIT node covering i
     def _add(self, i, v, d):
         j, m = i - self.lo + 1, self.hi - self.lo + 1
         while j <= m:
-            self.root[j] = self._ins(self.root.get(j, 0), v, d)
+            self.root[j ^ SALT] = self._ins(self.root.get(j ^ SALT, 0), v, d)
             j += j & -j
 
     # (trees to add, trees to subtract, zeros in a[l..r])
@@ -361,11 +366,11 @@ class SparseDynamicOrderStats:
         root, pos, neg = self.root, [], []
         j = r - self.lo + 1
         while j:
-            pos.append(root.get(j, 0))
+            pos.append(root.get(j ^ SALT, 0))
             j &= j - 1
         j = l - self.lo
         while j:
-            neg.append(root.get(j, 0))
+            neg.append(root.get(j ^ SALT, 0))
             j &= j - 1
         return pos, neg, (r - l + 1) - self._total(pos, neg, self.C)
 

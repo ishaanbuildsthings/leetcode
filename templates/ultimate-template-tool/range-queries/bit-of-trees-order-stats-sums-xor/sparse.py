@@ -53,6 +53,11 @@
 # minus the stored values in it) sit between the stored negatives and positives.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseDynamicOrderStats:
     __slots__ = ('lo', 'hi', 'vals', 'vlo', 'vhi', 'root', 'L', 'R', 'C', 'S', 'X')
 
@@ -71,21 +76,21 @@ class SparseDynamicOrderStats:
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
-        return self.vals.get(i, 0)
+        return self.vals.get(i ^ SALT, 0)
 
     # O(logU * logU) -- a[i] = v; needs lo <= i <= hi, else IndexError
     def pointAssign(self, i, v):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
-        old = self.vals.get(i, 0)
+        old = self.vals.get(i ^ SALT, 0)
         if v != old:
             if old:
                 self._add(i, old, -1)
             if v:
                 self._add(i, v, 1)
-                self.vals[i] = v
+                self.vals[i ^ SALT] = v
             else:
-                self.vals.pop(i, None)
+                self.vals.pop(i ^ SALT, None)
 
     # O(logU * logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
@@ -284,7 +289,7 @@ class SparseDynamicOrderStats:
     def _add(self, i, v, d):
         j, m = i - self.lo + 1, self.hi - self.lo + 1
         while j <= m:
-            self.root[j] = self._ins(self.root.get(j, 0), v, d)
+            self.root[j ^ SALT] = self._ins(self.root.get(j ^ SALT, 0), v, d)
             j += j & -j
 
     # (trees to add, trees to subtract, zeros in a[l..r])
@@ -292,11 +297,11 @@ class SparseDynamicOrderStats:
         root, pos, neg = self.root, [], []
         j = r - self.lo + 1
         while j:
-            pos.append(root.get(j, 0))
+            pos.append(root.get(j ^ SALT, 0))
             j &= j - 1
         j = l - self.lo
         while j:
-            neg.append(root.get(j, 0))
+            neg.append(root.get(j ^ SALT, 0))
             j &= j - 1
         return pos, neg, (r - l + 1) - self._total(pos, neg, self.C)
 

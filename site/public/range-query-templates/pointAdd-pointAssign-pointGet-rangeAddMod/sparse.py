@@ -20,6 +20,11 @@
 # dict keyed by offset x = i - lo, so only the O(logU) entries above changed positions exist.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseRangeAddBITMod:
     __slots__ = ("lo", "hi", "n", "d", "mod")
 
@@ -35,7 +40,7 @@ class SparseRangeAddBITMod:
         d, n, mod = self.d, self.n, self.mod
         x += 1
         while x <= n:
-            d[x] = (d.get(x, 0) + v) % mod
+            d[x ^ SALT] = (d.get(x ^ SALT, 0) + v) % mod
             x += x & -x
 
     # O(logU) -- d[0] + ... + d[x] (0 for x = -1)
@@ -44,7 +49,7 @@ class SparseRangeAddBITMod:
         s = 0
         x += 1
         while x > 0:
-            s += d.get(x, 0)
+            s += d.get(x ^ SALT, 0)
             x &= x - 1
         return s % self.mod
 

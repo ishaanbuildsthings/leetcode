@@ -482,7 +482,7 @@ write(["leftmostPrefixSumGtX", "leftmostPrefixSumGteX", "pointAdd", "pointAssign
         while step:
             nxt = pos + step
             if nxt <= n:
-                v = acc + d.get(nxt, 0)
+                v = acc + d.get(nxt ^ SALT, 0)
                 if v < target or (strict and v == target):
                     pos, acc = nxt, v
             step >>= 1

@@ -29,6 +29,7 @@
 # version r + 1 minus version l, and every query walks down those two versions together. Costs are log of the number
 # of distinct values, never of the value range; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive.
 from bisect import bisect_left, bisect_right
+from itertools import groupby
 
 
 class PersistentOrderStats:
@@ -38,14 +39,13 @@ class PersistentOrderStats:
     def __init__(self, arr):
         self.arr = arr
         self.n = len(arr)
-        self.srt = srt = sorted(set(arr))
+        self.srt = srt = [v for v, _ in groupby(sorted(arr))]  # distinct values by sorting, so no value is ever hashed
         self.m = len(srt)
         self.klo, self.khi = 0, max(self.m - 1, 0)  # the tree is over ranks 0..m-1
-        where = {v: k for k, v in enumerate(srt)}
         self.L, self.R, self.C = [0], [0], [0]  # node 0 = the empty tree
         self.root = [0]
         for v in arr:
-            self.root.append(self._ins(self.root[-1], where[v], v))
+            self.root.append(self._ins(self.root[-1], bisect_left(srt, v), v))
 
     # O(logN) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):

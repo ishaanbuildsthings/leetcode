@@ -23,6 +23,11 @@
 # so it is O(1). Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi] -> (stamp, value).
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseRangeAssignTree:
     __slots__ = ("lo", "hi", "size", "t", "clock")
 
@@ -44,11 +49,11 @@ class SparseRangeAssignTree:
         r += self.size - self.lo + 1
         while l < r:
             if l & 1:
-                t[l] = e
+                t[l ^ SALT] = e
                 l += 1
             if r & 1:
                 r -= 1
-                t[r] = e
+                t[r ^ SALT] = e
             l >>= 1
             r >>= 1
 
@@ -58,10 +63,10 @@ class SparseRangeAssignTree:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         t = self.t
         p = self.size + i - self.lo
-        best, res = t.get(p, (0, 0))
+        best, res = t.get(p ^ SALT, (0, 0))
         p >>= 1
         while p:
-            e = t.get(p)
+            e = t.get(p ^ SALT)
             if e is not None and e[0] > best:
                 best, res = e
             p >>= 1
@@ -72,7 +77,7 @@ class SparseRangeAssignTree:
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         self.clock += 1
-        self.t[self.size + i - self.lo] = (self.clock, val)
+        self.t[(self.size + i - self.lo) ^ SALT] = (self.clock, val)
 
     # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):

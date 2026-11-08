@@ -26,6 +26,11 @@
 # dict keyed by offset x = i - lo, so only the O(logU) entries above changed positions exist.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseBIT:
     __slots__ = ("lo", "hi", "n", "d")
 
@@ -40,7 +45,7 @@ class SparseBIT:
         d, n = self.d, self.n
         x += 1
         while x <= n:
-            d[x] = d.get(x, 0) + v
+            d[x ^ SALT] = d.get(x ^ SALT, 0) + v
             x += x & -x
 
     # O(logU) -- tree[0] + ... + tree[x] (0 for x = -1)
@@ -49,7 +54,7 @@ class SparseBIT:
         s = 0
         x += 1
         while x > 0:
-            s += d.get(x, 0)
+            s += d.get(x ^ SALT, 0)
             x &= x - 1
         return s
 
@@ -104,7 +109,7 @@ class SparseBIT:
         while step:
             nxt = pos + step
             if nxt <= n:
-                v = acc + d.get(nxt, 0)
+                v = acc + d.get(nxt ^ SALT, 0)
                 if v < target or (strict and v == target):
                     pos, acc = nxt, v
             step >>= 1

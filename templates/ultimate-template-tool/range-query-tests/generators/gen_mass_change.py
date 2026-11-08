@@ -63,9 +63,13 @@ def pt_describe(cnt, point):
 
 
 PT_PY = '''
+from random import getrandbits
+
+
 class PositionTrees:
     # node 0 = the empty tree; L / R: children@C@, C: how many positions below@P@, P: parent, W: which value (at roots)
     __slots__ = ("n", "L", "R"@C@, "C"@P@, "P", "W", "leaf", "ids", "vals", "roots", "free")
+    salt = getrandbits(62)  # ids' int keys are salted with this, so no fixed input can make them collide
 
     # O(N log N) -- arr: the initial array (a list)
     def __init__(self, arr):
@@ -86,18 +90,18 @@ class PositionTrees:
 
     # O(logN) amortized -- every a[i] == x with l <= i <= r becomes y
     def rangeReplace(self, l, r, x, y):
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         if k is not None and x != y:
             self._move(k, l, r, y)
 
 @C@    # O(logN) -- # of i in [l, r] with a[i] == x
 @C@    def countOccurrences(self, l, r, x):
-@C@        k = self.ids.get(x)
+@C@        k = self.ids.get(x ^ self.salt if type(x) is int else x)
 @C@        return self._count(self.roots[k], 0, self.n - 1, l, r) if k is not None else 0
 @C@
     # O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array
     def leftmostIndexOf(self, x):
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         t = self.roots[k] if k is not None else 0
         if not t:
             return -1
@@ -112,7 +116,7 @@ class PositionTrees:
 
     # O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
     def rightmostIndexOf(self, x):
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         t = self.roots[k] if k is not None else 0
         if not t:
             return -1
@@ -127,12 +131,12 @@ class PositionTrees:
 
     # O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none
     def leftmostIndexOfInRange(self, l, r, x):
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         return self._first(self.roots[k], 0, self.n - 1, l, r, True) if k is not None else -1
 
     # O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none
     def rightmostIndexOfInRange(self, l, r, x):
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         return self._first(self.roots[k], 0, self.n - 1, l, r, False) if k is not None else -1
 
 @P@    # O(logN) -- a[i]
@@ -167,9 +171,10 @@ class PositionTrees:
     # ---- internals ----
 
     def _id(self, v):  # v's index into vals / roots (a new one, with an empty tree, the first time v is seen)
-        k = self.ids.get(v)
+        key = v ^ self.salt if type(v) is int else v
+        k = self.ids.get(key)
         if k is None:
-            k = self.ids[v] = len(self.vals)
+            k = self.ids[key] = len(self.vals)
             self.vals.append(v)
             self.roots.append(0)
         return k
@@ -2146,22 +2151,26 @@ def sq_describe(seq, rev):
 
 
 SQ_PY = '''from math import isqrt
+from random import getrandbits
 
 
 class _Block:
     # a run of the array: cls[k] is the class of its k-th value@R@ (read backwards when rev)@@. Classes form a union-find (par);
     # a root class holds its value (val) and how many of the block's values are in it (cnt). where: value -> root class
     __slots__ = ("cls", "par", "val", "cnt", "where"@R@, "rev"@@)
+    salt = getrandbits(62)  # where's int keys are salted with this, so no fixed input can make them collide
 
     def __init__(self, vals):
         self.build(vals)
 
     def build(self, vals):  # O(len) -- the classes from scratch
         where, par, val, cnt, cls = {}, [], [], [], []
+        salt = self.salt
         for v in vals:
-            c = where.get(v)
+            key = v ^ salt if type(v) is int else v
+            c = where.get(key)
             if c is None:
-                c = where[v] = len(par)
+                c = where[key] = len(par)
                 par.append(c)
                 val.append(v)
                 cnt.append(0)
@@ -2192,24 +2201,26 @@ class _Block:
         return out
 
     def count(self, x):  # how many x's
-        c = self.where.get(x)
+        c = self.where.get(x ^ self.salt if type(x) is int else x)
         return self.cnt[c] if c is not None else 0
 
     def replace(self, x, y):  # O(1) -- every x becomes y: x's class is renamed, or joined to y's
-        cx = self.where.pop(x, None)
+        salt = self.salt
+        cx = self.where.pop(x ^ salt if type(x) is int else x, None)
         if cx is None:
             return
-        cy = self.where.get(y)
+        ky = y ^ salt if type(y) is int else y
+        cy = self.where.get(ky)
         if cy is None:
             self.val[cx] = y
-            self.where[y] = cx
+            self.where[ky] = cx
             return
         if self.cnt[cx] > self.cnt[cy]:  # (union by size)
             cx, cy = cy, cx
         self.par[cx] = cy
         self.cnt[cy] += self.cnt[cx]
         self.val[cy] = y
-        self.where[y] = cy
+        self.where[ky] = cy
 
     def assignAll(self, v):  # every value becomes v: every class joined into one (O(1) amortized: each join removes one)
         roots = list(self.where.values())
@@ -2219,7 +2230,7 @@ class _Block:
                 self.par[c] = r
                 self.cnt[r] += self.cnt[c]
         self.val[r] = v
-        self.where = {v: r}
+        self.where = {v ^ self.salt if type(v) is int else v: r}
 
     def assign(self, k, v):  # O(1) amortized -- the k-th value becomes v (a class of its own if v is new here)
 @R@        if self.rev:
@@ -2229,11 +2240,13 @@ class _Block:
         if old == v:
             return
         self.cnt[c] -= 1
+        salt = self.salt
         if not self.cnt[c]:
-            del self.where[old]
-        d = self.where.get(v)
+            del self.where[old ^ salt if type(old) is int else old]
+        key = v ^ salt if type(v) is int else v
+        d = self.where.get(key)
         if d is None:
-            d = self.where[v] = len(self.par)
+            d = self.where[key] = len(self.par)
             self.par.append(d)
             self.val.append(v)
             self.cnt.append(0)

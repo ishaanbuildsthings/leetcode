@@ -36,6 +36,11 @@ INF = float("inf")
 # then descend into it.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseMaxMinSearchTree:
     __slots__ = ("lo", "hi", "size", "mx", "mn")
 
@@ -51,13 +56,13 @@ class SparseMaxMinSearchTree:
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
-        self.mx[p] = self.mn[p] = val
+        self.mx[p ^ SALT] = self.mn[p ^ SALT] = val
         p >>= 1
         while p:
-            u, w = self.mx.get(2 * p, 0), self.mx.get(2 * p + 1, 0)
-            self.mx[p] = u if u > w else w
-            u, w = self.mn.get(2 * p, 0), self.mn.get(2 * p + 1, 0)
-            self.mn[p] = u if u < w else w
+            u, w = self.mx.get((2 * p) ^ SALT, 0), self.mx.get((2 * p + 1) ^ SALT, 0)
+            self.mx[p ^ SALT] = u if u > w else w
+            u, w = self.mn.get((2 * p) ^ SALT, 0), self.mn.get((2 * p + 1) ^ SALT, 0)
+            self.mn[p ^ SALT] = u if u < w else w
             p >>= 1
 
     # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
@@ -69,13 +74,13 @@ class SparseMaxMinSearchTree:
         r += self.size - self.lo + 1
         while l < r:
             if l & 1:
-                v = t.get(l, 0)
+                v = t.get(l ^ SALT, 0)
                 if v > res:
                     res = v
                 l += 1
             if r & 1:
                 r -= 1
-                v = t.get(r, 0)
+                v = t.get(r ^ SALT, 0)
                 if v > res:
                     res = v
             l >>= 1
@@ -91,13 +96,13 @@ class SparseMaxMinSearchTree:
         r += self.size - self.lo + 1
         while l < r:
             if l & 1:
-                v = t.get(l, 0)
+                v = t.get(l ^ SALT, 0)
                 if v < res:
                     res = v
                 l += 1
             if r & 1:
                 r -= 1
-                v = t.get(r, 0)
+                v = t.get(r ^ SALT, 0)
                 if v < res:
                     res = v
             l >>= 1
@@ -113,10 +118,10 @@ class SparseMaxMinSearchTree:
         while True:
             while not p & 1:  # climb while p is a left child: its parent starts at the same index
                 p >>= 1
-            if t.get(p, 0) >= x:  # the answer is inside p: descend, preferring the left child
+            if t.get(p ^ SALT, 0) >= x:  # the answer is inside p: descend, preferring the left child
                 while p < size:
                     p <<= 1
-                    if not t.get(p, 0) >= x:
+                    if not t.get(p ^ SALT, 0) >= x:
                         p += 1
                 i = p - size + self.lo
                 return i if i <= r else self.lo - 1
@@ -134,10 +139,10 @@ class SparseMaxMinSearchTree:
             p -= 1
             while p > 1 and p & 1:  # climb while p is a right child: its parent ends at the same index
                 p >>= 1
-            if t.get(p, 0) >= x:  # the answer is inside p: descend, preferring the right child
+            if t.get(p ^ SALT, 0) >= x:  # the answer is inside p: descend, preferring the right child
                 while p < size:
                     p = 2 * p + 1
-                    if not t.get(p, 0) >= x:
+                    if not t.get(p ^ SALT, 0) >= x:
                         p -= 1
                 i = p - size + self.lo
                 return i if i >= l else self.lo - 1
@@ -153,10 +158,10 @@ class SparseMaxMinSearchTree:
         while True:
             while not p & 1:  # climb while p is a left child: its parent starts at the same index
                 p >>= 1
-            if t.get(p, 0) > x:  # the answer is inside p: descend, preferring the left child
+            if t.get(p ^ SALT, 0) > x:  # the answer is inside p: descend, preferring the left child
                 while p < size:
                     p <<= 1
-                    if not t.get(p, 0) > x:
+                    if not t.get(p ^ SALT, 0) > x:
                         p += 1
                 i = p - size + self.lo
                 return i if i <= r else self.lo - 1
@@ -174,10 +179,10 @@ class SparseMaxMinSearchTree:
             p -= 1
             while p > 1 and p & 1:  # climb while p is a right child: its parent ends at the same index
                 p >>= 1
-            if t.get(p, 0) > x:  # the answer is inside p: descend, preferring the right child
+            if t.get(p ^ SALT, 0) > x:  # the answer is inside p: descend, preferring the right child
                 while p < size:
                     p = 2 * p + 1
-                    if not t.get(p, 0) > x:
+                    if not t.get(p ^ SALT, 0) > x:
                         p -= 1
                 i = p - size + self.lo
                 return i if i >= l else self.lo - 1
@@ -193,10 +198,10 @@ class SparseMaxMinSearchTree:
         while True:
             while not p & 1:  # climb while p is a left child: its parent starts at the same index
                 p >>= 1
-            if t.get(p, 0) <= x:  # the answer is inside p: descend, preferring the left child
+            if t.get(p ^ SALT, 0) <= x:  # the answer is inside p: descend, preferring the left child
                 while p < size:
                     p <<= 1
-                    if not t.get(p, 0) <= x:
+                    if not t.get(p ^ SALT, 0) <= x:
                         p += 1
                 i = p - size + self.lo
                 return i if i <= r else self.lo - 1
@@ -214,10 +219,10 @@ class SparseMaxMinSearchTree:
             p -= 1
             while p > 1 and p & 1:  # climb while p is a right child: its parent ends at the same index
                 p >>= 1
-            if t.get(p, 0) <= x:  # the answer is inside p: descend, preferring the right child
+            if t.get(p ^ SALT, 0) <= x:  # the answer is inside p: descend, preferring the right child
                 while p < size:
                     p = 2 * p + 1
-                    if not t.get(p, 0) <= x:
+                    if not t.get(p ^ SALT, 0) <= x:
                         p -= 1
                 i = p - size + self.lo
                 return i if i >= l else self.lo - 1
@@ -233,10 +238,10 @@ class SparseMaxMinSearchTree:
         while True:
             while not p & 1:  # climb while p is a left child: its parent starts at the same index
                 p >>= 1
-            if t.get(p, 0) < x:  # the answer is inside p: descend, preferring the left child
+            if t.get(p ^ SALT, 0) < x:  # the answer is inside p: descend, preferring the left child
                 while p < size:
                     p <<= 1
-                    if not t.get(p, 0) < x:
+                    if not t.get(p ^ SALT, 0) < x:
                         p += 1
                 i = p - size + self.lo
                 return i if i <= r else self.lo - 1
@@ -254,10 +259,10 @@ class SparseMaxMinSearchTree:
             p -= 1
             while p > 1 and p & 1:  # climb while p is a right child: its parent ends at the same index
                 p >>= 1
-            if t.get(p, 0) < x:  # the answer is inside p: descend, preferring the right child
+            if t.get(p ^ SALT, 0) < x:  # the answer is inside p: descend, preferring the right child
                 while p < size:
                     p = 2 * p + 1
-                    if not t.get(p, 0) < x:
+                    if not t.get(p ^ SALT, 0) < x:
                         p -= 1
                 i = p - size + self.lo
                 return i if i >= l else self.lo - 1
@@ -268,7 +273,7 @@ class SparseMaxMinSearchTree:
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
-        return self.mx.get(self.size + i - self.lo, 0)
+        return self.mx.get((self.size + i - self.lo) ^ SALT, 0)
 
     # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):

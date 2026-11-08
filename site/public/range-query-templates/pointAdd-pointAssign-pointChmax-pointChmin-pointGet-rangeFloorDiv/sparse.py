@@ -26,6 +26,11 @@ CAP = 1 << 62  # a pending divisor past every |value| floors everything to 0 or 
 # [lo, hi]; a missing internal node has no tag, a missing leaf is 0.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseRangeFloorDivTree:
     __slots__ = ("lo", "hi", "size", "t")
 
@@ -39,11 +44,11 @@ class SparseRangeFloorDivTree:
     def _apply(self, x, v):
         t = self.t
         if x >= self.size:
-            a = t.get(x, 0)
-            t[x] = a // v
+            a = t.get(x ^ SALT, 0)
+            t[x ^ SALT] = a // v
         else:
-            a = t.get(x, 1)
-            t[x] = a * v if a * v < CAP else CAP
+            a = t.get(x ^ SALT, 1)
+            t[x ^ SALT] = a * v if a * v < CAP else CAP
 
     # O(logU) -- a[i] = floor(a[i] / v), v >= 1 for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeFloorDiv(self, l, r, v):
@@ -68,7 +73,7 @@ class SparseRangeFloorDivTree:
         t = self.t
         for h in range(p.bit_length() - 1, 0, -1):
             x = p >> h
-            v = t.pop(x, None)
+            v = t.pop(x ^ SALT, None)
             if v is not None and v != 1:
                 self._apply(2 * x, v)
                 self._apply(2 * x + 1, v)
@@ -79,11 +84,11 @@ class SparseRangeFloorDivTree:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
         t = self.t
         p = self.size + i - self.lo
-        x = t.get(p, 0)
+        x = t.get(p ^ SALT, 0)
         a = 1  # the tags on the path, composed
         p >>= 1
         while p:
-            v = t.get(p)
+            v = t.get(p ^ SALT)
             if v is not None:
                 a = a * v if a * v < CAP else CAP
             p >>= 1
@@ -96,7 +101,7 @@ class SparseRangeFloorDivTree:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         p = self.size + i - self.lo
         self._push(p)
-        self.t[p] = val
+        self.t[p ^ SALT] = val
 
     # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):
@@ -105,7 +110,7 @@ class SparseRangeFloorDivTree:
         p = self.size + i - self.lo
         self._push(p)
         t = self.t
-        t[p] = (t.get(p, 0) + delta)
+        t[p ^ SALT] = (t.get(p ^ SALT, 0) + delta)
 
     # O(logU) -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
@@ -114,8 +119,8 @@ class SparseRangeFloorDivTree:
         p = self.size + i - self.lo
         self._push(p)
         t = self.t
-        if val > t.get(p, 0):
-            t[p] = val
+        if val > t.get(p ^ SALT, 0):
+            t[p ^ SALT] = val
 
     # O(logU) -- a[i] = min(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, val):
@@ -124,5 +129,5 @@ class SparseRangeFloorDivTree:
         p = self.size + i - self.lo
         self._push(p)
         t = self.t
-        if val < t.get(p, 0):
-            t[p] = val
+        if val < t.get(p ^ SALT, 0):
+            t[p ^ SALT] = val

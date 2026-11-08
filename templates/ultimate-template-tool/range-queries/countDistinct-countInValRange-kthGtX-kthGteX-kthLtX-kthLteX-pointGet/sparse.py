@@ -397,15 +397,16 @@ class StaticDistinct:
     # Range count distinct, no updates. O(n log n) build, O(log n) query.
     # nxt[i] = next index j > i with a[j] == a[i], else n.
     # A value is counted once per window, at its LAST occurrence: nxt[i] > r.
-    # Values may be any hashable type — nxt holds indices, so no compression.
+    # Values may be any comparable type — nxt holds indices, so no compression.
     def __init__(self, arr):
         self.arr = arr
         self.n = n = len(arr)
         nxt = [n] * n
-        last = {}
-        for i in range(n - 1, -1, -1):
-            nxt[i] = last.get(arr[i], n)
-            last[arr[i]] = i
+        order = sorted(range(n), key=arr.__getitem__)  # equal values end up adjacent, by index; no value is hashed
+        for k in range(n - 1):
+            i, j = order[k], order[k + 1]
+            if arr[i] == arr[j]:
+                nxt[i] = j
         self.mst = MergeSortTree(nxt)
 
     # O(log n) — # of distinct values in a[l..r], inclusive, 0-indexed; needs 0 <= l <= r < n, else IndexError

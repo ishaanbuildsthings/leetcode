@@ -24,6 +24,7 @@
 #   note: pos maps each value to its sorted indices (a bucketed SortedList, defined at the top of the file, so each change is a few binary searches plus a C-level shift of at most 1024 elements)
 
 from bisect import bisect_left, bisect_right, insort
+from random import getrandbits
 
 
 # SortedList: a self-contained sorted container (no sortedcontainers import needed), used by the class below.
@@ -133,13 +134,16 @@ class SortedList:
 
 
 class DynamicOccurrenceLists:
-    __slots__ = ("a", "pos")
+    __slots__ = ("a", "pos", "salt")
 
     # O(N)
     def __init__(self, arr):
         self.a = list(arr)
         pos = {}
+        salt = self.salt = getrandbits(62)  # int values are salted as dict keys, so no fixed input can make them collide
         for i, v in enumerate(arr):
+            if type(v) is int:
+                v ^= salt
             if v in pos:
                 pos[v].append(i)
             else:
@@ -150,17 +154,17 @@ class DynamicOccurrenceLists:
     def countOccurrences(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"countOccurrences: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ self.salt if type(x) is int else x)
         return p.countLess(r + 1) - p.countLess(l) if p is not None and l <= r else 0
 
     # O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array
     def leftmostIndexOf(self, x):
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ self.salt if type(x) is int else x)
         return p.lists[0][0] if p is not None else -1
 
     # O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
     def rightmostIndexOf(self, x):
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ self.salt if type(x) is int else x)
         return p.lists[-1][-1] if p is not None else -1
 
     # O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
@@ -169,7 +173,7 @@ class DynamicOccurrenceLists:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostIndexOfInRange: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ self.salt if type(x) is int else x)
         i = p.succ(l - 1) if p is not None else None
         return i if i is not None and i <= r else -1
 
@@ -179,7 +183,7 @@ class DynamicOccurrenceLists:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostIndexOfInRange: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ self.salt if type(x) is int else x)
         i = p.pred(r + 1) if p is not None else None
         return i if i is not None and i >= l else -1
 
@@ -190,14 +194,17 @@ class DynamicOccurrenceLists:
         old = self.a[i]
         if old == val:
             return
-        pos = self.pos
+        pos, salt = self.pos, self.salt
+        if type(old) is int:
+            old ^= salt
+        key = val ^ salt if type(val) is int else val
         p = pos[old]
         p.remove(i)
         if not len(p):
             del pos[old]
-        p = pos.get(val)
+        p = pos.get(key)
         if p is None:
-            p = pos[val] = SortedList()
+            p = pos[key] = SortedList()
         p.add(i)
         self.a[i] = val
 

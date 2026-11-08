@@ -37,17 +37,20 @@
 # tree is over compressed ranks and costs are log N, never log U: version p holds a[0..p-1], a[l..r] is version r + 1
 # minus version l, and each append adds one version. Query arguments (x, lowVal, ...) can be anything. 0-indexed.
 from bisect import bisect_left, bisect_right
+from random import getrandbits
 
 
 class PersistentOfflineOrderStats:
-    __slots__ = ('arr', 'n', 'srt', 'm', 'where', 'klo', 'khi', 'root', 'L', 'R', 'C')
+    __slots__ = ('arr', 'n', 'srt', 'm', 'klo', 'khi', 'root', 'L', 'R', 'C')
 
     # O(N log N) -- arr: the initial array (a list, may be empty), 0-indexed; allValuesThatWillEverBeInsertedForOfflineCompression: every value
     # append will ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
     def __init__(self, arr, allValuesThatWillEverBeInsertedForOfflineCompression):
-        self.srt = srt = sorted(set(allValuesThatWillEverBeInsertedForOfflineCompression) | set(arr))
+        salt = getrandbits(62)  # values are salted while deduping, so no fixed input can make the set collide
+        seen = {v ^ salt for v in allValuesThatWillEverBeInsertedForOfflineCompression}
+        seen.update([v ^ salt for v in arr])
+        self.srt = srt = sorted([v ^ salt for v in seen])
         self.m = len(srt)
-        self.where = {v: k for k, v in enumerate(srt)}
         self.klo, self.khi = 0, max(self.m - 1, 0)  # the tree is over ranks 0..m-1
         self.arr, self.n = [], 0
         self.L, self.R, self.C = [0], [0], [0]  # node 0 = the empty tree
@@ -57,8 +60,8 @@ class PersistentOfflineOrderStats:
 
     # O(logN) -- append v (one of the values given to the constructor, else ValueError): it becomes a[n], n grows by 1
     def append(self, v):
-        k = self.where.get(v)
-        if k is None:
+        k = bisect_left(self.srt, v)
+        if k == self.m or self.srt[k] != v:
             raise ValueError(f"append: {v} was not in the values given to the constructor")
         self.root.append(self._ins(self.root[-1], k, v))
         self.arr.append(v)

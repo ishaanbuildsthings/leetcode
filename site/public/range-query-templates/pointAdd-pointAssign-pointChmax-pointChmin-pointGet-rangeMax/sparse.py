@@ -23,6 +23,11 @@ NEG = float("-inf")
 # so only the log U nodes on each updated path exist. Same bottom-up loops as the dense tree.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseMaxTree:
     __slots__ = ("lo", "hi", "size", "t")
 
@@ -38,11 +43,11 @@ class SparseMaxTree:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
         t = self.t
         p = self.size + i - self.lo
-        t[p] = val
+        t[p ^ SALT] = val
         p >>= 1
         while p:
-            a, b = t.get(2 * p, 0), t.get(2 * p + 1, 0)
-            t[p] = a if a > b else b
+            a, b = t.get((2 * p) ^ SALT, 0), t.get((2 * p + 1) ^ SALT, 0)
+            t[p ^ SALT] = a if a > b else b
             p >>= 1
 
     # O(logU) -- max of a[l..r]; needs lo <= l <= r <= hi, else IndexError
@@ -54,12 +59,12 @@ class SparseMaxTree:
         r += self.size - self.lo + 1
         while l < r:
             if l & 1:
-                a, b = res, t.get(l, 0)
+                a, b = res, t.get(l ^ SALT, 0)
                 res = a if a > b else b
                 l += 1
             if r & 1:
                 r -= 1
-                a, b = res, t.get(r, 0)
+                a, b = res, t.get(r ^ SALT, 0)
                 res = a if a > b else b
             l >>= 1
             r >>= 1
@@ -69,7 +74,7 @@ class SparseMaxTree:
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
-        return self.t.get(self.size + i - self.lo, 0)
+        return self.t.get((self.size + i - self.lo) ^ SALT, 0)
 
     # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):

@@ -21,6 +21,9 @@ import random
 
 MASK = (1 << 64) - 1
 
+SALT = random.getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 # Range "does every value appear an even number of times?" via xor hashing, with point updates, over any index
 # range [lo, hi] (huge or negative is fine); every position starts at 0. Each distinct value's 64-bit tag is
 # splitmix64(value ^ seed): a bijection on 64-bit ints keyed by a random per-run seed, so equal values share a tag,
@@ -55,7 +58,7 @@ class SparseXorEven:
         d, n = self.d, self.n
         x = i - self.lo + 1
         while x <= n:
-            d[x] = d.get(x, 0) ^ v
+            d[x ^ SALT] = d.get(x ^ SALT, 0) ^ v
             x += x & -x
 
     # O(logU) -- total of the changes at positions lo..i (0 for i < lo)
@@ -64,7 +67,7 @@ class SparseXorEven:
         s = 0
         x = i - self.lo + 1
         while x > 0:
-            s ^= d.get(x, 0)
+            s ^= d.get(x ^ SALT, 0)
             x &= x - 1
         return s
 
@@ -82,11 +85,11 @@ class SparseXorEven:
     def pointAssign(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
-        d = self._tagOf(self.vals.get(i, 0)) ^ self._tagOf(val)
+        d = self._tagOf(self.vals.get(i ^ SALT, 0)) ^ self._tagOf(val)
         if val:
-            self.vals[i] = val
+            self.vals[i ^ SALT] = val
         else:
-            self.vals.pop(i, None)
+            self.vals.pop(i ^ SALT, None)
         if d:
             self._add(i, d)
 
@@ -94,7 +97,7 @@ class SparseXorEven:
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
-        return self.vals.get(i, 0)
+        return self.vals.get(i ^ SALT, 0)
 
     # O(logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):

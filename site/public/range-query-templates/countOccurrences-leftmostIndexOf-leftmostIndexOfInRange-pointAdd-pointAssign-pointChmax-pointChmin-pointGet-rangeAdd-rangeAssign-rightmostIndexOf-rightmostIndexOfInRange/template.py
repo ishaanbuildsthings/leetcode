@@ -25,6 +25,7 @@
 #   note: sqrt(N) blocks; cnt[b] counts the block's stored values, and the block tag (assign, then add) is applied on read
 
 from math import isqrt
+from random import getrandbits
 
 # "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?", with range add, range
 # assign and point updates. 0-based, inclusive.
@@ -36,7 +37,7 @@ from math import isqrt
 
 
 class SqrtOccurrences:
-    __slots__ = ("n", "B", "vals", "cnt", "add", "asg")
+    __slots__ = ("n", "B", "vals", "cnt", "add", "asg", "salt")
 
     # O(N)
     def __init__(self, arr):
@@ -45,8 +46,10 @@ class SqrtOccurrences:
         nb = (n + B - 1) // B
         self.vals = list(arr)
         self.cnt = [{} for _ in range(nb)]
+        salt = self.salt = getrandbits(62)  # cnt's keys are values salted with this, so no fixed input can make them collide
         for i, v in enumerate(arr):
             c = self.cnt[i // B]
+            v ^= salt
             c[v] = c.get(v, 0) + 1
         self.add = [0] * nb
         self.asg = [None] * nb  # None = not assigned
@@ -65,24 +68,26 @@ class SqrtOccurrences:
             v = asg + add
             for i in range(lo, hi + 1):
                 vals[i] = v
-            self.cnt[b] = {v: hi - lo + 1}
+            self.cnt[b] = {v ^ self.salt: hi - lo + 1}
         else:
             for i in range(lo, hi + 1):
                 vals[i] += add
-            self.cnt[b] = {k + add: c for k, c in self.cnt[b].items()}
+            salt = self.salt
+            self.cnt[b] = {((k ^ salt) + add) ^ salt: c for k, c in self.cnt[b].items()}
         self.add[b] = 0
         self.asg[b] = None
 
     # O(1) -- a[i] = v inside an untagged block, keeping its table in sync
     def _set(self, b, i, v):
-        c = self.cnt[b]
-        old = self.vals[i]
+        c, salt = self.cnt[b], self.salt
+        old = self.vals[i] ^ salt
         if c[old] == 1:
             del c[old]
         else:
             c[old] -= 1
-        c[v] = c.get(v, 0) + 1
         self.vals[i] = v
+        v ^= salt
+        c[v] = c.get(v, 0) + 1
 
     # whole blocks get a tag; the partial ends are pushed and edited slot by slot
     def _apply(self, l, r, tag, edit):
@@ -125,7 +130,7 @@ class SqrtOccurrences:
             raise IndexError(f"countOccurrences: needs 0 <= l <= r < n, got l = {l}, r = {r}, n = {self.n}")
         if l > r:
             return 0
-        B, res = self.B, 0
+        B, res, salt = self.B, 0, self.salt
         for b in range(l // B, r // B + 1):
             lo, hi = self._range(b)
             add, asg = self.add[b], self.asg[b]
@@ -133,7 +138,7 @@ class SqrtOccurrences:
                 if asg is not None:
                     res += hi - lo + 1 if asg + add == x else 0
                 else:
-                    res += self.cnt[b].get(x - add, 0)
+                    res += self.cnt[b].get((x - add) ^ salt, 0)
             else:
                 vals = self.vals
                 for i in range(max(l, lo), min(r, hi) + 1):
@@ -167,7 +172,7 @@ class SqrtOccurrences:
     def _search(self, l, r, x, rev):
         if l > r:
             return -1
-        B, vals = self.B, self.vals
+        B, vals, salt = self.B, self.vals, self.salt
         blocks = range(l // B, r // B + 1)
         for b in reversed(blocks) if rev else blocks:
             lo, hi = self._range(b)
@@ -178,7 +183,7 @@ class SqrtOccurrences:
                     return hi if rev else lo
                 continue
             want = x - add
-            if want not in self.cnt[b]:  # (a partial block too: x isn't anywhere in it)
+            if want ^ salt not in self.cnt[b]:  # (a partial block too: x isn't anywhere in it)
                 continue
             for i in range(hi, lo - 1, -1) if rev else range(lo, hi + 1):
                 if vals[i] == want:

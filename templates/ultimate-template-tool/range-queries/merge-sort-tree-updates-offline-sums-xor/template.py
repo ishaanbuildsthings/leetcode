@@ -59,7 +59,8 @@ class MergeSortTreeOffline:
             possible[n + i].append(v)
         copiesNow = [None] * (2 * n)  # and how many positions under p hold each right now
         for i in range(n):
-            here = sorted(set(possible[n + i]))
+            here = sorted(possible[n + i])  # (sorting, not a set, so no value is ever hashed)
+            here = [v for k, v in enumerate(here) if not k or v != here[k - 1]]
             possible[n + i] = here
             row = [0] * len(here)
             row[bisect_left(here, A[i])] = 1
@@ -70,12 +71,27 @@ class MergeSortTreeOffline:
         self.xors = [None] * n
         for p in range(n - 1, 0, -1):
             nodeSize[p] = nodeSize[2 * p] + nodeSize[2 * p + 1]
-            merged = {}
-            for side in (2 * p, 2 * p + 1):
-                for v, c in zip(possible[side], copiesNow[side]):
-                    merged[v] = merged.get(v, 0) + c
-            vals = sorted(merged)
-            row = [merged[v] for v in vals]
+            P1, C1, P2, C2 = possible[2 * p], copiesNow[2 * p], possible[2 * p + 1], copiesNow[2 * p + 1]
+            vals, row, i1, i2 = [], [], 0, 0  # merge the sorted lists, summing counts of shared values (no hashing)
+            while i1 < len(P1) and i2 < len(P2):
+                v1, v2 = P1[i1], P2[i2]
+                if v1 < v2:
+                    vals.append(v1)
+                    row.append(C1[i1])
+                    i1 += 1
+                elif v2 < v1:
+                    vals.append(v2)
+                    row.append(C2[i2])
+                    i2 += 1
+                else:
+                    vals.append(v1)
+                    row.append(C1[i1] + C2[i2])
+                    i1 += 1
+                    i2 += 1
+            vals += P1[i1:]
+            row += C1[i1:]
+            vals += P2[i2:]
+            row += C2[i2:]
             possible[p], copiesNow[p] = vals, row
             if 2 * p >= n:
                 possible[2 * p] = copiesNow[2 * p] = None

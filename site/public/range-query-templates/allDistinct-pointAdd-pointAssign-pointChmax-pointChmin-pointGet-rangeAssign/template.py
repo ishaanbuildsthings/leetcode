@@ -21,6 +21,7 @@
 #   note: the array is kept as runs of equal values; tree is a min tree with one leaf per run start; starts and chains are bucketed SortedLists (defined at the top of the file, so each change is a few binary searches plus a C-level shift of at most 1024 elements); the build is O(N): a dict groups the positions, already in order
 
 from bisect import bisect_left, bisect_right, insort
+from random import getrandbits
 
 
 # SortedList: a self-contained sorted container (no sortedcontainers import needed), used by the class below.
@@ -135,7 +136,7 @@ class SortedList:
 
 
 class DistinctTree:
-    __slots__ = ("n", "tree", "end", "val", "starts", "chains")
+    __slots__ = ("n", "tree", "end", "val", "starts", "chains", "salt")
 
     # O(N)
     def __init__(self, arr):
@@ -144,7 +145,10 @@ class DistinctTree:
         self.val = list(arr)
         tree = self.tree = [n] * (2 * n)
         positions = {}
+        salt = self.salt = getrandbits(62)  # int values are salted as dict keys, so no fixed input can make them collide
         for i, v in enumerate(arr):
+            if type(v) is int:
+                v ^= salt
             if v in positions:
                 positions[v].append(i)
             else:
@@ -156,6 +160,11 @@ class DistinctTree:
         self.starts = SortedList(range(n))
         for x in range(n - 1, 0, -1):
             tree[x] = tree[2 * x] if tree[2 * x] < tree[2 * x + 1] else tree[2 * x + 1]
+
+    # O(1) -- chains key of a value: ints are salted, so no fixed input can make the keys collide (str hashing is
+    # already random per run)
+    def _key(self, v):
+        return v ^ self.salt if type(v) is int else v
 
     # O(logN) -- leaf of position i = v
     def _setLeaf(self, i, v):
@@ -173,7 +182,7 @@ class DistinctTree:
         if self.end[s] > s:
             self._setLeaf(s, s + 1)
         else:
-            nx = self.chains[self.val[s]].succ(s)
+            nx = self.chains[self._key(self.val[s])].succ(s)
             self._setLeaf(s, self.n if nx is None else nx)
 
     # O(logN) -- make a run start at x (0 < x < n)
@@ -184,7 +193,7 @@ class DistinctTree:
         e, v = self.end[p], self.val[p]
         self.end[p], self.end[x], self.val[x] = x - 1, e, v
         self.starts.add(x)
-        self.chains[v].add(x)
+        self.chains[self._key(v)].add(x)
         self._refresh(p)
         self._refresh(x)
 
@@ -198,7 +207,7 @@ class DistinctTree:
             if l < r:
                 return False
         else:
-            nx = self.chains[self.val[p]].succ(p)
+            nx = self.chains[self._key(self.val[p])].succ(p)
             if nx is not None and nx <= r:
                 return False
         tree = self.tree
@@ -227,11 +236,12 @@ class DistinctTree:
         s = l
         while s is not None and s <= r:  # drop every run inside l..r
             nxt = starts.succ(s)
-            chain = chains[vals[s]]
+            key = self._key(vals[s])
+            chain = chains[key]
             q = chain.pred(s)
             chain.remove(s)
             if not len(chain):
-                del chains[vals[s]]
+                del chains[key]
             elif q is not None and end[q] == q:
                 self._refresh(q)
             if s != l:
@@ -239,9 +249,10 @@ class DistinctTree:
                 self._setLeaf(s, n)
             s = nxt
         end[l], vals[l] = r, val
-        chain = chains.get(val)
+        key = self._key(val)
+        chain = chains.get(key)
         if chain is None:
-            chain = chains[val] = SortedList()
+            chain = chains[key] = SortedList()
         chain.add(l)
         q = chain.pred(l)
         if q is not None and end[q] == q:

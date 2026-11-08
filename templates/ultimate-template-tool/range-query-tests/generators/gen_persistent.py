@@ -149,6 +149,7 @@ def py_static(ops, sums):
 # version r + 1 minus version l, and every query walks down those two versions together. Costs are log of the number
 # of distinct values, never of the value range; query arguments (x, lowVal, ...) can be anything. 0-indexed, inclusive.
 from bisect import bisect_left, bisect_right
+from itertools import groupby
 
 
 class PersistentOrderStats:
@@ -156,14 +157,13 @@ class PersistentOrderStats:
     def __init__(self, arr):
         self.arr = arr
         self.n = len(arr)
-        self.srt = srt = sorted(set(arr))
+        self.srt = srt = [v for v, _ in groupby(sorted(arr))]  # distinct values by sorting, so no value is ever hashed
         self.m = len(srt)
         self.klo, self.khi = 0, max(self.m - 1, 0)  # the tree is over ranks 0..m-1
-        where = {v: k for k, v in enumerate(srt)}
         self.L, self.R, self.C = [0], [0], [0]  # node 0 = the empty tree
 ''' + ("        self.S = [0]\n" if sums else "") + '''        self.root = [0]
         for v in arr:
-            self.root.append(self._ins(self.root[-1], where[v], v))
+            self.root.append(self._ins(self.root[-1], bisect_left(srt, v), v))
 
 ''' + "\n".join(W.PY_OPS[op] for op in W.ORDER if op in ops) + py_prims(False, sums))
 
@@ -395,19 +395,22 @@ OFFLINE_DOC = '''{c} An array that grows: append(v) appends, and queries on any 
 
 
 def py_offline(ops, sums, mex):
-    slots = ["arr", "n", "srt", "m", "where", "klo", "khi", "root", "L", "R", "C"] + (["S"] if sums else []) + \
+    slots = ["arr", "n", "srt", "m", "klo", "khi", "root", "L", "R", "C"] + (["S"] if sums else []) + \
         (["mexHi", "mexRoot", "ML", "MR", "MN"] if mex else [])
     return (OFFLINE_DOC.format(c="#") + ('''# rangeMex: a second persistent tree, over the values 0..(# of distinct values) + 1, holding each value's last index.
 ''' if mex else "") + '''from bisect import bisect_left, bisect_right
+from random import getrandbits
 
 
 class PersistentOfflineOrderStats:
 ''' + f"    __slots__ = ({', '.join(repr(s) for s in slots)})\n\n" + f'''    # O(N log N) -- arr: the initial array (a list, may be empty), 0-indexed; {OFFLINE_ARG}: every value
     # append will ever get (any order, duplicates fine; arr's own values are included for you). N = # of distinct values
     def __init__(self, arr, {OFFLINE_ARG}):
-        self.srt = srt = sorted(set({OFFLINE_ARG}) | set(arr))
+        salt = getrandbits(62)  # values are salted while deduping, so no fixed input can make the set collide
+        seen = {{v ^ salt for v in {OFFLINE_ARG}}}
+        seen.update([v ^ salt for v in arr])
+        self.srt = srt = sorted([v ^ salt for v in seen])
 ''' + '''        self.m = len(srt)
-        self.where = {v: k for k, v in enumerate(srt)}
         self.klo, self.khi = 0, max(self.m - 1, 0)  # the tree is over ranks 0..m-1
         self.arr, self.n = [], 0
         self.L, self.R, self.C = [0], [0], [0]  # node 0 = the empty tree
@@ -420,8 +423,8 @@ class PersistentOfflineOrderStats:
 
     # O(logN) -- append v (one of the values given to the constructor, else ValueError): it becomes a[n], n grows by 1
     def append(self, v):
-        k = self.where.get(v)
-        if k is None:
+        k = bisect_left(self.srt, v)
+        if k == self.m or self.srt[k] != v:
             raise ValueError(f"append: {v} was not in the values given to the constructor")
         self.root.append(self._ins(self.root[-1], k, v))
 ''' + ('''        prev = self.mexRoot[-1]

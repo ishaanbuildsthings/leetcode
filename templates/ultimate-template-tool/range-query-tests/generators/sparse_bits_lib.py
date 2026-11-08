@@ -49,8 +49,8 @@ def py_class(name, desc, fields, kind, body):
     slots = '"lo", "hi", "n", "d"' + (', "mod"' if mod else "")
     init_mod = "\n        self.mod = mod" if mod else ""
     if k == 1:
-        upd = {"add": "d[x] = d.get(x, 0) + v", "mod": "d[x] = (d.get(x, 0) + v) % mod", "xor": "d[x] = d.get(x, 0) ^ v"}[kind]
-        acc = {"add": "s += d.get(x, 0)", "mod": "s += d.get(x, 0)", "xor": "s ^= d.get(x, 0)"}[kind]
+        upd = {"add": "d[x ^ SALT] = d.get(x ^ SALT, 0) + v", "mod": "d[x ^ SALT] = (d.get(x ^ SALT, 0) + v) % mod", "xor": "d[x ^ SALT] = d.get(x ^ SALT, 0) ^ v"}[kind]
+        acc = {"add": "s += d.get(x ^ SALT, 0)", "mod": "s += d.get(x ^ SALT, 0)", "xor": "s ^= d.get(x ^ SALT, 0)"}[kind]
         ret = "s % self.mod" if mod else "s"
         core = f'''
     # O(logU) -- {fields[0]}[x] += v at offset x
@@ -84,9 +84,9 @@ def py_class(name, desc, fields, kind, body):
         d, n{", mod" if mod else ""} = self.d, self.n{", self.mod" if mod else ""}{red}
         x += 1
         while x <= n:
-            e = d.get(x)
+            e = d.get(x ^ SALT)
             if e is None:
-                d[x] = [{args}]
+                d[x ^ SALT] = [{args}]
             else:
 {bump}
             x += x & -x
@@ -97,7 +97,7 @@ def py_class(name, desc, fields, kind, body):
         {" = ".join(f"s{j}" for j in range(k))} = 0
         x += 1
         while x > 0:
-            e = d.get(x)
+            e = d.get(x ^ SALT)
             if e is not None:
 {add_s}
             x &= x - 1
@@ -107,6 +107,11 @@ def py_class(name, desc, fields, kind, body):
 # {desc}
 # Over any index range [lo, hi] (huge or negative is fine); every position starts at 0. Sparse: a Fenwick tree in a
 # dict keyed by offset x = i - lo, so only the O(logU) entries above changed positions exist.
+
+
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
 
 
 class {name}:

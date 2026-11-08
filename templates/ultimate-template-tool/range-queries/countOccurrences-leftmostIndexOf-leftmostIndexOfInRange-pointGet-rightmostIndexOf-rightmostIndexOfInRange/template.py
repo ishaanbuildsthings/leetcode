@@ -19,6 +19,7 @@
 #   note: pos maps each value to the sorted list of indices holding it; the build is O(N): a dict of lists filled left to right
 
 from bisect import bisect_left, bisect_right
+from random import getrandbits
 
 # Static "how many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?". All indices
 # 0-based, ranges inclusive. Each value keeps the sorted list of its indices; a query is a binary search or two in
@@ -26,13 +27,16 @@ from bisect import bisect_left, bisect_right
 
 
 class OccurrenceLists:
-    __slots__ = ("arr", "pos")
+    __slots__ = ("arr", "pos", "salt")
 
     # O(N)
     def __init__(self, arr):
         self.arr = arr
         pos = self.pos = {}
+        salt = self.salt = getrandbits(62)  # int values are salted as dict keys, so no fixed input can make them collide
         for i, v in enumerate(arr):
+            if type(v) is int:
+                v ^= salt
             if v in pos:
                 pos[v].append(i)
             else:
@@ -42,17 +46,17 @@ class OccurrenceLists:
     def countOccurrences(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"countOccurrences: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ self.salt if type(x) is int else x)
         return bisect_right(p, r) - bisect_left(p, l) if p and l <= r else 0
 
     # O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array
     def leftmostIndexOf(self, x):
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ self.salt if type(x) is int else x)
         return p[0] if p else -1
 
     # O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
     def rightmostIndexOf(self, x):
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ self.salt if type(x) is int else x)
         return p[-1] if p else -1
 
     # O(logN) -- the smallest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
@@ -61,7 +65,7 @@ class OccurrenceLists:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostIndexOfInRange: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ self.salt if type(x) is int else x)
         if not p:
             return -1
         k = bisect_left(p, l)
@@ -73,7 +77,7 @@ class OccurrenceLists:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostIndexOfInRange: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ self.salt if type(x) is int else x)
         if not p:
             return -1
         k = bisect_right(p, r) - 1

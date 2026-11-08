@@ -365,11 +365,15 @@ def py_dense(ops, sums, mex, bits=None):
     def __init__(self, arr):
         self.arr = arr
         self.n = len(arr)
-        self.srt = srt = sorted(set(arr))
+        order = sorted(range(self.n), key=arr.__getitem__)  # ranks by sorting, so no value is ever hashed
+        s = [arr[i] for i in order]
+        up = list(map(ne, s, s[1:]))  # up[k]: s[k + 1] starts a new distinct value
+        self.srt = srt = s[:1] + list(compress(s[1:], up))
         self.m = m = len(srt)
         self.bits = bits = max(1, (m - 1).bit_length())
-        where = {v: k for k, v in enumerate(srt)}
-        cur = [where[v] for v in arr]
+        cur = [0] * self.n
+        for i, k in zip(order, accumulate(up, initial=0)):
+            cur[i] = k
         self.zeros = []
 ''' + ("        self.zsum = []\n" if sums else "") + "".join(f"        self.{BIT_FIELD[a]} = []  # per level, {BIT_WORD[a]} over its order\n" for a in bits) + '''        for d in range(bits - 1, -1, -1):
 ''' + "".join(f"            self.{BIT_FIELD[a]}.append(self._{a}Tab([srt[v] for v in cur]))\n" for a in bits) + '''            self.zeros.append(list(accumulate((((v >> d) & 1) ^ 1 for v in cur), initial=0)))
@@ -379,9 +383,9 @@ def py_dense(ops, sums, mex, bits=None):
         ("        self._buildMex()\n" if mex else "")
     own = {op: b for a, i in bits.items() for op, b in py_bit_ops(a, "log^2 N" if i == "tree" else "logN")}
     body = "\n".join(own.get(op) or PY_OPS[op] for op in ORDER if op in ops)
-    fns = [f for a, f in (("xor", "xor"), ("or", "or_"), ("and", "and_")) if a in bits and (a == "xor" or bits[a] == "table")]
+    fns = ["ne"] + [f for a, f in (("xor", "xor"), ("or", "or_"), ("and", "and_")) if a in bits and (a == "xor" or bits[a] == "table")]
     return (PY_DOC + (PY_SUM_DOC if sums else "") + (PY_MEX_DOC if mex else "") +
-            "from bisect import bisect_left, bisect_right\nfrom itertools import accumulate\n" +
+            "from bisect import bisect_left, bisect_right\nfrom itertools import accumulate, compress\n" +
             (f"from operator import {', '.join(sorted(fns))}\n" if fns else "") + "\n\nclass WaveletMatrix:\n"
             f"    __slots__ = ({', '.join(repr(s) for s in slots)})\n\n" + init + "\n" + body + PY_CORE +
             (PY_SUM_CORE if sums else "") + (PY_MEX_CORE.format(R="mexRoot", n="self.n") if mex else "") +

@@ -17,6 +17,10 @@
 #   other: idx[1*N] vals[1*N]
 #   note: built from N given values (index, value pairs) over any index range [lo, hi], every other index 0; costs are in N; pos maps each value to its sorted indices; 0 also counts the zeros of [l, r] (its length minus the given values inside)
 from bisect import bisect_left, bisect_right
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted, so no fixed input can make the dict collide
+
 
 # "How many times does x appear in a[l..r]?" and "where is x's first / last copy (in a[l..r])?" over any index range
 # [lo, hi], built from given values (index, value pairs); every other index is 0. Each value keeps its sorted indices;
@@ -35,10 +39,11 @@ class SparseStaticOccurrences:
         self.vals = [v for _, v in pts]
         pos = self.pos = {}
         for i, v in pts:
-            if v in pos:
-                pos[v].append(i)
+            key = v ^ SALT if type(v) is int else v
+            if key in pos:
+                pos[key].append(i)
             else:
-                pos[v] = [i]
+                pos[key] = [i]
 
     # O(logN) -- # of i in [l, r] with a[i] == x; needs lo <= l <= r <= hi, else IndexError
     def countOccurrences(self, l, r, x):
@@ -46,7 +51,7 @@ class SparseStaticOccurrences:
             raise IndexError(f"countOccurrences: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         if l > r:
             return 0
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ SALT if type(x) is int else x)
         res = bisect_right(p, r) - bisect_left(p, l) if p else 0
         if x == 0:
             res += (r - l + 1) - (bisect_right(self.idx, r) - bisect_left(self.idx, l))
@@ -66,7 +71,7 @@ class SparseStaticOccurrences:
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"leftmostIndexOfInRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         best = r + 1
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ SALT if type(x) is int else x)
         if p:
             k = bisect_left(p, l)
             if k < len(p):
@@ -81,7 +86,7 @@ class SparseStaticOccurrences:
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rightmostIndexOfInRange: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
         best = l - 1
-        p = self.pos.get(x)
+        p = self.pos.get(x ^ SALT if type(x) is int else x)
         if p:
             k = bisect_right(p, r) - 1
             if k >= 0:

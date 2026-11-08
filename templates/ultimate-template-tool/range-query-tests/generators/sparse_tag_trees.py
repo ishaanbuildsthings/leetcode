@@ -89,14 +89,14 @@ def tag_tree(ops, name, desc, ident_py, ident_cpp, compose_py, leaf_py, compose_
     def pointAssign(self, i, val):
         p = self.size + i - self.lo
         self._push(p)
-        self.t[p] = val{norm_py}
+        self.t[p ^ SALT] = val{norm_py}
 
     # O(logU) -- a[i] += delta
     def pointAdd(self, i, delta):
         p = self.size + i - self.lo
         self._push(p)
         t = self.t
-        t[p] = (t.get(p, 0) + delta){norm_py}
+        t[p ^ SALT] = (t.get(p ^ SALT, 0) + delta){norm_py}
 '''
     if not mod:
         py_points += '''
@@ -105,16 +105,16 @@ def tag_tree(ops, name, desc, ident_py, ident_cpp, compose_py, leaf_py, compose_
         p = self.size + i - self.lo
         self._push(p)
         t = self.t
-        if val > t.get(p, 0):
-            t[p] = val
+        if val > t.get(p ^ SALT, 0):
+            t[p ^ SALT] = val
 
     # O(logU) -- a[i] = min(a[i], val)
     def pointChmin(self, i, val):
         p = self.size + i - self.lo
         self._push(p)
         t = self.t
-        if val < t.get(p, 0):
-            t[p] = val
+        if val < t.get(p ^ SALT, 0):
+            t[p ^ SALT] = val
 '''
     py = f'''{py_pre}
 # {desc}, over any index range [lo, hi] (huge or negative is fine); every position starts at 0.
@@ -122,6 +122,11 @@ def tag_tree(ops, name, desc, ident_py, ident_cpp, compose_py, leaf_py, compose_
 # O(logU) covering nodes and pointGet folds the tags on the leaf's root path. A point write first pushes the tags
 # on its path down, so they stop applying to it. Sparse: a dict keyed by heap index over a power-of-two cover of
 # [lo, hi]; a missing internal node has no tag, a missing leaf is 0.
+
+
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
 
 
 class {name}:
@@ -137,11 +142,11 @@ class {name}:
     def _apply(self, x, v):
         t = self.t
         if x >= self.size:
-            a = t.get(x, 0)
-            t[x] = {leaf_py}
+            a = t.get(x ^ SALT, 0)
+            t[x ^ SALT] = {leaf_py}
         else:
-            a = t.get(x, {ident_py})
-            t[x] = {compose_py}
+            a = t.get(x ^ SALT, {ident_py})
+            t[x ^ SALT] = {compose_py}
 
     # O(logU) -- {update_desc} for i in [l, r]
     def {update_op}(self, l, r{arg_py}):{guard_py}
@@ -162,7 +167,7 @@ class {name}:
         t = self.t
         for h in range(p.bit_length() - 1, 0, -1):
             x = p >> h
-            v = t.pop(x, None)
+            v = t.pop(x ^ SALT, None)
             if v is not None and v != {ident_py}:
                 self._apply(2 * x, v)
                 self._apply(2 * x + 1, v)
@@ -171,11 +176,11 @@ class {name}:
     def pointGet(self, i):
         t = self.t
         p = self.size + i - self.lo
-        x = t.get(p, 0)
+        x = t.get(p ^ SALT, 0)
         a = {ident_py}  # the tags on the path, composed
         p >>= 1
         while p:
-            v = t.get(p)
+            v = t.get(p ^ SALT)
             if v is not None:
                 a = {compose_py}
             p >>= 1
@@ -348,6 +353,11 @@ ASSIGN_PY = '''
 # so it is O(1). Sparse: a dict keyed by heap index over a power-of-two cover of [lo, hi] -> (stamp, value).
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseRangeAssignTree:
     __slots__ = ("lo", "hi", "size", "t", "clock")
 
@@ -367,11 +377,11 @@ class SparseRangeAssignTree:
         r += self.size - self.lo + 1
         while l < r:
             if l & 1:
-                t[l] = e
+                t[l ^ SALT] = e
                 l += 1
             if r & 1:
                 r -= 1
-                t[r] = e
+                t[r ^ SALT] = e
             l >>= 1
             r >>= 1
 
@@ -379,10 +389,10 @@ class SparseRangeAssignTree:
     def pointGet(self, i):
         t = self.t
         p = self.size + i - self.lo
-        best, res = t.get(p, (0, 0))
+        best, res = t.get(p ^ SALT, (0, 0))
         p >>= 1
         while p:
-            e = t.get(p)
+            e = t.get(p ^ SALT)
             if e is not None and e[0] > best:
                 best, res = e
             p >>= 1
@@ -391,7 +401,7 @@ class SparseRangeAssignTree:
     # O(1) -- a[i] = val
     def pointAssign(self, i, val):
         self.clock += 1
-        self.t[self.size + i - self.lo] = (self.clock, val)
+        self.t[(self.size + i - self.lo) ^ SALT] = (self.clock, val)
 
     # O(logU) -- a[i] += delta
     def pointAdd(self, i, delta):
@@ -509,6 +519,11 @@ MOD_PY = '''
 # enters one.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseRangeModTree:
     __slots__ = ("lo", "hi", "size", "mx")
 
@@ -523,9 +538,9 @@ class SparseRangeModTree:
         mx = self.mx
         p >>= 1
         while p:
-            a = mx.get(2 * p, 0)
-            b = mx.get(2 * p + 1, 0)
-            mx[p] = a if a > b else b
+            a = mx.get((2 * p) ^ SALT, 0)
+            b = mx.get((2 * p + 1) ^ SALT, 0)
+            mx[p ^ SALT] = a if a > b else b
             p >>= 1
 
     def _descend(self, top, mod):
@@ -533,18 +548,18 @@ class SparseRangeModTree:
         stack, inner = [top], []
         while stack:
             y = stack.pop()
-            if mx.get(y, 0) < mod:
+            if mx.get(y ^ SALT, 0) < mod:
                 continue
             if y >= size:
-                mx[y] %= mod
+                mx[y ^ SALT] %= mod
             else:
                 inner.append(y)
                 stack.append(2 * y)
                 stack.append(2 * y + 1)
         for y in reversed(inner):  # pre-order reversed puts every child before its parent
-            a = mx.get(2 * y, 0)
-            b = mx.get(2 * y + 1, 0)
-            mx[y] = a if a > b else b
+            a = mx.get((2 * y) ^ SALT, 0)
+            b = mx.get((2 * y + 1) ^ SALT, 0)
+            mx[y ^ SALT] = a if a > b else b
 
     # amortized O(logU logV) -- a[i] %= mod for i in [l, r]
     def rangeMod(self, l, r, mod):
@@ -567,12 +582,12 @@ class SparseRangeModTree:
 
     # O(1) -- a[i]
     def pointGet(self, i):
-        return self.mx.get(self.size + i - self.lo, 0)
+        return self.mx.get((self.size + i - self.lo) ^ SALT, 0)
 
     # O(logU) -- a[i] = val
     def pointAssign(self, i, val):
         p = self.size + i - self.lo
-        self.mx[p] = val
+        self.mx[p ^ SALT] = val
         self._pull(p)
 
     # O(logU) -- a[i] += delta

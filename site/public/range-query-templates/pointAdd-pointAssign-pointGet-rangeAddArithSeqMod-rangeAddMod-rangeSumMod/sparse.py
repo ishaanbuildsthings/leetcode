@@ -29,6 +29,11 @@ def _tri(k):
 # dict keyed by offset x = i - lo, so only the O(logU) entries above changed positions exist.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted positions, so no fixed input can make the dict collide
+
+
 class SparseArithSeqSumBITMod:
     __slots__ = ("lo", "hi", "n", "d", "mod")
 
@@ -47,9 +52,9 @@ class SparseArithSeqSumBITMod:
         v2 %= mod
         x += 1
         while x <= n:
-            e = d.get(x)
+            e = d.get(x ^ SALT)
             if e is None:
-                d[x] = [v0, v1, v2]
+                d[x ^ SALT] = [v0, v1, v2]
             else:
                 e[0] = (e[0] + v0) % mod
                 e[1] = (e[1] + v1) % mod
@@ -62,7 +67,7 @@ class SparseArithSeqSumBITMod:
         s0 = s1 = s2 = 0
         x += 1
         while x > 0:
-            e = d.get(x)
+            e = d.get(x ^ SALT)
             if e is not None:
                 s0 += e[0]
                 s1 += e[1]

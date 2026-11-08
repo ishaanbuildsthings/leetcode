@@ -28,9 +28,13 @@
 # appears (in a range), how many times x appears in a range, a[i] and a[i] = v. All indices 0-based, ranges inclusive
 # [l, r]; searches return -1 when nothing qualifies.
 
+from random import getrandbits
+
+
 class PositionTrees:
     # node 0 = the empty tree; L / R: children, C: how many positions below, P: parent, W: which value (at roots)
     __slots__ = ("n", "L", "R", "C", "P", "W", "leaf", "ids", "vals", "roots", "free")
+    salt = getrandbits(62)  # ids' int keys are salted with this, so no fixed input can make them collide
 
     # O(N log N) -- arr: the initial array (a list)
     def __init__(self, arr):
@@ -53,7 +57,7 @@ class PositionTrees:
     def rangeReplace(self, l, r, x, y):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rangeReplace: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         if k is not None and x != y:
             self._move(k, l, r, y)
 
@@ -61,12 +65,12 @@ class PositionTrees:
     def countOccurrences(self, l, r, x):
         if not 0 <= l <= r < self.size():
             raise IndexError(f"countOccurrences: needs 0 <= l <= r < size(), got l = {l}, r = {r}, n = {self.size()}")
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         return self._count(self.roots[k], 0, self.n - 1, l, r) if k is not None else 0
 
     # O(logN) -- the smallest i with a[i] == x, or -1 if x isn't in the array
     def leftmostIndexOf(self, x):
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         t = self.roots[k] if k is not None else 0
         if not t:
             return -1
@@ -81,7 +85,7 @@ class PositionTrees:
 
     # O(logN) -- the largest i with a[i] == x, or -1 if x isn't in the array
     def rightmostIndexOf(self, x):
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         t = self.roots[k] if k is not None else 0
         if not t:
             return -1
@@ -100,7 +104,7 @@ class PositionTrees:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"leftmostIndexOfInRange: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         return self._first(self.roots[k], 0, self.n - 1, l, r, True) if k is not None else -1
 
     # O(logN) -- the largest i in [l, r] with a[i] == x, or -1 if there is none; needs 0 <= l <= r < size(), else
@@ -109,7 +113,7 @@ class PositionTrees:
         if not 0 <= l <= r < self.size():
             raise IndexError(f"rightmostIndexOfInRange: needs 0 <= l <= r < size(), got "
                              f"l = {l}, r = {r}, n = {self.size()}")
-        k = self.ids.get(x)
+        k = self.ids.get(x ^ self.salt if type(x) is int else x)
         return self._first(self.roots[k], 0, self.n - 1, l, r, False) if k is not None else -1
 
     # O(logN) -- a[i]; needs 0 <= i < size(), else IndexError
@@ -148,9 +152,10 @@ class PositionTrees:
     # ---- internals ----
 
     def _id(self, v):  # v's index into vals / roots (a new one, with an empty tree, the first time v is seen)
-        k = self.ids.get(v)
+        key = v ^ self.salt if type(v) is int else v
+        k = self.ids.get(key)
         if k is None:
-            k = self.ids[v] = len(self.vals)
+            k = self.ids[key] = len(self.vals)
             self.vals.append(v)
             self.roots.append(0)
         return k

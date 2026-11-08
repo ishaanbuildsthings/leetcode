@@ -128,6 +128,11 @@ class SortedList:
 # its length. An assign changes at most 3 nxt values, in an order that never lets two positions share an nxt value.
 
 
+from random import getrandbits
+
+SALT = getrandbits(62)  # dict keys are salted, so no fixed input can make the dict collide
+
+
 class SparseDistinctBIT:
     __slots__ = ("lo", "hi", "n", "none", "vals", "nxt", "last", "sets", "chains")
 
@@ -146,7 +151,7 @@ class SparseDistinctBIT:
         last, n = self.last, self.n
         j = i - self.lo + 1
         while j <= n:
-            last[j] = last.get(j, 0) + d
+            last[j ^ SALT] = last.get(j ^ SALT, 0) + d
             j += j & -j
 
     # how many tracked positions p <= x have nxt[p] > r (0 for x < lo)
@@ -155,8 +160,8 @@ class SparseDistinctBIT:
         res = 0
         j = x - self.lo + 1
         while j > 0:
-            res += last.get(j, 0)
-            s = sets.get(j)
+            res += last.get(j ^ SALT, 0)
+            s = sets.get(j ^ SALT)
             if s is not None:
                 res += len(s) - s.countLess(r + 1)
             j &= j - 1
@@ -164,7 +169,7 @@ class SparseDistinctBIT:
 
     # O(log^2 U) -- nxt[i] = v (None: i is not tracked, it holds 0)
     def _setNxt(self, i, v):
-        old = self.nxt.get(i)
+        old = self.nxt.get(i ^ SALT)
         if old == v:
             return
         n, sets = self.n, self.sets
@@ -173,25 +178,25 @@ class SparseDistinctBIT:
         elif old is not None:
             j = i - self.lo + 1
             while j <= n:
-                s = sets[j]
+                s = sets[j ^ SALT]
                 s.remove(old)
                 if not len(s):
-                    del sets[j]
+                    del sets[j ^ SALT]
                 j += j & -j
         if v == self.none:
             self._lastAdd(i, 1)
         elif v is not None:
             j = i - self.lo + 1
             while j <= n:
-                s = sets.get(j)
+                s = sets.get(j ^ SALT)
                 if s is None:
-                    s = sets[j] = SortedList()
+                    s = sets[j ^ SALT] = SortedList()
                 s.add(v)
                 j += j & -j
         if v is None:
-            del self.nxt[i]
+            del self.nxt[i ^ SALT]
         else:
-            self.nxt[i] = v
+            self.nxt[i ^ SALT] = v
 
     # O(logU * logU) -- # of distinct values in a[l..r]; needs lo <= l <= r <= hi, else IndexError
     def countDistinct(self, l, r):
@@ -208,36 +213,36 @@ class SparseDistinctBIT:
     def pointAssign(self, i, val):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= i <= hi, got i = {i}")
-        old = self.vals.get(i, 0)
+        old = self.vals.get(i ^ SALT, 0)
         if old == val:
             return
         if old:
-            s = self.chains[old]
+            s = self.chains[old ^ SALT if type(old) is int else old]
             self._setNxt(i, None)  # unlink i first, so its successor is free for its predecessor
             p, nx = s.pred(i), s.succ(i)
             if p is not None:
                 self._setNxt(p, self.none if nx is None else nx)
             s.remove(i)
             if not len(s):
-                del self.chains[old]
+                del self.chains[old ^ SALT if type(old) is int else old]
         if val:
-            s = self.chains.get(val)
+            s = self.chains.get(val ^ SALT if type(val) is int else val)
             if s is None:
-                s = self.chains[val] = SortedList()
+                s = self.chains[val ^ SALT if type(val) is int else val] = SortedList()
             s.add(i)
             p, nx = s.pred(i), s.succ(i)
             if p is not None:
                 self._setNxt(p, i)  # move the predecessor off the successor first, then hand it to i
             self._setNxt(i, self.none if nx is None else nx)
-            self.vals[i] = val
+            self.vals[i ^ SALT] = val
         else:
-            del self.vals[i]
+            del self.vals[i ^ SALT]
 
     # O(1) -- a[i]; needs lo <= i <= hi, else IndexError
     def pointGet(self, i):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointGet: needs lo <= i <= hi, got i = {i}")
-        return self.vals.get(i, 0)
+        return self.vals.get(i ^ SALT, 0)
 
     # O(logU * logU) -- a[i] += delta; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, delta):

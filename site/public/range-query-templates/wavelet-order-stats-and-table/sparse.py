@@ -36,8 +36,8 @@
 # with that bit 0, then 1; zeros[d][i] = # of the first i elements of level d's order with the bit 0, so a window
 # [lo, hi) maps to [zeros[d][lo], zeros[d][hi]) among the 0s and to [nz + lo - zeros[d][lo], ...) among the 1s.
 from bisect import bisect_left, bisect_right
-from itertools import accumulate
-from operator import and_
+from itertools import accumulate, compress
+from operator import and_, ne
 
 
 class WaveletMatrix:
@@ -47,11 +47,15 @@ class WaveletMatrix:
     def __init__(self, arr):
         self.arr = arr
         self.n = len(arr)
-        self.srt = srt = sorted(set(arr))
+        order = sorted(range(self.n), key=arr.__getitem__)  # ranks by sorting, so no value is ever hashed
+        s = [arr[i] for i in order]
+        up = list(map(ne, s, s[1:]))  # up[k]: s[k + 1] starts a new distinct value
+        self.srt = srt = s[:1] + list(compress(s[1:], up))
         self.m = m = len(srt)
         self.bits = bits = max(1, (m - 1).bit_length())
-        where = {v: k for k, v in enumerate(srt)}
-        cur = [where[v] for v in arr]
+        cur = [0] * self.n
+        for i, k in zip(order, accumulate(up, initial=0)):
+            cur[i] = k
         self.zeros = []
         self.at = []  # per level, AND over its order
         for d in range(bits - 1, -1, -1):
