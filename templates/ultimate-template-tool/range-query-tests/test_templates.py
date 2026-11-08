@@ -539,7 +539,7 @@ def domain(folder, ops):
         extra = []
         if "offline" in folder:
             extra = [list(range(lo, hi + 1))]
-        elif ("pointAssign" in ops or "append" in ops) and "cut" not in ops:  # (a sequence that cuts keeps no value range)
+        elif ("pointAssign" in ops or "append" in ops) and "cut" not in ops and not folder.startswith("sqrt-movable"):  # (a sequence that cuts, or the movable sqrt blocks, keep no value range)
             extra = [-10**9, 10**9]
         return (lambda r: r.randint(lo, hi)), small, extra, ctx
     if "isPalindrome" in ops:

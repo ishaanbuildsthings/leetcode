@@ -848,6 +848,10 @@ const BEATS_UPDATES: ReadonlySet<string> = new Set([
 ]);
 
 export function templateKindLabel(t: TemplateView): string {
+  // the movable sqrt blocks (insert / erase / reverse / rotate / cut and paste, with value queries); the sums one also
+  // keeps prefix sums and the chmin / chmax tag. Their amortized costs come from re-merging blocks, not beats
+  if (t.folder.startsWith("sqrt-movable"))
+    return `Sqrt decomposition, movable blocks${t.operations.includes("sumLtX") ? " with sums, chmin / chmax" : ""}`;
   // a wavelet with rangeMex also carries a persistent seg tree for it; its sums / by-value xor / OR / AND are named,
   // OR and AND with how they are kept (a sparse table per level is faster, a seg tree per level lighter)
   const wav = t.dataStructureType === "wavelet";
