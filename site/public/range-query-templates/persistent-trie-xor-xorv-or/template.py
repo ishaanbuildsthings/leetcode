@@ -83,8 +83,7 @@ class PersistentXorTrie:
         self.arr = []
         self.L, self.R, self.C = [0], [0], [0]  # node 0 = the empty trie
         self.X = [0]
-        self.OI = [-1] * bits  #@or  OI[node * bits + h] = latest index of a value below with bit h set (-1: none)
-        self.AI = [-1] * bits  #@and  AI[node * bits + h] = latest index of a value below with bit h clear (-1: none)
+        self.OI = [-1] * bits  # OI[node * bits + h] = latest index of a value below with bit h set (-1: none)
         self.root = [0]
         for v in arr:
             self.append(v)
@@ -393,7 +392,8 @@ class PersistentXorTrie:
         L.append(0), R.append(0), C.append(C[node] + 1)
         X = self.X
         X.append(X[node] ^ v)
-        OI, AI, B = self.OI, self.AI, self.B
+        B = self.B
+        OI = self.OI
         OI.extend(i if v >> h & 1 else -1 for h in range(B))
         for h in range(self.B):
             old = path[self.B - 1 - h]

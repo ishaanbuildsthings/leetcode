@@ -84,7 +84,7 @@ struct SqrtXorTries {
     vector<int> base;
     int scratch;
     vector<long long> tag, uni;  // lazy xor / lazy assign of each block (uni = -1: none)
-    vector<int> ones;  //@sumxor  ones[b * B + h] = how many stored values of block b have bit h set
+    vector<int> ones;  // ones[b * B + h] = how many stored values of block b have bit h set
 
     // O(N logU) -- arr: the initial values, each in [0, 2^bits) (bits = 30 holds values up to 1073741823); U = 2^bits
     SqrtXorTries(const vector<T>& a, int bits) : B(bits), n((int)a.size()), top((1LL << bits) - 1) {

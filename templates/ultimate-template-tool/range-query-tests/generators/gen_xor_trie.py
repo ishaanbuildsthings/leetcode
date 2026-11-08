@@ -64,11 +64,11 @@ def strip(text, tags, cm):
             continue
         if any(skip):
             continue
-        m = re.search(rf"\s*{re.escape(cm)}@(!?)(\w+)\s*$", line)
+        m = re.search(rf"\s*{re.escape(cm)}@(!?)(\w+)(\s+\S.*)?$", line)
         if m:
             if (m.group(2) in tags) == bool(m.group(1)):
                 continue
-            line = line[:m.start()]
+            line = line[:m.start()] + (f"  {cm} {m.group(3).strip()}" if m.group(3) else "")
         out.append(line)
     return "\n".join(out)
 

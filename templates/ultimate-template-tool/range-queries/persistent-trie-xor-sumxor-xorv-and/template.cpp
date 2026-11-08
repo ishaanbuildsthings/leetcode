@@ -90,9 +90,8 @@ struct PersistentXorTrie {
         long long X = 0;
     };
     vector<Node> nd;  // node 0 = the empty trie
-    vector<int> OI;  //@or  OI[node * B + h] = latest index of a value below with bit h set (-1: none)
-    vector<int> AI;  //@and  AI[node * B + h] = latest index of a value below with bit h clear (-1: none)
-    vector<int> P;  //@sumxor  P[p * B + h] = how many of a[0..p-1] have bit h set
+    vector<int> AI;  // AI[node * B + h] = latest index of a value below with bit h clear (-1: none)
+    vector<int> P;  // P[p * B + h] = how many of a[0..p-1] have bit h set
 
     // O(N log U) -- arr: the initial values (may be empty), each in [0, 2^bits) (bits = 30 holds values up to
     // 1073741823); U = 2^bits

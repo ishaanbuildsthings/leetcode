@@ -248,7 +248,9 @@ class PersistentXorTrie:
         X = self.X  #@xorv
         S.append(S[node] + v)  #@sums
         X.append(X[node] ^ v)  #@xorv
-        OI, AI, B = self.OI, self.AI, self.B  #@orand
+        B = self.B  #@orand
+        OI = self.OI  #@or
+        AI = self.AI  #@and
         OI.extend(i if v >> h & 1 else -1 for h in range(B))  #@or
         AI.extend(-1 if v >> h & 1 else i for h in range(B))  #@and
         for h in range(self.B):

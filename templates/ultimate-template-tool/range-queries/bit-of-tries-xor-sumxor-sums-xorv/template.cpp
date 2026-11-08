@@ -95,7 +95,7 @@ struct BitXorTries {
         long long X = 0;
     };
     vector<Node> nd;  // node 0 = empty
-    vector<vector<int>> F;  //@sumxor  F[h] = Fenwick tree counting the values with bit h set
+    vector<vector<int>> F;  // F[h] = Fenwick tree counting the values with bit h set
     struct Span {  // the tries whose counts add up to a[l..r]'s values: P minus N
         vector<int> P, N;
     };

@@ -89,7 +89,6 @@ class SqrtXorTries:
         self.L, self.R, self.C = [0] * total, [0] * total, [0] * total
         self.tag = [0] * nb  # lazy xor of each block
         self.uni = [-1] * nb  # lazy assign: every stored value of the block is uni (-1: none)
-        self.ones = [[0] * bits for _ in range(nb)]  #@sumxor  ones[b][h] = how many stored values of block b have bit h set
         for b in range(nb):
             self._rebuild(b)
 
