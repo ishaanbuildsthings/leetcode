@@ -86,7 +86,10 @@ def header(mode, feats, cm):
     if has("members"):
         notes.append("K = the size of the group")
     if mode == "nocompress":
-        notes.append("uniteAUnderB skips union by size, so after it any walk up the forest can take O(N)")
+        ub = "uniteAUnderBWeighted" if has("potential") else "uniteAUnderB"
+        slowOps = "groups" if has("members") else "groups / elementsInGroup"
+        notes.append(f"{ub} skips union by size, so it can build a chain N deep: every log(N) above (and the N*log(N) of {slowOps}) "
+                     f"holds only if you never call it, otherwise those calls are O(N) (O(N^2))")
     if mode == "rollback":
         notes.append("plus the undo stack: one small frame per unite not yet undone" + (", holding a copy of the bigger Node" if has("merge") else ""))
     if has("merge"):
@@ -97,6 +100,29 @@ def header(mode, feats, cm):
     lines += ["  build: N", "@memory:", "  layout: none", "  node: par[1*N] sz[1*N]", "  tags: none", f"  other: {' '.join(other)}"]
     lines += [f"  note: {'; '.join(notes)}"] if notes else []
     return [f"{cm} {x}" for x in lines]
+
+
+def forced_notes(L, cm, name):
+    """nocompress: under each public method whose cost assumes balanced trees, say uniteAUnderB can break it"""
+    I = "    "
+    ub = f"{I}{cm} O(log n), forces a's root under b's root"
+    hits = {f"{I}{cm} O(log n), ": ("O(log n)", "O(n)"),
+            f"{I}{cm} O(n log n), groupsArr": ("O(n log n)", "O(n^2)"),
+            f"{I}{cm} O(n log n), the values of every element": ("O(n log n)", "O(n^2)")}
+    out = []
+    k = 0
+    while k < len(L):
+        line = L[k]
+        hit = next((c for p, c in hits.items() if line.startswith(p)), None)
+        out.append(line)
+        k += 1
+        if hit is None or line.startswith(ub):
+            continue
+        while L[k].startswith(f"{I}{cm} "):
+            out.append(L[k])
+            k += 1
+        out.append(f"{I}{cm} only {hit[0]} if you never call {name}: forced unions can build a chain, then this is {hit[1]}")
+    return out
 
 
 def find_cost(mode):
@@ -279,7 +305,8 @@ def py(mode, feats):
     # ---- uniteAUnderB
     if nc:
         L += [I + "# O(log n), forces a's root under b's root, False if already together",
-              I + "# skips union by size, so depth can degrade to O(n) and every walk with it"]
+              I + "# skips union by size, so these can build a chain n deep: then this, find, unite and every other call that",
+              I + "# walks up is O(n); their O(log n) holds only if you never force unions"]
         if has("potential"):
             L.append(I + "# w: value[b] - value[a] = w")
         if has("merge"):
@@ -455,6 +482,8 @@ def py(mode, feats):
         L += [I * 2 + "return i", ""]
     while L[-1] == "":
         L.pop()
+    if nc:
+        L = forced_notes(L, "#", "uniteAUnderBWeighted" if has("potential") else "uniteAUnderB")
     return "\n".join(L) + "\n"
 
 
@@ -646,7 +675,8 @@ def cpp(mode, feats):
     # ---- uniteAUnderB
     if nc:
         L += [I + "// O(log n), forces a's root under b's root, false if already together",
-              I + "// skips union by size, so depth can degrade to O(n) and every walk with it"]
+              I + "// skips union by size, so these can build a chain n deep: then this, find, unite and every other call that",
+              I + "// walks up is O(n); their O(log n) holds only if you never force unions"]
         if has("potential"):
             L.append(I + "// w: value[b] - value[a] = w")
         if has("merge"):
@@ -818,6 +848,8 @@ def cpp(mode, feats):
         L += [I * 2 + "return i;", I + "}", ""]
     while L[-1] == "":
         L.pop()
+    if nc:
+        L = forced_notes(L, "//", "uniteAUnderBWeighted" if has("potential") else "uniteAUnderB")
     L.append("};")
     return "\n".join(L) + "\n"
 

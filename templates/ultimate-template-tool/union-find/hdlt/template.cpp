@@ -188,7 +188,10 @@ struct DynamicConnectivity {
     vector<int> eu, ev, elevel, slot, nxt, prv, freeIds, freeSlots;
     vector<char> seen;
     vector<vector<int>> head;  // head[l][u] = first arc of u's level-l non-tree list
+    // ids of the edges between each pair; pairPos[e] = e's index in its list, so dropping one copy swaps the last id
+    // into its place instead of scanning every parallel copy
     map<pair<int, int>, vector<int>> byPair;
+    vector<int> pairPos;
     vector<int> tmpEdges, tmpVerts, tmpPromote;
 
     // O(n log n), every element starts in its own component
@@ -213,7 +216,7 @@ struct DynamicConnectivity {
             return e;
         }
         int e = eu.size();
-        eu.push_back(0), ev.push_back(0), elevel.push_back(0), slot.push_back(-1), seen.push_back(0);
+        eu.push_back(0), ev.push_back(0), elevel.push_back(0), slot.push_back(-1), seen.push_back(0), pairPos.push_back(0);
         nxt.push_back(-1), nxt.push_back(-1), prv.push_back(-1), prv.push_back(-1);
         return e;
     }
@@ -293,7 +296,9 @@ struct DynamicConnectivity {
     int addEdge(int u, int v) {
         int e = newId();
         eu[e] = u, ev[e] = v, elevel[e] = 0, slot[e] = -1;
-        byPair[{min(u, v), max(u, v)}].push_back(e);
+        auto& ids = byPair[{min(u, v), max(u, v)}];
+        pairPos[e] = ids.size();
+        ids.push_back(e);
         if (u == v) return e;
         if (!forest[0].sameTree(u, v)) {
             makeTreeEdge(e, 0);
@@ -318,8 +323,13 @@ struct DynamicConnectivity {
         } else if (u != v) {
             delArc(2 * e, l), delArc(2 * e + 1, l);
         }
-        auto& ids = byPair[{min(u, v), max(u, v)}];
-        ids.erase(find(ids.begin(), ids.end(), e));
+        auto it = byPair.find({min(u, v), max(u, v)});
+        auto& ids = it->second;
+        int last = ids.back();
+        ids[pairPos[e]] = last;
+        pairPos[last] = pairPos[e];
+        ids.pop_back();
+        if (ids.empty()) byPair.erase(it);
         freeIds.push_back(e);
         return split;
     }

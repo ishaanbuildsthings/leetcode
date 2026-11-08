@@ -201,7 +201,16 @@ class DynamicConnectivity:
         self._eu, self._ev, self._elevel, self._slot = [], [], [], []
         self._nxt, self._prv, self._seen = [], [], []
         self._freeIds = []
-        self._byPair = defaultdict(list)
+        # salted pair key -> ids of the edges between that pair; pairPos[e] = e's index in its list, so dropping one
+        # copy swaps the last id into its place instead of scanning every parallel copy
+        self._byPair = {}
+        self._pairPos = []
+        self._salt = random.getrandbits(62)
+
+    def _pairKey(self, a, b):
+        if a > b:
+            a, b = b, a
+        return (a * self.n + b) ^ self._salt
 
     def _owner(self, a):
         return self._ev[a >> 1] if a & 1 else self._eu[a >> 1]
@@ -218,6 +227,7 @@ class DynamicConnectivity:
         self._elevel.append(0)
         self._slot.append(-1)
         self._seen.append(False)
+        self._pairPos.append(0)
         self._nxt += [-1, -1]
         self._prv += [-1, -1]
         return e
@@ -308,7 +318,12 @@ class DynamicConnectivity:
     def addEdge(self, u, v):
         e = self._newId()
         self._eu[e], self._ev[e], self._elevel[e], self._slot[e] = u, v, 0, -1
-        self._byPair[(min(u, v), max(u, v))].append(e)
+        key = self._pairKey(u, v)
+        ids = self._byPair.get(key)
+        if ids is None:
+            ids = self._byPair[key] = []
+        self._pairPos[e] = len(ids)
+        ids.append(e)
         if u == v:
             return e
         if not self._forest[0].sameTree(u, v):
@@ -335,13 +350,21 @@ class DynamicConnectivity:
         elif u != v:
             self._delArc(2 * e, l)
             self._delArc(2 * e + 1, l)
-        self._byPair[(min(u, v), max(u, v))].remove(e)
+        key = self._pairKey(u, v)
+        ids = self._byPair[key]
+        last = ids.pop()
+        if last != e:
+            i = self._pairPos[e]
+            ids[i] = last
+            self._pairPos[last] = i
+        if not ids:
+            del self._byPair[key]
         self._freeIds.append(e)
         return split
 
     # O(log^2 n) amortized, removes one edge between u and v, false if there was none
     def removeEdgeBetween(self, u, v):
-        ids = self._byPair[(min(u, v), max(u, v))]
+        ids = self._byPair.get(self._pairKey(u, v))
         if not ids:
             return False
         self.removeEdge(ids[-1])

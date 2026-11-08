@@ -24,7 +24,7 @@
 #   node: par[1*N] sz[1*N]
 #   tags: none
 #   other: vals[1*N] data[1*N] edges[1*N]
-#   note: uniteAUnderB skips union by size, so after it any walk up the forest can take O(N); data holds one Node per element
+#   note: uniteAUnderB skips union by size, so it can build a chain N deep: every log(N) above (and the N*log(N) of groups / elementsInGroup) holds only if you never call it, otherwise those calls are O(N) (O(N^2)); data holds one Node per element
 
 # e.g. int, str, tuple, ...
 RawVal = int
@@ -63,6 +63,7 @@ class DSUNoCompress:
         self.edges = [0] * n  # edges[root]: how many unites touched root's component, merging or not
 
     # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par
         while par[i] != i:
@@ -72,6 +73,7 @@ class DSUNoCompress:
     # O(log n), merges the two components, returns (winner, loser): the new root and the old root now under it, or
     # None if they were already together
     # either way it counts as an edge of the component (edgeCount)
+    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def unite(self, i, j):
         i, j = self.find(i), self.find(j)
         if i == j:
@@ -89,7 +91,8 @@ class DSUNoCompress:
         return i, j
 
     # O(log n), forces a's root under b's root, False if already together
-    # skips union by size, so depth can degrade to O(n) and every walk with it
+    # skips union by size, so these can build a chain n deep: then this, find, unite and every other call that
+    # walks up is O(n); their O(log n) holds only if you never force unions
     # combine gets b's component's Node first here, even when it's the smaller one
     def uniteAUnderB(self, a, b):
         a, b = self.find(a), self.find(b)
@@ -106,10 +109,12 @@ class DSUNoCompress:
         return True
 
     # O(log n), True if i and j are in the same component
+    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def areUnioned(self, i, j):
         return self.find(i) == self.find(j)
 
     # O(log n), how many elements are in i's component
+    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def size(self, i):
         return self.sz[self.find(i)]
 
@@ -130,6 +135,7 @@ class DSUNoCompress:
         return sorted((self.sz[i] for i in range(len(self.par)) if self.par[i] == i), reverse=True)
 
     # O(n log n), groupsArr[rt] = list of values whose root is rt, [] if rt is not a root
+    # only O(n log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n^2)
     def groups(self):
         n = len(self.par)
         groupsArr = [[] for _ in range(n)]
@@ -138,19 +144,23 @@ class DSUNoCompress:
         return groupsArr
 
     # O(n log n), the values of every element sitting in the same group as index i
+    # only O(n log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n^2)
     def elementsInGroup(self, i):
         rt = self.find(i)
         return [self.vals[j] for j in range(len(self.par)) if self.find(j) == rt]
 
     # O(log n), the Node of i's component: every member's baseFn, combined
+    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def componentData(self, i):
         return self.data[self.find(i)]
 
     # O(log n), how many unites have touched i's component (merging or not): its edges, if each unite is an edge
+    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def edgeCount(self, i):
         return self.edges[self.find(i)]
 
     # O(log n), True if i's component has no cycle: exactly size - 1 edges
+    # only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     def isTree(self, i):
         r = self.find(i)
         return self.edges[r] == self.sz[r] - 1

@@ -25,7 +25,7 @@
 #   node: par[1*N] sz[1*N]
 #   tags: none
 #   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N] nxt[1*N] pot[1*N]
-#   note: K = the size of the group; uniteAUnderB skips union by size, so after it any walk up the forest can take O(N)
+#   note: K = the size of the group; uniteAUnderBWeighted skips union by size, so it can build a chain N deep: every log(N) above (and the N*log(N) of groups) holds only if you never call it, otherwise those calls are O(N) (O(N^2))
 
 # dsu = DSUNoCompress(vals)
 # vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
@@ -50,6 +50,7 @@ class DSUNoCompress:
         self.pot = [0] * n  # pot[i] = value[i] - value[par[i]] (0 at a root)
 
     # O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def find(self, i):
         par = self.par
         while par[i] != i:
@@ -68,6 +69,7 @@ class DSUNoCompress:
     # O(log n), merges the two components, returns (winner, loser): the new root and the old root now under it, or
     # None if they were already together
     # w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
+    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def uniteWeighted(self, i, j, w):
         i, wi = self._rootAndWeight(i)
         j, wj = self._rootAndWeight(j)
@@ -92,7 +94,8 @@ class DSUNoCompress:
         return i, j
 
     # O(log n), forces a's root under b's root, False if already together
-    # skips union by size, so depth can degrade to O(n) and every walk with it
+    # skips union by size, so these can build a chain n deep: then this, find, unite and every other call that
+    # walks up is O(n); their O(log n) holds only if you never force unions
     # w: value[b] - value[a] = w
     def uniteAUnderBWeighted(self, a, b, w):
         a, wa = self._rootAndWeight(a)
@@ -115,10 +118,12 @@ class DSUNoCompress:
         return True
 
     # O(log n), True if i and j are in the same component
+    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def areUnioned(self, i, j):
         return self.find(i) == self.find(j)
 
     # O(log n), how many elements are in i's component
+    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def size(self, i):
         return self.sz[self.find(i)]
 
@@ -139,6 +144,7 @@ class DSUNoCompress:
         return sorted((self.sz[i] for i in range(len(self.par)) if self.par[i] == i), reverse=True)
 
     # O(n log n), groupsArr[rt] = list of values whose root is rt, [] if rt is not a root
+    # only O(n log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n^2)
     def groups(self):
         n = len(self.par)
         groupsArr = [[] for _ in range(n)]
@@ -157,18 +163,22 @@ class DSUNoCompress:
         return res
 
     # O(log n), the sum of the values in i's component
+    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def componentSum(self, i):
         return self.csum[self.find(i)]
 
     # O(log n), the smallest of the values in i's component
+    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def componentMin(self, i):
         return self.cmin[self.find(i)]
 
     # O(log n), the largest of the values in i's component
+    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def componentMax(self, i):
         return self.cmax[self.find(i)]
 
     # O(log n), value[j] - value[i] from the unites so far, None if i and j aren't together
+    # only O(log n) if you never call uniteAUnderBWeighted: forced unions can build a chain, then this is O(n)
     def diff(self, i, j):
         ri, wi = self._rootAndWeight(i)
         rj, wj = self._rootAndWeight(j)

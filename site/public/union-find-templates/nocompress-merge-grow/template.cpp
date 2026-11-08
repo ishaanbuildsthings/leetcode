@@ -22,7 +22,7 @@
 //   node: par[1*N] sz[1*N]
 //   tags: none
 //   other: vals[1*N] data[1*N]
-//   note: uniteAUnderB skips union by size, so after it any walk up the forest can take O(N); data holds one Node per element
+//   note: uniteAUnderB skips union by size, so it can build a chain N deep: every log(N) above (and the N*log(N) of groups / elementsInGroup) holds only if you never call it, otherwise those calls are O(N) (O(N^2)); data holds one Node per element
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
@@ -72,6 +72,7 @@ struct DSUNoCompress {
     }
 
     // O(log n), index of the representative of i's component; parents are never rewritten, so the forest records every merge
+    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     int find(int i) {
         while (par[i] != i) i = par[i];
         return i;
@@ -79,6 +80,7 @@ struct DSUNoCompress {
 
     // O(log n), merges the two components, returns {winner, loser}: the new root and the old root now under it,
     // or {-1, -1} if they were already together
+    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     pair<int, int> unite(int i, int j) {
         i = find(i), j = find(j);
         if (i == j) {
@@ -94,7 +96,8 @@ struct DSUNoCompress {
     }
 
     // O(log n), forces a's root under b's root, false if already together
-    // skips union by size, so depth can degrade to O(n) and every walk with it
+    // skips union by size, so these can build a chain n deep: then this, find, unite and every other call that
+    // walks up is O(n); their O(log n) holds only if you never force unions
     // combine gets b's component's Node first here, even when it's the smaller one
     bool uniteAUnderB(int a, int b) {
         a = find(a), b = find(b);
@@ -108,9 +111,11 @@ struct DSUNoCompress {
     }
 
     // O(log n), true if i and j are in the same component
+    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     bool areUnioned(int i, int j) { return find(i) == find(j); }
 
     // O(log n), how many elements are in i's component
+    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     int size(int i) { return sz[find(i)]; }
 
     // O(1), how many components exist right now
@@ -137,6 +142,7 @@ struct DSUNoCompress {
     }
 
     // O(n log n), groupsArr[rt] = values whose root is rt, empty if rt is not a root
+    // only O(n log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n^2)
     vector<vector<T>> groups() {
         int n = par.size();
         vector<vector<T>> groupsArr(n);
@@ -145,6 +151,7 @@ struct DSUNoCompress {
     }
 
     // O(n log n), the values of every element sitting in the same group as index i
+    // only O(n log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n^2)
     vector<T> elementsInGroup(int i) {
         int rt = find(i);
         vector<T> res;
@@ -154,6 +161,7 @@ struct DSUNoCompress {
     }
 
     // O(log n), the Node of i's component: every member's baseFn, combined
+    // only O(log n) if you never call uniteAUnderB: forced unions can build a chain, then this is O(n)
     Node componentData(int i) { return data[find(i)]; }
 
     // O(1), adds a new element in its own component and returns its index

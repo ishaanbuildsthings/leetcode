@@ -6,6 +6,9 @@ C++ template (built with sanitizers), which has to print exactly what the Python
     python3 test_union_find.py --py         # Python only
     python3 test_union_find.py rollback     # folders whose name contains one of these
     python3 test_union_find.py --budget 150 # stop starting C++ builds after this many seconds (rerun to continue)
+
+hdlt (fully dynamic connectivity) gets its own scripts: edges added and removed at random, many parallel copies of the
+same pair among them, checked against connectivity recomputed from the live edges, then replayed on the C++ one.
 """
 import concurrent.futures
 import os
@@ -245,6 +248,143 @@ def script(name, seed):
     return text, outs
 
 
+# ------------------------------------------------------------------------------------------------ hdlt
+def brute_labels(n, pairs):
+    label = list(range(n))
+
+    def root(x):
+        while label[x] != x:
+            x = label[x]
+        return x
+    for a, b in pairs:
+        label[root(a)] = root(b)
+    return [root(x) for x in range(n)]
+
+
+def hdlt_script(seed, stress=False):
+    """random adds / removes (stress: hundreds of copies of a few pairs, removed one by one), every answer checked
+    against connectivity recomputed from the live edges; returns (C++ driver input, printed lines)"""
+    rnd = random.Random(seed)
+    ns = load_py("hdlt")
+    n = rnd.randint(2, 5) if stress else rnd.randint(1, 9)
+    d = ns["DynamicConnectivity"](list(range(n)))
+    live = {}  # edge id -> (a, b)
+    lines, outs = [], []
+
+    def pick():
+        if stress:
+            return rnd.choice([(0, 1), (1, 0), (0, n - 1), (1, 1)])
+        return rnd.randrange(n), rnd.randrange(n)
+
+    def removedBy(a, b):  # the id removeEdgeBetween is about to take, read off the template
+        ids = d._byPair.get(d._pairKey(a, b))
+        return ids[-1] if ids else None
+
+    def check(where):
+        lab = brute_labels(n, live.values())
+        assert d.numComponents() == len(set(lab)), (seed, where, "numComponents")
+        for x in range(n):
+            for y in range(n):
+                assert d.areConnected(x, y) == (lab[x] == lab[y]), (seed, where, "areConnected", x, y)
+            assert d.size(x) == lab.count(lab[x]), (seed, where, "size", x)
+
+    if stress:
+        plan = ["add"] * rnd.randint(200, 400)
+        plan += [rnd.choice(["rm", "rmb"]) for _ in range(len(plan) + 5)]
+    else:
+        plan = [rnd.choice(["add"] * 4 + ["rm"] * 2 + ["rmb", "conn", "size", "comps", "sizes", "groups"]) for _ in range(150)]
+    k = 0
+    while k < len(plan):
+        op = plan[k]
+        k += 1
+        if stress and k == len(plan) and live:
+            plan.append(rnd.choice(["rm", "rmb"]))  # keep removing until every copy is gone
+        before = d.numComponents()
+        if op == "add":
+            a, b = pick()
+            e = d.addEdge(a, b)
+            assert e not in live, (seed, "id reused while live")
+            live[e] = (a, b)
+            lines.append(f"add {a} {b}")
+            outs.append(str(e))
+        elif op == "rm":
+            if not live:
+                continue
+            e = rnd.choice(sorted(live))
+            split = d.removeEdge(e)
+            del live[e]
+            assert split == (d.numComponents() == before + 1), (seed, k, "removeEdge split")
+            lines.append(f"rm {e}")
+            outs.append(fmt(split))
+        elif op == "rmb":
+            a, b = pick() if (rnd.random() < 0.3 or not live) else live[rnd.choice(sorted(live))]
+            e = removedBy(a, b)
+            got = d.removeEdgeBetween(a, b)
+            assert got == (e is not None), (seed, k, "removeEdgeBetween result")
+            if e is not None:
+                assert sorted(live.pop(e)) == sorted((a, b)), (seed, k, "removeEdgeBetween took an edge of another pair")
+            lines.append(f"rmb {a} {b}")
+            outs.append(fmt(got))
+        elif op == "conn":
+            a, b = rnd.randrange(n), rnd.randrange(n)
+            lines.append(f"conn {a} {b}")
+            outs.append(fmt(d.areUnioned(a, b)))
+        elif op == "size":
+            a = rnd.randrange(n)
+            lines.append(f"size {a}")
+            outs.append(str(d.size(a)))
+        elif op == "comps":
+            lines.append("comps")
+            outs.append(str(d.numComponents()))
+        elif op == "sizes":
+            lab = brute_labels(n, live.values())
+            assert d.sizes() == sorted((lab.count(r) for r in set(lab)), reverse=True), (seed, k, "sizes")
+            lines.append("sizes")
+            outs.append(fmt(d.sizes()))
+        elif op == "groups":
+            lab = brute_labels(n, live.values())
+            want = sorted(sorted(x for x in range(n) if lab[x] == r) for r in set(lab))
+            assert sorted(sorted(g) for g in d.groups()) == want, (seed, k, "groups")
+            lines.append("groups")
+            outs.append(fmt(want))
+        check((k, op))
+    assert not stress or not live, (seed, "stress left edges behind")
+    return f"{n}\n" + "\n".join(lines) + "\n", outs
+
+
+HDLT_DRIVER = """
+int main() {
+    int n; cin >> n; vector<long long> a(n); iota(a.begin(), a.end(), 0LL);
+    DynamicConnectivity<long long> d(a);
+    string op;
+    while (cin >> op) {
+        if (op == "add") { int x, y; cin >> x >> y; cout << d.unite(x, y) << "\\n"; }
+        else if (op == "rm") { int e; cin >> e; cout << (int)d.removeEdge(e) << "\\n"; }
+        else if (op == "rmb") { int x, y; cin >> x >> y; cout << (int)d.removeEdgeBetween(x, y) << "\\n"; }
+        else if (op == "conn") { int x, y; cin >> x >> y; cout << (int)d.areUnioned(x, y) << "\\n"; }
+        else if (op == "size") { int x; cin >> x; cout << d.size(x) << "\\n"; }
+        else if (op == "comps") cout << d.numComponents() << "\\n";
+        else if (op == "sizes") { auto x = d.sizes(); for (size_t k = 0; k < x.size(); k++) cout << (k ? " " : "") << x[k]; cout << "\\n"; }
+        else if (op == "groups") {
+            auto g = d.groups();
+            vector<vector<long long>> s;
+            for (auto& x : g) { sort(x.begin(), x.end()); s.push_back(x); }
+            sort(s.begin(), s.end());
+            for (size_t i = 0; i < s.size(); i++) { if (i) cout << "|"; for (size_t k = 0; k < s[i].size(); k++) cout << (k ? " " : "") << s[i][k]; }
+            cout << "\\n";
+        }
+        else { cerr << "unknown op " << op << "\\n"; return 1; }
+    }
+}
+"""
+
+
+def hdlt_scripts():
+    out = [(seed, hdlt_script(seed)) for seed in range(SCRIPTS)]
+    out += [(100 + seed, hdlt_script(100 + seed, stress=True)) for seed in range(4)]
+    return out
+
+
 # ------------------------------------------------------------------------------------------------ C++ driver
 def driver(name):
     mode, feats = parse(name)
@@ -294,6 +434,8 @@ def driver(name):
 
 def cpp_source(name):
     text = open(os.path.join(DIR, name, "template.cpp")).read()
+    if name == "hdlt":
+        return text + HDLT_DRIVER
     mode, _ = parse(name)
     k = text.index(f"struct {CLASS[mode]} {{")
     k = text.rfind("\n", 0, text.rfind("template <typename T>", 0, k) if "template <typename T>" in text[:k] else k)
@@ -329,10 +471,17 @@ def main():
     args = sys.argv[1:]
     budget = float(args[args.index("--budget") + 1]) if "--budget" in args else 1e9
     want = [a for k, a in enumerate(args) if not a.startswith("--") and (k == 0 or args[k - 1] != "--budget")]
-    names = sorted(d for d in os.listdir(DIR) if d.split("-")[0] in CLASS and (not want or any(w in d for w in want)))
+    names = sorted(d for d in os.listdir(DIR) if (d.split("-")[0] in CLASS or d == "hdlt") and (not want or any(w in d for w in want)))
     start = time.time()
     scripts = {}
     for name in names:
+        if name == "hdlt":
+            try:
+                scripts[name] = hdlt_scripts()
+            except AssertionError as e:
+                print(f"FAIL  hdlt [py]: {e}")
+                sys.exit(1)
+            continue
         scripts[name] = []
         for seed in range(SCRIPTS):
             try:
