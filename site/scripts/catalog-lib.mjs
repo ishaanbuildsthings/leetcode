@@ -16,11 +16,11 @@ const ENTRY_RE = /^\s*(?:#|\/\/)\s+([A-Za-z]\w*):\s*(.+?)\s*$/;
 const FACTORS = new Set(["1", "α(N)", "K", "N", "log(N)", "log^2(N)", "sqrt(N)", "sqrt(NlogN)", "sqrt(N/logN)", "U", "U/64", "log(U)", "log64(U)", "log(log(U))"]);
 
 // A cost is terms joined by "+", each term factors joined by "*" (a factor may be a positive integer
-// constant, e.g. 36*N), optionally followed by " amortized" or " expected", then optionally " ?" (a bound we are
+// constant, e.g. 36*N), optionally followed by " amortized", " expected" or " amortized expected", then optionally " ?" (a bound we are
 // not sure is tight or right, e.g. anything paying for gcd work).
 const isValidFactor = (f) => FACTORS.has(f) || /^[1-9]\d*$/.test(f);
 export function isValidCost(cost) {
-  const body = cost.replace(/ \?$/, "").replace(/ (amortized|expected)$/, "");
+  const body = cost.replace(/ \?$/, "").replace(/ (amortized expected|amortized|expected)$/, "");
   return body.split("+").every((term) => term.split("*").every(isValidFactor));
 }
 

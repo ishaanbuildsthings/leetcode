@@ -10,8 +10,8 @@ using ll = long long;
 // @keys: numbers
 // @tracks: medians gaps
 // @complexities:
-//   add: log(U)
-//   addCount: log(U)
+//   add: log(U) amortized
+//   addCount: log(U) amortized
 //   clear: 1 amortized
 //   count: log(U)
 //   countDistinct: 1
@@ -33,12 +33,12 @@ using ll = long long;
 //   mex: log(U)
 //   min: log(U)
 //   minAdjacentDiff: 1 amortized
-//   pop: log(U)
-//   popMax: log(U)
-//   popMin: log(U)
-//   remove: log(U)
-//   removeAll: log(U)
-//   removeCount: log(U)
+//   pop: log(U) amortized
+//   popMax: log(U) amortized
+//   popMin: log(U) amortized
+//   remove: log(U) amortized
+//   removeAll: log(U) amortized
+//   removeCount: log(U) amortized
 //   removeInValRange: log(U) amortized
 //   size: 1
 //   smallestGtX: log(U)
@@ -342,12 +342,12 @@ struct ValueTreeMultiset {
         return res;
     }
 
-    // O(logU) -- add one copy of x
+    // O(logU amortized) -- add one copy of x
     LEETCODE_NO_SANITIZE void add(T x) {
         addRaw(x, 1);
     }
 
-    // O(logU) -- add cnt copies of val (nothing if cnt <= 0)
+    // O(logU amortized) -- add cnt copies of val (nothing if cnt <= 0)
     LEETCODE_NO_SANITIZE void addCount(T val, long long cnt) {
         if (cnt > 0) addRaw(val, cnt);
     }
@@ -476,8 +476,8 @@ struct ValueTreeMultiset {
         return *gaps.begin();
     }
 
-    // O(logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
-    // pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
+    // O(logU amortized) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
+    // popMin()), pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
     LEETCODE_NO_SANITIZE T pop(long long i) {
         if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
         T v = kthAt(i + 1);
@@ -485,7 +485,7 @@ struct ValueTreeMultiset {
         return v;
     }
 
-    // O(logU) -- remove and return the largest value; throws out_of_range if empty
+    // O(logU amortized) -- remove and return the largest value; throws out_of_range if empty
     LEETCODE_NO_SANITIZE T popMax() {
         if (!n) throw out_of_range("popMax: the set is empty");
         T v = kthAt(n);
@@ -493,7 +493,7 @@ struct ValueTreeMultiset {
         return v;
     }
 
-    // O(logU) -- remove and return the smallest value; throws out_of_range if empty
+    // O(logU amortized) -- remove and return the smallest value; throws out_of_range if empty
     LEETCODE_NO_SANITIZE T popMin() {
         if (!n) throw out_of_range("popMin: the set is empty");
         T v = kthAt(1);
@@ -501,21 +501,21 @@ struct ValueTreeMultiset {
         return v;
     }
 
-    // O(logU) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
     LEETCODE_NO_SANITIZE long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
         return 1;
     }
 
-    // O(logU) -- remove every copy of val; returns how many were removed
+    // O(logU amortized) -- remove every copy of val; returns how many were removed
     LEETCODE_NO_SANITIZE long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
         return k;
     }
 
-    // O(logU) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
     LEETCODE_NO_SANITIZE long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;

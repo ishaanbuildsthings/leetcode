@@ -10,7 +10,7 @@ using ll = long long;
 // @keys: numbers
 // @tracks: gaps
 // @complexities:
-//   add: log64(U)
+//   add: log64(U) amortized
 //   clear: 1 amortized
 //   count: 1
 //   countDistinct: 1
@@ -20,9 +20,9 @@ using ll = long long;
 //   maxGap: 1 amortized
 //   min: log64(U)
 //   minAdjacentDiff: 1 amortized
-//   popMax: log64(U)
-//   popMin: log64(U)
-//   remove: log64(U)
+//   popMax: log64(U) amortized
+//   popMin: log64(U) amortized
+//   remove: log64(U) amortized
 //   removeInValRange: log64(U) amortized
 //   size: 1
 //   smallestGtX: log64(U)
@@ -123,7 +123,7 @@ struct FastSet {
         return -1;
     }
 
-    // O(log64(U)) -- add x (nothing if x is already in the set: no duplicates)
+    // O(log64(U) amortized) -- add x (nothing if x is already in the set: no duplicates)
     LEETCODE_NO_SANITIZE void add(T x) {
         int i = int((long long)x - lo);  // x must lie in [lo, hi]
         if (seg[0][i >> 6] >> (i & 63) & 1) return;
@@ -135,7 +135,7 @@ struct FastSet {
         for (auto& level : seg) level[i >> 6] |= 1ULL << (i & 63), i >>= 6;
     }
 
-    // O(log64(U)) -- remove x if present; returns how many were removed (0 or 1)
+    // O(log64(U) amortized) -- remove x if present; returns how many were removed (0 or 1)
     LEETCODE_NO_SANITIZE long long remove(T x) {
         long long i = (long long)x - lo;
         if (i < 0 || i >= u || !(seg[0][i >> 6] >> (i & 63) & 1)) return 0;
@@ -211,14 +211,14 @@ struct FastSet {
         return T(lo + i);
     }
 
-    // O(log64(U)) -- remove and return the smallest value; throws out_of_range if empty
+    // O(log64(U) amortized) -- remove and return the smallest value; throws out_of_range if empty
     LEETCODE_NO_SANITIZE T popMin() {
         T v = min();
         remove(v);
         return v;
     }
 
-    // O(log64(U)) -- remove and return the largest value; throws out_of_range if empty
+    // O(log64(U) amortized) -- remove and return the largest value; throws out_of_range if empty
     LEETCODE_NO_SANITIZE T popMax() {
         T v = max();
         remove(v);
@@ -253,13 +253,13 @@ struct FastSet {
         return T(lo + i);
     }
 
-    // O(1) -- smallest difference between two values in the set; -1 if fewer than 2 values
+    // O(1 amortized) -- smallest difference between two values in the set; -1 if fewer than 2 values
     LEETCODE_NO_SANITIZE long long minAdjacentDiff() const {
         if (n < 2) return -1;
         return *gaps.begin();
     }
 
-    // O(1) -- largest difference between two neighbouring values; -1 if fewer than 2 values
+    // O(1 amortized) -- largest difference between two neighbouring values; -1 if fewer than 2 values
     LEETCODE_NO_SANITIZE long long maxGap() const {
         if (n < 2) return -1;
         return *gaps.rbegin();

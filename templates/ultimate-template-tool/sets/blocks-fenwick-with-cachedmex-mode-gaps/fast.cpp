@@ -10,8 +10,8 @@ using ll = long long;
 // @keys: numbers
 // @tracks: mex mode gaps
 // @complexities:
-//   add: sqrt(N)
-//   addCount: sqrt(N)
+//   add: sqrt(N) amortized
+//   addCount: sqrt(N) amortized
 //   clear: 1 amortized
 //   count: log(N)
 //   countDistinct: 1
@@ -34,12 +34,12 @@ using ll = long long;
 //   min: log(N)
 //   minAdjacentDiff: 1 amortized
 //   mode: 1
-//   pop: sqrt(N)
-//   popMax: sqrt(N)
-//   popMin: sqrt(N)
-//   remove: sqrt(N)
-//   removeAll: sqrt(N)
-//   removeCount: sqrt(N)
+//   pop: sqrt(N) amortized
+//   popMax: sqrt(N) amortized
+//   popMin: sqrt(N) amortized
+//   remove: sqrt(N) amortized
+//   removeAll: sqrt(N) amortized
+//   removeCount: sqrt(N) amortized
 //   removeInValRange: sqrt(N) amortized
 //   size: 1
 //   smallestGtX: log(N)
@@ -49,13 +49,15 @@ using ll = long long;
 //   layout: none
 //   node: keys[1*N] cnts[1*N] fcs[1*N]
 //   tags: none
-//   other: maxes[1*sqrt(N)] bc[2*sqrt(N)] cnt[1*N]
-//   note: N = distinct values present; blocks of LOAD..2*LOAD values (Python LOAD = 64, C++ 512); queries are O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt)
+//   other: maxes[29*sqrt(N)] bc[58*sqrt(N)] cnt[1*N]
+//   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone; queries are O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt; amortized: a cut now and then)
 
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style with a Fenwick tree inside every block: the
-// distinct values in sorted blocks of LOAD..2*LOAD, each block keeping its values' copies plus a Fenwick
+// distinct values in sorted blocks of max(LOAD, sqrt(N) / 8), each block keeping its values' copies plus a Fenwick
 // tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
 // one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N)).
+// A block splits in half past twice the block size, and once N / 2 distinct values have come or gone since the last
+// cut, every block is cut again at that size: the O(N) cut is paid for by those N / 2 updates.
 // T: an integer type; sums in S.
 // FAST MODE drawbacks compared with template.cpp:
 //   - sanitizers are skipped inside this template, so a bad access in it goes unreported
@@ -97,7 +99,9 @@ struct BlockFenwickMultiset {
     static inline const T NONE = noneOf<T>();  // what largestLtX, smallestGtX, ... return when nothing qualifies: compare with ms.NONE
 
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
-    static constexpr int LOAD = 512;
+    static constexpr int LOAD = 512;  // the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
+    int load = LOAD;  // the block size now
+    long long due = (long long)LOAD * LOAD / 2;  // distinct values to add or drop before the next cut
     HotVector<HotVector<T>> keys;  // blocks of sorted distinct values
     HotVector<HotVector<long long>> cnts, fcs;  // per block: copies of each value; Fenwick over them
     HotVector<T> maxes;  // last value of each block
@@ -159,6 +163,7 @@ struct BlockFenwickMultiset {
     LEETCODE_NO_SANITIZE int blockOf(T x) const { return int(lower_bound(maxes.begin(), maxes.end(), x) - maxes.begin()); }
 
     LEETCODE_NO_SANITIZE long long insert(T x, long long c) {  // returns x's new count
+        if (due <= 0) recut();  // enough distinct values came or went: cut the blocks again
         int k = blockOf(x);
         if (k < (int)keys.size()) {
             int j = int(lower_bound(keys[k].begin(), keys[k].end(), x) - keys[k].begin());
@@ -168,7 +173,7 @@ struct BlockFenwickMultiset {
                     cnts[k][j] += c, fen(fcs[k], j, c);
                     return cnts[k][j];
                 }
-                d--;
+                d--, due--;
                 keys[k].erase(keys[k].begin() + j), cnts[k].erase(cnts[k].begin() + j);
                 if (keys[k].empty()) {  // the block is empty: drop it
                     keys.erase(keys.begin() + k), cnts.erase(cnts.begin() + k), fcs.erase(fcs.begin() + k);
@@ -181,7 +186,7 @@ struct BlockFenwickMultiset {
                 return 0;
             }
         }
-        d++;
+        d++, due--;
         if (keys.empty()) {
             keys.push_back({x}), cnts.push_back({c}), fcs.emplace_back(), maxes.push_back(x), bc.push_back(c);
             reinner(0), reblock();
@@ -191,10 +196,10 @@ struct BlockFenwickMultiset {
         int j = int(lower_bound(keys[k].begin(), keys[k].end(), x) - keys[k].begin());
         keys[k].insert(keys[k].begin() + j, x), cnts[k].insert(cnts[k].begin() + j, c);
         maxes[k] = keys[k].back(), bc[k] += c, fen(fc, k, c);
-        if ((int)keys[k].size() > 2 * LOAD) {  // split the block in half
+        if ((int)keys[k].size() > 2 * load) {  // split the block in half
             auto half = [&](auto& arr) {
-                arr.insert(arr.begin() + k + 1, decay_t<decltype(arr[k])>(arr[k].begin() + LOAD, arr[k].end()));
-                arr[k].resize(LOAD);
+                arr.insert(arr.begin() + k + 1, decay_t<decltype(arr[k])>(arr[k].begin() + load, arr[k].end()));
+                arr[k].resize(load);
             };
             half(keys), half(cnts);
             fcs.emplace(fcs.begin() + k + 1);
@@ -205,6 +210,28 @@ struct BlockFenwickMultiset {
             reblock();
         } else reinner(k, j);
         return c;
+    }
+
+    LEETCODE_NO_SANITIZE void recut() {  // every block cut again at sqrt(N) / 8: O(N), once per N / 2 updates that add or drop a value
+        int size = std::max(LOAD, (int)sqrt((double)d) / 8);  // (std::: the class has its own min / max)
+        due = std::max(d, (long long)LOAD * LOAD) / 2;
+        if (size == load && (long long)keys.size() <= d / size + 1) return;  // same size, blocks still full on average
+        load = size;
+        auto regroup = [&](auto& arr) {  // the blocks' entries end to end, cut into blocks of load
+            decay_t<decltype(arr[0])> all;
+            for (auto& b : arr) all.insert(all.end(), b.begin(), b.end());
+            arr.clear();
+            for (size_t i = 0; i < all.size(); i += load)
+                arr.emplace_back(all.begin() + i, all.begin() + std::min(all.size(), i + load));
+        };
+        regroup(keys), regroup(cnts);
+        int m = (int)keys.size();
+        fcs.clear(), fcs.resize(m), maxes.resize(m), bc.resize(m);
+        for (int k = 0; k < m; k++) {
+            reinner(k);
+            maxes[k] = keys[k].back(), bc[k] = accumulate(cnts[k].begin(), cnts[k].end(), 0LL);
+        }
+        reblock();
     }
 
     template <class V>
@@ -312,6 +339,7 @@ struct BlockFenwickMultiset {
     LEETCODE_NO_SANITIZE void clearData() {
         keys.clear(), cnts.clear(), fcs.clear(), maxes.clear(), bc.clear();
         fc.assign(1, 0);
+        load = LOAD, due = (long long)LOAD * LOAD / 2;
     }
 
     LEETCODE_NO_SANITIZE long long distinctLt(T x) const {  // distinct values < x: every block before x's, then a binary search in x's block
@@ -322,12 +350,12 @@ struct BlockFenwickMultiset {
         return res;
     }
 
-    // O(sqrtN) -- add one copy of x
+    // O(sqrtN amortized) -- add one copy of x
     LEETCODE_NO_SANITIZE void add(T x) {
         addRaw(x, 1);
     }
 
-    // O(sqrtN) -- add cnt copies of val (nothing if cnt <= 0)
+    // O(sqrtN amortized) -- add cnt copies of val (nothing if cnt <= 0)
     LEETCODE_NO_SANITIZE void addCount(T val, long long cnt) {
         if (cnt > 0) addRaw(val, cnt);
     }
@@ -464,7 +492,7 @@ struct BlockFenwickMultiset {
         return pair<T, long long>{*vs.begin(), f};
     }
 
-    // O(sqrtN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
+    // O(sqrtN amortized) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
     // popMin()), pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
     LEETCODE_NO_SANITIZE T pop(long long i) {
         if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
@@ -473,7 +501,7 @@ struct BlockFenwickMultiset {
         return v;
     }
 
-    // O(sqrtN) -- remove and return the largest value; throws out_of_range if empty
+    // O(sqrtN amortized) -- remove and return the largest value; throws out_of_range if empty
     LEETCODE_NO_SANITIZE T popMax() {
         if (!n) throw out_of_range("popMax: the set is empty");
         T v = kthAt(n);
@@ -481,7 +509,7 @@ struct BlockFenwickMultiset {
         return v;
     }
 
-    // O(sqrtN) -- remove and return the smallest value; throws out_of_range if empty
+    // O(sqrtN amortized) -- remove and return the smallest value; throws out_of_range if empty
     LEETCODE_NO_SANITIZE T popMin() {
         if (!n) throw out_of_range("popMin: the set is empty");
         T v = kthAt(1);
@@ -489,21 +517,21 @@ struct BlockFenwickMultiset {
         return v;
     }
 
-    // O(sqrtN) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(sqrtN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
     LEETCODE_NO_SANITIZE long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
         return 1;
     }
 
-    // O(sqrtN) -- remove every copy of val; returns how many were removed
+    // O(sqrtN amortized) -- remove every copy of val; returns how many were removed
     LEETCODE_NO_SANITIZE long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
         return k;
     }
 
-    // O(sqrtN) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(sqrtN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
     LEETCODE_NO_SANITIZE long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;

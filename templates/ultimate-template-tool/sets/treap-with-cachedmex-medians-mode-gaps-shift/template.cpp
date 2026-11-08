@@ -10,8 +10,8 @@ using ll = long long;
 // @keys: numbers
 // @tracks: medians mex mode gaps shift
 // @complexities:
-//   add: log(N) expected
-//   addCount: log(N) expected
+//   add: log(N) amortized expected
+//   addCount: log(N) amortized expected
 //   clear: 1 amortized
 //   count: log(N) expected
 //   countDistinct: 1
@@ -34,13 +34,13 @@ using ll = long long;
 //   min: log(N) expected
 //   minAdjacentDiff: 1 amortized
 //   mode: 1
-//   pop: log(N) expected
-//   popMax: log(N) expected
-//   popMin: log(N) expected
-//   remove: log(N) expected
-//   removeAll: log(N) expected
-//   removeCount: log(N) expected
-//   removeInValRange: log(N) expected
+//   pop: log(N) amortized expected
+//   popMax: log(N) amortized expected
+//   popMin: log(N) amortized expected
+//   remove: log(N) amortized expected
+//   removeAll: log(N) amortized expected
+//   removeCount: log(N) amortized expected
+//   removeInValRange: log(N) amortized expected
 //   shiftAll: log(N) expected
 //   size: 1
 //   smallestGtX: log(N) expected
@@ -334,13 +334,13 @@ struct TreapMultiset {
         pool.resize(1), freeList.clear(), root = 0;
     }
 
-    // O(logN expected) -- add one copy of x
+    // O(logN amortized expected) -- add one copy of x
     void add(T x) {
         x -= off;
         addRaw(x, 1);
     }
 
-    // O(logN expected) -- add cnt copies of val (nothing if cnt <= 0)
+    // O(logN amortized expected) -- add cnt copies of val (nothing if cnt <= 0)
     void addCount(T val, long long cnt) {
         val -= off;
         if (cnt > 0) addRaw(val, cnt);
@@ -489,8 +489,8 @@ struct TreapMultiset {
         return pair<T, long long>{T(*vs.begin() + off), f};
     }
 
-    // O(logN expected) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
-    // popMin()), pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
+    // O(logN amortized expected) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the
+    // smallest (= popMin()), pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
     T pop(long long i) {
         if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
         T v = kthAt(i + 1);
@@ -498,7 +498,7 @@ struct TreapMultiset {
         return T(v + off);
     }
 
-    // O(logN expected) -- remove and return the largest value; throws out_of_range if empty
+    // O(logN amortized expected) -- remove and return the largest value; throws out_of_range if empty
     T popMax() {
         if (!n) throw out_of_range("popMax: the set is empty");
         T v = kthAt(n);
@@ -506,7 +506,7 @@ struct TreapMultiset {
         return T(v + off);
     }
 
-    // O(logN expected) -- remove and return the smallest value; throws out_of_range if empty
+    // O(logN amortized expected) -- remove and return the smallest value; throws out_of_range if empty
     T popMin() {
         if (!n) throw out_of_range("popMin: the set is empty");
         T v = kthAt(1);
@@ -514,7 +514,7 @@ struct TreapMultiset {
         return T(v + off);
     }
 
-    // O(logN expected) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(logN amortized expected) -- remove one copy of x if present; returns how many were removed (0 or 1)
     long long remove(T x) {
         x -= off;
         if (!countOf(x)) return 0;
@@ -522,7 +522,7 @@ struct TreapMultiset {
         return 1;
     }
 
-    // O(logN expected) -- remove every copy of val; returns how many were removed
+    // O(logN amortized expected) -- remove every copy of val; returns how many were removed
     long long removeAll(T val) {
         val -= off;
         long long k = countOf(val);
@@ -530,7 +530,7 @@ struct TreapMultiset {
         return k;
     }
 
-    // O(logN expected) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(logN amortized expected) -- remove min(cnt, count(val)) copies of val; returns how many were removed
     long long removeCount(T val, long long cnt) {
         val -= off;
         long long k = std::min(cnt, countOf(val));
@@ -539,7 +539,8 @@ struct TreapMultiset {
         return k;
     }
 
-    // O(logN expected) -- remove every value v with lo <= v <= hi; returns how many copies were removed (0 if lo > hi)
+    // O(logN amortized expected) -- remove every value v with lo <= v <= hi; returns how many copies were removed
+    // (0 if lo > hi)
     long long removeInValRange(T lo, T hi) {
         lo -= off, hi -= off;
         if (hi < lo) return 0;

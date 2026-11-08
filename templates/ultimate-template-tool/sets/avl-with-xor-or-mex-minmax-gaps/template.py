@@ -6,8 +6,8 @@
 # @keys: numbers
 # @tracks: minmax gaps
 # @complexities:
-#   add: log(N)
-#   addCount: log(N)
+#   add: log(N) amortized
+#   addCount: log(N) amortized
 #   clear: 1 amortized
 #   count: log(N)
 #   countDistinct: 1
@@ -39,12 +39,12 @@
 #   orOfLtX: log(N)
 #   orOfLteX: log(N)
 #   orOfSmallestK: log(N)
-#   pop: log(N)
-#   popMax: log(N)
-#   popMin: log(N)
-#   remove: log(N)
-#   removeAll: log(N)
-#   removeCount: log(N)
+#   pop: log(N) amortized
+#   popMax: log(N) amortized
+#   popMin: log(N) amortized
+#   remove: log(N) amortized
+#   removeAll: log(N) amortized
+#   removeCount: log(N) amortized
 #   removeInValRange: log(N) amortized
 #   size: 1
 #   smallestGtX: log(N)
@@ -440,11 +440,11 @@ class AVLMultiset:
                 u = L[u]
         return res
 
-    # O(logN) -- add one copy of x
+    # O(logN amortized) -- add one copy of x
     def add(self, x):
         self._add(x, 1)
 
-    # O(logN) -- add cnt copies of val (nothing if cnt <= 0)
+    # O(logN amortized) -- add cnt copies of val (nothing if cnt <= 0)
     def addCount(self, val, cnt):
         if cnt > 0:
             self._add(val, cnt)
@@ -612,8 +612,8 @@ class AVLMultiset:
             raise IndexError(f"orOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
         return self._orLe(self._kth(k)) if k else 0
 
-    # O(logN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
-    # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
+    # O(logN amortized) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
+    # popMin()), pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
     def pop(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")
@@ -621,7 +621,7 @@ class AVLMultiset:
         self._add(v, -1)
         return v
 
-    # O(logN) -- remove and return the largest value; raises IndexError if empty
+    # O(logN amortized) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
             raise IndexError("popMax: the set is empty")
@@ -629,7 +629,7 @@ class AVLMultiset:
         self._add(v, -1)
         return v
 
-    # O(logN) -- remove and return the smallest value; raises IndexError if empty
+    # O(logN amortized) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
             raise IndexError("popMin: the set is empty")
@@ -637,21 +637,21 @@ class AVLMultiset:
         self._add(v, -1)
         return v
 
-    # O(logN) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    # O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
         if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1
 
-    # O(logN) -- remove every copy of val; returns how many were removed
+    # O(logN amortized) -- remove every copy of val; returns how many were removed
     def removeAll(self, val):
         k = self.count(val)
         if k:
             self._add(val, -k)
         return k
 
-    # O(logN) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    # O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

@@ -6,7 +6,7 @@
 # @keys: numbers
 # @tracks: gaps
 # @complexities:
-#   add: log64(U)
+#   add: log64(U) amortized
 #   clear: 1 amortized
 #   count: 1
 #   countDistinct: 1
@@ -16,9 +16,9 @@
 #   maxGap: 1 amortized
 #   min: log64(U)
 #   minAdjacentDiff: 1 amortized
-#   popMax: log64(U)
-#   popMin: log64(U)
-#   remove: log64(U)
+#   popMax: log64(U) amortized
+#   popMin: log64(U) amortized
+#   remove: log64(U) amortized
 #   removeInValRange: log64(U) amortized
 #   size: 1
 #   smallestGtX: log64(U)
@@ -31,6 +31,7 @@
 #   other: none
 #   note: U = hi - lo + 1: just the trie's U / 64 + U / 4096 + ... 64-bit words (about U / 63); no duplicates
 from heapq import heappop, heappush
+from random import getrandbits
 
 # Ordered set of DISTINCT integers in [lo, hi] (FastSet): a 64-ary bit trie over the U = hi - lo + 1 slots, a bit
 # meaning "this value (or something under this word) is present". No duplicates: adding a value that is already in
@@ -39,7 +40,7 @@ from heapq import heappop, heappush
 
 
 class FastSet:
-    __slots__ = ("lo", "hi", "u", "seg", "n", "gc", "gmin", "gmax")
+    __slots__ = ("lo", "hi", "u", "seg", "n", "gc", "gmin", "gmax", "salt")
 
     # O(U/64) -- lo, hi: every value added lies in [lo, hi] (any integers, negative is fine); U = hi - lo + 1
     def __init__(self, lo, hi):
@@ -55,6 +56,7 @@ class FastSet:
             width = words
         self.n = 0
         self.gc, self.gmin, self.gmax = {}, [], []  # gaps: size -> how many; min / max heaps
+        self.salt = getrandbits(60)  # gap sizes are dict keys salted with this, so no fixed input can force collisions
 
     def _next(self, i):  # smallest present slot >= i, or -1
         if i < 0:
@@ -95,7 +97,7 @@ class FastSet:
             i = idx - 1
         return -1
 
-    # O(log64(U)) -- add x (nothing if x is already in the set: no duplicates)
+    # O(log64(U) amortized) -- add x (nothing if x is already in the set: no duplicates)
     def add(self, x):
         i = x - self.lo  # x must lie in [lo, hi]
         seg = self.seg
@@ -113,7 +115,7 @@ class FastSet:
             level[i >> 6] |= 1 << (i & 63)
             i >>= 6
 
-    # O(log64(U)) -- remove x if present; returns how many were removed (0 or 1)
+    # O(log64(U) amortized) -- remove x if present; returns how many were removed (0 or 1)
     def remove(self, x):
         i = x - self.lo
         if not 0 <= i < self.u or not (self.seg[0][i >> 6] >> (i & 63)) & 1:
@@ -201,13 +203,13 @@ class FastSet:
             raise IndexError("max: the set is empty")
         return self.lo + i
 
-    # O(log64(U)) -- remove and return the smallest value; raises IndexError if empty
+    # O(log64(U) amortized) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         v = self.min()
         self.remove(v)
         return v
 
-    # O(log64(U)) -- remove and return the largest value; raises IndexError if empty
+    # O(log64(U) amortized) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         v = self.max()
         self.remove(v)
@@ -234,26 +236,26 @@ class FastSet:
         return None if i < 0 else self.lo + i
 
     def _gap(self, g, c):  # one more (c = 1) / fewer (c = -1) gap of size g
-        gc = self.gc
-        k = gc.get(g, 0) + c
+        gc, key = self.gc, g ^ self.salt
+        k = gc.get(key, 0) + c
         if k:
-            gc[g] = k
+            gc[key] = k
             if k == 1 and c > 0:  # (a size already present has an entry in both heaps)
                 if len(self.gmin) > 2 * len(gc) + 8:  # mostly sizes no longer present: rebuild from the live ones
-                    self.gmin = sorted(gc)
+                    self.gmin = sorted(v ^ self.salt for v in gc)
                     self.gmax = [-v for v in reversed(self.gmin)]
                 else:
                     heappush(self.gmin, g)
                     heappush(self.gmax, -g)
         else:
-            del gc[g]
+            del gc[key]
 
     # O(1 amortized) -- smallest difference between two values in the set; None if fewer than 2 values
     def minAdjacentDiff(self):
         if self.n < 2:
             return None
-        h, gc = self.gmin, self.gc
-        while h[0] not in gc:  # heap tops of sizes no longer present are dropped as they surface
+        h, gc, salt = self.gmin, self.gc, self.salt
+        while h[0] ^ salt not in gc:  # heap tops of sizes no longer present are dropped as they surface
             heappop(h)
         return h[0]
 
@@ -261,7 +263,7 @@ class FastSet:
     def maxGap(self):
         if self.n < 2:
             return None
-        h, gc = self.gmax, self.gc
-        while -h[0] not in gc:
+        h, gc, salt = self.gmax, self.gc, self.salt
+        while -h[0] ^ salt not in gc:
             heappop(h)
         return -h[0]

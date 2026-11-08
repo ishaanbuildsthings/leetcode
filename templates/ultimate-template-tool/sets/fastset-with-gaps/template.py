@@ -6,8 +6,8 @@
 # @keys: numbers
 # @tracks: gaps
 # @complexities:
-#   add: log64(U)
-#   addCount: log64(U)
+#   add: log64(U) amortized
+#   addCount: log64(U) amortized
 #   clear: 1 amortized
 #   count: 1
 #   countDistinct: 1
@@ -17,11 +17,11 @@
 #   maxGap: 1 amortized
 #   min: log64(U)
 #   minAdjacentDiff: 1 amortized
-#   popMax: log64(U)
-#   popMin: log64(U)
-#   remove: log64(U)
-#   removeAll: log64(U)
-#   removeCount: log64(U)
+#   popMax: log64(U) amortized
+#   popMin: log64(U) amortized
+#   remove: log64(U) amortized
+#   removeAll: log64(U) amortized
+#   removeCount: log64(U) amortized
 #   removeInValRange: log64(U) amortized
 #   size: 1
 #   smallestGtX: log64(U)
@@ -199,11 +199,11 @@ class FastSetMultiset:
                 else:
                     cnt[base + b] = 0
 
-    # O(log64(U)) -- add one copy of x
+    # O(log64(U) amortized) -- add one copy of x
     def add(self, x):
         self._add(x, 1)
 
-    # O(log64(U)) -- add cnt copies of val (nothing if cnt <= 0)
+    # O(log64(U) amortized) -- add cnt copies of val (nothing if cnt <= 0)
     def addCount(self, val, cnt):
         if cnt > 0:
             self._add(val, cnt)
@@ -256,7 +256,7 @@ class FastSetMultiset:
             return None
         return 0 if self.dups else self._minGap()
 
-    # O(log64(U)) -- remove and return the largest value; raises IndexError if empty
+    # O(log64(U) amortized) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
             raise IndexError("popMax: the set is empty")
@@ -264,7 +264,7 @@ class FastSetMultiset:
         self._add(v, -1)
         return v
 
-    # O(log64(U)) -- remove and return the smallest value; raises IndexError if empty
+    # O(log64(U) amortized) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
             raise IndexError("popMin: the set is empty")
@@ -272,21 +272,21 @@ class FastSetMultiset:
         self._add(v, -1)
         return v
 
-    # O(log64(U)) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    # O(log64(U) amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
         if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1
 
-    # O(log64(U)) -- remove every copy of val; returns how many were removed
+    # O(log64(U) amortized) -- remove every copy of val; returns how many were removed
     def removeAll(self, val):
         k = self.count(val)
         if k:
             self._add(val, -k)
         return k
 
-    # O(log64(U)) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    # O(log64(U) amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

@@ -10,8 +10,8 @@ using ll = long long;
 // @keys: numbers
 // @tracks: minmax mode gaps
 // @complexities:
-//   add: log(N)
-//   addCount: log(N)
+//   add: log(N) amortized
+//   addCount: log(N) amortized
 //   andOfAll: 1
 //   andOfGtX: log(N)
 //   andOfGteX: log(N)
@@ -42,12 +42,12 @@ using ll = long long;
 //   min: 1
 //   minAdjacentDiff: 1 amortized
 //   mode: 1
-//   pop: log(N)
-//   popMax: log(N)
-//   popMin: log(N)
-//   remove: log(N)
-//   removeAll: log(N)
-//   removeCount: log(N)
+//   pop: log(N) amortized
+//   popMax: log(N) amortized
+//   popMin: log(N) amortized
+//   remove: log(N) amortized
+//   removeAll: log(N) amortized
+//   removeCount: log(N) amortized
 //   removeInValRange: log(N) amortized
 //   size: 1
 //   smallestGtX: log(N)
@@ -364,12 +364,12 @@ struct AVLMultiset {
         return res;
     }
 
-    // O(logN) -- add one copy of x
+    // O(logN amortized) -- add one copy of x
     void add(T x) {
         addRaw(x, 1);
     }
 
-    // O(logN) -- add cnt copies of val (nothing if cnt <= 0)
+    // O(logN amortized) -- add cnt copies of val (nothing if cnt <= 0)
     void addCount(T val, long long cnt) {
         if (cnt > 0) addRaw(val, cnt);
     }
@@ -561,8 +561,8 @@ struct AVLMultiset {
         return pair<T, long long>{*vs.begin(), f};
     }
 
-    // O(logN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
-    // pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
+    // O(logN amortized) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
+    // popMin()), pop(size - 1) the largest (copies count); throws out_of_range unless 0 <= i < size
     T pop(long long i) {
         if (i < 0 || i >= n) throw out_of_range("pop: needs 0 <= i < size");
         T v = kthAt(i + 1);
@@ -570,7 +570,7 @@ struct AVLMultiset {
         return v;
     }
 
-    // O(logN) -- remove and return the largest value; throws out_of_range if empty
+    // O(logN amortized) -- remove and return the largest value; throws out_of_range if empty
     T popMax() {
         if (!n) throw out_of_range("popMax: the set is empty");
         T v = mx;
@@ -578,7 +578,7 @@ struct AVLMultiset {
         return v;
     }
 
-    // O(logN) -- remove and return the smallest value; throws out_of_range if empty
+    // O(logN amortized) -- remove and return the smallest value; throws out_of_range if empty
     T popMin() {
         if (!n) throw out_of_range("popMin: the set is empty");
         T v = mn;
@@ -586,21 +586,21 @@ struct AVLMultiset {
         return v;
     }
 
-    // O(logN) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(logN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
     long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
         return 1;
     }
 
-    // O(logN) -- remove every copy of val; returns how many were removed
+    // O(logN amortized) -- remove every copy of val; returns how many were removed
     long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
         return k;
     }
 
-    // O(logN) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(logN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
     long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;

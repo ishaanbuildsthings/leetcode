@@ -6,8 +6,8 @@
 # @keys: numbers
 # @tracks: vbound sumxor gaps
 # @complexities:
-#   add: log(U)
-#   addCount: log(U)
+#   add: log(U) amortized
+#   addCount: log(U) amortized
 #   andOfAll: 1
 #   andOfGtX: log(U)
 #   andOfGteX: log(U)
@@ -69,12 +69,12 @@
 #   orOfLtX: log(U)
 #   orOfLteX: log(U)
 #   orOfSmallestK: log(U)
-#   pop: log(U)
-#   popMax: log(U)
-#   popMin: log(U)
-#   remove: log(U)
-#   removeAll: log(U)
-#   removeCount: log(U)
+#   pop: log(U) amortized
+#   popMax: log(U) amortized
+#   popMin: log(U) amortized
+#   remove: log(U) amortized
+#   removeAll: log(U) amortized
+#   removeCount: log(U) amortized
 #   removeInValRange: log(U) amortized
 #   size: 1
 #   smallestGtX: log(U)
@@ -532,11 +532,11 @@ class TrieMultiset:
     def _andGe(self, x):  # AND of the values >= x
         return self._andIn(x, self.top)
 
-    # O(logU) -- add one copy of x
+    # O(logU amortized) -- add one copy of x
     def add(self, x):
         self._add(x, 1)
 
-    # O(logU) -- add cnt copies of val (nothing if cnt <= 0)
+    # O(logU amortized) -- add cnt copies of val (nothing if cnt <= 0)
     def addCount(self, val, cnt):
         if cnt > 0:
             self._add(val, cnt)
@@ -853,8 +853,8 @@ class TrieMultiset:
             raise IndexError(f"orOfSmallestK: needs 0 <= k <= size, got k = {k}, size = {self.n}")
         return self._orLe(self._kth(k)) if k else 0
 
-    # O(logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
-    # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
+    # O(logU amortized) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
+    # popMin()), pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
     def pop(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")
@@ -862,7 +862,7 @@ class TrieMultiset:
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the largest value; raises IndexError if empty
+    # O(logU amortized) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
             raise IndexError("popMax: the set is empty")
@@ -870,7 +870,7 @@ class TrieMultiset:
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove and return the smallest value; raises IndexError if empty
+    # O(logU amortized) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
             raise IndexError("popMin: the set is empty")
@@ -878,21 +878,21 @@ class TrieMultiset:
         self._add(v, -1)
         return v
 
-    # O(logU) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    # O(logU amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
         if not self._countOf(x):
             return 0
         self._add(x, -1)
         return 1
 
-    # O(logU) -- remove every copy of val; returns how many were removed
+    # O(logU amortized) -- remove every copy of val; returns how many were removed
     def removeAll(self, val):
         k = self.count(val)
         if k:
             self._add(val, -k)
         return k
 
-    # O(logU) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    # O(logU amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
     def removeCount(self, val, cnt):
         k = min(cnt, self.count(val))
         if k <= 0:

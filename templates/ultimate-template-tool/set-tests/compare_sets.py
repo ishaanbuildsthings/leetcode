@@ -40,7 +40,10 @@ def public_api(path):
     lines = text.split("\n")
     for i, line in enumerate(lines[:-1]):
         if line.strip().startswith("// O(") and " -- " in line:
-            sig = re.sub(r"\b__attribute__\(\(.*?\)\)\s*|\bFENWICK_\w+\s+|\bFAST_\w+\s+", "", lines[i + 1].strip())
+            j = i + 1
+            while j < len(lines) - 1 and lines[j].strip().startswith("//"):  # (a doc comment can wrap onto more lines)
+                j += 1
+            sig = re.sub(r"\b__attribute__\(\(.*?\)\)\s*|\bFENWICK_\w+\s+|\bFAST_\w+\s+", "", lines[j].strip())
             name = re.search(r"(\w+)\(", sig)
             if name:
                 api[name.group(1)] = re.sub(r"\s*\{.*$", "", sig)

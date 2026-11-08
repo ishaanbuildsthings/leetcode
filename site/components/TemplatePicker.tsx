@@ -266,13 +266,14 @@ function loadText(url: string): Promise<string> {
 }
 // a cost without its amortized / expected / ? qualifiers: what a complexity cap compares
 const baseCost = (cost: string) =>
-  cost.replace(/ \?$/, "").replace(/ (amortized|expected)$/, "");
-// how sure a bound is: worst case beats amortized and expected, which don't compare (and "?" is weaker still)
+  cost.replace(/ \?$/, "").replace(/ (amortized expected|amortized|expected)$/, "");
+// how sure a bound is: worst case beats amortized and expected, which don't compare but both beat amortized expected
+// (and "?" is weaker still)
 const guarantee = (cost: string) =>
-  `${/ amortized/.test(cost) ? "amortized" : / expected/.test(cost) ? "expected" : "worst"}${cost.endsWith(" ?") ? "?" : ""}`;
+  `${/ amortized expected/.test(cost) ? "amortized expected" : / amortized/.test(cost) ? "amortized" : / expected/.test(cost) ? "expected" : "worst"}${cost.endsWith(" ?") ? "?" : ""}`;
 const noWeaker = (s: string, m: string) => {
   const a = guarantee(s), b = guarantee(m);
-  return a === b || a === "worst" || (a.startsWith("worst") && b.endsWith("?"));
+  return a === b || a === "worst" || (a.startsWith("worst") && b.endsWith("?")) || (!a.endsWith("?") && b.startsWith("amortized expected"));
 };
 const withinCaps = (t: PickerTemplate, caps: Record<string, number>) =>
   Object.entries(caps).every(([op, cap]) => costValue(opCost(t, op)) <= cap);

@@ -64,7 +64,7 @@ from random import getrandbits
 
 
 class ValueTreeMultiset:
-    __slots__ = ("lo", "hi", "B", "L", "R", "c", "a", "p", "n", "mn", "mx", "bk", "maxF", "salt", "d")
+    __slots__ = ("lo", "hi", "B", "L", "R", "c", "a", "p", "n", "mn", "mx", "bk", "bkAt", "fh", "fhAt", "salt", "d")
 
     # O(1) -- an empty multiset for values in [lo, hi] (any integers, negative is fine)
     def __init__(self, lo, hi):
@@ -72,7 +72,8 @@ class ValueTreeMultiset:
         self.B = (hi - lo).bit_length()  # levels below the root: a value's path is the bits of v - lo, highest first
         self._clearData()
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
-        self.bk, self.maxF = {}, 0  # mode: count -> the values with that many copies; the highest count
+        self.bk, self.bkAt = {}, {}  # mode: count -> list of the values with that many copies; value -> its index there
+        self.fh, self.fhAt = [], {}  # mode: max-heap of the counts that have a bucket; count -> its index in it
         self.n = self.d = 0
 
     def _newNode(self):
@@ -204,22 +205,37 @@ class ValueTreeMultiset:
         self.n += c
         f = self._insert(x, c)  # x's new count
         g = f - c  # x's old count
-        # mode: x moves from the bucket of its old count to its new one
-        bk, key = self.bk, x ^ self.salt if x.__class__ is int else x  # (salted: no fixed input can force set collisions)
+        # mode: x moves from the bucket of its old count to its new one (a bucket is a list, and x's index in it is
+        # kept, so x leaves by swapping in the bucket's last value); a bucket that appears or empties adds or drops
+        # its count in the max-heap of counts: O(log N) worst case, however far a count jumps
+        salt, bk, at = self.salt, self.bk, self.bkAt
+        key = x ^ salt if x.__class__ is int else x  # (salted: no fixed input can force dict collisions)
+        gone = 0  # a count whose bucket emptied (its heap slot goes to x's new count if that one is new)
         if g:
-            vs = bk[g]
-            vs.discard(key)
-            if not vs:
-                del bk[g]
-        if f:
-            if f in bk:
-                bk[f].add(key)
+            vs = bk[g ^ salt]
+            last = vs.pop()
+            if vs:
+                i = at[key]
+                if i < len(vs):
+                    vs[i] = last
+                    at[last] = i
             else:
-                bk[f] = {key}
-            if f > self.maxF:
-                self.maxF = f
-        while self.maxF and self.maxF not in bk:  # (it only drops as far as copies were removed: amortized O(1))
-            self.maxF -= 1
+                del bk[g ^ salt]
+                gone = g
+        if f:
+            vs = bk.get(f ^ salt)
+            if vs is None:
+                bk[f ^ salt] = [key]
+                at[key] = 0
+                self._swapFreq(gone, f)
+                gone = 0
+            else:
+                at[key] = len(vs)
+                vs.append(key)
+        else:
+            del at[key]
+        if gone:
+            self._swapFreq(gone, 0)
         n = self.n
         if c > 0:
             if n == c:  # the set was empty
@@ -238,8 +254,41 @@ class ValueTreeMultiset:
                 if x == self.mx:
                     self.mx = self._kth(n)
 
+    def _swapFreq(self, old, new):  # in the max-heap of counts, count old (0: none) becomes count new (0: none), O(log N)
+        h, at, salt = self.fh, self.fhAt, self.salt  # (fhAt: count -> its index in the heap)
+        if old:
+            i = at.pop(old ^ salt)
+            if not new:  # old leaves: the heap's last count fills its slot
+                new = h.pop()
+                if i == len(h):
+                    return
+        else:
+            i = len(h)
+            h.append(new)
+        m = len(h)
+        while i:  # up while bigger than its parent
+            p = (i - 1) >> 1
+            if h[p] >= new:
+                break
+            h[i] = h[p]
+            at[h[p] ^ salt] = i
+            i = p
+        while True:  # down while a child is bigger
+            c = 2 * i + 1
+            if c >= m:
+                break
+            if c + 1 < m and h[c + 1] > h[c]:
+                c += 1
+            if h[c] <= new:
+                break
+            h[i] = h[c]
+            at[h[c] ^ salt] = i
+            i = c
+        h[i] = new
+        at[new ^ salt] = i
+
     def _resetCached(self):  # nothing counted: as newly built
-        self.bk, self.maxF = {}, 0
+        self.bk, self.bkAt, self.fh, self.fhAt = {}, {}, [], {}
         self.n = self.d = 0
 
     def _clearData(self):  # just the empty node 0 and the root 1 (the old lists are freed in bulk)
@@ -442,8 +491,8 @@ class ValueTreeMultiset:
     def mode(self):
         if not self.n:
             raise IndexError("mode: the set is empty")
-        f = self.maxF
-        v = next(iter(self.bk[f]))
+        f = self.fh[0]
+        v = self.bk[f ^ self.salt][0]
         return (v ^ self.salt if v.__class__ is int else v), f
 
     # O(logU) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),

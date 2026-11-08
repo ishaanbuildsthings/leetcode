@@ -10,8 +10,8 @@ using ll = long long;
 // @keys: numbers
 // @tracks: gaps
 // @complexities:
-//   add: log64(U)
-//   addCount: log64(U)
+//   add: log64(U) amortized
+//   addCount: log64(U) amortized
 //   clear: 1 amortized
 //   count: 1
 //   countDistinct: 1
@@ -21,11 +21,11 @@ using ll = long long;
 //   maxGap: 1 amortized
 //   min: log64(U)
 //   minAdjacentDiff: 1 amortized
-//   popMax: log64(U)
-//   popMin: log64(U)
-//   remove: log64(U)
-//   removeAll: log64(U)
-//   removeCount: log64(U)
+//   popMax: log64(U) amortized
+//   popMin: log64(U) amortized
+//   remove: log64(U) amortized
+//   removeAll: log64(U) amortized
+//   removeCount: log64(U) amortized
 //   removeInValRange: log64(U) amortized
 //   size: 1
 //   smallestGtX: log64(U)
@@ -170,12 +170,12 @@ struct FastSetMultiset {
         }
     }
 
-    // O(log64(U)) -- add one copy of x
+    // O(log64(U) amortized) -- add one copy of x
     void add(T x) {
         addRaw(x, 1);
     }
 
-    // O(log64(U)) -- add cnt copies of val (nothing if cnt <= 0)
+    // O(log64(U) amortized) -- add cnt copies of val (nothing if cnt <= 0)
     void addCount(T val, long long cnt) {
         if (cnt > 0) addRaw(val, cnt);
     }
@@ -237,7 +237,7 @@ struct FastSetMultiset {
         return *gaps.begin();
     }
 
-    // O(log64(U)) -- remove and return the largest value; throws out_of_range if empty
+    // O(log64(U) amortized) -- remove and return the largest value; throws out_of_range if empty
     T popMax() {
         if (!n) throw out_of_range("popMax: the set is empty");
         T v = kthAt(n);
@@ -245,7 +245,7 @@ struct FastSetMultiset {
         return v;
     }
 
-    // O(log64(U)) -- remove and return the smallest value; throws out_of_range if empty
+    // O(log64(U) amortized) -- remove and return the smallest value; throws out_of_range if empty
     T popMin() {
         if (!n) throw out_of_range("popMin: the set is empty");
         T v = kthAt(1);
@@ -253,21 +253,21 @@ struct FastSetMultiset {
         return v;
     }
 
-    // O(log64(U)) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    // O(log64(U) amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
     long long remove(T x) {
         if (!count(x)) return 0;
         addRaw(x, -1);
         return 1;
     }
 
-    // O(log64(U)) -- remove every copy of val; returns how many were removed
+    // O(log64(U) amortized) -- remove every copy of val; returns how many were removed
     long long removeAll(T val) {
         long long k = count(val);
         if (k) addRaw(val, -k);
         return k;
     }
 
-    // O(log64(U)) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    // O(log64(U) amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
     long long removeCount(T val, long long cnt) {
         long long k = std::min(cnt, count(val));
         if (k <= 0) return 0;

@@ -6,8 +6,8 @@
 # @keys: numbers
 # @tracks: minmax medians gaps shift
 # @complexities:
-#   add: sqrt(N)
-#   addCount: sqrt(N)
+#   add: sqrt(N) amortized
+#   addCount: sqrt(N) amortized
 #   clear: 1 amortized
 #   count: log(N)
 #   countDistinct: 1
@@ -29,12 +29,12 @@
 #   mex: sqrt(N)
 #   min: 1
 #   minAdjacentDiff: 1 amortized
-#   pop: sqrt(N)
-#   popMax: sqrt(N)
-#   popMin: sqrt(N)
-#   remove: sqrt(N)
-#   removeAll: sqrt(N)
-#   removeCount: sqrt(N)
+#   pop: sqrt(N) amortized
+#   popMax: sqrt(N) amortized
+#   popMin: sqrt(N) amortized
+#   remove: sqrt(N) amortized
+#   removeAll: sqrt(N) amortized
+#   removeCount: sqrt(N) amortized
 #   removeInValRange: sqrt(N) amortized
 #   shiftAll: 1
 #   size: 1
@@ -45,23 +45,28 @@
 #   layout: none
 #   node: keys[1*N] cnts[1*N]
 #   tags: none
-#   other: maxes[1*sqrt(N)] bc[2*sqrt(N)] cnt[1*N]
-#   note: N = distinct values present; blocks of LOAD..2*LOAD values (Python LOAD = 64, C++ 512); each operation costs a few binary searches plus one block's worth of C-level list work
+#   other: maxes[29*sqrt(N)] bc[58*sqrt(N)] cnt[1*N]
+#   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone; each operation costs a few binary searches plus one block's worth of C-level list work
 from random import getrandbits
 from heapq import heappop, heappush
 from bisect import bisect_left, bisect_right, insort
-from itertools import accumulate
+from itertools import accumulate, chain
+from math import isqrt
 
 
 # Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
-# LOAD..2*LOAD, each block keeping its values' copies plus block totals, and a Fenwick tree over the
-# block totals (rebuilt only after a block splits or empties). A query finds its block by binary search (or by
-# lifting over the block Fenwick for k-th) and then works inside one block with C-level list operations.
+# max(LOAD, sqrt(N) / 8), each block keeping its values' copies plus block totals, and a Fenwick tree over the
+# block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
+# once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
+# follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
+# bounds), and the O(N) cut is paid for by those N / 2 updates. A query
+# finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block
+# with C-level list operations.
 
 
 class BlockMultiset:
-    LOAD = 64
-    __slots__ = ("keys", "cnts", "maxes", "bc", "fc", "cnt", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "gc", "gmin", "gmax", "dups", "off", "salt", "d")
+    LOAD = 64  # the smallest block size (sqrt(N) / 8 once N passes (8 * LOAD)^2)
+    __slots__ = ("load", "due", "keys", "cnts", "maxes", "bc", "fc", "cnt", "n", "mn", "mx", "lowV", "lowB", "lowC", "highV", "highB", "highC", "gc", "gmin", "gmax", "dups", "off", "salt", "d")
 
     # O(1) -- an empty multiset
     def __init__(self):
@@ -71,6 +76,7 @@ class BlockMultiset:
         self.bc = []  # per block: total copies
         self.fc = None  # Fenwick over bc (None: stale)
         self.cnt = {}  # value -> copies
+        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1  # block size; distinct values to add / drop before a cut
         self.salt = getrandbits(60)  # hash containers key on salted values, so no fixed input can force collisions
         self.off = 0  # every value v is stored as v - off: shiftAll only moves off
         self.gc, self.gmin, self.gmax, self.dups = {}, [], [], 0  # gaps: size -> how many; min / max heaps; values with 2+ copies
@@ -106,6 +112,8 @@ class BlockMultiset:
         return res
 
     def _insert(self, x, c):
+        if self.due <= 0:  # enough distinct values came or went: cut the blocks again
+            self._recut()
         old = self.cnt.get(x ^ self.salt if x.__class__ is int else x, 0)
         if old:
             k = bisect_left(self.maxes, x)
@@ -118,6 +126,7 @@ class BlockMultiset:
                 return old + c
             del self.cnt[x ^ self.salt if x.__class__ is int else x]
             self.d -= 1
+            self.due -= 1
             del self.keys[k][j], self.cnts[k][j]
             if not self.keys[k]:  # the block is empty: drop it
                 del self.keys[k], self.cnts[k], self.maxes[k], self.bc[k]
@@ -129,6 +138,7 @@ class BlockMultiset:
             return 0
         self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
+        self.due -= 1
         if not self.keys:
             self.keys.append([x])
             self.cnts.append([c])
@@ -145,8 +155,8 @@ class BlockMultiset:
         self.maxes[k] = self.keys[k][-1]
         self.bc[k] += c
         self._fen(self.fc, k, c)
-        if len(self.keys[k]) > 2 * self.LOAD:  # split the block in half
-            h = self.LOAD
+        if len(self.keys[k]) > 2 * self.load:  # split the block in half
+            h = self.load
             for arr in (self.keys, self.cnts):
                 b = arr[k]
                 arr[k:k + 1] = [b[:h], b[h:]]
@@ -154,6 +164,21 @@ class BlockMultiset:
             self.bc[k:k + 1] = [sum(self.cnts[k]), sum(self.cnts[k + 1])]
             self.fc = None
         return c
+
+    def _recut(self):  # every block cut again at sqrt(N) / 8: O(N), once per N / 2 updates that add or drop a value
+        d = self.d
+        h = max(self.LOAD, isqrt(d) >> 3)
+        self.due = max(d, self.LOAD * self.LOAD) >> 1
+        if h == self.load and len(self.keys) <= d // h + 1:  # same size, blocks still full on average
+            return
+        self.load = h
+        keys = list(chain.from_iterable(self.keys))
+        cnts = list(chain.from_iterable(self.cnts))
+        self.keys = [keys[i:i + h] for i in range(0, d, h)]
+        self.cnts = [cnts[i:i + h] for i in range(0, d, h)]
+        self.maxes = [b[-1] for b in self.keys]
+        self.bc = list(map(sum, self.cnts))
+        self.fc = None
 
     def _count(self, x, strict, which):  # copies (which=0) of the values < x (strict) or <= x
         k = bisect_left(self.maxes, x)
@@ -316,6 +341,7 @@ class BlockMultiset:
     def _clearData(self):
         self.keys, self.cnts, self.maxes, self.bc = [], [], [], []
         self.fc = None
+        self.load, self.due = self.LOAD, self.LOAD * self.LOAD >> 1
         self.cnt = {}
 
     def _distinctLt(self, x):  # distinct values < x: every block before x's, then a binary search in x's block
@@ -323,12 +349,12 @@ class BlockMultiset:
         b = bisect_left(self.maxes, x)
         return sum(map(len, keys[:b])) + (bisect_left(keys[b], x) if b < len(keys) else 0)
 
-    # O(sqrtN) -- add one copy of x
+    # O(sqrtN amortized) -- add one copy of x
     def add(self, x):
         x -= self.off
         self._add(x, 1)
 
-    # O(sqrtN) -- add cnt copies of val (nothing if cnt <= 0)
+    # O(sqrtN amortized) -- add cnt copies of val (nothing if cnt <= 0)
     def addCount(self, val, cnt):
         val -= self.off
         if cnt > 0:
@@ -454,8 +480,8 @@ class BlockMultiset:
             return None
         return 0 if self.dups else self._minGap()
 
-    # O(sqrtN) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (= popMin()),
-    # pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
+    # O(sqrtN amortized) -- remove and return the value at sorted position i, 0-indexed: pop(0) removes the smallest (=
+    # popMin()), pop(size - 1) the largest (copies count); raises IndexError unless 0 <= i < size
     def pop(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pop: needs 0 <= i < size, got i = {i}, size = {self.n}")
@@ -463,7 +489,7 @@ class BlockMultiset:
         self._add(v, -1)
         return v + self.off
 
-    # O(sqrtN) -- remove and return the largest value; raises IndexError if empty
+    # O(sqrtN amortized) -- remove and return the largest value; raises IndexError if empty
     def popMax(self):
         if not self.n:
             raise IndexError("popMax: the set is empty")
@@ -471,7 +497,7 @@ class BlockMultiset:
         self._add(v, -1)
         return v + self.off
 
-    # O(sqrtN) -- remove and return the smallest value; raises IndexError if empty
+    # O(sqrtN amortized) -- remove and return the smallest value; raises IndexError if empty
     def popMin(self):
         if not self.n:
             raise IndexError("popMin: the set is empty")
@@ -479,7 +505,7 @@ class BlockMultiset:
         self._add(v, -1)
         return v + self.off
 
-    # O(sqrtN) -- remove one copy of x if present; returns how many were removed (0 or 1)
+    # O(sqrtN amortized) -- remove one copy of x if present; returns how many were removed (0 or 1)
     def remove(self, x):
         x -= self.off
         if not self._countOf(x):
@@ -487,7 +513,7 @@ class BlockMultiset:
         self._add(x, -1)
         return 1
 
-    # O(sqrtN) -- remove every copy of val; returns how many were removed
+    # O(sqrtN amortized) -- remove every copy of val; returns how many were removed
     def removeAll(self, val):
         val -= self.off
         k = self._countOf(val)
@@ -495,7 +521,7 @@ class BlockMultiset:
             self._add(val, -k)
         return k
 
-    # O(sqrtN) -- remove min(cnt, count(val)) copies of val; returns how many were removed
+    # O(sqrtN amortized) -- remove min(cnt, count(val)) copies of val; returns how many were removed
     def removeCount(self, val, cnt):
         val -= self.off
         k = min(cnt, self._countOf(val))
