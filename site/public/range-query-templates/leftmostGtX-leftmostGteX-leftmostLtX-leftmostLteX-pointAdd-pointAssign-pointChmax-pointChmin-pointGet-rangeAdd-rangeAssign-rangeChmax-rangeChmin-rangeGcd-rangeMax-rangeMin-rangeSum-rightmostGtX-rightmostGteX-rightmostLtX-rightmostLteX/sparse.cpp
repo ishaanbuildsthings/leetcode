@@ -236,27 +236,28 @@ struct SparseBeatsGcd {
         return std::gcd(qgcd(Lc[i], tl, tm, ql, qr), qgcd(Rc[i], tm + 1, tr, ql, qr));
     }
 
-    // amortized O(log^2 U logU) -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws
+    // amortized O(logU * logU * logU) -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     void rangeChmin(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeChmin: needs lo <= l <= r <= hi");
         if (l <= r) chmin(root, lo, hi, l, r, x);
     }
 
-    // amortized O(log^2 U logU) -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws
+    // amortized O(logU * logU * logU) -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else throws
     // out_of_range
     void rangeChmax(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeChmax: needs lo <= l <= r <= hi");
         if (l <= r) chmax(root, lo, hi, l, r, x);
     }
 
-    // amortized O(log^2 U logU) -- a[i] += x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // amortized O(logU * logU * logU) -- a[i] += x for i in [l, r]; needs lo <= l <= r <= hi, else throws
+    // out_of_range
     void rangeAdd(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeAdd: needs lo <= l <= r <= hi");
         if (l <= r) add(root, lo, hi, l, r, x);
     }
 
-    // amortized O(log^2 U logU) -- a[i] = x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
+    // amortized O(logU * logU * logU) -- a[i] = x for i in [l, r]; needs lo <= l <= r <= hi, else throws out_of_range
     void rangeAssign(long long l, long long r, T x) {
         if (l < lo || l > r || r > hi) throw out_of_range("rangeAssign: needs lo <= l <= r <= hi");
         if (l <= r) assign(root, lo, hi, l, r, x);

@@ -26,6 +26,9 @@ HEADER_LINE = re.compile(r"^(#|//) (@|  )")
 
 def split_header(text):
     lines = strip_attribution(text).split("\n")
+    # (a finished template.cpp carries add_cpp_prelude.py's include / using lines before its header: skip them)
+    while lines and (lines[0].startswith(("#include", "using ")) or lines[0] == ""):
+        lines.pop(0)
     k = 0
     while k < len(lines) and HEADER_LINE.match(lines[k]):
         k += 1
@@ -70,9 +73,10 @@ def sparse_costs(code, cm):
         if k < 0:
             return line
         c = line[k:]
-        c = c.replace("log^2 N", "log^2 U").replace("log^2(N)", "log^2(U)").replace("log² N", "log² U")
+        c = c.replace("log^2 N", "logU * logU").replace("log^2(N)", "logU * logU").replace("log² N", "logU * logU")
         c = re.sub(r"\blog ?N\b", lambda m: m.group(0).replace("N", "U"), c)
         c = re.sub(r"\blog n\b", "log U", c)
+        c = c.replace("logU * logU logU", "logU * logU * logU")
         return line[:k] + c
     return "\n".join(fix(line) for line in code.split("\n"))
 

@@ -47,7 +47,7 @@
 # AMORTIZED O(logU):     rangeChmax(l, r, x)    -- a[i] = max(a[i], x)
 # AMORTIZED O(logU):     rangeAssign(l, r, x)   -- a[i] = x
 # AMORTIZED O(logU):     pointAssign(pos, newVal)  -- OVERWRITE, may RAISE the value
-# AMORTIZED O(log^2 U):  rangeAdd(l, r, x)      -- a[i] += x
+# AMORTIZED O(logU * logU):  rangeAdd(l, r, x)      -- a[i] += x
 #
 # O(logU):          rangeSum(l, r)
 # O(logU):          rangeMin(l, r)
@@ -56,7 +56,7 @@
 # O(logU * logC):   rangeGcd(l, r)      -- the extra logC is the Euclid calls
 # O(n) space
 #
-# IF YOU NEVER CALL rangeAdd the whole structure is O((n + q) logU); with it, O((n + q) log^2 U),
+# IF YOU NEVER CALL rangeAdd the whole structure is O((n + q) logU); with it, O((n + q) logU * logU),
 # and that log^2 is proven tight (Tony2_CF, Dec 2025, codeforces.com/blog/entry/149516).
 #
 # HOW THE GCD WORKS -- the point is that DIFFERENCES ARE INVARIANT UNDER A UNIFORM ADD.
@@ -260,7 +260,8 @@ class SparseBeatsGcd:
         self._chmin(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(logU * logU * logU) amortized -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU * logU) amortized -- a[i] = min(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else
+    # IndexError
     def rangeChmin(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeChmin: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -277,7 +278,8 @@ class SparseBeatsGcd:
         self._chmax(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # O(logU * logU * logU) amortized -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # O(logU * logU * logU) amortized -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else
+    # IndexError
     def rangeChmax(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeChmax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")

@@ -1,5 +1,9 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeOrApply-rangeOrQuery-rightmostGtX-rightmostGteX/sparse.cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
 // @operations: leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMax rangeOrApply rangeOrQuery rightmostGtX rightmostGteX
 // @data-structure-type: beats
 // @complexities:
@@ -206,14 +210,6 @@ struct SparseBitBeats {
     T pointGet(long long i) {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return rangeAndQuery(i, i);
-    }
-
-    void getAllRec(int i, long long tl, long long tr, vector<T>& out) {
-        if (tl == tr) { out.push_back(nd[i].andAgg); return; }
-        push(i, tl, tr);
-        kids(i);
-        long long tm = tl + (tr - tl) / 2;
-        getAllRec(nd[i].Lc, tl, tm, out), getAllRec(nd[i].Rc, tm + 1, tr, out);
     }
 
     // O(logU) amortized -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range

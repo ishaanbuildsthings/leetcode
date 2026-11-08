@@ -42,7 +42,7 @@
 # go further down. A node's own mn doubles as its pending clamp: push clamps each child to it, so there is no chmin /
 # chmax tag. There is no assign tag either: when all of a node's values are equal (no second min), push hands that
 # value to both children as an assign. An add shifts everything a node keeps and goes in the one add tag. Amortized
-# O(log^2 U) per update with range add, O(log U) without it (beats: every extra descent removes a distinct value).
+# O(logU * logU) per update with range add, O(log U) without it (beats: every extra descent removes a distinct value).
 
 NEG_INF = float('-inf')
 POS_INF = float('inf')
@@ -159,7 +159,7 @@ class SparseChminChmaxBeats:
         self._chmax(self.R[i], tm + 1, tr, ql, qr, x)
         self._pull(i)
 
-    # amortized O(log^2 U) -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # amortized O(logU * logU) -- a[i] = max(a[i], x) for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeChmax(self, l, r, x):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeChmax: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -176,7 +176,7 @@ class SparseChminChmaxBeats:
         self._add(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # amortized O(log^2 U) -- a[i] += v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # amortized O(logU * logU) -- a[i] += v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAdd(self, l, r, v):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAdd: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -193,7 +193,7 @@ class SparseChminChmaxBeats:
         self._assign(self.R[i], tm + 1, tr, ql, qr, v)
         self._pull(i)
 
-    # amortized O(log^2 U) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
+    # amortized O(logU * logU) -- a[i] = v for i in [l, r]; needs lo <= l <= r <= hi, else IndexError
     def rangeAssign(self, l, r, v):
         if not self.lo <= l <= r <= self.hi:
             raise IndexError(f"rangeAssign: needs lo <= l <= r <= hi, got l = {l}, r = {r}")
@@ -251,25 +251,25 @@ class SparseChminChmaxBeats:
             raise IndexError(f"pointGet: needs lo <= p <= hi, got p = {p}")
         return self.rangeMax(p, p)
 
-    # amortized O(log^2 U) -- a[p] = v; needs lo <= p <= hi, else IndexError
+    # amortized O(logU * logU) -- a[p] = v; needs lo <= p <= hi, else IndexError
     def pointAssign(self, p, v):
         if not self.lo <= p <= self.hi:
             raise IndexError(f"pointAssign: needs lo <= p <= hi, got p = {p}")
         self.rangeAssign(p, p, v)
 
-    # amortized O(log^2 U) -- a[i] += v; needs lo <= i <= hi, else IndexError
+    # amortized O(logU * logU) -- a[i] += v; needs lo <= i <= hi, else IndexError
     def pointAdd(self, i, v):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointAdd: needs lo <= i <= hi, got i = {i}")
         self.rangeAdd(i, i, v)
 
-    # amortized O(log^2 U) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
+    # amortized O(logU * logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, v):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmax: needs lo <= i <= hi, got i = {i}")
         self.rangeChmax(i, i, v)
 
-    # amortized O(log^2 U) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
+    # amortized O(logU * logU) -- a[i] = min(a[i], v); needs lo <= i <= hi, else IndexError
     def pointChmin(self, i, v):
         if not self.lo <= i <= self.hi:
             raise IndexError(f"pointChmin: needs lo <= i <= hi, got i = {i}")

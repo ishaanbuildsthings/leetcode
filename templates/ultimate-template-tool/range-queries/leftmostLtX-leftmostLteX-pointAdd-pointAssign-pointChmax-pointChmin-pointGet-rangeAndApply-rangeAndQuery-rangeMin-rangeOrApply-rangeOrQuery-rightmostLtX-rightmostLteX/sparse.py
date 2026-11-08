@@ -284,16 +284,6 @@ class SparseBitBeats:
             raise IndexError(f"pointGet: needs lo <= p <= hi, got p = {p}")
         return self.rangeAndQuery(p, p)
 
-    def _getAllRec(self, i, tl, tr, out):
-        if tl == tr:
-            out.append(self.andAgg[i])
-            return
-        self._push(i, tl, tr)
-        self._kids(i)
-        tm = (tl + tr) // 2
-        self._getAllRec(self.L[i], tl, tm, out)
-        self._getAllRec(self.R[i], tm + 1, tr, out)
-
     # O(logU) amortized -- a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
         if not self.lo <= i <= self.hi:

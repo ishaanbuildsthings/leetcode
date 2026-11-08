@@ -234,7 +234,7 @@ def drop_get_all(text):
     for op in WHOLE_OPS:
         text = re.sub(rf"^((?:#|//) @operations:.*?) {op}\b", r"\1", text, flags=re.M)
         text = re.sub(rf"^(?:#|//)   {op}: .*\n", "", text, flags=re.M)
-    return "\n\n".join(b for b in text.split("\n\n") if not re.search(r"\b(" + "|".join(WHOLE_OPS) + r")\b", b))
+    return "\n\n".join(b for b in text.split("\n\n") if not any(op in b for op in WHOLE_OPS))  # (substring: getAllRec too)
 
 
 def add_get_all(code, lang):
