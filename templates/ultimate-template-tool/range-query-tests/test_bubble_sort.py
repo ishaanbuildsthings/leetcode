@@ -1,4 +1,4 @@
-"""Test the bubble sort templates (templates/bubble-sort/) against a brute force, in Python and C++:
+"""Test the bubble sort templates (templates/ultimate-template-tool/bubble-sort/) against a brute force, in Python and C++:
 
     python3 test_bubble_sort.py
 
@@ -16,7 +16,7 @@ from collections import deque
 
 sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
-DIR = os.path.join(os.path.dirname(os.path.dirname(HERE)), "bubble-sort")
+DIR = os.path.join(os.path.dirname(HERE), "bubble-sort")
 FILES = {"sort": ("MinSwapsToSort", "minAdjacentSwapsToSort"), "target": ("MinSwapsToTarget", "minAdjacentSwapsToTarget"),
          "pal": ("MinSwapsToPalindrome", "minAdjacentSwapsToPalindrome")}
 

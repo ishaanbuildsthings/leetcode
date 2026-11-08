@@ -1,8 +1,8 @@
 import type { FillIn } from "@/components/TemplatePicker";
 
-// The matrix templates (templates/matrices/): one class or a few functions each, on the Matrices tab. Ops are written
+// The matrix templates (templates/ultimate-template-tool/matrices/): one class or a few functions each, on the Matrices tab. Ops are written
 // Python-style; the C++ spelling follows in parentheses where it differs. Shapes: A[x, y], B[y, z], square M[k, k].
-const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/matrices/";
+const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/matrices/";
 
 export const MATRIX_MULTIPLICATION: FillIn[] = [
   {

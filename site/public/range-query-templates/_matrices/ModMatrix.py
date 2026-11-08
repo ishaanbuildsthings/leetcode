@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/matrices/ModMatrix.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/matrices/ModMatrix.py
 from operator import mul
 
 MOD = 10**9 + 7

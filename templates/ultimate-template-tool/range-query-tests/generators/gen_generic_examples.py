@@ -1,4 +1,4 @@
-"""The C++ generic seg trees (templates/segment-trees/generic/*.cpp) in three example levels, picked on the site:
+"""The C++ generic seg trees (templates/ultimate-template-tool/generic-seg-trees/*.cpp) in three example levels, picked on the site:
 
     simple   plain types, no structs: using Node = long long; (a max) and, lazy, using Tag = long long; (an add)
     basic    a struct with int fields (tot, mn, ...): the hand-written Generic*.cpp files themselves
@@ -15,7 +15,7 @@ the hand-written files or this script, never the generated ones.
 import os
 import re
 
-DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), "segment-trees", "generic")
+DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "generic-seg-trees")
 
 # file stem -> (the tree's first line, what kind of stubs it has)
 FILES = {

@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bubble-sort/MinSwapsToTarget.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bubble-sort/MinSwapsToTarget.py
 
 # Minimum adjacent swaps to turn sequence into target, or -1 if target isn't a rearrangement of sequence
 # sequence, target: lists or strings of values that compare with each other: negatives, floats, chars, tuples ok

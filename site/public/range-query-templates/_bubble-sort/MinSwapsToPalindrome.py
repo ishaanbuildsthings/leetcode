@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bubble-sort/MinSwapsToPalindrome.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bubble-sort/MinSwapsToPalindrome.py
 
 # Minimum adjacent swaps to turn sequence into a palindrome, or -1 if no rearrangement of it is one (more than one
 # value with an odd count)

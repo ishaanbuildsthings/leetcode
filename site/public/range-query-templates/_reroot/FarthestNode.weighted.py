@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/reroot/FarthestNode.weighted.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/reroot/FarthestNode.weighted.py
 
 # For every node, the farthest OTHER node (by total edge weight) and its distance
 # edges = [[a, b, w], [c, d, w], ...]: an unrooted tree with at least 2 nodes, any int weights (negative and 0 ok)

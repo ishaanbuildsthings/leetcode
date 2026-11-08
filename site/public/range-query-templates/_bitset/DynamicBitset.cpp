@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bitset/DynamicBitset.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bitset/DynamicBitset.cpp
 #include <bits/stdc++.h>
 using namespace std;
 

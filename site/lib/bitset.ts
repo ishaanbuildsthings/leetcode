@@ -1,8 +1,8 @@
 import type { FillIn } from "@/components/TemplatePicker";
 
-// The bitset templates (templates/bitset/): C++ only, on the Bitset tab. N = number of bits, L = r - l + 1 for a
+// The bitset templates (templates/ultimate-template-tool/bitset/): C++ only, on the Bitset tab. N = number of bits, L = r - l + 1 for a
 // range, K = number of set bits.
-const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bitset/";
+const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bitset/";
 
 export const BITSETS: FillIn[] = [
   {

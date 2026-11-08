@@ -19,7 +19,7 @@ STD = "using namespace std;\n"
 LL = "using ll = long long;\n"
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
-ROOTS = ["templates/ultimate-template-tool/range-queries", "templates/segment-trees/generic", "templates/ultimate-template-tool/next-permutation", "templates/bubble-sort",
+ROOTS = ["templates/ultimate-template-tool/range-queries", "templates/ultimate-template-tool/generic-seg-trees", "templates/ultimate-template-tool/next-permutation", "templates/ultimate-template-tool/bubble-sort",
          "site/public/range-query-templates"]
 
 

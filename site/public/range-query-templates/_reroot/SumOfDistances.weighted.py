@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/reroot/SumOfDistances.weighted.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/reroot/SumOfDistances.weighted.py
 
 # For every node, the sum of its distances (by total edge weight) to all other nodes
 # edges = [[a, b, w], [c, d, w], ...]: an unrooted tree with at least 2 nodes, any int weights

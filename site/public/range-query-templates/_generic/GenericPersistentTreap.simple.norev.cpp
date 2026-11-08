@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/GenericPersistentTreap.simple.norev.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/GenericPersistentTreap.simple.norev.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

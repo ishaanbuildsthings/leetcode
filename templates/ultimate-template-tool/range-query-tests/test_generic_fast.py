@@ -15,7 +15,7 @@ import tempfile
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DIR = os.environ.get("GENERIC_DIR") or os.path.join(os.path.dirname(os.path.dirname(HERE)), "segment-trees", "generic")
+DIR = os.environ.get("GENERIC_DIR") or os.path.join(os.path.dirname(HERE), "generic-seg-trees")
 TREES = ("LazyDynamicSeg", "DynamicSeg", "LazySeg", "Seg", "SparseTable", "PersistentLazyTreap", "PersistentTreap", "LazyTreap", "Treap")
 SANITIZE = ["-fsanitize=address,undefined", "-fno-sanitize-recover=all"]
 

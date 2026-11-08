@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/matrices/MaxPlusMatrix.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/matrices/MaxPlusMatrix.cpp
 #include <bits/stdc++.h>
 using namespace std;
 

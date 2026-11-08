@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/GenericLazySeg.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/GenericLazySeg.cpp
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

@@ -1,8 +1,7 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/reroot/FarthestNode.weighted.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/reroot/FarthestNode.weighted.cpp
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 // For every node, the farthest OTHER node (by total edge weight) and its distance
 // edges = {{a, b, w}, {c, d, w}, ...}: an unrooted tree with at least 2 nodes, any int weights (negative and 0 ok)

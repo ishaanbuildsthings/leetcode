@@ -1,5 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/matrices/ModMatrix.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/matrices/ModMatrix.cpp
 #include <bits/stdc++.h>
 using namespace std;
 

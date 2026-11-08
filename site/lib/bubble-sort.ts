@@ -1,7 +1,7 @@
 import type { FillIn } from "@/components/TemplatePicker";
 
-// The bubble sort templates (templates/bubble-sort/): one function each, on the Misc tab.
-const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bubble-sort/";
+// The bubble sort templates (templates/ultimate-template-tool/bubble-sort/): one function each, on the Misc tab.
+const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bubble-sort/";
 
 export const BUBBLE_SORT: FillIn[] = [
   {

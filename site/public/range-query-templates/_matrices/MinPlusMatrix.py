@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/matrices/MinPlusMatrix.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/matrices/MinPlusMatrix.py
 
 INF = 4 * 10**18  # no edge / no walk; real walk weights must stay within -10**18 .. 10**18
 HALF = 2 * 10**18

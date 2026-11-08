@@ -1,5 +1,5 @@
 # Template by https://github.com/ishaanbuildsthings
-# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/bubble-sort/MinSwapsToSort.py
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/bubble-sort/MinSwapsToSort.py
 
 # sequence: a list or a string of values that compare with each other: negatives, floats, chars, tuples ok
 def minAdjacentSwapsToSort(sequence):

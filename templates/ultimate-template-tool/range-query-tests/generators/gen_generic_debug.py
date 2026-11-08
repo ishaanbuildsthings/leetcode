@@ -1,4 +1,4 @@
-"""Debug versions of the generic seg trees (templates/segment-trees/generic/): picked on the site with a checkbox, on
+"""Debug versions of the generic seg trees (templates/ultimate-template-tool/generic-seg-trees/): picked on the site with a checkbox, on
 top of the language and the example level.
 
     Generic<Name>.debug.py, Generic<Name>.debug.cpp, Generic<Name>.simple.debug.cpp, Generic<Name>.complex.debug.cpp
@@ -12,7 +12,7 @@ written recursively, and prints itself after every operation. Edit this script, 
 import os
 import re
 
-DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), "segment-trees", "generic")
+DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "generic-seg-trees")
 
 PY_HEAD = """DEBUG = True  # print the tree after every operation
 TRACE = False  # also print every node the recursion visits

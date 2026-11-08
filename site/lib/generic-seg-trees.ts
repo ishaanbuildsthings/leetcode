@@ -1,7 +1,7 @@
 import type { FillIn } from "@/components/TemplatePicker";
 import { GENERIC_FAST } from "@/lib/fast-mode";
 
-// The generic seg trees you fill in yourself (templates/segment-trees/generic/): the range query picker's
+// The generic seg trees you fill in yourself (templates/ultimate-template-tool/generic-seg-trees/): the range query picker's
 // "Generic seg trees" menu lists them.
 export const GENERIC_SEG_TREES: FillIn[] = [
   {
@@ -13,7 +13,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     file: "GenericSeg",
     debugToggle: true,
     ops: [["pointGet(i)", "1"], ["pointAssign(i, val)", "log(N)"], ["rangeQuery(l, r)", "log(N)"], ["rangeQueryAll()", "1"], ["size()", "1"], ["build", "N"]],
-    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/",
   },
   {
     label: "Generic lazy seg tree",
@@ -24,7 +24,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     file: "GenericLazySeg",
     debugToggle: true,
     ops: [["pointGet(i)", "log(N)"], ["pointAssign(i, val)", "log(N)"], ["rangeQuery(l, r)", "log(N)"], ["rangeUpdate(l, r, tag)", "log(N)"], ["rangeQueryAll()", "1"], ["size()", "1"], ["build", "N"]],
-    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/",
   },
   {
     label: "Generic dynamic seg tree",
@@ -35,7 +35,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     file: "GenericDynamicSeg",
     ops: [["pointGet(i)", "log(U)"], ["pointAssign(i, val)", "log(U)"], ["rangeQuery(l, r)", "log(U)"], ["rangeQueryAll()", "1"], ["build", "1"]],
     note: "U = hi - lo + 1. Memory: about log U nodes per set",
-    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/",
   },
   {
     label: "Generic lazy dynamic seg tree",
@@ -46,7 +46,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     file: "GenericLazyDynamicSeg",
     ops: [["pointGet(i)", "log(U)"], ["pointAssign(i, val)", "log(U)"], ["rangeQuery(l, r)", "log(U)"], ["rangeUpdate(l, r, tag)", "log(U)"], ["rangeQueryAll()", "1"], ["build", "1"]],
     note: "U = hi - lo + 1. Memory: up to about 4 log U new nodes per update, query or set",
-    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/",
   },
   {
     label: "Generic treap",
@@ -57,7 +57,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     file: "GenericTreap",
     reverseToggle: true,
     ops: [["pointGet(i)", "log(N) expected"], ["pointAssign(i, val)", "log(N) expected"], ["rangeQuery(l, r)", "log(N) expected"], ["rangeQueryAll()", "1"], ["insertAt(i, val)", "log(N) expected"], ["append(val)", "log(N) expected"], ["eraseAt(i)", "log(N) expected"], ["rangeReverse(l, r)", "log(N) expected"], ["rangeRotateLeft(l, r, k)", "log(N) expected"], ["rangeRotateRight(l, r, k)", "log(N) expected"], ["cut(l, r)", "log(N) expected"], ["paste(i, treap)", "log(N) expected"], ["split(k)", "log(N) expected"], ["trisect(l, r)", "log(N) expected"], ["merge(treap)", "log(N) expected"], ["size()", "1"], ["build", "N"]],
-    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/",
   },
   {
     label: "Generic lazy treap",
@@ -68,7 +68,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     file: "GenericLazyTreap",
     reverseToggle: true,
     ops: [["pointGet(i)", "log(N) expected"], ["pointAssign(i, val)", "log(N) expected"], ["rangeQuery(l, r)", "log(N) expected"], ["rangeUpdate(l, r, tag)", "log(N) expected"], ["rangeQueryAll()", "1"], ["insertAt(i, val)", "log(N) expected"], ["append(val)", "log(N) expected"], ["eraseAt(i)", "log(N) expected"], ["rangeReverse(l, r)", "log(N) expected"], ["rangeRotateLeft(l, r, k)", "log(N) expected"], ["rangeRotateRight(l, r, k)", "log(N) expected"], ["cut(l, r)", "log(N) expected"], ["paste(i, treap)", "log(N) expected"], ["split(k)", "log(N) expected"], ["trisect(l, r)", "log(N) expected"], ["merge(treap)", "log(N) expected"], ["size()", "1"], ["build", "N"]],
-    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/",
   },
   {
     label: "Generic persistent treap",
@@ -80,7 +80,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     reverseToggle: true,
     ops: [["pointGet(i)", "log(N) expected"], ["pointAssign(i, val)", "log(N) expected"], ["rangeQuery(l, r)", "log(N) expected"], ["rangeQueryAll()", "1"], ["insertAt(i, val)", "log(N) expected"], ["append(val)", "log(N) expected"], ["eraseAt(i)", "log(N) expected"], ["rangeReverse(l, r)", "log(N) expected"], ["rangeRotateLeft(l, r, k)", "log(N) expected"], ["rangeRotateRight(l, r, k)", "log(N) expected"], ["copy(l, r)", "log(N) expected"], ["copy()", "1"], ["cut(l, r)", "log(N) expected"], ["paste(i, treap)", "log(N) expected"], ["split(k)", "log(N) expected"], ["trisect(l, r)", "log(N) expected"], ["merge(treap)", "log(N) expected"], ["size()", "1"], ["build", "N"]],
     note: "Every op that changes the array makes O(log N) new nodes (never freed); queries make none. N can be huge (long long)",
-    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/",
   },
   {
     label: "Generic persistent lazy treap",
@@ -92,7 +92,7 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     reverseToggle: true,
     ops: [["pointGet(i)", "log(N) expected"], ["pointAssign(i, val)", "log(N) expected"], ["rangeQuery(l, r)", "log(N) expected"], ["rangeUpdate(l, r, tag)", "log(N) expected"], ["rangeQueryAll()", "1"], ["insertAt(i, val)", "log(N) expected"], ["append(val)", "log(N) expected"], ["eraseAt(i)", "log(N) expected"], ["rangeReverse(l, r)", "log(N) expected"], ["rangeRotateLeft(l, r, k)", "log(N) expected"], ["rangeRotateRight(l, r, k)", "log(N) expected"], ["copy(l, r)", "log(N) expected"], ["copy()", "1"], ["cut(l, r)", "log(N) expected"], ["paste(i, treap)", "log(N) expected"], ["split(k)", "log(N) expected"], ["trisect(l, r)", "log(N) expected"], ["merge(treap)", "log(N) expected"], ["size()", "1"], ["build", "N"]],
     note: "Every op that changes the array makes O(log N) new nodes (never freed); queries make none. N can be huge (long long)",
-    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/",
   },
   {
     label: "Generic sparse table",
@@ -103,6 +103,6 @@ export const GENERIC_SEG_TREES: FillIn[] = [
     file: "GenericSparseTable",
     ops: [["pointGet(i)", "1"], ["rangeQuery(l, r)", "1"], ["rangeQueryAll()", "1"], ["size()", "1"], ["build", "N*log(N)"]],
     note: "No updates. combine must give the same answer when a range is counted twice (combine(x, x) == x), so no sums or counts. baseFn runs once per element; a query is one combine call. Memory: N log N Nodes",
-    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/segment-trees/generic/",
+    githubUrl: "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/generic-seg-trees/",
   },
 ];

@@ -1,8 +1,8 @@
 import type { FillIn } from "@/components/TemplatePicker";
 
-// Golden references (templates/golden-references/): plain, readable implementations to learn from, on the Golden
+// Golden references (templates/ultimate-template-tool/golden-references/): plain, readable implementations to learn from, on the Golden
 // References tab.
-const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/golden-references/";
+const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/golden-references/";
 
 export const GOLDEN_REFERENCES: FillIn[] = [
   {

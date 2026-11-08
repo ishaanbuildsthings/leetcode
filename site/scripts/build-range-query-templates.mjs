@@ -172,11 +172,11 @@ for (const { folder, langs, sparse, letters } of entries) {
   for (const name of files) fs.copyFileSync(path.join(srcDir, folder, name), path.join(publicDir, folder, name));
 }
 // the generic seg trees you fill in yourself (the picker's buttons above the op grid): copied as they are
-const genericDir = path.resolve(siteDir, "../templates/segment-trees/generic");
+const genericDir = path.resolve(siteDir, "../templates/ultimate-template-tool/generic-seg-trees");
 fs.mkdirSync(path.join(publicDir, "_generic"));
 for (const name of fs.readdirSync(genericDir)) fs.copyFileSync(path.join(genericDir, name), path.join(publicDir, "_generic", name));
 // the bubble sort functions (the Misc tab): copied as they are
-const bubbleDir = path.resolve(siteDir, "../templates/bubble-sort");
+const bubbleDir = path.resolve(siteDir, "../templates/ultimate-template-tool/bubble-sort");
 fs.mkdirSync(path.join(publicDir, "_bubble-sort"));
 for (const name of fs.readdirSync(bubbleDir)) fs.copyFileSync(path.join(bubbleDir, name), path.join(publicDir, "_bubble-sort", name));
 // the next permutation functions (the Misc tab): copied as they are
@@ -184,7 +184,7 @@ const nextPermDir = path.resolve(siteDir, "../templates/ultimate-template-tool/n
 fs.mkdirSync(path.join(publicDir, "_next-permutation"));
 for (const name of fs.readdirSync(nextPermDir)) fs.copyFileSync(path.join(nextPermDir, name), path.join(publicDir, "_next-permutation", name));
 // the reroot DP functions (the Misc tab): only the current ones, not the older files sharing the folder
-const rerootDir = path.resolve(siteDir, "../templates/reroot");
+const rerootDir = path.resolve(siteDir, "../templates/ultimate-template-tool/reroot");
 fs.mkdirSync(path.join(publicDir, "_reroot"));
 for (const name of fs.readdirSync(rerootDir).filter((name) => /^(FarthestNode|SumOfDistances)\./.test(name))) fs.copyFileSync(path.join(rerootDir, name), path.join(publicDir, "_reroot", name));
 // the string templates (the Strings tab): one function per file, copied as they are
@@ -193,7 +193,7 @@ fs.mkdirSync(path.join(publicDir, "_strings"));
 for (const name of fs.readdirSync(stringsDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(stringsDir, name), path.join(publicDir, "_strings", name));
 
 // the matrix templates (the Matrices tab): only these files, not the older ones or tests sharing the folder
-const matricesDir = path.resolve(siteDir, "../templates/matrices");
+const matricesDir = path.resolve(siteDir, "../templates/ultimate-template-tool/matrices");
 fs.mkdirSync(path.join(publicDir, "_matrices"));
 for (const name of fs.readdirSync(matricesDir).filter((name) => /^(ModMatrix|MinPlusMatrix|MaxPlusMatrix|LinearRecurrence)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(matricesDir, name), path.join(publicDir, "_matrices", name));
 
@@ -202,7 +202,7 @@ const combinatoricsDir = path.resolve(siteDir, "../templates/math");
 fs.mkdirSync(path.join(publicDir, "_combinatorics"));
 for (const name of fs.readdirSync(combinatoricsDir).filter((name) => /^(ModCalc|Fibonacci)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(combinatoricsDir, name), path.join(publicDir, "_combinatorics", name));
 
-const goldenDir = path.resolve(siteDir, "../templates/golden-references");
+const goldenDir = path.resolve(siteDir, "../templates/ultimate-template-tool/golden-references");
 fs.mkdirSync(path.join(publicDir, "_golden-references"));
 for (const name of fs.readdirSync(goldenDir)) fs.copyFileSync(path.join(goldenDir, name), path.join(publicDir, "_golden-references", name));
 
