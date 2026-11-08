@@ -11,6 +11,8 @@ soon as its ops are in BRUTE_UPDATES / BRUTE_QUERIES.
     python3 test_templates.py --cpp           # C++ only
     python3 test_templates.py --cpp --fast    # the fast.cpp versions, C++ only
     python3 test_templates.py --trials 300    # more random sequences per template (default 120)
+    python3 test_templates.py --shard 3/16    # every 16th folder from the 3rd (run 16 of these side by side)
+    python3 test_templates.py --from f.txt    # exactly the folders listed in f.txt (one per line)
 
 A folder's sparse.py / sparse.cpp (dynamic trees over any index range [lo, hi], all positions starting at 0) are
 tested too, as an extra "<folder> [sparse]" line: indices are huge (around +-1e12), and the brute force keeps the
@@ -1471,6 +1473,11 @@ def main():
         k = args.index("--from")
         exact = set(open(args[k + 1]).read().split())
         args = args[:k] + args[k + 2:]
+    shard = None
+    if "--shard" in args:  # --shard k/n: the k-th of n interleaved slices of the folder list (k from 0)
+        k = args.index("--shard")
+        shard = tuple(int(x) for x in args[k + 1].split("/"))
+        args = args[:k] + args[k + 2:]
     letters = "--letters" in args
     filters = [x for x in args if not x.startswith("--")]
     cxx = find_cxx() if want_cpp else None
@@ -1483,6 +1490,8 @@ def main():
         folders = [f for f in folders if any(x in f for x in filters)]
     if exact is not None:
         folders = [f for f in folders if f in exact]
+    if shard is not None:
+        folders = folders[shard[0]::shard[1]]
     failed, total_queries = [], 0
     for folder in folders:
         py = os.path.join(DIR, folder, "template.py")
