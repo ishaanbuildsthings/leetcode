@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/trees/getAllSubtreeHashes.py
 # TEMPLATE BY ISHAANBUILDSTHINGS on github
 import random
 MASK = (1 << 64) - 1

@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/trees/edgeListToTree.py
 # TEMPLATE BY ISHAAN AGRAWAL, github: ishaanbuildsthings
 # edgeList = [[a, b], [c, d], ...]
 # roots the tree at `root` (any node id) and returns `children`, sized to fit the largest label

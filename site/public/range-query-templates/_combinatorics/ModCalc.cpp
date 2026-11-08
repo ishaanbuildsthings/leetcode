@@ -1,3 +1,5 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/combinatorics/ModCalc.cpp
 // template by: https://github.com/agrawalishaan/leetcode
 
 #include <bits/stdc++.h>

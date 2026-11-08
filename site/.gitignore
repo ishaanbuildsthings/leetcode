@@ -47,3 +47,4 @@ docs/STRATEGY.md
 
 # copies of templates/ultimate-template-tool/sets for `next dev` (npm run gen:sets): prod fetches those files from GitHub
 /public/set-templates/
+public/range-query-templates.building/

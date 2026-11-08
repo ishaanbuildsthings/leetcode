@@ -31,7 +31,7 @@ import { LANGS, readHeaderFile, readUsage } from "./catalog-lib.mjs";
 
 const siteDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const srcDir = path.resolve(siteDir, "../templates/ultimate-template-tool/range-queries");
-const publicDir = path.join(siteDir, "public/range-query-templates");
+let publicDir = path.join(siteDir, "public/range-query-templates");
 const manifestPath = path.join(siteDir, "lib/generated/range-query-templates.ts");
 
 // @original-file-url is optional: templates written fresh in this folder have no original.
@@ -159,6 +159,10 @@ if (errors.length) {
   process.exit(1);
 }
 
+// Built into a sibling folder and swapped in at the very end, so an interrupted run leaves the served copies untouched
+// (and never a half-empty folder that reads as thousands of deletions in git).
+const finalPublicDir = publicDir;
+publicDir = `${finalPublicDir}.building`;
 fs.rmSync(publicDir, { recursive: true, force: true });
 fs.mkdirSync(publicDir, { recursive: true });
 for (const { folder, langs, sparse, letters } of entries) {
@@ -197,8 +201,8 @@ const matricesDir = path.resolve(siteDir, "../templates/ultimate-template-tool/m
 fs.mkdirSync(path.join(publicDir, "_matrices"));
 for (const name of fs.readdirSync(matricesDir).filter((name) => /^(ModMatrix|MinPlusMatrix|MaxPlusMatrix|LinearRecurrence)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(matricesDir, name), path.join(publicDir, "_matrices", name));
 
-// the combinatorics templates (the Combinatorics tab): only these files from templates/math
-const combinatoricsDir = path.resolve(siteDir, "../templates/math");
+// the combinatorics templates (the Combinatorics tab)
+const combinatoricsDir = path.resolve(siteDir, "../templates/ultimate-template-tool/combinatorics");
 fs.mkdirSync(path.join(publicDir, "_combinatorics"));
 for (const name of fs.readdirSync(combinatoricsDir).filter((name) => /^(ModCalc|Fibonacci)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(combinatoricsDir, name), path.join(publicDir, "_combinatorics", name));
 
@@ -206,14 +210,10 @@ const goldenDir = path.resolve(siteDir, "../templates/ultimate-template-tool/gol
 fs.mkdirSync(path.join(publicDir, "_golden-references"));
 for (const name of fs.readdirSync(goldenDir)) fs.copyFileSync(path.join(goldenDir, name), path.join(publicDir, "_golden-references", name));
 
-// the tree templates (the Trees tab): the hand-written files in templates/tree the cards name (lib/trees.ts)
-const treesDir = path.resolve(siteDir, "../templates/tree");
+// the tree templates (the Trees tab)
+const treesDir = path.resolve(siteDir, "../templates/ultimate-template-tool/trees");
 fs.mkdirSync(path.join(publicDir, "_trees"));
-for (const name of fs.readdirSync(treesDir).filter((name) => /^(edgeListToTree|weightedEdgeListToTree|findCentroids|getAllSubtreeHashes)\.(py|cpp)$/.test(name)))
-  fs.copyFileSync(path.join(treesDir, name), path.join(publicDir, "_trees", name));
-// (the Python one is misnamed geetAllSubtreeHashes.py in templates/tree; the card asks for getAllSubtreeHashes.py)
-if (fs.existsSync(path.join(treesDir, "geetAllSubtreeHashes.py")) && !fs.existsSync(path.join(treesDir, "getAllSubtreeHashes.py")))
-  fs.copyFileSync(path.join(treesDir, "geetAllSubtreeHashes.py"), path.join(publicDir, "_trees", "getAllSubtreeHashes.py"));
+for (const name of fs.readdirSync(treesDir).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(treesDir, name), path.join(publicDir, "_trees", name));
 
 // the bitset templates (the Bitset tab)
 const bitsetDir = path.resolve(siteDir, "../templates/ultimate-template-tool/bitset");
@@ -271,6 +271,9 @@ ${rows.map((r) => "  " + JSON.stringify(r)).join(",\n")},
 `;
 fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
 fs.writeFileSync(manifestPath, manifest);
+fs.rmSync(finalPublicDir, { recursive: true, force: true });
+fs.renameSync(publicDir, finalPublicDir);
+publicDir = finalPublicDir;
 
 const sparseCount = entries.filter((e) => e.sparse).length;
 console.log(`${entries.length} templates (${sparseCount} with a sparse version) -> ${path.relative(siteDir, manifestPath)} + ${path.relative(siteDir, publicDir)}/`);

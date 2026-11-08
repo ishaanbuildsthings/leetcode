@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/combinatorics/Fibonacci.py
 from math import isqrt
 
 # returns a list of all fibs <= n

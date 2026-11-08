@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/trees/weightedEdgeListToTree.py
 # TEMPLATE BY ISHAAN AGRAWAL, github: ishaanbuildsthings
 
 # edgeList = [[a, b, w], [c, d, w], ...]

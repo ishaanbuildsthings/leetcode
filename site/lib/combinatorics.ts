@@ -1,8 +1,8 @@
 import type { FillIn } from "@/components/TemplatePicker";
 
-// The combinatorics templates (templates/math/), on the Combinatorics tab. ModCalc's file also holds the Stirling
+// The combinatorics templates (templates/ultimate-template-tool/combinatorics/), on the Combinatorics tab. ModCalc's file also holds the Stirling
 // class, so its ops are on the ModCalc card.
-const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/math/";
+const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/combinatorics/";
 
 export const COMBINATORICS: FillIn[] = [
   {

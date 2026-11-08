@@ -1,7 +1,7 @@
 import type { FillIn } from "@/components/TemplatePicker";
 
-// The tree templates (templates/tree/): one function each, on the Trees tab.
-const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/tree/";
+// The tree templates (templates/ultimate-template-tool/trees/): one function each, on the Trees tab.
+const GITHUB = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/trees/";
 
 export const TREES: FillIn[] = [
   {

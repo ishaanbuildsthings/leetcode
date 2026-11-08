@@ -1,3 +1,5 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/combinatorics/ModCalc.py
 # template by: https://github.com/agrawalishaan/leetcode
 
 # n in the constructor is basically the biggest number we will operate on. So for instance finding n! % MOD. But also things like interleaving two sequences of length 500 and length 700 would require n=1200. To be safe, can always just put a big number like 1e5.
