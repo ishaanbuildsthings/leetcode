@@ -69,6 +69,7 @@ class ImplicitTreap:
     nbest = [0]
     par = [0]
     where = {}
+    whereSalt = random.getrandbits(62)  # where's int keys are salted with this, so no fixed input can make it collide
     __slots__ = ("root",)
 
     # O(N) -- arr: the initial array (a list; leave it out to start empty)
@@ -103,7 +104,7 @@ class ImplicitTreap:
 
     # O(logN) expected -- the index of x, or -1 if x isn't in this treap (values distinct across all treaps)
     def find(self, x):
-        t = self.where.get(x, 0)
+        t = self.where.get(self._whereKey(x), 0)
         if not t or self.val[t] != x:
             return -1
         L, R, par, sz, path = self.L, self.R, self.par, self.sz, [t]
@@ -545,7 +546,7 @@ class ImplicitTreap:
         self.nsuf.append(v)
         self.nbest.append(v)
         self.par.append(0)
-        self.where[v] = x
+        self.where[self._whereKey(v)] = x
         return x
 
     # a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
@@ -587,10 +588,14 @@ class ImplicitTreap:
             s, q, u, w, z = s + rs, max(rq, rs + q), min(u, s + ru), min(rw, rs + w), min(z, rz, w + ru)
         self.sm[x], self.suf[x], self.npre[x], self.nsuf[x], self.nbest[x] = s, q, u, w, z
 
+    def _whereKey(self, x):  # ints get the salt; characters don't need it (str hashing is already random per run)
+        return x ^ self.whereSalt if type(x) is int else x
+
     def _rekey(self, t, old):  # t's value changed from old: the map follows (find needs distinct values)
-        if self.where.get(old) == t:
-            del self.where[old]
-        self.where[self.val[t]] = t
+        key = self._whereKey(old)
+        if self.where.get(key) == t:
+            del self.where[key]
+        self.where[self._whereKey(self.val[t])] = t
 
     def _split(self, t, k):  # (first k of t, the rest)
         if not t:

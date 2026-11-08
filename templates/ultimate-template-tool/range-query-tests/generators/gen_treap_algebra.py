@@ -274,6 +274,10 @@ POOL_NOTE = ("one node pool shared by every {cls}: cut / paste move nodes betwee
              "whole run), so there is nothing to reset between test cases")
 
 
+# the find map keys on salted values: Python hashes ints predictably, so fixed inputs could make every lookup collide
+WHERE_SALT = "random.getrandbits(62)  # where's int keys are salted with this, so no fixed input can make it collide"
+
+
 def py_skeleton(F, TG, extra=(), cls="ImplicitTreap", ctor=None, empty=None):
     """the class line, the node lists (class-level: every instance shares them) and the constructor. extra: (name,
     Python value) more class-level state (the find map); ctor / empty: the constructor and _empty text when they are not
@@ -358,7 +362,7 @@ def py(s):
 
 
 ''')
-    out.append(py_skeleton(F, TG, [("where", "{}")] if s.find else []))
+    out.append(py_skeleton(F, TG, [("where", "{}"), ("whereSalt", WHERE_SALT)] if s.find else []))
     out.append("    # O(1) -- the current length of the array\n    def size(self):\n        return self.sz[self.root]\n\n")
     pub = py_public(s)
     py_decompose(s, pub)
@@ -546,7 +550,7 @@ def py_public(s):
     if s.find:
         pub["find"] = '''    # O(logN) expected -- the index of x, or -1 if x isn't in this treap (values distinct across all treaps)
     def find(self, x):
-        t = self.where.get(x, 0)
+        t = self.where.get(self._whereKey(x), 0)
         if not t or self.val[t] != x:
             return -1
         L, R, par, sz, path = self.L, self.R, self.par, self.sz, [t]
@@ -687,7 +691,7 @@ def py_new(s):
         L += ["        self.a00.append(v)", "        self.a01.append(NEG)", "        self.a10.append(NEG)", "        self.a11.append(-v)"]
     L += [f"        self.{t[0]}.append({t[2]})" for t in s.tags()]
     if s.find:
-        L += ["        self.par.append(0)", "        self.where[v] = x"]
+        L += ["        self.par.append(0)", "        self.where[self._whereKey(v)] = x"]
     return L
 
 
@@ -869,10 +873,14 @@ def py_internals(s):
 ''')
     if s.find:
         out.append('''
+    def _whereKey(self, x):  # ints get the salt; characters don't need it (str hashing is already random per run)
+        return x ^ self.whereSalt if type(x) is int else x
+
     def _rekey(self, t, old):  # t's value changed from old: the map follows (find needs distinct values)
-        if self.where.get(old) == t:
-            del self.where[old]
-        self.where[self.val[t]] = t
+        key = self._whereKey(old)
+        if self.where.get(key) == t:
+            del self.where[key]
+        self.where[self._whereKey(self.val[t])] = t
 ''')
     out.append(PY_TAIL)
     return "".join(out)

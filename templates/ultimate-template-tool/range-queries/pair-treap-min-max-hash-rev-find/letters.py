@@ -86,6 +86,7 @@ class PairSwapTreap:
     par = [0]
     rev = [0]
     where = {}
+    whereSalt = random.getrandbits(62)  # where's int keys are salted with this, so no fixed input can make it collide
     __slots__ = ("rE", "rO")
 
     # O(N) -- arr: the initial array (a list; leave it out to start empty)
@@ -489,7 +490,7 @@ class PairSwapTreap:
         self.pw.append(_HQ)
         self.rev.append(0)
         self.par.append(0)
-        self.where[v] = x
+        self.where[self._whereKey(v)] = x
         return x
 
     # a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
@@ -552,10 +553,14 @@ class PairSwapTreap:
             self._applyRev(self.R[x])
             self.rev[x] = 0
 
+    def _whereKey(self, x):  # ints get the salt; characters don't need it (str hashing is already random per run)
+        return x ^ self.whereSalt if type(x) is int else x
+
     def _rekey(self, t, old):  # t's value changed from old: the map follows (find needs distinct values)
-        if self.where.get(old) == t:
-            del self.where[old]
-        self.where[self.val[t]] = t
+        key = self._whereKey(old)
+        if self.where.get(key) == t:
+            del self.where[key]
+        self.where[self._whereKey(self.val[t])] = t
 
     def _split(self, t, k):  # (first k of t, the rest)
         if not t:

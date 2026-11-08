@@ -76,6 +76,7 @@ class ImplicitTreap:
     npre = [0]
     par = [0]
     where = {}
+    whereSalt = random.getrandbits(62)  # where's int keys are salted with this, so no fixed input can make it collide
     __slots__ = ("root",)
 
     # O(N) -- arr: the initial array (a list; leave it out to start empty)
@@ -468,7 +469,7 @@ class ImplicitTreap:
         self.suf.append(v)
         self.npre.append(v)
         self.par.append(0)
-        self.where[v] = x
+        self.where[self._whereKey(v)] = x
         return x
 
     # a treap of new nodes holding vals in order: a Cartesian tree in one pass, O(len)
@@ -521,10 +522,14 @@ class ImplicitTreap:
         fh[x] = ((fh[l] * B + hv) * pw[r] + fh[r]) % P
         bh[x] = ((bh[r] * B + hv) * pw[l] + bh[l]) % P
 
+    def _whereKey(self, x):  # ints get the salt; characters don't need it (str hashing is already random per run)
+        return x ^ self.whereSalt if type(x) is int else x
+
     def _rekey(self, t, old):  # t's value changed from old: the map follows (find needs distinct values)
-        if self.where.get(old) == t:
-            del self.where[old]
-        self.where[self.val[t]] = t
+        key = self._whereKey(old)
+        if self.where.get(key) == t:
+            del self.where[key]
+        self.where[self._whereKey(self.val[t])] = t
 
     def _split(self, t, k):  # (first k of t, the rest)
         if not t:
