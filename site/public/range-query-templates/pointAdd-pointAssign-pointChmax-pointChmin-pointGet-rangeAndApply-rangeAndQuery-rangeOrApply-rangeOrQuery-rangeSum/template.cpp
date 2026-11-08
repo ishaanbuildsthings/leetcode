@@ -1,9 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeOrApply-rangeOrQuery-rangeSum/template.cpp
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
 // @operations: andAll getAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeOrApply rangeOrQuery rangeSum sumAll
 // @data-structure-type: beats
 // @complexities:
@@ -24,7 +20,7 @@ using ll = long long;
 //   build: N
 // @memory:
 //   layout: 4n-recursive
-//   node: tot[4*N] andAll[4*N] orAll[4*N]
+//   node: tot[4*N] andAgg[4*N] orAgg[4*N]
 //   tags: tagAnd[4*N] tagXor[4*N]
 //   other: none
 //   note: the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree
@@ -44,17 +40,17 @@ struct BitBeats {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int n;
     T FULL;
-    vector<T> andAll, orAll, tagAnd, tagXor;
+    vector<T> andAgg, orAgg, tagAnd, tagXor;
     vector<S> tot;
 
     // O(N)
     explicit BitBeats(const vector<T>& a, int bits = 20)
-        : n((int)a.size()), FULL(T((T(1) << bits) - 1)), andAll(4 * max(1, n), FULL), orAll(4 * max(1, n)), tagAnd(4 * max(1, n), FULL), tagXor(4 * max(1, n)), tot(4 * max(1, n)) {
+        : n((int)a.size()), FULL(T((T(1) << bits) - 1)), andAgg(4 * max(1, n), FULL), orAgg(4 * max(1, n)), tagAnd(4 * max(1, n), FULL), tagXor(4 * max(1, n)), tot(4 * max(1, n)) {
         if (n) build(1, 0, n - 1, a);
     }
 
     void setLeaf(int i, T v) {
-        andAll[i] = orAll[i] = v, tot[i] = v;
+        andAgg[i] = orAgg[i] = v, tot[i] = v;
         tagAnd[i] = FULL, tagXor[i] = 0;
     }
 
@@ -68,16 +64,16 @@ struct BitBeats {
     void pull(int i) {
         int l = 2 * i, r = l + 1;
         tot[i] = tot[l] + tot[r];
-        andAll[i] = andAll[l] & andAll[r], orAll[i] = orAll[l] | orAll[r];
+        andAgg[i] = andAgg[l] & andAgg[r], orAgg[i] = orAgg[l] | orAgg[r];
         tagAnd[i] = FULL, tagXor[i] = 0;
     }
 
     // only legal when the node's mixed bits are all kept, so every value shifts by the same delta (k = the node's length)
     void apply(int i, T a, T x, long long k) {
         T keep = (a ^ x) & FULL;
-        T delta = (~orAll[i] & x & FULL) - (andAll[i] & ~keep & FULL);
+        T delta = (~orAgg[i] & x & FULL) - (andAgg[i] & ~keep & FULL);
         tot[i] += S(delta) * k;
-        andAll[i] = ((andAll[i] & a) ^ x) & FULL, orAll[i] = ((orAll[i] & a) ^ x) & FULL;
+        andAgg[i] = ((andAgg[i] & a) ^ x) & FULL, orAgg[i] = ((orAgg[i] & a) ^ x) & FULL;
         tagAnd[i] = tagAnd[i] & a & FULL, tagXor[i] = ((tagXor[i] & a) ^ x) & FULL;
     }
 
@@ -92,14 +88,14 @@ struct BitBeats {
     // force-1 needs all 1
     bool noEffect(int i, T a, T x) const {
         if (a & x & FULL) return false;
-        if (~a & ~x & orAll[i] & FULL) return false;
-        if (~a & x & ~andAll[i] & FULL) return false;
+        if (~a & ~x & orAgg[i] & FULL) return false;
+        if (~a & x & ~andAgg[i] & FULL) return false;
         return true;
     }
 
     void upd(int i, int tl, int tr, int ql, int qr, T a, T x) {
         if (qr < tl || ql > tr || noEffect(i, a, x)) return;
-        T mixed = (andAll[i] ^ orAll[i]) & FULL;
+        T mixed = (andAgg[i] ^ orAgg[i]) & FULL;
         if (ql <= tl && tr <= qr && (mixed & (~a | x) & FULL) == 0) { apply(i, a, x, tr - tl + 1); return; }
         push(i, tl, tr);
         int tm = (tl + tr) / 2;
@@ -128,8 +124,8 @@ struct BitBeats {
         if (ql <= tl && tr <= qr) {
             switch (kind) {
                 case 0: return tot[i];
-                case 1: return andAll[i];
-                default: return orAll[i];
+                case 1: return andAgg[i];
+                default: return orAgg[i];
             }
         }
         push(i, tl, tr);
@@ -185,7 +181,7 @@ struct BitBeats {
     }
 
     void getAllRec(int i, int tl, int tr, vector<T>& out) {
-        if (tl == tr) { out.push_back(andAll[i]); return; }
+        if (tl == tr) { out.push_back(andAgg[i]); return; }
         push(i, tl, tr);
         int tm = (tl + tr) / 2;
         getAllRec(2 * i, tl, tm, out), getAllRec(2 * i + 1, tm + 1, tr, out);

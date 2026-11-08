@@ -1,15 +1,14 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostLtX-leftmostLteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMin-rangeOrApply-rangeOrQuery-rightmostLtX-rightmostLteX/fast.cpp
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
 // @operations: andAll getAll leftmostLtX leftmostLteX minAll orAll pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMin rangeOrApply rangeOrQuery rightmostLtX rightmostLteX
 // @data-structure-type: beats
 // @complexities:
+//   andAll: log(N)
 //   getAll: N
 //   leftmostLtX: log(N)
 //   leftmostLteX: log(N)
+//   minAll: log(N)
+//   orAll: log(N)
 //   pointAdd: log(N) amortized
 //   pointAssign: log(N) amortized
 //   pointChmax: log(N) amortized
@@ -22,13 +21,10 @@ using ll = long long;
 //   rangeOrQuery: log(N)
 //   rightmostLtX: log(N)
 //   rightmostLteX: log(N)
-//   minAll: log(N)
-//   andAll: log(N)
-//   orAll: log(N)
 //   build: N
 // @memory:
 //   layout: 4n-recursive
-//   node: mn[4*N] andAll[4*N] orAll[4*N]
+//   node: mn[4*N] andAgg[4*N] orAgg[4*N]
 //   tags: tagAnd[4*N] tagXor[4*N]
 //   other: none
 //   note: the and/or tags compose into one (and, xor) pair per node (or X is the pair (~X, X)); no range xor, see BitCountTree
@@ -81,16 +77,16 @@ struct BitBeats {
     using S = conditional_t<(sizeof(T) < sizeof(long long)), long long, T>;
     int n;
     T FULL;
-    HotVector<T> mn, andAll, orAll, tagAnd, tagXor;
+    HotVector<T> mn, andAgg, orAgg, tagAnd, tagXor;
 
     // O(N)
     explicit BitBeats(const vector<T>& a, int bits = 20)
-        : n((int)a.size()), FULL(T((T(1) << bits) - 1)), mn(4 * max(1, n)), andAll(4 * max(1, n), FULL), orAll(4 * max(1, n)), tagAnd(4 * max(1, n), FULL), tagXor(4 * max(1, n)) {
+        : n((int)a.size()), FULL(T((T(1) << bits) - 1)), mn(4 * max(1, n)), andAgg(4 * max(1, n), FULL), orAgg(4 * max(1, n)), tagAnd(4 * max(1, n), FULL), tagXor(4 * max(1, n)) {
         if (n) build(1, 0, n - 1, a);
     }
 
     LEETCODE_NO_SANITIZE void setLeaf(int i, T v) {
-        mn[i] = andAll[i] = orAll[i] = v;
+        mn[i] = andAgg[i] = orAgg[i] = v;
         tagAnd[i] = FULL, tagXor[i] = 0;
     }
 
@@ -104,16 +100,16 @@ struct BitBeats {
     LEETCODE_NO_SANITIZE void pull(int i) {
         int l = 2 * i, r = l + 1;
         mn[i] = min(mn[l], mn[r]);
-        andAll[i] = andAll[l] & andAll[r], orAll[i] = orAll[l] | orAll[r];
+        andAgg[i] = andAgg[l] & andAgg[r], orAgg[i] = orAgg[l] | orAgg[r];
         tagAnd[i] = FULL, tagXor[i] = 0;
     }
 
     // only legal when the node's mixed bits are all kept, so every value shifts by the same delta
     LEETCODE_NO_SANITIZE void apply(int i, T a, T x) {
         T keep = (a ^ x) & FULL;
-        T delta = (~orAll[i] & x & FULL) - (andAll[i] & ~keep & FULL);
+        T delta = (~orAgg[i] & x & FULL) - (andAgg[i] & ~keep & FULL);
         mn[i] += delta;
-        andAll[i] = ((andAll[i] & a) ^ x) & FULL, orAll[i] = ((orAll[i] & a) ^ x) & FULL;
+        andAgg[i] = ((andAgg[i] & a) ^ x) & FULL, orAgg[i] = ((orAgg[i] & a) ^ x) & FULL;
         tagAnd[i] = tagAnd[i] & a & FULL, tagXor[i] = ((tagXor[i] & a) ^ x) & FULL;
     }
 
@@ -127,14 +123,14 @@ struct BitBeats {
     // force-1 needs all 1
     LEETCODE_NO_SANITIZE bool noEffect(int i, T a, T x) const {
         if (a & x & FULL) return false;
-        if (~a & ~x & orAll[i] & FULL) return false;
-        if (~a & x & ~andAll[i] & FULL) return false;
+        if (~a & ~x & orAgg[i] & FULL) return false;
+        if (~a & x & ~andAgg[i] & FULL) return false;
         return true;
     }
 
     LEETCODE_NO_SANITIZE void upd(int i, int tl, int tr, int ql, int qr, T a, T x) {
         if (qr < tl || ql > tr || noEffect(i, a, x)) return;
-        T mixed = (andAll[i] ^ orAll[i]) & FULL;
+        T mixed = (andAgg[i] ^ orAgg[i]) & FULL;
         if (ql <= tl && tr <= qr && (mixed & (~a | x) & FULL) == 0) { apply(i, a, x); return; }
         push(i, tl, tr);
         int tm = (tl + tr) / 2;
@@ -163,8 +159,8 @@ struct BitBeats {
         if (ql <= tl && tr <= qr) {
             switch (kind) {
                 case 0: return mn[i];
-                case 1: return andAll[i];
-                default: return orAll[i];
+                case 1: return andAgg[i];
+                default: return orAgg[i];
             }
         }
         push(i, tl, tr);
@@ -220,7 +216,7 @@ struct BitBeats {
     }
 
     LEETCODE_NO_SANITIZE void getAllRec(int i, int tl, int tr, vector<T>& out) {
-        if (tl == tr) { out.push_back(andAll[i]); return; }
+        if (tl == tr) { out.push_back(andAgg[i]); return; }
         push(i, tl, tr);
         int tm = (tl + tr) / 2;
         getAllRec(2 * i, tl, tm, out), getAllRec(2 * i + 1, tm + 1, tr, out);
@@ -250,6 +246,24 @@ struct BitBeats {
     LEETCODE_NO_SANITIZE void pointAdd(int i, T delta) {
         if (i < 0 || i >= n) throw out_of_range("pointAdd: needs 0 <= i < n");
         pointAssign(i, pointGet(i) + delta);
+    }
+
+    // O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto minAll() {
+        if (n < 1) throw out_of_range("minAll: needs n >= 1");
+        return rangeMin(0, n - 1);
+    }
+
+    // O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto andAll() {
+        if (n < 1) throw out_of_range("andAll: needs n >= 1");
+        return rangeAndQuery(0, n - 1);
+    }
+
+    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
+    LEETCODE_NO_SANITIZE auto orAll() {
+        if (n < 1) throw out_of_range("orAll: needs n >= 1");
+        return rangeOrQuery(0, n - 1);
     }
 
     // O(logN) -- the first i in [l, r] with a[i] < x, or -1 (a walk pruned by the node min); needs 0 <= l <= r < n,
@@ -301,23 +315,4 @@ struct BitBeats {
         int tm = (tl + tr) / 2, res = lastPass(2 * i + 1, tm + 1, tr, l, r, ok);
         return res != -1 ? res : lastPass(2 * i, tl, tm, l, r, ok);
     }
-
-    // O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else throws out_of_range
-    LEETCODE_NO_SANITIZE auto minAll() {
-        if (n < 1) throw out_of_range("minAll: needs n >= 1");
-        return rangeMin(0, n - 1);
-    }
-
-    // O(log(N)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else throws out_of_range
-    LEETCODE_NO_SANITIZE auto andAll() {
-        if (n < 1) throw out_of_range("andAll: needs n >= 1");
-        return rangeAndQuery(0, n - 1);
-    }
-
-    // O(log(N)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else throws out_of_range
-    LEETCODE_NO_SANITIZE auto orAll() {
-        if (n < 1) throw out_of_range("orAll: needs n >= 1");
-        return rangeOrQuery(0, n - 1);
-    }
-
 };

@@ -1,9 +1,5 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/range-queries/leftmostGtX-leftmostGteX-pointAdd-pointAssign-pointChmax-pointChmin-pointGet-rangeAndApply-rangeAndQuery-rangeMax-rangeOrApply-rangeOrQuery-rightmostGtX-rightmostGteX/sparse-fast.cpp
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-
 // @operations: leftmostGtX leftmostGteX pointAdd pointAssign pointChmax pointChmin pointGet rangeAndApply rangeAndQuery rangeMax rangeOrApply rangeOrQuery rightmostGtX rightmostGteX
 // @data-structure-type: beats
 // @complexities:
@@ -24,7 +20,7 @@ using ll = long long;
 //   build: 1
 // @memory:
 //   layout: sparse
-//   node: mx[4*log(U)] andAll[4*log(U)] orAll[4*log(U)]
+//   node: mx[4*log(U)] andAgg[4*log(U)] orAgg[4*log(U)]
 //   tags: tagAnd[4*log(U)] tagXor[4*log(U)]
 //   other: none
 //   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. A node pool per tree
@@ -83,8 +79,8 @@ struct SparseBitBeats {
     struct Node {  // a node's fields side by side: a walk reads them together (faster than one array per field)
         long long ln = 0;
         T mx = T();
-        T andAll = T();
-        T orAll = T();
+        T andAgg = T();
+        T orAgg = T();
         T tagAnd = T();
         T tagXor = T();
         int Lc = 0;
@@ -106,7 +102,7 @@ struct SparseBitBeats {
     // a fresh node: a block of k zeros
     LEETCODE_NO_SANITIZE int node(long long k) const {  // const: it only grows the (mutable) pool
         Node n;
-        n.mx = 0, n.andAll = 0, n.orAll = 0, n.tagAnd = FULL, n.tagXor = 0, n.Lc = 0, n.Rc = 0, n.ln = k;
+        n.mx = 0, n.andAgg = 0, n.orAgg = 0, n.tagAnd = FULL, n.tagXor = 0, n.Lc = 0, n.Rc = 0, n.ln = k;
         nd.push_back(n);
         return (int)nd.size() - 1;
     }
@@ -119,23 +115,23 @@ struct SparseBitBeats {
     }
 
     LEETCODE_NO_SANITIZE void setLeaf(int i, T v) {
-        nd[i].mx = nd[i].andAll = nd[i].orAll = v;
+        nd[i].mx = nd[i].andAgg = nd[i].orAgg = v;
         nd[i].tagAnd = FULL, nd[i].tagXor = 0;
     }
 
     LEETCODE_NO_SANITIZE void pull(int i) {
         int l = nd[i].Lc, r = nd[i].Rc;
         nd[i].mx = max(nd[l].mx, nd[r].mx);
-        nd[i].andAll = nd[l].andAll & nd[r].andAll, nd[i].orAll = nd[l].orAll | nd[r].orAll;
+        nd[i].andAgg = nd[l].andAgg & nd[r].andAgg, nd[i].orAgg = nd[l].orAgg | nd[r].orAgg;
         nd[i].tagAnd = FULL, nd[i].tagXor = 0;
     }
 
     // only legal when the node's mixed bits are all kept, so every value shifts by the same delta
     LEETCODE_NO_SANITIZE void apply(int i, T a, T x) {
         T keep = (a ^ x) & FULL;
-        T delta = (~nd[i].orAll & x & FULL) - (nd[i].andAll & ~keep & FULL);
+        T delta = (~nd[i].orAgg & x & FULL) - (nd[i].andAgg & ~keep & FULL);
         nd[i].mx += delta;
-        nd[i].andAll = ((nd[i].andAll & a) ^ x) & FULL, nd[i].orAll = ((nd[i].orAll & a) ^ x) & FULL;
+        nd[i].andAgg = ((nd[i].andAgg & a) ^ x) & FULL, nd[i].orAgg = ((nd[i].orAgg & a) ^ x) & FULL;
         nd[i].tagAnd = nd[i].tagAnd & a & FULL, nd[i].tagXor = ((nd[i].tagXor & a) ^ x) & FULL;
     }
 
@@ -150,14 +146,14 @@ struct SparseBitBeats {
     // force-1 needs all 1
     LEETCODE_NO_SANITIZE bool noEffect(int i, T a, T x) const {
         if (a & x & FULL) return false;
-        if (~a & ~x & nd[i].orAll & FULL) return false;
-        if (~a & x & ~nd[i].andAll & FULL) return false;
+        if (~a & ~x & nd[i].orAgg & FULL) return false;
+        if (~a & x & ~nd[i].andAgg & FULL) return false;
         return true;
     }
 
     LEETCODE_NO_SANITIZE void upd(int i, long long tl, long long tr, long long ql, long long qr, T a, T x) {
         if (qr < tl || ql > tr || noEffect(i, a, x)) return;
-        T mixed = (nd[i].andAll ^ nd[i].orAll) & FULL;
+        T mixed = (nd[i].andAgg ^ nd[i].orAgg) & FULL;
         if (ql <= tl && tr <= qr && (mixed & (~a | x) & FULL) == 0) { apply(i, a, x); return; }
         push(i, tl, tr);
         kids(i);
@@ -188,8 +184,8 @@ struct SparseBitBeats {
         if (ql <= tl && tr <= qr) {
             switch (kind) {
                 case 0: return nd[i].mx;
-                case 1: return nd[i].andAll;
-                default: return nd[i].orAll;
+                case 1: return nd[i].andAgg;
+                default: return nd[i].orAgg;
             }
         }
         push(i, tl, tr);
@@ -243,6 +239,14 @@ struct SparseBitBeats {
     LEETCODE_NO_SANITIZE T pointGet(long long i) {
         if (i < lo || i > hi) throw out_of_range("pointGet: needs lo <= i <= hi");
         return rangeAndQuery(i, i);
+    }
+
+    LEETCODE_NO_SANITIZE void getAllRec(int i, long long tl, long long tr, vector<T>& out) {
+        if (tl == tr) { out.push_back(nd[i].andAgg); return; }
+        push(i, tl, tr);
+        kids(i);
+        long long tm = tl + (tr - tl) / 2;
+        getAllRec(nd[i].Lc, tl, tm, out), getAllRec(nd[i].Rc, tm + 1, tr, out);
     }
 
     // O(logU) -- a[i] = max(a[i], v); needs lo <= i <= hi, else throws out_of_range

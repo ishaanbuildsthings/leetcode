@@ -96,7 +96,7 @@ def convert_py(src, name):
 
     node_defaults = [(f, re.sub(r"(?<!self\.)\bFULL\b", "self.FULL", d)) for f, d in fields]
     zero_sets = "".join(f"\n        self.{f}[i] = k" for f in counts) + (
-        "\n        self.andAll[i] = 0" if any(f == "andAll" for f, _ in fields) else "")
+        "\n        self.andAgg[i] = 0" if any(f == "andAgg" for f, _ in fields) else "")
     new_init = f'''    # O(1) -- all zeros over [lo, hi]; any range of integers works
     def __init__(self, lo, hi{extra_args}):
         self.lo, self.hi = lo, hi

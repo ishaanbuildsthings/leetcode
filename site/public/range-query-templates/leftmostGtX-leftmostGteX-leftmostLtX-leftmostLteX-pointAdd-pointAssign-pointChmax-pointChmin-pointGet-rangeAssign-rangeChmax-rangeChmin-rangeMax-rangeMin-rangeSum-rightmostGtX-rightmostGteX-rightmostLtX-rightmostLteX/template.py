@@ -351,24 +351,6 @@ class ChminChmaxBeats:
     # the last index in [l, r] under node i whose value passes ok(node), or -1: O(logN), since only one
     # node fully inside [l, r] that passes is ever walked down (it always holds an answer)
     def _lastPass(self, i, tl, tr, l, r, ok):
-
-    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
-    def sumAll(self):
-
-    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
-    def minAll(self):
-
-    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
-    def maxAll(self):
-        if self.n < 1:
-            raise IndexError("maxAll: needs n >= 1")
-        return self.rangeMax(0, self.n - 1)
-        if self.n < 1:
-            raise IndexError("minAll: needs n >= 1")
-        return self.rangeMin(0, self.n - 1)
-        if self.n < 1:
-            raise IndexError("sumAll: needs n >= 1")
-        return self.rangeSum(0, self.n - 1)
         if r < tl or tr < l or not ok(i):
             return -1
         if tl == tr:
@@ -377,3 +359,21 @@ class ChminChmaxBeats:
         tm = (tl + tr) // 2
         res = self._lastPass(2 * i + 1, tm + 1, tr, l, r, ok)
         return res if res != -1 else self._lastPass(2 * i, tl, tm, l, r, ok)
+
+    # O(log(N)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
+    def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
+
+    # O(log(N)) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
+    def minAll(self):
+        if self.n < 1:
+            raise IndexError("minAll: needs n >= 1")
+        return self.rangeMin(0, self.n - 1)
+
+    # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
+    def maxAll(self):
+        if self.n < 1:
+            raise IndexError("maxAll: needs n >= 1")
+        return self.rangeMax(0, self.n - 1)

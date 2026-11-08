@@ -89,11 +89,10 @@ def _insert(cls, lang, block):
         k = cls.rfind("\n};")
         assert k != -1, "struct without a closing };"
         return cls[:k].rstrip("\n") + "\n\n" + block + cls[k:]
-    last = None
-    for mm in re.finditer(r"^    \S.*$", cls, re.M):
-        last = mm
-    assert last, "class without methods"
-    return cls[:last.end()] + "\n\n" + block.rstrip("\n") + cls[last.end():]
+    # after the class's last line of code (a method body line, not just its def line, which would split the method open)
+    body = cls.rstrip("\n")
+    assert re.search(r"^    \S", body, re.M), "class without methods"
+    return body + "\n\n" + block.rstrip("\n") + cls[len(body):]
 
 
 def _pop_block(lang, cost):

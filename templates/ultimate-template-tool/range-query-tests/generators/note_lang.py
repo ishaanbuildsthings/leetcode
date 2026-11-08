@@ -224,12 +224,17 @@ def add_size_method(code, lang):
     return code[:k] + block + code[k:]
 
 
+WHOLE_OPS = ("getAll", "sumAll", "minAll", "maxAll", "gcdAll", "xorAll", "andAll", "orAll", "hashAll")
+
+
 def drop_get_all(text):
-    """A dense template's header or body without getAll, for the sparse version generated from it: the header lines
-    naming it, and every blank-line-separated block that mentions it (getAll and its helper, named getAllRec)."""
-    text = re.sub(r"^((?:#|//) @operations:.*?) getAll\b", r"\1", text, flags=re.M)
-    text = re.sub(r"^(?:#|//)   getAll: .*\n", "", text, flags=re.M)
-    return "\n\n".join(b for b in text.split("\n\n") if "getAll" not in b)
+    """A dense template's header or body without getAll and the whole-array aggregates (sumAll, minAll, ...; a sparse
+    tree over a huge index range has none of them, see add_derived_ops), for the sparse version generated from it: the
+    header lines naming them, and every blank-line-separated block that mentions one (getAll and its helper getAllRec)."""
+    for op in WHOLE_OPS:
+        text = re.sub(rf"^((?:#|//) @operations:.*?) {op}\b", r"\1", text, flags=re.M)
+        text = re.sub(rf"^(?:#|//)   {op}: .*\n", "", text, flags=re.M)
+    return "\n\n".join(b for b in text.split("\n\n") if not re.search(r"\b(" + "|".join(WHOLE_OPS) + r")\b", b))
 
 
 def add_get_all(code, lang):

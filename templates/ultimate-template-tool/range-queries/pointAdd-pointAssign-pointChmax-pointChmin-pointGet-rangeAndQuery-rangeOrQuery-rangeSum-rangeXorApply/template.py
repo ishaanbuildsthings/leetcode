@@ -201,29 +201,27 @@ class BitCountTree:
         if val > self.pointGet(i):
             self.pointAssign(i, val)
 
-    # O(logN * bits) -- a[i] = min(a[i], val); needs needs 0 <= i < n, else IndexError, else IndexError
+    # O(logN * bits) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
+        if val < self.pointGet(i):
+            self.pointAssign(i, val)
 
     # O(log(N)*log(U)) -- sum of the whole array a[0..n-1] (rangeSum(0, n - 1)); needs n >= 1, else raises IndexError
     def sumAll(self):
+        if self.n < 1:
+            raise IndexError("sumAll: needs n >= 1")
+        return self.rangeSum(0, self.n - 1)
 
     # O(log(N)*log(U)) -- AND of the whole array a[0..n-1] (rangeAndQuery(0, n - 1)); needs n >= 1, else raises IndexError
     def andAll(self):
+        if self.n < 1:
+            raise IndexError("andAll: needs n >= 1")
+        return self.rangeAndQuery(0, self.n - 1)
 
     # O(log(N)*log(U)) -- OR of the whole array a[0..n-1] (rangeOrQuery(0, n - 1)); needs n >= 1, else raises IndexError
     def orAll(self):
         if self.n < 1:
             raise IndexError("orAll: needs n >= 1")
         return self.rangeOrQuery(0, self.n - 1)
-        if self.n < 1:
-            raise IndexError("andAll: needs n >= 1")
-        return self.rangeAndQuery(0, self.n - 1)
-        if self.n < 1:
-            raise IndexError("sumAll: needs n >= 1")
-        return self.rangeSum(0, self.n - 1)
-        if not 0 <= i < self.n:
-            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
-        if val < self.pointGet(i):
-            self.pointAssign(i, val)

@@ -2,7 +2,7 @@
 
     python3 gen_bitbeats.py      (then beats_search.py, then sparse_beats.py for the sparse versions)
 
-andAll / orAll are always kept (the beats rule needs them, and they answer rangeAndQuery / rangeOrQuery); max, min
+andAgg / orAgg are always kept (the beats rule needs them, and they answer rangeAndQuery / rangeOrQuery); max, min
 and sum each cost one more array, so every subset of {rangeMax, rangeMin, rangeSum} gets its own template and you
 never pay for an aggregate you don't use. Sums need each node's length, which the recursion already knows
 (tr - tl + 1), so no size array is stored.
@@ -25,7 +25,7 @@ THE POTENTIAL IS PER BIT, NOT PER VALUE. This is what makes this template differ
 chmin/chmax beats ones, where the potential counts distinct values.
 
 Call a bit MIXED in a node when the node's values do not all agree on it. Since the node stores
-the AND and the OR of everything under it, the mixed bits are exactly andAll ^ orAll -- one
+the AND and the OR of everything under it, the mixed bits are exactly andAgg ^ orAgg -- one
 &-and-^ gives you the whole set in O(1), which is the only reason this is affordable.
 
 Give each node a score equal to how many of its K bits are mixed, and sum that over all nodes.
@@ -77,8 +77,8 @@ parent's, so a tag legal for the parent is legal for the child.
 WHY THE PRUNE NEEDS ALL THREE CHECKS (_noEffect):
 nothing changes iff for every value v in the node, (v & a) ^ x == v. Per bit:
   flip bits    (a=1,x=1) always change something         -> a & x must be 0
-  force-0 bits (a=0,x=0) need the bit already 0 for all  -> ~a & ~x & orAll must be 0
-  force-1 bits (a=0,x=1) need the bit already 1 for all  -> ~a & x & ~andAll must be 0
+  force-0 bits (a=0,x=0) need the bit already 0 for all  -> ~a & ~x & orAgg must be 0
+  force-1 bits (a=0,x=1) need the bit already 1 for all  -> ~a & x & ~andAgg must be 0
 Dropping the last two costs real time -- a pure OR would never prune.
 """
 '''
@@ -87,8 +87,8 @@ Dropping the last two costs real time -- a pure OR would never prune.
 AGGS = [("mx", "rangeMax", "a if a > b else b", "max(a, b)", "S(0)"),
         ("mn", "rangeMin", "a if a < b else b", "min(a, b)", "S(FULL)"),
         ("tot", "rangeSum", "a + b", "a + b", "S(0)"),
-        ("andAll", "rangeAndQuery", "a & b", "a & b", "S(FULL)"),
-        ("orAll", "rangeOrQuery", "a | b", "a | b", "S(0)")]
+        ("andAgg", "rangeAndQuery", "a & b", "a & b", "S(FULL)"),
+        ("orAgg", "rangeOrQuery", "a | b", "a | b", "S(0)")]
 DESC = {"rangeMax": "max of a[l..r]", "rangeMin": "min of a[l..r]", "rangeSum": "a[l] + ... + a[r]",
         "rangeAndQuery": "a[l] & ... & a[r]", "rangeOrQuery": "a[l] | ... | a[r]"}
 
@@ -142,8 +142,8 @@ class BitBeats_PERFORMANT:
         self.n = n = len(arr)
         self.FULL = FULL = (1 << bits) - 1
         size = 4 * max(1, n)
-{"".join(f"        self.{f} = [0] * size{chr(10)}" for f in shift)}        self.andAll = [FULL] * size
-        self.orAll = [0] * size
+{"".join(f"        self.{f} = [0] * size{chr(10)}" for f in shift)}        self.andAgg = [FULL] * size
+        self.orAgg = [0] * size
         self.tagAnd = [FULL] * size
         self.tagXor = [0] * size
         if n:
@@ -162,8 +162,8 @@ class BitBeats_PERFORMANT:
 
     def _pull(self, i):
         l = 2 * i; r = l + 1
-{"        mx = self.mx" + chr(10) + "        self.mx[i] = mx[l] if mx[l] > mx[r] else mx[r]" + chr(10) if "mx" in fields else ""}{"        mn = self.mn" + chr(10) + "        self.mn[i] = mn[l] if mn[l] < mn[r] else mn[r]" + chr(10) if "mn" in fields else ""}{"        self.tot[i] = self.tot[l] + self.tot[r]" + chr(10) if S else ""}        self.andAll[i] = self.andAll[l] & self.andAll[r]
-        self.orAll[i] = self.orAll[l] | self.orAll[r]
+{"        mx = self.mx" + chr(10) + "        self.mx[i] = mx[l] if mx[l] > mx[r] else mx[r]" + chr(10) if "mx" in fields else ""}{"        mn = self.mn" + chr(10) + "        self.mn[i] = mn[l] if mn[l] < mn[r] else mn[r]" + chr(10) if "mn" in fields else ""}{"        self.tot[i] = self.tot[l] + self.tot[r]" + chr(10) if S else ""}        self.andAgg[i] = self.andAgg[l] & self.andAgg[r]
+        self.orAgg[i] = self.orAgg[l] | self.orAgg[r]
         self.tagAnd[i] = self.FULL; self.tagXor[i] = 0
 
     # legal only when every bit the node disagrees on is kept: mixed <= a and mixed & x == 0.
@@ -171,9 +171,9 @@ class BitBeats_PERFORMANT:
     def _apply(self, i, a, x{k}):
         FULL = self.FULL
 {f"""        keep = (a ^ x) & FULL
-        delta = ((~self.orAll[i]) & x & FULL) - (self.andAll[i] & ~keep & FULL)
-""" if shift else ""}{"        self.mx[i] += delta" + chr(10) if "mx" in fields else ""}{"        self.mn[i] += delta" + chr(10) if "mn" in fields else ""}{"        self.tot[i] += delta * k" + chr(10) if S else ""}        self.andAll[i] = ((self.andAll[i] & a) ^ x) & FULL
-        self.orAll[i] = ((self.orAll[i] & a) ^ x) & FULL
+        delta = ((~self.orAgg[i]) & x & FULL) - (self.andAgg[i] & ~keep & FULL)
+""" if shift else ""}{"        self.mx[i] += delta" + chr(10) if "mx" in fields else ""}{"        self.mn[i] += delta" + chr(10) if "mn" in fields else ""}{"        self.tot[i] += delta * k" + chr(10) if S else ""}        self.andAgg[i] = ((self.andAgg[i] & a) ^ x) & FULL
+        self.orAgg[i] = ((self.orAgg[i] & a) ^ x) & FULL
         self.tagAnd[i] = self.tagAnd[i] & a & FULL
         self.tagXor[i] = ((self.tagXor[i] & a) ^ x) & FULL
 
@@ -193,8 +193,8 @@ class BitBeats_PERFORMANT:
     def _noEffect(self, i, a, x):
         FULL = self.FULL
         if a & x & FULL: return False
-        if ~a & ~x & self.orAll[i] & FULL: return False
-        if ~a & x & ~self.andAll[i] & FULL: return False
+        if ~a & ~x & self.orAgg[i] & FULL: return False
+        if ~a & x & ~self.andAgg[i] & FULL: return False
         return True
 
     def _upd(self, i, tl, tr, ql, qr, a, x):
@@ -202,7 +202,7 @@ class BitBeats_PERFORMANT:
             return
         if self._noEffect(i, a, x):
             return
-        mixed = (self.andAll[i] ^ self.orAll[i]) & self.FULL
+        mixed = (self.andAgg[i] ^ self.orAgg[i]) & self.FULL
         if ql <= tl and qr >= tr and (mixed & (~a | x) & self.FULL) == 0:
             self._apply(i, a, x{", tr - tl + 1" if S else ""})
             return
@@ -261,7 +261,7 @@ class BitBeats_PERFORMANT:
 
     def _getAllRec(self, i, tl, tr, out):
         if tl == tr:
-            out.append(self.andAll[i])
+            out.append(self.andAgg[i])
             return
         self._push(i, tl, tr)
         tm = (tl + tr) // 2
@@ -296,12 +296,12 @@ def cpp(ops, aggs):
     S = "tot" in fields
     shift = [f for f in fields if f in ("mx", "mn", "tot")]
     tfields = [f for f in fields if f != "tot"] + ["tagAnd", "tagXor"]
-    init = {"mx": "mx(4 * max(1, n))", "mn": "mn(4 * max(1, n))", "andAll": "andAll(4 * max(1, n), FULL)",
-            "orAll": "orAll(4 * max(1, n))", "tagAnd": "tagAnd(4 * max(1, n), FULL)", "tagXor": "tagXor(4 * max(1, n))",
+    init = {"mx": "mx(4 * max(1, n))", "mn": "mn(4 * max(1, n))", "andAgg": "andAgg(4 * max(1, n), FULL)",
+            "orAgg": "orAgg(4 * max(1, n))", "tagAnd": "tagAnd(4 * max(1, n), FULL)", "tagXor": "tagXor(4 * max(1, n))",
             "tot": "tot(4 * max(1, n))"}
     inits = ", ".join(init[f] for f in tfields + (["tot"] if S else []))
     leaf = " = ".join(f"{f}[i]" for f in fields if f != "tot") + " = v" + (", tot[i] = v" if S else "")
-    names = {"mx": "max", "mn": "min", "tot": "sum", "andAll": "and", "orAll": "or"}
+    names = {"mx": "max", "mn": "min", "tot": "sum", "andAgg": "and", "orAgg": "or"}
     shifts = ", ".join(f"{f}[i] += delta" if f != "tot" else "tot[i] += S(delta) * k" for f in shift)
     out = header("//", ops, fields) + f'''
 // Bitwise segment tree beats: range and= / or=, range {" / ".join(names[f] for f in fields)}, point ops.
@@ -340,16 +340,16 @@ struct BitBeats {{
 
     void pull(int i) {{
         int l = 2 * i, r = l + 1;
-{"        mx[i] = max(mx[l], mx[r]);" + chr(10) if "mx" in fields else ""}{"        mn[i] = min(mn[l], mn[r]);" + chr(10) if "mn" in fields else ""}{"        tot[i] = tot[l] + tot[r];" + chr(10) if S else ""}        andAll[i] = andAll[l] & andAll[r], orAll[i] = orAll[l] | orAll[r];
+{"        mx[i] = max(mx[l], mx[r]);" + chr(10) if "mx" in fields else ""}{"        mn[i] = min(mn[l], mn[r]);" + chr(10) if "mn" in fields else ""}{"        tot[i] = tot[l] + tot[r];" + chr(10) if S else ""}        andAgg[i] = andAgg[l] & andAgg[r], orAgg[i] = orAgg[l] | orAgg[r];
         tagAnd[i] = FULL, tagXor[i] = 0;
     }}
 
     // only legal when the node's mixed bits are all kept{", so every value shifts by the same delta" if shift else ""}{" (k = the node's length)" if S else ""}
     void apply(int i, T a, T x{", long long k" if S else ""}) {{
 {f"""        T keep = (a ^ x) & FULL;
-        T delta = (~orAll[i] & x & FULL) - (andAll[i] & ~keep & FULL);
+        T delta = (~orAgg[i] & x & FULL) - (andAgg[i] & ~keep & FULL);
         {shifts};
-""" if shift else ""}        andAll[i] = ((andAll[i] & a) ^ x) & FULL, orAll[i] = ((orAll[i] & a) ^ x) & FULL;
+""" if shift else ""}        andAgg[i] = ((andAgg[i] & a) ^ x) & FULL, orAgg[i] = ((orAgg[i] & a) ^ x) & FULL;
         tagAnd[i] = tagAnd[i] & a & FULL, tagXor[i] = ((tagXor[i] & a) ^ x) & FULL;
     }}
 
@@ -363,14 +363,14 @@ struct BitBeats {{
     // force-1 needs all 1
     bool noEffect(int i, T a, T x) const {{
         if (a & x & FULL) return false;
-        if (~a & ~x & orAll[i] & FULL) return false;
-        if (~a & x & ~andAll[i] & FULL) return false;
+        if (~a & ~x & orAgg[i] & FULL) return false;
+        if (~a & x & ~andAgg[i] & FULL) return false;
         return true;
     }}
 
     void upd(int i, int tl, int tr, int ql, int qr, T a, T x) {{
         if (qr < tl || ql > tr || noEffect(i, a, x)) return;
-        T mixed = (andAll[i] ^ orAll[i]) & FULL;
+        T mixed = (andAgg[i] ^ orAgg[i]) & FULL;
         if (ql <= tl && tr <= qr && (mixed & (~a | x) & FULL) == 0) {{ apply(i, a, x{", tr - tl + 1" if S else ""}); return; }}
         push(i, tl, tr);
         int tm = (tl + tr) / 2;
@@ -434,7 +434,7 @@ struct BitBeats {{
     T pointGet(int i) { return rangeAndQuery(i, i); }
 
     void getAllRec(int i, int tl, int tr, vector<T>& out) {
-        if (tl == tr) { out.push_back(andAll[i]); return; }
+        if (tl == tr) { out.push_back(andAgg[i]); return; }
         push(i, tl, tr);
         int tm = (tl + tr) / 2;
         getAllRec(2 * i, tl, tm, out), getAllRec(2 * i + 1, tm + 1, tr, out);

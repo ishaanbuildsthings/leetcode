@@ -48,16 +48,14 @@ class SparseMin:
             self.sparse[maxPow][l + width - powWidth]
         )
 
-    # O(1) -- a[i]; needs needs 0 <= i < n, else IndexError, else IndexError
+    # O(1) -- a[i]; needs 0 <= i < n, else IndexError
     def pointGet(self, i):
         if not 0 <= i < self.n:
             raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
+        return self.sparse[0][i]
 
     # O(1) -- min of the whole array a[0..n-1] (rangeMin(0, n - 1)); needs n >= 1, else raises IndexError
     def minAll(self):
         if self.n < 1:
             raise IndexError("minAll: needs n >= 1")
         return self.rangeMin(0, self.n - 1)
-        if not 0 <= i < self.n:
-            raise IndexError(f"pointGet: needs 0 <= i < n, got i = {i}, n = {self.n}")
-        return self.sparse[0][i]

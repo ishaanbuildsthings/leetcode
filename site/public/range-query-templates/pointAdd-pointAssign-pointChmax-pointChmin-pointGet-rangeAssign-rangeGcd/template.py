@@ -146,17 +146,15 @@ class AssignGcdTree:
         if val > self.pointGet(i):
             self.rangeAssign(i, i, val)
 
-    # O(logN logU) -- a[i] = min(a[i], val); needs needs 0 <= i < n, else IndexError, else IndexError
+    # O(logN logU) -- a[i] = min(a[i], val); needs 0 <= i < n, else IndexError
     def pointChmin(self, i, val):
         if not 0 <= i < self.n:
             raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
+        if val < self.pointGet(i):
+            self.rangeAssign(i, i, val)
 
     # O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
     def gcdAll(self):
         if self.n < 1:
             raise IndexError("gcdAll: needs n >= 1")
         return self.rangeGcd(0, self.n - 1)
-        if not 0 <= i < self.n:
-            raise IndexError(f"pointChmin: needs 0 <= i < n, got i = {i}, n = {self.n}")
-        if val < self.pointGet(i):
-            self.rangeAssign(i, i, val)

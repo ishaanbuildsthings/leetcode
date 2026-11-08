@@ -103,16 +103,14 @@ class GcdSegmentTree:
         if val < self.tree[self.n + i]:
             self.pointAssign(i, val)
 
-    # a[i] += delta; needs needs 0 <= i < n, else IndexError, else IndexError
+    # a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
         if not 0 <= i < self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
+        self.pointAssign(i, self.tree[self.n + i] + delta)
 
     # O(log(N)+log(U) ?) -- gcd of the whole array a[0..n-1] (rangeGcd(0, n - 1)); needs n >= 1, else raises IndexError
     def gcdAll(self):
         if self.n < 1:
             raise IndexError("gcdAll: needs n >= 1")
         return self.rangeGcd(0, self.n - 1)
-        if not 0 <= i < self.n:
-            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
-        self.pointAssign(i, self.tree[self.n + i] + delta)

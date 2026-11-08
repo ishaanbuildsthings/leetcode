@@ -102,16 +102,14 @@ class MaxSegTree:
         if val < self.tree[self.size + i]:
             self.pointAssign(i, val)
 
-    # a[i] += delta; needs needs 0 <= i < n, else IndexError, else IndexError
+    # a[i] += delta; needs 0 <= i < n, else IndexError
     def pointAdd(self, i, delta):
         if not 0 <= i < self.n:
             raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
+        self.pointAssign(i, self.tree[self.size + i] + delta)
 
     # O(log(N)) -- max of the whole array a[0..n-1] (rangeMax(0, n - 1)); needs n >= 1, else raises IndexError
     def maxAll(self):
         if self.n < 1:
             raise IndexError("maxAll: needs n >= 1")
         return self.rangeMax(0, self.n - 1)
-        if not 0 <= i < self.n:
-            raise IndexError(f"pointAdd: needs 0 <= i < n, got i = {i}, n = {self.n}")
-        self.pointAssign(i, self.tree[self.size + i] + delta)

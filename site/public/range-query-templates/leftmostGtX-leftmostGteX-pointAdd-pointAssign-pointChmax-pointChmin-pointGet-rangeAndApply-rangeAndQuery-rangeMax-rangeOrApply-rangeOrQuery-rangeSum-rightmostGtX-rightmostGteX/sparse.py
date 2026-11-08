@@ -21,7 +21,7 @@
 #   build: 1
 # @memory:
 #   layout: sparse
-#   node: mx[4*log(U)] tot[4*log(U)] andAll[4*log(U)] orAll[4*log(U)]
+#   node: mx[4*log(U)] tot[4*log(U)] andAgg[4*log(U)] orAgg[4*log(U)]
 #   tags: tagAnd[4*log(U)] tagXor[4*log(U)]
 #   other: none
 #   note: per update, the nodes it visits (and their siblings, created as blocks of zeros); beats recursion is amortized, so count nodes by work done. Per-node lists that grow
@@ -60,7 +60,7 @@ THE POTENTIAL IS PER BIT, NOT PER VALUE. This is what makes this template differ
 chmin/chmax beats ones, where the potential counts distinct values.
 
 Call a bit MIXED in a node when the node's values do not all agree on it. Since the node stores
-the AND and the OR of everything under it, the mixed bits are exactly andAll ^ orAll -- one
+the AND and the OR of everything under it, the mixed bits are exactly andAgg ^ orAgg -- one
 &-and-^ gives you the whole set in O(1), which is the only reason this is affordable.
 
 Give each node a score equal to how many of its K bits are mixed, and sum that over all nodes.
@@ -112,8 +112,8 @@ parent's, so a tag legal for the parent is legal for the child.
 WHY THE PRUNE NEEDS ALL THREE CHECKS (_noEffect):
 nothing changes iff for every value v in the node, (v & a) ^ x == v. Per bit:
   flip bits    (a=1,x=1) always change something         -> a & x must be 0
-  force-0 bits (a=0,x=0) need the bit already 0 for all  -> ~a & ~x & orAll must be 0
-  force-1 bits (a=0,x=1) need the bit already 1 for all  -> ~a & x & ~andAll must be 0
+  force-0 bits (a=0,x=0) need the bit already 0 for all  -> ~a & ~x & orAgg must be 0
+  force-1 bits (a=0,x=1) need the bit already 1 for all  -> ~a & x & ~andAgg must be 0
 Dropping the last two costs real time -- a pure OR would never prune.
 """
 
@@ -129,8 +129,8 @@ class SparseBitBeats:
         self.L, self.R, self.ln = [0, 0], [0, 0], [0, 0]
         self.mx = [0] * 2
         self.tot = [0] * 2
-        self.andAll = [FULL] * 2
-        self.orAll = [0] * 2
+        self.andAgg = [FULL] * 2
+        self.orAgg = [0] * 2
         self.tagAnd = [FULL] * 2
         self.tagXor = [0] * 2
         self._zero(1, hi - lo + 1)
@@ -138,7 +138,7 @@ class SparseBitBeats:
     # node i becomes a block of k zeros (its defaults, plus every count = k)
     def _zero(self, i, k):
         self.ln[i] = k
-        self.andAll[i] = 0
+        self.andAgg[i] = 0
 
     # a fresh node: a block of k zeros
     def _node(self, k):
@@ -148,8 +148,8 @@ class SparseBitBeats:
         self.ln.append(0)
         self.mx.append(0)
         self.tot.append(0)
-        self.andAll.append(self.FULL)
-        self.orAll.append(0)
+        self.andAgg.append(self.FULL)
+        self.orAgg.append(0)
         self.tagAnd.append(self.FULL)
         self.tagXor.append(0)
         self._zero(j, k)
@@ -167,8 +167,8 @@ class SparseBitBeats:
         mx = self.mx
         self.mx[i] = mx[l] if mx[l] > mx[r] else mx[r]
         self.tot[i] = self.tot[l] + self.tot[r]
-        self.andAll[i] = self.andAll[l] & self.andAll[r]
-        self.orAll[i] = self.orAll[l] | self.orAll[r]
+        self.andAgg[i] = self.andAgg[l] & self.andAgg[r]
+        self.orAgg[i] = self.orAgg[l] | self.orAgg[r]
         self.tagAnd[i] = self.FULL; self.tagXor[i] = 0
 
     # legal only when every bit the node disagrees on is kept: mixed <= a and mixed & x == 0.
@@ -176,11 +176,11 @@ class SparseBitBeats:
     def _apply(self, i, a, x, k):
         FULL = self.FULL
         keep = (a ^ x) & FULL
-        delta = ((~self.orAll[i]) & x & FULL) - (self.andAll[i] & ~keep & FULL)
+        delta = ((~self.orAgg[i]) & x & FULL) - (self.andAgg[i] & ~keep & FULL)
         self.mx[i] += delta
         self.tot[i] += delta * k
-        self.andAll[i] = ((self.andAll[i] & a) ^ x) & FULL
-        self.orAll[i] = ((self.orAll[i] & a) ^ x) & FULL
+        self.andAgg[i] = ((self.andAgg[i] & a) ^ x) & FULL
+        self.orAgg[i] = ((self.orAgg[i] & a) ^ x) & FULL
         self.tagAnd[i] = self.tagAnd[i] & a & FULL
         self.tagXor[i] = ((self.tagXor[i] & a) ^ x) & FULL
 
@@ -203,8 +203,8 @@ class SparseBitBeats:
     def _noEffect(self, i, a, x):
         FULL = self.FULL
         if a & x & FULL: return False
-        if ~a & ~x & self.orAll[i] & FULL: return False
-        if ~a & x & ~self.andAll[i] & FULL: return False
+        if ~a & ~x & self.orAgg[i] & FULL: return False
+        if ~a & x & ~self.andAgg[i] & FULL: return False
         return True
 
     def _upd(self, i, tl, tr, ql, qr, a, x):
@@ -212,7 +212,7 @@ class SparseBitBeats:
             return
         if self._noEffect(i, a, x):
             return
-        mixed = (self.andAll[i] ^ self.orAll[i]) & self.FULL
+        mixed = (self.andAgg[i] ^ self.orAgg[i]) & self.FULL
         if ql <= tl and qr >= tr and (mixed & (~a | x) & self.FULL) == 0:
             self._apply(i, a, x, tr - tl + 1)
             return
@@ -239,7 +239,7 @@ class SparseBitBeats:
 
     def _set(self, i, tl, tr, p, v):
         if tl == tr:
-            self.mx[i] = self.tot[i] = self.andAll[i] = self.orAll[i] = v
+            self.mx[i] = self.tot[i] = self.andAgg[i] = self.orAgg[i] = v
             self.tagAnd[i] = self.FULL; self.tagXor[i] = 0
             return
         self._push(i, tl, tr)
@@ -259,7 +259,7 @@ class SparseBitBeats:
         if qr < tl or ql > tr:
             return None
         if ql <= tl and qr >= tr:
-            return (self.mx, self.tot, self.andAll, self.orAll)[kind][i]
+            return (self.mx, self.tot, self.andAgg, self.orAgg)[kind][i]
         self._push(i, tl, tr)
         self._kids(i)
         tm = (tl + tr) // 2
@@ -297,6 +297,16 @@ class SparseBitBeats:
         if not self.lo <= p <= self.hi:
             raise IndexError(f"pointGet: needs lo <= p <= hi, got p = {p}")
         return self.rangeAndQuery(p, p)
+
+    def _getAllRec(self, i, tl, tr, out):
+        if tl == tr:
+            out.append(self.andAgg[i])
+            return
+        self._push(i, tl, tr)
+        self._kids(i)
+        tm = (tl + tr) // 2
+        self._getAllRec(self.L[i], tl, tm, out)
+        self._getAllRec(self.R[i], tm + 1, tr, out)
 
     # a[i] = max(a[i], val); needs lo <= i <= hi, else IndexError
     def pointChmax(self, i, val):
