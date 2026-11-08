@@ -1,5 +1,32 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/nocompress-values-merge-members-edges/template.py
+# @operations: areUnioned componentData componentMax componentMin componentSum edgeCount elementsInGroup find groups isTree largestSize numComponents roots size sizes unite uniteAUnderB
+# @data-structure-type: dsu-nocompress
+# @complexities:
+#   areUnioned: log(N)
+#   componentData: log(N)
+#   componentMax: log(N)
+#   componentMin: log(N)
+#   componentSum: log(N)
+#   edgeCount: log(N)
+#   elementsInGroup: K
+#   find: log(N)
+#   groups: N*log(N)
+#   isTree: log(N)
+#   largestSize: 1
+#   numComponents: 1
+#   roots: N
+#   size: log(N)
+#   sizes: N*log(N)
+#   unite: log(N)
+#   uniteAUnderB: log(N)
+#   build: N
+# @memory:
+#   layout: none
+#   node: par[1*N] sz[1*N]
+#   tags: none
+#   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N] data[1*N] nxt[1*N] edges[1*N]
+#   note: K = the size of the group; uniteAUnderB skips union by size, so after it any walk up the forest can take O(N); data holds one Node per element
 
 # e.g. int, str, tuple, ...
 RawVal = int

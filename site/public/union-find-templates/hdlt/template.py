@@ -1,3 +1,28 @@
+# Template by https://github.com/ishaanbuildsthings
+# https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/hdlt/template.py
+# @operations: areUnioned componentId elementsInGroup groups numComponents removeEdge removeEdgeBetween roots size sizes unite
+# @data-structure-type: hdlt
+# @complexities:
+#   areUnioned: log(N)
+#   componentId: log(N)
+#   elementsInGroup: N*log(N)
+#   groups: N*log(N)
+#   numComponents: 1
+#   removeEdge: log^2(N) amortized
+#   removeEdgeBetween: log^2(N) amortized
+#   roots: N*log(N)
+#   size: log(N)
+#   sizes: N*log(N)
+#   unite: log^2(N) amortized
+#   build: N*log(N)
+# @memory:
+#   layout: none
+#   node: forests[3*N*log(N)]
+#   tags: none
+#   other: vals[1*N]
+#   note: about log N levels, each an Euler-tour treap of up to 3N nodes, plus a few arrays per edge: n = 1e5 is roughly 80 MB in C++
+# (templates/union-find/hdlt.py, plus unite / areUnioned at the end)
+
 import random
 from collections import defaultdict
 
@@ -388,3 +413,12 @@ class DynamicConnectivity:
     def elementsInGroup(self, u):
         r = self.componentId(u)
         return [self.vals[j] for j in range(self.n) if self.componentId(j) == r]
+
+    # same as addEdge (the name the other union finds use): adds an edge, even between elements already together, and
+    # returns its id for removeEdge
+    def unite(self, u, v):
+        return self.addEdge(u, v)
+
+    # same as areConnected (the name the other union finds use)
+    def areUnioned(self, u, v):
+        return self.areConnected(u, v)

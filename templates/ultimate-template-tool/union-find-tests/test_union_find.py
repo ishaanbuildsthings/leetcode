@@ -159,7 +159,7 @@ def script(name, seed):
         mv = [b.vals[k] for k in members]
         if op in ("unite", "uniteAUnderB"):
             what += f" {w}" if has("potential") else ""
-            got = (d.unite if op == "unite" else d.uniteAUnderB)(*((i, j, w) if has("potential") else (i, j)))
+            got = getattr(d, op + ("Weighted" if has("potential") else ""))(*((i, j, w) if has("potential") else (i, j)))
             want = b.unite(i, j, w, roll and op == "unite")
             assert (got is not None and got is not False) == want, (name, what, got, want)
         elif op == "find":
@@ -219,7 +219,7 @@ def script(name, seed):
             assert got == (f != -1 and f <= t), (name, what, got)
         elif op == "rollback":
             what = op
-            d.rollback()
+            d.rollbackLastUnion()
             b.rollback()
             got = "ok"
         elif op == "checkpoint":
@@ -253,8 +253,9 @@ def driver(name):
     W = ", w" if has("potential") else ""
     rw = " >> w" if has("potential") else ""
     decl = " long long w;" if has("potential") else ""
+    U, UB = ("uniteWeighted", "uniteAUnderBWeighted") if has("potential") else ("unite", "uniteAUnderB")
     vec = 'for (size_t k = 0; k < x.size(); k++) cout << (k ? " " : "") << x[k]; cout << "\\n";'
-    c = [f"    if (op == \"unite\") {{ int i, j;{decl} cin >> i >> j{rw}; auto x = d.unite(i, j{W}); " +
+    c = [f"    if (op == \"unite\") {{ int i, j;{decl} cin >> i >> j{rw}; auto x = d.{U}(i, j{W}); " +
          ('if (x.first < 0) cout << "none\\n"; else cout << x.first << " " << x.second << "\\n"; }' if mode == "nocompress" else "cout << (int)x << \"\\n\"; }"),
          "    else if (op == \"find\") { int i; cin >> i; cout << d.find(i) << \"\\n\"; }",
          "    else if (op == \"areUnioned\") { int i, j; cin >> i >> j; cout << (int)d.areUnioned(i, j) << \"\\n\"; }",
@@ -267,9 +268,9 @@ def driver(name):
          "for (size_t k = 0; k < g[a].size(); k++) cout << (k ? \" \" : \"\") << g[a][k]; } cout << \"\\n\"; }",
          f"    else if (op == \"elementsInGroup\") {{ int i; cin >> i; auto x = d.elementsInGroup(i); {vec} }}"]
     if mode == "nocompress":
-        c.append(f"    else if (op == \"uniteAUnderB\") {{ int i, j;{decl} cin >> i >> j{rw}; cout << (int)d.uniteAUnderB(i, j{W}) << \"\\n\"; }}")
+        c.append(f"    else if (op == \"uniteAUnderB\") {{ int i, j;{decl} cin >> i >> j{rw}; cout << (int)d.{UB}(i, j{W}) << \"\\n\"; }}")
     if mode == "rollback":
-        c += ["    else if (op == \"rollback\") { d.rollback(); cout << \"ok\\n\"; }",
+        c += ["    else if (op == \"rollback\") { d.rollbackLastUnion(); cout << \"ok\\n\"; }",
               "    else if (op == \"checkpoint\") cout << d.checkpoint() << \"\\n\";",
               "    else if (op == \"rollbackTo\") { int k; cin >> k; d.rollbackTo(k); cout << \"ok\\n\"; }"]
     if has("values"):
@@ -328,7 +329,7 @@ def main():
     args = sys.argv[1:]
     budget = float(args[args.index("--budget") + 1]) if "--budget" in args else 1e9
     want = [a for k, a in enumerate(args) if not a.startswith("--") and (k == 0 or args[k - 1] != "--budget")]
-    names = sorted(d for d in os.listdir(DIR) if not d.startswith("_") and (not want or any(w in d for w in want)))
+    names = sorted(d for d in os.listdir(DIR) if d.split("-")[0] in CLASS and (not want or any(w in d for w in want)))
     start = time.time()
     scripts = {}
     for name in names:

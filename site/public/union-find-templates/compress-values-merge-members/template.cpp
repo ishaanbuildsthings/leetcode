@@ -1,5 +1,29 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/compress-values-merge-members/template.cpp
+// @operations: areUnioned componentData componentMax componentMin componentSum elementsInGroup find groups largestSize numComponents roots size sizes unite
+// @data-structure-type: dsu
+// @complexities:
+//   areUnioned: α(N) amortized
+//   componentData: α(N) amortized
+//   componentMax: α(N) amortized
+//   componentMin: α(N) amortized
+//   componentSum: α(N) amortized
+//   elementsInGroup: K
+//   find: α(N) amortized
+//   groups: N
+//   largestSize: 1
+//   numComponents: 1
+//   roots: N
+//   size: α(N) amortized
+//   sizes: N*log(N)
+//   unite: α(N) amortized
+//   build: N
+// @memory:
+//   layout: none
+//   node: par[1*N] sz[1*N]
+//   tags: none
+//   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N] data[1*N] nxt[1*N]
+//   note: K = the size of the group; data holds one Node per element
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

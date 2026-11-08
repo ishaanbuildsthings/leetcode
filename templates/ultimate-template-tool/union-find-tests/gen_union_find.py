@@ -2,31 +2,28 @@
 
     find modes   compress     path compression: fastest, but parents get rewritten
                  nocompress   parents never change, so the forest is a record of every merge (uniteAUnderB too)
-                 rollback     no compression plus an undo stack: rollback(), checkpoint(), rollbackTo(k)
+                 rollback     no compression plus an undo stack: rollbackLastUnion(), checkpoint(), rollbackTo(k)
     extras       values       componentSum / componentMin / componentMax of the elements' values
                  merge        your own Node per component: baseFn(v, i) and combine(big, small), like the generic seg tree
                  members      each component's members linked in a circle: elementsInGroup in O(size of the group)
                  edges        edgeCount(i) / isTree(i): every unite counts as an edge, merging or not
-                 potential    unite(i, j, w) means value[j] - value[i] = w, and diff(i, j) reads it back
+                 potential    uniteWeighted(i, j, w) means value[j] - value[i] = w, and diff(i, j) reads it back
                  time         firstConnectedTime(i, j) / connectedAt(i, j, t) (nocompress only)
                  grow         add(val): a new element in its own component
 
 Writes templates/ultimate-template-tool/union-find/<mode>[-extra...]/template.py and template.cpp (folder name: the
-mode, then the extras in the order above), the next-free-index DSU in union-find/_next-free/, and the site's
-lib/generated/union-find-templates.ts (the ops each mode and extra adds, with their costs), and copies all of it (plus
-templates/union-find/hdlt.*) into site/public/union-find-templates/ for the site.
+mode, then the extras in the order above), the next-free-index DSU in union-find/next-free/, and union-find/hdlt/:
+templates/union-find/hdlt.* plus unite / areUnioned, the names the others use. Every file carries the picker header
+(@operations / @complexities / @memory); site/scripts/build-union-find-templates.mjs reads them for the Union find tab.
 
     python3 gen_union_find.py
 """
 import itertools
-import json
 import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 DIR = os.environ.get("UNION_FIND_DIR") or os.path.join(REPO, "templates", "ultimate-template-tool", "union-find")
-SITE_MANIFEST = os.path.join(REPO, "site", "lib", "generated", "union-find-templates.ts")
-SITE_PUBLIC = os.path.join(REPO, "site", "public", "union-find-templates")  # (the copies next dev serves)
 HDLT = os.path.join(REPO, "templates", "union-find")  # (the hand-written fully dynamic connectivity, shown beside them)
 URL = "https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find"
 
@@ -51,36 +48,59 @@ def combos():
                     yield mode, set(feats)
 
 
+TYPE = {"compress": "dsu", "nocompress": "dsu-nocompress", "rollback": "dsu-rollback"}
+
+
+def header(mode, feats, cm):
+    """the picker's header for one template: its ops (the method names) with costs, and what it stores"""
+    has = feats.__contains__
+    F = "α(N) amortized" if mode == "compress" else "log(N)"
+    slow = "N" if mode == "compress" else "N*log(N)"
+    cost = {"find": F, "uniteWeighted" if has("potential") else "unite": F, "areUnioned": F, "size": F,
+            "numComponents": "1", "largestSize": "1", "roots": "N", "sizes": "N*log(N)", "groups": slow,
+            "elementsInGroup": "K" if has("members") else slow}
+    if mode == "nocompress":
+        cost["uniteAUnderBWeighted" if has("potential") else "uniteAUnderB"] = "log(N)"
+    if mode == "rollback":
+        cost.update(rollbackLastUnion="1", checkpoint="1", rollbackTo="1 amortized")
+    if has("values"):
+        cost.update(componentSum=F, componentMin=F, componentMax=F)
+    if has("merge"):
+        cost["componentData"] = F
+    if has("edges"):
+        cost.update(edgeCount=F, isTree=F)
+    if has("potential"):
+        cost["diff"] = F
+    if has("time"):
+        cost.update(firstConnectedTime="log(N)", connectedAt="log(N)")
+    if has("grow"):
+        cost["add"] = "1 amortized"
+    other = ["vals[1*N]"]
+    other += ["csum[1*N]", "cmin[1*N]", "cmax[1*N]"] if has("values") else []
+    other += ["data[1*N]"] if has("merge") else []
+    other += ["nxt[1*N]"] if has("members") else []
+    other += ["edges[1*N]"] if has("edges") else []
+    other += ["pot[1*N]"] if has("potential") else []
+    other += ["tm[1*N]"] if has("time") else []
+    notes = []
+    if has("members"):
+        notes.append("K = the size of the group")
+    if mode == "nocompress":
+        notes.append("uniteAUnderB skips union by size, so after it any walk up the forest can take O(N)")
+    if mode == "rollback":
+        notes.append("plus the undo stack: one small frame per unite not yet undone" + (", holding a copy of the bigger Node" if has("merge") else ""))
+    if has("merge"):
+        notes.append("data holds one Node per element")
+    ops = sorted(cost)
+    lines = [f"@operations: {' '.join(ops)}", f"@data-structure-type: {TYPE[mode]}", "@complexities:"]
+    lines += [f"  {op}: {cost[op]}" for op in ops]
+    lines += ["  build: N", "@memory:", "  layout: none", "  node: par[1*N] sz[1*N]", "  tags: none", f"  other: {' '.join(other)}"]
+    lines += [f"  note: {'; '.join(notes)}"] if notes else []
+    return [f"{cm} {x}" for x in lines]
+
+
 def find_cost(mode):
     return "α(n) amortized" if mode == "compress" else "log n"
-
-
-# ------------------------------------------------------------------------------------------------ the site's op table
-def op_parts():
-    """[op, cost] lists: what every template of a mode has, and what each extra adds (or replaces, same op name)"""
-    base, extra = {}, {}
-    for mode in MODES:
-        f = find_cost(mode)
-        slow = "n" if mode == "compress" else "n log n"
-        ops = [["find(i)", f], ["unite(i, j)", f], ["areUnioned(i, j)", f], ["size(i)", f], ["numComponents()", "1"],
-               ["largestSize()", "1"], ["roots()", "n"], ["sizes()", "n log n"], ["groups()", slow],
-               ["elementsInGroup(i)", slow]]
-        if mode == "nocompress":
-            ops.append(["uniteAUnderB(a, b)", "log n (no union by size: depth can degrade)"])
-        if mode == "rollback":
-            ops += [["rollback()", "1"], ["checkpoint()", "1"], ["rollbackTo(k)", "1 per unite undone"]]
-        base[mode] = ops + [["build", "n"]]
-        extra[mode] = {
-            "values": [["componentSum(i)", f], ["componentMin(i)", f], ["componentMax(i)", f]],
-            "merge": [["componentData(i)", f]],
-            "members": [["elementsInGroup(i)", "size of the group"]],
-            "edges": [["edgeCount(i)", f], ["isTree(i)", f]],
-            "potential": [["unite(i, j, w)", f], ["diff(i, j)", f]] +
-                         ([["uniteAUnderB(a, b, w)", "log n (no union by size: depth can degrade)"]] if mode == "nocompress" else []),
-            "time": [["firstConnectedTime(i, j)", "log n"], ["connectedAt(i, j, t)", "log n"]],
-            "grow": [["add(val)", "1"]],
-        }
-    return base, extra
 
 
 # ------------------------------------------------------------------------------------------------ Python
@@ -138,7 +158,7 @@ def py(mode, feats):
     cls, comp, nc, roll = CLASS[mode], mode == "compress", mode == "nocompress", mode == "rollback"
     F = "O(α(n)) amortized" if comp else "O(log n)"
     name = folder(mode, feats)
-    L = ["# Template by https://github.com/ishaanbuildsthings", f"# {URL}/{name}/template.py", ""]
+    L = ["# Template by https://github.com/ishaanbuildsthings", f"# {URL}/{name}/template.py"] + header(mode, feats, "#") + [""]
     if has("time"):
         L += ["_NEVER = 1 << 62  # (the time of a root: it never got a parent)", "", ""]
     if has("merge"):
@@ -148,7 +168,7 @@ def py(mode, feats):
           "# vals: the elements (" + ("numbers: componentSum / Min / Max are over them" if has("values") else "any values: numbers, strings, tuples, ...") +
           "); everything works on their indices 0..n-1" + (", and add(val) appends more" if has("grow") else "")]
     if has("potential"):
-        L += ["# potential: every element has a hidden number value[i]; unite(i, j, w) says value[j] - value[i] = w and diff(i, j)",
+        L += ["# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)",
               "# reads it back (for parity / two-colouring, swap + and - for ^ throughout)"]
     L += ["", "", f"class {cls}:"]
     I = "    "
@@ -228,9 +248,9 @@ def py(mode, feats):
     if has("time"):
         doc.append("each call is the next unite in time (0, 1, 2, ...), failed ones too")
     if roll:
-        doc.append("either way it records a frame, so it always takes exactly one rollback to undo")
+        doc.append("either way it records a frame, so it always takes exactly one rollbackLastUnion to undo")
     L += [I + "# " + line.replace("\n", "\n" + I) for line in doc]
-    L.append(I + ("def unite(self, i, j, w):" if has("potential") else "def unite(self, i, j):"))
+    L.append(I + ("def uniteWeighted(self, i, j, w):" if has("potential") else "def unite(self, i, j):"))
     body = []
     if has("time"):
         body += ["t = self.time", "self.time += 1"]
@@ -264,7 +284,7 @@ def py(mode, feats):
             L.append(I + "# w: value[b] - value[a] = w")
         if has("merge"):
             L.append(I + "# combine gets b's component's Node first here, even when it's the smaller one")
-        L.append(I + ("def uniteAUnderB(self, a, b, w):" if has("potential") else "def uniteAUnderB(self, a, b):"))
+        L.append(I + ("def uniteAUnderBWeighted(self, a, b, w):" if has("potential") else "def uniteAUnderB(self, a, b):"))
         body = []
         if has("time"):
             body += ["t = self.time", "self.time += 1"]
@@ -284,9 +304,9 @@ def py(mode, feats):
         L.append("")
     # ---- rollback
     if roll:
-        L += [I + "# O(1), undoes the most recent unite, whether or not it merged anything: k rollbacks always undo the last",
-              I + "# k unites" + (" (an add is never undone)" if has("grow") else "") + "; IndexError if you roll back more unites than you made",
-              I + "def rollback(self):",
+        L += [I + "# O(1), undoes the most recent unite, whether or not it merged anything: k calls always undo the last",
+              I + "# k unites" + (" (an add is never undone)" if has("grow") else "") + "; IndexError if there's no unite left to undo",
+              I + "def rollbackLastUnion(self):",
               I * 2 + "frame = self.stk.pop()"]
         if has("edges"):
             L += [I * 2 + "if type(frame) is int:", I * 3 + "self.edges[frame] -= 1", I * 3 + "return"]
@@ -316,7 +336,7 @@ def py(mode, feats):
               I + "# O(1) per unite undone, undoes every unite made since checkpoint() returned k",
               I + "def rollbackTo(self, k):",
               I * 2 + "while len(self.stk) > k:",
-              I * 3 + "self.rollback()",
+              I * 3 + "self.rollbackLastUnion()",
               ""]
     # ---- the base queries
     slow = "O(n)" if comp else "O(n log n)"
@@ -494,7 +514,7 @@ def cpp(mode, feats):
     F = "O(α(n)) amortized" if comp else "O(log n)"
     name = folder(mode, feats)
     I = "    "
-    L = ["// Template by https://github.com/ishaanbuildsthings", f"// {URL}/{name}/template.cpp",
+    L = ["// Template by https://github.com/ishaanbuildsthings", f"// {URL}/{name}/template.cpp"] + header(mode, feats, "//") + [
          "#include <bits/stdc++.h>", "using namespace std;", "using ll = long long;", ""]
     if has("merge"):
         L += CPP_STUBS.replace("{roll}", CPP_ROLL_NOTE if roll else "").split("\n")
@@ -504,7 +524,7 @@ def cpp(mode, feats):
     L += ["// vals: the elements (" + ("numbers: componentSum / Min / Max are over them" if has("values") else "any type: numbers, strings, pairs, ...") +
           "); everything works on their indices 0..n-1" + (", and add(val) appends more" if has("grow") else "")]
     if has("potential"):
-        L += ["// potential: every element has a hidden number value[i]; unite(i, j, w) says value[j] - value[i] = w and diff(i, j)",
+        L += ["// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)",
               "// reads it back (for parity / two-colouring, swap + and - for ^ throughout)"]
     if has("merge"):
         L += [f"struct {cls} {{", I + "using T = RawVal;"]
@@ -593,10 +613,10 @@ def cpp(mode, feats):
     if has("time"):
         doc.append("each call is the next unite in time (0, 1, 2, ...), failed ones too")
     if roll:
-        doc.append("either way it records a frame, so it always takes exactly one rollback to undo")
+        doc.append("either way it records a frame, so it always takes exactly one rollbackLastUnion to undo")
     L += [I + "// " + line.replace("\n", "\n" + I) for line in doc]
     ret = "pair<int, int>" if nc else "bool"
-    L.append(I + f"{ret} unite(int i, int j{', long long w' if has('potential') else ''}) {{")
+    L.append(I + f"{ret} {'uniteWeighted' if has('potential') else 'unite'}(int i, int j{', long long w' if has('potential') else ''}) {{")
     body = []
     if has("time"):
         body.append("int t = time++;")
@@ -631,7 +651,7 @@ def cpp(mode, feats):
             L.append(I + "// w: value[b] - value[a] = w")
         if has("merge"):
             L.append(I + "// combine gets b's component's Node first here, even when it's the smaller one")
-        L.append(I + f"bool uniteAUnderB(int a, int b{', long long w' if has('potential') else ''}) {{")
+        L.append(I + f"bool {'uniteAUnderBWeighted' if has('potential') else 'uniteAUnderB'}(int a, int b{', long long w' if has('potential') else ''}) {{")
         body = []
         if has("time"):
             body.append("int t = time++;")
@@ -651,10 +671,10 @@ def cpp(mode, feats):
         L += [I + "}", ""]
     # ---- rollback
     if roll:
-        L += [I + "// O(1), undoes the most recent unite, whether or not it merged anything: k rollbacks always undo the last",
-              I + "// k unites" + (" (an add is never undone)" if has("grow") else "") + "; out_of_range if you roll back more unites than you made",
-              I + "void rollback() {",
-              I * 2 + 'if (stk.empty()) throw out_of_range("rollback: no unite left to undo");',
+        L += [I + "// O(1), undoes the most recent unite, whether or not it merged anything: k calls always undo the last",
+              I + "// k unites" + (" (an add is never undone)" if has("grow") else "") + "; out_of_range if there's no unite left to undo",
+              I + "void rollbackLastUnion() {",
+              I * 2 + 'if (stk.empty()) throw out_of_range("rollbackLastUnion: no unite left to undo");',
               I * 2 + "Frame f = stk.back();",
               I * 2 + "stk.pop_back();"]
         if has("edges"):
@@ -681,7 +701,7 @@ def cpp(mode, feats):
               I + "int checkpoint() { return stk.size(); }", "",
               I + "// O(1) per unite undone, undoes every unite made since checkpoint() returned k",
               I + "void rollbackTo(int k) {",
-              I * 2 + "while ((int)stk.size() > k) rollback();",
+              I * 2 + "while ((int)stk.size() > k) rollbackLastUnion();",
               I + "}", ""]
     # ---- base queries
     slow = "O(n)" if comp else "O(n log n)"
@@ -804,7 +824,22 @@ def cpp(mode, feats):
 
 # ------------------------------------------------------------------------------------------------ next free index
 NEXT_FREE_PY = '''# Template by https://github.com/ishaanbuildsthings
-# {URL}/_next-free/template.py
+# {URL}/next-free/template.py
+# @operations: isFree nextFree prevFree take takeRange
+# @data-structure-type: next-free
+# @complexities:
+#   isFree: α(N) amortized
+#   nextFree: α(N) amortized
+#   prevFree: α(N) amortized
+#   take: α(N) amortized
+#   takeRange: α(N) amortized
+#   build: N
+# @memory:
+#   layout: none
+#   node: nxt[1*N] prv[1*N]
+#   tags: none
+#   other: none
+#   note: takeRange costs α(N) amortized per index it takes, so O(N α(N)) over every call together
 
 # nf = NextFree(n)
 # Indices 0..n-1 start free; take(i) / takeRange(l, r) use them up, and nextFree / prevFree jump straight to the
@@ -874,7 +909,22 @@ class NextFree:
 '''
 
 NEXT_FREE_CPP = '''// Template by https://github.com/ishaanbuildsthings
-// {URL}/_next-free/template.cpp
+// {URL}/next-free/template.cpp
+// @operations: isFree nextFree prevFree take takeRange
+// @data-structure-type: next-free
+// @complexities:
+//   isFree: α(N) amortized
+//   nextFree: α(N) amortized
+//   prevFree: α(N) amortized
+//   take: α(N) amortized
+//   takeRange: α(N) amortized
+//   build: N
+// @memory:
+//   layout: none
+//   node: nxt[1*N] prv[1*N]
+//   tags: none
+//   other: none
+//   note: takeRange costs α(N) amortized per index it takes, so O(N α(N)) over every call together
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
@@ -950,36 +1000,87 @@ def write(path, text):
     return 0
 
 
+HDLT_HEADER = [
+    "@operations: areUnioned componentId elementsInGroup groups numComponents removeEdge removeEdgeBetween roots size sizes unite",
+    "@data-structure-type: hdlt",
+    "@complexities:",
+    "  areUnioned: log(N)",
+    "  componentId: log(N)",
+    "  elementsInGroup: N*log(N)",
+    "  groups: N*log(N)",
+    "  numComponents: 1",
+    "  removeEdge: log^2(N) amortized",
+    "  removeEdgeBetween: log^2(N) amortized",
+    "  roots: N*log(N)",
+    "  size: log(N)",
+    "  sizes: N*log(N)",
+    "  unite: log^2(N) amortized",
+    "  build: N*log(N)",
+    "@memory:",
+    "  layout: none",
+    "  node: forests[3*N*log(N)]",
+    "  tags: none",
+    "  other: vals[1*N]",
+    "  note: about log N levels, each an Euler-tour treap of up to 3N nodes, plus a few arrays per edge: n = 1e5 is roughly 80 MB in C++",
+]
+HDLT_PY_ALIASES = '''
+
+    # same as addEdge (the name the other union finds use): adds an edge, even between elements already together, and
+    # returns its id for removeEdge
+    def unite(self, u, v):
+        return self.addEdge(u, v)
+
+    # same as areConnected (the name the other union finds use)
+    def areUnioned(self, u, v):
+        return self.areConnected(u, v)
+'''
+HDLT_CPP_ALIASES = '''
+    // same as addEdge (the name the other union finds use): adds an edge, even between elements already together, and
+    // returns its id for removeEdge
+    int unite(int u, int v) { return addEdge(u, v); }
+
+    // same as areConnected (the name the other union finds use)
+    bool areUnioned(int u, int v) { return areConnected(u, v); }
+
+    // same as removeEdge(u, v) (the name the Python version uses)
+    bool removeEdgeBetween(int u, int v) { return removeEdge(u, v); }
+};
+'''
+
+
+def hdlt():
+    """templates/union-find/hdlt.* with the picker header, the C++ prelude, and unite / areUnioned (C++: also removeEdgeBetween) added at the end"""
+    py_src = open(os.path.join(HDLT, "hdlt.py")).read().rstrip("\n")
+    cpp_src = open(os.path.join(HDLT, "hdlt.cpp")).read().rstrip("\n")
+    assert cpp_src.endswith("};") and "#include" not in cpp_src
+
+    def top(cm, f):
+        return (f"{cm} Template by https://github.com/ishaanbuildsthings\n{cm} {URL}/hdlt/{f}\n" +
+                "".join(f"{cm} {x}\n" for x in HDLT_HEADER))
+
+    py_out = top("#", "template.py") + "# (templates/union-find/hdlt.py, plus unite / areUnioned at the end)\n\n" + py_src + HDLT_PY_ALIASES
+    cpp_out = (top("//", "template.cpp") + "#include <bits/stdc++.h>\nusing namespace std;\nusing ll = long long;\n\n" +
+               "// (templates/union-find/hdlt.cpp, plus unite / areUnioned at the end)\n" + cpp_src[:-2].rstrip("\n") + "\n" + HDLT_CPP_ALIASES)
+    return py_out, cpp_out
+
+
 def main():
     written = count = 0
-    keep = set()
+    keep = {"next-free", "hdlt"}
     for mode, feats in combos():
         name = folder(mode, feats)
         keep.add(name)
         written += write(os.path.join(DIR, name, "template.py"), py(mode, feats))
         written += write(os.path.join(DIR, name, "template.cpp"), cpp(mode, feats))
         count += 1
-    written += write(os.path.join(DIR, "_next-free", "template.py"), NEXT_FREE_PY.replace("{URL}", URL))
-    written += write(os.path.join(DIR, "_next-free", "template.cpp"), NEXT_FREE_CPP.replace("{URL}", URL))
-    stale = [d for d in os.listdir(DIR) if not d.startswith("_") and d not in keep]
+    written += write(os.path.join(DIR, "next-free", "template.py"), NEXT_FREE_PY.replace("{URL}", URL))
+    written += write(os.path.join(DIR, "next-free", "template.cpp"), NEXT_FREE_CPP.replace("{URL}", URL))
+    py_h, cpp_h = hdlt()
+    written += write(os.path.join(DIR, "hdlt", "template.py"), py_h)
+    written += write(os.path.join(DIR, "hdlt", "template.cpp"), cpp_h)
+    stale = [d for d in os.listdir(DIR) if d not in keep]
     assert not stale, f"folders no combination makes any more (delete them): {stale[:5]}"
-    base, extra = op_parts()
-    ts = ("// Generated by templates/ultimate-template-tool/union-find-tests/gen_union_find.py. Do not edit.\n"
-          "// The ops every union find of a find mode has, and what each extra adds (an op of the same name replaces it).\n"
-          f"export const UNION_FIND_MODES = {json.dumps(MODES)} as const;\n"
-          f"export const UNION_FIND_EXTRAS = {json.dumps(FEATS)} as const;\n"
-          f"export const UNION_FIND_CLASS: Record<string, string> = {json.dumps(CLASS)};\n"
-          f"export const UNION_FIND_BASE_OPS: Record<string, [string, string][]> = {json.dumps(base)};\n"
-          f"export const UNION_FIND_EXTRA_OPS: Record<string, Record<string, [string, string][]>> = {json.dumps(extra)};\n")
-    written += write(SITE_MANIFEST, ts)
-    for d in sorted(keep) + ["_next-free"]:
-        for f in ("template.py", "template.cpp"):
-            written += write(os.path.join(SITE_PUBLIC, d, f), open(os.path.join(DIR, d, f)).read())
-    for f in ("hdlt.py", "hdlt.cpp"):
-        written += write(os.path.join(SITE_PUBLIC, "_hdlt", f), open(os.path.join(HDLT, f)).read())
-    stale = [d for d in os.listdir(SITE_PUBLIC) if d not in keep and d not in ("_next-free", "_hdlt")]
-    assert not stale, f"stale site copies (delete them): {stale[:5]}"
-    print(f"{count} union finds (+ next free), {written} files written")
+    print(f"{count} union finds + next free + HDLT, {written} files written (then npm run gen:union-find in site/)")
 
 
 if __name__ == "__main__":

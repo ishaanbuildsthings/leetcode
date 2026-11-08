@@ -1,5 +1,30 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/compress-values-edges-grow/template.cpp
+// @operations: add areUnioned componentMax componentMin componentSum edgeCount elementsInGroup find groups isTree largestSize numComponents roots size sizes unite
+// @data-structure-type: dsu
+// @complexities:
+//   add: 1 amortized
+//   areUnioned: α(N) amortized
+//   componentMax: α(N) amortized
+//   componentMin: α(N) amortized
+//   componentSum: α(N) amortized
+//   edgeCount: α(N) amortized
+//   elementsInGroup: N
+//   find: α(N) amortized
+//   groups: N
+//   isTree: α(N) amortized
+//   largestSize: 1
+//   numComponents: 1
+//   roots: N
+//   size: α(N) amortized
+//   sizes: N*log(N)
+//   unite: α(N) amortized
+//   build: N
+// @memory:
+//   layout: none
+//   node: par[1*N] sz[1*N]
+//   tags: none
+//   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N] edges[1*N]
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

@@ -1,12 +1,37 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/compress-values-edges-potential/template.cpp
+// @operations: areUnioned componentMax componentMin componentSum diff edgeCount elementsInGroup find groups isTree largestSize numComponents roots size sizes uniteWeighted
+// @data-structure-type: dsu
+// @complexities:
+//   areUnioned: α(N) amortized
+//   componentMax: α(N) amortized
+//   componentMin: α(N) amortized
+//   componentSum: α(N) amortized
+//   diff: α(N) amortized
+//   edgeCount: α(N) amortized
+//   elementsInGroup: N
+//   find: α(N) amortized
+//   groups: N
+//   isTree: α(N) amortized
+//   largestSize: 1
+//   numComponents: 1
+//   roots: N
+//   size: α(N) amortized
+//   sizes: N*log(N)
+//   uniteWeighted: α(N) amortized
+//   build: N
+// @memory:
+//   layout: none
+//   node: par[1*N] sz[1*N]
+//   tags: none
+//   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N] edges[1*N] pot[1*N]
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
 
 // DSU<int> dsu(vals);
 // vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1
-// potential: every element has a hidden number value[i]; unite(i, j, w) says value[j] - value[i] = w and diff(i, j)
+// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
 // reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 template <typename T>
 struct DSU {
@@ -50,7 +75,7 @@ struct DSU {
     // O(α(n)) amortized, merges the two components, false if i and j were already together
     // w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
     // either way it counts as an edge of the component (edgeCount)
-    bool unite(int i, int j, long long w) {
+    bool uniteWeighted(int i, int j, long long w) {
         auto [ri, wi] = rootAndWeight(i);
         auto [rj, wj] = rootAndWeight(j);
         i = ri, j = rj;

@@ -1,5 +1,30 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/rollback-members-edges/template.cpp
+// @operations: areUnioned checkpoint edgeCount elementsInGroup find groups isTree largestSize numComponents rollbackLastUnion rollbackTo roots size sizes unite
+// @data-structure-type: dsu-rollback
+// @complexities:
+//   areUnioned: log(N)
+//   checkpoint: 1
+//   edgeCount: log(N)
+//   elementsInGroup: K
+//   find: log(N)
+//   groups: N*log(N)
+//   isTree: log(N)
+//   largestSize: 1
+//   numComponents: 1
+//   rollbackLastUnion: 1
+//   rollbackTo: 1 amortized
+//   roots: N
+//   size: log(N)
+//   sizes: N*log(N)
+//   unite: log(N)
+//   build: N
+// @memory:
+//   layout: none
+//   node: par[1*N] sz[1*N]
+//   tags: none
+//   other: vals[1*N] nxt[1*N] edges[1*N]
+//   note: K = the size of the group; plus the undo stack: one small frame per unite not yet undone
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
@@ -36,7 +61,7 @@ struct RollbackDSU {
 
     // O(log n), merges the two components, false if i and j were already together
     // either way it counts as an edge of the component (edgeCount)
-    // either way it records a frame, so it always takes exactly one rollback to undo
+    // either way it records a frame, so it always takes exactly one rollbackLastUnion to undo
     bool unite(int i, int j) {
         i = find(i), j = find(j);
         if (i == j) {
@@ -55,10 +80,10 @@ struct RollbackDSU {
         return true;
     }
 
-    // O(1), undoes the most recent unite, whether or not it merged anything: k rollbacks always undo the last
-    // k unites; out_of_range if you roll back more unites than you made
-    void rollback() {
-        if (stk.empty()) throw out_of_range("rollback: no unite left to undo");
+    // O(1), undoes the most recent unite, whether or not it merged anything: k calls always undo the last
+    // k unites; out_of_range if there's no unite left to undo
+    void rollbackLastUnion() {
+        if (stk.empty()) throw out_of_range("rollbackLastUnion: no unite left to undo");
         Frame f = stk.back();
         stk.pop_back();
         if (f.i < 0) {
@@ -79,7 +104,7 @@ struct RollbackDSU {
 
     // O(1) per unite undone, undoes every unite made since checkpoint() returned k
     void rollbackTo(int k) {
-        while ((int)stk.size() > k) rollback();
+        while ((int)stk.size() > k) rollbackLastUnion();
     }
 
     // O(log n), true if i and j are in the same component

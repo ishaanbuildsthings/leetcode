@@ -61,6 +61,8 @@ export interface UsageClass {
   ctor: UsageParam[];
   ctorDoc: string;
   pool?: boolean;
+  // C++: a plain struct (not templated on T), so it's constructed without <T>
+  plain?: boolean;
 }
 
 export interface UsageMethod {
@@ -113,6 +115,9 @@ export interface MemoryBreakdown {
 const SIZES = { N: 2e5, U: 1e9, Q: 2e5 };
 const FACTOR_VALUES: Record<string, number> = {
   "1": 1,
+  // union find: α(N) is at most about 4; K = the size of the group a call lists (ranked as a typical small group)
+  "α(N)": 3,
+  K: 20,
   N: SIZES.N,
   "log(N)": Math.log2(SIZES.N),
   "log^2(N)": Math.log2(SIZES.N) ** 2,
@@ -206,6 +211,8 @@ export function formatMemory(memory: string): string {
 // How a memory factor is written: no inner spaces, so "logU" reads as one thing next to a "*".
 const PRETTY_FACTORS: Record<string, string> = {
   "1": "1",
+  "α(N)": "α(N)",
+  K: "K",
   Q: "Q",
   N: "N",
   "log(N)": "logN",
@@ -215,9 +222,27 @@ const PRETTY_FACTORS: Record<string, string> = {
   "sqrt(N/logN)": "√(N/logN)",
   U: "U",
   "U/64": "U/64",
+  "N/64": "N/64",
+  "L/64": "L/64",
   "log(U)": "logU",
   "log64(U)": "log₆₄U",
   "log(log(U))": "loglogU",
+  // the matrix templates: shapes A[x, y] @ B[y, z], square M[k, k], power p, recurrence order d, sequence length L
+  x: "x",
+  y: "y",
+  z: "z",
+  "y/64": "y/64",
+  "z/64": "z/64",
+  "k^2": "k²",
+  "k^2/64": "k²/64",
+  "k^3": "k³",
+  "k^3/64": "k³/64",
+  "log(p)": "log p",
+  "log(P)": "log P",
+  "d^2": "d²",
+  "log(n)": "log n",
+  "L^2": "L²",
+  "min(x,y)": "min(x, y)",
 };
 
 export function formatCost(cost: string): string {

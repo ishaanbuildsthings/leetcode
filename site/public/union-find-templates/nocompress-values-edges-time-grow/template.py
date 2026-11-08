@@ -1,5 +1,34 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/nocompress-values-edges-time-grow/template.py
+# @operations: add areUnioned componentMax componentMin componentSum connectedAt edgeCount elementsInGroup find firstConnectedTime groups isTree largestSize numComponents roots size sizes unite uniteAUnderB
+# @data-structure-type: dsu-nocompress
+# @complexities:
+#   add: 1 amortized
+#   areUnioned: log(N)
+#   componentMax: log(N)
+#   componentMin: log(N)
+#   componentSum: log(N)
+#   connectedAt: log(N)
+#   edgeCount: log(N)
+#   elementsInGroup: N*log(N)
+#   find: log(N)
+#   firstConnectedTime: log(N)
+#   groups: N*log(N)
+#   isTree: log(N)
+#   largestSize: 1
+#   numComponents: 1
+#   roots: N
+#   size: log(N)
+#   sizes: N*log(N)
+#   unite: log(N)
+#   uniteAUnderB: log(N)
+#   build: N
+# @memory:
+#   layout: none
+#   node: par[1*N] sz[1*N]
+#   tags: none
+#   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N] edges[1*N] tm[1*N]
+#   note: uniteAUnderB skips union by size, so after it any walk up the forest can take O(N)
 
 _NEVER = 1 << 62  # (the time of a root: it never got a parent)
 

@@ -10,6 +10,8 @@ interface ParsedClass {
   ctorDoc: string;
   methods: Record<string, { params: string[]; returns?: string; doc: string }>;
   pool?: boolean;
+  // C++: a plain struct, not a template <typename T> one (written without <T>)
+  plain?: boolean;
 }
 
 // How to call a template, read from its source: the class that implements the most of the folder's operations (ties:
@@ -154,19 +156,23 @@ function cppClasses(text: string): ParsedClass[] {
   const classes: ParsedClass[] = [];
   const lines = text.split("\n");
   for (let i = 0; i + 1 < lines.length; i++) {
-    if (!/^template <typename T>/.test(lines[i])) continue;
-    const s = lines[i + 1].match(/^struct (\w+) \{/);
-    if (!s) continue;
+    // a top-level struct, templated (template <typename T> on the line above) or not (union find: the ones with your
+    // own merge, next free index); start: the struct's own line
+    const templated = /^template <typename T>/.test(lines[i]);
+    const start = templated ? i + 1 : i;
+    const s = lines[start].match(/^struct (\w+) \{/);
+    if (!s || (!templated && i > 0 && /^template </.test(lines[i - 1]))) continue;
     const cls: ParsedClass = {
       name: s[1],
-      doc: docAbove(lines, i, "//"),
+      doc: docAbove(lines, templated ? i : start, "//"),
       ctor: [],
       ctorDoc: "",
       methods: {},
       pool: false,
+      ...(templated ? {} : { plain: true }),
     };
     let depth = 0;
-    for (let j = i + 1; j < lines.length; j++) {
+    for (let j = start; j < lines.length; j++) {
       const line = lines[j].replace(/\/\/.*$/, "");
       if (depth === 1) {
         const ctor = line.match(
@@ -229,6 +235,7 @@ export function readUsage(
       ctor: cls.ctor,
       ctorDoc: cls.ctorDoc,
       ...(cls.pool ? { pool: true } : {}),
+      ...(cls.plain ? { plain: true } : {}),
     })),
     methods: Object.fromEntries(
       operations.map((op) => [

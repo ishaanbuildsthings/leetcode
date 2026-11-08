@@ -1,5 +1,30 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/compress-merge-edges-potential-grow/template.py
+# @operations: add areUnioned componentData diff edgeCount elementsInGroup find groups isTree largestSize numComponents roots size sizes uniteWeighted
+# @data-structure-type: dsu
+# @complexities:
+#   add: 1 amortized
+#   areUnioned: α(N) amortized
+#   componentData: α(N) amortized
+#   diff: α(N) amortized
+#   edgeCount: α(N) amortized
+#   elementsInGroup: N
+#   find: α(N) amortized
+#   groups: N
+#   isTree: α(N) amortized
+#   largestSize: 1
+#   numComponents: 1
+#   roots: N
+#   size: α(N) amortized
+#   sizes: N*log(N)
+#   uniteWeighted: α(N) amortized
+#   build: N
+# @memory:
+#   layout: none
+#   node: par[1*N] sz[1*N]
+#   tags: none
+#   other: vals[1*N] data[1*N] edges[1*N] pot[1*N]
+#   note: data holds one Node per element
 
 # e.g. int, str, tuple, ...
 RawVal = int
@@ -22,7 +47,7 @@ def combine(big: Node, small: Node) -> Node:
 
 # dsu = DSU(vals, baseFn, combine)
 # vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1, and add(val) appends more
-# potential: every element has a hidden number value[i]; unite(i, j, w) says value[j] - value[i] = w and diff(i, j)
+# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
 # reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
@@ -62,7 +87,7 @@ class DSU:
     # O(α(n)) amortized, merges the two components, False if i and j were already together
     # w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
     # either way it counts as an edge of the component (edgeCount)
-    def unite(self, i, j, w):
+    def uniteWeighted(self, i, j, w):
         i, wi = self._rootAndWeight(i)
         j, wj = self._rootAndWeight(j)
         if i == j:

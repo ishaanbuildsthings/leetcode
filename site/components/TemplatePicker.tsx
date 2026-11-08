@@ -30,12 +30,16 @@ const PICKER_PAGES = [
   { href: "/templates/range-queries", label: "Range queries" },
   { href: "/templates/sets", label: "Sets" },
   { href: "/templates/union-find", label: "Union find" },
+  { href: "/templates/strings", label: "Strings" },
+  { href: "/templates/trees", label: "Trees" },
+  { href: "/templates/matrices", label: "Matrices" },
+  { href: "/templates/bitset", label: "Bitset" },
   { href: "/templates/misc", label: "Misc." },
   { href: "/templates/golden-references", label: "Golden References" },
 ];
 
 // the picker tabs, with the page's controls (children) at the right end of the same row
-export function PickerTabs({ children }: { children?: React.ReactNode }) {
+function PickerTabs({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
   return (
     <nav
@@ -731,7 +735,7 @@ function ChoiceRow<T extends string>({
 }
 
 // A fill-in template (catalog.fillIns): just the file, in either language, with Copy and GitHub.
-export function FillInDrawer({
+function FillInDrawer({
   catalog,
   fillIn: base,
   onClose,
@@ -960,7 +964,7 @@ function UsagePanel<V extends PickerTemplate>({
         .filter((p) => notes[p.name]?.shown !== false)
         .map((p) => `Optional: ${p.name} (default ${p.default})${notes[p.name] ? `, ${notes[p.name][lang]}` : ""}.`),
       ...(afterArgs ? extraComments : []),
-      ...(cpp
+      ...(cpp && !cls.plain
         ? [
             deducible
               ? `T is deduced from the vector (vector<${elem}> gives T = ${elem}).`
@@ -968,7 +972,7 @@ function UsagePanel<V extends PickerTemplate>({
           ]
         : []),
     ];
-    const type = `${cls.className}${deducible ? "" : `<${elem}>`}`;
+    const type = `${cls.className}${deducible || cls.plain ? "" : `<${elem}>`}`;
     blocks.push({
       comments: comments.map(reword),
       // (no arguments: "Name<long long> x;", since "x()" would declare a function)
@@ -1393,6 +1397,8 @@ export function TemplatePicker<V extends PickerTemplate>({
                 {flag.label}
               </label>
             )}
+            {/* (a single option is no choice: the switch is left out) */}
+            {modes.options.length > 1 && (
             <div
               className="flex overflow-hidden rounded-md border border-border text-xs font-medium"
               role="radiogroup"
@@ -1416,6 +1422,7 @@ export function TemplatePicker<V extends PickerTemplate>({
                 </button>
               ))}
             </div>
+            )}
             <button
               type="button"
               onClick={() => setSelected(new Set())}
@@ -1794,7 +1801,7 @@ export function MiscTemplates({
 }
 
 // a Misc card: its label (the variant's while ticked), opening the drawer; a card with a variant shows its checkbox
-export function MiscCard({ item, onOpen }: { item: FillIn; onOpen: () => void }) {
+function MiscCard({ item, onOpen }: { item: FillIn; onOpen: () => void }) {
   const [on, choose] = usePageFlag(item.variant?.storageKey ?? "");
   const f = withVariant(item, on);
   return (

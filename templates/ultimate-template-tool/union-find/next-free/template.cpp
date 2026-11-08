@@ -1,5 +1,20 @@
 // Template by https://github.com/ishaanbuildsthings
-// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/_next-free/template.cpp
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/next-free/template.cpp
+// @operations: isFree nextFree prevFree take takeRange
+// @data-structure-type: next-free
+// @complexities:
+//   isFree: α(N) amortized
+//   nextFree: α(N) amortized
+//   prevFree: α(N) amortized
+//   take: α(N) amortized
+//   takeRange: α(N) amortized
+//   build: N
+// @memory:
+//   layout: none
+//   node: nxt[1*N] prv[1*N]
+//   tags: none
+//   other: none
+//   note: takeRange costs α(N) amortized per index it takes, so O(N α(N)) over every call together
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

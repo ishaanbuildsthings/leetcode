@@ -187,6 +187,17 @@ for (const name of fs.readdirSync(nextPermDir)) fs.copyFileSync(path.join(nextPe
 const rerootDir = path.resolve(siteDir, "../templates/reroot");
 fs.mkdirSync(path.join(publicDir, "_reroot"));
 for (const name of fs.readdirSync(rerootDir).filter((name) => /^(FarthestNode|SumOfDistances)\./.test(name))) fs.copyFileSync(path.join(rerootDir, name), path.join(publicDir, "_reroot", name));
+// the one-off string templates (the Strings tab): copied as they are, from their folders under templates/strings
+const stringsDir = path.resolve(siteDir, "../templates/strings");
+fs.mkdirSync(path.join(publicDir, "_strings"));
+for (const sub of ["min-max-lex-duvals-rotations", "z-function", "prefix-function"]) {
+  for (const name of fs.readdirSync(path.join(stringsDir, sub)).filter((name) => /\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(stringsDir, sub, name), path.join(publicDir, "_strings", name));
+}
+
+// the matrix templates (the Matrices tab): only these files, not the older ones or tests sharing the folder
+const matricesDir = path.resolve(siteDir, "../templates/matrices");
+fs.mkdirSync(path.join(publicDir, "_matrices"));
+for (const name of fs.readdirSync(matricesDir).filter((name) => /^(ModMatrix|MatPowQueries|MinPlusMatrix|MaxPlusMatrix|BoolMatrix|LinearRecurrence|GaussianElimination)\.(py|cpp)$/.test(name))) fs.copyFileSync(path.join(matricesDir, name), path.join(publicDir, "_matrices", name));
 
 const goldenDir = path.resolve(siteDir, "../templates/golden-references");
 fs.mkdirSync(path.join(publicDir, "_golden-references"));

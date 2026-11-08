@@ -1,5 +1,34 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/rollback-values-merge-members-potential-grow/template.py
+# @operations: add areUnioned checkpoint componentData componentMax componentMin componentSum diff elementsInGroup find groups largestSize numComponents rollbackLastUnion rollbackTo roots size sizes uniteWeighted
+# @data-structure-type: dsu-rollback
+# @complexities:
+#   add: 1 amortized
+#   areUnioned: log(N)
+#   checkpoint: 1
+#   componentData: log(N)
+#   componentMax: log(N)
+#   componentMin: log(N)
+#   componentSum: log(N)
+#   diff: log(N)
+#   elementsInGroup: K
+#   find: log(N)
+#   groups: N*log(N)
+#   largestSize: 1
+#   numComponents: 1
+#   rollbackLastUnion: 1
+#   rollbackTo: 1 amortized
+#   roots: N
+#   size: log(N)
+#   sizes: N*log(N)
+#   uniteWeighted: log(N)
+#   build: N
+# @memory:
+#   layout: none
+#   node: par[1*N] sz[1*N]
+#   tags: none
+#   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N] data[1*N] nxt[1*N] pot[1*N]
+#   note: K = the size of the group; plus the undo stack: one small frame per unite not yet undone, holding a copy of the bigger Node; data holds one Node per element
 
 # e.g. int, str, tuple, ...
 RawVal = int
@@ -22,7 +51,7 @@ def combine(big: Node, small: Node) -> Node:
 
 # dsu = RollbackDSU(vals, baseFn, combine)
 # vals: the elements (numbers: componentSum / Min / Max are over them); everything works on their indices 0..n-1, and add(val) appends more
-# potential: every element has a hidden number value[i]; unite(i, j, w) says value[j] - value[i] = w and diff(i, j)
+# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
 # reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
@@ -63,8 +92,8 @@ class RollbackDSU:
 
     # O(log n), merges the two components, False if i and j were already together
     # w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
-    # either way it records a frame, so it always takes exactly one rollback to undo
-    def unite(self, i, j, w):
+    # either way it records a frame, so it always takes exactly one rollbackLastUnion to undo
+    def uniteWeighted(self, i, j, w):
         i, wi = self._rootAndWeight(i)
         j, wj = self._rootAndWeight(j)
         if i == j:
@@ -90,9 +119,9 @@ class RollbackDSU:
         self.pot[j] = w
         return True
 
-    # O(1), undoes the most recent unite, whether or not it merged anything: k rollbacks always undo the last
-    # k unites (an add is never undone); IndexError if you roll back more unites than you made
-    def rollback(self):
+    # O(1), undoes the most recent unite, whether or not it merged anything: k calls always undo the last
+    # k unites (an add is never undone); IndexError if there's no unite left to undo
+    def rollbackLastUnion(self):
         frame = self.stk.pop()
         if frame is None:
             return
@@ -115,7 +144,7 @@ class RollbackDSU:
     # O(1) per unite undone, undoes every unite made since checkpoint() returned k
     def rollbackTo(self, k):
         while len(self.stk) > k:
-            self.rollback()
+            self.rollbackLastUnion()
 
     # O(log n), True if i and j are in the same component
     def areUnioned(self, i, j):

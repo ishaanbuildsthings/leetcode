@@ -1,3 +1,31 @@
+// Template by https://github.com/ishaanbuildsthings
+// https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/hdlt/template.cpp
+// @operations: areUnioned componentId elementsInGroup groups numComponents removeEdge removeEdgeBetween roots size sizes unite
+// @data-structure-type: hdlt
+// @complexities:
+//   areUnioned: log(N)
+//   componentId: log(N)
+//   elementsInGroup: N*log(N)
+//   groups: N*log(N)
+//   numComponents: 1
+//   removeEdge: log^2(N) amortized
+//   removeEdgeBetween: log^2(N) amortized
+//   roots: N*log(N)
+//   size: log(N)
+//   sizes: N*log(N)
+//   unite: log^2(N) amortized
+//   build: N*log(N)
+// @memory:
+//   layout: none
+//   node: forests[3*N*log(N)]
+//   tags: none
+//   other: vals[1*N]
+//   note: about log N levels, each an Euler-tour treap of up to 3N nodes, plus a few arrays per edge: n = 1e5 is roughly 80 MB in C++
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// (templates/union-find/hdlt.cpp, plus unite / areUnioned at the end)
 // Fully dynamic connectivity (Holm-de Lichtenberg-Thorup, JACM 2001).
 // Online edge insert + edge delete + connectivity query. Unlike DSU, deletions are allowed.
 // Takes an array of vals (can be strings, tuples, etc) since it operates based on indices
@@ -352,4 +380,14 @@ struct DynamicConnectivity {
             if (componentId(j) == r) res.push_back(vals[j]);
         return res;
     }
+
+    // same as addEdge (the name the other union finds use): adds an edge, even between elements already together, and
+    // returns its id for removeEdge
+    int unite(int u, int v) { return addEdge(u, v); }
+
+    // same as areConnected (the name the other union finds use)
+    bool areUnioned(int u, int v) { return areConnected(u, v); }
+
+    // same as removeEdge(u, v) (the name the Python version uses)
+    bool removeEdgeBetween(int u, int v) { return removeEdge(u, v); }
 };

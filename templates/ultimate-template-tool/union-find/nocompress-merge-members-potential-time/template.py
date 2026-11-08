@@ -1,5 +1,30 @@
 # Template by https://github.com/ishaanbuildsthings
 # https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/nocompress-merge-members-potential-time/template.py
+# @operations: areUnioned componentData connectedAt diff elementsInGroup find firstConnectedTime groups largestSize numComponents roots size sizes uniteAUnderBWeighted uniteWeighted
+# @data-structure-type: dsu-nocompress
+# @complexities:
+#   areUnioned: log(N)
+#   componentData: log(N)
+#   connectedAt: log(N)
+#   diff: log(N)
+#   elementsInGroup: K
+#   find: log(N)
+#   firstConnectedTime: log(N)
+#   groups: N*log(N)
+#   largestSize: 1
+#   numComponents: 1
+#   roots: N
+#   size: log(N)
+#   sizes: N*log(N)
+#   uniteAUnderBWeighted: log(N)
+#   uniteWeighted: log(N)
+#   build: N
+# @memory:
+#   layout: none
+#   node: par[1*N] sz[1*N]
+#   tags: none
+#   other: vals[1*N] data[1*N] nxt[1*N] pot[1*N] tm[1*N]
+#   note: K = the size of the group; uniteAUnderB skips union by size, so after it any walk up the forest can take O(N); data holds one Node per element
 
 _NEVER = 1 << 62  # (the time of a root: it never got a parent)
 
@@ -25,7 +50,7 @@ def combine(big: Node, small: Node) -> Node:
 
 # dsu = DSUNoCompress(vals, baseFn, combine)
 # vals: the elements (any values: numbers, strings, tuples, ...); everything works on their indices 0..n-1
-# potential: every element has a hidden number value[i]; unite(i, j, w) says value[j] - value[i] = w and diff(i, j)
+# potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
 # reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 
 
@@ -65,7 +90,7 @@ class DSUNoCompress:
     # None if they were already together
     # w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
     # each call is the next unite in time (0, 1, 2, ...), failed ones too
-    def unite(self, i, j, w):
+    def uniteWeighted(self, i, j, w):
         t = self.time
         self.time += 1
         i, wi = self._rootAndWeight(i)
@@ -91,7 +116,7 @@ class DSUNoCompress:
     # skips union by size, so depth can degrade to O(n) and every walk with it
     # w: value[b] - value[a] = w
     # combine gets b's component's Node first here, even when it's the smaller one
-    def uniteAUnderB(self, a, b, w):
+    def uniteAUnderBWeighted(self, a, b, w):
         t = self.time
         self.time += 1
         a, wa = self._rootAndWeight(a)

@@ -1,5 +1,31 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/nocompress-values-time/template.cpp
+// @operations: areUnioned componentMax componentMin componentSum connectedAt elementsInGroup find firstConnectedTime groups largestSize numComponents roots size sizes unite uniteAUnderB
+// @data-structure-type: dsu-nocompress
+// @complexities:
+//   areUnioned: log(N)
+//   componentMax: log(N)
+//   componentMin: log(N)
+//   componentSum: log(N)
+//   connectedAt: log(N)
+//   elementsInGroup: N*log(N)
+//   find: log(N)
+//   firstConnectedTime: log(N)
+//   groups: N*log(N)
+//   largestSize: 1
+//   numComponents: 1
+//   roots: N
+//   size: log(N)
+//   sizes: N*log(N)
+//   unite: log(N)
+//   uniteAUnderB: log(N)
+//   build: N
+// @memory:
+//   layout: none
+//   node: par[1*N] sz[1*N]
+//   tags: none
+//   other: vals[1*N] csum[1*N] cmin[1*N] cmax[1*N] tm[1*N]
+//   note: uniteAUnderB skips union by size, so after it any walk up the forest can take O(N)
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;

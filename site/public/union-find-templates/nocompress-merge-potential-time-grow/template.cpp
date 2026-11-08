@@ -1,5 +1,31 @@
 // Template by https://github.com/ishaanbuildsthings
 // https://github.com/ishaanbuildsthings/leetcode/blob/main/templates/ultimate-template-tool/union-find/nocompress-merge-potential-time-grow/template.cpp
+// @operations: add areUnioned componentData connectedAt diff elementsInGroup find firstConnectedTime groups largestSize numComponents roots size sizes uniteAUnderBWeighted uniteWeighted
+// @data-structure-type: dsu-nocompress
+// @complexities:
+//   add: 1 amortized
+//   areUnioned: log(N)
+//   componentData: log(N)
+//   connectedAt: log(N)
+//   diff: log(N)
+//   elementsInGroup: N*log(N)
+//   find: log(N)
+//   firstConnectedTime: log(N)
+//   groups: N*log(N)
+//   largestSize: 1
+//   numComponents: 1
+//   roots: N
+//   size: log(N)
+//   sizes: N*log(N)
+//   uniteAUnderBWeighted: log(N)
+//   uniteWeighted: log(N)
+//   build: N
+// @memory:
+//   layout: none
+//   node: par[1*N] sz[1*N]
+//   tags: none
+//   other: vals[1*N] data[1*N] pot[1*N] tm[1*N]
+//   note: uniteAUnderB skips union by size, so after it any walk up the forest can take O(N); data holds one Node per element
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
@@ -30,7 +56,7 @@ Node combine(Node big, const Node& small) {
 
 // DSUNoCompress dsu(vals);
 // vals: the elements (any type: numbers, strings, pairs, ...); everything works on their indices 0..n-1, and add(val) appends more
-// potential: every element has a hidden number value[i]; unite(i, j, w) says value[j] - value[i] = w and diff(i, j)
+// potential: every element has a hidden number value[i]; uniteWeighted(i, j, w) says value[j] - value[i] = w and diff(i, j)
 // reads it back (for parity / two-colouring, swap + and - for ^ throughout)
 struct DSUNoCompress {
     using T = RawVal;
@@ -72,7 +98,7 @@ struct DSUNoCompress {
     // or {-1, -1} if they were already together
     // w: value[j] - value[i] = w. Already together: nothing changes (diff(i, j) == w says if this agrees)
     // each call is the next unite in time (0, 1, 2, ...), failed ones too
-    pair<int, int> unite(int i, int j, long long w) {
+    pair<int, int> uniteWeighted(int i, int j, long long w) {
         int t = time++;
         auto [ri, wi] = rootAndWeight(i);
         auto [rj, wj] = rootAndWeight(j);
@@ -99,7 +125,7 @@ struct DSUNoCompress {
     // skips union by size, so depth can degrade to O(n) and every walk with it
     // w: value[b] - value[a] = w
     // combine gets b's component's Node first here, even when it's the smaller one
-    bool uniteAUnderB(int a, int b, long long w) {
+    bool uniteAUnderBWeighted(int a, int b, long long w) {
         int t = time++;
         auto [ra, wa] = rootAndWeight(a);
         auto [rb, wb] = rootAndWeight(b);
