@@ -8,11 +8,11 @@ using namespace std;
 //   "1101" -> bits 0, 1, 3 set        (std::bitset parses and prints the other way round)
 // N must be a compile-time constant, so size it to the largest the problem allows (FixedBitset<100001>).
 // Nothing wraps around and nothing overflows: a shift drops the bits pushed past either end and shifts in 0s.
-// Whole-set ops (count, &, |, ^, shifts, ...) cost O(N/64): the bits are packed 64 to a machine word.
+// Whole-set ops (countOnes, &, |, ^, shifts, ...) cost O(N/64): the bits are packed 64 to a machine word.
 // Every method inlines, so this compiles to the same code as std::bitset itself; single-bit ops add one bounds
 // check that throws out_of_range.
 // Needs GCC or Clang with libstdc++ (LeetCode, Codeforces): the searches use its _Find_first / _Find_next.
-// Needs lastSet / prevSetBefore, cheap range ops, or a size only known at runtime? Use DynamicBitset.
+// Needs cheap range ops or a size only known at runtime? Use DynamicBitset.
 //
 // FixedBitset<8> a;                   // 00000000
 // FixedBitset<8> b("1101");           // 11010000   (bits 0, 1, 3)
@@ -23,8 +23,9 @@ using namespace std;
 //   for (int w : weights) reach.orWithShiftedUp(w);   // reach |= reach << w
 //   reach.get(target)
 //
-// Visit every set bit, smallest first:
-//   for (int i = b.firstSet(); i != -1; i = b.nextSetAfter(i)) { ... }
+// Visit every set bit, smallest first / largest first:
+//   for (int i = b.minIndexOfOne(); i != -1; i = b.nextOneAfter(i)) { ... }
+//   for (int i = b.maxIndexOfOne(); i != -1; i = b.prevOneBefore(i)) { ... }
 template <size_t N>
 struct FixedBitset {
     bitset<N> bits;
@@ -50,13 +51,13 @@ struct FixedBitset {
     // O(N/64) -- bit i is bit i of mask (bits 64 and up are 0)
     explicit FixedBitset(unsigned long long mask) : bits(mask) {}
 
-    // O(1) -- N
-    static constexpr int size() { return (int)N; }
+    // O(1) -- how many bits there are in total (N), not how many are 1
+    static constexpr int numBits() { return (int)N; }
 
     // ---- single bits: O(1), need 0 <= i < N, else throw out_of_range ----
 
-    // O(1) -- bit i, true / false
-    bool get(int i) const { check(i); return bits[i]; }
+    // O(1) -- bit i: 0 or 1
+    int get(int i) const { check(i); return bits[i] ? 1 : 0; }
 
     // O(1) -- bit i = 1
     void set(int i) { check(i); bits[i] = 1; }
@@ -67,8 +68,8 @@ struct FixedBitset {
     // O(1) -- bit i = 1 - bit i
     void toggle(int i) { check(i); bits.flip(i); }
 
-    // O(1) -- bit i = on
-    void assign(int i, bool on) { check(i); bits[i] = on; }
+    // O(1) -- bit i = zeroOrOne; zeroOrOne must be 0 or 1, else throws invalid_argument
+    void setBit(int i, int zeroOrOne) { check(i); checkBit(zeroOrOne); bits[i] = zeroOrOne; }
 
     // ---- whole set ----
 
@@ -82,16 +83,13 @@ struct FixedBitset {
     void toggleAll() { bits.flip(); }
 
     // O(N/64) -- how many bits are 1
-    int count() const { return (int)bits.count(); }
-
-    // O(N/64) -- some bit is 1
-    bool hasAny() const { return bits.any(); }
+    int countOnes() const { return (int)bits.count(); }
 
     // O(N/64) -- every bit is 0
-    bool isEmpty() const { return bits.none(); }
+    bool allZeros() const { return bits.none(); }
 
     // O(N/64) -- every bit is 1
-    bool isFull() const { return bits.all(); }
+    bool allOnes() const { return bits.all(); }
 
     // ---- ranges [l, r] inclusive: O(N/64) each (whole-set masks, not just the range); need 0 <= l <= r < N, else
     // throw out_of_range ----
@@ -106,31 +104,34 @@ struct FixedBitset {
     void rangeToggle(int l, int r) { checkRange(l, r); bits ^= rangeMask(l, r); }
 
     // O(N/64) -- how many of bits l..r are 1
-    int countRange(int l, int r) const { checkRange(l, r); return (int)((bits >> l) << (N - 1 - (r - l))).count(); }
+    int countOnesInRange(int l, int r) const { checkRange(l, r); return (int)((bits >> l) << (N - 1 - (r - l))).count(); }
+
+    // O(N/64) -- how many of bits l..r are 0
+    int countZerosInRange(int l, int r) const { return (r - l + 1) - countOnesInRange(l, r); }
 
     // ---- searches: an index, or -1 when there is none ----
 
-    // O(N/64) -- the smallest i with bit i = 1, or -1
-    int firstSet() const { size_t i = bits._Find_first(); return i < N ? (int)i : -1; }
+    // O(N/64) -- the smallest bit index holding a 1, or -1 if every bit is 0
+    int minIndexOfOne() const { size_t i = bits._Find_first(); return i < N ? (int)i : -1; }
 
-    // O(N/64) -- the smallest j > i with bit j = 1, or -1; needs -1 <= i < N, else throws out_of_range
-    // (nextSetAfter(-1) is firstSet())
-    int nextSetAfter(int i) const {
+    // O(N/64) -- the smallest bit index above i holding a 1, or -1; needs -1 <= i < N, else throws out_of_range
+    // (nextOneAfter(-1) is minIndexOfOne())
+    int nextOneAfter(int i) const {
         if (i < -1 || i >= (int)N) {
             throwOutOfRange(i);
         }
         if (i == -1) {
-            return firstSet();
+            return minIndexOfOne();
         }
         size_t j = bits._Find_next(i);
         return j < N ? (int)j : -1;
     }
 
-    // O(N/64) -- the smallest i with bit i = 0, or -1 (the mex of the set)
-    int firstUnset() const { size_t i = (~bits)._Find_first(); return i < N ? (int)i : -1; }
+    // O(N/64) -- the smallest bit index holding a 0, or -1 if every bit is 1
+    int minIndexOfZero() const { size_t i = (~bits)._Find_first(); return i < N ? (int)i : -1; }
 
-    // O(N/64) -- the smallest j > i with bit j = 0, or -1; needs -1 <= i < N, else throws out_of_range
-    int nextUnsetAfter(int i) const {
+    // O(N/64) -- the smallest bit index above i holding a 0, or -1; needs -1 <= i < N, else throws out_of_range
+    int nextZeroAfter(int i) const {
         if (i < -1 || i >= (int)N) {
             throwOutOfRange(i);
         }
@@ -139,9 +140,32 @@ struct FixedBitset {
         return j < N ? (int)j : -1;
     }
 
-    // O(N/64 + count) -- f(i) for every i with bit i = 1, smallest first
+    // O(N/64) -- the largest bit index holding a 1, or -1 if every bit is 0
+    int maxIndexOfOne() const { return prevBefore((int)N, true); }
+
+    // O(N/64) -- the largest bit index below i holding a 1, or -1; needs 0 <= i <= N, else throws out_of_range
+    // (prevOneBefore(N) is maxIndexOfOne())
+    int prevOneBefore(int i) const {
+        if (i < 0 || i > (int)N) {
+            throwOutOfRange(i);
+        }
+        return prevBefore(i, true);
+    }
+
+    // O(N/64) -- the largest bit index holding a 0, or -1 if every bit is 1
+    int maxIndexOfZero() const { return prevBefore((int)N, false); }
+
+    // O(N/64) -- the largest bit index below i holding a 0, or -1; needs 0 <= i <= N, else throws out_of_range
+    int prevZeroBefore(int i) const {
+        if (i < 0 || i > (int)N) {
+            throwOutOfRange(i);
+        }
+        return prevBefore(i, false);
+    }
+
+    // O(N/64 + number of 1s) -- calls f(i) for every bit index i holding a 1, smallest bit index first
     template <typename F>
-    void forEachSet(F f) const {
+    void forEachOne(F f) const {
         for (size_t i = bits._Find_first(); i < N; i = bits._Find_next(i)) {
             f((int)i);
         }
@@ -155,7 +179,8 @@ struct FixedBitset {
     // O(N/64) -- some bit is 1 in both
     bool intersects(const FixedBitset& other) const { return (bits & other.bits).any(); }
 
-    // O(N/64) each -- bit by bit: & and, | or, ^ xor, ~ not
+    // O(N/64) each -- a & b, a | b, a ^ b, ~a return a NEW bitset (same N), bit i = a[i] AND / OR / XOR b[i], or NOT a[i];
+    // a &= b, a |= b, a ^= b change a in place
     FixedBitset operator&(const FixedBitset& o) const { return make(bits & o.bits); }
     FixedBitset operator|(const FixedBitset& o) const { return make(bits | o.bits); }
     FixedBitset operator^(const FixedBitset& o) const { return make(bits ^ o.bits); }
@@ -192,10 +217,31 @@ struct FixedBitset {
         return s;
     }
 
-    // O(N/64) -- the bits as a number, bit i -> bit i; throws overflow_error if any bit at 64 or above is 1
-    unsigned long long toMask() const { return bits.to_ullong(); }
+    // O(N/64) -- the bits as one number, bit i -> bit i, so bits 0, 1, 3 -> 11; only works when every 1 is at index 0..63,
+    // else throws overflow_error (a number only has 64 bits)
+    unsigned long long toNumber() const { return bits.to_ullong(); }
 
     // ---- internals ----
+    // std::bitset has no backward search, so this reads its words directly: libstdc++ (and libc++) store a bitset as
+    // just an array of unsigned long, bit i in bit (i % width) of word i / width
+    using RawWord = unsigned long;
+    static constexpr int RAW_BITS = sizeof(RawWord) * 8;
+    int prevBefore(int i, bool wantOne) const {
+        int j = i - 1;
+        if (j < 0) {
+            return -1;
+        }
+        const RawWord* raw = reinterpret_cast<const RawWord*>(&bits);
+        int wi = j / RAW_BITS;
+        RawWord w = (wantOne ? raw[wi] : ~raw[wi]) & (~RawWord(0) >> (RAW_BITS - 1 - j % RAW_BITS));
+        while (!w) {
+            if (--wi < 0) {
+                return -1;
+            }
+            w = wantOne ? raw[wi] : ~raw[wi];
+        }
+        return wi * RAW_BITS + RAW_BITS - 1 - __builtin_clzl(w);
+    }
     static FixedBitset make(const bitset<N>& b) { FixedBitset res; res.bits = b; return res; }
     static bitset<N> rangeMask(int l, int r) { return (~bitset<N>() >> (N - 1 - (r - l))) << l; }
     [[noreturn]] static void throwOutOfRange(int i) {
@@ -209,6 +255,11 @@ struct FixedBitset {
     static void checkRange(int l, int r) {
         if (l < 0 || r >= (int)N || l > r) {
             throw out_of_range("FixedBitset: range [" + to_string(l) + ", " + to_string(r) + "] is not inside [0, " + to_string(N) + ")");
+        }
+    }
+    static void checkBit(int zeroOrOne) {
+        if (zeroOrOne != 0 && zeroOrOne != 1) {
+            throw invalid_argument("FixedBitset: bit value " + to_string(zeroOrOne) + " is not 0 or 1");
         }
     }
     static void checkShift(int k) {

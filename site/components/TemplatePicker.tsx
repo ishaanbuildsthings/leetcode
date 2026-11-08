@@ -76,6 +76,7 @@ export type FastInfo = { how: string; drawbacks: string[]; noSanitize: { text: s
 // A template you fill in yourself (the generic seg trees): the file is at publicBase/<folder>/<file>.<lang>, and on
 // GitHub at githubUrl + <file>.<lang>. ops: every op with its cost, in the catalog's cost format ("log(N) expected");
 // note: a line under them. title: the description on its Misc tab card.
+// An ops entry whose cost is "" is a section heading (e.g. ["Range operations", ""]), not an op.
 export type FillIn = {
   label: string;
   title: string;
@@ -859,12 +860,22 @@ function FillInDrawer({
           {/* every op is there whatever you need, so all of them are highlighted */}
           <div className="border-b border-border px-4 py-3 text-xs">
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
-              {ops.map(([op, cost]) => (
-                <div key={op} className="contents">
-                  <span className="font-mono font-medium text-primary">{op}</span>
-                  <span className="text-foreground">{formatCost(cost)}</span>
-                </div>
-              ))}
+              {ops.map(([op, cost], i) =>
+                cost === "" ? (
+                  // an entry with no cost is a section heading over the ops after it
+                  <span
+                    key={op}
+                    className={`col-span-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground ${i > 0 ? "mt-3" : ""}`}
+                  >
+                    {op}
+                  </span>
+                ) : (
+                  <div key={op} className="contents">
+                    <span className="font-mono font-medium text-primary">{op}</span>
+                    <span className="text-foreground">{formatCost(cost)}</span>
+                  </div>
+                ),
+              )}
             </div>
             {(fillIn.reverseToggle || fillIn.variant) && (
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
