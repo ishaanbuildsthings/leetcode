@@ -40,7 +40,7 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
     if (!data) data = d;
     else if (JSON.stringify(data) !== JSON.stringify(d)) errors.push(`${folder}: template${ext} header disagrees with the other language's`);
   }
-  for (const f of fs.readdirSync(folderPath))
+  for (const f of fs.readdirSync(folderPath).filter((f) => f !== "__pycache__"))  // Python's cache from running tests
     if (!Object.keys(LANGS).some((ext) => f === `template${ext}`)) errors.push(`${folder}: unexpected file ${f}`);
   if (!data) {
     errors.push(`${folder}: no template.py or template.cpp`);

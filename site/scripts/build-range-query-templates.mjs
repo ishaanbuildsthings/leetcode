@@ -112,7 +112,7 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
   const sparse = readVariant("sparse");
   const letters = readVariant("letters");
   const STEMS = ["template", "sparse", "letters"];
-  for (const f of fs.readdirSync(folderPath))
+  for (const f of fs.readdirSync(folderPath).filter((f) => f !== "__pycache__"))  // Python's cache from running tests
     if (!FAST_FILES.includes(f) && !STEMS.some((stem) => Object.keys(LANGS).some((ext) => f === `${stem}${ext}`))) errors.push(`${folder}: unexpected file ${f}`);
   if (!data) {
     errors.push(`${folder}: no template.py or template.cpp`);

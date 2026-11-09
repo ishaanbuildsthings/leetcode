@@ -63,7 +63,7 @@ for (const folder of fs.readdirSync(srcDir).sort()) {
   };
   const { langs, data } = readStem("template");
   const distinct = readStem("distinct");
-  for (const f of fs.readdirSync(folderPath))
+  for (const f of fs.readdirSync(folderPath).filter((f) => f !== "__pycache__"))  // Python's cache from running tests
     if (f !== "fast.cpp" && f !== "distinct-fast.cpp" && !["template", "distinct"].some((stem) => Object.keys(LANGS).some((ext) => f === `${stem}${ext}`))) errors.push(`${folder}: unexpected file ${f}`);
   if (!data) {
     errors.push(`${folder}: no template.py or template.cpp`);

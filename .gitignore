@@ -4,7 +4,7 @@ leetcode_env/
 venv/
 
 # Python cache files
-__pycache__/.claude/
+__pycache__/
 .cph/
 CLAUDE.md
 .claude/
