@@ -20,7 +20,8 @@ Structures (each in a count-only version and a count + sum version, unless noted
     fenwick      offline: Fenwick trees over the compressed values you pass in up front   log N
     avl          online: AVL tree on a node pool (subtree counts / sums), freed nodes reused   log N worst case
     blocks       online: sorted blocks of distinct keys with per-block counts / sums + Fenwick over blocks   sqrt N
-                 (blocks of max(LOAD, sqrt N / 8), all cut again once N / 2 distinct values come or go: updates amortized)
+                 (blocks of max(LOAD, sqrt N / 8), all cut again once N / 2 distinct values come or go, or once there
+                 are more than 2 N / size + 2 blocks: updates amortized)
     blocks-fenwick   online: the same blocks with a Fenwick tree inside each block: queries log N, updates sqrt N amortized
     value-tree   online, values in [lo, hi]: a dynamic value tree (a node pool per multiset)   log U
     treap        online: treap on a node pool, freed nodes reused   log N expected
@@ -2927,7 +2928,9 @@ def blocks(sums, bits=(False, False, False)):
 # block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
 # once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
 # follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
-# bounds), and the O(N) cut is paid for by those N / 2 updates. A query
+# bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of them (removals can leave
+# many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by the N / 4 or more
+# updates since the last one. A query
 # finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block
 # with C-level list operations.
 
@@ -3013,7 +3016,9 @@ class BlockMultiset:
             self.ba[k] = reduce(and_, self.keys[k], -1)  @and
             self.bc[k] += c
             self._fen(self.fc, k, c)
-{"            self.bs[k] += c * x" + chr(10) + "            self._fen(self.fs, k, c * x)" + chr(10) if s else ""}            return 0
+{"            self.bs[k] += c * x" + chr(10) + "            self._fen(self.fs, k, c * x)" + chr(10) if s else ""}            if len(self.keys) > 2 * self.d // self.load + 2:  # too many blocks for the values: cut again
+                self._recut()
+            return 0
         self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
         self.due -= 1
@@ -3054,9 +3059,11 @@ class BlockMultiset:
             self.ba[k:k + 1] = [reduce(and_, self.keys[k], -1), reduce(and_, self.keys[k + 1], -1)]  @and
             self.fc = {"self.fs = " if s else ""}None
             self.fx = None  @xor
+            if len(self.keys) > 2 * self.d // self.load + 2:  # too many blocks for the values: cut again
+                self._recut()
         return c
 
-    def _recut(self):  # every block cut again at sqrt(N) / 8: O(N), once per N / 2 updates that add or drop a value
+    def _recut(self):  # every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         d = self.d
         h = max(self.LOAD, isqrt(d) >> 3)
         self.due = max(d, self.LOAD * self.LOAD) >> 1
@@ -3151,7 +3158,9 @@ class BlockMultiset:
 // block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
 // once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
 // follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
-// bounds), and the O(N) cut is paid for by those N / 2 updates. A query
+// bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of them (removals can leave
+// many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by the N / 4 or more
+// updates since the last one. A query
 // finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block.
 // T: an integer type; sums in S.
 template <typename T>
@@ -3230,7 +3239,8 @@ struct BlockMultiset {{
                 bo[k] = accumulate(keys[k].begin(), keys[k].end(), T(0), bit_or<T>());  // x left: the block's OR / AND again  @or
                 ba[k] = accumulate(keys[k].begin(), keys[k].end(), ~T(0), bit_and<T>());  @and
                 maxes[k] = keys[k].back(), bc[k] += c, fen(fc, k, c);
-{"                bs[k] += S(c) * x, fen(fs, k, S(c) * x);" + chr(10) if s else ""}                return 0;
+{"                bs[k] += S(c) * x, fen(fs, k, S(c) * x);" + chr(10) if s else ""}                if ((long long)keys.size() > 2 * d / load + 2) recut();  // too many blocks for the values: cut again
+                return 0;
             }}
         }}
         d++, due--;
@@ -3264,11 +3274,12 @@ struct BlockMultiset {{
             ba[k] = accumulate(keys[k].begin(), keys[k].end(), ~T(0), bit_and<T>());  @and
             ba.insert(ba.begin() + k + 1, accumulate(keys[k + 1].begin(), keys[k + 1].end(), ~T(0), bit_and<T>()));  @and
             stale = true;
+            if ((long long)keys.size() > 2 * d / load + 2) recut();  // too many blocks for the values: cut again
         }}
         return c;
     }}
 
-    void recut() {{  // every block cut again at sqrt(N) / 8: O(N), once per N / 2 updates that add or drop a value
+    void recut() {{  // every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         int size = std::max(LOAD, (int)sqrt((double)d) / 8);  // (std::: the class has its own min / max)
         due = std::max(d, (long long)LOAD * LOAD) / 2;
         if (size == load && (long long)keys.size() <= d / size + 1) return;  // same size, blocks still full on average
@@ -3382,17 +3393,18 @@ struct BlockMultiset {{
     comps.update({"size": "1", "sumAll": "1", "countDistinct": "1", "min": "1", "max": "1", "count": "log(N)", "build": "1"})
     comps.update({op: "sqrt(N) amortized" for op in ("add", "addCount", "remove", "removeCount", "removeAll")})  # (a cut now and then)
     node = "keys[1*N] cnts[1*N]" + (" sums[1*N]" if s else "")
-    # (under 29 sqrt(N) blocks for large N: N0 = distinct values at the last check, N0 <= 2N, block size B >= sqrt(N0) / 8;
-    # a check leaves at most N0 / B + 1 blocks, each splits at most once more plus once per B adds: 2.5 N0 / B + 2)
-    other = "maxes[29*sqrt(N)] bc[58*sqrt(N)]" + (" bs[58*sqrt(N)]" if s else "") + (" bx[58*sqrt(N)]" if X else "") + (
-        " bo[29*sqrt(N)]" if O else "") + (" ba[29*sqrt(N)]" if A else "") + " cnt[1*N]"
+    # (blocks <= 2 * N / B + 2 after every update, B the block size; B = max(LOAD, isqrt(N0) / 8) with N0 the distinct
+    # count at the last check, and N <= 1.5 * max(N0, LOAD^2) since then, so 2 * N / B < 20 sqrt(N) for LOAD 64 / 512.
+    # Each block keeps one entry in maxes / bc / bs / bx / bo / ba; a Fenwick over blocks adds blocks + 1 more)
+    other = "maxes[20*sqrt(N)+2] bc[40*sqrt(N)+5]" + (" bs[40*sqrt(N)+5]" if s else "") + (" bx[40*sqrt(N)+5]" if X else "") + (
+        " bo[20*sqrt(N)+2]" if O else "") + (" ba[20*sqrt(N)+2]" if A else "") + " cnt[1*N]"
     comps["xorOfAll"] = "1"
     return dict(name="BlockMultiset", dtype="blocks", values="online", py=keep_aggs(py, X, O, A), cpp=keep_aggs(cpp, X, O, A),
                 comps=comps, bits=bits,
 
                 mem=("none", node, "none", other),
                 note="N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again "
-                     "once N / 2 distinct values have come or gone; each "
+                     "once N / 2 distinct values have come or gone, or once there are more than 2 * N / size + 2 blocks; each "
                      "operation costs a few binary searches plus one block's worth of C-level list work")
 
 
@@ -3410,7 +3422,8 @@ from operator import and_, sub{", xor" if X else ""}
 # tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
 # one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N), C-level).
 # A block splits in half past twice the block size, and once N / 2 distinct values have come or gone since the last
-# cut, every block is cut again at that size: the O(N) cut is paid for by those N / 2 updates.
+# cut, every block is cut again at that size, and also as soon as there are more than 2 * N / size + 2 blocks
+# (never more than 20 sqrt(N) + 2): a cut is O(N), paid for by the N / 4 or more updates since the last one.
 
 
 class BlockFenwickMultiset:
@@ -3490,6 +3503,8 @@ class BlockFenwickMultiset:
                 return 0
             self.maxes[k] = self.keys[k][-1]
             self._reinner(k)
+            if len(self.keys) > 2 * self.d // self.load + 2:  # too many blocks for the values: cut again
+                self._recut()
             return 0
         self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
@@ -3532,11 +3547,13 @@ class BlockFenwickMultiset:
             self.bc[k:k + 1] = [sum(self.cnts[k]), sum(self.cnts[k + 1])]
 {"            self.bs[k:k + 1] = [sum(self.sums[k]), sum(self.sums[k + 1])]" + chr(10) if s else ""}            self.bx[k:k + 1] = [reduce(xor, self.xvs[k], 0), reduce(xor, self.xvs[k + 1], 0)]  @xor
             self._reblock()
+            if len(self.keys) > 2 * self.d // self.load + 2:  # too many blocks for the values: cut again
+                self._recut()
         else:
             self._reinner(k)
         return c
 
-    def _recut(self):  # every block cut again at sqrt(N) / 8: O(N), once per N / 2 updates that add or drop a value
+    def _recut(self):  # every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         d = self.d
         h = max(self.LOAD, isqrt(d) >> 3)
         self.due = max(d, self.LOAD * self.LOAD) >> 1
@@ -3641,7 +3658,8 @@ class BlockFenwickMultiset:
 // tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
 // one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N)).
 // A block splits in half past twice the block size, and once N / 2 distinct values have come or gone since the last
-// cut, every block is cut again at that size: the O(N) cut is paid for by those N / 2 updates.
+// cut, every block is cut again at that size, and also as soon as there are more than 2 * N / size + 2 blocks
+// (never more than 20 sqrt(N) + 2): a cut is O(N), paid for by the N / 4 or more updates since the last one.
 // T: an integer type; sums in S.
 template <typename T>
 struct BlockFenwickMultiset {{
@@ -3733,6 +3751,7 @@ struct BlockFenwickMultiset {{
                 }}
                 maxes[k] = keys[k].back();
                 reinner(k, j);
+                if ((long long)keys.size() > 2 * d / load + 2) recut();  // too many blocks for the values: cut again
                 return 0;
             }}
         }}
@@ -3764,11 +3783,12 @@ struct BlockFenwickMultiset {{
 {"            bs[k] = accumulate(sums[k].begin(), sums[k].end(), S(0));" + chr(10) + "            bs.insert(bs.begin() + k + 1, accumulate(sums[k + 1].begin(), sums[k + 1].end(), S(0)));" + chr(10) if s else ""}            bx[k] = accumulate(xvs[k].begin(), xvs[k].end(), T(0), bit_xor<T>());  @xor
             bx.insert(bx.begin() + k + 1, accumulate(xvs[k + 1].begin(), xvs[k + 1].end(), T(0), bit_xor<T>()));  @xor
             reblock();
+            if ((long long)keys.size() > 2 * d / load + 2) recut();  // too many blocks for the values: cut again
         }} else reinner(k, j);
         return c;
     }}
 
-    void recut() {{  // every block cut again at sqrt(N) / 8: O(N), once per N / 2 updates that add or drop a value
+    void recut() {{  // every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         int size = std::max(LOAD, (int)sqrt((double)d) / 8);  // (std::: the class has its own min / max)
         due = std::max(d, (long long)LOAD * LOAD) / 2;
         if (size == load && (long long)keys.size() <= d / size + 1) return;  // same size, blocks still full on average
@@ -3854,14 +3874,14 @@ struct BlockFenwickMultiset {{
     comps.update({op: "sqrt(N) amortized" for op in ("add", "addCount", "remove", "removeCount", "removeAll", "popMin", "popMax")})  # (a cut now and then)
     comps.update({"size": "1", "sumAll": "1", "countDistinct": "1", "build": "1"})
     node = "keys[1*N] cnts[1*N] fcs[1*N]" + (" sums[1*N] fss[1*N]" if s else "") + (" xvs[1*N] fxs[1*N]" if X else "")
-    other = "maxes[29*sqrt(N)] bc[58*sqrt(N)]" + (" bs[58*sqrt(N)]" if s else "") + (" bx[58*sqrt(N)]" if X else "") + " cnt[1*N]"  # (as in blocks)
+    other = "maxes[20*sqrt(N)+2] bc[40*sqrt(N)+5]" + (" bs[40*sqrt(N)+5]" if s else "") + (" bx[40*sqrt(N)+5]" if X else "") + " cnt[1*N]"  # (as in blocks)
     comps["xorOfAll"] = "1"
     return dict(name="BlockFenwickMultiset", dtype="blocks-fenwick", values="online", py=keep_aggs(py, X), cpp=keep_aggs(cpp, X),
                 comps=comps, bits=(X, False, False),
 
                 mem=("none", node, "none", other),
                 note="N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again "
-                     "once N / 2 distinct values have come or gone; queries are "
+                     "once N / 2 distinct values have come or gone, or once there are more than 2 * N / size + 2 blocks; queries are "
                      "O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt; amortized: a cut now and then)")
 
 
