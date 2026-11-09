@@ -2180,8 +2180,8 @@ def avl(sums, mex, bits=(False, False, False)):
     X, O, A = bits
     agg = "".join(f", {w}" for w, on in (("xor", X), ("OR", O), ("AND", A)) if on)
     py = f'''
-# Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so every
-# operation is O(log N) worst case (height <= 1.44 log2 N). Each node keeps its value, its copies, and the copies{", sum" if s else ""}{agg}
+# Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
+# height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and the copies{", sum" if s else ""}{agg}
 # {"and distinct values " if M else ""}in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
 # nodes are reused.
 
@@ -2295,8 +2295,8 @@ class AVLMultiset:
 ''' + bst_common_py(s)
     sfield = "S s; " if s else ""
     cpp = f'''
-// Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so every
-// operation is O(log N) worst case (height <= 1.44 log2 N). Each node keeps its value, its copies, and the copies{", sum" if s else ""}{agg}
+// Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
+// height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and the copies{", sum" if s else ""}{agg}
 // {"and distinct values " if M else ""}in its subtree. Each multiset owns its node pool (freed when it goes out of
 // scope; clear() keeps it for reuse); node 0 is the empty tree and removed nodes are reused. T: an integer type; sums in S.
 template <typename T>
@@ -4958,7 +4958,7 @@ class FastSet:
                 self.mx = self.lo + self._prev(k)
 """ if minmax else "") + """        return 1
 
-    # O(N log64(U)) -- remove everything (N = values in it): as newly built, so reuse it instead of building a new one
+    # O(1) amortized, O(N log64(U)) for one call -- remove everything (N = values in it): as newly built, so reuse it instead of building a new one
     def clear(self):
         self.n = 0
 """ + ("        self.gc, self.gmin, self.gmax = {}, [], []\n" if gaps else "") + """        self._clearWords()
@@ -5136,7 +5136,7 @@ struct FastSet {
 """ if minmax else "") + """        return 1;
     }
 
-    // O(N log64(U)) -- remove everything (N = values in it): as newly built, so reuse it instead of building a new one
+    // O(1) amortized, O(N log64(U)) for one call -- remove everything (N = values in it): as newly built, so reuse it instead of building a new one
     void clear() {
         n = 0;
 """ + ("        gaps.clear();\n" if gaps else "") + """        clearData();

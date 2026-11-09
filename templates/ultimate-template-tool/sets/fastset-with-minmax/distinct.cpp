@@ -120,7 +120,7 @@ struct FastSet {
         return 1;
     }
 
-    // O(N log64(U)) -- remove everything (N = values in it): as newly built, so reuse it instead of building a new one
+    // O(1) amortized, O(N log64(U)) for one call -- remove everything (N = values in it): as newly built, so reuse it instead of building a new one
     void clear() {
         n = 0;
         clearData();

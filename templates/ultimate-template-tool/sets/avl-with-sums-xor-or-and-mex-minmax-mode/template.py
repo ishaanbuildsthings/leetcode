@@ -89,8 +89,8 @@
 #   note: N = most distinct values present at once (removed nodes are reused). C++: each multiset owns its node pool; Python: parallel lists per tree
 from random import getrandbits
 
-# Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so every
-# operation is O(log N) worst case (height <= 1.44 log2 N). Each node keeps its value, its copies, and the copies, sum, xor, OR, AND
+# Ordered multiset (online: any values, nothing known ahead): an AVL tree with one node per distinct value, so the
+# height is <= 1.44 log2 N (each operation's exact cost is on its own line). Each node keeps its value, its copies, and the copies, sum, xor, OR, AND
 # and distinct values in its subtree. Nodes live in parallel lists (a node pool; node 0 is the empty tree) and removed
 # nodes are reused.
 

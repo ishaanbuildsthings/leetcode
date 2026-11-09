@@ -15,7 +15,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DIR = os.environ.get("SETS_DIR") or os.path.join(os.path.dirname(HERE), "sets")
-TYPES = ["blocks-fenwick", "value-tree", "fenwick", "blocks", "avl", "treap", "splay", "trie", "pbds", "fastset"]
+TYPES = ["blocks-fenwick", "value-tree", "fenwick", "blocks", "avl", "treap", "splay", "trie", "pbds", "fastset", "freq-buckets"]
 
 
 def split(folder):
