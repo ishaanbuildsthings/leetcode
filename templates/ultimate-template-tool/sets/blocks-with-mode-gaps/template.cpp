@@ -49,15 +49,17 @@ using ll = long long;
 //   layout: none
 //   node: keys[1*N] cnts[1*N]
 //   tags: none
-//   other: maxes[29*sqrt(N)] bc[58*sqrt(N)] cnt[1*N]
-//   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone; each operation costs a few binary searches plus one block's worth of C-level list work
+//   other: maxes[20*sqrt(N)+2] bc[40*sqrt(N)+5] cnt[1*N]
+//   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone, or once there are more than 2 * N / size + 2 blocks; each operation costs a few binary searches plus one block's worth of C-level list work
 
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style: the distinct values in sorted blocks of
 // max(LOAD, sqrt(N) / 8), each block keeping its values' copies plus block totals, and a Fenwick tree over the
 // block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
 // once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
 // follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
-// bounds), and the O(N) cut is paid for by those N / 2 updates. A query
+// bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of them (removals can leave
+// many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by the N / 4 or more
+// updates since the last one. A query
 // finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block.
 // T: an integer type; sums in S.
 template <typename T>
@@ -137,6 +139,7 @@ struct BlockMultiset {
                     return 0;
                 }
                 maxes[k] = keys[k].back(), bc[k] += c, fen(fc, k, c);
+                if ((long long)keys.size() > 2 * d / load + 2) recut();  // too many blocks for the values: cut again
                 return 0;
             }
         }
@@ -160,11 +163,12 @@ struct BlockMultiset {
             bc[k] = accumulate(cnts[k].begin(), cnts[k].end(), 0LL);
             bc.insert(bc.begin() + k + 1, accumulate(cnts[k + 1].begin(), cnts[k + 1].end(), 0LL));
             stale = true;
+            if ((long long)keys.size() > 2 * d / load + 2) recut();  // too many blocks for the values: cut again
         }
         return c;
     }
 
-    void recut() {  // every block cut again at sqrt(N) / 8: O(N), once per N / 2 updates that add or drop a value
+    void recut() {  // every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         int size = std::max(LOAD, (int)sqrt((double)d) / 8);  // (std::: the class has its own min / max)
         due = std::max(d, (long long)LOAD * LOAD) / 2;
         if (size == load && (long long)keys.size() <= d / size + 1) return;  // same size, blocks still full on average

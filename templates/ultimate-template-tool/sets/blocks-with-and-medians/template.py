@@ -52,8 +52,8 @@
 #   layout: none
 #   node: keys[1*N] cnts[1*N]
 #   tags: none
-#   other: maxes[29*sqrt(N)] bc[58*sqrt(N)] ba[29*sqrt(N)] cnt[1*N]
-#   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone; each operation costs a few binary searches plus one block's worth of C-level list work
+#   other: maxes[20*sqrt(N)+2] bc[40*sqrt(N)+5] ba[20*sqrt(N)+2] cnt[1*N]
+#   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone, or once there are more than 2 * N / size + 2 blocks; each operation costs a few binary searches plus one block's worth of C-level list work
 from random import getrandbits
 from bisect import bisect_left, bisect_right, insort
 from functools import reduce
@@ -67,7 +67,9 @@ from operator import and_
 # block totals (rebuilt only after a block splits or empties). A block splits in half past twice the block size, and
 # once N / 2 distinct values have come or gone since the last cut, every block is cut again at that size: blocks
 # follow sqrt(N) as N grows or shrinks (small blocks are faster in practice; any constant times sqrt(N) keeps the
-# bounds), and the O(N) cut is paid for by those N / 2 updates. A query
+# bounds). The blocks are also cut again as soon as there are more than 2 * N / size + 2 of them (removals can leave
+# many small blocks), so there are never more than 20 sqrt(N) + 2. A cut is O(N), paid for by the N / 4 or more
+# updates since the last one. A query
 # finds its block by binary search (or by lifting over the block Fenwick for k-th) and then works inside one block
 # with C-level list operations.
 
@@ -144,6 +146,8 @@ class BlockMultiset:
             self.ba[k] = reduce(and_, self.keys[k], -1)
             self.bc[k] += c
             self._fen(self.fc, k, c)
+            if len(self.keys) > 2 * self.d // self.load + 2:  # too many blocks for the values: cut again
+                self._recut()
             return 0
         self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
@@ -175,9 +179,11 @@ class BlockMultiset:
             self.bc[k:k + 1] = [sum(self.cnts[k]), sum(self.cnts[k + 1])]
             self.ba[k:k + 1] = [reduce(and_, self.keys[k], -1), reduce(and_, self.keys[k + 1], -1)]
             self.fc = None
+            if len(self.keys) > 2 * self.d // self.load + 2:  # too many blocks for the values: cut again
+                self._recut()
         return c
 
-    def _recut(self):  # every block cut again at sqrt(N) / 8: O(N), once per N / 2 updates that add or drop a value
+    def _recut(self):  # every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         d = self.d
         h = max(self.LOAD, isqrt(d) >> 3)
         self.due = max(d, self.LOAD * self.LOAD) >> 1

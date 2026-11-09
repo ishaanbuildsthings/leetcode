@@ -54,8 +54,8 @@
 #   layout: none
 #   node: keys[1*N] cnts[1*N] fcs[1*N] sums[1*N] fss[1*N]
 #   tags: none
-#   other: maxes[29*sqrt(N)] bc[58*sqrt(N)] bs[58*sqrt(N)] cnt[1*N]
-#   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone; queries are O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt; amortized: a cut now and then)
+#   other: maxes[20*sqrt(N)+2] bc[40*sqrt(N)+5] bs[40*sqrt(N)+5] cnt[1*N]
+#   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone, or once there are more than 2 * N / size + 2 blocks; queries are O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt; amortized: a cut now and then)
 from random import getrandbits
 from bisect import bisect_left, bisect_right
 from itertools import accumulate, chain
@@ -68,7 +68,8 @@ from operator import and_, sub
 # tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
 # one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N), C-level).
 # A block splits in half past twice the block size, and once N / 2 distinct values have come or gone since the last
-# cut, every block is cut again at that size: the O(N) cut is paid for by those N / 2 updates.
+# cut, every block is cut again at that size, and also as soon as there are more than 2 * N / size + 2 blocks
+# (never more than 20 sqrt(N) + 2): a cut is O(N), paid for by the N / 4 or more updates since the last one.
 
 
 class BlockFenwickMultiset:
@@ -148,6 +149,8 @@ class BlockFenwickMultiset:
                 return 0
             self.maxes[k] = self.keys[k][-1]
             self._reinner(k)
+            if len(self.keys) > 2 * self.d // self.load + 2:  # too many blocks for the values: cut again
+                self._recut()
             return 0
         self.cnt[x ^ self.salt if x.__class__ is int else x] = c
         self.d += 1
@@ -189,11 +192,13 @@ class BlockFenwickMultiset:
             self.bc[k:k + 1] = [sum(self.cnts[k]), sum(self.cnts[k + 1])]
             self.bs[k:k + 1] = [sum(self.sums[k]), sum(self.sums[k + 1])]
             self._reblock()
+            if len(self.keys) > 2 * self.d // self.load + 2:  # too many blocks for the values: cut again
+                self._recut()
         else:
             self._reinner(k)
         return c
 
-    def _recut(self):  # every block cut again at sqrt(N) / 8: O(N), once per N / 2 updates that add or drop a value
+    def _recut(self):  # every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         d = self.d
         h = max(self.LOAD, isqrt(d) >> 3)
         self.due = max(d, self.LOAD * self.LOAD) >> 1

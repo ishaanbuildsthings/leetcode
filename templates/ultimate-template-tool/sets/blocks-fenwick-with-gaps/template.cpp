@@ -48,15 +48,16 @@ using ll = long long;
 //   layout: none
 //   node: keys[1*N] cnts[1*N] fcs[1*N]
 //   tags: none
-//   other: maxes[29*sqrt(N)] bc[58*sqrt(N)] cnt[1*N]
-//   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone; queries are O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt; amortized: a cut now and then)
+//   other: maxes[20*sqrt(N)+2] bc[40*sqrt(N)+5] cnt[1*N]
+//   note: N = distinct values present; blocks of max(LOAD, sqrt(N) / 8) values (LOAD: Python 64, C++ 512), all cut again once N / 2 distinct values have come or gone, or once there are more than 2 * N / size + 2 blocks; queries are O(log N), and only updates that add or drop a distinct value pay O(sqrt N) (one block rebuilt; amortized: a cut now and then)
 
 // Ordered multiset (online: any values, nothing known ahead), sqrt-style with a Fenwick tree inside every block: the
 // distinct values in sorted blocks of max(LOAD, sqrt(N) / 8), each block keeping its values' copies plus a Fenwick
 // tree over them, and a Fenwick tree over the block totals. Every query is two Fenwick walks (over blocks, then inside
 // one), so O(log N); an update that adds or drops a distinct value rebuilds its block's Fenwick (O(sqrt N)).
 // A block splits in half past twice the block size, and once N / 2 distinct values have come or gone since the last
-// cut, every block is cut again at that size: the O(N) cut is paid for by those N / 2 updates.
+// cut, every block is cut again at that size, and also as soon as there are more than 2 * N / size + 2 blocks
+// (never more than 20 sqrt(N) + 2): a cut is O(N), paid for by the N / 4 or more updates since the last one.
 // T: an integer type; sums in S.
 template <typename T>
 struct BlockFenwickMultiset {
@@ -150,6 +151,7 @@ struct BlockFenwickMultiset {
                 }
                 maxes[k] = keys[k].back();
                 reinner(k, j);
+                if ((long long)keys.size() > 2 * d / load + 2) recut();  // too many blocks for the values: cut again
                 return 0;
             }
         }
@@ -175,11 +177,12 @@ struct BlockFenwickMultiset {
             bc[k] = accumulate(cnts[k].begin(), cnts[k].end(), 0LL);
             bc.insert(bc.begin() + k + 1, accumulate(cnts[k + 1].begin(), cnts[k + 1].end(), 0LL));
             reblock();
+            if ((long long)keys.size() > 2 * d / load + 2) recut();  // too many blocks for the values: cut again
         } else reinner(k, j);
         return c;
     }
 
-    void recut() {  // every block cut again at sqrt(N) / 8: O(N), once per N / 2 updates that add or drop a value
+    void recut() {  // every block cut again at sqrt(N) / 8: O(N), at most once per N / 4 value adds / drops
         int size = std::max(LOAD, (int)sqrt((double)d) / 8);  // (std::: the class has its own min / max)
         due = std::max(d, (long long)LOAD * LOAD) / 2;
         if (size == load && (long long)keys.size() <= d / size + 1) return;  // same size, blocks still full on average
